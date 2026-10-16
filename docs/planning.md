@@ -1,278 +1,429 @@
-# Easy Edits Pro — Architectural & Product Planning Roadmap
+# Easy Edits Pro — Master Project Planning & Architecture Roadmap
 
-**Document Status:** Living Master Plan  
-**Last Updated:** 2026-10-16  
-**Architecture:** Tauri 2 (React 19 + TypeScript) + Rust Core (`saturn-core`) + GStreamer GES (`saturn-render`)  
-**Repository:** [github.com/zvirox/easy-edits-pro](https://github.com/zvirox/easy-edits-pro)
-
----
-
-## 1. Vision & Product Identity
-
-**Easy Edits Pro (EEP)** is an open-source, high-performance desktop video editor built for creators who want the editing depth of **Adobe Premiere Pro** and **DaVinci Resolve**, combined with the speed, memory safety, and hackability of a modern Rust-powered application.
-
-### Key Tenets
-
-1. **Distinct Linux Rice & Wayland Identity:**
-   Rather than copying traditional desktop NLE designs from the 2000s, Easy Edits Pro is engineered with a modern aesthetic tailored for contemporary Linux desktop rices (Hyprland, Niri, Sway, GNOME Wayland). It features an obsidian dark canvas (`#080a0f`), 1px subtle glowing borders, electric cyan (`#00f2fe`) and neon violet (`#a855f7`) accents, and tactile micro-interactions (`:active { transform: scale(0.96); }`).
-2. **Easy of Use Meets Pro Power:**
-   Beginners can jump in immediately with a clean Welcome Screen, simplified Import/Edit/Export workspaces, smart presets, and one-click shortcuts. Professional editors gain access to multi-track compositing, sample-accurate audio, keyframed bezier curves, GStreamer hardware-accelerated exports, and a headless JSON Lines automation protocol.
-3. **Rock-Solid Core Architecture:**
-   Inspired by the architectural rigor of projects like **FilmCraft**, all editing operations, timeline invariants, undo/redo history, and schema migrations belong to a framework-independent Rust engine (`saturn-core`). The Tauri/React UI acts as a clean presentation and interaction layer.
+**Document Status:** Master Living Architecture & Execution Roadmap  
+**Framework:** Rust Core (`saturn-core`, `saturn-render`) + Tauri 2 (Desktop Shell) + React 19 / TypeScript + CSS (Modern Linux Rice UI)  
+**Repository:** [github.com/zvirox/easy-edits-pro](https://github.com/zvirox/easy-edits-pro)  
 
 ---
 
-## 2. Architectural Foundation & Engineering Principles
+# Part 1: Pro Video Editor Roadmap (Rust + Tauri + TypeScript)
 
-```mermaid
-flowchart TD
-    subgraph UI ["Presentation Layer (Tauri 2 + React 19)"]
-        WS["Workspaces: Import / Edit / Export"]
-        TL["Timeline & Multi-Track Canvas"]
-        PM["Program Monitor & Glassmorphism Overlays"]
-        IN["Inspectors: Clips, Transitions, Titles, Audio"]
-    end
+A phase-wise plan for building a desktop video editor (Premiere Pro / DaVinci Resolve style) with **Rust** for the engine, **Tauri** as the desktop shell, and **TypeScript + CSS** for the UI.
 
-    subgraph IPC ["Tauri IPC & Command Protocol"]
-        Bridge["Type-Safe Rust <-> TS Command Bridge"]
-    end
+> **Reality check first.** Resolve and Premiere took hundreds of engineers and decades. You can't clone them solo, but you can build a genuinely good editor in stages. Ship a small, solid **MVP (Phases 0-6)** first, then grow. Every phase below ends with something usable.
 
-    subgraph Core ["Engine Core (saturn-core)"]
-        Doc[".saturn Project Document (Versioned Schema)"]
-        Time["Exact Rational Time & Tick Math"]
-        Mut["Mutation Engine with Invariants"]
-        Undo["Snapshot Undo / Redo Manager"]
-    end
+---
 
-    subgraph Render ["Media & Export Engine (saturn-render)"]
-        GES["GStreamer Editing Services (Pipeline Compiler)"]
-        HW["Hardware Acceleration (NVENC / VA-API / QSV)"]
-        Audio["Audio Waveform Peak Decoder"]
-        Proxy["Cached VP8/WebM Proxy Generator"]
-    end
+## 1. The Big Architecture Decision
 
-    UI <--> IPC
-    IPC <--> Core
-    Core --> Render
+The hardest part of this project is **video preview inside a webview**. Get this right early.
+
+### The problem
+Tauri's UI runs in the system webview (WebView2 on Windows, WKWebView on macOS, WebKitGTK on Linux). Webview `<video>` tags:
+- Support only some codecs (no ProRes, no most pro formats, weak H.265).
+- Can't do **frame-accurate seeking** or multi-layer compositing.
+- Behave differently on each OS (Linux WebKitGTK is the weakest).
+
+So: **don't use `<video>` as your engine.** Use it only for quick throwaway previews at most.
+
+### Recommended approach
+
+| Layer | Responsibility | Tech |
+|---|---|---|
+| **Engine (Rust)** | Decode, composite, effects, audio mix, export | FFmpeg / GStreamer, wgpu, cpal |
+| **State (Rust)** | Project/timeline data, undo/redo (source of truth) | serde, command pattern |
+| **Bridge** | Commands, events, frame streaming | Tauri commands, `Channel`, custom URI protocol, streaming HTTP server |
+| **UI (TS)** | Timeline, panels, inspector, interaction | React/Solid/Svelte + Canvas + CSS |
+
+**Golden rule:** Rust owns the project state. The UI is a *view* that sends commands (`split_clip`, `move_clip`) and re-renders from state snapshots/diffs.
+
+### Preview strategies (pick one, evolve later)
+
+1. **Frame streaming (start here).** Rust decodes + composites a frame, sends it to the UI (custom URI scheme or `tauri::ipc::Channel` with raw bytes), UI draws to `<canvas>` / WebGL. Simple and cross-platform. Cost: copy overhead, so use proxies and lower preview resolution.
+2. **WebCodecs in the webview.** Use the browser `VideoDecoder` for H.264/VP9/AV1 with hardware acceleration. Fast, but limited by webview codec support.
+3. **Native wgpu surface.** Render directly into a native child window/surface layered over the UI preview area. Best performance, hardest to integrate (window layering, per-OS quirks). Target this for Phase 14+.
+
+Start with **#1**, design the engine so the output sink can be swapped to #3 later.
+
+---
+
+## 2. Tech Stack
+
+### Rust crates
+| Need | Crate / Tool |
+|---|---|
+| Decode/encode/mux | `ffmpeg-next` / `gstreamer` + `gstreamer-editing-services` |
+| GPU rendering & effects | `wgpu` + WGSL shaders |
+| Audio playback | `cpal` (+ `rodio` for simple cases) |
+| Audio decode / DSP | `symphonia`, `rubato` (resampling), `fundsp` |
+| Serialization | `serde`, `serde_json` / `rmp-serde` |
+| Project storage | JSON file, or `rusqlite` for large projects |
+| Async / threads | `tokio`, `crossbeam`, `rayon` |
+| Image handling | `image` |
+| Logging / errors | `tracing`, `thiserror`, `anyhow` |
+| Transcription | `whisper-rs` (whisper.cpp) |
+| ML inference | `ort` (ONNX Runtime) |
+| Testing | `cargo test`, `criterion` (benchmarks), `insta` (snapshots) |
+
+### Frontend
+- **Tauri 2**, **Vite**, **TypeScript (strict)**
+- UI framework: **React 19** (fine-grained components, vast ecosystem).
+- State: Custom reactive store mirroring Rust state snapshots without duplicating business logic.
+- Timeline rendering: Multi-track virtualized timeline with SVG waveform rendering and canvas layers.
+- Styling: CSS variables for theming, CSS Grid for panel layouts, glassmorphic obsidian Linux rice design.
+- Testing: Vitest, Playwright E2E smoke tests.
+
+### Suggested repo layout
+
+```text
+easy-edits-pro/
+├─ Cargo.toml                 # workspace
+├─ crates/
+│  ├─ saturn-core/            # time types (rational ticks), project model, commands, undo/redo, save/load
+│  ├─ saturn-render/          # GStreamer GES compositor, effects, transitions, hardware encode, export
+│  └─ saturn-cli/             # headless command line batch editor & inspection tool
+├─ apps/
+│  └─ saturn-tauri/           # Tauri desktop app: IPC bridge, local media streaming server, window management
+│     ├─ src/                 # Rust backend: media server, proxy generator, dialogs, Openverse stock, local AI
+│     └─ ui/                  # TypeScript / React 19 UI (timeline, monitors, bin, inspector, workspaces)
+└─ docs/                      # Architecture, protocols, and planning documentation
 ```
 
-1. **Single Source of Truth:** All project state mutations flow through deterministic Rust commands (`saturn-core`). Every command features parameter validation, invariant checking, undo/redo serialization, and atomic persistence.
-2. **Exact Rational Time Math:** Timeline time is maintained using 64-bit integer ticks mapped to rational frame and sample rates. Floating-point conversions happen only at the outer rendering and UI boundaries to prevent cumulative frame drift.
-3. **Preview & Export Render Parity:** The live Program Monitor and the final GStreamer export pipeline share identical compositing rules, transition curves, color transforms, and title overlays.
-4. **Resilient Document Persistence:** Project files (`.saturn`) use explicit schema versions with migration paths, atomic write-replace file strategies, and automatic recovery from unsaved sessions.
-5. **Continuous Verification:** Every editing workflow must be backed by unit tests, property tests, and Playwright end-to-end acceptance tests.
+---
+
+## 3. Core Design Rules
+
+1. **Time = integers, never floats.** Use a rational timebase (Easy Edits Pro uses `TICKS_PER_SECOND = 254_016_000_000` which divides 24, 25, 30, 48, 50, 60, 23.976, 29.97, 59.94 fps and 44.1k/48k/96k audio cleanly). Float time causes drift and off-by-one-frame bugs.
+2. **Non-destructive editing.** The project stores *references + instructions*, never modifies source media.
+3. **Command pattern for everything.** Each edit is a reversible command → undo/redo and collaboration come almost free.
+4. **Immutable-ish timeline snapshots** so the render thread can read a consistent version while the UI edits.
+5. **Pull-based render graph.** For a given timeline time `t`, build and evaluate a graph: decode → effects → composite → output.
+6. **Separate threads:** UI thread, decode threads, render thread, audio thread (real-time, never block, no allocations, no locks).
+7. **Audio is the master clock.** Sync video to audio playback position, not the reverse.
+8. **Cache aggressively:** decoded frames (LRU), thumbnails, waveforms, rendered effect segments.
 
 ---
 
-## 3. Comprehensive Multi-Phase Roadmap
-
-| Phase | Title | Priority | Status | Description & Core Deliverables |
-|---|---|---|---|---|
-| **Phase 0** | **Reliability Baseline & Core Interaction** | P0 | **Completed** | Welcome screen, multi-file media import, drag-and-drop pointer placement with frame snapping, playhead scrubbing, transport controls, split/move/ripple delete, atomic save/restore, and Playwright E2E smoke suite. |
-| **Phase 1** | **Transitions, Titles & Waveform Visualization** | P0 | **Completed** | Video/audio transitions (`Crossfade`, `Dip to Black`, `Dip to White`, `Wipe`, `Slide`) with timeline handles and GES rendering; glassmorphic Title & Lower-Third graphics with live monitor overlay and GES title export; GStreamer peak audio waveform generation and SVG rendering; Hyprland/Niri modern UI polish and pro shortcuts. |
-| **Phase 2** | **Playback & Render Consistency, Background Jobs** | P0 | **Next Up** | Shared frame evaluation path between preview and export; background decode/render workers with cancellation and cache invalidation; frame-accurate audio/video synchronization across cuts and gaps. |
-| **Phase 3** | **Core Effects Stack, Video Filters & Color Grading** | P1 | **Scheduled** | Composable, typed effect stack replacing hardcoded fields; effect registry (Transform, Opacity, Brightness, Saturation, Blur, Crop, Vignette, Chroma Key); keyframe parameter animation; real-time video scopes (Waveform, Vectorscope, Histogram). |
-| **Phase 4** | **Multi-Track Audio Mixing Console, Automation & DSP** | P1 | **Scheduled** | Dedicated audio mixer workspace with per-track faders, pan dials, and peak VU meters; interactive rubber-band volume envelopes; audio DSP suite (Parametric EQ, Compressor, Noise Gate, Reverb); high-fidelity export mixing. |
-| **Phase 5** | **Advanced Editing Workflows, Curve Editor & Trimming** | P1 | **Scheduled** | Bezier keyframe graph editor for smooth velocity curves and speed ramps; professional trimming tools (Ripple Edit, Rolling Edit, Slip, Slide, Rate Stretch); multi-track compound sequences / nested clips; markers and chapter points. |
-| **Phase 6** | **Media Management, Proxies, Relinking & Delivery Queue** | P2 | **Scheduled** | Offline media detection and batch relinking; project consolidation/bundler for portable archiving; automatic background proxy generation with 1-click toggle; non-blocking background batch export queue with presets and hardware encoder selection. |
-| **Phase 7** | **Product Polish, AI Smart Actions & Linux Ecosystem** | P2 | **Scheduled** | Timeline-aware AI actions (scene cut detection, silence removal, auto-captions via Whisper); dockable/customizable workspaces; keyboard shortcut presets (Premiere, DaVinci, FCP layouts); verified Linux packaging (Flatpak, AppImage, Arch PKGBUILD, Debian, RPM). |
+## 4. The 16-Phase Execution Roadmap
 
 ---
 
-## 4. Phase-by-Phase Deep Dive
-
-### Phase 0: Reliability Baseline & Core Interaction Acceptance
-**Status: Completed & Baseline Established**
-
-- **Project Initialization & Recovery:**
-  - Responsive Welcome screen allowing new project creation with custom resolution and frame rate presets (1080p24, 1080p30, 1080p60, 4K24, 4K60, Custom).
-  - Recent projects list with fast load and missing project notification.
-  - Recovery flow for interrupted or crashed sessions.
-- **Media Ingest & Metadata Discovery:**
-  - Multi-file native dialog import.
-  - GStreamer metadata discovery extracting codec, dimensions, frame rate, duration, and audio channel count.
-  - Searchable Project media card grid and list view.
-- **Timeline Interaction & Drag-and-Drop:**
-  - Pointer drag-and-drop from Project panel onto video and audio tracks with visual drop target and frame snapping.
-  - Draggable orange playhead supporting smooth scrubbing.
-  - Transport controls: Play/pause (`Space`), seek, single-frame stepping (Left/Right arrow keys).
-  - Core timeline operations: Split clip at playhead (`Ctrl+K`), move clip across tracks, delete / ripple-delete (`Delete` / `Backspace`).
-  - Timeline zoom in/out with track header controls.
-- **Verification:**
-  - Automated Playwright smoke test (`apps/saturn-tauri/scripts/editor-smoke.mjs`) verifying project creation, media placement, seeking, playback, zooming, and clip movement with mocked Tauri IPC.
+### Phase 0: Foundations & Learning
+**Goal:** Learn just enough to not get stuck later.
+- Rust: ownership, traits, error handling, threads/channels, `async`, `unsafe` basics (FFI).
+- Tauri 2: commands, events, state, plugins, capabilities/permissions, sidecars.
+- Video fundamentals: containers vs codecs, frames, GOP / keyframes / B-frames, pixel formats (YUV 4:2:0 vs RGB), color spaces, timebase, PTS/DTS, variable frame rate.
+- Audio fundamentals: sample rate, channels, buffers, resampling.
+- GPU basics: wgpu, textures, shaders (WGSL), render passes.
+- **Exit criteria:** You can decode any frame of a video by number from Rust.
 
 ---
 
-### Phase 1: Video & Audio Transitions, Title Graphics & Waveform Visualization
-**Status: Completed**
-
-- **Video & Audio Transitions:**
-  - **Data Model:** `TransitionKind` (`Crossfade`, `DipToBlack`, `DipToWhite`, `WipeLeft`, `WipeRight`, `SlideLeft`, `SlideRight`) and `Transition` struct in `saturn-core` tracking `id`, `kind`, `cut_time`, and `duration`.
-  - **Timeline UI:** Visual transition badges positioned directly at clip cut points, clickable selection, real-time duration slider handle, and dedicated Transition Inspector panel.
-  - **Shortcuts:** `Ctrl+D` to apply default Crossfade transition to the cut nearest to the playhead.
-  - **Export Rendering:** Compiled directly into GStreamer Editing Services pipeline using `ges::TransitionClip`, supporting both cross-dissolves, SMPTE wipes/slides, and dip-to-color effects in final MP4 and WebM exports.
-- **Title & Lower-Third Graphics:**
-  - **Data Model:** `MediaKind::Title` with `TitleProperties` in `saturn-core` storing main text, subtitle, layout style (`center_title`, `lower_third`, `minimal_pill`), font size, text color, background color, opacity, and X/Y coordinates.
-  - **Timeline UI:** Distinct neon-violet timeline clips for titles, draggable placement, split, and duration trimming.
-  - **Shortcuts:** `Ctrl+T` to instantly create and insert a new Title Graphic clip at the playhead.
-  - **Inspector Panel:** Full Title & Graphic Inspector with live text editing, style selection, color pickers, opacity slider, and position dials.
-  - **Program Monitor Overlay:** Live backdrop-filtered glassmorphic overlay rendered on top of the video preview with real-time CSS backdrop blur, vibrant typography, and responsive scaling.
-  - **Export Rendering:** GStreamer Editing Services pipeline compiler maps title clips into `ges::TitleClip` overlays with matching text, styling, and positioning in final exports.
-- **Audio Waveform Visualization:**
-  - **Peak Amplitude Decoding:** GStreamer audio decoding pipeline (`generate_waveform_peaks`) extracting normalized peak amplitudes into 100-bin arrays per audio track.
-  - **Timeline Rendering:** Real-time mirrored SVG waveforms rendered across audio clips on the timeline with neon cyan styling, providing visual cues for cuts and audio beats.
-- **Modern Linux Desktop Rice Styling (Hyprland / Niri) & Pro NLE UI Fusion:**
-  - **DaVinci Resolve 2026 Workspace Bar:** Sequential workflow pages (`Media` Shift+1, `Edit` Shift+2, `Color` Shift+3, `Audio` Shift+4, `Effects` Shift+5, `Deliver` Shift+6) unifying media management, multi-track timeline editing, color grading, Fairlight audio mixer, keyframe motion, and file delivery.
-  - **Wondershare Filmora 15 Left Asset Panel:** Visual tabbed navigation (`Media`, `Titles`, `Transitions`, `Audio`, `Stock`, `AI Tools`) featuring instant 1-click visual preset cards for Title templates (`Broadcast Lower-Third`, `Minimal Pill`, `Cinematic Headline`, `Cyber Neon`, `Documentary Card`, `Framed Banner`) and Transitions (`Crossfade`, `Dip to Black`, `Dip to White`, `Wipe Left/Right`, `Slide Left/Right`).
-  - **Adobe Premiere Pro Timeline Tool Rail:** Dedicated vertical editing tool rail with single-key shortcuts: Selection Tool (`V`), Track Select Forward (`A`), Ripple Edit (`B`), Razor (`C`), Slip (`Y`), Keyframe Pen (`P`), Hand Pan (`H`), and Zoom (`Z`).
-  - **Universal Hover Tooltips:** Automatic floating tooltips with smooth cubic-bezier transitions displaying the tool/action name and keyboard shortcut on hover across all tools, menus, workspace buttons, and timeline controls.
-  - **Theme System (Dark / Light Mode):** Dynamic CSS variable theming with an instant header switcher (`Ctrl+Alt+T`) between Obsidian Dark Linux Rice (`#080a0f`) and Pro Studio Clean Slate (`#f1f5f9`), persisted via `localStorage`.
-  - Obsidian dark canvas (`#080a0f`), translucent glassmorphic panels, subtle 1px border glows, electric cyan (`#00f2fe`) and neon violet (`#a855f7`) accents.
-  - Tactile micro-interactions on button clicks (`:active { transform: scale(0.96); }`), smooth hover transitions, and clean typography with bundled Inter Variable font.
+### Phase 1: Project Setup & Architecture Skeleton
+**Goal:** A running app with the right bones.
+- Set up Cargo workspace and crate layout (`saturn-core`, `saturn-render`, `apps/saturn-tauri`).
+- Type-safe bridge, error types shared across Rust/TS.
+- Dockable layout shell: **Media Bin | Preview | Inspector | Timeline**.
+- Theming with CSS variables (Obsidian Dark Linux Rice + Clean Slate Light).
+- Logging, CI, lint/format (clippy, rustfmt).
+- Core types: rational `Tick`, `FrameRate`, `ProjectDocument` schema v1-v4.
+- **Exit criteria:** App launches on all target OSes, panels resize, Rust ↔ TS calls are typed.
 
 ---
 
-### Phase 2: Playback & Render Consistency, Frame Evaluation & Background Jobs
-**Priority: P0 — Next Up**
-
-- **Shared Frame Evaluation Architecture:**
-  - Unify the frame evaluation model between the preview monitor and export rendering pipeline.
-  - Ensure that clip transforms, color grading adjustments, opacity levels, and transition phases produce visually identical results at any given timestamp.
-- **Background Worker & Job Management:**
-  - Implement a dedicated background job manager in `saturn-core` with support for cooperative cancellation, task prioritization, and progress reporting.
-  - Offload heavy tasks: proxy generation, thumbnail extraction, audio peak decoding, and export rendering.
-  - Intelligent cache invalidation: invalidate proxy/waveform caches when source media is modified or relinked.
-- **Frame-Accurate Transport & Synchronization:**
-  - Zero-drift audio/video synchronization across edit cuts, gaps, and mixed frame rate clips (e.g., 23.976 fps, 29.97 fps, 60 fps).
-  - Jitter-free playhead scrubbing with debounced proxy frame seeking.
-- **Render Status & Feedback Surface:**
-  - Subtle, non-blocking UI status pill indicating active background tasks (e.g., "Generating proxies (45%)", "Decoding waveforms").
-  - Detailed error reporting modal for hardware encoder failures with automatic fallback to software encoding.
+### Phase 2: Media Import & Library
+**Goal:** Bring media in and browse it.
+- Import via file dialog + drag and drop.
+- Probe analysis: codec, resolution, fps, duration, audio channels.
+- **Thumbnails / filmstrips:** generate in background worker, cache on disk.
+- **Audio waveforms:** compute peak amplitudes, store as binary/normalized bins, render as SVG.
+- **Proxy generation:** background transcode to low-res intra-frame codec (VP8/WebM 720p) for smooth editing.
+- Bins/folders, rename, tags, basic search, missing-media detection and relink.
+- Job queue with progress events and cancellation support.
+- **Exit criteria:** Drop in 50 clips, see thumbnails and waveforms, proxies build in the background.
 
 ---
 
-### Phase 3: Core Effects Stack, Video Filters & Color Grading
-**Priority: P1 — Scheduled**
-
-- **Composable, Typed Effect Stack:**
-  - Replace monolithic fixed color fields with an ordered, extensible effect stack on clips and adjustment layers.
-  - Each effect implements a standardized parameter schema with validation, defaults, and serializable state.
-- **Core Video Effects Registry:**
-  - **Transform & Geometry:** Position (X, Y), Scale (Uniform / Non-uniform), Rotation, Anchor Point, Opacity.
-  - **Color & Tone:** Brightness, Contrast, Saturation, Exposure, Highlights/Shadows, White Balance (Temperature / Tint), Hue Shift.
-  - **Stylize & Filter:** Gaussian Blur, Directional Blur, Sharpen, Crop, Edge Vignette.
-  - **Keying:** Chroma Key / Green Screen removal with color tolerance and edge despill.
-- **Keyframe Parameter Animation:**
-  - Allow adding keyframes to any numeric effect parameter directly from the Inspector.
-  - Timeline keyframe track view displaying keyframe diamonds at specific timestamps.
-- **Real-Time Video Scopes:**
-  - Waveform Monitor (Luma / RGB Parade) for precise exposure and dynamic range analysis.
-  - Vectorscope for skin tone line verification and color saturation monitoring.
-  - Real-time RGB Histogram.
+### Phase 3: Timeline Data Model & UI
+**Goal:** A timeline you can arrange clips on.
+- **Rust side (`saturn-core`):**
+  - Entities: `Project → Sequence → Track → Clip`, plus `Transition`, `Title`, `ColorAdjustments`, `Keyframe`.
+  - Clip fields: source ref, source in/out, timeline start, duration, keyframes, color adjustments.
+  - Command system + undo/redo stack (`AddClip`, `MoveClip`, `TrimClip`, `SplitClip`, `DeleteClip`, `RippleDelete`).
+  - Save/load project (versioned `.saturn` JSON with schema migration v1→v4).
+  - Auto-save + crash-recovery file.
+- **UI side:**
+  - Multi-track timeline: time ruler, tracks, clips with waveforms, playhead.
+  - Zoom/scroll (horizontal + vertical), track height, add/remove/lock/mute/solo tracks.
+  - Drag clips from Media Bin to tracks; move clips between tracks.
+  - Selection, snapping to playhead/clip edges.
+- **Exit criteria:** Build a multi-track edit, save, reopen, undo/redo reliably.
 
 ---
 
-### Phase 4: Multi-Track Audio Mixing Console, Automation & DSP
-**Priority: P1 — Scheduled**
-
-- **Multi-Track Audio Mixer Workspace:**
-  - Dedicated Audio workspace featuring vertical channel strips for each timeline audio track plus a Master Bus strip.
-  - Per-track controls: Long-throw volume fader, pan dial (-100% Left to +100% Right), Mute (`M`), Solo (`S`), and Record/Arm buttons.
-  - Real-time peak VU meters with multi-segment color gradation (Green / Yellow / Red clip warning).
-- **Interactive Automation Envelopes & Fades:**
-  - Rubber-band volume and pan envelope lines drawn directly over timeline audio clips.
-  - Draggable keyframe nodes on the clip audio envelope for smooth volume dips (e.g., ducking background music under dialogue).
-  - Interactive clip-level audio fade-in and fade-out handles on clip edges.
-- **Audio DSP Suite:**
-  - **Parametric EQ:** Multi-band equalizer (Low Shelf, High Shelf, Peaking filters) with interactive frequency curve visualization.
-  - **Dynamic Processing:** Compressor with Threshold, Ratio, Attack, Release, and Make-up Gain controls; Noise Gate.
-  - **Time & Space:** Reverb and Delay effects for spatial depth.
-- **Broadcast Delivery & Loudness Compliance:**
-  - Integrated LUFS loudness metering (Integrated, Short-term, Momentary) supporting EBU R128 and ATSC A/85 standards.
-  - High-fidelity sample rate conversion (44.1 kHz, 48 kHz, 96 kHz) and multi-channel surround mapping (Stereo, 5.1).
+### Phase 4: Playback Engine ⚠️ Hardest Phase
+**Goal:** Press play and see/hear the timeline.
+- **Decode pipeline:** per-source decoder with seek-to-keyframe + decode-forward; frame cache (LRU); prefetch ahead of playhead; hardware decode via GStreamer/FFmpeg hwaccel.
+- **Compositor:** composite multiple layers with position/scale/opacity.
+- **Audio engine:** decode → resample → mix tracks → audio callback as master clock.
+- **A/V sync:** video frame selected by audio clock; drop or repeat frames when behind.
+- **Preview transport:** play/pause, JKL shuttle, frame step, loop, scrub (low-latency seek).
+- **Preview delivery:** local HTTP byte-range media streaming server (`HTTP 206 Partial Content`) for WebKitGTK Linux stability.
+- **Exit criteria:** Smooth 1080p playback of a 3-track edit with synced audio; scrubbing feels responsive.
 
 ---
 
-### Phase 5: Advanced Editing Workflows, Curve Editor & Precision Trimming
-**Priority: P1 — Scheduled**
-
-- **Bezier Keyframe Curve Editor:**
-  - Visual curve graph panel displaying parameter values over time.
-  - Bezier tangent handles for customizable acceleration and deceleration curves (Ease In, Ease Out, Custom Bezier).
-  - Speed Ramping tool: smoothly transition clip playback speed from 100% to 500% or down to 20% slow motion with optical flow / frame blending.
-- **Professional Trimming Toolset:**
-  - **Ripple Edit (`B`):** Trim a clip while automatically closing gaps downstream across all unlocked tracks.
-  - **Rolling Edit (`N`):** Adjust the edit point between two adjacent clips without altering the overall sequence duration.
-  - **Slip Tool (`Y`):** Change the source in and out points of a clip while maintaining its position and duration on the timeline.
-  - **Slide Tool (`U`):** Move a clip along the timeline while adjusting the adjacent clips' head and tail to accommodate the move.
-  - **Rate Stretch Tool (`X`):** Interactively drag clip boundaries to re-time playback speed.
-- **Compound Sequences & Multi-Track Nesting:**
-  - Select multiple clips across multiple tracks and collapse them into a single nested compound clip.
-  - Double-click a compound clip to open and edit its internal sequence in a dedicated timeline tab.
-- **Timeline & Clip Markers:**
-  - Add color-coded markers (`M`) to timeline rulers or individual clips with notes and URL links.
-  - Export sequence chapter markers directly into MP4/MKV metadata.
+### Phase 5: Core Editing Tools
+**Goal:** Everything in the "basic editor" list works.
+- **Cut / Split (razor):** `SplitClip` at playhead (`Ctrl+K` / Razor `C`).
+- **Trim:** Drag clip boundaries with live edit-point update.
+- **Ripple edit / delete:** Shift following clips on affected tracks (`Shift+Delete` / Ripple tool `B`).
+- **Roll / slip / slide:** Adjust adjacent clip edges / shift source window (`SlipClip` / Slip tool `Y`).
+- **Select / move / snap:** Selection tool (`V`), Track Select Forward (`A`), frame snapping (`S`).
+- **Copy / paste / duplicate:** Clipboard of clip definitions.
+- **In / Out marks:** Three-point editing (`I` / `O` marks, clear marks).
+- **Keyboard shortcuts:** Central keymap matching professional NLE workflows.
+- **Exit criteria:** Edit a 5-minute video entirely by keyboard.
 
 ---
 
-### Phase 6: Media Management, Proxies, Relinking & Delivery Queue
-**Priority: P2 — Scheduled**
-
-- **Media Management & Relinking:**
-  - Automatic detection of missing or relocated media assets upon project load.
-  - Interactive Relink Dialog with fuzzy search, directory scanning, and batch path replacement.
-  - **Project Consolidate / Archive:** Collect all referenced source media, trimmed to used ranges or copied in full, into a self-contained project bundle directory.
-- **Automated Proxy Workflow:**
-  - Background generation of lightweight editing proxies (e.g., ProRes Proxy or 720p VP8) for heavy 4K/8K, H.265, or RAW camera formats.
-  - Global toggle button ("Use Proxies" / "Use Originals") in the Program Monitor for instant switching between smooth editing and full-quality export.
-- **Batch Export Delivery Queue:**
-  - Non-blocking export queue panel allowing multiple export jobs to be queued and rendered sequentially in the background.
-  - Export presets for major platforms: YouTube (4K/1080p), Vimeo, TikTok/Instagram Reels (9:16 vertical), ProRes Master, High-Quality WebM.
-  - Advanced encoder controls: Variable vs Constant Bitrate (CBR/VBR), GOP size, profile/level selection, hardware encoder choice (NVIDIA NVENC, Intel Quick Sync, VA-API, Apple VideoToolbox / software x264).
+### Phase 6: Export MVP → v0.1 Release
+**Goal:** Get a finished video out.
+- Render pipeline: run compositor/audio mixer offline → feed frames to encoder.
+- GStreamer Editing Services (`ges::Timeline`) pipeline compilation into MP4 (`vah264enc`/`nvh264enc`/`qsvh264enc`/`x264enc`) and WebM (`vp8enc`).
+- Presets: YouTube 1080p/4K, TikTok/Instagram 9:16 vertical, custom resolution/fps.
+- Range export: In/Out marked range export.
+- Progress reporting, cancel support, atomic output writing.
+- **Exit criteria:** Import → edit → export video that plays cleanly in VLC, YouTube, and mobile devices.
 
 ---
 
-### Phase 7: Product Polish, AI Smart Actions, Extensibility & Ecosystem
-**Priority: P2 — Scheduled**
-
-- **AI-Assisted Smart Editing Actions:**
-  - **Scene Cut Detection:** Automatically analyze imported long takes and slice them into individual timeline clips at camera cuts.
-  - **Smart Silence & Filler Removal:** Automatically detect and ripple-delete pauses, dead air, and filler sounds in speech audio tracks.
-  - **Auto-Captioning & Subtitle Generation:** Local, offline speech-to-text powered by embedded Whisper models, generating synchronized subtitle tracks.
-- **Workspace Customization & Extensibility:**
-  - Freely resizable, dockable, and detachable workspace panels with persistent user layout profiles.
-  - Keyboard shortcut customizer with preset emulation for Adobe Premiere Pro, DaVinci Resolve, and Final Cut Pro.
-- **Linux Rice Ecosystem & Distribution:**
-  - First-class support for Wayland compositors (Hyprland, Niri, Sway, KDE Wayland, GNOME Wayland) with fractional scaling and smooth window tiling.
-  - Official release packages: Flatpak on Flathub, portable AppImage, Arch Linux `PKGBUILD` (AUR), Debian (`.deb`), and RPM (`.rpm`).
+### Phase 7: Video Adjustments, Transitions & Keyframes
+**Goal:** Look-and-motion toolkit.
+- **Transform:** position (X, Y), scale, rotation, opacity via keyframes.
+- **Keyframe system:** animatable parameters (`PositionX`, `PositionY`, `Scale`, `Rotation`, `Opacity`), linear and bezier interpolation.
+- **Transitions:** `Crossfade`, `DipToBlack`, `DipToWhite`, `WipeLeft`, `WipeRight`, `SlideLeft`, `SlideRight` with visual timeline badges, handles, and GES compilation.
+- **Effect stack architecture:** metadata + parameter schema + shader/GStreamer element.
+- **Exit criteria:** Animate a title or logo flying in; crossfade and wipe smoothly between clips.
 
 ---
 
-## 5. Target Feature Parity Matrix
-
-| Workflow / Feature Area | Easy Edits Pro (Target) | FilmCraft | Adobe Premiere Pro | DaVinci Resolve |
-|---|---|---|---|---|
-| **Core Engine** | Rust (`saturn-core`) | Rust engine crates | C++ native engine | C++ / CUDA / Metal engine |
-| **Desktop Shell** | Tauri 2 (React + Vite) | Slint / Web / CLI | Custom Adobe UI | Custom Qt/Fairlight UI |
-| **Linux Desktop Identity** | Hyprland/Niri Obsidian Rice | Minimal dark desktop | Not natively supported | Traditional pro NLE |
-| **Video & Audio Transitions** | **Supported** (GES transitions, handles) | Supported (engine) | Full transition library | Full transition library |
-| **Title & Lower-Third Graphics** | **Supported** (Glassmorphic + GES) | Supported (text/captions) | Essential Graphics / MOGRT | Fusion Title templates |
-| **Audio Waveforms** | **Supported** (GStreamer peaks, SVG) | Planned / Engine | Multi-channel audio peaks | Fairlight precision peaks |
-| **Audio Mixing Console** | Planned (Phase 4) | Engine mixing | Fairlight / Mixer panel | Fairlight DAW integration |
-| **Effects & Filters** | Planned (Phase 3 stack) | Registry in progress | Extensive effect library | Node-based Color / OFX |
-| **Keyframe Curve Editor** | Planned (Phase 5 Bezier) | Graph editor planned | Effect Controls curve | Spline / Curve editor |
-| **Advanced Trimming** | Planned (Phase 5) | Planned | Ripple/Roll/Slip/Slide | Ripple/Roll/Slip/Slide |
-| **Export Engine** | GStreamer GES + HW accel | CPU / Custom GPU | Adobe Media Encoder | DaVinci Deliver page |
-| **Batch Delivery Queue** | Planned (Phase 6) | In progress | Media Encoder queue | Deliver render queue |
-| **AI Smart Cuts / Captions** | Planned (Phase 7 Whisper/Ollama) | Agent command API | Speech-to-Text / Auto-cut | DaVinci Neural Engine |
+### Phase 8: Color & Visual Effects
+**Goal:** Color correction and stylistic effects.
+- **Basic correction:** exposure, brightness, contrast, saturation, temperature, tint, highlights/shadows.
+- **LUT support:** parse `.cube`, apply 3D LUT.
+- **Filters/effects:** gaussian blur, sharpen, vignette, glow, chromatic aberration.
+- **Chroma key:** green/blue screen picker, tolerance, edge despill.
+- **Masks:** shape masks (rectangle, ellipse, bezier) with feathering.
+- **Linear-light pipeline:** float16/float32 color math.
+- **Exit criteria:** Green-screen a subject onto a background, color-grade, and apply a LUT.
 
 ---
 
-## 6. Development Workflow & Acceptance Criteria
+### Phase 9: Text, Titles, Captions & Graphics
+**Goal:** Titles, lower-thirds, and subtitles.
+- Glassmorphic Title & Lower-Third graphics engine with live Program Monitor backdrop-filter overlay.
+- Properties: text, subtitle, layout style, font size, text color, background color, opacity, coordinates.
+- Presets: Broadcast Lower-Third, Minimal Pill, Cinematic Headline, Cyber Neon, Documentary Card, Framed Banner.
+- Export rendering: compiled directly into `ges::TitleClip` for MP4/WebM output.
+- Subtitle tracks: SRT/VTT import/export, styled captions.
+- **Exit criteria:** Video with animated lower-third name title and burned-in styled subtitles.
 
-When implementing each phase:
-1. **Engine First:** Implement core data structures, commands, undo/redo handling, and tests in `saturn-core`.
-2. **Render Integration:** Implement pipeline compilation and export handling in `saturn-render`.
-3. **UI & Micro-Interactions:** Connect Tauri IPC commands, build ergonomic React components, and adhere strictly to the Linux rice design guidelines.
-4. **Automated Verification:** Add unit tests in Rust and expand the Playwright end-to-end test suite (`apps/saturn-tauri/scripts/editor-smoke.mjs`) to verify new functionality.
-5. **Documentation & Release:** Update the roadmap status table and user-facing documentation before merging.
+---
+
+### Phase 10: Professional Audio
+**Goal:** Audio that doesn't embarrass you.
+- Per-clip and per-track gain (dB), pan, fades, mute (`M`), solo (`S`).
+- Dedicated Fairlight-style Audio Mixer workspace with channel strips, faders, pan dials, master bus.
+- Real-time peak VU meters with multi-segment color gradation.
+- Effect chain: Parametric EQ, Compressor, Limiter, Noise Gate, Reverb.
+- Noise reduction: RNNoise integration (`nnnoiseless`).
+- Broadcast compliance: integrated LUFS loudness metering (EBU R128).
+- **Exit criteria:** Clean a noisy voice clip, duck background music under speech, and export at -14 LUFS.
+
+---
+
+### Phase 11: Advanced Editing
+**Goal:** Productivity features that pros expect.
+- **Nested sequences / compound clips:** sequences used as clips in another sequence.
+- **Multi-cam:** sync clips by timecode or audio waveform correlation; live angle switching.
+- **Adjustment layers:** effects applied to all layers below.
+- **Dynamic trimming:** slip, slide, roll with live side-by-side trim monitor.
+- **Smart bins, keywords, metadata tags, color labels.**
+- **Speed ramps:** keyframed time remapping with optical flow frame blending.
+- **Exit criteria:** Cut a multi-camera interview; nest an animated graphic sequence and reuse it.
+
+---
+
+### Phase 12: Pro Color Grading
+**Goal:** DaVinci Resolve-lite color page.
+- **Real-time GPU scopes:** Waveform monitor, Vectorscope, RGB Parade, Histogram.
+- **Primary color wheels:** Lift, Gamma, Gain, Offset.
+- **Curves:** RGB curves, Hue vs Sat, Hue vs Hue, Lum vs Sat.
+- **Secondary qualifiers:** HSL qualifier, power windows with planar tracking.
+- **Color management:** ACES working space, camera log input transforms (S-Log3, V-Log, LogC), Rec.709/Rec.2020 output.
+- **Exit criteria:** Grade S-Log footage to Rec.709 with live scopes and secondary qualifiers.
+
+---
+
+### Phase 13: Motion Graphics, Tracking & AI Features
+**Goal:** Modern smart features.
+- **Auto-captions / transcription:** offline local Whisper (`whisper-rs`) with word-level timestamps.
+- **Text-based editing:** edit video by editing the generated transcript.
+- **Silence & filler removal:** automatic detection and ripple-delete of pauses.
+- **Background removal:** ONNX segmentation models (`ort` / MODNet / RVM).
+- **Object / motion tracking:** planar point tracking attached to titles or blur masks.
+- **Local AI chat assistant:** integrated Ollama client for creative suggestions and editing instructions.
+- **Exit criteria:** 1-click auto-captions generated locally without cloud dependencies.
+
+---
+
+### Phase 14: Performance, Native Preview & Pro Delivery
+**Goal:** Make it lightning fast and professional.
+- **Native wgpu preview surface** layered over webview UI to eliminate webview rendering overhead.
+- **Render cache** for heavy effect segments with dependency hashing (red/yellow/green timeline bar).
+- Multithreaded batch export queue.
+- Pro codec support: ProRes, DNxHR, AV1, image sequences (EXR/PNG).
+- Interchange formats: Final Cut Pro XML, Premiere XML, EDL, OpenTimelineIO.
+- **Exit criteria:** Smooth 4K 60fps multi-track playback on mid-range hardware.
+
+---
+
+### Phase 15: Quality, Packaging & Legal
+**Goal:** Bulletproof distribution.
+- Automated tests: unit tests, property tests (`proptest`), Playwright E2E smoke tests.
+- Linux packaging: Flatpak on Flathub, portable AppImage, Arch Linux PKGBUILD, Debian (`.deb`), RPM (`.rpm`).
+- Windows MSI / macOS DMG with notarization.
+- Clean LGPL dynamic linking for FFmpeg / GStreamer compliance.
+- **Exit criteria:** One-click installable package across all major Linux distributions, macOS, and Windows.
+
+---
+
+### Phase 16: Beta, Launch & Community
+**Goal:** Sustainable creator ecosystem.
+- Public beta testing and crash telemetry.
+- Open-source plugin API (WASM / WGSL effect manifests).
+- Documentation, tutorials, and default templates.
+- **Exit criteria:** Public release v1.0 on GitHub and Flathub.
+
+---
+
+# Part 2: Easy Edits Pro (EEP) Project Alignment & Current Implementation Status
+
+This section evaluates **exactly where Easy Edits Pro stands today** against the 16 phases.
+
+```
+[Phase 0: Foundations]              ████████████████████ 100% COMPLETE
+[Phase 1: Project Skeleton]         ████████████████████ 100% COMPLETE
+[Phase 2: Media Import & Library]   █████████████████░░░  85% ADVANCED
+[Phase 3: Timeline Data Model & UI] ████████████████░░░░  80% ADVANCED
+[Phase 4: Playback Engine]          █████████████░░░░░░░  65% IN PROGRESS
+[Phase 5: Core Editing Tools]       ███████████████░░░░░  75% ADVANCED
+[Phase 6: Export MVP (v0.1)]        █████████████████░░░  85% NEAR COMPLETE
+[Phase 7: Adjustments & Transitions]██████████████░░░░░░  70% IN PROGRESS
+[Phase 8: Color & Visual Effects]   ██████░░░░░░░░░░░░░░  30% FOUNDATIONAL
+[Phase 9: Titles, Captions & Text]  ████████████░░░░░░░░  60% FUNCTIONAL
+[Phase 10: Professional Audio]      █████░░░░░░░░░░░░░░░  25% PLANNED / INITIAL
+[Phase 11: Advanced Editing]        ████░░░░░░░░░░░░░░░░  20% PLANNED
+[Phase 12: Pro Color Grading]       ███░░░░░░░░░░░░░░░░░  15% PLANNED
+[Phase 13: Motion & AI Features]    █████░░░░░░░░░░░░░░░  25% INITIAL INTEGRATION
+[Phase 14: Native Preview & Perf]   ████░░░░░░░░░░░░░░░░  20% PLANNED
+[Phase 15: Quality & Packaging]     ████████░░░░░░░░░░░░  40% IN PROGRESS
+[Phase 16: Beta & Launch]           ██░░░░░░░░░░░░░░░░░░  10% SCHEDULED
+```
+
+---
+
+## Detailed Status Audit
+
+### 🟢 Fully Implemented & Verified
+1. **Integer Rational Time Architecture (`saturn-core/src/time.rs`):**
+   - Implemented `TICKS_PER_SECOND = 254_016_000_000`.
+   - Guaranteed exact integer tick alignment for 24, 25, 30, 48, 50, 60, 23.976, 29.97, 59.94 fps and 44.1k/48k/96k audio rates with zero cumulative frame drift.
+2. **Reversible Command Architecture (`saturn-core/src/command.rs`, `engine.rs`):**
+   - Complete command catalog with metadata, keybindings, and mutation flags.
+   - Comprehensive undo/redo snapshot history with atomic serialization.
+3. **Robust Project Document Persistence (`saturn-core/src/project.rs`):**
+   - Versioned `.saturn` schema with migration pipeline (v1 through v4).
+   - Atomic save/write-replace to prevent file corruption.
+   - Auto-save engine and crash recovery dialog.
+4. **Desktop Shell & Modern Linux Rice UI (`apps/saturn-tauri`):**
+   - Tauri 2 integration with clean IPC boundary.
+   - Distinct Linux desktop identity designed for Hyprland/Niri (Obsidian `#080a0f` palette, 1px cyan/violet glowing borders, glassmorphic panels, tactile `:active` micro-interactions).
+   - Instant Dark/Light mode theme switcher (`Ctrl+Alt+T`).
+   - DaVinci Resolve workspace bar (Media, Edit, Color, Audio, Effects, Deliver).
+   - Filmora 15 left asset panel (Media, Titles, Transitions, Audio, Stock, AI Tools).
+   - Premiere Pro vertical timeline tool rail (Select, Track Select, Ripple, Razor, Slip, Pen, Hand, Zoom).
+   - Universal hover tooltips on every tool, menu, and control.
+5. **Video & Audio Transitions:**
+   - Supported kinds: `Crossfade`, `DipToBlack`, `DipToWhite`, `WipeLeft`, `WipeRight`, `SlideLeft`, `SlideRight`.
+   - Timeline cut badges with duration handles, `Ctrl+D` shortcut, and dedicated Inspector panel.
+   - Compiled into GStreamer Editing Services (`ges::TransitionClip`) for final export.
+6. **Title & Lower-Third Graphics Engine:**
+   - Full data model (`TitleProperties`), `Ctrl+T` shortcut, neon-violet timeline clips.
+   - Real-time Program Monitor glassmorphic overlay with backdrop blur.
+   - Export rendering compiled into `ges::TitleClip`.
+7. **Audio Waveform Peak Decoding:**
+   - GStreamer peak amplitude decoding into normalized 100-bin arrays.
+   - Real-time mirrored SVG waveform rendering across timeline audio clips.
+8. **Export Pipeline (`saturn-render`):**
+   - GStreamer Editing Services (`ges::Timeline`) pipeline compiler.
+   - MP4 and WebM rendering with hardware encoder auto-detection (`vah264enc`, `nvh264enc`, `qsvh264enc`, fallback to `x264enc`).
+   - In/Out marked range export (`slice_document`).
+9. **Linux WebKitGTK Video Playback Fix:**
+   - Multi-threaded HTTP byte-range media streaming server (`HTTP 206 Partial Content`) on `127.0.0.1:0`.
+   - Automated VP8/WebM 720p preview proxy background transcoder.
+   - `WEBKIT_DISABLE_DMABUF_RENDERER=1` initialization for Wayland/Nvidia stability.
+
+---
+
+### 🟡 Partially Implemented / In Progress
+1. **Playback Engine (Phase 4):**
+   - ✅ Working: HTTP media streaming server, VP8 proxy transcoder, timeline playhead scrubbing, transport controls, frame stepping.
+   - ⏳ In Progress: Seamless audio-clock master sync across multi-track cuts and gaps without relying on HTML5 media elements.
+2. **Core Editing Tools (Phase 5):**
+   - ✅ Working: Split clip (`Ctrl+K` / `C`), Move clip, Remove clip (`Delete`), Ripple Delete (`Shift+Delete` / `B`), Slip clip (`Y`), In/Out marks (`I`/`O`).
+   - ⏳ Missing: Rolling edit (`N`), Slide edit (`U`), Rate stretch (`X`), Multi-clip group link/unlink.
+3. **Keyframe Animation (Phase 7):**
+   - ✅ Working: `Keyframe` data model in `saturn-core` for `PositionX`, `PositionY`, `Scale`, `Rotation`, `Opacity`; keyframe evaluation in preview and export.
+   - ⏳ Missing: Visual keyframe curve graph editor on the timeline with bezier tangent handles.
+4. **Color & Filters (Phase 8):**
+   - ✅ Working: Exposure, Contrast, Saturation controls with live preview and GES export.
+   - ⏳ Missing: Extensible effect plugin stack, LUT `.cube` loader, Chroma keyer, shape masks.
+5. **AI Features (Phase 13):**
+   - ✅ Working: Local AI chat assistant connected to Ollama (`POST http://127.0.0.1:11434/api/chat`).
+   - ⏳ Missing: Embedded offline Whisper speech-to-text auto-captions, silence detection, background rotoscoping.
+
+---
+
+### 🔴 Not Started / Scheduled for Next Phases
+1. **Fairlight-Style Audio Mixing Console (Phase 10):**
+   - Dedicated Audio workspace with multi-track channel strips, long-throw faders, pan knobs, peak VU meters, and LUFS loudness metering.
+   - Parametric EQ, Compressor, and Noise Gate DSP effects.
+2. **Real-Time Video Scopes (Phase 12):**
+   - GPU-computed Waveform Monitor, Vectorscope, Histogram, and RGB Parade.
+   - Lift/Gamma/Gain color wheels and secondary HSL qualifiers.
+3. **Compound Sequences & Multi-Cam (Phase 11):**
+   - Nested timeline sequences and multi-camera angle sync by waveform correlation.
+4. **Native wgpu Preview Surface (Phase 14):**
+   - Direct GPU rendering surface bypassing browser webview DOM overhead for 4K 60fps playback.
+5. **Interchange & Batch Render Queue (Phases 6 & 14):**
+   - Multi-job background export queue panel.
+   - FCPXML / Premiere XML / EDL export and import.
+6. **Complete Linux Packaging (Phase 15):**
+   - Flatpak, AppImage, and Arch Linux AUR distribution packages.
+
+---
+
+## 5. Next Immediate Action Plan
+
+To advance directly toward **Phase 2 (Playback & Render Consistency)** and **Phase 3 (Core Effects Stack & Scopes)**:
+
+1. **Phase 2.1 — Background Job Queue Manager:**
+   - Formalize background tasks (proxy generation, waveform decoding, export rendering) in a unified Rust job queue with cancellation and progress reporting.
+2. **Phase 2.2 — Seamless Playback Transport:**
+   - Complete audio-master clock synchronization across multiple tracks to ensure butter-smooth playback across cuts and transition overlaps.
+3. **Phase 3.1 — Composable Effect Stack:**
+   - Refactor hardcoded color fields into an extensible `Vec<Effect>` stack supporting Blur, Crop, Vignette, and Chroma Key.
+4. **Phase 4.1 — Audio Mixer Channel Strips:**
+   - Implement the Fairlight-style vertical channel strips with volume faders and live VU meters in the Audio workspace.
