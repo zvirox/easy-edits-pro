@@ -44,6 +44,8 @@ type MediaAvailability = { mediaId: number; missing: boolean };
 type CommandSpec = { id: string; label: string; menu: string[]; shortcut: string | null; mutating: boolean };
 type SelectedClip = { track_id: number; clip_index: number };
 type ClipPointerDrag = { pointerId: number; trackId: number; clipIndex: number; startX: number; startY: number; startTime: number; duration: number };
+type MediaPointerDrag = { pointerId: number; mediaId: number; startX: number; startY: number; dragging: boolean };
+type TimelineScrub = { pointerId: number; axis: HTMLElement };
 type OpenverseAsset = { id: string; title: string; mediaUrl: string; sourceUrl: string; thumbnailUrl: string | null; creator: string | null; license: string | null; licenseUrl: string | null };
 type RecentProject = { name: string; path: string };
 type AppStage = "welcome" | "loading" | "editor";
@@ -218,9 +220,14 @@ function App() {
   const slipDrag = useRef<{ x: number; trackId: number; clipIndex: number } | null>(null);
   const clipPointerDrag = useRef<ClipPointerDrag | null>(null);
   const suppressClipClick = useRef(false);
+  const mediaPointerDrag = useRef<MediaPointerDrag | null>(null);
+  const suppressMediaClick = useRef(false);
+  const timelineScrub = useRef<TimelineScrub | null>(null);
   const timelineScrollerRef = useRef<HTMLDivElement>(null);
   const zoomAnchor = useRef<{ time: number; viewportX: number } | null>(null);
   const [clipDragOffset, setClipDragOffset] = useState<{ trackId: number; clipIndex: number; x: number; y: number } | null>(null);
+  const [draggedMediaId, setDraggedMediaId] = useState<number | null>(null);
+  const [mediaDropTargetTrackId, setMediaDropTargetTrackId] = useState<number | null>(null);
 
   const refreshProject = useCallback(async () => {
     const [status, undo, redo, mediaAvailability] = await Promise.all([
@@ -667,6 +674,74 @@ function App() {
     }
   }
 
+  function beginMediaPointer(event: PointerEvent<HTMLButtonElement>, mediaId: number) {
+    if (event.button !== 0) return;
+    mediaPointerDrag.current = { pointerId: event.pointerId, mediaId, startX: event.clientX, startY: event.clientY, dragging: false };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function moveMediaPointer(event: PointerEvent<HTMLButtonElement>) {
+    const drag = mediaPointerDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (!drag.dragging && Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) >= 5) {
+      drag.dragging = true;
+      setDraggedMediaId(drag.mediaId);
+    }
+    if (!drag.dragging) return;
+    event.preventDefault();
+    const lane = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>(".track-lane");
+    setMediaDropTargetTrackId(lane?.dataset.trackId ? Number(lane.dataset.trackId) : null);
+  }
+
+  function cancelMediaPointer(event: PointerEvent<HTMLButtonElement>) {
+    if (mediaPointerDrag.current?.pointerId !== event.pointerId) return;
+    mediaPointerDrag.current = null;
+    setDraggedMediaId(null);
+    setMediaDropTargetTrackId(null);
+  }
+
+  async function finishMediaPointer(event: PointerEvent<HTMLButtonElement>) {
+    const drag = mediaPointerDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    mediaPointerDrag.current = null;
+    setDraggedMediaId(null);
+    setMediaDropTargetTrackId(null);
+    if (!drag.dragging) return;
+    event.preventDefault();
+    suppressMediaClick.current = true;
+    window.setTimeout(() => { suppressMediaClick.current = false; }, 0);
+    const lane = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>(".track-lane");
+    const trackId = lane?.dataset.trackId ? Number(lane.dataset.trackId) : null;
+    const mediaItem = media.find((item) => item.id === drag.mediaId);
+    const track = project?.sequence.tracks.find((item) => item.id === trackId);
+    if (!lane || !track || !mediaItem) return;
+    const expectedKind = mediaItem.kind === "audio" ? "audio" : "video";
+    if (track.kind !== expectedKind) {
+      setNotice(`Drop ${expectedKind} media on a ${expectedKind} track`);
+      return;
+    }
+    const laneBounds = lane.getBoundingClientRect();
+    const seconds = Math.max(0, (event.clientX - laneBounds.left) / timelineZoom);
+    const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
+    const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
+    const rawStart = seconds * TICKS_PER_SECOND;
+    const timelineStart = snapEnabled ? Math.round(rawStart / frameTicks) * frameTicks : Math.round(rawStart);
+    setBusy(true);
+    setNotice("");
+    try {
+      const result = await runCommand<SelectedClip>("timeline.add_clip", { media_id: drag.mediaId, track_id: track.id, timeline_start: timelineStart });
+      setSelectedMediaId(drag.mediaId);
+      setSelectedClip(result);
+      setSelectedClips([]);
+      await refreshProject();
+      setNotice("Clip added at drop position");
+    } catch (error) {
+      setNotice(String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function removeSelectedClip() {
     if (!selectedClip) return;
     if (selectedClips.length > 1) {
@@ -874,12 +949,37 @@ function App() {
     }
   }
 
-  function handleTimelineRulerClick(event: MouseEvent<HTMLDivElement>) {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const scroller = event.currentTarget.closest(".timeline-scroller");
-    const scrollLeft = scroller instanceof HTMLElement ? scroller.scrollLeft : 0;
-    const seconds = Math.max(0, (event.clientX - bounds.left + scrollLeft) / timelineZoom);
-    seekProgramTo(Math.round(seconds * TICKS_PER_SECOND));
+  function beginTimelineScrub(event: PointerEvent<HTMLDivElement>) {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const axis = event.currentTarget.classList.contains("ruler-lane") ? event.currentTarget : event.currentTarget.parentElement;
+    if (!axis) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    timelineScrub.current = { pointerId: event.pointerId, axis };
+    updateTimelineScrub(event.clientX);
+  }
+
+  function updateTimelineScrub(clientX: number) {
+    const scrub = timelineScrub.current;
+    if (!scrub) return;
+    const bounds = scrub.axis.getBoundingClientRect();
+    const raw = Math.max(0, (clientX - bounds.left) / timelineZoom * TICKS_PER_SECOND);
+    const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
+    const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
+    seekProgramTo(snapEnabled ? Math.round(raw / frameTicks) * frameTicks : Math.round(raw));
+  }
+
+  function moveTimelineScrub(event: PointerEvent<HTMLDivElement>) {
+    if (timelineScrub.current?.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    updateTimelineScrub(event.clientX);
+  }
+
+  function finishTimelineScrub(event: PointerEvent<HTMLDivElement>) {
+    if (timelineScrub.current?.pointerId !== event.pointerId) return;
+    updateTimelineScrub(event.clientX);
+    timelineScrub.current = null;
   }
 
   async function toggleFullscreen() {
@@ -1154,7 +1254,7 @@ function App() {
           <div className="panel-tabs"><span className="selected">Project</span><span>Media Browser</span><span>Libraries</span></div>
           <div className="panel-heading"><strong>Project media</strong><button className="primary" onClick={() => void importMedia()} disabled={busy}>＋ Import media</button></div>
           <input className="search" type="search" placeholder="Search project media" aria-label="Search project media" value={search} onChange={(event) => setSearch(event.target.value)} />
-          {visibleMedia.length > 0 ? <div className="media-list">{visibleMedia.map((item) => <div className="media-row" key={item.id}><button className={`media-item ${selectedMediaId === item.id ? "selected" : ""}`} onClick={() => { setSelectedMediaId(item.id); setSelectedClip(null); setSelectedClips([]); }}><Icon name="media" /><span><strong>{item.name}</strong><small>{missingMediaIds.has(item.id) ? "Missing · relink required" : `${item.kind} · ${item.width && item.height ? `${item.width} × ${item.height}` : item.path}`}</small></span></button>{missingMediaIds.has(item.id) && <button className="relink-button" onClick={() => void relinkMedia(item.id)} title={`Locate ${item.name}`}>Relink</button>}</div>)}</div> : <div className="empty-media"><span className="media-icon"><Icon name="media" /></span><strong>{search ? "No matching media" : "No media imported"}</strong><small>{search ? "Try another search." : "Import video, audio, and images to begin."}</small></div>}
+          {visibleMedia.length > 0 ? <div className="media-list">{visibleMedia.map((item) => <div className="media-row" key={item.id}><button className={`media-item ${selectedMediaId === item.id ? "selected" : ""} ${draggedMediaId === item.id ? "pointer-dragging" : ""}`} onPointerDown={(event) => beginMediaPointer(event, item.id)} onPointerMove={moveMediaPointer} onPointerUp={(event) => void finishMediaPointer(event)} onPointerCancel={cancelMediaPointer} onClick={() => { if (suppressMediaClick.current) { suppressMediaClick.current = false; return; } setSelectedMediaId(item.id); setSelectedClip(null); setSelectedClips([]); }} title="Click to select or drag to a timeline track"><Icon name="media" /><span><strong>{item.name}</strong><small>{missingMediaIds.has(item.id) ? "Missing · relink required" : `${item.kind} · ${item.width && item.height ? `${item.width} × ${item.height}` : item.path}`}</small></span></button>{missingMediaIds.has(item.id) && <button className="relink-button" onClick={() => void relinkMedia(item.id)} title={`Locate ${item.name}`}>Relink</button>}</div>)}</div> : <div className="empty-media"><span className="media-icon"><Icon name="media" /></span><strong>{search ? "No matching media" : "No media imported"}</strong><small>{search ? "Try another search." : "Import video, audio, and images to begin."}</small></div>}
         </aside>
 
         <section className="work-area">
@@ -1191,17 +1291,17 @@ function App() {
               </div>
               <div ref={timelineScrollerRef} className={`timeline-scroller ${timelineTool === "hand" ? "hand-mode" : ""}`} onPointerDown={handleTimelinePanStart} onPointerMove={handleTimelinePanMove} onPointerUp={handleTimelinePanEnd} onPointerCancel={handleTimelinePanEnd}>
                 <div className="timeline-content" style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
-                  <div className="timeline-ruler"><span className="track-spacer">Time</span><div className="ruler-lane" onClick={handleTimelineRulerClick}>{project?.sequence.mark_in != null && <i className="sequence-marker in-point" style={{ left: `${project.sequence.mark_in / TICKS_PER_SECOND * timelineZoom}px` }} title={`In · ${formatTime(project.sequence.mark_in)}`}><Icon name="markIn" /></i>}{project?.sequence.mark_out != null && <i className="sequence-marker out-point" style={{ left: `${project.sequence.mark_out / TICKS_PER_SECOND * timelineZoom}px` }} title={`Out · ${formatTime(project.sequence.mark_out)}`}><Icon name="markOut" /></i>}{Array.from({ length: Math.ceil(timelineWidth / (timelineZoom * 5)) + 1 }, (_, index) => <span key={index} style={{ left: `${index * timelineZoom * 5}px` }}>{formatTime(index * TICKS_PER_SECOND * 5)}</span>)}</div></div>
+                  <div className="timeline-ruler"><span className="track-spacer">Time</span><div className="ruler-lane" onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}>{project?.sequence.mark_in != null && <i className="sequence-marker in-point" style={{ left: `${project.sequence.mark_in / TICKS_PER_SECOND * timelineZoom}px` }} title={`In · ${formatTime(project.sequence.mark_in)}`}><Icon name="markIn" /></i>}{project?.sequence.mark_out != null && <i className="sequence-marker out-point" style={{ left: `${project.sequence.mark_out / TICKS_PER_SECOND * timelineZoom}px` }} title={`Out · ${formatTime(project.sequence.mark_out)}`}><Icon name="markOut" /></i>}{Array.from({ length: Math.ceil(timelineWidth / (timelineZoom * 5)) + 1 }, (_, index) => <span key={index} style={{ left: `${index * timelineZoom * 5}px` }}>{formatTime(index * TICKS_PER_SECOND * 5)}</span>)}<div className="playhead-grip ruler-playhead-grip" style={{ left: `${playhead / TICKS_PER_SECOND * timelineZoom}px` }} role="slider" aria-label="Timeline playhead" aria-valuenow={playhead / TICKS_PER_SECOND} aria-valuemin={0} aria-valuemax={timelineEndSeconds} onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}><i className="playhead" /></div></div></div>
                   {(project?.sequence.tracks ?? []).map((track) => <div className="track-row" key={track.id}>
                     <div className="track-label"><b>{track.name}</b><span>{track.kind}</span></div>
-                    <div className="track-lane" data-track-id={track.id}>
+                    <div className={`track-lane ${mediaDropTargetTrackId === track.id ? "media-drop-target" : ""}`} data-track-id={track.id}>
                       {track.clips.map((clip, index) => {
                         const item = media.find((entry) => entry.id === clip.media_id);
                         const selected = (selectedClip?.track_id === track.id && selectedClip.clip_index === index) || selectedClips.some((item) => item.track_id === track.id && item.clip_index === index);
                         const dragOffset = clipDragOffset?.trackId === track.id && clipDragOffset.clipIndex === index ? clipDragOffset : null;
                         return <div className={`timeline-clip ${selected ? "selected" : ""} ${track.kind} tool-${timelineTool} ${dragOffset ? "dragging" : ""}`} key={`${track.id}-${clip.media_id}-${index}-${clip.timeline_start}`} style={{ left: `${clip.timeline_start / TICKS_PER_SECOND * timelineZoom}px`, width: `${Math.max(34, clip.duration / TICKS_PER_SECOND * timelineZoom)}px`, transform: dragOffset ? `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)` : undefined }} onPointerDown={(event) => beginTimelineClipPointer(event, track.id, index, clip)} onPointerMove={moveTimelineClipPointer} onPointerUp={(event) => void finishTimelineClipPointer(event)} onPointerCancel={handleTimelineClipPointerCancel} onClick={(event) => void handleTimelineClipClick(event, track.id, index, clip)} title={`${item?.name ?? "Clip"} · ${timelineTools.find((tool) => tool.id === timelineTool)?.label}`}><strong>{item?.name ?? "Missing media"}</strong></div>;
                       })}
-                      <div className="playhead" style={{ left: `${playhead / TICKS_PER_SECOND * timelineZoom}px` }} />
+                      <div className="playhead-grip" style={{ left: `${playhead / TICKS_PER_SECOND * timelineZoom}px` }} role="slider" aria-label="Timeline playhead" aria-valuenow={playhead / TICKS_PER_SECOND} aria-valuemin={0} aria-valuemax={timelineEndSeconds} onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}><i className="playhead" /></div>
                     </div>
                   </div>)}
                 </div>

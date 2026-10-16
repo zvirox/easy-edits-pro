@@ -110,6 +110,8 @@ struct AddClipParams {
     #[serde(default)]
     track_id: Option<u64>,
     #[serde(default)]
+    timeline_start: Option<Tick>,
+    #[serde(default)]
     source_in: Tick,
     #[serde(default)]
     duration: Option<Tick>,
@@ -425,6 +427,11 @@ impl EditorEngine {
                         "Clip source and duration must be positive".into(),
                     ));
                 }
+                if params.timeline_start.is_some_and(|start| start.0 < 0) {
+                    return Err(DispatchError::InvalidParameters(
+                        "Clip timeline position cannot be negative".into(),
+                    ));
+                }
                 if media_duration
                     .is_some_and(|length| params.source_in.0.saturating_add(duration.0) > length.0)
                 {
@@ -433,12 +440,14 @@ impl EditorEngine {
                     ));
                 }
                 let track = &self.document.project.sequence.tracks[track_index];
-                let timeline_start = track
-                    .clips
-                    .iter()
-                    .filter_map(|clip| clip.timeline_start.0.checked_add(clip.duration.0))
-                    .max()
-                    .unwrap_or(0);
+                let timeline_start = params.timeline_start.map(|start| start.0).unwrap_or_else(|| {
+                    track
+                        .clips
+                        .iter()
+                        .filter_map(|clip| clip.timeline_start.0.checked_add(clip.duration.0))
+                        .max()
+                        .unwrap_or(0)
+                });
                 self.checkpoint();
                 let track = &mut self.document.project.sequence.tracks[track_index];
                 track.clips.push(Clip {
