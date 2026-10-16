@@ -219,12 +219,42 @@ button:disabled { opacity: .48; }
 .track-label b { color: #84aef0; }
 .track-label span { color: #777; font-size: 9px; text-transform: capitalize; }
 .track-lane { position: relative; flex: 1; min-width: 0; min-height: 46px; }
-.timeline-clip { position: absolute; top: 6px; height: 33px; display: flex; align-items: center; overflow: hidden; padding: 0 7px; border: 1px solid #5285d1; border-radius: 3px; color: white; background: linear-gradient(110deg, #315d9e, #24416a); cursor: grab; user-select: none; }
-.timeline-clip.audio { border-color: #5b9b78; background: linear-gradient(110deg, #27694a, #204631); }
-.timeline-clip.selected { outline: 2px solid #a9c8ff; outline-offset: 1px; }
-.timeline-clip.dragging { z-index: 3; opacity: .86; cursor: grabbing; box-shadow: 0 5px 14px #0008; }
+.timeline-clip { position: absolute; top: 6px; height: 33px; display: flex; align-items: center; overflow: hidden; padding: 0 7px; border: 1px solid #5285d1; border-radius: 4px; color: white; background: linear-gradient(110deg, #1e3a5f, #172554); cursor: grab; user-select: none; transition: transform 0.08s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
+.timeline-clip:hover { border-color: #38bdf8; box-shadow: 0 0 8px rgba(56, 189, 248, 0.25); }
+.timeline-clip.audio { border-color: #059669; background: linear-gradient(110deg, #064e3b, #022c22); }
+.timeline-clip.audio:hover { border-color: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.25); }
+.timeline-clip.title-clip { border-color: #9333ea; background: linear-gradient(110deg, #581c87, #3b0764); color: #f3e8ff; }
+.timeline-clip.title-clip:hover { border-color: #c084fc; box-shadow: 0 0 8px rgba(192, 132, 252, 0.35); }
+.timeline-clip.selected { outline: 2px solid #38bdf8; outline-offset: 1px; z-index: 2; }
+.timeline-clip.title-clip.selected { outline: 2px solid #d8b4fe; }
+.timeline-clip.audio.selected { outline: 2px solid #6ee7b7; }
+.timeline-clip.dragging { z-index: 5; opacity: .88; cursor: grabbing; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); }
 .timeline-clip:active { cursor: grabbing; }
-.timeline-clip strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; }
+.timeline-clip strong { position: relative; z-index: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; font-weight: 550; }
+.clip-kind-icon { position: relative; z-index: 1; margin-right: 5px; opacity: 0.8; font-size: 8px; font-weight: 700; flex: none; }
+.clip-waveform-container { position: absolute; inset: 0; pointer-events: none; display: flex; align-items: center; overflow: hidden; color: #34d399; opacity: 0.82; }
+.clip-waveform-svg { width: 100%; height: 100%; }
+
+/* Transitions */
+.timeline-transition-badge { position: absolute; top: 9px; height: 26px; z-index: 3; display: flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 4px; background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); border: 1px solid #38bdf8; color: #7dd3fc; font-size: 8.5px; font-weight: 600; cursor: pointer; user-select: none; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 6px rgba(56, 189, 248, 0.2); backdrop-filter: blur(6px); transition: all 0.15s ease; }
+.timeline-transition-badge:hover { border-color: #00f2fe; box-shadow: 0 0 10px rgba(0, 242, 254, 0.4); transform: translateY(-1px); }
+.timeline-transition-badge.selected { border-color: #00f2fe; outline: 2px solid #00f2fe; outline-offset: 1px; background: linear-gradient(135deg, rgba(14, 116, 144, 0.95), rgba(3, 105, 161, 0.95)); color: #ffffff; }
+.timeline-transition-badge .transition-icon svg { width: 11px; height: 11px; stroke: currentColor; fill: none; }
+.timeline-transition-badge .transition-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize; }
+
+/* Title & Lower-Third Overlays */
+.title-overlay-box { position: absolute; z-index: 5; display: flex; align-items: center; gap: 12px; border-radius: 6px; padding: 10px 16px; backdrop-filter: blur(14px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.12); pointer-events: none; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+.title-overlay-box.style-lower_third { left: 8%; bottom: 12%; max-width: 68%; border-left: 4px solid #00f2fe; }
+.title-overlay-box.style-center_title { left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; flex-direction: column; border: 1px solid rgba(255, 255, 255, 0.2); max-width: 82%; }
+.title-overlay-box.style-minimal_pill { left: 8%; bottom: 10%; border-radius: 9999px; padding: 8px 18px; border: 1px solid #a855f7; box-shadow: 0 4px 20px rgba(168, 85, 247, 0.35); }
+.title-overlay-box h3 { margin: 0; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
+.title-overlay-box p { margin: 3px 0 0; opacity: 0.85; font-size: 11px; line-height: 1.35; }
+.title-preview-canvas { background: radial-gradient(ellipse at center, #1e1b4b 0%, #030712 100%); min-height: 180px; }
+
+/* Hyprland/Niri Tactile Feedback */
+button:active:not(:disabled) { transform: scale(0.96); transition: transform 0.05s ease-out; }
+.timeline-icon-button:active:not(:disabled), .timeline-tool-button:active:not(:disabled) { transform: scale(0.92); }
+.icon-button:active { transform: scale(0.92); }
 .media-item { touch-action: none; }
 .media-item.pointer-dragging { opacity: .48; }
 .track-lane.media-drop-target { outline: 1px dashed #f2a24d; outline-offset: -2px; background: #f2a24d12; }

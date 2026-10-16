@@ -208,6 +208,34 @@ pub const COMMANDS: &[CommandSpec] = &[
         shortcut: None,
         mutating: true,
     },
+    CommandSpec {
+        id: "timeline.add_transition",
+        label: "Add Transition",
+        menu: &["Sequence"],
+        shortcut: Some("Ctrl+D"),
+        mutating: true,
+    },
+    CommandSpec {
+        id: "timeline.remove_transition",
+        label: "Remove Transition",
+        menu: &["Sequence"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "timeline.add_title",
+        label: "Add Title Clip",
+        menu: &["Sequence"],
+        shortcut: Some("Ctrl+T"),
+        mutating: true,
+    },
+    CommandSpec {
+        id: "title.update",
+        label: "Update Title Properties",
+        menu: &["Clip"],
+        shortcut: None,
+        mutating: true,
+    },
 ];
 
 pub fn command_catalogue() -> &'static [CommandSpec] {

@@ -1,7 +1,7 @@
 use crate::command::{COMMANDS, CommandRequest, CommandStatus, status};
 use crate::project::{
     Clip, ColorAdjustments, Keyframe, KeyframeProperty, MediaAsset, MediaKind, ProjectDocument,
-    TrackKind,
+    TitleProperties, TrackKind, Transition, TransitionKind,
 };
 use crate::time::{FrameRate, TICKS_PER_SECOND, Tick};
 use serde::Deserialize;
@@ -78,6 +78,10 @@ struct AddMediaParams {
     width: Option<u32>,
     #[serde(default)]
     height: Option<u32>,
+    #[serde(default)]
+    title: Option<TitleProperties>,
+    #[serde(default)]
+    waveform: Option<Vec<u8>>,
 }
 
 #[derive(Deserialize)]
@@ -91,7 +95,58 @@ struct UpdateMediaParams {
     width: Option<u32>,
     #[serde(default)]
     height: Option<u32>,
+    #[serde(default)]
+    waveform: Option<Vec<u8>>,
 }
+
+#[derive(Deserialize)]
+struct AddTransitionParams {
+    track_id: u64,
+    cut_at: Tick,
+    #[serde(default)]
+    duration: Option<Tick>,
+    #[serde(default)]
+    kind: Option<TransitionKind>,
+}
+
+#[derive(Deserialize)]
+struct RemoveTransitionParams {
+    track_id: u64,
+    transition_id: u64,
+}
+
+#[derive(Deserialize)]
+struct AddTitleParams {
+    text: String,
+    #[serde(default)]
+    subtitle: Option<String>,
+    #[serde(default)]
+    style: Option<String>,
+    #[serde(default)]
+    duration: Option<Tick>,
+    #[serde(default)]
+    track_id: Option<u64>,
+    #[serde(default)]
+    timeline_start: Option<Tick>,
+}
+
+#[derive(Deserialize)]
+struct UpdateTitleParams {
+    media_id: u64,
+    #[serde(default)]
+    text: Option<String>,
+    #[serde(default)]
+    subtitle: Option<String>,
+    #[serde(default)]
+    style: Option<String>,
+    #[serde(default)]
+    font_size: Option<f64>,
+    #[serde(default)]
+    color: Option<String>,
+    #[serde(default)]
+    bg_color: Option<String>,
+}
+
 
 #[derive(Deserialize)]
 struct RelinkMediaParams {
@@ -306,6 +361,8 @@ impl EditorEngine {
                     duration: params.duration,
                     width: params.width,
                     height: params.height,
+                    title: params.title,
+                    waveform: params.waveform,
                 };
                 self.document.project.media.push(item);
                 Ok(json!({"media_id": id}))
@@ -325,6 +382,9 @@ impl EditorEngine {
                 item.duration = params.duration;
                 item.width = params.width;
                 item.height = params.height;
+                if params.waveform.is_some() {
+                    item.waveform = params.waveform;
+                }
                 Ok(json!({"updated": true, "media_id": item.id}))
             }
             "project.relink_media" => {
@@ -704,7 +764,7 @@ impl EditorEngine {
                     (&media.kind, target_kind),
                     (MediaKind::Audio, TrackKind::Audio)
                         | (
-                            MediaKind::Video | MediaKind::Image | MediaKind::Unknown,
+                            MediaKind::Video | MediaKind::Image | MediaKind::Title | MediaKind::Unknown,
                             TrackKind::Video
                         )
                 );
@@ -828,6 +888,130 @@ impl EditorEngine {
                     .remove(index);
                 Ok(json!({"removed": true}))
             }
+            "timeline.add_transition" => {
+                let params: AddTransitionParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                let duration = params.duration.unwrap_or(Tick(TICKS_PER_SECOND));
+                let kind = params.kind.unwrap_or(TransitionKind::Crossfade);
+                if duration.0 <= 0 || params.cut_at.0 < 0 {
+                    return Err(DispatchError::InvalidParameters("Transition duration and position must be positive".into()));
+                }
+                self.checkpoint();
+                let id = self.document.project.next_id;
+                self.document.project.next_id = id.saturating_add(1);
+                let track = &mut self.document.project.sequence.tracks[track_index];
+                track.transitions.retain(|t| (t.cut_at.0 - params.cut_at.0).abs() > TICKS_PER_SECOND / 10);
+                track.transitions.push(Transition {
+                    id,
+                    kind,
+                    cut_at: params.cut_at,
+                    duration,
+                });
+                Ok(json!({
+                    "transition_id": id,
+                    "track_id": params.track_id,
+                    "cut_at": params.cut_at,
+                    "duration": duration,
+                    "kind": kind,
+                }))
+            }
+            "timeline.remove_transition" => {
+                let params: RemoveTransitionParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                let track = &mut self.document.project.sequence.tracks[track_index];
+                let initial_count = track.transitions.len();
+                track.transitions.retain(|t| t.id != params.transition_id);
+                Ok(json!({"removed": track.transitions.len() < initial_count}))
+            }
+            "timeline.add_title" => {
+                let params: AddTitleParams = parse_params(request.params)?;
+                let track_id = params.track_id.unwrap_or(1);
+                let track_index = self
+                    .document
+                    .project
+                    .sequence
+                    .tracks
+                    .iter()
+                    .position(|t| t.id == track_id && matches!(t.kind, TrackKind::Video))
+                    .ok_or_else(|| DispatchError::InvalidParameters("Target video track does not exist".into()))?;
+
+                self.checkpoint();
+                let media_id = self.document.project.next_id;
+                self.document.project.next_id = media_id.saturating_add(1);
+                let duration = params.duration.unwrap_or(Tick(TICKS_PER_SECOND * 5));
+                let title_props = TitleProperties {
+                    text: params.text.clone(),
+                    subtitle: params.subtitle,
+                    style: params.style.unwrap_or_else(|| "lower_third".into()),
+                    font_family: "Inter".into(),
+                    font_size: 42.0,
+                    color: "#ffffff".into(),
+                    bg_color: Some("rgba(15, 23, 42, 0.75)".into()),
+                };
+                let media_item = MediaAsset {
+                    id: media_id,
+                    name: format!("Title: {}", params.text.chars().take(20).collect::<String>()),
+                    path: PathBuf::from(format!("title://{}", media_id)),
+                    kind: MediaKind::Title,
+                    duration: Some(duration),
+                    width: Some(self.document.project.settings.width),
+                    height: Some(self.document.project.settings.height),
+                    title: Some(title_props),
+                    waveform: None,
+                };
+                self.document.project.media.push(media_item);
+
+                let track = &self.document.project.sequence.tracks[track_index];
+                let timeline_start = params.timeline_start.unwrap_or_else(|| {
+                    track.clips.iter().map(|c| c.timeline_start.0 + c.duration.0).max().unwrap_or(0).into()
+                });
+                let clip = Clip {
+                    media_id,
+                    timeline_start,
+                    source_in: Tick(0),
+                    duration,
+                    color: ColorAdjustments::default(),
+                    keyframes: Vec::new(),
+                };
+                let track = &mut self.document.project.sequence.tracks[track_index];
+                track.clips.push(clip);
+                track.clips.sort_by_key(|c| c.timeline_start);
+                let clip_index = track.clips.iter().position(|c| c.media_id == media_id && c.timeline_start == timeline_start).unwrap_or(0);
+                Ok(json!({
+                    "media_id": media_id,
+                    "track_id": track_id,
+                    "clip_index": clip_index,
+                }))
+            }
+            "title.update" => {
+                let params: UpdateTitleParams = parse_params(request.params)?;
+                let media_index = self
+                    .document
+                    .project
+                    .media
+                    .iter()
+                    .position(|m| m.id == params.media_id)
+                    .ok_or_else(|| DispatchError::InvalidParameters(format!("Media item {} does not exist", params.media_id)))?;
+                if !matches!(self.document.project.media[media_index].kind, MediaKind::Title) {
+                    return Err(DispatchError::InvalidParameters("Media is not a title clip".into()));
+                }
+                self.checkpoint();
+                let media = &mut self.document.project.media[media_index];
+                let mut title = media.title.clone().unwrap_or_default();
+                if let Some(t) = params.text {
+                    media.name = format!("Title: {}", t.chars().take(20).collect::<String>());
+                    title.text = t;
+                }
+                if let Some(sub) = params.subtitle { title.subtitle = Some(sub); }
+                if let Some(st) = params.style { title.style = st; }
+                if let Some(sz) = params.font_size { title.font_size = sz; }
+                if let Some(col) = params.color { title.color = col; }
+                if let Some(bg) = params.bg_color { title.bg_color = Some(bg); }
+                media.title = Some(title.clone());
+                Ok(json!({"media_id": params.media_id, "title": title}))
+            }
+
             _ => Err(DispatchError::UnknownCommand(request.id)),
         }
     }

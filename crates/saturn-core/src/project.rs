@@ -42,8 +42,45 @@ pub enum MediaKind {
     Video,
     Audio,
     Image,
+    Title,
     #[default]
     Unknown,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct TitleProperties {
+    pub text: String,
+    #[serde(default)]
+    pub subtitle: Option<String>,
+    #[serde(default = "default_title_style")]
+    pub style: String,
+    #[serde(default = "default_font_family")]
+    pub font_family: String,
+    #[serde(default = "default_font_size")]
+    pub font_size: f64,
+    #[serde(default = "default_title_color")]
+    pub color: String,
+    #[serde(default)]
+    pub bg_color: Option<String>,
+}
+
+fn default_title_style() -> String { "lower_third".into() }
+fn default_font_family() -> String { "Inter".into() }
+fn default_font_size() -> f64 { 42.0 }
+fn default_title_color() -> String { "#ffffff".into() }
+
+impl Default for TitleProperties {
+    fn default() -> Self {
+        Self {
+            text: "Title".into(),
+            subtitle: None,
+            style: default_title_style(),
+            font_family: default_font_family(),
+            font_size: default_font_size(),
+            color: default_title_color(),
+            bg_color: Some("rgba(15, 23, 42, 0.75)".into()),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -59,6 +96,31 @@ pub struct MediaAsset {
     pub width: Option<u32>,
     #[serde(default)]
     pub height: Option<u32>,
+    #[serde(default)]
+    pub title: Option<TitleProperties>,
+    #[serde(default)]
+    pub waveform: Option<Vec<u8>>,
+}
+
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TransitionKind {
+    #[default]
+    Crossfade,
+    DipToBlack,
+    DipToWhite,
+    WipeLeft,
+    WipeRight,
+    SlideLeft,
+    SlideRight,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Transition {
+    pub id: u64,
+    pub kind: TransitionKind,
+    pub cut_at: Tick,
+    pub duration: Tick,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -79,7 +141,10 @@ pub struct Track {
     #[serde(default)]
     pub gain_db: f64,
     pub clips: Vec<Clip>,
+    #[serde(default)]
+    pub transitions: Vec<Transition>,
 }
+
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -178,6 +243,7 @@ impl ProjectDocument {
                             name: "V1".into(),
                             gain_db: 0.0,
                             clips: Vec::new(),
+                            transitions: Vec::new(),
                         },
                         Track {
                             id: 2,
@@ -185,6 +251,7 @@ impl ProjectDocument {
                             name: "A1".into(),
                             gain_db: 0.0,
                             clips: Vec::new(),
+                            transitions: Vec::new(),
                         },
                     ],
                 },
@@ -252,6 +319,11 @@ impl ProjectDocument {
                     {
                         return Err("Project contains an invalid keyframe".into());
                     }
+                }
+            }
+            for transition in &track.transitions {
+                if transition.duration.0 <= 0 || transition.cut_at.0 < 0 {
+                    return Err("Project contains an invalid transition".into());
                 }
             }
         }
@@ -407,6 +479,8 @@ mod tests {
             duration: Some(Tick(42)),
             width: Some(1920),
             height: Some(1080),
+            title: None,
+            waveform: None,
         });
         doc.save_atomic(&path).unwrap();
         let loaded = ProjectDocument::load(&path).unwrap();

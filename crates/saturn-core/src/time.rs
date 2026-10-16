@@ -27,6 +27,19 @@ impl Tick {
     }
 }
 
+impl From<i64> for Tick {
+    fn from(val: i64) -> Self {
+        Tick(val)
+    }
+}
+
+impl From<Tick> for i64 {
+    fn from(val: Tick) -> Self {
+        val.0
+    }
+}
+
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FrameRate {
     pub numerator: u32,

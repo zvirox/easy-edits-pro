@@ -216,3 +216,96 @@ fn project_status_and_timeline_clip_commands_round_trip_with_undo() {
     assert_eq!(reopened.document().project.sequence.tracks[1].gain_db, -6.0);
     assert!(!reopened.is_dirty());
 }
+
+#[test]
+fn transitions_and_title_clips_workflow_with_undo() {
+    use saturn_core::{TICKS_PER_SECOND, TransitionKind};
+
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("transition_title.saturn");
+    let mut engine = EditorEngine::default();
+
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name":"Transitions & Titles"}),
+        ))
+        .unwrap();
+
+    // Add title clip
+    let title_res = engine
+        .execute(CommandRequest::new(
+            "timeline.add_title",
+            json!({
+                "text": "Intro Title",
+                "subtitle": "Chapter 1",
+                "style": "lower_third",
+                "duration": TICKS_PER_SECOND * 3,
+            }),
+        ))
+        .unwrap();
+    let title_media_id = title_res["media_id"].as_u64().unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 1);
+    assert_eq!(engine.document().project.media.len(), 1);
+
+    // Update title properties
+    engine
+        .execute(CommandRequest::new(
+            "title.update",
+            json!({
+                "media_id": title_media_id,
+                "text": "Intro Title Updated",
+                "color": "#38bdf8",
+            }),
+        ))
+        .unwrap();
+    let updated_media = &engine.document().project.media[0];
+    assert_eq!(updated_media.title.as_ref().unwrap().text, "Intro Title Updated");
+    assert_eq!(updated_media.title.as_ref().unwrap().color, "#38bdf8");
+
+    // Add transition on Track 1
+    let trans_res = engine
+        .execute(CommandRequest::new(
+            "timeline.add_transition",
+            json!({
+                "track_id": 1,
+                "cut_at": TICKS_PER_SECOND * 3,
+                "duration": TICKS_PER_SECOND,
+                "kind": "crossfade",
+            }),
+        ))
+        .unwrap();
+    let trans_id = trans_res["transition_id"].as_u64().unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].transitions.len(), 1);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].transitions[0].kind,
+        TransitionKind::Crossfade
+    );
+
+    // Save and reload
+    engine
+        .execute(CommandRequest::new("file.save", json!({"path": path})))
+        .unwrap();
+
+    let mut loaded = EditorEngine::default();
+    loaded
+        .execute(CommandRequest::new("file.open", json!({"path": path})))
+        .unwrap();
+    assert_eq!(loaded.document().project.sequence.tracks[0].transitions.len(), 1);
+    assert_eq!(loaded.document().project.media[0].title.as_ref().unwrap().text, "Intro Title Updated");
+
+    // Test remove transition with undo
+    loaded
+        .execute(CommandRequest::new(
+            "timeline.remove_transition",
+            json!({"track_id": 1, "transition_id": trans_id}),
+        ))
+        .unwrap();
+    assert_eq!(loaded.document().project.sequence.tracks[0].transitions.len(), 0);
+
+    loaded
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(loaded.document().project.sequence.tracks[0].transitions.len(), 1);
+}
+

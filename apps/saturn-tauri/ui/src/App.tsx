@@ -7,7 +7,30 @@ import { SegmentedControl } from "./components/interior/segmented-control";
 
 type Workspace = "edit" | "color" | "audio" | "keyframes" | "export" | "library" | "ai";
 type TimelineTool = "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand";
-type MediaKind = "video" | "audio" | "image" | "unknown";
+type MediaKind = "video" | "audio" | "image" | "title" | "unknown";
+type TitleProperties = {
+  text: string;
+  subtitle?: string | null;
+  style: string;
+  font_family: string;
+  font_size: number;
+  color: string;
+  bg_color?: string | null;
+};
+type TransitionKind =
+  | "crossfade"
+  | "dip_to_black"
+  | "dip_to_white"
+  | "wipe_left"
+  | "wipe_right"
+  | "slide_left"
+  | "slide_right";
+type Transition = {
+  id: number;
+  kind: TransitionKind;
+  cut_at: number;
+  duration: number;
+};
 type MediaAsset = {
   id: number;
   name: string;
@@ -16,6 +39,8 @@ type MediaAsset = {
   duration: number | null;
   width: number | null;
   height: number | null;
+  title?: TitleProperties | null;
+  waveform?: number[] | null;
 };
 type ColorAdjustments = { exposure: number; contrast: number; saturation: number };
 type KeyframeProperty = "position_x" | "position_y" | "scale" | "rotation" | "opacity";
@@ -28,7 +53,7 @@ type Clip = {
   color: ColorAdjustments;
   keyframes: Keyframe[];
 };
-type Track = { id: number; kind: "video" | "audio"; name: string; gain_db: number; clips: Clip[] };
+type Track = { id: number; kind: "video" | "audio"; name: string; gain_db: number; clips: Clip[]; transitions?: Transition[] };
 type ProjectDocument = {
   project: {
     name: string;
@@ -108,7 +133,7 @@ async function runCommand<T = unknown>(id: string, params: unknown = null): Prom
   return invoke<T>("execute_command", { request: { id, params } });
 }
 
-type IconName = "fullscreen" | "restore" | "close" | "media" | "add" | "undo" | "redo" | "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand" | "snap" | "split" | "remove" | "markIn" | "markOut" | "zoomIn" | "zoomOut" | "clearMarks" | "export" | "fileNew" | "fileOpen" | "fileSave" | "import" | "help" | "window";
+type IconName = "fullscreen" | "restore" | "close" | "media" | "add" | "undo" | "redo" | "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand" | "snap" | "split" | "remove" | "markIn" | "markOut" | "zoomIn" | "zoomOut" | "clearMarks" | "export" | "fileNew" | "fileOpen" | "fileSave" | "import" | "help" | "window" | "title" | "transition";
 
 function Icon({ name }: { name: IconName }) {
   const paths = {
@@ -141,6 +166,8 @@ function Icon({ name }: { name: IconName }) {
     import: <><path d="M10 3v10m-4-4 4 4 4-4M3 15v3h14v-3" /></>,
     help: <><circle cx="10" cy="10" r="8" /><path d="M7.8 7.5A2.3 2.3 0 1 1 11 9.7c-.8.5-1 1-1 2m0 2.5v.1" /></>,
     window: <><rect x="2" y="3" width="16" height="14" rx="1" /><path d="M2 7h16M7 7v10" /></>,
+    title: <path d="M4 5h12M10 5v11m-3 0h6" />,
+    transition: <path d="M3 5h4l6 10h4M3 15h4l6-10h4" />,
   };
   return <svg viewBox="0 0 20 20" aria-hidden="true">{paths[name]}</svg>;
 }
@@ -188,6 +215,8 @@ function App() {
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
   const [selectedClip, setSelectedClip] = useState<SelectedClip | null>(null);
   const [selectedClips, setSelectedClips] = useState<SelectedClip[]>([]);
+  const [selectedTransition, setSelectedTransition] = useState<{ track_id: number; transition: Transition } | null>(null);
+  const [titleDraft, setTitleDraft] = useState<TitleProperties | null>(null);
   const [playhead, setPlayhead] = useState(0);
   const [programPlaying, setProgramPlaying] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -290,6 +319,21 @@ function App() {
     }
     return null;
   }, [media, playhead, project]);
+  const activeTitleClip = useMemo(() => {
+    if (!project) return null;
+    for (const track of project.sequence.tracks) {
+      if (track.kind !== "video") continue;
+      for (const clip of track.clips) {
+        if (playhead >= clip.timeline_start && playhead < clip.timeline_start + clip.duration) {
+          const clipMedia = media.find((item) => item.id === clip.media_id);
+          if (clipMedia && clipMedia.kind === "title" && clipMedia.title) {
+            return { track, clip, media: clipMedia, title: clipMedia.title };
+          }
+        }
+      }
+    }
+    return null;
+  }, [media, playhead, project]);
   const programPlayable = Boolean(activeClip && (activeClip.media.kind === "video" || activeClip.media.kind === "audio"));
   const timelineEndSeconds = Math.max(14, ...(project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => (clip.timeline_start + clip.duration) / TICKS_PER_SECOND + 2)));
   const timelineWidth = timelineEndSeconds * timelineZoom + 120;
@@ -337,7 +381,17 @@ function App() {
 
   useEffect(() => {
     if (selectedTimelineClip) setColorDraft(selectedTimelineClip.color);
-  }, [selectedTimelineClip]);
+    if (selectedTimelineClip) {
+      const item = media.find((m) => m.id === selectedTimelineClip.media_id);
+      if (item?.kind === "title" && item.title) {
+        setTitleDraft(item.title);
+      } else {
+        setTitleDraft(null);
+      }
+    } else {
+      setTitleDraft(null);
+    }
+  }, [selectedTimelineClip, media]);
 
   useEffect(() => {
     if (!project) return;
@@ -473,6 +527,7 @@ function App() {
       const result = await runCommand<{ name: string }>("file.open", { path });
       setSelectedClip(null);
       setSelectedClips([]);
+      setSelectedTransition(null);
       setSelectedMediaId(null);
       setPlayhead(0);
       await refreshProject();
@@ -524,6 +579,7 @@ function App() {
       await runCommand("file.save", { path });
       setSelectedClip(null);
       setSelectedClips([]);
+      setSelectedTransition(null);
       setSelectedMediaId(null);
       setPlayhead(0);
       await refreshProject();
@@ -562,6 +618,7 @@ function App() {
     setSelectedMediaId(null);
     setSelectedClip(null);
     setSelectedClips([]);
+    setSelectedTransition(null);
     setPlayhead(0);
     await perform("project.new", { name }, "New project created");
   }
@@ -732,9 +789,149 @@ function App() {
       const result = await runCommand<SelectedClip>("timeline.add_clip", { media_id: selectedMedia.id, track_id: track.id });
       setSelectedClip(result);
       setSelectedClips([]);
+      setSelectedTransition(null);
       setPlayhead(0);
       await refreshProject();
       setNotice("Clip added to timeline");
+    } catch (error) {
+      setNotice(String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function addTitleToTimeline() {
+    if (!project) return;
+    const videoTrack = project.sequence.tracks.find((item) => item.kind === "video");
+    if (!videoTrack) {
+      setNotice("This project has no video track");
+      return;
+    }
+    setBusy(true);
+    setNotice("");
+    try {
+      const result = await runCommand<{ media_id: number; track_id: number; clip_index: number }>("timeline.add_title", {
+        text: "Title Text",
+        subtitle: "Subtitle / Description",
+        style: "lower_third",
+        timeline_start: playhead,
+        track_id: videoTrack.id,
+      });
+      await refreshProject();
+      setSelectedClip({ track_id: result.track_id, clip_index: result.clip_index });
+      setSelectedClips([]);
+      setSelectedTransition(null);
+      setNotice("Title graphic added to timeline");
+    } catch (error) {
+      setNotice(String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveTitleProperty(props: Partial<TitleProperties>) {
+    if (!selectedTimelineClip || !titleDraft) return;
+    const next = { ...titleDraft, ...props };
+    setTitleDraft(next);
+    await perform("title.update", {
+      media_id: selectedTimelineClip.media_id,
+      ...props,
+    }, "Title graphic updated");
+  }
+
+  async function addTransitionToTimeline() {
+    if (!project) return;
+    let targetTrackId = selectedClip?.track_id;
+    let cutAt = playhead;
+    if (selectedClip && selectedTimelineClip) {
+      targetTrackId = selectedClip.track_id;
+      const distStart = Math.abs(playhead - selectedTimelineClip.timeline_start);
+      const distEnd = Math.abs(playhead - (selectedTimelineClip.timeline_start + selectedTimelineClip.duration));
+      cutAt = distStart < distEnd ? selectedTimelineClip.timeline_start : selectedTimelineClip.timeline_start + selectedTimelineClip.duration;
+    } else {
+      const videoTrack = project.sequence.tracks.find((t) => t.kind === "video");
+      if (videoTrack) targetTrackId = videoTrack.id;
+    }
+    if (targetTrackId == null) {
+      setNotice("Select a video clip or track to add a transition");
+      return;
+    }
+    setBusy(true);
+    setNotice("");
+    try {
+      const res = await runCommand<{ transition_id: number; track_id: number; kind: string; cut_at: number; duration: number }>(
+        "timeline.add_transition",
+        {
+          track_id: targetTrackId,
+          cut_at: cutAt,
+          duration: TICKS_PER_SECOND,
+          kind: "crossfade",
+        }
+      );
+      await refreshProject();
+      setSelectedTransition({
+        track_id: res.track_id,
+        transition: {
+          id: res.transition_id,
+          kind: res.kind as TransitionKind,
+          cut_at: res.cut_at,
+          duration: res.duration,
+        },
+      });
+      setSelectedClip(null);
+      setSelectedClips([]);
+      setNotice("Crossfade transition added");
+    } catch (error) {
+      setNotice(String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeSelectedTransition() {
+    if (!selectedTransition) return;
+    setBusy(true);
+    setNotice("");
+    try {
+      await runCommand("timeline.remove_transition", {
+        track_id: selectedTransition.track_id,
+        transition_id: selectedTransition.transition.id,
+      });
+      setSelectedTransition(null);
+      await refreshProject();
+      setNotice("Transition removed");
+    } catch (error) {
+      setNotice(String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function updateTransition(kind: TransitionKind, duration: number) {
+    if (!selectedTransition) return;
+    setBusy(true);
+    setNotice("");
+    try {
+      const res = await runCommand<{ transition_id: number; track_id: number; kind: string; cut_at: number; duration: number }>(
+        "timeline.add_transition",
+        {
+          track_id: selectedTransition.track_id,
+          cut_at: selectedTransition.transition.cut_at,
+          duration,
+          kind,
+        }
+      );
+      await refreshProject();
+      setSelectedTransition({
+        track_id: res.track_id,
+        transition: {
+          id: res.transition_id,
+          kind: res.kind as TransitionKind,
+          cut_at: res.cut_at,
+          duration: res.duration,
+        },
+      });
+      setNotice(`Transition updated to ${kind.replace(/_/g, " ")}`);
     } catch (error) {
       setNotice(String(error));
     } finally {
@@ -846,6 +1043,7 @@ function App() {
     }
     const selection = { track_id: trackId, clip_index: clipIndex };
     setSelectedClip(selection);
+    setSelectedTransition(null);
     if (timelineTool === "trackForward") {
       const track = project?.sequence.tracks.find((item) => item.id === trackId);
       setSelectedClips((track?.clips.slice(clipIndex) ?? []).map((_, offset) => ({ track_id: trackId, clip_index: clipIndex + offset })));
@@ -878,6 +1076,7 @@ function App() {
       event.stopPropagation();
       event.currentTarget.setPointerCapture(event.pointerId);
       setSelectedClip({ track_id: trackId, clip_index: clipIndex });
+      setSelectedTransition(null);
       slipDrag.current = { x: event.clientX, trackId, clipIndex };
       return;
     }
@@ -887,6 +1086,7 @@ function App() {
     event.currentTarget.setPointerCapture(event.pointerId);
     setSelectedClip({ track_id: trackId, clip_index: clipIndex });
     setSelectedClips([]);
+    setSelectedTransition(null);
     clipPointerDrag.current = {
       pointerId: event.pointerId,
       trackId,
@@ -1118,16 +1318,168 @@ function App() {
           {aiReply && <pre className="ai-reply">{aiReply}</pre>}
           <small>AI suggestions do not modify the timeline or project automatically.</small></>;
       default:
+        if (selectedTransition) {
+          const { transition, track_id } = selectedTransition;
+          const durationSeconds = transition.duration / TICKS_PER_SECOND;
+          return (
+            <>
+              <h2>Transition inspector</h2>
+              <p>Style and timing for track transitions.</p>
+              <div className="control">Track <span>Track {track_id}</span></div>
+              <div className="control">Cut position <span>{formatTime(transition.cut_at)}</span></div>
+              <label>
+                Transition type
+                <select
+                  value={transition.kind}
+                  onChange={(e) => void updateTransition(e.target.value as TransitionKind, transition.duration)}
+                >
+                  <option value="crossfade">Crossfade (Smooth Blend)</option>
+                  <option value="dip_to_black">Dip to Black</option>
+                  <option value="dip_to_white">Dip to White</option>
+                  <option value="wipe_left">Wipe Left</option>
+                  <option value="wipe_right">Wipe Right</option>
+                  <option value="slide_left">Slide Left</option>
+                  <option value="slide_right">Slide Right</option>
+                </select>
+              </label>
+              <label>
+                Duration ({durationSeconds.toFixed(2)}s)
+                <input
+                  type="range"
+                  min="0.2"
+                  max="4.0"
+                  step="0.1"
+                  value={durationSeconds}
+                  onChange={(e) => {
+                    const durTicks = Math.round(Number(e.target.value) * TICKS_PER_SECOND);
+                    setSelectedTransition({
+                      track_id,
+                      transition: { ...transition, duration: durTicks },
+                    });
+                  }}
+                  onPointerUp={(e) => {
+                    const durTicks = Math.round(Number(e.currentTarget.value) * TICKS_PER_SECOND);
+                    void updateTransition(transition.kind, durTicks);
+                  }}
+                />
+              </label>
+              <button className="danger-button" onClick={() => void removeSelectedTransition()}>Remove transition</button>
+            </>
+          );
+        }
         if (selectedTimelineClip && selectedClip) {
           const mediaForClip = media.find((item) => item.id === selectedTimelineClip.media_id);
+          if (mediaForClip?.kind === "title") {
+            const currentTitle = titleDraft ?? mediaForClip.title ?? {
+              text: "Title Text",
+              subtitle: "",
+              style: "lower_third",
+              font_family: "Inter",
+              font_size: 42,
+              color: "#ffffff",
+              bg_color: "rgba(15, 23, 42, 0.75)",
+            };
+            return (
+              <>
+                <h2>Title & Graphic inspector</h2>
+                <p>Customize lower-thirds, headline cards, and overlays.</p>
+                <label>
+                  Headline text
+                  <input
+                    value={currentTitle.text}
+                    onChange={(e) => setTitleDraft({ ...currentTitle, text: e.target.value })}
+                    onBlur={(e) => void saveTitleProperty({ text: e.target.value })}
+                    placeholder="Headline text"
+                  />
+                </label>
+                <label>
+                  Subtitle / Description
+                  <input
+                    value={currentTitle.subtitle ?? ""}
+                    onChange={(e) => setTitleDraft({ ...currentTitle, subtitle: e.target.value })}
+                    onBlur={(e) => void saveTitleProperty({ subtitle: e.target.value })}
+                    placeholder="Presenter name, role, or description"
+                  />
+                </label>
+                <label>
+                  Graphic style
+                  <select
+                    value={currentTitle.style}
+                    onChange={(e) => void saveTitleProperty({ style: e.target.value })}
+                  >
+                    <option value="lower_third">Lower-Third (Broadcasting)</option>
+                    <option value="center_title">Centered Title (Cinematic)</option>
+                    <option value="minimal_pill">Minimal Pill (Modern Streamer)</option>
+                  </select>
+                </label>
+                <label>
+                  Font size ({Math.round(currentTitle.font_size)}px)
+                  <input
+                    type="range"
+                    min="18"
+                    max="96"
+                    step="2"
+                    value={currentTitle.font_size}
+                    onChange={(e) => setTitleDraft({ ...currentTitle, font_size: Number(e.target.value) })}
+                    onPointerUp={(e) => void saveTitleProperty({ font_size: Number(e.currentTarget.value) })}
+                  />
+                </label>
+                <label>
+                  Text color
+                  <input
+                    type="color"
+                    value={currentTitle.color || "#ffffff"}
+                    onChange={(e) => {
+                      setTitleDraft({ ...currentTitle, color: e.target.value });
+                      void saveTitleProperty({ color: e.target.value });
+                    }}
+                  />
+                </label>
+                <div className="control">Start <span>{formatTime(selectedTimelineClip.timeline_start)}</span></div>
+                <div className="control">Duration <span>{formatTime(selectedTimelineClip.duration)}</span></div>
+                <button className="danger-button" onClick={removeSelectedClip}>Remove title clip</button>
+              </>
+            );
+          }
           return <><h2>Clip inspector</h2><p>{mediaForClip?.name ?? "Timeline clip"}</p><div className="control">Start <span>{formatTime(selectedTimelineClip.timeline_start)}</span></div><div className="control">Duration <span>{formatTime(selectedTimelineClip.duration)}</span></div><div className="control">Source in <span>{formatTime(selectedTimelineClip.source_in)}</span></div><button className="danger-button" onClick={removeSelectedClip}>Remove clip</button></>;
         }
         return <><h2>Inspector</h2><p>Select media or a clip to inspect its properties.</p>{selectedMedia ? <><div className="control">Type <span>{selectedMedia.kind}</span></div><div className="control">Duration <span>{selectedMedia.duration ? formatTime(selectedMedia.duration) : "—"}</span></div><div className="control">Dimensions <span>{selectedMedia.width && selectedMedia.height ? `${selectedMedia.width} × ${selectedMedia.height}` : "—"}</span></div></> : <div className="control">No selection</div>}</>;
     }
   }
 
+  const renderTitleOverlay = (titleProps: TitleProperties | undefined) => {
+    if (!titleProps) return null;
+    return (
+      <div
+        className={`title-overlay-box style-${titleProps.style || "lower_third"}`}
+        style={{
+          fontFamily: titleProps.font_family || "Inter",
+          color: titleProps.color || "#ffffff",
+          backgroundColor: titleProps.bg_color || "rgba(15, 23, 42, 0.75)",
+        }}
+      >
+        <div className="title-overlay-accent" />
+        <div className="title-overlay-text">
+          <h3 style={{ fontSize: `${Math.max(14, (titleProps.font_size || 42) * 0.45)}px` }}>
+            {titleProps.text}
+          </h3>
+          {titleProps.subtitle && <p>{titleProps.subtitle}</p>}
+        </div>
+      </div>
+    );
+  };
+
   const renderPreview = (item: MediaAsset | null, isProgram = false) => {
-    if (!item) return <div className="monitor-stage"><strong>{isProgram ? "Program monitor" : "Source monitor"}</strong><small>{isProgram ? "Add a clip to the timeline to preview the sequence" : "Select imported media to preview it here"}</small></div>;
+    if (!item) {
+      if (isProgram && activeTitleClip?.title) {
+        return (
+          <div className="preview-stage title-preview-canvas">
+            {renderTitleOverlay(activeTitleClip.title)}
+          </div>
+        );
+      }
+      return <div className="monitor-stage"><strong>{isProgram ? "Program monitor" : "Source monitor"}</strong><small>{isProgram ? "Add a clip to the timeline to preview the sequence" : "Select imported media to preview it here"}</small></div>;
+    }
     if (item.kind === "video" && !preparedPreviews[item.id]) {
       return <div className="monitor-stage preview-preparing"><strong>{previewPreparationErrors[item.id] ? "Preview unavailable" : "Preparing video preview"}</strong><small>{previewPreparationErrors[item.id] ?? (preparingPreviews.has(item.id) ? "Decoding this source into a browser-friendly preview…" : "Waiting for the preview decoder…")}</small></div>;
     }
@@ -1163,6 +1515,7 @@ function App() {
         onCanPlay={() => setPreviewError(null)}
         onError={() => setPreviewError("This video could not be loaded. Check that the file exists and uses a supported codec.")}
       />
+      {isProgram && renderTitleOverlay(activeTitleClip?.title)}
       {previewError && <div className="preview-error" role="alert"><strong>Preview unavailable</strong><span>{previewError}</span></div>}
     </div>;
     if (item.kind === "audio") return <div className="preview-stage audio-preview">
@@ -1185,7 +1538,13 @@ function App() {
       />
       {previewError && <div className="preview-error" role="alert"><strong>Preview unavailable</strong><span>{previewError}</span></div>}
     </div>;
-    if (item.kind === "image") return <div className="preview-stage"><img src={source} alt={item.name} style={visualStyle} /></div>;
+    if (item.kind === "image") return <div className="preview-stage">
+      <img src={source} alt={item.name} style={visualStyle} />
+      {isProgram && renderTitleOverlay(activeTitleClip?.title)}
+    </div>;
+    if (item.kind === "title") return <div className="preview-stage title-preview-canvas">
+      {renderTitleOverlay(item.title ?? titleDraft ?? undefined)}
+    </div>;
     return <div className="monitor-stage"><strong>Preview unavailable</strong><small>Easy Edits Pro could not identify this media type.</small></div>;
   };
 
@@ -1322,6 +1681,33 @@ function App() {
     <div className="app-shell" tabIndex={-1} onKeyDown={(event) => {
       const target = event.target;
       if (target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
+      if (event.key === " " || event.code === "Space") {
+        event.preventDefault();
+        void toggleProgramPlayback();
+        return;
+      }
+      if (event.key === "Delete" || event.key === "Backspace") {
+        if (selectedTransition) {
+          event.preventDefault();
+          void removeSelectedTransition();
+          return;
+        }
+        if (selectedClip) {
+          event.preventDefault();
+          void removeSelectedClip();
+          return;
+        }
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "t") {
+        event.preventDefault();
+        void addTitleToTimeline();
+        return;
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
+        event.preventDefault();
+        void addTransitionToTimeline();
+        return;
+      }
       if (!(event.ctrlKey || event.metaKey || event.altKey)) {
         const tool = timelineTools.find((item) => item.shortcut.toLowerCase() === event.key.toLowerCase());
         if (tool) { event.preventDefault(); setTimelineTool(tool.id); return; }
@@ -1387,6 +1773,8 @@ function App() {
                 <div className="timeline-toolbar-tools" aria-label="Timeline actions">
                   <button className={`timeline-icon-button ${snapEnabled ? "active-toggle" : ""}`} aria-pressed={snapEnabled} onClick={() => setSnapEnabled((enabled) => !enabled)} title={`Snap to frame (${snapEnabled ? "on" : "off"}) · S`} aria-label="Toggle snapping"><Icon name="snap" /></button>
                   <button className="timeline-icon-button" disabled={!selectedMedia || busy} onClick={() => void addSelectedToTimeline()} title="Add selected media to timeline" aria-label="Add selected media"><Icon name="add" /></button>
+                  <button className="timeline-icon-button" disabled={busy} onClick={() => void addTitleToTimeline()} title="Add Title / Lower-Third graphic (Ctrl+T)" aria-label="Add Title"><Icon name="title" /></button>
+                  <button className="timeline-icon-button" disabled={busy} onClick={() => void addTransitionToTimeline()} title="Add Transition at cut / playhead (Ctrl+D)" aria-label="Add Transition"><Icon name="transition" /></button>
                   <span className="toolbar-divider" />
                   <button className="timeline-icon-button" disabled={!undoStatus.enabled || busy} onClick={() => void perform("edit.undo")} title={undoStatus.reason ?? "Undo"} aria-label="Undo"><Icon name="undo" /></button>
                   <button className="timeline-icon-button" disabled={!redoStatus.enabled || busy} onClick={() => void perform("edit.redo")} title={redoStatus.reason ?? "Redo"} aria-label="Redo"><Icon name="redo" /></button>
@@ -1408,12 +1796,56 @@ function App() {
                   <div className="timeline-ruler"><span className="track-spacer">Time</span><div className="ruler-lane" onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}>{project?.sequence.mark_in != null && <i className="sequence-marker in-point" style={{ left: `${project.sequence.mark_in / TICKS_PER_SECOND * timelineZoom}px` }} title={`In · ${formatTime(project.sequence.mark_in)}`}><Icon name="markIn" /></i>}{project?.sequence.mark_out != null && <i className="sequence-marker out-point" style={{ left: `${project.sequence.mark_out / TICKS_PER_SECOND * timelineZoom}px` }} title={`Out · ${formatTime(project.sequence.mark_out)}`}><Icon name="markOut" /></i>}{Array.from({ length: Math.ceil(timelineWidth / (timelineZoom * 5)) + 1 }, (_, index) => <span key={index} style={{ left: `${index * timelineZoom * 5}px` }}>{formatTime(index * TICKS_PER_SECOND * 5)}</span>)}<div className="playhead-grip ruler-playhead-grip" style={{ left: `${playhead / TICKS_PER_SECOND * timelineZoom}px` }} role="slider" aria-label="Timeline playhead" aria-valuenow={playhead / TICKS_PER_SECOND} aria-valuemin={0} aria-valuemax={timelineEndSeconds} onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}><i className="playhead" /></div></div></div>
                   {(project?.sequence.tracks ?? []).map((track) => <div className="track-row" key={track.id}>
                     <div className="track-label"><b>{track.name}</b><span>{track.kind}</span></div>
-                    <div className={`track-lane ${mediaDropTargetTrackId === track.id ? "media-drop-target" : ""}`} data-track-id={track.id}>
+                    <div className={`track-lane ${mediaDropTargetTrackId === track.id ? "media-drop-target" : ""}`} data-track-id={track.id} onClick={() => { setSelectedTransition(null); }}>
+                      {(track.transitions ?? []).map((trans) => {
+                        const cutX = (trans.cut_at / TICKS_PER_SECOND) * timelineZoom;
+                        const durPx = Math.max(26, (trans.duration / TICKS_PER_SECOND) * timelineZoom);
+                        const left = Math.max(0, cutX - durPx / 2);
+                        const isSelected = selectedTransition?.track_id === track.id && selectedTransition?.transition.id === trans.id;
+                        const label = trans.kind.replace(/_/g, " ");
+                        return (
+                          <div
+                            key={`trans-${track.id}-${trans.id}`}
+                            className={`timeline-transition-badge ${isSelected ? "selected" : ""}`}
+                            style={{ left: `${left}px`, width: `${durPx}px` }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedTransition({ track_id: track.id, transition: trans });
+                              setSelectedClip(null);
+                              setSelectedClips([]);
+                            }}
+                            title={`Transition: ${label} (${(trans.duration / TICKS_PER_SECOND).toFixed(1)}s)`}
+                          >
+                            <span className="transition-icon"><Icon name="transition" /></span>
+                            <span className="transition-name">{label}</span>
+                          </div>
+                        );
+                      })}
                       {track.clips.map((clip, index) => {
                         const item = media.find((entry) => entry.id === clip.media_id);
+                        const isTitle = item?.kind === "title";
                         const selected = (selectedClip?.track_id === track.id && selectedClip.clip_index === index) || selectedClips.some((item) => item.track_id === track.id && item.clip_index === index);
                         const dragOffset = clipDragOffset?.trackId === track.id && clipDragOffset.clipIndex === index ? clipDragOffset : null;
-                        return <div className={`timeline-clip ${selected ? "selected" : ""} ${track.kind} tool-${timelineTool} ${dragOffset ? "dragging" : ""}`} key={`${track.id}-${clip.media_id}-${index}-${clip.timeline_start}`} style={{ left: `${clip.timeline_start / TICKS_PER_SECOND * timelineZoom}px`, width: `${Math.max(34, clip.duration / TICKS_PER_SECOND * timelineZoom)}px`, transform: dragOffset ? `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)` : undefined }} onPointerDown={(event) => beginTimelineClipPointer(event, track.id, index, clip)} onPointerMove={moveTimelineClipPointer} onPointerUp={(event) => void finishTimelineClipPointer(event)} onPointerCancel={handleTimelineClipPointerCancel} onClick={(event) => void handleTimelineClipClick(event, track.id, index, clip)} title={`${item?.name ?? "Clip"} · ${timelineTools.find((tool) => tool.id === timelineTool)?.label}`}><strong>{item?.name ?? "Missing media"}</strong></div>;
+                        return <div className={`timeline-clip ${selected ? "selected" : ""} ${track.kind} ${isTitle ? "title-clip" : ""} tool-${timelineTool} ${dragOffset ? "dragging" : ""}`} key={`${track.id}-${clip.media_id}-${index}-${clip.timeline_start}`} style={{ left: `${clip.timeline_start / TICKS_PER_SECOND * timelineZoom}px`, width: `${Math.max(34, clip.duration / TICKS_PER_SECOND * timelineZoom)}px`, transform: dragOffset ? `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)` : undefined }} onPointerDown={(event) => beginTimelineClipPointer(event, track.id, index, clip)} onPointerMove={moveTimelineClipPointer} onPointerUp={(event) => void finishTimelineClipPointer(event)} onPointerCancel={handleTimelineClipPointerCancel} onClick={(event) => void handleTimelineClipClick(event, track.id, index, clip)} title={`${item?.name ?? "Clip"} · ${timelineTools.find((tool) => tool.id === timelineTool)?.label}`}>
+                          {track.kind === "audio" && item?.waveform && item.waveform.length > 0 && (
+                            <div className="clip-waveform-container" aria-hidden="true">
+                              <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
+                                <path
+                                  d={item.waveform.map((peak, i) => {
+                                    const norm = Math.max(1, (peak / 255) * 14);
+                                    const x = (i / item.waveform!.length) * 100;
+                                    return `M ${x.toFixed(1)} ${(16 - norm).toFixed(1)} L ${x.toFixed(1)} ${(16 + norm).toFixed(1)}`;
+                                  }).join(" ")}
+                                  stroke="currentColor"
+                                  strokeWidth="1.2"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                          <span className="clip-kind-icon">{isTitle ? "T" : track.kind === "audio" ? "♪" : "▶"}</span>
+                          <strong>{item?.name ?? "Missing media"}</strong>
+                        </div>;
                       })}
                       <div className="playhead-grip" style={{ left: `${playhead / TICKS_PER_SECOND * timelineZoom}px` }} role="slider" aria-label="Timeline playhead" aria-valuenow={playhead / TICKS_PER_SECOND} aria-valuemin={0} aria-valuemax={timelineEndSeconds} onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}><i className="playhead" /></div>
                     </div>

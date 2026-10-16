@@ -4,11 +4,13 @@ use gstreamer_editing_services as ges;
 use gstreamer_editing_services::prelude::*;
 use gstreamer_pbutils as gst_pbutils;
 use saturn_core::{FrameRate, Tick};
-use saturn_core::project::{Clip, MediaKind, ProjectDocument, TrackKind};
+use saturn_core::project::{Clip, MediaKind, ProjectDocument, TrackKind, TransitionKind};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 static GST_INIT: OnceLock<Result<(), String>> = OnceLock::new();
+
+
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RenderProgress {
@@ -352,6 +354,17 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
                 .ok_or_else(|| {
                     format!("Timeline clip references missing media {}", clip.media_id)
                 })?;
+            if matches!(media.kind, MediaKind::Title) {
+                if let Some(title_clip) = ges::TitleClip::new() {
+                    let _ = title_clip.set_start(clock_time(clip.timeline_start)?);
+                    let _ = title_clip.set_duration(clock_time(clip.duration)?);
+                    if let Some(props) = &media.title {
+                        let _ = title_clip.set_child_property("text", &props.text);
+                    }
+                    let _ = layer.add_clip(&title_clip);
+                }
+                continue;
+            }
             if !media.path.is_file() {
                 return Err(format!("Source media is missing: {}", media.path.display()));
             }
@@ -395,7 +408,27 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
                 )
             })?;
         }
+        for trans in &track.transitions {
+            let nick = match trans.kind {
+                TransitionKind::Crossfade => "crossfade",
+                TransitionKind::DipToBlack | TransitionKind::DipToWhite => "fade",
+                TransitionKind::WipeLeft | TransitionKind::WipeRight => "wipe",
+                TransitionKind::SlideLeft | TransitionKind::SlideRight => "slide",
+            };
+            if let Some(ges_trans) = ges::TransitionClip::for_nick(nick) {
+                let half_dur = trans.duration.0 / 2;
+                let start_tick = Tick(trans.cut_at.0.saturating_sub(half_dur).max(0));
+                if let Ok(st) = clock_time(start_tick) {
+                    let _ = ges_trans.set_start(st);
+                }
+                if let Ok(dur) = clock_time(trans.duration) {
+                    let _ = ges_trans.set_duration(dur);
+                }
+                let _ = layer.add_clip(&ges_trans);
+            }
+        }
     }
+
     if !timeline.commit_sync() {
         return Err("GStreamer could not finalize the render timeline".into());
     }

@@ -598,6 +598,7 @@ dependencies = [
  "gstreamer-editing-services",
  "gstreamer-pbutils",
  "saturn-core",
+ "serde",
 ]
 
 [[package]]
