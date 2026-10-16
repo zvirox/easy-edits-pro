@@ -51,11 +51,15 @@ The project is licensed under **GNU GPL version 3**; see [`LICENSE`](LICENSE).
 
 - Easy Edits Pro Tauri 2 React/TypeScript/Vite desktop shell with responsive editing workspaces and bundled Inter Variable typography
 - Modern Linux desktop rice identity styled for Hyprland / Niri (obsidian dark canvas, subtle 1px border glows, neon cyan/violet accents, tactile button click animations)
-- Dedicated Import, Edit, and Export workspaces with labeled top-level navigation and practical export controls and output summary
+- **DaVinci Resolve 2026 Workspace Flow**: Integrated sequential workspace bar (`Media` Shift+1, `Edit` Shift+2, `Color` Shift+3, `Audio` Shift+4, `Effects` Shift+5, `Deliver` Shift+6) unifying asset management, multi-track cutting, color grading, Fairlight audio mixing, keyframing, and delivery
+- **Wondershare Filmora 15 Left Asset Panel**: Tabbed category navigation (`Media`, `Titles`, `Transitions`, `Audio`, `Stock`, `AI Tools`) featuring instant 1-click visual preset cards for Title templates (`Broadcast Lower-Third`, `Minimal Pill`, `Cinematic Headline`, `Cyber Neon`, `Documentary Card`, `Framed Banner`) and Transitions (`Crossfade`, `Dip to Black`, `Dip to White`, `Wipe Left/Right`, `Slide Left/Right`)
+- **Adobe Premiere Pro Timeline Tool Rail**: Dedicated vertical tool rail beside the timeline with pro NLE tools and single-key shortcuts: Selection Tool (`V`), Track Select Forward (`A`), Ripple Edit (`B`), Razor (`C`), Slip (`Y`), Keyframe Pen (`P`), Hand Pan (`H`), and Zoom (`Z`)
+- **Automatic Floating Tooltips**: Tooltips on hover across all tools, workspace buttons, menu items, timeline actions, and transport controls showing tool name and keyboard shortcut
+- **Light & Dark Mode Theme Switcher**: Easily accessible header toggle button (`Ctrl+Alt+T`) switching between Obsidian Dark Rice (`#080a0f`) and Pro Studio Clean Slate (`#f1f5f9`), with local storage persistence
 - Video and audio transitions (`Crossfade`, `Dip to Black`, `Dip to White`, `Wipe Left/Right`, `Slide Left/Right`) with interactive timeline badge handles, duration adjustment, GStreamer Editing Services (`ges::TransitionClip`) export rendering, and `Ctrl+D` shortcut
 - Title and Lower-Third graphic clips (`Ctrl+T`), neon-violet timeline graphic clips, live Program Monitor overlay rendering with glassmorphism backdrop blur (`lower_third`, `center_title`, `minimal_pill`), GStreamer `ges::TitleClip` export rendering, and dedicated Title & Graphic Inspector
 - Audio waveform peak visualization decoded via GStreamer audio pipelines and rendered as crisp mirrored SVG waveforms across timeline audio clips
-- Pro keyboard shortcuts: `Space` (toggle play/pause), `Ctrl+T` (add title graphic), `Ctrl+D` (add default transition), `Delete` / `Backspace` (remove selected clip or transition)
+- Pro keyboard shortcuts: `Space` (toggle play/pause), `Ctrl+T` (add title graphic), `Ctrl+D` (add default transition), `Shift+1`..`Shift+6` (workspaces), `V`/`A`/`B`/`C`/`Y`/`P`/`H`/`Z` (tools), `Delete` / `Backspace` (remove selected clip or transition)
 - Rust Tauri command bridge backed by `saturn-core`, including project status and timeline editing commands with undo/redo
 - Native project and media dialogs, asynchronous GStreamer metadata discovery, and asset-protocol media access
 - Project welcome screen with new/open/recent project workflows, resolution and frame-rate settings, and interrupted-project recovery

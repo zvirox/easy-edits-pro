@@ -121,7 +121,12 @@ flowchart TD
 - **Audio Waveform Visualization:**
   - **Peak Amplitude Decoding:** GStreamer audio decoding pipeline (`generate_waveform_peaks`) extracting normalized peak amplitudes into 100-bin arrays per audio track.
   - **Timeline Rendering:** Real-time mirrored SVG waveforms rendered across audio clips on the timeline with neon cyan styling, providing visual cues for cuts and audio beats.
-- **Modern Linux Desktop Rice Styling (Hyprland / Niri):**
+- **Modern Linux Desktop Rice Styling (Hyprland / Niri) & Pro NLE UI Fusion:**
+  - **DaVinci Resolve 2026 Workspace Bar:** Sequential workflow pages (`Media` Shift+1, `Edit` Shift+2, `Color` Shift+3, `Audio` Shift+4, `Effects` Shift+5, `Deliver` Shift+6) unifying media management, multi-track timeline editing, color grading, Fairlight audio mixer, keyframe motion, and file delivery.
+  - **Wondershare Filmora 15 Left Asset Panel:** Visual tabbed navigation (`Media`, `Titles`, `Transitions`, `Audio`, `Stock`, `AI Tools`) featuring instant 1-click visual preset cards for Title templates (`Broadcast Lower-Third`, `Minimal Pill`, `Cinematic Headline`, `Cyber Neon`, `Documentary Card`, `Framed Banner`) and Transitions (`Crossfade`, `Dip to Black`, `Dip to White`, `Wipe Left/Right`, `Slide Left/Right`).
+  - **Adobe Premiere Pro Timeline Tool Rail:** Dedicated vertical editing tool rail with single-key shortcuts: Selection Tool (`V`), Track Select Forward (`A`), Ripple Edit (`B`), Razor (`C`), Slip (`Y`), Keyframe Pen (`P`), Hand Pan (`H`), and Zoom (`Z`).
+  - **Universal Hover Tooltips:** Automatic floating tooltips with smooth cubic-bezier transitions displaying the tool/action name and keyboard shortcut on hover across all tools, menus, workspace buttons, and timeline controls.
+  - **Theme System (Dark / Light Mode):** Dynamic CSS variable theming with an instant header switcher (`Ctrl+Alt+T`) between Obsidian Dark Linux Rice (`#080a0f`) and Pro Studio Clean Slate (`#f1f5f9`), persisted via `localStorage`.
   - Obsidian dark canvas (`#080a0f`), translucent glassmorphic panels, subtle 1px border glows, electric cyan (`#00f2fe`) and neon violet (`#a855f7`) accents.
   - Tactile micro-interactions on button clicks (`:active { transform: scale(0.96); }`), smooth hover transitions, and clean typography with bundled Inter Variable font.
 

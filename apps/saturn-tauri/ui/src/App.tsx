@@ -3,10 +3,11 @@ import { Channel, convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import { LoadingButton } from "./components/interior/loading-button";
-import { SegmentedControl } from "./components/interior/segmented-control";
 
 type Workspace = "edit" | "color" | "audio" | "keyframes" | "export" | "library" | "ai";
-type TimelineTool = "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand";
+type TimelineTool = "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand" | "zoom";
+type DavinciWorkspace = "media" | "edit" | "color" | "audio" | "effects" | "deliver";
+type FilmoraTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
 type MediaKind = "video" | "audio" | "image" | "title" | "unknown";
 type TitleProperties = {
   text: string;
@@ -110,14 +111,101 @@ const workspaces: { id: Workspace; label: string }[] = [
   { id: "library", label: "Asset library" },
   { id: "ai", label: "AI assistant" },
 ];
+
+const davinciWorkspaces: { id: DavinciWorkspace; label: string; shortcut: string; icon: IconName }[] = [
+  { id: "media", label: "Media", shortcut: "Shift+1", icon: "media" },
+  { id: "edit", label: "Edit", shortcut: "Shift+2", icon: "edit" },
+  { id: "color", label: "Color", shortcut: "Shift+3", icon: "color" },
+  { id: "audio", label: "Audio", shortcut: "Shift+4", icon: "audio" },
+  { id: "effects", label: "Effects", shortcut: "Shift+5", icon: "effects" },
+  { id: "deliver", label: "Deliver", shortcut: "Shift+6", icon: "deliver" },
+];
+
+const filmoraTabs: { id: FilmoraTab; label: string; icon: IconName; tooltip: string }[] = [
+  { id: "media", label: "Media", icon: "media", tooltip: "Project Media Bin" },
+  { id: "titles", label: "Titles", icon: "title", tooltip: "Titles & Lower-Thirds" },
+  { id: "transitions", label: "Transitions", icon: "transition", tooltip: "Visual Transitions" },
+  { id: "audio", label: "Audio", icon: "audio", tooltip: "Audio & SFX Library" },
+  { id: "stock", label: "Stock", icon: "media", tooltip: "Openverse Stock Media" },
+  { id: "ai", label: "AI Tools", icon: "effects", tooltip: "Local AI Assistant" },
+];
+
+const titlePresets = [
+  {
+    id: "lower_third",
+    name: "Broadcast Lower-Third",
+    desc: "Presenter name & role banner",
+    preview: "John Doe · Lead Editor",
+    style: "lower_third",
+    text: "Presenter Name",
+    subtitle: "Lead Video Editor",
+  },
+  {
+    id: "minimal_pill",
+    name: "Minimal Pill",
+    desc: "Modern frosted floating badge",
+    preview: "✦ MINIMAL PILL",
+    style: "minimal_pill",
+    text: "Minimal Pill Headline",
+    subtitle: "Subtle contextual note",
+  },
+  {
+    id: "center_bold",
+    name: "Cinematic Headline",
+    desc: "Bold high-impact centered title",
+    preview: "EPISODE 01",
+    style: "center_bold",
+    text: "CINEMATIC HEADLINE",
+    subtitle: "A NEW CHAPTER BEGINS",
+  },
+  {
+    id: "cyber_neon",
+    name: "Cyber Neon",
+    desc: "Vibrant glowing title effect",
+    preview: "⚡ CYBER NEON",
+    style: "cyber_neon",
+    text: "CYBER NEON 2026",
+    subtitle: "NIGHT CITY PROTOCOL",
+  },
+  {
+    id: "headline_subtitle",
+    name: "Documentary Card",
+    desc: "Headline with location subtext",
+    preview: "DOCUMENTARY",
+    style: "headline_subtitle",
+    text: "Documentary Chapter",
+    subtitle: "Location and historical context",
+  },
+  {
+    id: "boxed_banner",
+    name: "Framed Banner",
+    desc: "Aesthetic boxed caption overlay",
+    preview: "[ FRAMED BOX ]",
+    style: "boxed_banner",
+    text: "Framed Aesthetic Banner",
+    subtitle: "Curated sequence notes",
+  },
+];
+
+const transitionPresets: { id: TransitionKind; name: string; desc: string; iconSymbol: string }[] = [
+  { id: "crossfade", name: "Crossfade", desc: "Smooth blend dissolve between clips", iconSymbol: "⧓" },
+  { id: "dip_to_black", name: "Dip to Black", desc: "Cinematic fade through black", iconSymbol: "◼" },
+  { id: "dip_to_white", name: "Dip to White", desc: "High-energy flash through white", iconSymbol: "◻" },
+  { id: "wipe_left", name: "Wipe Left", desc: "Horizontal wipe moving left", iconSymbol: "◀|" },
+  { id: "wipe_right", name: "Wipe Right", desc: "Horizontal wipe moving right", iconSymbol: "|▶" },
+  { id: "slide_left", name: "Slide Left", desc: "Push slide moving left", iconSymbol: "⇠" },
+  { id: "slide_right", name: "Slide Right", desc: "Push slide moving right", iconSymbol: "⇢" },
+];
+
 const timelineTools: { id: TimelineTool; icon: IconName; label: string; shortLabel: string; shortcut: string }[] = [
-  { id: "select", icon: "select", label: "Selection tool", shortLabel: "Select", shortcut: "V" },
-  { id: "trackForward", icon: "trackForward", label: "Track select forward", shortLabel: "Track", shortcut: "A" },
-  { id: "ripple", icon: "ripple", label: "Ripple delete tool", shortLabel: "Ripple", shortcut: "B" },
-  { id: "razor", icon: "razor", label: "Razor tool", shortLabel: "Razor", shortcut: "C" },
-  { id: "slip", icon: "slip", label: "Slip tool", shortLabel: "Slip", shortcut: "Y" },
-  { id: "pen", icon: "pen", label: "Keyframe pen tool", shortLabel: "Key", shortcut: "P" },
-  { id: "hand", icon: "hand", label: "Hand tool", shortLabel: "Pan", shortcut: "H" },
+  { id: "select", icon: "select", label: "Selection Tool", shortLabel: "Select", shortcut: "V" },
+  { id: "trackForward", icon: "trackForward", label: "Track Select Forward", shortLabel: "Track", shortcut: "A" },
+  { id: "ripple", icon: "ripple", label: "Ripple Edit Tool", shortLabel: "Ripple", shortcut: "B" },
+  { id: "razor", icon: "razor", label: "Razor Tool", shortLabel: "Razor", shortcut: "C" },
+  { id: "slip", icon: "slip", label: "Slip Tool", shortLabel: "Slip", shortcut: "Y" },
+  { id: "pen", icon: "pen", label: "Keyframe Pen Tool", shortLabel: "Pen", shortcut: "P" },
+  { id: "hand", icon: "hand", label: "Hand Pan Tool", shortLabel: "Hand", shortcut: "H" },
+  { id: "zoom", icon: "zoomIn", label: "Zoom Tool", shortLabel: "Zoom", shortcut: "Z" },
 ];
 const mediaFilters = [{ name: "Video, audio, and images", extensions: ["mp4", "mkv", "mov", "webm", "avi", "m4v", "mp3", "wav", "flac", "ogg", "m4a", "aac", "png", "jpg", "jpeg", "webp", "bmp", "tif", "tiff"] }];
 const projectFilters = [{ name: "Easy Edits Pro project", extensions: ["saturn"] }];
@@ -133,7 +221,7 @@ async function runCommand<T = unknown>(id: string, params: unknown = null): Prom
   return invoke<T>("execute_command", { request: { id, params } });
 }
 
-type IconName = "fullscreen" | "restore" | "close" | "media" | "add" | "undo" | "redo" | "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand" | "snap" | "split" | "remove" | "markIn" | "markOut" | "zoomIn" | "zoomOut" | "clearMarks" | "export" | "fileNew" | "fileOpen" | "fileSave" | "import" | "help" | "window" | "title" | "transition";
+type IconName = "fullscreen" | "restore" | "close" | "media" | "add" | "undo" | "redo" | "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand" | "snap" | "split" | "remove" | "markIn" | "markOut" | "zoomIn" | "zoomOut" | "clearMarks" | "export" | "fileNew" | "fileOpen" | "fileSave" | "import" | "help" | "window" | "title" | "transition" | "sun" | "moon" | "color" | "audio" | "effects" | "deliver" | "edit";
 
 function Icon({ name }: { name: IconName }) {
   const paths = {
@@ -168,6 +256,13 @@ function Icon({ name }: { name: IconName }) {
     window: <><rect x="2" y="3" width="16" height="14" rx="1" /><path d="M2 7h16M7 7v10" /></>,
     title: <path d="M4 5h12M10 5v11m-3 0h6" />,
     transition: <path d="M3 5h4l6 10h4M3 15h4l6-10h4" />,
+    sun: <><circle cx="10" cy="10" r="4" /><path d="M10 2v2m0 12v2M2 10h2m12 0h2m-3.5-4.5 1.4-1.4M4.9 15.1l1.4-1.4m0-7.4L4.9 4.9m10.2 10.2-1.4-1.4" /></>,
+    moon: <path d="M16 11.5A6.5 6.5 0 0 1 8.5 4a6.5 6.5 0 1 0 7.5 7.5z" />,
+    color: <path d="M10 2a8 8 0 1 0 8 8 3 3 0 0 0-3-3h-1.5a1.5 1.5 0 0 1-1.5-1.5V5a3 3 0 0 0-3-3z" />,
+    audio: <path d="M3 8v4h3l4 4V4L6 8H3zm10-2a4 4 0 0 1 0 8m2-10a7 7 0 0 1 0 12" />,
+    effects: <><path d="m10 2 2 4.5L16.5 8l-4.5 1.5L10 14l-2-4.5L3.5 8l4.5-1.5z" /><path d="m4 14 1 2 2 1-2 1-1 2-1-2-2-1 2-1z" /></>,
+    deliver: <><path d="M10 3v10m-4-4 4 4 4-4M3 15v3h14v-3" /></>,
+    edit: <><circle cx="6" cy="6" r="2" /><circle cx="6" cy="14" r="2" /><path d="m8 7 9 9M8 13l9-9" /></>,
   };
   return <svg viewBox="0 0 20 20" aria-hidden="true">{paths[name]}</svg>;
 }
@@ -211,6 +306,41 @@ function App() {
   const [setupFrameRate, setSetupFrameRate] = useState("30/1");
   const [workspace, setWorkspace] = useState<Workspace>("edit");
   const [editorWorkspace, setEditorWorkspace] = useState<EditorWorkspace>("edit");
+  const [davinciWorkspace, setDavinciWorkspace] = useState<DavinciWorkspace>("edit");
+  const [filmoraTab, setFilmoraTab] = useState<FilmoraTab>("media");
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    try {
+      const saved = localStorage.getItem("eep-theme");
+      if (saved === "light" || saved === "dark") return saved;
+    } catch {}
+    return "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+      localStorage.setItem("eep-theme", theme);
+    } catch {}
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+  }, []);
+
+  const selectDavinciWorkspace = useCallback((ws: DavinciWorkspace) => {
+    setDavinciWorkspace(ws);
+    if (ws === "media") {
+      setEditorWorkspace("import");
+    } else if (ws === "deliver") {
+      setEditorWorkspace("export");
+    } else {
+      setEditorWorkspace("edit");
+      if (ws === "edit") setWorkspace("edit");
+      else if (ws === "color") setWorkspace("color");
+      else if (ws === "audio") setWorkspace("audio");
+      else if (ws === "effects") setWorkspace("keyframes");
+    }
+  }, []);
   const [projectState, setProjectState] = useState<ProjectStatus | null>(null);
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
   const [selectedClip, setSelectedClip] = useState<SelectedClip | null>(null);
@@ -839,7 +969,36 @@ function App() {
     }, "Title graphic updated");
   }
 
-  async function addTransitionToTimeline() {
+  async function addPresetTitle(preset: (typeof titlePresets)[number]) {
+    if (!project) return;
+    const videoTrack = project.sequence.tracks.find((item) => item.kind === "video");
+    if (!videoTrack) {
+      setNotice("This project has no video track");
+      return;
+    }
+    setBusy(true);
+    setNotice("");
+    try {
+      const result = await runCommand<{ media_id: number; track_id: number; clip_index: number }>("timeline.add_title", {
+        text: preset.text,
+        subtitle: preset.subtitle,
+        style: preset.style,
+        timeline_start: playhead,
+        track_id: videoTrack.id,
+      });
+      await refreshProject();
+      setSelectedClip({ track_id: result.track_id, clip_index: result.clip_index });
+      setSelectedClips([]);
+      setSelectedTransition(null);
+      setNotice(`Added ${preset.name} at ${formatTime(playhead)}`);
+    } catch (error) {
+      setNotice(String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function addPresetTransition(kind: TransitionKind) {
     if (!project) return;
     let targetTrackId = selectedClip?.track_id;
     let cutAt = playhead;
@@ -853,7 +1012,7 @@ function App() {
       if (videoTrack) targetTrackId = videoTrack.id;
     }
     if (targetTrackId == null) {
-      setNotice("Select a video clip or track to add a transition");
+      setNotice("Select a video clip or track to apply transition");
       return;
     }
     setBusy(true);
@@ -865,27 +1024,39 @@ function App() {
           track_id: targetTrackId,
           cut_at: cutAt,
           duration: TICKS_PER_SECOND,
-          kind: "crossfade",
+          kind,
         }
       );
+      if (res.kind !== kind) {
+        await runCommand("timeline.update_transition", {
+          track_id: res.track_id,
+          transition_id: res.transition_id,
+          kind,
+          duration: TICKS_PER_SECOND,
+        });
+      }
       await refreshProject();
       setSelectedTransition({
         track_id: res.track_id,
         transition: {
           id: res.transition_id,
-          kind: res.kind as TransitionKind,
+          kind,
           cut_at: res.cut_at,
-          duration: res.duration,
+          duration: TICKS_PER_SECOND,
         },
       });
       setSelectedClip(null);
       setSelectedClips([]);
-      setNotice("Crossfade transition added");
+      setNotice(`Applied ${kind.replace(/_/g, " ")} transition at ${formatTime(cutAt)}`);
     } catch (error) {
       setNotice(String(error));
     } finally {
       setBusy(false);
     }
+  }
+
+  async function addTransitionToTimeline() {
+    return addPresetTransition("crossfade");
   }
 
   async function removeSelectedTransition() {
@@ -1714,6 +1885,25 @@ function App() {
         void addTransitionToTimeline();
         return;
       }
+      if ((event.ctrlKey || event.metaKey) && event.altKey && event.key.toLowerCase() === "t") {
+        event.preventDefault();
+        toggleTheme();
+        return;
+      }
+      if (event.shiftKey && ["1", "2", "3", "4", "5", "6"].includes(event.key)) {
+        event.preventDefault();
+        const map: Record<string, DavinciWorkspace> = {
+          "1": "media",
+          "2": "edit",
+          "3": "color",
+          "4": "audio",
+          "5": "effects",
+          "6": "deliver",
+        };
+        const ws = map[event.key];
+        if (ws) selectDavinciWorkspace(ws);
+        return;
+      }
       if (!(event.ctrlKey || event.metaKey || event.altKey)) {
         const tool = timelineTools.find((item) => item.shortcut.toLowerCase() === event.key.toLowerCase());
         if (tool) { event.preventDefault(); setTimelineTool(tool.id); return; }
@@ -1731,70 +1921,439 @@ function App() {
     }}>
       <header className="app-header">
         <div className="header-menu-row">
-          <div className="brand"><img className="brand-mark" src="/saturn-camera.png" alt="Easy Edits Pro camera logo" /><div><strong>Easy Edits Pro</strong><small>{project?.name ?? "Loading project…"}{projectState?.is_dirty ? " •" : ""}</small></div></div>
-          <nav className="primary-workspace-nav" aria-label="Main workspaces">{(["import", "edit", "export"] as const).map((item) => <button key={item} className={editorWorkspace === item ? "selected" : ""} aria-current={editorWorkspace === item ? "page" : undefined} onClick={() => setEditorWorkspace(item)}>{item[0].toUpperCase() + item.slice(1)}</button>)}</nav>
-          <nav className="menu-bar" aria-label="Application menus">{["File", "Edit", "Clip", "Sequence", "Markers", "View", "Window", "Help"].map(renderMenu)}</nav>
+          <div className="brand">
+            <img className="brand-mark" src="/saturn-camera.png" alt="Easy Edits Pro camera logo" />
+            <div>
+              <strong>Easy Edits Pro</strong>
+              <small>{project?.name ?? "Loading project…"}{projectState?.is_dirty ? " •" : ""}</small>
+            </div>
+          </div>
+
+          {/* DaVinci Resolve Inspired Workspace Bar */}
+          <nav className="davinci-workspace-bar" aria-label="DaVinci Resolve Workspaces">
+            {davinciWorkspaces.map((item) => {
+              const isActive = davinciWorkspace === item.id;
+              return (
+                <button
+                  key={item.id}
+                  className={`davinci-workspace-btn ${isActive ? "active" : ""}`}
+                  onClick={() => selectDavinciWorkspace(item.id)}
+                  data-tooltip={`${item.label} Page (${item.shortcut})`}
+                  data-tooltip-pos="bottom"
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  <Icon name={item.icon} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          <nav className="menu-bar" aria-label="Application menus">
+            {["File", "Edit", "Clip", "Sequence", "Markers", "View", "Window", "Help"].map(renderMenu)}
+          </nav>
+
           <div className="header-actions">
-            <button className="icon-button" onClick={() => void toggleFullscreen()} aria-label={fullscreen ? "Leave fullscreen" : "Enter fullscreen"} title={fullscreen ? "Leave fullscreen" : "Enter fullscreen"}><Icon name={fullscreen ? "restore" : "fullscreen"} /></button>
-            <button className="icon-button close" onClick={() => void getCurrentWindow().close()} aria-label="Close Easy Edits Pro" title="Close"><Icon name="close" /></button>
+            <button
+              className="theme-toggle-btn"
+              onClick={toggleTheme}
+              aria-label="Toggle Light / Dark mode"
+              data-tooltip={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode (Ctrl+Alt+T)`}
+              data-tooltip-pos="bottom"
+            >
+              <Icon name={theme === "dark" ? "sun" : "moon"} />
+            </button>
+            <button
+              className="icon-button"
+              onClick={() => void toggleFullscreen()}
+              aria-label={fullscreen ? "Leave fullscreen" : "Enter fullscreen"}
+              data-tooltip={fullscreen ? "Leave Fullscreen (F11)" : "Enter Fullscreen (F11)"}
+              data-tooltip-pos="bottom"
+            >
+              <Icon name={fullscreen ? "restore" : "fullscreen"} />
+            </button>
+            <button
+              className="icon-button close"
+              onClick={() => void getCurrentWindow().close()}
+              aria-label="Close Easy Edits Pro"
+              data-tooltip="Close Easy Edits Pro (Ctrl+Q)"
+              data-tooltip-pos="bottom"
+            >
+              <Icon name="close" />
+            </button>
           </div>
         </div>
+
         <div className="app-toolbar">
           <nav className="file-actions" aria-label="Project actions">
-            <button onClick={() => { void ensureDiscardIsOkay().then((ok) => { if (ok) { setNewProjectName("Untitled project"); setNewProjectOpen(true); } }); }}>New</button>
-            <button onClick={() => void openProject().catch((error: unknown) => setNotice(String(error)))}>Open</button>
-            <button onClick={() => void saveProject()}>Save</button>
-            <button onClick={() => void importMedia()} disabled={busy}>Import</button>
+            <button
+              onClick={() => { void ensureDiscardIsOkay().then((ok) => { if (ok) { setNewProjectName("Untitled project"); setNewProjectOpen(true); } }); }}
+              data-tooltip="New Project (Ctrl+N)"
+              data-tooltip-pos="bottom"
+            >
+              New
+            </button>
+            <button
+              onClick={() => void openProject().catch((error: unknown) => setNotice(String(error)))}
+              data-tooltip="Open Project (Ctrl+O)"
+              data-tooltip-pos="bottom"
+            >
+              Open
+            </button>
+            <button
+              onClick={() => void saveProject()}
+              data-tooltip="Save Project (Ctrl+S)"
+              data-tooltip-pos="bottom"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => void importMedia()}
+              disabled={busy}
+              data-tooltip="Import Media Files (Ctrl+I)"
+              data-tooltip-pos="bottom"
+            >
+              Import
+            </button>
             <span className="action-divider" />
-            <button className="history-button" onClick={() => void perform("edit.undo")} disabled={!undoStatus.enabled} title={undoStatus.reason ?? "Undo"} aria-label="Undo"><Icon name="undo" /></button>
-            <button className="history-button" onClick={() => void perform("edit.redo")} disabled={!redoStatus.enabled} title={redoStatus.reason ?? "Redo"} aria-label="Redo"><Icon name="redo" /></button>
-          </nav>
-          <nav className="workspaces" aria-label="Editing workspaces">
-            {editorWorkspace === "edit" ? <SegmentedControl label="Editing workspaces" options={workspaces.filter((item) => item.id !== "export").map(({ id, label }) => ({ value: id, label }))} value={workspace} onValueChange={(value) => setWorkspace(value as Workspace)} /> : <span className="workspace-context-label">{editorWorkspace === "import" ? "Project media" : "Export settings"}</span>}
+            <button
+              className="history-button"
+              onClick={() => void perform("edit.undo")}
+              disabled={!undoStatus.enabled}
+              data-tooltip={`Undo: ${undoStatus.reason ?? "Undo last action"} (Ctrl+Z)`}
+              data-tooltip-pos="bottom"
+              aria-label="Undo"
+            >
+              <Icon name="undo" />
+            </button>
+            <button
+              className="history-button"
+              onClick={() => void perform("edit.redo")}
+              disabled={!redoStatus.enabled}
+              data-tooltip={`Redo: ${redoStatus.reason ?? "Redo action"} (Ctrl+Y)`}
+              data-tooltip-pos="bottom"
+              aria-label="Redo"
+            >
+              <Icon name="redo" />
+            </button>
           </nav>
         </div>
       </header>
 
       {editorWorkspace === "import" ? renderImportWorkspace() : editorWorkspace === "export" ? renderExportWorkspace() : <main className="editor">
+        {/* Filmora 15 Inspired Left Panel Tabs */}
         <aside className="media-panel">
-          <div className="panel-tabs"><span className="selected">Project</span><span>Media Browser</span><span>Libraries</span></div>
-          <div className="panel-heading"><strong>Project media</strong><button className="primary" onClick={() => void importMedia()} disabled={busy}>＋ Import media</button></div>
-          <input className="search" type="search" placeholder="Search project media" aria-label="Search project media" value={search} onChange={(event) => setSearch(event.target.value)} />
-          {visibleMedia.length > 0 ? <div className="media-list">{visibleMedia.map((item) => <div className="media-row" key={item.id}><button className={`media-item ${selectedMediaId === item.id ? "selected" : ""} ${draggedMediaId === item.id ? "pointer-dragging" : ""}`} onPointerDown={(event) => beginMediaPointer(event, item.id)} onPointerMove={moveMediaPointer} onPointerUp={(event) => void finishMediaPointer(event)} onPointerCancel={cancelMediaPointer} onClick={() => { if (suppressMediaClick.current) { suppressMediaClick.current = false; return; } setSelectedMediaId(item.id); setSelectedClip(null); setSelectedClips([]); }} title="Click to select or drag to a timeline track"><Icon name="media" /><span><strong>{item.name}</strong><small>{missingMediaIds.has(item.id) ? "Missing · relink required" : `${item.kind} · ${item.width && item.height ? `${item.width} × ${item.height}` : item.path}`}</small></span></button>{missingMediaIds.has(item.id) && <button className="relink-button" onClick={() => void relinkMedia(item.id)} title={`Locate ${item.name}`}>Relink</button>}</div>)}</div> : <div className="empty-media"><span className="media-icon"><Icon name="media" /></span><strong>{search ? "No matching media" : "No media imported"}</strong><small>{search ? "Try another search." : "Import video, audio, and images to begin."}</small></div>}
+          <div className="filmora-tabs" role="tablist" aria-label="Filmora Asset Categories">
+            {filmoraTabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={`filmora-tab-btn ${filmoraTab === tab.id ? "active" : ""}`}
+                onClick={() => setFilmoraTab(tab.id)}
+                data-tooltip={tab.tooltip}
+                data-tooltip-pos="bottom"
+                role="tab"
+                aria-selected={filmoraTab === tab.id}
+              >
+                <Icon name={tab.icon} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="filmora-panel-content">
+            {filmoraTab === "media" && (
+              <>
+                <div className="panel-heading">
+                  <strong>Project media</strong>
+                  <button className="primary" onClick={() => void importMedia()} disabled={busy} data-tooltip="Import Media Files" data-tooltip-pos="bottom">
+                    ＋ Import
+                  </button>
+                </div>
+                <input
+                  className="search"
+                  type="search"
+                  placeholder="Search project media…"
+                  aria-label="Search project media"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+                {visibleMedia.length > 0 ? (
+                  <div className="media-list">
+                    {visibleMedia.map((item) => (
+                      <div className="media-row" key={item.id}>
+                        <button
+                          className={`media-item ${selectedMediaId === item.id ? "selected" : ""} ${draggedMediaId === item.id ? "pointer-dragging" : ""}`}
+                          onPointerDown={(event) => beginMediaPointer(event, item.id)}
+                          onPointerMove={moveMediaPointer}
+                          onPointerUp={(event) => void finishMediaPointer(event)}
+                          onPointerCancel={cancelMediaPointer}
+                          onClick={() => {
+                            if (suppressMediaClick.current) {
+                              suppressMediaClick.current = false;
+                              return;
+                            }
+                            setSelectedMediaId(item.id);
+                            setSelectedClip(null);
+                            setSelectedClips([]);
+                          }}
+                          data-tooltip={`Click to inspect · ${item.kind.toUpperCase()} (${item.duration ? formatTime(item.duration) : "Media"})`}
+                          data-tooltip-pos="right"
+                        >
+                          <Icon name="media" />
+                          <span>
+                            <strong>{item.name}</strong>
+                            <small>{missingMediaIds.has(item.id) ? "Missing · relink required" : `${item.kind} · ${item.width && item.height ? `${item.width} × ${item.height}` : item.duration ? formatTime(item.duration) : "Ready"}`}</small>
+                          </span>
+                        </button>
+                        {missingMediaIds.has(item.id) && (
+                          <button className="relink-button" onClick={() => void relinkMedia(item.id)} data-tooltip={`Locate file on disk for ${item.name}`}>
+                            Relink
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-media">
+                    <span className="media-icon"><Icon name="media" /></span>
+                    <strong>{search ? "No matching media" : "No media imported"}</strong>
+                    <small>{search ? "Try another search query." : "Import video, audio, or images to begin editing."}</small>
+                    <button onClick={() => void importMedia()} disabled={busy}>Browse files…</button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {filmoraTab === "titles" && (
+              <>
+                <div className="panel-heading">
+                  <strong>Title Presets</strong>
+                  <small>1-Click Add</small>
+                </div>
+                <div className="filmora-preset-grid">
+                  {titlePresets.map((preset) => (
+                    <button
+                      key={preset.id}
+                      className="filmora-preset-card"
+                      onClick={() => void addPresetTitle(preset)}
+                      data-tooltip={`Add ${preset.name} at playhead (${formatTime(playhead)})`}
+                      data-tooltip-pos="right"
+                    >
+                      <div className="filmora-preset-preview">
+                        <span>{preset.preview}</span>
+                      </div>
+                      <span className="filmora-preset-name">{preset.name}</span>
+                      <span className="filmora-preset-desc">{preset.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {filmoraTab === "transitions" && (
+              <>
+                <div className="panel-heading">
+                  <strong>Transitions</strong>
+                  <small>1-Click Apply</small>
+                </div>
+                <div className="filmora-preset-grid">
+                  {transitionPresets.map((preset) => (
+                    <button
+                      key={preset.id}
+                      className="filmora-preset-card"
+                      onClick={() => void addPresetTransition(preset.id)}
+                      data-tooltip={`Apply ${preset.name} at cut/playhead`}
+                      data-tooltip-pos="right"
+                    >
+                      <div className="filmora-preset-preview">
+                        <span style={{ fontSize: "16px" }}>{preset.iconSymbol}</span>
+                      </div>
+                      <span className="filmora-preset-name">{preset.name}</span>
+                      <span className="filmora-preset-desc">{preset.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {filmoraTab === "audio" && (
+              <>
+                <div className="panel-heading">
+                  <strong>Audio Clips</strong>
+                </div>
+                <div className="media-list">
+                  {media.filter((item) => item.kind === "audio").map((item) => (
+                    <div className="media-row" key={item.id}>
+                      <button
+                        className={`media-item ${selectedMediaId === item.id ? "selected" : ""}`}
+                        onClick={() => setSelectedMediaId(item.id)}
+                        data-tooltip={`Audio track · ${item.duration ? formatTime(item.duration) : "Audio"}`}
+                        data-tooltip-pos="right"
+                      >
+                        <Icon name="audio" />
+                        <span>
+                          <strong>{item.name}</strong>
+                          <small>{item.duration ? formatTime(item.duration) : "Audio clip"}</small>
+                        </span>
+                      </button>
+                    </div>
+                  ))}
+                  {media.filter((item) => item.kind === "audio").length === 0 && (
+                    <div className="empty-media">
+                      <span className="media-icon"><Icon name="audio" /></span>
+                      <strong>No audio imported</strong>
+                      <small>Import background music, voiceover, or sound effects.</small>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {filmoraTab === "stock" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <div className="panel-heading">
+                  <strong>Stock Media</strong>
+                  <small>Openverse</small>
+                </div>
+                <input
+                  className="search"
+                  value={assetQuery}
+                  maxLength={200}
+                  placeholder="Search photos, audio…"
+                  onChange={(event) => setAssetQuery(event.target.value)}
+                />
+                <div style={{ display: "flex", gap: "6px", margin: "4px 9px" }}>
+                  <select
+                    style={{ flex: 1, padding: "5px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
+                    value={assetType}
+                    onChange={(event) => setAssetType(event.target.value as typeof assetType)}
+                  >
+                    <option value="images">Images</option>
+                    <option value="audio">Audio</option>
+                  </select>
+                  <LoadingButton
+                    className="primary"
+                    disabled={busy || !assetQuery.trim()}
+                    onAction={searchAssets}
+                    pendingLabel="…"
+                    successLabel="Done"
+                    errorLabel="Failed"
+                  >
+                    Search
+                  </LoadingButton>
+                </div>
+                <div className="asset-results" style={{ padding: "0 9px" }}>
+                  {assetResults.map((asset) => (
+                    <article className="asset-result" key={`${asset.id}-${asset.mediaUrl}`}>
+                      {asset.thumbnailUrl && <img src={asset.thumbnailUrl} alt="" loading="lazy" />}
+                      <strong>{asset.title}</strong>
+                      <small>{asset.creator ? `By ${asset.creator}` : "Openverse"} · {asset.license ?? "FOSS"}</small>
+                      <div className="asset-actions">
+                        <button disabled={busy} onClick={() => void addLibraryAsset(asset)}>Add to Bin</button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {filmoraTab === "ai" && (
+              <div style={{ padding: "4px 9px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                <div className="panel-heading" style={{ padding: 0 }}>
+                  <strong>Local AI Assistant</strong>
+                  <small>Ollama</small>
+                </div>
+                <label style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                  Model
+                  <input
+                    style={{ width: "100%", marginTop: "3px", padding: "5px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
+                    value={aiModel}
+                    maxLength={100}
+                    onChange={(event) => setAiModel(event.target.value)}
+                  />
+                </label>
+                <label style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                  Prompt
+                  <textarea
+                    rows={4}
+                    style={{ width: "100%", marginTop: "3px", padding: "5px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px", resize: "vertical" }}
+                    value={aiPrompt}
+                    placeholder="Ask for editing ideas, shot pacing, or script notes…"
+                    onChange={(event) => setAiPrompt(event.target.value)}
+                  />
+                </label>
+                <button className="primary" disabled={busy || !aiPrompt.trim() || !aiModel.trim()} onClick={() => void askAi()}>
+                  Generate Suggestions
+                </button>
+                {aiReply && <pre className="ai-reply">{aiReply}</pre>}
+              </div>
+            )}
+          </div>
         </aside>
 
         <section className="work-area">
           <div className="monitors">
-            <section className="monitor"><div className="panel-tabs"><span className="selected">Source</span></div><div className="monitor-name">{selectedMedia?.name ?? "No source selected"}</div>{renderPreview(selectedMedia)}</section>
-            <section className="monitor"><div className="panel-tabs"><span className="selected">Program</span></div><div className="monitor-name">{project?.sequence.name ?? "Sequence 1"}</div>{renderPreview(activeClip?.media ?? null, true)}<div className="transport"><button disabled={!activeClip} aria-label="Previous frame" title="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</button><button disabled={!programPlayable} aria-label={programPlaying ? "Pause playback" : "Play clip"} title={programPlaying ? "Pause playback" : "Play clip"} onClick={() => void toggleProgramPlayback()}>{programPlaying ? "Ⅱ" : "▶"}</button><button disabled={!activeClip} aria-label="Next frame" title="Next frame" onClick={() => stepProgramFrame(1)}>▶|</button><code>{formatTime(playhead)}</code></div></section>
+            <section className="monitor">
+              <div className="panel-tabs"><span className="selected">Source Monitor</span></div>
+              <div className="monitor-name">{selectedMedia?.name ?? "No source selected"}</div>
+              {renderPreview(selectedMedia)}
+            </section>
+            <section className="monitor">
+              <div className="panel-tabs"><span className="selected">Program Timeline</span></div>
+              <div className="monitor-name">{project?.sequence.name ?? "Sequence 1"}</div>
+              {renderPreview(activeClip?.media ?? null, true)}
+              <div className="transport">
+                <button disabled={!activeClip} aria-label="Previous frame" data-tooltip="Previous Frame (Left Arrow)" data-tooltip-pos="top" onClick={() => stepProgramFrame(-1)}>◀</button>
+                <button disabled={!programPlayable} aria-label={programPlaying ? "Pause playback" : "Play clip"} data-tooltip={programPlaying ? "Pause Playback (Space)" : "Play Timeline (Space)"} data-tooltip-pos="top" onClick={() => void toggleProgramPlayback()}>{programPlaying ? "Ⅱ" : "▶"}</button>
+                <button disabled={!activeClip} aria-label="Next frame" data-tooltip="Next Frame (Right Arrow)" data-tooltip-pos="top" onClick={() => stepProgramFrame(1)}>▶|</button>
+                <code>{formatTime(playhead)}</code>
+              </div>
+            </section>
           </div>
 
           <section className="timeline">
-            <aside className="timeline-tool-rail" aria-label="Timeline tools">
-              {timelineTools.map((tool) => <button key={tool.id} className={`timeline-tool-button ${timelineTool === tool.id ? "active" : ""}`} onClick={() => setTimelineTool(tool.id)} aria-label={tool.label} aria-pressed={timelineTool === tool.id} title={`${tool.label} (${tool.shortcut})`}><Icon name={tool.icon} /><span>{tool.shortLabel}</span></button>)}
+            {/* Adobe Premiere Pro Style Tool Rail */}
+            <aside className="timeline-tool-rail" aria-label="Timeline editing tools">
+              {timelineTools.map((tool) => (
+                <button
+                  key={tool.id}
+                  className={`timeline-tool-button ${timelineTool === tool.id ? "active" : ""}`}
+                  onClick={() => setTimelineTool(tool.id)}
+                  aria-label={tool.label}
+                  aria-pressed={timelineTool === tool.id}
+                  data-tooltip={`${tool.label} (${tool.shortcut})`}
+                  data-tooltip-pos="right"
+                >
+                  <Icon name={tool.icon} />
+                  <span>{tool.shortLabel}</span>
+                </button>
+              ))}
             </aside>
             <div className="timeline-workbench">
               <div className="timeline-toolbar">
-                <div className="timeline-toolbar-start"><strong>Timeline</strong><code>{formatTime(playhead)} / {formatTime(Math.max(0, ...((project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => clip.timeline_start + clip.duration)))))}</code></div>
+                <div className="timeline-toolbar-start">
+                  <strong>Timeline</strong>
+                  <code>{formatTime(playhead)} / {formatTime(Math.max(0, ...((project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => clip.timeline_start + clip.duration)))))}</code>
+                </div>
                 <div className="timeline-toolbar-tools" aria-label="Timeline actions">
-                  <button className={`timeline-icon-button ${snapEnabled ? "active-toggle" : ""}`} aria-pressed={snapEnabled} onClick={() => setSnapEnabled((enabled) => !enabled)} title={`Snap to frame (${snapEnabled ? "on" : "off"}) · S`} aria-label="Toggle snapping"><Icon name="snap" /></button>
-                  <button className="timeline-icon-button" disabled={!selectedMedia || busy} onClick={() => void addSelectedToTimeline()} title="Add selected media to timeline" aria-label="Add selected media"><Icon name="add" /></button>
-                  <button className="timeline-icon-button" disabled={busy} onClick={() => void addTitleToTimeline()} title="Add Title / Lower-Third graphic (Ctrl+T)" aria-label="Add Title"><Icon name="title" /></button>
-                  <button className="timeline-icon-button" disabled={busy} onClick={() => void addTransitionToTimeline()} title="Add Transition at cut / playhead (Ctrl+D)" aria-label="Add Transition"><Icon name="transition" /></button>
+                  <button className={`timeline-icon-button ${snapEnabled ? "active-toggle" : ""}`} aria-pressed={snapEnabled} onClick={() => setSnapEnabled((enabled) => !enabled)} data-tooltip={`Snap to Frame: ${snapEnabled ? "On" : "Off"} (S)`} data-tooltip-pos="top" aria-label="Toggle snapping"><Icon name="snap" /></button>
+                  <button className="timeline-icon-button" disabled={!selectedMedia || busy} onClick={() => void addSelectedToTimeline()} data-tooltip="Add Selected Media to Timeline (Shift+A)" data-tooltip-pos="top" aria-label="Add selected media"><Icon name="add" /></button>
+                  <button className="timeline-icon-button" disabled={busy} onClick={() => void addTitleToTimeline()} data-tooltip="Add Title / Lower-Third Graphic (Ctrl+T)" data-tooltip-pos="top" aria-label="Add Title"><Icon name="title" /></button>
+                  <button className="timeline-icon-button" disabled={busy} onClick={() => void addTransitionToTimeline()} data-tooltip="Add Transition at Cut (Ctrl+D)" data-tooltip-pos="top" aria-label="Add Transition"><Icon name="transition" /></button>
                   <span className="toolbar-divider" />
-                  <button className="timeline-icon-button" disabled={!undoStatus.enabled || busy} onClick={() => void perform("edit.undo")} title={undoStatus.reason ?? "Undo"} aria-label="Undo"><Icon name="undo" /></button>
-                  <button className="timeline-icon-button" disabled={!redoStatus.enabled || busy} onClick={() => void perform("edit.redo")} title={redoStatus.reason ?? "Redo"} aria-label="Redo"><Icon name="redo" /></button>
+                  <button className="timeline-icon-button" disabled={!undoStatus.enabled || busy} onClick={() => void perform("edit.undo")} data-tooltip={`Undo: ${undoStatus.reason ?? "Undo"} (Ctrl+Z)`} data-tooltip-pos="top" aria-label="Undo"><Icon name="undo" /></button>
+                  <button className="timeline-icon-button" disabled={!redoStatus.enabled || busy} onClick={() => void perform("edit.redo")} data-tooltip={`Redo: ${redoStatus.reason ?? "Redo"} (Ctrl+Y)`} data-tooltip-pos="top" aria-label="Redo"><Icon name="redo" /></button>
                   <span className="toolbar-divider" />
-                  <button className="timeline-icon-button" disabled={!selectedClip || busy} onClick={() => void splitSelectedClip()} title="Split selected clip at playhead" aria-label="Split clip"><Icon name="split" /></button>
-                  <button className="timeline-icon-button" disabled={!selectedClip || busy} onClick={() => void rippleDeleteSelectedClip()} title="Ripple delete selected clip" aria-label="Ripple delete"><Icon name="ripple" /></button>
-                  <button className="timeline-icon-button" disabled={!selectedClip || busy} onClick={() => void removeSelectedClip()} title="Remove selected clip" aria-label="Remove clip"><Icon name="remove" /></button>
+                  <button className="timeline-icon-button" disabled={!selectedClip || busy} onClick={() => void splitSelectedClip()} data-tooltip="Split Selected Clip at Playhead (Ctrl+K)" data-tooltip-pos="top" aria-label="Split clip"><Icon name="split" /></button>
+                  <button className="timeline-icon-button" disabled={!selectedClip || busy} onClick={() => void rippleDeleteSelectedClip()} data-tooltip="Ripple Delete Selected Clip (Shift+Del)" data-tooltip-pos="top" aria-label="Ripple delete"><Icon name="ripple" /></button>
+                  <button className="timeline-icon-button" disabled={!selectedClip || busy} onClick={() => void removeSelectedClip()} data-tooltip="Remove Selected Clip (Del)" data-tooltip-pos="top" aria-label="Remove clip"><Icon name="remove" /></button>
                   <span className="toolbar-divider" />
-                  <button className="timeline-icon-button" disabled={busy} onClick={() => void invokeMenuCommand("timeline.set_mark_in")} title="Set In point · I" aria-label="Set In point"><Icon name="markIn" /></button>
-                  <button className="timeline-icon-button" disabled={busy} onClick={() => void invokeMenuCommand("timeline.set_mark_out")} title="Set Out point · O" aria-label="Set Out point"><Icon name="markOut" /></button>
-                  <button className="timeline-icon-button" disabled={project?.sequence.mark_in == null && project?.sequence.mark_out == null} onClick={() => void invokeMenuCommand("timeline.clear_marks")} title="Clear In/Out points" aria-label="Clear markers"><Icon name="clearMarks" /></button>
+                  <button className="timeline-icon-button" disabled={busy} onClick={() => void invokeMenuCommand("timeline.set_mark_in")} data-tooltip="Set In Point (I)" data-tooltip-pos="top" aria-label="Set In point"><Icon name="markIn" /></button>
+                  <button className="timeline-icon-button" disabled={busy} onClick={() => void invokeMenuCommand("timeline.set_mark_out")} data-tooltip="Set Out Point (O)" data-tooltip-pos="top" aria-label="Set Out point"><Icon name="markOut" /></button>
+                  <button className="timeline-icon-button" disabled={project?.sequence.mark_in == null && project?.sequence.mark_out == null} onClick={() => void invokeMenuCommand("timeline.clear_marks")} data-tooltip="Clear In/Out Markers (Alt+X)" data-tooltip-pos="top" aria-label="Clear markers"><Icon name="clearMarks" /></button>
                   <span className="toolbar-divider" />
-                  <button className="timeline-icon-button" onClick={() => zoomTimeline(1 / 1.2)} title="Zoom out" aria-label="Zoom out"><Icon name="zoomOut" /></button>
-                  <button className="timeline-icon-button" onClick={() => zoomTimeline(1.2)} title="Zoom in" aria-label="Zoom in"><Icon name="zoomIn" /></button>
+                  <button className="timeline-icon-button" onClick={() => zoomTimeline(1 / 1.2)} data-tooltip="Zoom Out Timeline (Ctrl+-)" data-tooltip-pos="top" aria-label="Zoom out"><Icon name="zoomOut" /></button>
+                  <button className="timeline-icon-button" onClick={() => zoomTimeline(1.2)} data-tooltip="Zoom In Timeline (Ctrl++)" data-tooltip-pos="top" aria-label="Zoom in"><Icon name="zoomIn" /></button>
                 </div>
               </div>
               <div ref={timelineScrollerRef} className={`timeline-scroller ${timelineTool === "hand" ? "hand-mode" : ""}`} onPointerDown={handleTimelinePanStart} onPointerMove={handleTimelinePanMove} onPointerUp={handleTimelinePanEnd} onPointerCancel={handleTimelinePanEnd}>
