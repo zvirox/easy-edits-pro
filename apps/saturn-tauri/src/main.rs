@@ -4,9 +4,12 @@ use saturn_core::{CommandRequest, CommandStatus, EditorEngine, MediaKind, Projec
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::{Value, json};
-use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
 use std::hash::{Hash, Hasher};
+use std::io::{Read, Seek, SeekFrom, Write};
+use std::net::{TcpListener, TcpStream};
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU16, Ordering};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager, State, ipc::Channel};
 
@@ -278,6 +281,248 @@ async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path:
         let _ = app.asset_protocol_scope().allow_file(&output);
         Ok(output.to_string_lossy().into_owned())
     }).await.map_err(|error| format!("Preview preparation task failed: {error}"))?
+}
+
+static MEDIA_SERVER_PORT: AtomicU16 = AtomicU16::new(0);
+
+fn url_decode(input: &str) -> String {
+    let mut result = Vec::new();
+    let bytes = input.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            if let Ok(hex_str) = std::str::from_utf8(&bytes[i + 1..i + 3]) {
+                if let Ok(val) = u8::from_str_radix(hex_str, 16) {
+                    result.push(val);
+                    i += 3;
+                    continue;
+                }
+            }
+        }
+        if bytes[i] == b'+' {
+            result.push(b' ');
+        } else {
+            result.push(bytes[i]);
+        }
+        i += 1;
+    }
+    String::from_utf8_lossy(&result).into_owned()
+}
+
+fn handle_media_stream_client(mut stream: TcpStream) {
+    let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(5)));
+    let _ = stream.set_write_timeout(Some(std::time::Duration::from_secs(15)));
+
+    let mut buffer = [0u8; 4096];
+    let bytes_read = match stream.read(&mut buffer) {
+        Ok(n) if n > 0 => n,
+        _ => return,
+    };
+    let request_str = String::from_utf8_lossy(&buffer[..bytes_read]);
+    let mut lines = request_str.lines();
+    let request_line = match lines.next() {
+        Some(l) => l,
+        None => return,
+    };
+
+    let parts: Vec<&str> = request_line.split_whitespace().collect();
+    if parts.is_empty() {
+        return;
+    }
+
+    if parts[0] == "OPTIONS" {
+        let preflight = "HTTP/1.1 204 No Content\r\n\
+Access-Control-Allow-Origin: *\r\n\
+Access-Control-Allow-Methods: GET, HEAD, OPTIONS\r\n\
+Access-Control-Allow-Headers: Range, Content-Type, Accept\r\n\
+Access-Control-Expose-Headers: Content-Range, Content-Length, Accept-Ranges\r\n\
+Access-Control-Max-Age: 86400\r\n\
+Connection: close\r\n\r\n";
+        let _ = stream.write_all(preflight.as_bytes());
+        return;
+    }
+
+    if parts.len() < 2 || (parts[0] != "GET" && parts[0] != "HEAD") {
+        let _ = stream.write_all(b"HTTP/1.1 405 Method Not Allowed\r\n\r\n");
+        return;
+    }
+    let is_head = parts[0] == "HEAD";
+
+    let target = parts[1];
+    let query_prefix = "/media?path=";
+    if !target.starts_with(query_prefix) {
+        let _ = stream.write_all(b"HTTP/1.1 404 Not Found\r\n\r\n");
+        return;
+    }
+
+    let encoded_path = &target[query_prefix.len()..];
+    let clean_encoded = encoded_path.split('&').next().unwrap_or(encoded_path);
+    let file_path = url_decode(clean_encoded);
+    let path = PathBuf::from(&file_path);
+
+    if !path.is_file() {
+        let _ = stream.write_all(b"HTTP/1.1 404 Not Found\r\n\r\n");
+        return;
+    }
+
+    let metadata = match std::fs::metadata(&path) {
+        Ok(m) => m,
+        Err(_) => {
+            let _ = stream.write_all(b"HTTP/1.1 500 Internal Error\r\n\r\n");
+            return;
+        }
+    };
+    let total_size = metadata.len();
+
+    let mut range_start: u64 = 0;
+    let mut range_end: u64 = total_size.saturating_sub(1);
+    let mut is_range = false;
+
+    for line in lines {
+        let line_lower = line.to_ascii_lowercase();
+        if line_lower.starts_with("range:") {
+            if let Some(eq_idx) = line.find('=') {
+                let range_spec = line[eq_idx + 1..].trim();
+                let first_spec = range_spec.split(',').next().unwrap_or(range_spec).trim();
+                if let Some(dash_idx) = first_spec.find('-') {
+                    let first = first_spec[..dash_idx].trim();
+                    let second = first_spec[dash_idx + 1..].trim();
+                    if first.is_empty() {
+                        if let Ok(suffix_len) = second.parse::<u64>() {
+                            if suffix_len > 0 {
+                                range_start = total_size.saturating_sub(suffix_len);
+                                range_end = total_size.saturating_sub(1);
+                                is_range = true;
+                            }
+                        }
+                    } else if let Ok(start) = first.parse::<u64>() {
+                        range_start = start;
+                        is_range = true;
+                        if !second.is_empty() {
+                            if let Ok(end) = second.parse::<u64>() {
+                                if end < total_size {
+                                    range_end = end;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if range_start > range_end || range_start >= total_size {
+        let _ = stream.write_all(
+            format!("HTTP/1.1 416 Range Not Satisfiable\r\nContent-Range: bytes */{}\r\n\r\n", total_size).as_bytes()
+        );
+        return;
+    }
+
+    let content_len = range_end - range_start + 1;
+    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+    let content_type = match ext.as_str() {
+        "webm" => "video/webm",
+        "mp4" | "m4v" => "video/mp4",
+        "mkv" => "video/x-matroska",
+        "mov" => "video/quicktime",
+        "avi" => "video/x-msvideo",
+        "ts" => "video/mp2t",
+        "mp3" => "audio/mpeg",
+        "wav" => "audio/wav",
+        "flac" => "audio/flac",
+        "ogg" => "audio/ogg",
+        "aac" => "audio/aac",
+        "m4a" => "audio/mp4",
+        "png" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "webp" => "image/webp",
+        "gif" => "image/gif",
+        "svg" => "image/svg+xml",
+        _ => "application/octet-stream",
+    };
+
+    let response_headers = if is_range {
+        format!(
+            "HTTP/1.1 206 Partial Content\r\n\
+Content-Type: {}\r\n\
+Content-Length: {}\r\n\
+Content-Range: bytes {}-{}/{}\r\n\
+Accept-Ranges: bytes\r\n\
+Access-Control-Allow-Origin: *\r\n\
+Access-Control-Allow-Headers: Range, Content-Type, Accept\r\n\
+Access-Control-Expose-Headers: Content-Range, Content-Length, Accept-Ranges\r\n\
+Connection: close\r\n\r\n",
+            content_type, content_len, range_start, range_end, total_size
+        )
+    } else {
+        format!(
+            "HTTP/1.1 200 OK\r\n\
+Content-Type: {}\r\n\
+Content-Length: {}\r\n\
+Accept-Ranges: bytes\r\n\
+Access-Control-Allow-Origin: *\r\n\
+Access-Control-Allow-Headers: Range, Content-Type, Accept\r\n\
+Access-Control-Expose-Headers: Content-Range, Content-Length, Accept-Ranges\r\n\
+Connection: close\r\n\r\n",
+            content_type, total_size
+        )
+    };
+
+    if stream.write_all(response_headers.as_bytes()).is_err() || is_head {
+        return;
+    }
+
+    let mut file = match std::fs::File::open(&path) {
+        Ok(f) => f,
+        Err(_) => return,
+    };
+
+    if file.seek(SeekFrom::Start(range_start)).is_err() {
+        return;
+    }
+
+    let mut reader = file.take(content_len);
+    let mut copy_buf = [0u8; 65536];
+    loop {
+        match reader.read(&mut copy_buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                if stream.write_all(&copy_buf[..n]).is_err() {
+                    break;
+                }
+            }
+            Err(_) => break,
+        }
+    }
+}
+
+fn start_media_server() -> u16 {
+    let listener = match TcpListener::bind("127.0.0.1:0") {
+        Ok(l) => l,
+        Err(e) => {
+            eprintln!("Failed to bind local media streaming server: {e}");
+            return 0;
+        }
+    };
+    let port = listener.local_addr().map(|a| a.port()).unwrap_or(0);
+    MEDIA_SERVER_PORT.store(port, Ordering::SeqCst);
+
+    std::thread::spawn(move || {
+        for stream in listener.incoming() {
+            if let Ok(stream) = stream {
+                std::thread::spawn(move || {
+                    handle_media_stream_client(stream);
+                });
+            }
+        }
+    });
+
+    port
+}
+
+#[tauri::command]
+fn get_media_server_port() -> u16 {
+    MEDIA_SERVER_PORT.load(Ordering::SeqCst)
 }
 
 #[tauri::command]
@@ -626,6 +871,13 @@ async fn ask_local_ai(prompt: String, model: String) -> Result<String, String> {
 }
 
 fn main() {
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
+        unsafe { std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1"); }
+    }
+
+    start_media_server();
+
     let state = AppState::default();
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -637,6 +889,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             execute_command,
             prepare_video_preview,
+            get_media_server_port,
             command_status,
             get_command_catalogue,
             recovery_status,

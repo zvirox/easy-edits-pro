@@ -349,10 +349,27 @@ function App() {
   const [titleDraft, setTitleDraft] = useState<TitleProperties | null>(null);
   const [playhead, setPlayhead] = useState(0);
   const [programPlaying, setProgramPlaying] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [sourcePreviewError, setSourcePreviewError] = useState<string | null>(null);
+  const [programPreviewError, setProgramPreviewError] = useState<string | null>(null);
   const [preparedPreviews, setPreparedPreviews] = useState<Record<number, string>>({});
   const [preparingPreviews, setPreparingPreviews] = useState<Set<number>>(new Set());
   const [previewPreparationErrors, setPreviewPreparationErrors] = useState<Record<number, string>>({});
+  const [mediaServerPort, setMediaServerPort] = useState<number>(0);
+
+  useEffect(() => {
+    invoke<number>("get_media_server_port")
+      .then((port) => {
+        if (port > 0) setMediaServerPort(port);
+      })
+      .catch((err) => console.warn("Could not get media server port:", err));
+  }, []);
+
+  const getMediaUrl = useCallback((filePath: string) => {
+    if (mediaServerPort > 0) {
+      return `http://127.0.0.1:${mediaServerPort}/media?path=${encodeURIComponent(filePath)}`;
+    }
+    return convertFileSrc(filePath);
+  }, [mediaServerPort]);
   const [search, setSearch] = useState("");
   const [connection, setConnection] = useState("Connecting to Rust core…");
   const [notice, setNotice] = useState("");
@@ -481,6 +498,8 @@ function App() {
       setPreviewPreparationErrors((current) => { const next = { ...current }; delete next[id]; return next; });
       void invoke<string>("prepare_video_preview", { path: item.path }).then((path) => {
         setPreparedPreviews((current) => ({ ...current, [id]: path }));
+        setSourcePreviewError(null);
+        setProgramPreviewError(null);
       }).catch((error: unknown) => {
         setPreviewPreparationErrors((current) => ({ ...current, [id]: String(error) }));
       }).finally(() => {
@@ -548,8 +567,12 @@ function App() {
   }, [activeClip]);
 
   useEffect(() => {
+    setSourcePreviewError(null);
+  }, [selectedMedia?.id, selectedMedia?.path]);
+
+  useEffect(() => {
     setProgramPlaying(false);
-    setPreviewError(null);
+    setProgramPreviewError(null);
   }, [activeClip?.media.path]);
 
   function seekProgramTo(time: number) {
@@ -574,13 +597,13 @@ function App() {
   async function toggleProgramPlayback() {
     const player = programVideoRef.current ?? programAudioRef.current;
     if (!player) return;
-    setPreviewError(null);
+    setProgramPreviewError(null);
     try {
       if (player.paused) await player.play();
       else player.pause();
     } catch (error) {
       setProgramPlaying(false);
-      setPreviewError(`Playback failed: ${String(error)}`);
+      setProgramPreviewError(`Playback failed: ${String(error)}`);
     }
   }
 
@@ -1651,8 +1674,11 @@ function App() {
       }
       return <div className="monitor-stage"><strong>{isProgram ? "Program monitor" : "Source monitor"}</strong><small>{isProgram ? "Add a clip to the timeline to preview the sequence" : "Select imported media to preview it here"}</small></div>;
     }
+    const isPreparing = item.kind === "video" && preparingPreviews.has(item.id) && !preparedPreviews[item.id];
     const sourcePath = item.kind === "video" && preparedPreviews[item.id] ? preparedPreviews[item.id] : item.path;
-    const source = convertFileSrc(sourcePath);
+    const source = getMediaUrl(sourcePath);
+    const currentError = isProgram ? programPreviewError : sourcePreviewError;
+    const setCurrentError = isProgram ? setProgramPreviewError : setSourcePreviewError;
     const color = isProgram ? activeClip?.clip.color : null;
     const clipTime = activeClip ? playhead - activeClip.clip.timeline_start : 0;
     const exposure = color?.exposure ?? 0;
@@ -1667,12 +1693,14 @@ function App() {
     const visualStyle: CSSProperties = { filter: `brightness(${2 ** exposure}) contrast(${contrast}) saturate(${saturation})`, transform: isProgram ? transform : undefined, opacity: isProgram ? opacity : undefined, transformOrigin: "center" };
     if (item.kind === "video") return <div className="preview-stage">
       <video
+        key={`${item.id}-${sourcePath}`}
         ref={isProgram ? programVideoRef : undefined}
-        src={source}
+        src={mediaServerPort > 0 ? source : undefined}
         style={visualStyle}
         controls={!isProgram}
         playsInline
         preload="auto"
+        crossOrigin="anonymous"
         onLoadedMetadata={isProgram && activeClip ? (event) => {
           const seconds = (activeClip.clip.source_in + playhead - activeClip.clip.timeline_start) / TICKS_PER_SECOND;
           try { event.currentTarget.currentTime = Math.max(0, seconds); } catch { /* Browser metadata is available before this handler runs. */ }
@@ -1681,27 +1709,35 @@ function App() {
         onPlay={isProgram ? () => setProgramPlaying(true) : undefined}
         onPause={isProgram ? () => setProgramPlaying(false) : undefined}
         onEnded={isProgram && activeClip ? () => updateProgramPlayhead((activeClip.clip.source_in + activeClip.clip.duration) / TICKS_PER_SECOND) : undefined}
-        onCanPlay={() => setPreviewError(null)}
+        onCanPlay={() => setCurrentError(null)}
         onError={() => {
           if (previewPreparationErrors[item.id]) {
-            setPreviewError(`Preview unavailable: ${previewPreparationErrors[item.id]}`);
-          } else if (preparingPreviews.has(item.id)) {
-            setPreviewError("Decoding browser-friendly preview proxy…");
+            setCurrentError(`Preview unavailable: ${previewPreparationErrors[item.id]}`);
+          } else if (isPreparing) {
+            // Proxy preparation is in flight, keep quiet
           } else {
-            setPreviewError("This video could not be loaded. Check that the file exists and uses a supported codec.");
+            setCurrentError("This video could not be loaded. Check that the file exists and uses a supported codec.");
           }
         }}
       />
       {isProgram && renderTitleOverlay(activeTitleClip?.title)}
-      {previewError && <div className="preview-error" role="alert"><strong>Preview notice</strong><span>{previewError}</span></div>}
+      {isPreparing && (
+        <div className="preview-preparing-banner" role="status">
+          <span className="preview-preparing-dot" />
+          <span>Generating preview proxy…</span>
+        </div>
+      )}
+      {currentError && !isPreparing && <div className="preview-error" role="alert"><strong>Preview notice</strong><span>{currentError}</span></div>}
     </div>;
     if (item.kind === "audio") return <div className="preview-stage audio-preview">
       <audio
+        key={`${item.id}-${sourcePath}`}
         ref={isProgram ? programAudioRef : undefined}
-        src={source}
+        src={mediaServerPort > 0 ? source : undefined}
         controls
         playsInline
         preload="auto"
+        crossOrigin="anonymous"
         onLoadedMetadata={isProgram && activeClip ? (event) => {
           const seconds = (activeClip.clip.source_in + playhead - activeClip.clip.timeline_start) / TICKS_PER_SECOND;
           try { event.currentTarget.currentTime = Math.max(0, seconds); } catch { /* Browser metadata is available before this handler runs. */ }
@@ -1710,10 +1746,10 @@ function App() {
         onPlay={isProgram ? () => setProgramPlaying(true) : undefined}
         onPause={isProgram ? () => setProgramPlaying(false) : undefined}
         onEnded={isProgram && activeClip ? () => updateProgramPlayhead((activeClip.clip.source_in + activeClip.clip.duration) / TICKS_PER_SECOND) : undefined}
-        onCanPlay={() => setPreviewError(null)}
-        onError={() => setPreviewError("This audio could not be loaded. Check that the file exists and uses a supported codec.")}
+        onCanPlay={() => setCurrentError(null)}
+        onError={() => setCurrentError("This audio could not be loaded. Check that the file exists and uses a supported codec.")}
       />
-      {previewError && <div className="preview-error" role="alert"><strong>Preview unavailable</strong><span>{previewError}</span></div>}
+      {currentError && <div className="preview-error" role="alert"><strong>Preview unavailable</strong><span>{currentError}</span></div>}
     </div>;
     if (item.kind === "image") return <div className="preview-stage">
       <img src={source} alt={item.name} style={visualStyle} />
