@@ -16,6 +16,26 @@ button:disabled { opacity: .48; }
 .brand strong { font-size: 13px; }
 .brand small, .timeline-toolbar span, .status-bar { color: #888; font-size: 10px; }
 .workspaces { display: flex; align-items: center; gap: 2px; padding: 2px; border: 1px solid #303030; background: #171717; border-radius: 4px; }
+.interior-segmented { display: inline-block; min-width: 0; user-select: none; }
+.interior-segmented-grid { position: relative; display: grid; touch-action: manipulation; }
+.interior-segment-label { display: block; padding: 6px 9px; color: #aaa; font-size: 11px; font-weight: 500; line-height: 16px; letter-spacing: -.01em; text-align: center; white-space: nowrap; pointer-events: none; }
+.interior-segment-label.is-selected { color: transparent; }
+.interior-segment-label.is-disabled { color: #555; }
+.interior-segment-thumb { position: absolute; inset-block: 0; left: 0; overflow: hidden; border-radius: 3px; background: #303030; box-shadow: 0 1px 2px #0008; pointer-events: none; }
+.interior-segment-mask { position: absolute; inset: 0; }
+.interior-segment-selected-labels, .interior-segment-buttons { position: absolute; inset-block: 0; left: 0; display: grid; }
+.interior-segment-selected-labels { height: 100%; }
+.interior-segment-selected-labels .interior-segment-label { color: #fff; }
+.interior-segment-buttons { inset: 0; }
+.interior-segment-hit-target { min-width: 0; padding: 0; border: 0; border-radius: 3px; background: transparent; cursor: default; }
+.interior-segment-hit-target:hover:not(:disabled) { background: #ffffff0a; }
+.interior-segment-hit-target:focus-visible { outline: 1px solid #93b0ff; outline-offset: -1px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.interior-loading-button { position: relative; display: inline-grid; place-items: center; }
+.interior-loading-reserve { display: grid; visibility: hidden; }
+.interior-loading-reserve > span { grid-area: 1 / 1; white-space: nowrap; }
+.interior-loading-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; }
+.interior-loading-spinner { flex: 0 0 auto; }
 .file-actions { display: flex; align-items: center; gap: 3px; }
 .menu-bar { display: flex; align-items: center; gap: 1px; min-width: 0; }
 .app-menu { position: relative; font-size: 11px; }
@@ -30,8 +50,6 @@ button:disabled { opacity: .48; }
 .file-actions button:hover:not(:disabled) { background: #303030; border-color: #454545; }
 .file-actions .history-button { display: grid; place-items: center; width: 27px; height: 27px; padding: 3px; }
 .history-button svg, .timeline-toolbar svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
-.workspace { border: 0; background: transparent; color: #aaa; padding: 6px 10px; font-size: 11px; }
-.workspace.active { color: #fff; background: #303030; }
 .header-actions { display: flex; gap: 4px; margin-left: auto; }
 .action-divider, .toolbar-divider { width: 1px; height: 20px; margin: 0 4px; background: #3b3b3b; }
 .icon-button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border-color: transparent; background: transparent; }
@@ -148,4 +166,4 @@ button:disabled { opacity: .48; }
 .new-project-dialog label { display: grid; gap: 7px; color: #aaa; font-size: 11px; }
 .new-project-dialog input { width: 100%; padding: 8px; border: 1px solid #444; border-radius: 4px; color: #eee; background: #111; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
-@media (max-width: 1120px) { .header-menu-row { flex-wrap: wrap; gap: 6px; } .brand { min-width: 150px; } .menu-bar { flex: 1; overflow-x: auto; } .app-toolbar { flex-wrap: wrap; gap: 8px; padding-left: 0; } .workspace { padding: 6px 7px; } .workspaces { margin-left: auto; max-width: 100%; overflow-x: auto; } .header-actions { margin-left: auto; } .editor { grid-template-columns: minmax(190px, 22vw) minmax(410px, 1fr) minmax(200px, 21vw); } .timeline-toolbar { flex-wrap: wrap; } }
+@media (max-width: 1120px) { .header-menu-row { flex-wrap: wrap; gap: 6px; } .brand { min-width: 150px; } .menu-bar { flex: 1; overflow-x: auto; } .app-toolbar { flex-wrap: wrap; gap: 8px; padding-left: 0; } .interior-segment-label { padding: 6px 7px; } .workspaces { margin-left: auto; max-width: 100%; overflow-x: auto; } .header-actions { margin-left: auto; } .editor { grid-template-columns: minmax(190px, 22vw) minmax(410px, 1fr) minmax(200px, 21vw); } .timeline-toolbar { flex-wrap: wrap; } }

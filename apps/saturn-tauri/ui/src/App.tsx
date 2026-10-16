@@ -2,6 +2,8 @@ import { type CSSProperties, type DragEvent, type MouseEvent, type PointerEvent,
 import { Channel, convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
+import { LoadingButton } from "./components/interior/loading-button";
+import { SegmentedControl } from "./components/interior/segmented-control";
 
 type Workspace = "edit" | "color" | "audio" | "keyframes" | "export" | "library" | "ai";
 type TimelineTool = "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand";
@@ -375,6 +377,7 @@ function App() {
       setNotice(`${results.length} openly licensed result${results.length === 1 ? "" : "s"} from Openverse`);
     } catch (error) {
       setNotice(String(error));
+      throw error;
     } finally {
       setBusy(false);
     }
@@ -677,7 +680,7 @@ function App() {
         return <><h2>FOSS asset library</h2><p>Search openly licensed media indexed by Openverse. Check each source page and license before publishing your work.</p>
           <label>Search <input value={assetQuery} maxLength={200} placeholder="Try nature, city, music…" onChange={(event) => setAssetQuery(event.target.value)} /></label>
           <label>Media type <select value={assetType} onChange={(event) => setAssetType(event.target.value as typeof assetType)}><option value="images">Images</option><option value="audio">Audio</option></select></label>
-          <button className="primary" disabled={busy || !assetQuery.trim()} onClick={() => void searchAssets()}>Search Openverse</button>
+          <LoadingButton className="primary" disabled={busy || !assetQuery.trim()} onAction={searchAssets} pendingLabel="Searching…" successLabel="Search complete" errorLabel="Search failed">Search Openverse</LoadingButton>
           <div className="asset-results">{assetResults.map((asset) => <article className="asset-result" key={`${asset.id}-${asset.mediaUrl}`}>
             {asset.thumbnailUrl && <img src={asset.thumbnailUrl} alt="" loading="lazy" />}
             <strong>{asset.title}</strong><small>{asset.creator ? `By ${asset.creator}` : "Creator not listed"} · {asset.license ?? "Check source license"}</small>
@@ -774,7 +777,7 @@ function App() {
             <button className="history-button" onClick={() => void perform("edit.redo")} disabled={!redoStatus.enabled} title={redoStatus.reason ?? "Redo"} aria-label="Redo"><Icon name="redo" /></button>
           </nav>
           <nav className="workspaces" aria-label="Editing workspaces">
-            {workspaces.map((item) => <button key={item.id} className={`workspace ${workspace === item.id ? "active" : ""}`} aria-pressed={workspace === item.id} onClick={() => setWorkspace(item.id)}>{item.label}</button>)}
+            <SegmentedControl label="Editing workspaces" options={workspaces.map(({ id, label }) => ({ value: id, label }))} value={workspace} onValueChange={(value) => setWorkspace(value as Workspace)} />
           </nav>
         </div>
       </header>

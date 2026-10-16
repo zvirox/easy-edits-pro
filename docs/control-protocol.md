@@ -32,4 +32,4 @@ Project files use the `.saturn` extension and JSON document format `project-satu
 
 ## Current limits
 
-This control interface is local stdin/stdout JSON Lines, not a network daemon or MCP server. The project model and command envelope are serializable so another adapter can call the same dispatcher later. Tauri and GTK perform GStreamer metadata discovery; CLI media import classifies common formats by extension.
+This control interface is local stdin/stdout JSON Lines, not a network daemon or MCP server. The project model and command envelope are serializable so another adapter can call the same dispatcher later. The Tauri frontend performs GStreamer metadata discovery; CLI media import classifies common formats by extension.

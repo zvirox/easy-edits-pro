@@ -2,7 +2,7 @@
 
 Easy Edit Pro is an open-source Linux desktop video editor in early development. The app was previously called Project Saturn; its Rust crates, repository URL, and existing `.saturn` project format retain those internal identifiers for compatibility.
 
-The Tauri desktop UI uses React, TypeScript, and Vite in `apps/saturn-tauri`; the GTK4 frontend remains available. Both frontends use the GTK-independent Rust core, which provides project commands, exact rational frame timing, versioned `.saturn` project files, atomic saves, and undo/redo.
+The Tauri desktop UI uses React, TypeScript, and Vite in `apps/saturn-tauri`. The Rust workspace contains the framework-independent project core, CLI, and GStreamer renderer; the core provides project commands, exact rational frame timing, versioned `.saturn` project files, atomic saves, and undo/redo.
 
 ## Build and run
 
@@ -34,16 +34,6 @@ pnpm tauri build
 
 The package build needs the Tauri/WebKitGTK build prerequisites, GStreamer Editing Services development files, GStreamer runtime plugins, and the Debian/RPM packaging tools. The `Linux packages` GitHub Actions workflow builds both package formats on manual dispatch or a `v*` tag. Package dependencies declare GStreamer and Tauri runtime libraries; the encoder/decoder plugin packages are included as dependencies as well.
 
-### Existing GTK desktop app
-
-On Arch Linux, install the Rust toolchain, GTK 4.10 or newer development files, and GStreamer 1.x development files with the base/good/bad plugin sets. Then run from the repository root:
-
-```sh
-cargo run
-```
-
-To install the GTK release binary, launcher entry, Inter font, and camera app icon for the current user, run `./packaging/linux/install-user.sh`.
-
 Headless CLI examples:
 
 ```sh
@@ -61,20 +51,14 @@ The project is licensed under **GNU GPL version 3**; see [`LICENSE`](LICENSE).
 - Rust Tauri command bridge backed by `saturn-core`, including project status and timeline editing commands
 - Native project and media dialogs, asynchronous GStreamer metadata discovery, and asset-protocol media access
 - Tauri source and program monitors, media-bin preview, timeline clip operations, and undo/redo
-- Easy Edit Pro GTK desktop window and dark editor workspace, retained alongside the Tauri frontend
-- GTK multi-file media import with asynchronous GStreamer metadata discovery
-- GTK searchable media bin and metadata inspector for video, audio, and still images
-- GTK-independent core with stable command IDs, enabled-state reasons, and undo/redo
+- Framework-independent core with stable command IDs, enabled-state reasons, and undo/redo
 - Exact integer timeline ticks with rational frame and sample-rate conversion
 - Versioned project files with migration, external media references, and atomic saves
 - JSON Lines control mode for agent and automation clients: `cargo run -p saturn-cli -- control`
-- GTK source monitor for selected imported media and a separate Program monitor for timeline output
-- Edit, Color, Audio, Keyframes, and Export workspaces in both desktop UIs; Color, Audio, and Keyframes controls persist and affect Tauri preview
+- Edit, Color, Audio, Keyframes, and Export workspaces; Color, Audio, and Keyframes controls persist and affect Tauri preview
 - Native GStreamer Editing Services rendering from the Export workspace to MP4 or WebM, with progress and error reporting
 - Openverse image/audio search and download with license/creator/source attribution sidecar files
 - Local Ollama prompt integration, opt-in through the AI Assistant workspace
 - Debian and RPM package configuration plus a GitHub Actions build workflow
-- Inspector panel and three empty timeline tracks in GTK
-- GTK/Cairo timeline ruler and playhead visualization
 
 The Tauri Color workspace adjusts clip exposure/contrast/saturation, Audio controls persist per-track gain and apply attenuation during playback, and Keyframes adds/removes position/scale/rotation/opacity keys with linear preview interpolation. Keyframe transforms remain preview-only in the current native renderer. Track gain and basic clip color grading are rendered, while advanced audio mixing, additional asset providers, and timeline-aware AI actions remain future work. See [the control protocol](docs/control-protocol.md) for the shared command interface.

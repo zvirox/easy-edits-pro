@@ -3,7 +3,7 @@ name = "saturn-core"
 version = "0.1.0"
 edition = "2024"
 license = "GPL-3.0-only"
-description = "GTK-independent project, timeline, and command engine for Project Saturn"
+description = "Framework-independent project, timeline, and command engine for Project Saturn"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
