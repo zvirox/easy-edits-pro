@@ -1,6 +1,9 @@
 use gstreamer_pbutils::Discoverer;
 use gstreamer::prelude::*;
-use saturn_core::{CommandRequest, CommandStatus, EditorEngine, MediaKind, ProjectDocument, Tick, command_catalogue};
+use saturn_core::{
+    CommandRequest, CommandStatus, EditorEngine, JobId, JobInfo, JobKind, JobManager, JobPriority,
+    MediaKind, ProjectDocument, Tick, command_catalogue,
+};
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::{Value, json};
@@ -11,10 +14,19 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use tauri::{AppHandle, Manager, State, ipc::Channel};
+use tauri::{AppHandle, Emitter, Manager, State, ipc::Channel};
 
-#[derive(Clone, Default)]
-struct AppState(Arc<Mutex<EditorEngine>>);
+#[derive(Clone)]
+struct AppState(Arc<Mutex<EditorEngine>>, Arc<JobManager>);
+
+impl Default for AppState {
+    fn default() -> Self {
+        Self(
+            Arc::new(Mutex::new(EditorEngine::default())),
+            Arc::new(JobManager::new(3)),
+        )
+    }
+}
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -128,7 +140,7 @@ fn execute_command(
         let is_dirty = state.0.lock().map_err(|_| "Editor state is unavailable")?.is_dirty();
         if is_dirty {
             let autosave_app = app.clone();
-            let autosave_state = AppState(Arc::clone(&state.0));
+            let autosave_state = AppState(Arc::clone(&state.0), Arc::clone(&state.1));
             tauri::async_runtime::spawn_blocking(move || {
                 if let Err(error) = autosave_once(&autosave_app, &autosave_state) {
                     eprintln!("Autosave failed: {error}");
@@ -193,21 +205,38 @@ fn check_media_availability(state: State<'_, AppState>) -> Result<Vec<MediaAvail
 #[tauri::command]
 async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path: String) -> Result<String, String> {
     let source = PathBuf::from(&path);
-    let is_project_video = state.0.lock().map_err(|_| "Editor state is unavailable".to_string())?
-        .document().project.media.iter()
-        .any(|media| media.path == source && media.kind == MediaKind::Video);
+    let (media_id, is_project_video) = {
+        let guard = state.0.lock().map_err(|_| "Editor state is unavailable".to_string())?;
+        let maybe = guard.document().project.media.iter().find(|media| media.path == source && media.kind == MediaKind::Video);
+        match maybe {
+            Some(m) => (m.id, true),
+            None => (0, false),
+        }
+    };
     if !is_project_video {
         return Err("Preview source is not a video imported into this project".to_string());
     }
-    tauri::async_runtime::spawn_blocking(move || {
+
+    let file_name = source
+        .file_name()
+        .map(|part| part.to_string_lossy().into_owned())
+        .unwrap_or_else(|| path.clone());
+    let label = format!("Generate preview proxy: {file_name}");
+    let kind = JobKind::ProxyGeneration {
+        media_id,
+        source_path: source.clone(),
+    };
+
+    let app_clone = app.clone();
+    let (_job_id, _cancel, rx) = state.1.submit(label, kind, JobPriority::High, move |ctx| {
         if !source.is_file() {
             return Err(format!("Source video is missing: {}", source.display()));
         }
-        let _ = app.asset_protocol_scope().allow_file(&source);
+        let _ = app_clone.asset_protocol_scope().allow_file(&source);
 
         let ext = source.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
         if ext == "webm" {
-            return Ok(source.to_string_lossy().into_owned());
+            return Ok(Some(source.to_string_lossy().into_owned()));
         }
 
         gstreamer::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
@@ -218,12 +247,12 @@ async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path:
         source.hash(&mut key);
         metadata.len().hash(&mut key);
         modified.hash(&mut key);
-        let cache_dir = app.path().app_cache_dir().map_err(|error| format!("Could not locate the preview cache: {error}"))?.join("video-previews");
+        let cache_dir = app_clone.path().app_cache_dir().map_err(|error| format!("Could not locate the preview cache: {error}"))?.join("video-previews");
         std::fs::create_dir_all(&cache_dir).map_err(|error| format!("Could not create the preview cache: {error}"))?;
         let output = cache_dir.join(format!("{:016x}.webm", key.finish()));
         if output.is_file() && std::fs::metadata(&output).is_ok_and(|info| info.len() > 0) {
-            let _ = app.asset_protocol_scope().allow_file(&output);
-            return Ok(output.to_string_lossy().into_owned());
+            let _ = app_clone.asset_protocol_scope().allow_file(&output);
+            return Ok(Some(output.to_string_lossy().into_owned()));
         }
         let temporary = output.with_extension("webm.part");
         let uri = gstreamer::glib::filename_to_uri(&source, None).map_err(|error| format!("Could not read source path: {error}"))?;
@@ -257,9 +286,20 @@ async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path:
         pipeline.set_state(gstreamer::State::Playing).map_err(|error| format!("Could not decode source video: {error}"))?;
         let start_time = std::time::Instant::now();
         let result = loop {
-            if start_time.elapsed() > std::time::Duration::from_secs(45) {
+            if ctx.is_cancelled() {
+                break Err("Preview proxy transcoding was cancelled".to_string());
+            }
+            if start_time.elapsed() > std::time::Duration::from_secs(60) {
                 break Err("Video preview transcoding timed out".to_string());
             }
+
+            let position = pipeline.query_position::<gstreamer::ClockTime>().map(|p| p.nseconds()).unwrap_or(0);
+            let duration = pipeline.query_duration::<gstreamer::ClockTime>().map(|d| d.nseconds()).unwrap_or(0);
+            if duration > 0 {
+                let fraction = (position as f32 / duration as f32).clamp(0.0, 0.99);
+                ctx.update_progress(fraction, format!("Transcoding proxy ({}%)", (fraction * 100.0) as u32));
+            }
+
             if let Some(message) = bus.timed_pop(gstreamer::ClockTime::from_mseconds(250)) {
                 match message.view() {
                     gstreamer::MessageView::Eos(..) => break Ok(()),
@@ -278,9 +318,16 @@ async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path:
             return Err("Video decoding completed without producing a preview".to_string());
         }
         std::fs::rename(&temporary, &output).map_err(|error| format!("Could not save video preview: {error}"))?;
-        let _ = app.asset_protocol_scope().allow_file(&output);
-        Ok(output.to_string_lossy().into_owned())
-    }).await.map_err(|error| format!("Preview preparation task failed: {error}"))?
+        let _ = app_clone.asset_protocol_scope().allow_file(&output);
+        Ok(Some(output.to_string_lossy().into_owned()))
+    });
+
+    let res = tauri::async_runtime::spawn_blocking(move || rx.recv())
+        .await
+        .map_err(|error| format!("Job execution error: {error}"))?
+        .map_err(|error| format!("Preview task failed: {error}"))?;
+
+    res?.ok_or_else(|| "No preview proxy generated".into())
 }
 
 static MEDIA_SERVER_PORT: AtomicU16 = AtomicU16::new(0);
@@ -562,6 +609,7 @@ async fn import_media(
     paths: Vec<String>,
 ) -> Result<Value, String> {
     let engine = Arc::clone(&state.0);
+    let jobs = Arc::clone(&state.1);
     tauri::async_runtime::spawn_blocking(move || {
         gstreamer::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
         let discoverer = Discoverer::new(gstreamer::ClockTime::from_seconds(30))
@@ -635,7 +683,7 @@ async fn import_media(
             .execute(CommandRequest::new("project.status", Value::Null))
             .map_err(|error| error.to_string())?;
         drop(engine_guard);
-        if let Err(error) = autosave_once(&app, &AppState(Arc::clone(&engine))) {
+        if let Err(error) = autosave_once(&app, &AppState(Arc::clone(&engine), Arc::clone(&jobs))) {
             eprintln!("Autosave after media import failed: {error}");
         }
         Ok(status)
@@ -666,16 +714,63 @@ async fn start_export(
     } else {
         None
     };
-    tauri::async_runtime::spawn_blocking(move || {
-        saturn_render::render_project_range_with_settings(&document, Path::new(&output_path), range, settings, |progress| {
+
+    let target_path = PathBuf::from(&output_path);
+    let file_name = target_path
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| output_path.clone());
+    let label = format!("Export: {file_name}");
+    let kind = JobKind::ExportRendering {
+        output_path: target_path.clone(),
+    };
+
+    let (_job_id, _cancel, rx) = state.1.submit(label, kind, JobPriority::Immediate, move |ctx| {
+        saturn_render::render_project_range_with_settings(&document, &target_path, range, settings, |progress| {
+            let fraction = progress.fraction_percent as f32 / 100.0;
+            ctx.update_progress(fraction, progress.phase);
             let _ = on_progress.send(RenderProgressEvent {
                 fraction_percent: progress.fraction_percent,
                 phase: progress.phase.to_string(),
             });
-        })
-    })
-    .await
-    .map_err(|error| format!("Render task failed: {error}"))?
+        })?;
+        Ok(Some(target_path.to_string_lossy().into_owned()))
+    });
+
+    let res = tauri::async_runtime::spawn_blocking(move || rx.recv())
+        .await
+        .map_err(|error| format!("Render job channel error: {error}"))?
+        .map_err(|error| format!("Render failed: {error}"))?;
+
+    let _ = res;
+    Ok(())
+}
+
+#[tauri::command]
+fn get_active_jobs(state: State<'_, AppState>) -> Vec<JobInfo> {
+    state.1.list_active()
+}
+
+#[tauri::command]
+fn get_all_jobs(state: State<'_, AppState>) -> Vec<JobInfo> {
+    state.1.list_all()
+}
+
+#[tauri::command]
+fn cancel_job(state: State<'_, AppState>, id: u64) -> Result<bool, String> {
+    Ok(state.1.cancel(JobId(id)))
+}
+
+#[tauri::command]
+fn cancel_all_jobs(state: State<'_, AppState>) -> Result<(), String> {
+    state.1.cancel_all();
+    Ok(())
+}
+
+#[tauri::command]
+fn clear_job_history(state: State<'_, AppState>) -> Result<(), String> {
+    state.1.clear_history();
+    Ok(())
 }
 
 #[tauri::command]
@@ -882,9 +977,16 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(state.clone())
-        .setup(move |app| {
-            start_autosave(app.handle().clone(), state.clone());
-            Ok(())
+        .setup({
+            let state = state.clone();
+            move |app| {
+                start_autosave(app.handle().clone(), state.clone());
+                let app_handle = app.handle().clone();
+                state.1.add_listener(move |info| {
+                    let _ = app_handle.emit("job_queue_updated", info);
+                });
+                Ok(())
+            }
         })
         .invoke_handler(tauri::generate_handler![
             execute_command,
@@ -898,6 +1000,11 @@ fn main() {
             check_media_availability,
             import_media,
             start_export,
+            get_active_jobs,
+            get_all_jobs,
+            cancel_job,
+            cancel_all_jobs,
+            clear_job_history,
             search_openverse,
             download_openverse_asset,
             ask_local_ai

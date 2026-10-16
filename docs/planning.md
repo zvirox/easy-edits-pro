@@ -315,7 +315,7 @@ This section evaluates **exactly where Easy Edits Pro stands today** against the
 ```
 [Phase 0: Foundations]              ████████████████████ 100% COMPLETE
 [Phase 1: Project Skeleton]         ████████████████████ 100% COMPLETE
-[Phase 2: Media Import & Library]   █████████████████░░░  85% ADVANCED
+[Phase 2: Media Import & Library]   ███████████████████░  95% NEAR COMPLETE
 [Phase 3: Timeline Data Model & UI] ████████████████░░░░  80% ADVANCED
 [Phase 4: Playback Engine]          █████████████░░░░░░░  65% IN PROGRESS
 [Phase 5: Core Editing Tools]       ███████████████░░░░░  75% ADVANCED
@@ -374,6 +374,11 @@ This section evaluates **exactly where Easy Edits Pro stands today** against the
    - Multi-threaded HTTP byte-range media streaming server (`HTTP 206 Partial Content`) on `127.0.0.1:0`.
    - Automated VP8/WebM 720p preview proxy background transcoder.
    - `WEBKIT_DISABLE_DMABUF_RENDERER=1` initialization for Wayland/Nvidia stability.
+10. **Background Job Queue Manager (`saturn-core/src/job.rs` & `saturn-tauri`):**
+    - Multi-threaded priority job engine (`Immediate`, `High`, `Normal`, `Background`) with cooperative cancellation via `CancellationToken`.
+    - Real-time progress reporting and event emission (`job_queue_updated`) across IPC to desktop UI.
+    - Integrated with preview proxy transcode jobs and export rendering jobs with partial file cleanup on cancel.
+    - Header Job Status Pill and popover Job Drawer with active task counters, progress bars, and one-click cancel controls.
 
 ---
 
@@ -419,11 +424,13 @@ This section evaluates **exactly where Easy Edits Pro stands today** against the
 
 To advance directly toward **Phase 2 (Playback & Render Consistency)** and **Phase 3 (Core Effects Stack & Scopes)**:
 
-1. **Phase 2.1 — Background Job Queue Manager:**
-   - Formalize background tasks (proxy generation, waveform decoding, export rendering) in a unified Rust job queue with cancellation and progress reporting.
-2. **Phase 2.2 — Seamless Playback Transport:**
-   - Complete audio-master clock synchronization across multiple tracks to ensure butter-smooth playback across cuts and transition overlaps.
-3. **Phase 3.1 — Composable Effect Stack:**
-   - Refactor hardcoded color fields into an extensible `Vec<Effect>` stack supporting Blur, Crop, Vignette, and Chroma Key.
-4. **Phase 4.1 — Audio Mixer Channel Strips:**
+1. **Phase 2.1 — Background Job Queue Manager:** ✅ **Completed**
+   - Built thread-safe prioritized job engine (`saturn-core/src/job.rs`) with cooperative cancellation via `CancellationToken`.
+   - Wired preview proxy generation and export rendering into the job manager with cancel cleanup.
+   - Built UI status pill and drawer popover with progress bars, task states, and one-click cancellation.
+2. **Phase 2.2 — Seamless Multi-Track Playback Engine (Phase 4 completion):**
+   - Implement audio-master clock synchronization across multiple tracks to ensure butter-smooth playback across cuts, gaps, and transition overlaps.
+3. **Phase 3.1 — Composable Effect Stack (Phase 8 advancement):**
+   - Refactor hardcoded color adjustments into an extensible `Vec<Effect>` stack supporting Blur, Crop, Vignette, and Chroma Key.
+4. **Phase 4.1 — Audio Mixer Channel Strips (Phase 10 advancement):**
    - Implement the Fairlight-style vertical channel strips with volume faders and live VU meters in the Audio workspace.

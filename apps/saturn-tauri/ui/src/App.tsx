@@ -1,8 +1,27 @@
 import { type CSSProperties, type MouseEvent, type PointerEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Channel, convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import { LoadingButton } from "./components/interior/loading-button";
+
+type JobState =
+  | { status: "queued" }
+  | { status: "running"; progress: number; phase: string }
+  | { status: "completed"; output?: string | null }
+  | { status: "failed"; error: string }
+  | { status: "cancelled" };
+
+interface JobInfo {
+  id: number;
+  label: string;
+  kind: { type: string; [key: string]: unknown };
+  priority: "background" | "normal" | "high" | "immediate";
+  state: JobState;
+  created_at: number;
+  started_at?: number | null;
+  completed_at?: number | null;
+}
 
 type Workspace = "edit" | "color" | "audio" | "keyframes" | "export" | "library" | "ai";
 type TimelineTool = "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand" | "zoom";
@@ -221,10 +240,11 @@ async function runCommand<T = unknown>(id: string, params: unknown = null): Prom
   return invoke<T>("execute_command", { request: { id, params } });
 }
 
-type IconName = "fullscreen" | "restore" | "close" | "media" | "add" | "undo" | "redo" | "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand" | "snap" | "split" | "remove" | "markIn" | "markOut" | "zoomIn" | "zoomOut" | "clearMarks" | "export" | "fileNew" | "fileOpen" | "fileSave" | "import" | "help" | "window" | "title" | "transition" | "sun" | "moon" | "color" | "audio" | "effects" | "deliver" | "edit";
+type IconName = "fullscreen" | "restore" | "close" | "media" | "add" | "undo" | "redo" | "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand" | "snap" | "split" | "remove" | "markIn" | "markOut" | "zoomIn" | "zoomOut" | "clearMarks" | "export" | "fileNew" | "fileOpen" | "fileSave" | "import" | "help" | "window" | "title" | "transition" | "sun" | "moon" | "color" | "audio" | "effects" | "deliver" | "edit" | "check";
 
 function Icon({ name }: { name: IconName }) {
   const paths = {
+    check: <path d="m4 10 4 4 8-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
     fullscreen: <path d="M7 3H3v4m10-4h4v4M3 13v4h4m10-4v4h-4" />,
     restore: <path d="M7 3h10v10M13 7H3v10h10V7Z" />,
     close: <path d="m5 5 10 10M15 5 5 15" />,
@@ -370,6 +390,76 @@ function App() {
     }
     return convertFileSrc(filePath);
   }, [mediaServerPort]);
+
+  const [jobs, setJobs] = useState<JobInfo[]>([]);
+  const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
+  const jobDrawerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    invoke<JobInfo[]>("get_all_jobs")
+      .then((data) => {
+        if (Array.isArray(data)) setJobs(data);
+      })
+      .catch((err) => console.warn("Could not fetch jobs:", err));
+
+    const unlisten = listen<JobInfo>("job_queue_updated", (event) => {
+      const updated = event.payload;
+      setJobs((prev) => {
+        const index = prev.findIndex((j) => j.id === updated.id);
+        if (index >= 0) {
+          const next = [...prev];
+          next[index] = updated;
+          return next;
+        }
+        return [updated, ...prev];
+      });
+    });
+
+    return () => {
+      void unlisten.then((fn) => fn());
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!jobDrawerOpen) return;
+    function handleClickOutside(event: globalThis.MouseEvent) {
+      if (jobDrawerRef.current && !jobDrawerRef.current.contains(event.target as Node)) {
+        setJobDrawerOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [jobDrawerOpen]);
+
+  const activeJobs = useMemo(
+    () => jobs.filter((j) => j.state.status === "queued" || j.state.status === "running"),
+    [jobs]
+  );
+
+  const cancelJob = useCallback(async (jobId: number) => {
+    try {
+      await invoke("cancel_job", { id: jobId });
+    } catch (err) {
+      console.warn("Failed to cancel job:", err);
+    }
+  }, []);
+
+  const cancelAllJobs = useCallback(async () => {
+    try {
+      await invoke("cancel_all_jobs");
+    } catch (err) {
+      console.warn("Failed to cancel all jobs:", err);
+    }
+  }, []);
+
+  const clearJobHistory = useCallback(async () => {
+    try {
+      await invoke("clear_job_history");
+      setJobs((prev) => prev.filter((j) => j.state.status === "queued" || j.state.status === "running"));
+    } catch (err) {
+      console.warn("Failed to clear job history:", err);
+    }
+  }, []);
   const [search, setSearch] = useState("");
   const [connection, setConnection] = useState("Connecting to Rust core…");
   const [notice, setNotice] = useState("");
@@ -1990,6 +2080,114 @@ function App() {
           </nav>
 
           <div className="header-actions">
+            {/* Background Job Queue Status Pill */}
+            <div className="job-queue-wrapper" ref={jobDrawerRef}>
+              <button
+                className={`job-status-pill ${activeJobs.length > 0 ? "has-active" : ""}`}
+                onClick={() => setJobDrawerOpen((prev) => !prev)}
+                aria-label="Background Task Queue"
+                data-tooltip={
+                  activeJobs.length > 0
+                    ? `${activeJobs.length} active background task${activeJobs.length === 1 ? "" : "s"}`
+                    : "Background Tasks (All idle)"
+                }
+                data-tooltip-pos="bottom"
+              >
+                {activeJobs.length > 0 ? (
+                  <>
+                    <span className="job-pill-spinner" />
+                    <span className="job-pill-count">{activeJobs.length}</span>
+                    <span className="job-pill-label">
+                      {activeJobs[0]?.state.status === "running"
+                        ? `${Math.round((activeJobs[0].state.progress || 0) * 100)}%`
+                        : "Queued"}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Icon name="check" />
+                    <span className="job-pill-idle">Tasks</span>
+                  </>
+                )}
+              </button>
+
+              {jobDrawerOpen && (
+                <div className="job-drawer-popover">
+                  <header className="job-drawer-header">
+                    <div>
+                      <strong>Background Tasks</strong>
+                      <small>
+                        {activeJobs.length} active · {jobs.length} total
+                      </small>
+                    </div>
+                    <div className="job-drawer-actions">
+                      {activeJobs.length > 0 && (
+                        <button
+                          className="job-cancel-all-btn"
+                          onClick={() => void cancelAllJobs()}
+                          title="Cancel all running tasks"
+                        >
+                          Cancel All
+                        </button>
+                      )}
+                      <button
+                        className="job-clear-btn"
+                        onClick={() => void clearJobHistory()}
+                        title="Clear completed history"
+                      >
+                        Clear History
+                      </button>
+                    </div>
+                  </header>
+
+                  <div className="job-drawer-list">
+                    {jobs.length === 0 ? (
+                      <div className="job-drawer-empty">No background tasks</div>
+                    ) : (
+                      jobs.map((job) => (
+                        <div key={job.id} className={`job-item job-${job.state.status}`}>
+                          <div className="job-item-header">
+                            <span className="job-item-label" title={job.label}>
+                              {job.label}
+                            </span>
+                            <span className={`job-item-status-badge badge-${job.state.status}`}>
+                              {job.state.status}
+                            </span>
+                            {(job.state.status === "running" || job.state.status === "queued") && (
+                              <button
+                                className="job-item-cancel"
+                                onClick={() => void cancelJob(job.id)}
+                                title="Cancel this task"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+
+                          {job.state.status === "running" && (
+                            <div className="job-progress-bar-wrapper">
+                              <div
+                                className="job-progress-bar-fill"
+                                style={{ width: `${Math.round((job.state.progress || 0) * 100)}%` }}
+                              />
+                              <div className="job-progress-text-row">
+                                <small>{job.state.phase || "Processing…"}</small>
+                                <small>{Math.round((job.state.progress || 0) * 100)}%</small>
+                              </div>
+                            </div>
+                          )}
+
+                          {job.state.status === "failed" && (
+                            <div className="job-error-text">{job.state.error}</div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button
               className="theme-toggle-btn"
               onClick={toggleTheme}
