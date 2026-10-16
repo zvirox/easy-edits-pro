@@ -64,6 +64,7 @@ The project is licensed under **GNU GPL version 3**; see [`LICENSE`](LICENSE).
 - Openverse image/audio search and download with license/creator/source attribution sidecar files
 - Local Ollama prompt integration, opt-in through the AI Assistant workspace
 - Debian and RPM package configuration plus a GitHub Actions build workflow
+- Playwright editor smoke test with mocked Tauri IPC for project creation, pointer-based media placement, program seek/playback, timeline zoom, and clip movement (`cd apps/saturn-tauri && pnpm test:e2e`)
 
 Color grading currently adjusts exposure, contrast, and saturation for a whole clip. Audio controls save per-track gain and apply attenuation during playback. Keyframes can animate position, scale, rotation, and opacity in the preview, but those transforms are not rendered in exports. Track gain and basic clip color grading are rendered. See [the control protocol](docs/control-protocol.md) for the shared command interface.
 
