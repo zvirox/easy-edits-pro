@@ -31,7 +31,7 @@ async function waitForServer() {
 }
 
 const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
 page.setDefaultTimeout(8_000);
 const pageErrors = [];
 page.on('pageerror', error => pageErrors.push(error.message));
@@ -122,6 +122,7 @@ try {
         if (command === 'get_command_catalogue') return catalogue;
         if (command === 'command_status') return { enabled: args.id === 'edit.undo', reason: null };
         if (command === 'check_media_availability') return (doc?.project.media ?? []).map(media => ({ mediaId: media.id, missing: false }));
+        if (command === 'prepare_video_preview') return '/mock/editor-smoke-preview.webm';
         if (command === 'execute_command') return execute(args.request);
         if (command === 'import_media') {
           for (const mediaPath of args.paths ?? []) doc.project.media.push({ id: nextId++, name: mediaPath.split('/').at(-1), path: mediaPath, kind: 'video', duration: 6 * second, width: 640, height: 360 });
@@ -143,6 +144,15 @@ try {
   await page.locator('.app-shell').waitFor();
   await page.getByRole('button', { name: /Import media/ }).first().click();
   await page.locator('.media-item strong', { hasText: 'editor-smoke.webm' }).waitFor();
+
+  await page.getByRole('navigation', { name: 'Main workspaces' }).getByRole('button', { name: 'Import' }).click();
+  await page.getByRole('heading', { name: 'Import' }).waitFor();
+  await page.getByText('Bring footage, audio, and graphics into this project.').waitFor();
+  await page.locator('.import-media-card').waitFor();
+  await page.screenshot({ path: '/tmp/easy-edits-pro-import-workspace.png', fullPage: false });
+  await page.getByRole('button', { name: /editor-smoke\.webm/ }).click();
+  await page.getByRole('button', { name: 'Edit', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Edit', exact: true }).click();
 
   // Use actual pointer events to place Project media onto the V1 timeline lane.
   const mediaItem = page.locator('.media-item').first();
@@ -205,6 +215,23 @@ try {
   const previousFrameTime = await video.evaluate(element => element.currentTime);
   assert.ok(previousFrameTime < nextFrameTime, `previous-frame should move the preview backward; ${nextFrameTime}s -> ${previousFrameTime}s`);
 
+  const workspaceNav = page.getByRole('navigation', { name: 'Main workspaces' });
+  await workspaceNav.getByRole('button', { name: 'Export' }).click();
+  await page.getByRole('heading', { name: 'Media File' }).waitFor();
+  await page.getByText('Set a format and size that match where you’ll share this edit.').waitFor();
+  const hardwareEncoding = page.getByRole('checkbox', { name: /Use hardware encoder when available/ });
+  assert.ok(await hardwareEncoding.isEnabled(), 'hardware encoding should be selectable for MP4');
+  await page.getByLabel('Format').selectOption('webm');
+  assert.equal(await hardwareEncoding.isEnabled(), false, 'hardware H.264 encoding should be disabled for WebM');
+  await page.getByLabel('Format').selectOption('mp4');
+  await page.waitForFunction(() => {
+    const video = document.querySelector('.export-preview-stage video');
+    return video && video.readyState >= 2 && video.videoWidth > 0;
+  });
+  await delay(100);
+  await page.screenshot({ path: '/tmp/easy-edits-pro-export-workspace.png', fullPage: false });
+  await workspaceNav.getByRole('button', { name: 'Edit', exact: true }).click();
+
   const clipBounds = await clip.boundingBox();
   await page.mouse.move(clipBounds.x + 50, clipBounds.y + 18);
   await page.mouse.down();
@@ -215,7 +242,7 @@ try {
 
   assert.deepEqual(pageErrors, [], `the app should not produce browser errors: ${pageErrors.join('\n')}`);
   await page.screenshot({ path: '/tmp/easy-edits-pro-editor-smoke.png', fullPage: false });
-  console.log(JSON.stringify({ page: await page.url(), viewport: page.viewportSize(), welcome: 'passed', mediaPointerDropPx: initialLeft, zoomWidth: { before: widthBefore, after: widthAfter }, scrubSeekSeconds: seekTime, playbackAdvancedToSeconds: playingTime, nextFrameSeconds: nextFrameTime, previousFrameSeconds: previousFrameTime, movedClipLeftPx: movedLeft, screenshot: '/tmp/easy-edits-pro-editor-smoke.png', browserErrors: pageErrors.length }, null, 2));
+  console.log(JSON.stringify({ page: await page.url(), viewport: page.viewportSize(), welcome: 'passed', importWorkspace: 'passed', importMediaSelection: 'passed', exportWorkspace: 'passed', hardwareEncoderFormatToggle: 'passed', mediaPointerDropPx: initialLeft, zoomWidth: { before: widthBefore, after: widthAfter }, scrubSeekSeconds: seekTime, playbackAdvancedToSeconds: playingTime, nextFrameSeconds: nextFrameTime, previousFrameSeconds: previousFrameTime, movedClipLeftPx: movedLeft, editorScreenshot: '/tmp/easy-edits-pro-editor-smoke.png', importScreenshot: '/tmp/easy-edits-pro-import-workspace.png', exportScreenshot: '/tmp/easy-edits-pro-export-workspace.png', browserErrors: pageErrors.length }, null, 2));
 } finally {
   await browser.close();
   server.kill('SIGTERM');

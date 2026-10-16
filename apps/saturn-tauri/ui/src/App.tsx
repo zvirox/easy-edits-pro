@@ -34,7 +34,7 @@ type ProjectDocument = {
     name: string;
     media: MediaAsset[];
     sequence: { name: string; tracks: Track[]; mark_in: number | null; mark_out: number | null };
-    settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number } };
+    settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
   };
 };
 type ProjectStatus = { document: ProjectDocument; path: string | null; is_dirty: boolean };
@@ -49,6 +49,7 @@ type TimelineScrub = { pointerId: number; axis: HTMLElement };
 type OpenverseAsset = { id: string; title: string; mediaUrl: string; sourceUrl: string; thumbnailUrl: string | null; creator: string | null; license: string | null; licenseUrl: string | null };
 type RecentProject = { name: string; path: string };
 type AppStage = "welcome" | "loading" | "editor";
+type EditorWorkspace = "import" | "edit" | "export";
 
 const recentProjectsKey = "easy-edits-pro.recent-projects.v1";
 const resolutionPresets = [
@@ -69,6 +70,10 @@ const frameRateOptions = [
   { value: "60000/1001", label: "59.94 fps", numerator: 60_000, denominator: 1_001 },
   { value: "60/1", label: "60 fps", numerator: 60, denominator: 1 },
 ];
+const exportFrameRateOptions = [
+  { value: "source", label: "Match sequence" },
+  ...frameRateOptions.map((item) => ({ value: `${item.numerator}/${item.denominator}`, label: item.label })),
+];
 
 const TICKS_PER_SECOND = 254_016_000_000;
 const workspaces: { id: Workspace; label: string }[] = [
@@ -80,14 +85,14 @@ const workspaces: { id: Workspace; label: string }[] = [
   { id: "library", label: "Asset library" },
   { id: "ai", label: "AI assistant" },
 ];
-const timelineTools: { id: TimelineTool; icon: IconName; label: string; shortcut: string }[] = [
-  { id: "select", icon: "select", label: "Selection tool", shortcut: "V" },
-  { id: "trackForward", icon: "trackForward", label: "Track select forward", shortcut: "A" },
-  { id: "ripple", icon: "ripple", label: "Ripple delete tool", shortcut: "B" },
-  { id: "razor", icon: "razor", label: "Razor tool", shortcut: "C" },
-  { id: "slip", icon: "slip", label: "Slip tool", shortcut: "Y" },
-  { id: "pen", icon: "pen", label: "Keyframe pen tool", shortcut: "P" },
-  { id: "hand", icon: "hand", label: "Hand tool", shortcut: "H" },
+const timelineTools: { id: TimelineTool; icon: IconName; label: string; shortLabel: string; shortcut: string }[] = [
+  { id: "select", icon: "select", label: "Selection tool", shortLabel: "Select", shortcut: "V" },
+  { id: "trackForward", icon: "trackForward", label: "Track select forward", shortLabel: "Track", shortcut: "A" },
+  { id: "ripple", icon: "ripple", label: "Ripple delete tool", shortLabel: "Ripple", shortcut: "B" },
+  { id: "razor", icon: "razor", label: "Razor tool", shortLabel: "Razor", shortcut: "C" },
+  { id: "slip", icon: "slip", label: "Slip tool", shortLabel: "Slip", shortcut: "Y" },
+  { id: "pen", icon: "pen", label: "Keyframe pen tool", shortLabel: "Key", shortcut: "P" },
+  { id: "hand", icon: "hand", label: "Hand tool", shortLabel: "Pan", shortcut: "H" },
 ];
 const mediaFilters = [{ name: "Video, audio, and images", extensions: ["mp4", "mkv", "mov", "webm", "avi", "m4v", "mp3", "wav", "flac", "ogg", "m4a", "aac", "png", "jpg", "jpeg", "webp", "bmp", "tif", "tiff"] }];
 const projectFilters = [{ name: "Easy Edits Pro project", extensions: ["saturn"] }];
@@ -178,6 +183,7 @@ function App() {
   const [setupHeight, setSetupHeight] = useState("1080");
   const [setupFrameRate, setSetupFrameRate] = useState("30/1");
   const [workspace, setWorkspace] = useState<Workspace>("edit");
+  const [editorWorkspace, setEditorWorkspace] = useState<EditorWorkspace>("edit");
   const [projectState, setProjectState] = useState<ProjectStatus | null>(null);
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
   const [selectedClip, setSelectedClip] = useState<SelectedClip | null>(null);
@@ -185,6 +191,9 @@ function App() {
   const [playhead, setPlayhead] = useState(0);
   const [programPlaying, setProgramPlaying] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  const [preparedPreviews, setPreparedPreviews] = useState<Record<number, string>>({});
+  const [preparingPreviews, setPreparingPreviews] = useState<Set<number>>(new Set());
+  const [previewPreparationErrors, setPreviewPreparationErrors] = useState<Record<number, string>>({});
   const [search, setSearch] = useState("");
   const [connection, setConnection] = useState("Connecting to Rust core…");
   const [notice, setNotice] = useState("");
@@ -204,6 +213,11 @@ function App() {
   const [keyframeProperty, setKeyframeProperty] = useState<KeyframeProperty>("opacity");
   const [keyframeValue, setKeyframeValue] = useState("1");
   const [exportFormat, setExportFormat] = useState<"mp4" | "webm">("mp4");
+  const [exportResolution, setExportResolution] = useState("source");
+  const [exportFrameRate, setExportFrameRate] = useState("source");
+  const [useHardwareEncoding, setUseHardwareEncoding] = useState(true);
+  const [exportFileName, setExportFileName] = useState("Main Edit");
+  const [exportOutputPath, setExportOutputPath] = useState("");
   const [exportMarkedRange, setExportMarkedRange] = useState(false);
   const [rendering, setRendering] = useState(false);
   const [renderProgress, setRenderProgress] = useState<{ fractionPercent: number; phase: string } | null>(null);
@@ -215,6 +229,7 @@ function App() {
   const [aiReply, setAiReply] = useState("");
   const programVideoRef = useRef<HTMLVideoElement>(null);
   const programAudioRef = useRef<HTMLAudioElement>(null);
+  const previewPreparationInFlight = useRef(new Set<number>());
   const requestedProgramSeek = useRef(false);
   const handPan = useRef<{ x: number; scrollLeft: number } | null>(null);
   const slipDrag = useRef<{ x: number; trackId: number; clipIndex: number } | null>(null);
@@ -278,6 +293,28 @@ function App() {
   const programPlayable = Boolean(activeClip && (activeClip.media.kind === "video" || activeClip.media.kind === "audio"));
   const timelineEndSeconds = Math.max(14, ...(project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => (clip.timeline_start + clip.duration) / TICKS_PER_SECOND + 2)));
   const timelineWidth = timelineEndSeconds * timelineZoom + 120;
+
+  useEffect(() => {
+    const requested = new Map<number, MediaAsset>();
+    for (const item of [selectedMedia, activeClip?.media ?? null]) {
+      if (item?.kind === "video" && !preparedPreviews[item.id]) requested.set(item.id, item);
+    }
+    if (requested.size === 0) return;
+    for (const [id, item] of requested) {
+      if (previewPreparationInFlight.current.has(id)) continue;
+      previewPreparationInFlight.current.add(id);
+      setPreparingPreviews((current) => new Set(current).add(id));
+      setPreviewPreparationErrors((current) => { const next = { ...current }; delete next[id]; return next; });
+      void invoke<string>("prepare_video_preview", { path: item.path }).then((path) => {
+        setPreparedPreviews((current) => ({ ...current, [id]: path }));
+      }).catch((error: unknown) => {
+        setPreviewPreparationErrors((current) => ({ ...current, [id]: String(error) }));
+      }).finally(() => {
+        previewPreparationInFlight.current.delete(id);
+        setPreparingPreviews((current) => { const next = new Set(current); next.delete(id); return next; });
+      });
+    }
+  }, [selectedMedia?.id, selectedMedia?.path, activeClip?.media.id, activeClip?.media.path, preparedPreviews]);
 
   function zoomTimeline(factor: number) {
     const nextZoom = Math.max(24, Math.min(240, timelineZoom * factor));
@@ -543,15 +580,35 @@ function App() {
     await perform("file.save", { path }, "Project saved");
   }
 
-  async function exportProject() {
+  async function chooseExportDestination() {
     if (!project || rendering) return;
     const extension = exportFormat;
-    const outputPath = await save({
+    const safeName = (exportFileName.trim() || project.name).replace(/[\\/:*?"<>|]/g, "-");
+    const path = await save({
       title: "Export video",
-      defaultPath: `${project.name.replace(/[\\/:*?"<>|]/g, "-")}.${extension}`,
+      defaultPath: exportOutputPath || `${safeName}.${extension}`,
       filters: [{ name: extension === "mp4" ? "MP4 video" : "WebM video", extensions: [extension] }],
     });
+    if (path) {
+      setExportOutputPath(path);
+      const filename = path.split(/[\\/]/).at(-1) ?? "";
+      setExportFileName(filename.replace(/\.[^.]+$/, ""));
+    }
+    return path;
+  }
+
+  async function exportProject() {
+    if (!project || rendering) return;
+    const outputPath = exportOutputPath || await chooseExportDestination();
     if (!outputPath) return;
+    setExportOutputPath(outputPath);
+
+    const resolution = exportResolution === "source"
+      ? { width: project.settings.width, height: project.settings.height }
+      : resolutionPresets.find((item) => item.value === exportResolution) ?? { width: project.settings.width, height: project.settings.height };
+    const frameRate = exportFrameRate === "source"
+      ? project.settings.frame_rate
+      : (() => { const [numerator, denominator] = exportFrameRate.split("/").map(Number); return { numerator, denominator }; })();
 
     const channel = new Channel<{ fractionPercent: number; phase: string }>();
     channel.onmessage = (progress) => setRenderProgress(progress);
@@ -559,7 +616,18 @@ function App() {
     setRenderProgress({ fractionPercent: 0, phase: "Preparing timeline" });
     setNotice("");
     try {
-      await invoke("start_export", { outputPath, useMarkRange: exportMarkedRange, onProgress: channel });
+      await invoke("start_export", {
+        outputPath,
+        useMarkRange: exportMarkedRange,
+        settings: {
+          width: resolution.width,
+          height: resolution.height,
+          frameRateNumerator: frameRate.numerator,
+          frameRateDenominator: frameRate.denominator,
+          useHardwareEncoding,
+        },
+        onProgress: channel,
+      });
       setRenderProgress({ fractionPercent: 100, phase: "Complete" });
       setNotice(`Export complete: ${outputPath}`);
     } catch (error) {
@@ -1031,7 +1099,7 @@ function App() {
           <div className="control">Frame rate <span>{project ? `${project.settings.frame_rate.numerator}/${project.settings.frame_rate.denominator} fps` : "—"}</span></div>
           <button className="primary" disabled={!project || rendering || !project.sequence.tracks.some((track) => track.clips.length > 0)} onClick={() => void exportProject()}>{rendering ? "Rendering…" : "Render video"}</button>
           {renderProgress && <div className="render-progress"><progress max={100} value={renderProgress.fractionPercent} /><small>{renderProgress.phase} · {renderProgress.fractionPercent}%</small></div>}
-          <small>Native GStreamer render. Color controls and track gain are included; animated keyframes are not yet rendered.</small></>;
+          <small>MP4 prefers an installed VA-API, Quick Sync, NVENC, or V4L2 H.264 encoder; software encoding is used when hardware is unavailable. Color controls and track gain are included; animated keyframes are not yet rendered.</small></>;
       case "library":
         return <><h2>FOSS asset library</h2><p>Search openly licensed media indexed by Openverse. Check each source page and license before publishing your work.</p>
           <label>Search <input value={assetQuery} maxLength={200} placeholder="Try nature, city, music…" onChange={(event) => setAssetQuery(event.target.value)} /></label>
@@ -1060,7 +1128,10 @@ function App() {
 
   const renderPreview = (item: MediaAsset | null, isProgram = false) => {
     if (!item) return <div className="monitor-stage"><strong>{isProgram ? "Program monitor" : "Source monitor"}</strong><small>{isProgram ? "Add a clip to the timeline to preview the sequence" : "Select imported media to preview it here"}</small></div>;
-    const source = convertFileSrc(item.path);
+    if (item.kind === "video" && !preparedPreviews[item.id]) {
+      return <div className="monitor-stage preview-preparing"><strong>{previewPreparationErrors[item.id] ? "Preview unavailable" : "Preparing video preview"}</strong><small>{previewPreparationErrors[item.id] ?? (preparingPreviews.has(item.id) ? "Decoding this source into a browser-friendly preview…" : "Waiting for the preview decoder…")}</small></div>;
+    }
+    const source = convertFileSrc(item.kind === "video" ? preparedPreviews[item.id] : item.path);
     const color = isProgram ? activeClip?.clip.color : null;
     const clipTime = activeClip ? playhead - activeClip.clip.timeline_start : 0;
     const exposure = color?.exposure ?? 0;
@@ -1204,6 +1275,48 @@ function App() {
     </main>;
   }
 
+  function renderImportWorkspace() {
+    return <main className="workspace-page import-workspace">
+      <header className="workspace-page-heading"><div><span className="workspace-eyebrow">MEDIA · STEP 1</span><h1>Import</h1><p>Bring footage, audio, and graphics into this project.</p></div><button className="primary workspace-heading-action" onClick={() => void importMedia()} disabled={busy}><Icon name="import" /> Browse files…</button></header>
+      <section className="import-drop-panel"><div className="import-drop-icon"><Icon name="media" /></div><div><h2>Add media to your project</h2><p>Choose video, audio, or still images from your computer. Imported files stay in their original location.</p></div><button className="primary" onClick={() => void importMedia()} disabled={busy}>＋ Import media</button></section>
+      <section className="import-library-section"><header><div><h2>Project media</h2><p>{media.length} item{media.length === 1 ? "" : "s"} in {project?.name ?? "this project"}</p></div><input className="search" type="search" placeholder="Search project media" aria-label="Search project media" value={search} onChange={(event) => setSearch(event.target.value)} /></header>
+        {visibleMedia.length ? <div className="import-media-grid">{visibleMedia.map((item) => <button className={`import-media-card ${selectedMediaId === item.id ? "selected" : ""}`} key={item.id} onClick={() => { setSelectedMediaId(item.id); setSelectedClip(null); setSelectedClips([]); setEditorWorkspace("edit"); }} title="Select this media and open the Edit workspace"><span className="import-media-icon"><Icon name="media" /></span><strong>{item.name}</strong><small>{item.kind.toUpperCase()} {item.width && item.height ? `· ${item.width} × ${item.height}` : ""}</small><small>{item.duration ? formatTime(item.duration) : missingMediaIds.has(item.id) ? "Missing · relink required" : "Ready to edit"}</small></button>)}</div> : <div className="import-empty"><Icon name="media" /><strong>{search ? "No matching media" : "Your project is ready for media"}</strong><span>{search ? "Try another search." : "Import a clip to begin building your timeline."}</span><button onClick={() => void importMedia()} disabled={busy}>Browse files…</button></div>}
+      </section>
+    </main>;
+  }
+
+  function renderExportWorkspace() {
+    const outputResolution = exportResolution === "source"
+      ? { width: project?.settings.width ?? 1920, height: project?.settings.height ?? 1080 }
+      : resolutionPresets.find((item) => item.value === exportResolution) ?? { width: project?.settings.width ?? 1920, height: project?.settings.height ?? 1080 };
+    const outputFrameRate = exportFrameRate === "source"
+      ? project?.settings.frame_rate ?? { numerator: 30, denominator: 1 }
+      : (() => { const [numerator, denominator] = exportFrameRate.split("/").map(Number); return { numerator, denominator }; })();
+    const sequenceEnd = Math.max(0, ...((project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => clip.timeline_start + clip.duration))));
+    const markStart = project?.sequence.mark_in ?? 0;
+    const markEnd = project?.sequence.mark_out ?? sequenceEnd;
+    const rangeDuration = exportMarkedRange ? Math.max(0, markEnd - markStart) : sequenceEnd;
+    const hasClips = Boolean(project?.sequence.tracks.some((track) => track.clips.length > 0));
+    const outputFolder = exportOutputPath ? exportOutputPath.slice(0, Math.max(exportOutputPath.lastIndexOf("/"), exportOutputPath.lastIndexOf("\\"))) : "Choose a destination folder";
+    return <main className="export-workspace">
+      <aside className="export-destinations"><h2>Destinations</h2><button className="export-destination selected"><Icon name="export" /><span><strong>Media File</strong><small>Render a video file</small></span></button><div className="export-queue"><h3>Queue <span>0</span></h3><p>Exports run immediately when you choose Export video.</p></div></aside>
+      <section className="export-settings-panel"><header><span className="workspace-eyebrow">DELIVERY</span><h1>Media File</h1><p>Set a format and size that match where you’ll share this edit.</p></header>
+        <div className="export-form-scroll">
+          <label className="export-field">File name<input value={exportFileName} disabled={rendering} onChange={(event) => { setExportFileName(event.target.value); setExportOutputPath(""); }} placeholder="Main Edit" /></label>
+          <div className="export-field"><span>Location</span><div className="export-location"><small title={outputFolder}>{outputFolder}</small><button onClick={() => void chooseExportDestination()} disabled={!hasClips || rendering}>Choose…</button></div></div>
+          <label className="export-field">Preset<select disabled={rendering} value={exportResolution} onChange={(event) => setExportResolution(event.target.value)}><option value="source">Match sequence · {project?.settings.width ?? 1920} × {project?.settings.height ?? 1080}</option>{resolutionPresets.filter((item) => item.value !== "custom").map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
+          <label className="export-field">Format<select disabled={rendering} value={exportFormat} onChange={(event) => { setExportFormat(event.target.value as "mp4" | "webm"); setExportOutputPath(""); }}><option value="mp4">H.264 · MP4</option><option value="webm">VP8 · WebM</option></select></label>
+          <details className="export-settings-group" open><summary>Video</summary><div className="export-fields-grid"><label className="export-field">Frame size<select disabled={rendering} value={exportResolution} onChange={(event) => setExportResolution(event.target.value)}><option value="source">Match sequence</option>{resolutionPresets.filter((item) => item.value !== "custom").map((item) => <option value={item.value} key={item.value}>{item.width} × {item.height}</option>)}</select></label><label className="export-field">Frame rate<select disabled={rendering} value={exportFrameRate} onChange={(event) => setExportFrameRate(event.target.value)}>{exportFrameRateOptions.map((item) => <option value={item.value} key={item.value}>{item.value === "source" ? `${item.label} · ${project?.settings.frame_rate.numerator ?? 30}/${project?.settings.frame_rate.denominator ?? 1} fps` : item.label}</option>)}</select></label></div>
+            <label className={`export-check ${exportFormat !== "mp4" ? "disabled" : ""}`}><input type="checkbox" checked={useHardwareEncoding} disabled={rendering || exportFormat !== "mp4"} onChange={(event) => setUseHardwareEncoding(event.target.checked)} /><span><strong>Use hardware encoder when available</strong><small>{exportFormat === "mp4" ? "Try your GPU first; software encoding is used if it is unavailable." : "Hardware H.264 applies to MP4 exports."}</small></span></label>
+          </details>
+          <details className="export-settings-group" open><summary>Audio</summary><div className="export-audio-summary"><span>Audio format</span><strong>{exportFormat === "mp4" ? "AAC" : "Vorbis"}</strong><span>Sample rate</span><strong>{project?.settings.audio_sample_rate ?? 48_000} Hz · source mix</strong></div></details>
+          <details className="export-settings-group"><summary>More settings</summary><label className="range-export export-check"><input type="checkbox" checked={exportMarkedRange} disabled={project?.sequence.mark_in == null || project?.sequence.mark_out == null || rendering} onChange={(event) => setExportMarkedRange(event.target.checked)} /><span><strong>Export marked In/Out range</strong><small>Use the sequence markers instead of the full timeline.</small></span></label><div className="export-mark-row"><span>In <b>{project?.sequence.mark_in == null ? "Not set" : formatTime(project.sequence.mark_in)}</b></span><span>Out <b>{project?.sequence.mark_out == null ? "Not set" : formatTime(project.sequence.mark_out)}</b></span><button disabled={project?.sequence.mark_in == null && project?.sequence.mark_out == null} onClick={() => void invokeMenuCommand("timeline.clear_marks")}>Clear marks</button></div></details>
+        </div>
+      </section>
+      <aside className="export-preview-panel"><div className="export-preview-heading"><span>Preview</span><span>{exportFormat === "mp4" ? "H.264" : "VP8"}</span></div><div className="export-preview-stage">{renderPreview(activeClip?.media ?? selectedMedia, true)}</div><div className="export-range-select">Range <strong>{exportMarkedRange ? "Marked In / Out" : "Entire sequence"}</strong></div><div className="export-summary"><h2>Summary</h2><dl><dt>Output</dt><dd>{exportOutputPath || `${exportFileName || project?.name || "Main Edit"}.${exportFormat}`}</dd><dt>Video</dt><dd>{outputResolution.width} × {outputResolution.height} · {outputFrameRate.numerator}/{outputFrameRate.denominator} fps</dd><dt>Container</dt><dd>{exportFormat === "mp4" ? "H.264 (MP4)" : "VP8 (WebM)"}</dd><dt>Audio</dt><dd>{exportFormat === "mp4" ? "AAC" : "Vorbis"} · {project?.settings.audio_sample_rate ?? 48_000} Hz</dd><dt>Range</dt><dd>{formatTime(rangeDuration)}</dd></dl></div>{renderProgress && <div className="render-progress"><progress max={100} value={renderProgress.fractionPercent} /><small>{renderProgress.phase} · {renderProgress.fractionPercent}%</small></div>}<button className="primary export-submit" disabled={!hasClips || rendering} onClick={() => void exportProject()}>{rendering ? "Rendering…" : "Export video"}</button><small className="export-footer-note">Color controls and track gain are included. Animated keyframes are preview-only.</small></aside>
+    </main>;
+  }
+
   return (
     appStage !== "editor" ? renderProjectWelcome() :
     <div className="app-shell" tabIndex={-1} onKeyDown={(event) => {
@@ -1227,6 +1340,7 @@ function App() {
       <header className="app-header">
         <div className="header-menu-row">
           <div className="brand"><img className="brand-mark" src="/saturn-camera.png" alt="Easy Edits Pro camera logo" /><div><strong>Easy Edits Pro</strong><small>{project?.name ?? "Loading project…"}{projectState?.is_dirty ? " •" : ""}</small></div></div>
+          <nav className="primary-workspace-nav" aria-label="Main workspaces">{(["import", "edit", "export"] as const).map((item) => <button key={item} className={editorWorkspace === item ? "selected" : ""} aria-current={editorWorkspace === item ? "page" : undefined} onClick={() => setEditorWorkspace(item)}>{item[0].toUpperCase() + item.slice(1)}</button>)}</nav>
           <nav className="menu-bar" aria-label="Application menus">{["File", "Edit", "Clip", "Sequence", "Markers", "View", "Window", "Help"].map(renderMenu)}</nav>
           <div className="header-actions">
             <button className="icon-button" onClick={() => void toggleFullscreen()} aria-label={fullscreen ? "Leave fullscreen" : "Enter fullscreen"} title={fullscreen ? "Leave fullscreen" : "Enter fullscreen"}><Icon name={fullscreen ? "restore" : "fullscreen"} /></button>
@@ -1244,12 +1358,12 @@ function App() {
             <button className="history-button" onClick={() => void perform("edit.redo")} disabled={!redoStatus.enabled} title={redoStatus.reason ?? "Redo"} aria-label="Redo"><Icon name="redo" /></button>
           </nav>
           <nav className="workspaces" aria-label="Editing workspaces">
-            <SegmentedControl label="Editing workspaces" options={workspaces.map(({ id, label }) => ({ value: id, label }))} value={workspace} onValueChange={(value) => setWorkspace(value as Workspace)} />
+            {editorWorkspace === "edit" ? <SegmentedControl label="Editing workspaces" options={workspaces.filter((item) => item.id !== "export").map(({ id, label }) => ({ value: id, label }))} value={workspace} onValueChange={(value) => setWorkspace(value as Workspace)} /> : <span className="workspace-context-label">{editorWorkspace === "import" ? "Project media" : "Export settings"}</span>}
           </nav>
         </div>
       </header>
 
-      <main className="editor">
+      {editorWorkspace === "import" ? renderImportWorkspace() : editorWorkspace === "export" ? renderExportWorkspace() : <main className="editor">
         <aside className="media-panel">
           <div className="panel-tabs"><span className="selected">Project</span><span>Media Browser</span><span>Libraries</span></div>
           <div className="panel-heading"><strong>Project media</strong><button className="primary" onClick={() => void importMedia()} disabled={busy}>＋ Import media</button></div>
@@ -1265,7 +1379,7 @@ function App() {
 
           <section className="timeline">
             <aside className="timeline-tool-rail" aria-label="Timeline tools">
-              {timelineTools.map((tool) => <button key={tool.id} className={`timeline-tool-button ${timelineTool === tool.id ? "active" : ""}`} onClick={() => setTimelineTool(tool.id)} aria-label={tool.label} aria-pressed={timelineTool === tool.id} title={`${tool.label} (${tool.shortcut})`}><Icon name={tool.icon} /></button>)}
+              {timelineTools.map((tool) => <button key={tool.id} className={`timeline-tool-button ${timelineTool === tool.id ? "active" : ""}`} onClick={() => setTimelineTool(tool.id)} aria-label={tool.label} aria-pressed={timelineTool === tool.id} title={`${tool.label} (${tool.shortcut})`}><Icon name={tool.icon} /><span>{tool.shortLabel}</span></button>)}
             </aside>
             <div className="timeline-workbench">
               <div className="timeline-toolbar">
@@ -1311,7 +1425,7 @@ function App() {
         </section>
 
         <aside className="tool-panel" aria-live="polite">{renderInspector()}</aside>
-      </main>
+      </main>}
       <footer className="status-bar"><span>{busy ? "Working…" : notice || "Autosave recovery enabled · saves every 30 seconds"}</span><span>{connection}</span></footer>
       {newProjectOpen && <div className="dialog-backdrop" role="presentation"><form className="new-project-dialog" onSubmit={(event) => { event.preventDefault(); void createProject(); }}><h2>New project</h2><label>Project name<input autoFocus value={newProjectName} onChange={(event) => setNewProjectName(event.target.value)} /></label><div className="dialog-actions"><button type="button" onClick={() => setNewProjectOpen(false)}>Cancel</button><button className="primary" type="submit" disabled={!newProjectName.trim()}>Create</button></div></form></div>}
     </div>

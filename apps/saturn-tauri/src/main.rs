@@ -1,10 +1,12 @@
 use gstreamer_pbutils::Discoverer;
+use gstreamer::prelude::*;
 use saturn_core::{CommandRequest, CommandStatus, EditorEngine, MediaKind, ProjectDocument, Tick, command_catalogue};
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use std::hash::{Hash, Hasher};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Manager, State, ipc::Channel};
 
@@ -186,6 +188,97 @@ fn check_media_availability(state: State<'_, AppState>) -> Result<Vec<MediaAvail
 }
 
 #[tauri::command]
+async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path: String) -> Result<String, String> {
+    let source = PathBuf::from(&path);
+    let is_project_video = state.0.lock().map_err(|_| "Editor state is unavailable".to_string())?
+        .document().project.media.iter()
+        .any(|media| media.path == source && media.kind == MediaKind::Video);
+    if !is_project_video {
+        return Err("Preview source is not a video imported into this project".to_string());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        if !source.is_file() {
+            return Err(format!("Source video is missing: {}", source.display()));
+        }
+        gstreamer::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
+
+        let metadata = std::fs::metadata(&source).map_err(|error| format!("Could not inspect source video: {error}"))?;
+        let modified = metadata.modified().ok().and_then(|time| time.duration_since(UNIX_EPOCH).ok()).map(|time| time.as_nanos()).unwrap_or_default();
+        let mut key = std::collections::hash_map::DefaultHasher::new();
+        source.hash(&mut key);
+        metadata.len().hash(&mut key);
+        modified.hash(&mut key);
+        let cache_dir = app.path().app_cache_dir().map_err(|error| format!("Could not locate the preview cache: {error}"))?.join("video-previews");
+        std::fs::create_dir_all(&cache_dir).map_err(|error| format!("Could not create the preview cache: {error}"))?;
+        let output = cache_dir.join(format!("{:016x}.webm", key.finish()));
+        if output.is_file() && std::fs::metadata(&output).is_ok_and(|info| info.len() > 0) {
+            let _ = app.asset_protocol_scope().allow_file(&output);
+            return Ok(output.to_string_lossy().into_owned());
+        }
+        let temporary = output.with_extension("webm.part");
+        let uri = gstreamer::glib::filename_to_uri(&source, None).map_err(|error| format!("Could not read source path: {error}"))?;
+
+        let pipeline = gstreamer::Pipeline::new();
+        let decoder = gstreamer::ElementFactory::make("uridecodebin").property("uri", uri).build().map_err(|error| format!("Could not create video decoder: {error}"))?;
+        let queue = gstreamer::ElementFactory::make("queue").build().map_err(|error| error.to_string())?;
+        let convert = gstreamer::ElementFactory::make("videoconvert").build().map_err(|error| format!("Video conversion is unavailable: {error}"))?;
+        let scale = gstreamer::ElementFactory::make("videoscale").property("add-borders", true).build().map_err(|error| format!("Video scaling is unavailable: {error}"))?;
+        let filter = gstreamer::ElementFactory::make("capsfilter").property("caps", gstreamer::Caps::builder("video/x-raw").field("width", 1280_i32).field("height", 720_i32).field("pixel-aspect-ratio", gstreamer::Fraction::new(1, 1)).build()).build().map_err(|error| error.to_string())?;
+        let encoder = gstreamer::ElementFactory::make("vp8enc").property("deadline", 1_i64).property("cpu-used", 8_i32).build().map_err(|error| format!("VP8 preview encoder is unavailable: {error}"))?;
+        let mux = gstreamer::ElementFactory::make("webmmux").build().map_err(|error| format!("WebM preview muxer is unavailable: {error}"))?;
+        let sink = gstreamer::ElementFactory::make("filesink").property("location", temporary.to_string_lossy().as_ref()).build().map_err(|error| error.to_string())?;
+        let audio_sink = gstreamer::ElementFactory::make("fakesink").property("sync", false).build().map_err(|error| error.to_string())?;
+        pipeline.add_many([&decoder, &queue, &convert, &scale, &filter, &encoder, &mux, &sink, &audio_sink]).map_err(|error| format!("Could not assemble preview pipeline: {error}"))?;
+        gstreamer::Element::link_many([&queue, &convert, &scale, &filter, &encoder, &mux, &sink]).map_err(|error| format!("Could not link preview pipeline: {error}"))?;
+        let video_queue = queue.clone();
+        let audio_sink_for_pad = audio_sink.clone();
+        decoder.connect_pad_added(move |_decoder, pad| {
+            let media_type = pad.current_caps().or_else(|| Some(pad.query_caps(None)))
+                .and_then(|caps| caps.structure(0).map(|structure| structure.name().to_owned()))
+                .unwrap_or_default();
+            let is_video = media_type.starts_with("video/");
+            if is_video {
+                if let Some(sink_pad) = video_queue.static_pad("sink") {
+                    if !sink_pad.is_linked() {
+                        let _ = pad.link(&sink_pad);
+                    }
+                }
+            } else if media_type.starts_with("audio/") {
+                if let Some(sink_pad) = audio_sink_for_pad.static_pad("sink") {
+                    if !sink_pad.is_linked() {
+                        let _ = pad.link(&sink_pad);
+                    }
+                }
+            }
+        });
+
+        let bus = pipeline.bus().ok_or_else(|| "Preview pipeline has no message bus".to_string())?;
+        pipeline.set_state(gstreamer::State::Playing).map_err(|error| format!("Could not decode source video: {error}"))?;
+        let result = loop {
+            if let Some(message) = bus.timed_pop(gstreamer::ClockTime::from_mseconds(250)) {
+                match message.view() {
+                    gstreamer::MessageView::Eos(..) => break Ok(()),
+                    gstreamer::MessageView::Error(error) => break Err(format!("Could not prepare video preview: {}{}", error.error(), error.debug().map(|debug| format!(" ({debug})")).unwrap_or_default())),
+                    _ => {}
+                }
+            }
+        };
+        let _ = pipeline.set_state(gstreamer::State::Null);
+        if let Err(error) = result {
+            let _ = std::fs::remove_file(&temporary);
+            return Err(error);
+        }
+        if !temporary.is_file() || std::fs::metadata(&temporary).is_ok_and(|info| info.len() == 0) {
+            let _ = std::fs::remove_file(&temporary);
+            return Err("Video decoding completed without producing a preview".to_string());
+        }
+        std::fs::rename(&temporary, &output).map_err(|error| format!("Could not save video preview: {error}"))?;
+        let _ = app.asset_protocol_scope().allow_file(&output);
+        Ok(output.to_string_lossy().into_owned())
+    }).await.map_err(|error| format!("Preview preparation task failed: {error}"))?
+}
+
+#[tauri::command]
 fn command_status(state: State<'_, AppState>, id: String) -> Result<CommandStatus, String> {
     state
         .0
@@ -288,6 +381,7 @@ async fn start_export(
     state: State<'_, AppState>,
     output_path: String,
     use_mark_range: bool,
+    settings: saturn_render::RenderSettings,
     on_progress: Channel<RenderProgressEvent>,
 ) -> Result<(), String> {
     let document = state
@@ -305,7 +399,7 @@ async fn start_export(
         None
     };
     tauri::async_runtime::spawn_blocking(move || {
-        saturn_render::render_project_range(&document, Path::new(&output_path), range, |progress| {
+        saturn_render::render_project_range_with_settings(&document, Path::new(&output_path), range, settings, |progress| {
             let _ = on_progress.send(RenderProgressEvent {
                 fraction_percent: progress.fraction_percent,
                 phase: progress.phase.to_string(),
@@ -519,6 +613,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             execute_command,
+            prepare_video_preview,
             command_status,
             get_command_catalogue,
             recovery_status,

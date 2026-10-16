@@ -11,3 +11,4 @@ gstreamer = "0.25.3"
 gstreamer-editing-services = { version = "0.25.4", features = ["v1_18"] }
 gstreamer-pbutils = "0.25.3"
 saturn-core = { path = "../saturn-core" }
+serde = { version = "1", features = ["derive"] }

@@ -16,7 +16,7 @@ pnpm install
 pnpm tauri dev
 ```
 
-On launch, the Tauri interface opens a project welcome screen where you can create a project with a name, resolution, and frame rate, reopen a recent project, or browse for an existing `.saturn` project. The editor provides native multi-file media import, GStreamer metadata discovery, a searchable media bin, source and program previews, and shared Rust undo/redo. Drag media from the Project panel onto a matching timeline track to place it at that time; the orange playhead can be dragged to scrub the timeline and preview the active clip. Timeline editing includes clip move, split, remove, zoom, frame snapping, and keyframe tools. The program preview supports play/pause, seeking, and frame stepping. The native renderer uses GStreamer Editing Services to export MP4 (H.264/AAC) or WebM (VP8/Vorbis) using the project resolution and frame rate. It applies clip color controls and track gain; animated keyframes are currently preview-only. Export progress appears in the Export workspace.
+On launch, the Tauri interface opens a project welcome screen where you can create a project with a name, resolution, and frame rate, reopen a recent project, or browse for an existing `.saturn` project. Inside the editor, clearly labeled Import, Edit, and Export workspaces organize media intake, timeline editing, and delivery settings. Import provides searchable project media cards and a direct browse action; Edit retains the timeline, labeled tools, monitors, and existing editing workspaces. Export provides format, frame-size and frame-rate presets, an output location, marked-range export, and a summary of the resulting file. The editor provides native multi-file media import, GStreamer metadata discovery, a searchable media bin, source and program previews, and shared Rust undo/redo. Video previews are decoded by GStreamer into cached WebM/VP8 proxies, so playback does not rely on WebKit having native MP4 codec support; the original file remains the source for editing and export. Drag media from the Project panel onto a matching timeline track to place it at that time; the orange playhead can be dragged to scrub the timeline and preview the active clip. Timeline editing includes clip move, split, remove, zoom, frame snapping, and keyframe tools. The program preview supports play/pause, seeking, and frame stepping. The native renderer uses GStreamer Editing Services to export MP4 (H.264/AAC) or WebM (VP8/Vorbis) with selectable output size and frame rate. MP4 export can prefer an installed VA-API, Intel Quick Sync, NVIDIA NVENC, or V4L2 H.264 encoder, with GStreamer software encoders used when hardware encoding is unavailable. It applies clip color controls and track gain; animated keyframes are currently preview-only. Export progress appears in the Export workspace.
 
 The Asset Library searches Openverse for openly licensed images and audio, downloads selected media into Easy Edits Pro's application data folder, and saves a neighboring attribution JSON file. Review each source and license before distributing a project. The AI Assistant can send prompts to a local Ollama instance at `http://127.0.0.1:11434`; install Ollama and pull a model such as `llama3.2:3b` first. Prompts and responses stay on the local machine.
 
@@ -48,6 +48,7 @@ The project is licensed under **GNU GPL version 3**; see [`LICENSE`](LICENSE).
 ## Current progress
 
 - Easy Edits Pro Tauri 2 React/TypeScript/Vite desktop shell with responsive editing workspaces and bundled Inter Variable typography
+- Dedicated Import, Edit, and Export workspaces with labeled top-level navigation and practical export controls and output summary
 - Rust Tauri command bridge backed by `saturn-core`, including project status and timeline editing commands
 - Native project and media dialogs, asynchronous GStreamer metadata discovery, and asset-protocol media access
 - Project welcome screen with new/open/recent project workflows, resolution and frame-rate settings, and interrupted-project recovery
@@ -61,6 +62,8 @@ The project is licensed under **GNU GPL version 3**; see [`LICENSE`](LICENSE).
 - JSON Lines control mode for agent and automation clients: `cargo run -p saturn-cli -- control`
 - Edit, Color, Audio, Keyframes, and Export workspaces; Color, Audio, and Keyframes controls persist and affect Tauri preview
 - Native GStreamer Editing Services rendering from the Export workspace to MP4 or WebM, with progress and error reporting
+- GStreamer-decoded cached VP8 proxies for reliable video previews across common source codecs
+- MP4 H.264 export that prefers supported hardware encoders and falls back to installed software encoders
 - Openverse image/audio search and download with license/creator/source attribution sidecar files
 - Local Ollama prompt integration, opt-in through the AI Assistant workspace
 - Debian and RPM package configuration plus a GitHub Actions build workflow
@@ -76,5 +79,6 @@ The editor is still in active development. The next major editing features are:
 - Clip transitions, starting with common fades and crossfades, with matching preview and export behavior
 - A broader effect stack, including effect parameters that can be animated at the playhead and rendered
 - More reliable frame-accurate playback and preview/render consistency
+- Queued exports and more detailed codec, bitrate, and audio delivery controls
 - Full audio mixing, additional asset providers, and timeline-aware AI editing actions
 - Verified Linux release packages and broader platform/runtime testing

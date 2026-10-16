@@ -3,7 +3,7 @@ use gstreamer::prelude::*;
 use gstreamer_editing_services as ges;
 use gstreamer_editing_services::prelude::*;
 use gstreamer_pbutils as gst_pbutils;
-use saturn_core::Tick;
+use saturn_core::{FrameRate, Tick};
 use saturn_core::project::{Clip, MediaKind, ProjectDocument, TrackKind};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
@@ -20,6 +20,66 @@ pub struct RenderProgress {
 pub struct RenderRange {
     pub start: Tick,
     pub end: Tick,
+}
+
+#[derive(Clone, Copy, Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RenderSettings {
+    pub width: u32,
+    pub height: u32,
+    pub frame_rate_numerator: u32,
+    pub frame_rate_denominator: u32,
+    pub use_hardware_encoding: bool,
+}
+
+impl RenderSettings {
+    pub fn from_project(document: &ProjectDocument) -> Self {
+        Self {
+            width: document.project.settings.width,
+            height: document.project.settings.height,
+            frame_rate_numerator: document.project.settings.frame_rate.numerator,
+            frame_rate_denominator: document.project.settings.frame_rate.denominator,
+            use_hardware_encoding: true,
+        }
+    }
+}
+
+struct EncoderRankOverrides(Vec<(gst::ElementFactory, gst::Rank)>);
+
+impl Drop for EncoderRankOverrides {
+    fn drop(&mut self) {
+        for (factory, rank) in &self.0 {
+            factory.set_rank(*rank);
+        }
+    }
+}
+
+fn prefer_hardware_h264_encoder() -> Option<(String, EncoderRankOverrides)> {
+    let candidates = ["vah264enc", "qsvh264enc", "nvh264enc", "v4l2h264enc"];
+    let (name, selected) = candidates.iter().find_map(|name| {
+        gst::ElementFactory::find(name).map(|factory| (*name, factory))
+    })?;
+    let mut overrides = Vec::new();
+    overrides.push((selected.clone(), selected.rank()));
+    selected.set_rank(gst::Rank::PRIMARY + 1);
+    Some((name.to_owned(), EncoderRankOverrides(overrides)))
+}
+
+fn prefer_software_h264_encoder() -> EncoderRankOverrides {
+    let mut overrides = Vec::new();
+    for name in ["vah264enc", "qsvh264enc", "nvh264enc", "v4l2h264enc"] {
+        if let Some(factory) = gst::ElementFactory::find(name) {
+            overrides.push((factory.clone(), factory.rank()));
+            factory.set_rank(gst::Rank::NONE);
+        }
+    }
+    let software = gst::ElementFactory::find("x264enc")
+        .or_else(|| gst::ElementFactory::find("openh264enc"));
+    if let Some(factory) = software {
+        overrides.push((factory.clone(), factory.rank()));
+        factory.set_rank(gst::Rank::PRIMARY + 1);
+    }
+    EncoderRankOverrides(overrides)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -57,6 +117,22 @@ pub fn render_project_range(
     document: &ProjectDocument,
     output_path: &Path,
     range: Option<RenderRange>,
+    on_progress: impl FnMut(RenderProgress),
+) -> Result<(), String> {
+    render_project_range_with_settings(
+        document,
+        output_path,
+        range,
+        RenderSettings::from_project(document),
+        on_progress,
+    )
+}
+
+pub fn render_project_range_with_settings(
+    document: &ProjectDocument,
+    output_path: &Path,
+    range: Option<RenderRange>,
+    settings: RenderSettings,
     mut on_progress: impl FnMut(RenderProgress),
 ) -> Result<(), String> {
     document.validate().map_err(|error| error.to_string())?;
@@ -70,11 +146,21 @@ pub fn render_project_range(
     {
         return Err("Add at least one clip to the timeline before rendering".into());
     }
+    let frame_rate = FrameRate::new(settings.frame_rate_numerator, settings.frame_rate_denominator)
+        .filter(|rate| rate.numerator <= 240 * rate.denominator)
+        .ok_or_else(|| "Export frame rate must be between 1 and 240 fps".to_string())?;
+    if !(16..=16_384).contains(&settings.width) || !(16..=16_384).contains(&settings.height) {
+        return Err("Export dimensions must be between 16 and 16,384 pixels".into());
+    }
+    let mut export_document = document.clone();
+    export_document.project.settings.width = settings.width;
+    export_document.project.settings.height = settings.height;
+    export_document.project.settings.frame_rate = frame_rate;
     let ranged_document = match range {
-        Some(range) => Some(slice_document(document, range)?),
+        Some(range) => Some(slice_document(&export_document, range)?),
         None => None,
     };
-    let render_document = ranged_document.as_ref().unwrap_or(document);
+    let render_document = ranged_document.as_ref().unwrap_or(&export_document);
     if render_document.project.sequence.tracks.iter().all(|track| track.clips.is_empty()) {
         return Err("The In/Out range does not contain any clips to render".into());
     }
@@ -89,6 +175,19 @@ pub fn render_project_range(
         })
         .clone()?;
 
+    // GStreamer normally gives several optional hardware encoders rank NONE.
+    // Raise an installed H.264 hardware encoder above the software encoders so
+    // encodebin can select it; if none is installed, its normal x264/OpenH264
+    // ranking keeps MP4 export on the software path.
+    let encoder_rank_overrides = if format == OutputFormat::Mp4 && settings.use_hardware_encoding {
+        prefer_hardware_h264_encoder().map(|(name, overrides)| {
+            eprintln!("Using {name} as the preferred H.264 export encoder");
+            overrides
+        })
+    } else {
+        None
+    };
+
     on_progress(RenderProgress {
         fraction_percent: 0,
         phase: "Preparing timeline",
@@ -98,12 +197,37 @@ pub fn render_project_range(
     let output_uri = gst::glib::filename_to_uri(&output_path, None)
         .map_err(|error| format!("Output path is not a valid file URI: {error}"))?;
 
+    let mut result = render_timeline(&timeline, &output_uri, &profile, &mut on_progress);
+    if result.is_err() && encoder_rank_overrides.is_some() {
+        let hardware_error = result.unwrap_err();
+        eprintln!("Hardware H.264 render failed ({hardware_error}); retrying with software encoding");
+        drop(encoder_rank_overrides);
+        let _software_encoder_rank_overrides = prefer_software_h264_encoder();
+        let _ = std::fs::remove_file(&output_path);
+        on_progress(RenderProgress { fraction_percent: 0, phase: "Retrying with software encoder" });
+        let software_timeline = build_timeline(render_document)?;
+        result = render_timeline(&software_timeline, &output_uri, &profile, &mut on_progress);
+    }
+    result?;
+    on_progress(RenderProgress {
+        fraction_percent: 100,
+        phase: "Complete",
+    });
+    Ok(())
+}
+
+fn render_timeline(
+    timeline: &ges::Timeline,
+    output_uri: &str,
+    profile: &gst_pbutils::EncodingContainerProfile,
+    on_progress: &mut impl FnMut(RenderProgress),
+) -> Result<(), String> {
     let pipeline = ges::Pipeline::new();
     pipeline
-        .set_timeline(&timeline)
+        .set_timeline(timeline)
         .map_err(|error| format!("Could not connect the render timeline: {error}"))?;
     pipeline
-        .set_render_settings(&output_uri, &profile)
+        .set_render_settings(output_uri, profile)
         .map_err(|error| format!("Could not configure the render output: {error}"))?;
     pipeline
         .set_mode(ges::PipelineFlags::RENDER)
@@ -151,10 +275,6 @@ pub fn render_project_range(
 
     let _ = pipeline.set_state(gst::State::Null);
     result?;
-    on_progress(RenderProgress {
-        fraction_percent: 100,
-        phase: "Complete",
-    });
     Ok(())
 }
 
