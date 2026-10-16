@@ -1,4 +1,4 @@
-# Easy Edit Pro · Tauri app
+# Easy Edits Pro · Tauri app
 
 This is the app's desktop frontend: Tauri 2 with React, TypeScript, and Vite. Its Rust command bridge reuses the framework-independent `saturn-core`.
 
@@ -19,7 +19,7 @@ Build the frontend assets and type-check them with:
 pnpm build
 ```
 
-The UI supports New/Open/Save project workflows, native multi-file import, GStreamer metadata discovery, a searchable media bin, source and program previews, timeline clip add/move/remove, fullscreen and close, and Rust-backed undo/redo. Color controls, per-track gain, and clip keyframes persist in schema-versioned project files and affect the webview program preview. Native rendering/export, full audio mixing, asset-provider APIs, AI features, and Linux release packages remain future work.
+The UI supports New/Open/Save project workflows, native multi-file import, GStreamer metadata discovery, a searchable media bin, source and program previews, timeline clip add/move/remove, fullscreen and close, and Rust-backed undo/redo. Color controls, per-track gain, and clip keyframes persist in schema-versioned project files and affect the webview program preview. Native GStreamer export from the Export workspace produces MP4 or WebM and applies basic clip color controls and track gain; keyframe transforms are preview-only. Full audio mixing, additional asset providers, timeline-aware AI actions, and verified Linux release packages remain future work.
 
 ## Interior components
 

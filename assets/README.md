@@ -1,4 +1,4 @@
-# Easy Edit Pro assets
+# Easy Edits Pro assets
 
 Place application assets in the matching folder:
 
@@ -7,8 +7,8 @@ Place application assets in the matching folder:
 - `animations/` — animation files used by the interface
 - `fonts/` — bundled typefaces and their license texts
 
-`icons/saturn-camera.png` is the Easy Edit Pro logo and is used by the Tauri frontend and Linux package configuration.
+`icons/saturn-camera.png` is the Easy Edits Pro logo and is used by the Tauri frontend and Linux package configuration.
 
 The bundled Inter Variable font is from the official [Inter project](https://github.com/rsms/inter) and is covered by `fonts/OFL.txt`.
 
-For every third-party asset, record its creator, source, and license in a neighboring `.attribution` file. Keep its license text alongside it when required. Do not add FilmCraft branding or app-logo artwork; Easy Edit Pro uses its own identity.
+For every third-party asset, record its creator, source, and license in a neighboring `.attribution` file. Keep its license text alongside it when required. Do not add FilmCraft branding or app-logo artwork; Easy Edits Pro uses its own identity.

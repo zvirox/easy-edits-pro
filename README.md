@@ -1,6 +1,6 @@
-# Easy Edit Pro
+# Easy Edits Pro
 
-Easy Edit Pro is an open-source Linux desktop video editor in early development. The app was previously called Project Saturn; its Rust crates, repository URL, and existing `.saturn` project format retain those internal identifiers for compatibility.
+Easy Edits Pro is an open-source Linux desktop video editor in early development. The app was previously called Project Saturn; its Rust crates, repository URL, and existing `.saturn` project format retain those internal identifiers for compatibility.
 
 The Tauri desktop UI uses React, TypeScript, and Vite in `apps/saturn-tauri`. The Rust workspace contains the framework-independent project core, CLI, and GStreamer renderer; the core provides project commands, exact rational frame timing, versioned `.saturn` project files, atomic saves, and undo/redo.
 
@@ -18,7 +18,7 @@ pnpm tauri dev
 
 The Tauri interface supports project creation/open/save, native multi-file media import, GStreamer metadata discovery, a searchable media bin, source preview, timeline clip add/move/remove, program preview, and shared Rust undo/redo commands. The native renderer uses GStreamer Editing Services to export MP4 (H.264/AAC) or WebM (VP8/Vorbis) using the project resolution and frame rate. It applies clip color controls and track gain; animated keyframes are currently preview-only. Export progress appears in the Export workspace.
 
-The Asset Library searches Openverse for openly licensed images and audio, downloads selected media into Easy Edit Pro's application data folder, and saves a neighboring attribution JSON file. Review each source and license before distributing a project. The AI Assistant can send prompts to a local Ollama instance at `http://127.0.0.1:11434`; install Ollama and pull a model such as `llama3.2:3b` first. Prompts and responses stay on the local machine.
+The Asset Library searches Openverse for openly licensed images and audio, downloads selected media into Easy Edits Pro's application data folder, and saves a neighboring attribution JSON file. Review each source and license before distributing a project. The AI Assistant can send prompts to a local Ollama instance at `http://127.0.0.1:11434`; install Ollama and pull a model such as `llama3.2:3b` first. Prompts and responses stay on the local machine.
 
 The interface bundles the Inter Variable font for consistent typography. Inter is licensed under the SIL Open Font License; see [`assets/fonts/OFL.txt`](assets/fonts/OFL.txt).
 
@@ -47,7 +47,7 @@ The project is licensed under **GNU GPL version 3**; see [`LICENSE`](LICENSE).
 
 ## Current milestone
 
-- Easy Edit Pro Tauri 2 React/TypeScript/Vite desktop shell with responsive editing workspaces and bundled Inter Variable typography
+- Easy Edits Pro Tauri 2 React/TypeScript/Vite desktop shell with responsive editing workspaces and bundled Inter Variable typography
 - Rust Tauri command bridge backed by `saturn-core`, including project status and timeline editing commands
 - Native project and media dialogs, asynchronous GStreamer metadata discovery, and asset-protocol media access
 - Tauri source and program monitors, media-bin preview, timeline clip operations, and undo/redo

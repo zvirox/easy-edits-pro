@@ -66,7 +66,7 @@ const timelineTools: { id: TimelineTool; icon: IconName; label: string; shortcut
   { id: "hand", icon: "hand", label: "Hand tool", shortcut: "H" },
 ];
 const mediaFilters = [{ name: "Video, audio, and images", extensions: ["mp4", "mkv", "mov", "webm", "avi", "m4v", "mp3", "wav", "flac", "ogg", "m4a", "aac", "png", "jpg", "jpeg", "webp", "bmp", "tif", "tiff"] }];
-const projectFilters = [{ name: "Easy Edit Pro project", extensions: ["saturn"] }];
+const projectFilters = [{ name: "Easy Edits Pro project", extensions: ["saturn"] }];
 const keyframeOptions: { value: KeyframeProperty; label: string; defaultValue: number; min: number; max: number; step: number }[] = [
   { value: "position_x", label: "Position X", defaultValue: 0, min: -2000, max: 2000, step: 1 },
   { value: "position_y", label: "Position Y", defaultValue: 0, min: -2000, max: 2000, step: 1 },
@@ -199,7 +199,7 @@ function App() {
     });
     invoke<RecoveryStatus>("recovery_status").then(async (recovery) => {
       if (!active || !recovery.available) return;
-      const recover = await confirm(`Easy Edit Pro found an autosave for “${recovery.projectName ?? "Untitled project"}”. Recover it?`, { title: "Recover autosaved project", kind: "warning" });
+      const recover = await confirm(`Easy Edits Pro found an autosave for “${recovery.projectName ?? "Untitled project"}”. Recover it?`, { title: "Recover autosaved project", kind: "warning" });
       if (!active) return;
       if (recover) {
         await invoke("restore_autosave");
@@ -310,7 +310,7 @@ function App() {
 
   async function openProject() {
     if (!(await ensureDiscardIsOkay())) return;
-    const path = await open({ title: "Open Easy Edit Pro project", multiple: false, filters: projectFilters });
+    const path = await open({ title: "Open Easy Edits Pro project", multiple: false, filters: projectFilters });
     if (typeof path !== "string") return;
     setBusy(true);
     setNotice("");
@@ -333,7 +333,7 @@ function App() {
     let path = projectState?.path ?? null;
     if (!path) {
       path = await save({
-        title: "Save Easy Edit Pro project",
+        title: "Save Easy Edits Pro project",
         defaultPath: `${project.name.replace(/[\\/:*?"<>|]/g, "-")}.saturn`,
         filters: projectFilters,
       });
@@ -415,7 +415,7 @@ function App() {
   }
 
   async function importMedia() {
-    const choice = await open({ title: "Import media into Easy Edit Pro", multiple: true, filters: mediaFilters });
+    const choice = await open({ title: "Import media into Easy Edits Pro", multiple: true, filters: mediaFilters });
     const paths = choice === null ? [] : Array.isArray(choice) ? choice : [choice];
     if (paths.length === 0) return;
     setBusy(true);
@@ -585,7 +585,7 @@ function App() {
       case "view.zoom_reset": setTimelineZoom(72); break;
       case "app.quit": await getCurrentWindow().close(); break;
       case "help.shortcuts": setNotice("Timeline tools: V Select · A Track Select Forward · C Razor · B Ripple · Y Slip · P Keyframe · H Hand · S Snap"); break;
-      case "help.about": setNotice("Easy Edit Pro · Open source Linux video editor"); break;
+      case "help.about": setNotice("Easy Edits Pro · Open source Linux video editor"); break;
       default:
         if (id.startsWith("workspace.")) setWorkspace(id.slice("workspace.".length) as Workspace);
         break;
@@ -687,7 +687,7 @@ function App() {
             <div className="asset-actions"><a href={asset.sourceUrl} target="_blank" rel="noreferrer">Source and license</a><button disabled={busy} onClick={() => void addLibraryAsset(asset)}>Add to media bin</button></div>
           </article>)}</div></>;
       case "ai":
-        return <><h2>Local AI assistant</h2><p>Easy Edit Pro sends prompts only to Ollama running on this computer. Install Ollama and pull a model before use.</p>
+        return <><h2>Local AI assistant</h2><p>Easy Edits Pro sends prompts only to Ollama running on this computer. Install Ollama and pull a model before use.</p>
           <label>Ollama model <input value={aiModel} maxLength={100} onChange={(event) => setAiModel(event.target.value)} /></label>
           <label>Prompt <textarea rows={5} maxLength={12000} value={aiPrompt} placeholder="Ask for editing ideas, a shot order, or help planning a sequence…" onChange={(event) => setAiPrompt(event.target.value)} /></label>
           <button className="primary" disabled={busy || !aiPrompt.trim() || !aiModel.trim()} onClick={() => void askAi()}>Ask local model</button>
@@ -720,7 +720,7 @@ function App() {
     if (item.kind === "video") return <div className="preview-stage"><video ref={isProgram ? programVideoRef : undefined} src={source} style={visualStyle} controls={!isProgram} playsInline onTimeUpdate={isProgram ? (event) => setPlayhead(activeClip!.clip.timeline_start + activeClip!.clip.source_in + event.currentTarget.currentTime * TICKS_PER_SECOND) : undefined} /></div>;
     if (item.kind === "audio") return <div className="preview-stage audio-preview"><audio ref={isProgram ? programAudioRef : undefined} src={source} controls playsInline onTimeUpdate={isProgram ? (event) => setPlayhead(activeClip!.clip.timeline_start + activeClip!.clip.source_in + event.currentTarget.currentTime * TICKS_PER_SECOND) : undefined} /></div>;
     if (item.kind === "image") return <div className="preview-stage"><img src={source} alt={item.name} style={visualStyle} /></div>;
-    return <div className="monitor-stage"><strong>Preview unavailable</strong><small>Easy Edit Pro could not identify this media type.</small></div>;
+    return <div className="monitor-stage"><strong>Preview unavailable</strong><small>Easy Edits Pro could not identify this media type.</small></div>;
   };
 
   function renderMenu(menu: string) {
@@ -732,7 +732,7 @@ function App() {
         : menu === "Window"
           ? workspaces.map((item) => ({ id: `workspace.${item.id}`, label: `${item.label}${workspace === item.id ? " ✓" : ""}`, shortcut: null }))
           : menu === "Help"
-            ? [{ id: "help.shortcuts", label: "Keyboard Shortcuts", shortcut: null }, { id: "help.about", label: "About Easy Edit Pro", shortcut: null }]
+            ? [{ id: "help.shortcuts", label: "Keyboard Shortcuts", shortcut: null }, { id: "help.about", label: "About Easy Edits Pro", shortcut: null }]
             : [];
     const items = [...commandItems, ...extraItems];
     return <details className="app-menu" key={menu}><summary>{menu}</summary><div className="menu-popover">{items.map((item) => <button key={item.id} onClick={(event) => { void invokeMenuCommand(item.id); event.currentTarget.closest("details")?.removeAttribute("open"); }} disabled={item.disabled}><span>{item.label}</span>{item.shortcut && <small>{item.shortcut.replace("Ctrl", "⌘/Ctrl")}</small>}</button>)}</div></details>;
@@ -759,11 +759,11 @@ function App() {
     }}>
       <header className="app-header">
         <div className="header-menu-row">
-          <div className="brand"><img className="brand-mark" src="/saturn-camera.png" alt="Easy Edit Pro camera logo" /><div><strong>Easy Edit Pro</strong><small>{project?.name ?? "Loading project…"}{projectState?.is_dirty ? " •" : ""}</small></div></div>
+          <div className="brand"><img className="brand-mark" src="/saturn-camera.png" alt="Easy Edits Pro camera logo" /><div><strong>Easy Edits Pro</strong><small>{project?.name ?? "Loading project…"}{projectState?.is_dirty ? " •" : ""}</small></div></div>
           <nav className="menu-bar" aria-label="Application menus">{["File", "Edit", "Clip", "Sequence", "Markers", "View", "Window", "Help"].map(renderMenu)}</nav>
           <div className="header-actions">
             <button className="icon-button" onClick={() => void toggleFullscreen()} aria-label={fullscreen ? "Leave fullscreen" : "Enter fullscreen"} title={fullscreen ? "Leave fullscreen" : "Enter fullscreen"}><Icon name={fullscreen ? "restore" : "fullscreen"} /></button>
-            <button className="icon-button close" onClick={() => void getCurrentWindow().close()} aria-label="Close Easy Edit Pro" title="Close"><Icon name="close" /></button>
+            <button className="icon-button close" onClick={() => void getCurrentWindow().close()} aria-label="Close Easy Edits Pro" title="Close"><Icon name="close" /></button>
           </div>
         </div>
         <div className="app-toolbar">

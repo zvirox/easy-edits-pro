@@ -43,7 +43,7 @@ impl OutputFormat {
     }
 }
 
-/// Renders an Easy Edit Pro sequence to MP4 or WebM with GStreamer Editing Services.
+/// Renders an Easy Edits Pro sequence to MP4 or WebM with GStreamer Editing Services.
 /// GES objects are created, used, and dropped on the calling thread because its API is not Send.
 pub fn render_project(
     document: &ProjectDocument,
@@ -356,7 +356,7 @@ fn encoding_profile(format: OutputFormat) -> Result<gst_pbutils::EncodingContain
                 .name("AAC audio")
                 .build();
             let profile = gst_pbutils::EncodingContainerProfile::builder(&container_caps)
-                .name("Easy Edit Pro MP4")
+                .name("Easy Edits Pro MP4")
                 .add_profile(video)
                 .add_profile(audio)
                 .build();
@@ -373,7 +373,7 @@ fn encoding_profile(format: OutputFormat) -> Result<gst_pbutils::EncodingContain
                 .name("Vorbis audio")
                 .build();
             let profile = gst_pbutils::EncodingContainerProfile::builder(&container_caps)
-                .name("Easy Edit Pro WebM")
+                .name("Easy Edits Pro WebM")
                 .add_profile(video)
                 .add_profile(audio)
                 .build();

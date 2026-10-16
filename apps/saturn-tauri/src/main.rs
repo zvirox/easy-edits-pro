@@ -413,7 +413,7 @@ async fn download_openverse_asset(app: AppHandle, asset: OpenverseAsset) -> Resu
         .content_length()
         .is_some_and(|length| length > 512 * 1024 * 1024)
     {
-        return Err("This asset is larger than Easy Edit Pro's 512 MiB download limit".into());
+        return Err("This asset is larger than Easy Edits Pro's 512 MiB download limit".into());
     }
     let mut bytes = Vec::new();
     while let Some(chunk) = response
@@ -422,7 +422,7 @@ async fn download_openverse_asset(app: AppHandle, asset: OpenverseAsset) -> Resu
         .map_err(|error| format!("Media download failed: {error}"))?
     {
         if bytes.len().saturating_add(chunk.len()) > 512 * 1024 * 1024 {
-            return Err("This asset is larger than Easy Edit Pro's 512 MiB download limit".into());
+            return Err("This asset is larger than Easy Edits Pro's 512 MiB download limit".into());
         }
         bytes.extend_from_slice(&chunk);
     }
@@ -532,5 +532,5 @@ fn main() {
             ask_local_ai
         ])
         .run(tauri::generate_context!())
-        .expect("failed to run Easy Edit Pro");
+        .expect("failed to run Easy Edits Pro");
 }

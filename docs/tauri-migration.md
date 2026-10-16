@@ -2,7 +2,7 @@
 
 ## Decision
 
-Easy Edit Pro uses Tauri 2 with React, TypeScript, and Vite as its only desktop application frontend. The standalone GTK4 frontend and egui prototype have been removed. Rust remains responsible for shared project state, commands, media discovery, timeline time, serialization, and rendering.
+Easy Edits Pro uses Tauri 2 with React, TypeScript, and Vite as its only desktop application frontend. The standalone GTK4 frontend and egui prototype have been removed. Rust remains responsible for shared project state, commands, media discovery, timeline time, serialization, and rendering.
 
 Tauri uses the operating system's webview instead of shipping a separate browser runtime. On Linux, the Tauri webview depends on WebKitGTK and its GTK runtime libraries; those are platform dependencies of Tauri, not a second application UI.
 

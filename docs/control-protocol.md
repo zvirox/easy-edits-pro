@@ -1,4 +1,4 @@
-# Easy Edit Pro command interface
+# Easy Edits Pro command interface
 
 The desktop app and `saturn-cli` use the same command IDs and `saturn-core::EditorEngine` dispatcher. UI actions, keyboard shortcuts, CLI operations, and automation should submit a `CommandRequest` instead of changing project state directly.
 

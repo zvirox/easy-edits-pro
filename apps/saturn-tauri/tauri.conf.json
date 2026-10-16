@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Easy Edit Pro",
+  "productName": "Easy Edits Pro",
   "version": "0.1.0",
   "identifier": "com.zvirox.ProjectSaturn",
   "build": {
@@ -18,7 +18,7 @@
     },
     "windows": [
       {
-        "title": "Easy Edit Pro",
+        "title": "Easy Edits Pro",
         "width": 1280,
         "height": 800,
         "minWidth": 900,
@@ -32,7 +32,7 @@
     "targets": ["deb", "rpm"],
     "category": "Video",
     "shortDescription": "Open source video editor for Linux",
-    "longDescription": "Easy Edit Pro is an open source desktop video editor built with Rust, Tauri, and GStreamer.",
+    "longDescription": "Easy Edits Pro is an open source desktop video editor built with Rust, Tauri, and GStreamer.",
     "licenseFile": "../../LICENSE",
     "icon": ["../../assets/icons/saturn-camera.png"],
     "linux": {
