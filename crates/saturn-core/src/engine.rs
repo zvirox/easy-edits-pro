@@ -3,7 +3,7 @@ use crate::project::{
     Clip, ColorAdjustments, Keyframe, KeyframeProperty, MediaAsset, MediaKind, ProjectDocument,
     TrackKind,
 };
-use crate::time::{TICKS_PER_SECOND, Tick};
+use crate::time::{FrameRate, TICKS_PER_SECOND, Tick};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::path::PathBuf;
@@ -41,9 +41,29 @@ pub struct EditorEngine {
 struct NewProjectParams {
     #[serde(default = "default_project_name")]
     name: String,
+    #[serde(default = "default_sequence_name")]
+    sequence_name: String,
+    #[serde(default = "default_project_width")]
+    width: u32,
+    #[serde(default = "default_project_height")]
+    height: u32,
+    #[serde(default = "default_project_frame_rate")]
+    frame_rate: FrameRate,
 }
 fn default_project_name() -> String {
     "Untitled project".into()
+}
+fn default_sequence_name() -> String {
+    "Sequence 1".into()
+}
+fn default_project_width() -> u32 {
+    1920
+}
+fn default_project_height() -> u32 {
+    1080
+}
+fn default_project_frame_rate() -> FrameRate {
+    FrameRate::FPS_30
 }
 
 #[derive(Deserialize)]
@@ -243,8 +263,22 @@ impl EditorEngine {
         match command.id {
             "project.new" => {
                 let params: NewProjectParams = parse_params(request.params)?;
+                if params.name.trim().is_empty() || params.sequence_name.trim().is_empty() {
+                    return Err(DispatchError::InvalidParameters(
+                        "Project and timeline names cannot be empty".into(),
+                    ));
+                }
+                let mut document = ProjectDocument::new(params.name.trim());
+                document.project.settings.width = params.width;
+                document.project.settings.height = params.height;
+                document.project.settings.frame_rate = params.frame_rate;
+                document.project.sequence.name = params.sequence_name.trim().to_owned();
+                document.view.active_sequence = Some(params.sequence_name.trim().to_owned());
+                document
+                    .validate()
+                    .map_err(DispatchError::InvalidParameters)?;
                 self.checkpoint();
-                self.document = ProjectDocument::new(params.name);
+                self.document = document;
                 self.current_path = None;
                 Ok(json!({"name": self.document.project.name}))
             }

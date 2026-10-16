@@ -16,7 +16,7 @@ pnpm install
 pnpm tauri dev
 ```
 
-The Tauri interface supports project creation/open/save, native multi-file media import, GStreamer metadata discovery, a searchable media bin, source preview, timeline clip add/move/remove, program preview, and shared Rust undo/redo commands. The native renderer uses GStreamer Editing Services to export MP4 (H.264/AAC) or WebM (VP8/Vorbis) using the project resolution and frame rate. It applies clip color controls and track gain; animated keyframes are currently preview-only. Export progress appears in the Export workspace.
+On launch, the Tauri interface opens a project welcome screen where you can create a project with a name, resolution, and frame rate, reopen a recent project, or browse for an existing `.saturn` project. The editor then provides native multi-file media import, GStreamer metadata discovery, a searchable media bin, source preview, timeline clip add/move/remove, program preview, and shared Rust undo/redo commands. Timeline clips can be moved and the timeline can be zoomed; the program preview supports play/pause, seeking, and frame stepping. The native renderer uses GStreamer Editing Services to export MP4 (H.264/AAC) or WebM (VP8/Vorbis) using the project resolution and frame rate. It applies clip color controls and track gain; animated keyframes are currently preview-only. Export progress appears in the Export workspace.
 
 The Asset Library searches Openverse for openly licensed images and audio, downloads selected media into Easy Edits Pro's application data folder, and saves a neighboring attribution JSON file. Review each source and license before distributing a project. The AI Assistant can send prompts to a local Ollama instance at `http://127.0.0.1:11434`; install Ollama and pull a model such as `llama3.2:3b` first. Prompts and responses stay on the local machine.
 
@@ -50,7 +50,9 @@ The project is licensed under **GNU GPL version 3**; see [`LICENSE`](LICENSE).
 - Easy Edits Pro Tauri 2 React/TypeScript/Vite desktop shell with responsive editing workspaces and bundled Inter Variable typography
 - Rust Tauri command bridge backed by `saturn-core`, including project status and timeline editing commands
 - Native project and media dialogs, asynchronous GStreamer metadata discovery, and asset-protocol media access
+- Project welcome screen with new/open/recent project workflows, resolution and frame-rate settings, and interrupted-project recovery
 - Tauri source and program monitors, media-bin preview, timeline clip operations, and undo/redo
+- Program preview transport with play/pause, timeline seeking, and frame stepping; timeline clip movement and zoom
 - Framework-independent core with stable command IDs, enabled-state reasons, and undo/redo
 - Exact integer timeline ticks with rational frame and sample-rate conversion
 - Versioned project files with migration, external media references, and atomic saves

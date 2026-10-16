@@ -1,4 +1,4 @@
-import { type CSSProperties, type DragEvent, type MouseEvent, type PointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, type MouseEvent, type PointerEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Channel, convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
@@ -43,8 +43,30 @@ type RecoveryStatus = { available: boolean; projectName?: string; savedAt?: numb
 type MediaAvailability = { mediaId: number; missing: boolean };
 type CommandSpec = { id: string; label: string; menu: string[]; shortcut: string | null; mutating: boolean };
 type SelectedClip = { track_id: number; clip_index: number };
-type DraggedClip = SelectedClip;
+type ClipPointerDrag = { pointerId: number; trackId: number; clipIndex: number; startX: number; startY: number; startTime: number; duration: number };
 type OpenverseAsset = { id: string; title: string; mediaUrl: string; sourceUrl: string; thumbnailUrl: string | null; creator: string | null; license: string | null; licenseUrl: string | null };
+type RecentProject = { name: string; path: string };
+type AppStage = "welcome" | "loading" | "editor";
+
+const recentProjectsKey = "easy-edits-pro.recent-projects.v1";
+const resolutionPresets = [
+  { value: "1920x1080", label: "Full HD · 1920 × 1080", width: 1920, height: 1080 },
+  { value: "3840x2160", label: "Ultra HD · 3840 × 2160", width: 3840, height: 2160 },
+  { value: "2560x1440", label: "QHD · 2560 × 1440", width: 2560, height: 1440 },
+  { value: "1280x720", label: "HD · 1280 × 720", width: 1280, height: 720 },
+  { value: "1080x1920", label: "Vertical · 1080 × 1920", width: 1080, height: 1920 },
+  { value: "custom", label: "Custom resolution", width: 1920, height: 1080 },
+];
+const frameRateOptions = [
+  { value: "24000/1001", label: "23.976 fps", numerator: 24_000, denominator: 1_001 },
+  { value: "24/1", label: "24 fps", numerator: 24, denominator: 1 },
+  { value: "25/1", label: "25 fps", numerator: 25, denominator: 1 },
+  { value: "30000/1001", label: "29.97 fps", numerator: 30_000, denominator: 1_001 },
+  { value: "30/1", label: "30 fps", numerator: 30, denominator: 1 },
+  { value: "50/1", label: "50 fps", numerator: 50, denominator: 1 },
+  { value: "60000/1001", label: "59.94 fps", numerator: 60_000, denominator: 1_001 },
+  { value: "60/1", label: "60 fps", numerator: 60, denominator: 1 },
+];
 
 const TICKS_PER_SECOND = 254_016_000_000;
 const workspaces: { id: Workspace; label: string }[] = [
@@ -137,12 +159,30 @@ function keyframedValue(clip: Clip | undefined, property: KeyframeProperty, time
 }
 
 function App() {
+  const [appStage, setAppStage] = useState<AppStage>("welcome");
+  const [loadingMessage, setLoadingMessage] = useState("Preparing your editing workspace");
+  const [welcomeMode, setWelcomeMode] = useState<"home" | "new-project">("home");
+  const [recentProjects, setRecentProjects] = useState<RecentProject[]>(() => {
+    try {
+      const recent = JSON.parse(localStorage.getItem(recentProjectsKey) ?? "[]") as RecentProject[];
+      return Array.isArray(recent) ? recent.filter((item) => typeof item?.name === "string" && typeof item?.path === "string").slice(0, 6) : [];
+    } catch { return []; }
+  });
+  const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatus>({ available: false });
+  const [setupProjectName, setSetupProjectName] = useState("Untitled project");
+  const [setupSequenceName, setSetupSequenceName] = useState("Sequence 1");
+  const [setupResolution, setSetupResolution] = useState("1920x1080");
+  const [setupWidth, setSetupWidth] = useState("1920");
+  const [setupHeight, setSetupHeight] = useState("1080");
+  const [setupFrameRate, setSetupFrameRate] = useState("30/1");
   const [workspace, setWorkspace] = useState<Workspace>("edit");
   const [projectState, setProjectState] = useState<ProjectStatus | null>(null);
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
   const [selectedClip, setSelectedClip] = useState<SelectedClip | null>(null);
   const [selectedClips, setSelectedClips] = useState<SelectedClip[]>([]);
   const [playhead, setPlayhead] = useState(0);
+  const [programPlaying, setProgramPlaying] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [connection, setConnection] = useState("Connecting to Rust core…");
   const [notice, setNotice] = useState("");
@@ -173,8 +213,14 @@ function App() {
   const [aiReply, setAiReply] = useState("");
   const programVideoRef = useRef<HTMLVideoElement>(null);
   const programAudioRef = useRef<HTMLAudioElement>(null);
+  const requestedProgramSeek = useRef(false);
   const handPan = useRef<{ x: number; scrollLeft: number } | null>(null);
   const slipDrag = useRef<{ x: number; trackId: number; clipIndex: number } | null>(null);
+  const clipPointerDrag = useRef<ClipPointerDrag | null>(null);
+  const suppressClipClick = useRef(false);
+  const timelineScrollerRef = useRef<HTMLDivElement>(null);
+  const zoomAnchor = useRef<{ time: number; viewportX: number } | null>(null);
+  const [clipDragOffset, setClipDragOffset] = useState<{ trackId: number; clipIndex: number; x: number; y: number } | null>(null);
 
   const refreshProject = useCallback(async () => {
     const [status, undo, redo, mediaAvailability] = await Promise.all([
@@ -189,26 +235,14 @@ function App() {
     setMissingMediaIds(new Set(mediaAvailability.filter((item) => item.missing).map((item) => item.mediaId)));
     setConnection("Rust core connected");
     setSelectedMediaId((current) => current ?? status.document.project.media[0]?.id ?? null);
+    return status;
   }, []);
 
   useEffect(() => {
     let active = true;
     invoke<CommandSpec[]>("get_command_catalogue").then((catalogue) => { if (active) setCommands(catalogue); }).catch(() => {});
-    refreshProject().catch((error: unknown) => {
-      if (active) setConnection(`Rust core error: ${String(error)}`);
-    });
-    invoke<RecoveryStatus>("recovery_status").then(async (recovery) => {
-      if (!active || !recovery.available) return;
-      const recover = await confirm(`Easy Edits Pro found an autosave for “${recovery.projectName ?? "Untitled project"}”. Recover it?`, { title: "Recover autosaved project", kind: "warning" });
-      if (!active) return;
-      if (recover) {
-        await invoke("restore_autosave");
-        await refreshProject();
-        setNotice("Autosaved project recovered. Save it to keep your changes.");
-      } else {
-        await invoke("discard_autosave");
-      }
-    }).catch((error: unknown) => { if (active) setNotice(`Recovery check failed: ${String(error)}`); });
+    invoke<RecoveryStatus>("recovery_status").then((recovery) => { if (active) { setRecoveryStatus(recovery); setConnection("Rust core connected"); } })
+      .catch((error: unknown) => { if (active) setConnection(`Rust core error: ${String(error)}`); });
     return () => { active = false; };
   }, [refreshProject]);
 
@@ -234,8 +268,28 @@ function App() {
     }
     return null;
   }, [media, playhead, project]);
+  const programPlayable = Boolean(activeClip && (activeClip.media.kind === "video" || activeClip.media.kind === "audio"));
   const timelineEndSeconds = Math.max(14, ...(project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => (clip.timeline_start + clip.duration) / TICKS_PER_SECOND + 2)));
   const timelineWidth = timelineEndSeconds * timelineZoom + 120;
+
+  function zoomTimeline(factor: number) {
+    const nextZoom = Math.max(24, Math.min(240, timelineZoom * factor));
+    if (nextZoom === timelineZoom) return;
+    const scroller = timelineScrollerRef.current;
+    if (scroller) {
+      const viewportX = scroller.clientWidth / 2;
+      zoomAnchor.current = { time: (scroller.scrollLeft + viewportX) / timelineZoom, viewportX };
+    }
+    setTimelineZoom(nextZoom);
+  }
+
+  useLayoutEffect(() => {
+    const anchor = zoomAnchor.current;
+    const scroller = timelineScrollerRef.current;
+    if (!anchor || !scroller) return;
+    scroller.scrollLeft = Math.max(0, anchor.time * timelineZoom - anchor.viewportX);
+    zoomAnchor.current = null;
+  }, [timelineZoom]);
 
   useEffect(() => {
     if (selectedTimelineClip) setColorDraft(selectedTimelineClip.color);
@@ -250,7 +304,13 @@ function App() {
     const player = programVideoRef.current ?? programAudioRef.current;
     if (!player || !activeClip) return;
     const seconds = (activeClip.clip.source_in + playhead - activeClip.clip.timeline_start) / TICKS_PER_SECOND;
-    if (Number.isFinite(seconds) && Math.abs(player.currentTime - seconds) > 0.35) player.currentTime = Math.max(0, seconds);
+    if (!Number.isFinite(seconds)) return;
+    if (requestedProgramSeek.current || player.paused) {
+      requestedProgramSeek.current = false;
+      if (Math.abs(player.currentTime - seconds) > 0.001) {
+        try { player.currentTime = Math.max(0, seconds); } catch { /* The browser will seek again when media metadata is available. */ }
+      }
+    }
   }, [activeClip, playhead]);
 
   useEffect(() => {
@@ -258,6 +318,61 @@ function App() {
     if (!player || !activeClip) return;
     player.volume = Math.max(0, Math.min(1, 10 ** (activeClip.track.gain_db / 20)));
   }, [activeClip]);
+
+  useEffect(() => {
+    setProgramPlaying(false);
+    setPreviewError(null);
+  }, [activeClip?.media.path]);
+
+  function seekProgramTo(time: number) {
+    const target = Math.max(0, time);
+    requestedProgramSeek.current = true;
+    setPlayhead(target);
+    const player = programVideoRef.current ?? programAudioRef.current;
+    if (player && activeClip) {
+      const seconds = (activeClip.clip.source_in + target - activeClip.clip.timeline_start) / TICKS_PER_SECOND;
+      if (Number.isFinite(seconds)) {
+        try { player.currentTime = Math.max(0, seconds); } catch { /* The metadata effect retries after the source is ready. */ }
+      }
+    }
+  }
+
+  function stepProgramFrame(direction: -1 | 1) {
+    const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
+    const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
+    seekProgramTo(playhead + direction * frameTicks);
+  }
+
+  async function toggleProgramPlayback() {
+    const player = programVideoRef.current ?? programAudioRef.current;
+    if (!player) return;
+    setPreviewError(null);
+    try {
+      if (player.paused) await player.play();
+      else player.pause();
+    } catch (error) {
+      setProgramPlaying(false);
+      setPreviewError(`Playback failed: ${String(error)}`);
+    }
+  }
+
+  function updateProgramPlayhead(currentTime: number) {
+    if (!activeClip) return;
+    const player = programVideoRef.current ?? programAudioRef.current;
+    if (player?.seeking) return;
+    const clipEnd = activeClip.clip.timeline_start + activeClip.clip.duration;
+    const next = activeClip.clip.timeline_start + (currentTime - activeClip.clip.source_in / TICKS_PER_SECOND) * TICKS_PER_SECOND;
+    if (next >= clipEnd) {
+      const player = programVideoRef.current ?? programAudioRef.current;
+      if (player) {
+        player.pause();
+        player.currentTime = (activeClip.clip.source_in + activeClip.clip.duration) / TICKS_PER_SECOND;
+      }
+      setPlayhead(clipEnd);
+      return;
+    }
+    setPlayhead(Math.max(activeClip.clip.timeline_start, next));
+  }
 
   async function perform(id: string, params: unknown = null, success?: string): Promise<boolean> {
     setBusy(true);
@@ -297,6 +412,105 @@ function App() {
     return confirm("This project has unsaved changes. Continue and discard them?", { title: "Unsaved project", kind: "warning" });
   }
 
+  function rememberProject(name: string, path: string) {
+    setRecentProjects((current) => {
+      const next = [{ name, path }, ...current.filter((item) => item.path !== path)].slice(0, 6);
+      try { localStorage.setItem(recentProjectsKey, JSON.stringify(next)); } catch { /* Recent projects are a convenience, not a save requirement. */ }
+      return next;
+    });
+  }
+
+  async function loadProjectFromPath(path: string) {
+    const previousStage = appStage;
+    setLoadingMessage("Opening project and preparing the timeline");
+    setAppStage("loading");
+    setNotice("");
+    try {
+      const result = await runCommand<{ name: string }>("file.open", { path });
+      setSelectedClip(null);
+      setSelectedClips([]);
+      setSelectedMediaId(null);
+      setPlayhead(0);
+      await refreshProject();
+      rememberProject(result.name, path);
+      setNotice("Project opened");
+      setAppStage("editor");
+    } catch (error) {
+      setAppStage(previousStage === "editor" ? "editor" : "welcome");
+      setNotice(String(error));
+      throw error;
+    }
+  }
+
+  async function openProject(path?: string) {
+    if (appStage === "editor" && !(await ensureDiscardIsOkay())) return;
+    const selectedPath = path ?? await open({ title: "Open Easy Edits Pro project", multiple: false, filters: projectFilters });
+    if (typeof selectedPath !== "string") return;
+    await loadProjectFromPath(selectedPath);
+  }
+
+  async function createProjectFromWelcome() {
+    const name = setupProjectName.trim();
+    const sequenceName = setupSequenceName.trim();
+    const width = Number(setupWidth);
+    const height = Number(setupHeight);
+    const frameRate = frameRateOptions.find((option) => option.value === setupFrameRate) ?? frameRateOptions[4];
+    if (!name || !sequenceName || !Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0 || width > 16_384 || height > 16_384) {
+      throw new Error("Enter project and timeline names and dimensions between 1 and 16,384 pixels.");
+    }
+    const selectedPath = await save({
+      title: "Create Easy Edits Pro project",
+      defaultPath: `${name.replace(/[\\/:*?"<>|]/g, "-")}.saturn`,
+      filters: projectFilters,
+    });
+    if (!selectedPath) return;
+    const path = selectedPath.toLowerCase().endsWith(".saturn") ? selectedPath : `${selectedPath}.saturn`;
+
+    setLoadingMessage("Creating your project and setting up the timeline");
+    setAppStage("loading");
+    setNotice("");
+    try {
+      await runCommand("project.new", {
+        name,
+        sequence_name: sequenceName,
+        width,
+        height,
+        frame_rate: { numerator: frameRate.numerator, denominator: frameRate.denominator },
+      });
+      await runCommand("file.save", { path });
+      setSelectedClip(null);
+      setSelectedClips([]);
+      setSelectedMediaId(null);
+      setPlayhead(0);
+      await refreshProject();
+      rememberProject(name, path);
+      setNotice("Project created");
+      setWelcomeMode("home");
+      setAppStage("editor");
+    } catch (error) {
+      setAppStage("welcome");
+      setNotice(String(error));
+      throw error;
+    }
+  }
+
+  async function recoverProjectFromWelcome() {
+    setLoadingMessage("Restoring your recovered project");
+    setAppStage("loading");
+    setNotice("");
+    try {
+      await invoke("restore_autosave");
+      const status = await refreshProject();
+      if (status.path) rememberProject(status.document.project.name, status.path);
+      setNotice("Autosaved project recovered. Save it to keep your changes.");
+      setAppStage("editor");
+    } catch (error) {
+      setAppStage("welcome");
+      setNotice(String(error));
+      throw error;
+    }
+  }
+
   async function createProject() {
     const name = newProjectName.trim();
     if (!name) return;
@@ -306,26 +520,6 @@ function App() {
     setSelectedClips([]);
     setPlayhead(0);
     await perform("project.new", { name }, "New project created");
-  }
-
-  async function openProject() {
-    if (!(await ensureDiscardIsOkay())) return;
-    const path = await open({ title: "Open Easy Edits Pro project", multiple: false, filters: projectFilters });
-    if (typeof path !== "string") return;
-    setBusy(true);
-    setNotice("");
-    try {
-      await runCommand("file.open", { path });
-      setSelectedClip(null);
-      setSelectedClips([]);
-      setPlayhead(0);
-      await refreshProject();
-      setNotice("Project opened");
-    } catch (error) {
-      setNotice(String(error));
-    } finally {
-      setBusy(false);
-    }
   }
 
   async function saveProject() {
@@ -502,12 +696,17 @@ function App() {
   }
 
   async function handleTimelineClipClick(event: MouseEvent<HTMLDivElement>, trackId: number, clipIndex: number, clip: Clip) {
+    if (suppressClipClick.current) {
+      suppressClipClick.current = false;
+      event.preventDefault();
+      return;
+    }
     const selection = { track_id: trackId, clip_index: clipIndex };
     setSelectedClip(selection);
     if (timelineTool === "trackForward") {
       const track = project?.sequence.tracks.find((item) => item.id === trackId);
       setSelectedClips((track?.clips.slice(clipIndex) ?? []).map((_, offset) => ({ track_id: trackId, clip_index: clipIndex + offset })));
-      setPlayhead(clip.timeline_start);
+      seekProgramTo(clip.timeline_start);
       return;
     }
     setSelectedClips([]);
@@ -516,7 +715,7 @@ function App() {
     const fraction = Math.max(0, Math.min(1, (event.clientX - bounds.left) / Math.max(1, bounds.width)));
     const clickedTime = Math.round(clip.timeline_start + fraction * clip.duration);
     if (timelineTool === "razor") {
-      setPlayhead(clickedTime);
+      seekProgramTo(clickedTime);
       const ok = await perform("timeline.split_clip", { ...selection, at: clickedTime }, "Clip split");
       if (ok) { setSelectedClip({ ...selection, clip_index: clipIndex + 1 }); setSelectedClips([]); }
     } else if (timelineTool === "ripple") {
@@ -526,17 +725,49 @@ function App() {
     } else if (timelineTool === "pen") {
       await perform("clip.set_keyframe", { ...selection, property: keyframeProperty, time: Math.max(0, Math.min(clip.duration, clickedTime - clip.timeline_start)), value: Number(keyframeValue) }, "Keyframe added");
     } else {
-      setPlayhead(clip.timeline_start);
+      seekProgramTo(clickedTime);
     }
   }
 
-  function beginSlip(event: PointerEvent<HTMLDivElement>, trackId: number, clipIndex: number) {
-    if (timelineTool !== "slip") return;
+  function beginTimelineClipPointer(event: PointerEvent<HTMLDivElement>, trackId: number, clipIndex: number, clip: Clip) {
+    if (timelineTool === "slip") {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setSelectedClip({ track_id: trackId, clip_index: clipIndex });
+      slipDrag.current = { x: event.clientX, trackId, clipIndex };
+      return;
+    }
+    if (timelineTool !== "select" || event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
     setSelectedClip({ track_id: trackId, clip_index: clipIndex });
-    slipDrag.current = { x: event.clientX, trackId, clipIndex };
+    setSelectedClips([]);
+    clipPointerDrag.current = {
+      pointerId: event.pointerId,
+      trackId,
+      clipIndex,
+      startX: event.clientX,
+      startY: event.clientY,
+      startTime: clip.timeline_start,
+      duration: clip.duration,
+    };
+  }
+
+  function moveTimelineClipPointer(event: PointerEvent<HTMLDivElement>) {
+    const drag = clipPointerDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const x = event.clientX - drag.startX;
+    const y = event.clientY - drag.startY;
+    if (Math.hypot(x, y) < 4) return;
+    setClipDragOffset({ trackId: drag.trackId, clipIndex: drag.clipIndex, x, y });
+  }
+
+  function handleTimelineClipPointerCancel(event: PointerEvent<HTMLDivElement>) {
+    if (clipPointerDrag.current?.pointerId === event.pointerId) clipPointerDrag.current = null;
+    setClipDragOffset(null);
+    slipDrag.current = null;
   }
 
   async function finishSlip(event: PointerEvent<HTMLDivElement>) {
@@ -547,6 +778,57 @@ function App() {
     const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
     const delta = Math.round((event.clientX - drag.x) / timelineZoom * TICKS_PER_SECOND / frameTicks) * frameTicks;
     if (delta !== 0) await perform("timeline.slip_clip", { track_id: drag.trackId, clip_index: drag.clipIndex, delta }, "Clip source slipped");
+  }
+
+  async function finishTimelineClipPointer(event: PointerEvent<HTMLDivElement>) {
+    if (slipDrag.current) {
+      await finishSlip(event);
+      return;
+    }
+    const drag = clipPointerDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    clipPointerDrag.current = null;
+    setClipDragOffset(null);
+    const deltaX = event.clientX - drag.startX;
+    const deltaY = event.clientY - drag.startY;
+    if (Math.hypot(deltaX, deltaY) < 4) {
+      const bounds = event.currentTarget.getBoundingClientRect();
+      const fraction = Math.max(0, Math.min(1, (event.clientX - bounds.left) / Math.max(1, bounds.width)));
+      seekProgramTo(drag.startTime + fraction * drag.duration);
+      return;
+    }
+    suppressClipClick.current = true;
+    window.setTimeout(() => { suppressClipClick.current = false; }, 0);
+
+    const targetLane = Array.from(document.querySelectorAll<HTMLElement>(".track-lane")).find((lane) => {
+      const bounds = lane.getBoundingClientRect();
+      return event.clientY >= bounds.top && event.clientY <= bounds.bottom;
+    });
+    const targetTrackId = targetLane?.dataset.trackId ? Number(targetLane.dataset.trackId) : drag.trackId;
+    const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
+    const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
+    const proposedStart = Math.max(0, drag.startTime + deltaX / timelineZoom * TICKS_PER_SECOND);
+    const timelineStart = snapEnabled
+      ? Math.round(proposedStart / frameTicks) * frameTicks
+      : Math.round(proposedStart);
+    setBusy(true);
+    setNotice("");
+    try {
+      const result = await runCommand<SelectedClip & { moved: boolean }>("timeline.move_clip", {
+        track_id: drag.trackId,
+        clip_index: drag.clipIndex,
+        target_track_id: targetTrackId,
+        timeline_start: timelineStart,
+      });
+      setSelectedClip({ track_id: result.track_id, clip_index: result.clip_index });
+      setSelectedClips([]);
+      await refreshProject();
+      setNotice(result.moved ? "Clip moved" : "Clip unchanged");
+    } catch (error) {
+      setNotice(String(error));
+    } finally {
+      setBusy(false);
+    }
   }
 
   function handleTimelinePanStart(event: PointerEvent<HTMLDivElement>) {
@@ -580,9 +862,9 @@ function App() {
       case "timeline.add_clip": await addSelectedToTimeline(); break;
       case "app.export": setWorkspace("export"); break;
       case "view.toggle_snap": setSnapEnabled((enabled) => !enabled); break;
-      case "view.zoom_in": setTimelineZoom((zoom) => Math.min(240, zoom * 1.2)); break;
-      case "view.zoom_out": setTimelineZoom((zoom) => Math.max(24, zoom / 1.2)); break;
-      case "view.zoom_reset": setTimelineZoom(72); break;
+      case "view.zoom_in": zoomTimeline(1.2); break;
+      case "view.zoom_out": zoomTimeline(1 / 1.2); break;
+      case "view.zoom_reset": zoomTimeline(72 / timelineZoom); break;
       case "app.quit": await getCurrentWindow().close(); break;
       case "help.shortcuts": setNotice("Timeline tools: V Select · A Track Select Forward · C Razor · B Ripple · Y Slip · P Keyframe · H Hand · S Snap"); break;
       case "help.about": setNotice("Easy Edits Pro · Open source Linux video editor"); break;
@@ -597,33 +879,7 @@ function App() {
     const scroller = event.currentTarget.closest(".timeline-scroller");
     const scrollLeft = scroller instanceof HTMLElement ? scroller.scrollLeft : 0;
     const seconds = Math.max(0, (event.clientX - bounds.left + scrollLeft) / timelineZoom);
-    setPlayhead(Math.round(seconds * TICKS_PER_SECOND));
-  }
-
-  async function handleClipDrop(event: DragEvent<HTMLDivElement>, targetTrackId: number) {
-    event.preventDefault();
-    const serialized = event.dataTransfer.getData("application/x-saturn-clip");
-    if (!serialized) return;
-    const dragged: DraggedClip = JSON.parse(serialized) as DraggedClip;
-    const scroller = event.currentTarget.closest(".timeline-scroller");
-    const laneLeft = event.currentTarget.getBoundingClientRect().left;
-    const scrollLeft = scroller instanceof HTMLElement ? scroller.scrollLeft : 0;
-    const seconds = Math.max(0, (event.clientX - laneLeft + scrollLeft) / timelineZoom);
-    const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
-    const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
-    const snappedStart = snapEnabled ? Math.round(seconds * TICKS_PER_SECOND / frameTicks) * frameTicks : Math.round(seconds * TICKS_PER_SECOND);
-    setBusy(true);
-    try {
-      const result = await runCommand<SelectedClip & { moved: boolean }>("timeline.move_clip", { ...dragged, target_track_id: targetTrackId, timeline_start: snappedStart });
-      setSelectedClip({ track_id: result.track_id, clip_index: result.clip_index });
-      setSelectedClips([]);
-      await refreshProject();
-      setNotice("Clip moved");
-    } catch (error) {
-      setNotice(String(error));
-    } finally {
-      setBusy(false);
-    }
+    seekProgramTo(Math.round(seconds * TICKS_PER_SECOND));
   }
 
   async function toggleFullscreen() {
@@ -717,8 +973,47 @@ function App() {
     const opacity = keyframedValue(activeClip?.clip, "opacity", clipTime, 1);
     const transform = `translate(${positionX / (project?.settings.width ?? 1920) * 100}%, ${positionY / (project?.settings.height ?? 1080) * 100}%) scale(${scale}) rotate(${rotation}deg)`;
     const visualStyle: CSSProperties = { filter: `brightness(${2 ** exposure}) contrast(${contrast}) saturate(${saturation})`, transform: isProgram ? transform : undefined, opacity: isProgram ? opacity : undefined, transformOrigin: "center" };
-    if (item.kind === "video") return <div className="preview-stage"><video ref={isProgram ? programVideoRef : undefined} src={source} style={visualStyle} controls={!isProgram} playsInline onTimeUpdate={isProgram ? (event) => setPlayhead(activeClip!.clip.timeline_start + activeClip!.clip.source_in + event.currentTarget.currentTime * TICKS_PER_SECOND) : undefined} /></div>;
-    if (item.kind === "audio") return <div className="preview-stage audio-preview"><audio ref={isProgram ? programAudioRef : undefined} src={source} controls playsInline onTimeUpdate={isProgram ? (event) => setPlayhead(activeClip!.clip.timeline_start + activeClip!.clip.source_in + event.currentTarget.currentTime * TICKS_PER_SECOND) : undefined} /></div>;
+    if (item.kind === "video") return <div className="preview-stage">
+      <video
+        ref={isProgram ? programVideoRef : undefined}
+        src={source}
+        style={visualStyle}
+        controls={!isProgram}
+        playsInline
+        preload="auto"
+        onLoadedMetadata={isProgram && activeClip ? (event) => {
+          const seconds = (activeClip.clip.source_in + playhead - activeClip.clip.timeline_start) / TICKS_PER_SECOND;
+          try { event.currentTarget.currentTime = Math.max(0, seconds); } catch { /* Browser metadata is available before this handler runs. */ }
+        } : undefined}
+        onTimeUpdate={isProgram ? (event) => updateProgramPlayhead(event.currentTarget.currentTime) : undefined}
+        onPlay={isProgram ? () => setProgramPlaying(true) : undefined}
+        onPause={isProgram ? () => setProgramPlaying(false) : undefined}
+        onEnded={isProgram && activeClip ? () => updateProgramPlayhead((activeClip.clip.source_in + activeClip.clip.duration) / TICKS_PER_SECOND) : undefined}
+        onCanPlay={() => setPreviewError(null)}
+        onError={() => setPreviewError("This video could not be loaded. Check that the file exists and uses a supported codec.")}
+      />
+      {previewError && <div className="preview-error" role="alert"><strong>Preview unavailable</strong><span>{previewError}</span></div>}
+    </div>;
+    if (item.kind === "audio") return <div className="preview-stage audio-preview">
+      <audio
+        ref={isProgram ? programAudioRef : undefined}
+        src={source}
+        controls
+        playsInline
+        preload="auto"
+        onLoadedMetadata={isProgram && activeClip ? (event) => {
+          const seconds = (activeClip.clip.source_in + playhead - activeClip.clip.timeline_start) / TICKS_PER_SECOND;
+          try { event.currentTarget.currentTime = Math.max(0, seconds); } catch { /* Browser metadata is available before this handler runs. */ }
+        } : undefined}
+        onTimeUpdate={isProgram ? (event) => updateProgramPlayhead(event.currentTarget.currentTime) : undefined}
+        onPlay={isProgram ? () => setProgramPlaying(true) : undefined}
+        onPause={isProgram ? () => setProgramPlaying(false) : undefined}
+        onEnded={isProgram && activeClip ? () => updateProgramPlayhead((activeClip.clip.source_in + activeClip.clip.duration) / TICKS_PER_SECOND) : undefined}
+        onCanPlay={() => setPreviewError(null)}
+        onError={() => setPreviewError("This audio could not be loaded. Check that the file exists and uses a supported codec.")}
+      />
+      {previewError && <div className="preview-error" role="alert"><strong>Preview unavailable</strong><span>{previewError}</span></div>}
+    </div>;
     if (item.kind === "image") return <div className="preview-stage"><img src={source} alt={item.name} style={visualStyle} /></div>;
     return <div className="monitor-stage"><strong>Preview unavailable</strong><small>Easy Edits Pro could not identify this media type.</small></div>;
   };
@@ -735,10 +1030,82 @@ function App() {
             ? [{ id: "help.shortcuts", label: "Keyboard Shortcuts", shortcut: null }, { id: "help.about", label: "About Easy Edits Pro", shortcut: null }]
             : [];
     const items = [...commandItems, ...extraItems];
-    return <details className="app-menu" key={menu}><summary>{menu}</summary><div className="menu-popover">{items.map((item) => <button key={item.id} onClick={(event) => { void invokeMenuCommand(item.id); event.currentTarget.closest("details")?.removeAttribute("open"); }} disabled={item.disabled}><span>{item.label}</span>{item.shortcut && <small>{item.shortcut.replace("Ctrl", "⌘/Ctrl")}</small>}</button>)}</div></details>;
+    return <details className="app-menu" key={menu}><summary>{menu}</summary><div className="menu-popover">{items.map((item) => <button key={item.id} onClick={(event) => { void invokeMenuCommand(item.id).catch((error: unknown) => setNotice(String(error))); event.currentTarget.closest("details")?.removeAttribute("open"); }} disabled={item.disabled}><span>{item.label}</span>{item.shortcut && <small>{item.shortcut.replace("Ctrl", "⌘/Ctrl")}</small>}</button>)}</div></details>;
+  }
+
+  function renderProjectWelcome() {
+    if (appStage === "loading") return <main className="project-loading-screen" aria-live="polite" aria-busy="true">
+      <img src="/saturn-camera.png" alt="" />
+      <div className="loading-orbit"><span /><span /><span /></div>
+      <p className="welcome-kicker">EASY EDITS PRO</p>
+      <h1>{loadingMessage}</h1>
+      <p className="welcome-muted">Getting your workspace ready</p>
+      <div className="loading-track"><i /></div>
+    </main>;
+
+    return <main className="welcome-shell">
+      <header className="welcome-topbar">
+        <div className="welcome-brand"><img src="/saturn-camera.png" alt="" /><span><strong>Easy Edits Pro</strong><small>VIDEO EDITING WORKSPACE</small></span></div>
+        <div className="welcome-status"><i className={connection.includes("error") ? "offline" : "online"} />{connection.includes("error") ? "Core unavailable" : "Ready to edit"}</div>
+      </header>
+      <div className="welcome-layout">
+        <section className="welcome-hero">
+          <div className="welcome-hero-copy">
+            <p className="welcome-kicker">PROJECT STUDIO <span>·</span> {new Date().getFullYear()}</p>
+            <h1>Make room<br />for the <em>next cut.</em></h1>
+            <p className="welcome-intro">Pick up where you left off or shape a fresh timeline, tuned to the way you shoot.</p>
+          </div>
+          <div className="welcome-editor-art" aria-hidden="true">
+            <div className="welcome-art-toolbar"><span /><span /><span /><i /><b>PROGRAM</b><small>00:00:12:08</small></div>
+            <div className="welcome-art-preview"><span className="art-sun" /><span className="art-horizon" /><span className="art-caption">A FRAME OF YOUR OWN</span></div>
+            <div className="welcome-art-timeline"><div className="art-ruler"><span>00:00</span><span>00:05</span><span>00:10</span><span>00:15</span></div><div className="art-track"><b>V1</b><i /><i /></div><div className="art-track audio"><b>A1</b><i /></div><span className="art-playhead" /></div>
+          </div>
+          <div className="welcome-hero-foot"><span>01 <i /> Shape the sequence</span><span>02 <i /> Find your rhythm</span><span>03 <i /> Make it yours</span></div>
+        </section>
+
+        <section className="welcome-panel" aria-label="Project selection">
+          {welcomeMode === "home" ? <>
+            <div className="welcome-panel-heading"><p className="welcome-kicker">YOUR WORKSPACE</p><h2>Welcome back.</h2><p>Start something new or continue a project.</p></div>
+            <div className="welcome-actions">
+              <button className="welcome-action-card new" onClick={() => { setSetupProjectName("Untitled project"); setSetupSequenceName("Sequence 1"); setWelcomeMode("new-project"); }}>
+                <span className="welcome-action-icon">＋</span><span><strong>Create a new project</strong><small>Choose a format and start editing</small></span><b aria-hidden="true">↗</b>
+              </button>
+              <LoadingButton className="welcome-action-card open" onAction={() => openProject()} onError={(error) => setNotice(String(error))} pendingLabel="Opening project…" successLabel="Project ready" errorLabel="Could not open project">
+                <span className="welcome-action-icon folder">↗</span><span><strong>Open an existing project</strong><small>Browse for a .saturn project file</small></span><b aria-hidden="true">→</b>
+              </LoadingButton>
+            </div>
+            {recoveryStatus.available && <div className="welcome-recovery"><span><strong>Recovered session available</strong><small>{recoveryStatus.projectName ?? "Autosaved project"} · autosave found</small></span><LoadingButton className="welcome-recover-button" onAction={recoverProjectFromWelcome} onError={(error) => setNotice(String(error))} pendingLabel="Restoring…" successLabel="Restored" errorLabel="Restore failed">Recover</LoadingButton></div>}
+            <div className="welcome-recent-heading"><h3>Recent projects</h3><span>{recentProjects.length ? `${recentProjects.length} saved here` : "Ready when you are"}</span></div>
+            {recentProjects.length ? <div className="welcome-recent-list">{recentProjects.map((item) => <LoadingButton key={item.path} className="welcome-recent-item" onAction={() => openProject(item.path)} onError={(error) => setNotice(String(error))} pendingLabel="Opening…" successLabel="Opened" errorLabel="Could not open">
+              <span className="recent-project-icon">S</span><span className="recent-project-name"><strong>{item.name}</strong><small title={item.path}>{item.path}</small></span><b aria-hidden="true">→</b>
+            </LoadingButton>)}</div> : <div className="welcome-recent-empty"><span>⌁</span><p>Your recent projects will appear here.</p></div>}
+          </> : <>
+            <button className="welcome-back" onClick={() => setWelcomeMode("home")}>← <span>Back to projects</span></button>
+            <div className="welcome-panel-heading setup-heading"><p className="welcome-kicker">NEW PROJECT</p><h2>Set your canvas.</h2><p>Choose the timeline format for this edit.</p></div>
+            <form className="project-setup-form" onSubmit={(event) => { event.preventDefault(); void createProjectFromWelcome().catch((error: unknown) => setNotice(String(error))); }}>
+              <label>Project name<input autoFocus required maxLength={120} value={setupProjectName} onChange={(event) => setSetupProjectName(event.target.value)} placeholder="Untitled project" /></label>
+              <label>Timeline name<input required maxLength={120} value={setupSequenceName} onChange={(event) => setSetupSequenceName(event.target.value)} placeholder="Sequence 1" /></label>
+              <div className="setup-field-row"><label>Resolution<select value={setupResolution} onChange={(event) => {
+                const value = event.target.value; setSetupResolution(value);
+                const preset = resolutionPresets.find((item) => item.value === value);
+                if (preset && value !== "custom") { setSetupWidth(String(preset.width)); setSetupHeight(String(preset.height)); }
+              }}>{resolutionPresets.map((preset) => <option value={preset.value} key={preset.value}>{preset.label}</option>)}</select></label>
+                <label>Frame rate<select value={setupFrameRate} onChange={(event) => setSetupFrameRate(event.target.value)}>{frameRateOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label></div>
+              {setupResolution === "custom" && <div className="setup-field-row custom-resolution"><label>Width<input required type="number" min="1" max="16384" value={setupWidth} onChange={(event) => setSetupWidth(event.target.value)} /></label><span>×</span><label>Height<input required type="number" min="1" max="16384" value={setupHeight} onChange={(event) => setSetupHeight(event.target.value)} /></label></div>}
+              <div className="setup-summary"><span>PROJECT PROFILE</span><strong>{setupWidth} × {setupHeight}<i />{frameRateOptions.find((option) => option.value === setupFrameRate)?.label}</strong><small>These settings define playback and export for your sequence.</small></div>
+              {notice && <p className="welcome-notice" role="alert">{notice}</p>}
+              <div className="setup-actions"><button type="button" className="welcome-secondary-button" onClick={() => setWelcomeMode("home")}>Cancel</button><LoadingButton className="welcome-create-button" onAction={createProjectFromWelcome} onError={(error) => setNotice(String(error))} pendingLabel="Creating project…" successLabel="Project created" errorLabel="Could not create">Create project <span>→</span></LoadingButton></div>
+            </form>
+          </>}
+          {welcomeMode === "home" && notice && <p className="welcome-notice" role="status">{notice}</p>}
+          <footer className="welcome-panel-foot"><span>PROJECT FORMAT <b>.SATURN</b></span><span>LOCAL · PRIVATE · YOURS</span></footer>
+        </section>
+      </div>
+    </main>;
   }
 
   return (
+    appStage !== "editor" ? renderProjectWelcome() :
     <div className="app-shell" tabIndex={-1} onKeyDown={(event) => {
       const target = event.target;
       if (target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
@@ -748,14 +1115,14 @@ function App() {
         if (event.key.toLowerCase() === "s") { event.preventDefault(); setSnapEnabled((enabled) => !enabled); return; }
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "q") { event.preventDefault(); void getCurrentWindow().close(); return; }
-      if ((event.ctrlKey || event.metaKey) && event.key === "+") { event.preventDefault(); setTimelineZoom((zoom) => Math.min(240, zoom * 1.2)); return; }
-      if ((event.ctrlKey || event.metaKey) && event.key === "-") { event.preventDefault(); setTimelineZoom((zoom) => Math.max(24, zoom / 1.2)); return; }
-      if ((event.ctrlKey || event.metaKey) && event.key === "0") { event.preventDefault(); setTimelineZoom(72); return; }
+      if ((event.ctrlKey || event.metaKey) && event.key === "+") { event.preventDefault(); zoomTimeline(1.2); return; }
+      if ((event.ctrlKey || event.metaKey) && event.key === "-") { event.preventDefault(); zoomTimeline(1 / 1.2); return; }
+      if ((event.ctrlKey || event.metaKey) && event.key === "0") { event.preventDefault(); zoomTimeline(72 / timelineZoom); return; }
       const pressed = `${event.ctrlKey || event.metaKey ? "Ctrl+" : ""}${event.shiftKey ? "Shift+" : ""}${event.key.length === 1 ? event.key.toUpperCase() : event.key}`;
       const command = commands.find((item) => item.shortcut?.toLowerCase() === pressed.toLowerCase());
       if (!command) return;
       event.preventDefault();
-      void invokeMenuCommand(command.id);
+      void invokeMenuCommand(command.id).catch((error: unknown) => setNotice(String(error)));
     }}>
       <header className="app-header">
         <div className="header-menu-row">
@@ -769,7 +1136,7 @@ function App() {
         <div className="app-toolbar">
           <nav className="file-actions" aria-label="Project actions">
             <button onClick={() => { void ensureDiscardIsOkay().then((ok) => { if (ok) { setNewProjectName("Untitled project"); setNewProjectOpen(true); } }); }}>New</button>
-            <button onClick={() => void openProject()}>Open</button>
+            <button onClick={() => void openProject().catch((error: unknown) => setNotice(String(error)))}>Open</button>
             <button onClick={() => void saveProject()}>Save</button>
             <button onClick={() => void importMedia()} disabled={busy}>Import</button>
             <span className="action-divider" />
@@ -793,7 +1160,7 @@ function App() {
         <section className="work-area">
           <div className="monitors">
             <section className="monitor"><div className="panel-tabs"><span className="selected">Source</span></div><div className="monitor-name">{selectedMedia?.name ?? "No source selected"}</div>{renderPreview(selectedMedia)}</section>
-            <section className="monitor"><div className="panel-tabs"><span className="selected">Program</span></div><div className="monitor-name">{project?.sequence.name ?? "Sequence 1"}</div>{renderPreview(activeClip?.media ?? null, true)}<div className="transport"><button disabled={!activeClip} aria-label="Previous frame" onClick={() => setPlayhead((value) => Math.max(0, value - Math.round(TICKS_PER_SECOND * (project?.settings.frame_rate.denominator ?? 1) / (project?.settings.frame_rate.numerator ?? 30))))}>◀</button><button disabled={!activeClip} aria-label="Play or pause" onClick={() => { const player = programVideoRef.current ?? programAudioRef.current; if (!player) return; if (player.paused) void player.play(); else player.pause(); }}>{activeClip ? "▶/Ⅱ" : "▶"}</button><button disabled={!activeClip} aria-label="Next frame" onClick={() => setPlayhead((value) => value + Math.round(TICKS_PER_SECOND * (project?.settings.frame_rate.denominator ?? 1) / (project?.settings.frame_rate.numerator ?? 30)))}>▶|</button><code>{formatTime(playhead)}</code></div></section>
+            <section className="monitor"><div className="panel-tabs"><span className="selected">Program</span></div><div className="monitor-name">{project?.sequence.name ?? "Sequence 1"}</div>{renderPreview(activeClip?.media ?? null, true)}<div className="transport"><button disabled={!activeClip} aria-label="Previous frame" title="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</button><button disabled={!programPlayable} aria-label={programPlaying ? "Pause playback" : "Play clip"} title={programPlaying ? "Pause playback" : "Play clip"} onClick={() => void toggleProgramPlayback()}>{programPlaying ? "Ⅱ" : "▶"}</button><button disabled={!activeClip} aria-label="Next frame" title="Next frame" onClick={() => stepProgramFrame(1)}>▶|</button><code>{formatTime(playhead)}</code></div></section>
           </div>
 
           <section className="timeline">
@@ -818,20 +1185,21 @@ function App() {
                   <button className="timeline-icon-button" disabled={busy} onClick={() => void invokeMenuCommand("timeline.set_mark_out")} title="Set Out point · O" aria-label="Set Out point"><Icon name="markOut" /></button>
                   <button className="timeline-icon-button" disabled={project?.sequence.mark_in == null && project?.sequence.mark_out == null} onClick={() => void invokeMenuCommand("timeline.clear_marks")} title="Clear In/Out points" aria-label="Clear markers"><Icon name="clearMarks" /></button>
                   <span className="toolbar-divider" />
-                  <button className="timeline-icon-button" onClick={() => setTimelineZoom((zoom) => Math.max(24, zoom / 1.2))} title="Zoom out" aria-label="Zoom out"><Icon name="zoomOut" /></button>
-                  <button className="timeline-icon-button" onClick={() => setTimelineZoom((zoom) => Math.min(240, zoom * 1.2))} title="Zoom in" aria-label="Zoom in"><Icon name="zoomIn" /></button>
+                  <button className="timeline-icon-button" onClick={() => zoomTimeline(1 / 1.2)} title="Zoom out" aria-label="Zoom out"><Icon name="zoomOut" /></button>
+                  <button className="timeline-icon-button" onClick={() => zoomTimeline(1.2)} title="Zoom in" aria-label="Zoom in"><Icon name="zoomIn" /></button>
                 </div>
               </div>
-              <div className={`timeline-scroller ${timelineTool === "hand" ? "hand-mode" : ""}`} onPointerDown={handleTimelinePanStart} onPointerMove={handleTimelinePanMove} onPointerUp={handleTimelinePanEnd} onPointerCancel={handleTimelinePanEnd}>
-                <div className="timeline-content" style={{ width: `${timelineWidth}px` }}>
+              <div ref={timelineScrollerRef} className={`timeline-scroller ${timelineTool === "hand" ? "hand-mode" : ""}`} onPointerDown={handleTimelinePanStart} onPointerMove={handleTimelinePanMove} onPointerUp={handleTimelinePanEnd} onPointerCancel={handleTimelinePanEnd}>
+                <div className="timeline-content" style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
                   <div className="timeline-ruler"><span className="track-spacer">Time</span><div className="ruler-lane" onClick={handleTimelineRulerClick}>{project?.sequence.mark_in != null && <i className="sequence-marker in-point" style={{ left: `${project.sequence.mark_in / TICKS_PER_SECOND * timelineZoom}px` }} title={`In · ${formatTime(project.sequence.mark_in)}`}><Icon name="markIn" /></i>}{project?.sequence.mark_out != null && <i className="sequence-marker out-point" style={{ left: `${project.sequence.mark_out / TICKS_PER_SECOND * timelineZoom}px` }} title={`Out · ${formatTime(project.sequence.mark_out)}`}><Icon name="markOut" /></i>}{Array.from({ length: Math.ceil(timelineWidth / (timelineZoom * 5)) + 1 }, (_, index) => <span key={index} style={{ left: `${index * timelineZoom * 5}px` }}>{formatTime(index * TICKS_PER_SECOND * 5)}</span>)}</div></div>
                   {(project?.sequence.tracks ?? []).map((track) => <div className="track-row" key={track.id}>
                     <div className="track-label"><b>{track.name}</b><span>{track.kind}</span></div>
-                    <div className="track-lane" onDragOver={(event) => event.preventDefault()} onDrop={(event) => void handleClipDrop(event, track.id)}>
+                    <div className="track-lane" data-track-id={track.id}>
                       {track.clips.map((clip, index) => {
                         const item = media.find((entry) => entry.id === clip.media_id);
                         const selected = (selectedClip?.track_id === track.id && selectedClip.clip_index === index) || selectedClips.some((item) => item.track_id === track.id && item.clip_index === index);
-                        return <div className={`timeline-clip ${selected ? "selected" : ""} ${track.kind} tool-${timelineTool}`} key={`${track.id}-${clip.media_id}-${index}-${clip.timeline_start}`} style={{ left: `${clip.timeline_start / TICKS_PER_SECOND * timelineZoom}px`, width: `${Math.max(34, clip.duration / TICKS_PER_SECOND * timelineZoom)}px` }} draggable={timelineTool === "select"} onDragStart={(event) => event.dataTransfer.setData("application/x-saturn-clip", JSON.stringify({ track_id: track.id, clip_index: index }))} onPointerDown={(event) => beginSlip(event, track.id, index)} onPointerUp={(event) => void finishSlip(event)} onClick={(event) => void handleTimelineClipClick(event, track.id, index, clip)} title={`${item?.name ?? "Clip"} · ${timelineTools.find((tool) => tool.id === timelineTool)?.label}`}><strong>{item?.name ?? "Missing media"}</strong></div>;
+                        const dragOffset = clipDragOffset?.trackId === track.id && clipDragOffset.clipIndex === index ? clipDragOffset : null;
+                        return <div className={`timeline-clip ${selected ? "selected" : ""} ${track.kind} tool-${timelineTool} ${dragOffset ? "dragging" : ""}`} key={`${track.id}-${clip.media_id}-${index}-${clip.timeline_start}`} style={{ left: `${clip.timeline_start / TICKS_PER_SECOND * timelineZoom}px`, width: `${Math.max(34, clip.duration / TICKS_PER_SECOND * timelineZoom)}px`, transform: dragOffset ? `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)` : undefined }} onPointerDown={(event) => beginTimelineClipPointer(event, track.id, index, clip)} onPointerMove={moveTimelineClipPointer} onPointerUp={(event) => void finishTimelineClipPointer(event)} onPointerCancel={handleTimelineClipPointerCancel} onClick={(event) => void handleTimelineClipClick(event, track.id, index, clip)} title={`${item?.name ?? "Clip"} · ${timelineTools.find((tool) => tool.id === timelineTool)?.label}`}><strong>{item?.name ?? "Missing media"}</strong></div>;
                       })}
                       <div className="playhead" style={{ left: `${playhead / TICKS_PER_SECOND * timelineZoom}px` }} />
                     </div>
