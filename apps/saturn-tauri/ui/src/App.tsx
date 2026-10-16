@@ -1480,10 +1480,8 @@ function App() {
       }
       return <div className="monitor-stage"><strong>{isProgram ? "Program monitor" : "Source monitor"}</strong><small>{isProgram ? "Add a clip to the timeline to preview the sequence" : "Select imported media to preview it here"}</small></div>;
     }
-    if (item.kind === "video" && !preparedPreviews[item.id]) {
-      return <div className="monitor-stage preview-preparing"><strong>{previewPreparationErrors[item.id] ? "Preview unavailable" : "Preparing video preview"}</strong><small>{previewPreparationErrors[item.id] ?? (preparingPreviews.has(item.id) ? "Decoding this source into a browser-friendly preview…" : "Waiting for the preview decoder…")}</small></div>;
-    }
-    const source = convertFileSrc(item.kind === "video" ? preparedPreviews[item.id] : item.path);
+    const sourcePath = item.kind === "video" && preparedPreviews[item.id] ? preparedPreviews[item.id] : item.path;
+    const source = convertFileSrc(sourcePath);
     const color = isProgram ? activeClip?.clip.color : null;
     const clipTime = activeClip ? playhead - activeClip.clip.timeline_start : 0;
     const exposure = color?.exposure ?? 0;
@@ -1513,10 +1511,18 @@ function App() {
         onPause={isProgram ? () => setProgramPlaying(false) : undefined}
         onEnded={isProgram && activeClip ? () => updateProgramPlayhead((activeClip.clip.source_in + activeClip.clip.duration) / TICKS_PER_SECOND) : undefined}
         onCanPlay={() => setPreviewError(null)}
-        onError={() => setPreviewError("This video could not be loaded. Check that the file exists and uses a supported codec.")}
+        onError={() => {
+          if (previewPreparationErrors[item.id]) {
+            setPreviewError(`Preview unavailable: ${previewPreparationErrors[item.id]}`);
+          } else if (preparingPreviews.has(item.id)) {
+            setPreviewError("Decoding browser-friendly preview proxy…");
+          } else {
+            setPreviewError("This video could not be loaded. Check that the file exists and uses a supported codec.");
+          }
+        }}
       />
       {isProgram && renderTitleOverlay(activeTitleClip?.title)}
-      {previewError && <div className="preview-error" role="alert"><strong>Preview unavailable</strong><span>{previewError}</span></div>}
+      {previewError && <div className="preview-error" role="alert"><strong>Preview notice</strong><span>{previewError}</span></div>}
     </div>;
     if (item.kind === "audio") return <div className="preview-stage audio-preview">
       <audio

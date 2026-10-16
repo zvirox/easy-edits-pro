@@ -200,6 +200,13 @@ async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path:
         if !source.is_file() {
             return Err(format!("Source video is missing: {}", source.display()));
         }
+        let _ = app.asset_protocol_scope().allow_file(&source);
+
+        let ext = source.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+        if ext == "webm" {
+            return Ok(source.to_string_lossy().into_owned());
+        }
+
         gstreamer::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
 
         let metadata = std::fs::metadata(&source).map_err(|error| format!("Could not inspect source video: {error}"))?;
@@ -219,7 +226,11 @@ async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path:
         let uri = gstreamer::glib::filename_to_uri(&source, None).map_err(|error| format!("Could not read source path: {error}"))?;
 
         let pipeline = gstreamer::Pipeline::new();
-        let decoder = gstreamer::ElementFactory::make("uridecodebin").property("uri", uri).build().map_err(|error| format!("Could not create video decoder: {error}"))?;
+        let decoder = gstreamer::ElementFactory::make("uridecodebin")
+            .property("uri", uri)
+            .property("caps", gstreamer::Caps::builder("video/x-raw").build())
+            .build()
+            .map_err(|error| format!("Could not create video decoder: {error}"))?;
         let queue = gstreamer::ElementFactory::make("queue").build().map_err(|error| error.to_string())?;
         let convert = gstreamer::ElementFactory::make("videoconvert").build().map_err(|error| format!("Video conversion is unavailable: {error}"))?;
         let scale = gstreamer::ElementFactory::make("videoscale").property("add-borders", true).build().map_err(|error| format!("Video scaling is unavailable: {error}"))?;
@@ -227,34 +238,25 @@ async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path:
         let encoder = gstreamer::ElementFactory::make("vp8enc").property("deadline", 1_i64).property("cpu-used", 8_i32).build().map_err(|error| format!("VP8 preview encoder is unavailable: {error}"))?;
         let mux = gstreamer::ElementFactory::make("webmmux").build().map_err(|error| format!("WebM preview muxer is unavailable: {error}"))?;
         let sink = gstreamer::ElementFactory::make("filesink").property("location", temporary.to_string_lossy().as_ref()).build().map_err(|error| error.to_string())?;
-        let audio_sink = gstreamer::ElementFactory::make("fakesink").property("sync", false).build().map_err(|error| error.to_string())?;
-        pipeline.add_many([&decoder, &queue, &convert, &scale, &filter, &encoder, &mux, &sink, &audio_sink]).map_err(|error| format!("Could not assemble preview pipeline: {error}"))?;
+
+        pipeline.add_many([&decoder, &queue, &convert, &scale, &filter, &encoder, &mux, &sink]).map_err(|error| format!("Could not assemble preview pipeline: {error}"))?;
         gstreamer::Element::link_many([&queue, &convert, &scale, &filter, &encoder, &mux, &sink]).map_err(|error| format!("Could not link preview pipeline: {error}"))?;
         let video_queue = queue.clone();
-        let audio_sink_for_pad = audio_sink.clone();
         decoder.connect_pad_added(move |_decoder, pad| {
-            let media_type = pad.current_caps().or_else(|| Some(pad.query_caps(None)))
-                .and_then(|caps| caps.structure(0).map(|structure| structure.name().to_owned()))
-                .unwrap_or_default();
-            let is_video = media_type.starts_with("video/");
-            if is_video {
-                if let Some(sink_pad) = video_queue.static_pad("sink") {
-                    if !sink_pad.is_linked() {
-                        let _ = pad.link(&sink_pad);
-                    }
-                }
-            } else if media_type.starts_with("audio/") {
-                if let Some(sink_pad) = audio_sink_for_pad.static_pad("sink") {
-                    if !sink_pad.is_linked() {
-                        let _ = pad.link(&sink_pad);
-                    }
+            if let Some(sink_pad) = video_queue.static_pad("sink") {
+                if !sink_pad.is_linked() {
+                    let _ = pad.link(&sink_pad);
                 }
             }
         });
 
         let bus = pipeline.bus().ok_or_else(|| "Preview pipeline has no message bus".to_string())?;
         pipeline.set_state(gstreamer::State::Playing).map_err(|error| format!("Could not decode source video: {error}"))?;
+        let start_time = std::time::Instant::now();
         let result = loop {
+            if start_time.elapsed() > std::time::Duration::from_secs(45) {
+                break Err("Video preview transcoding timed out".to_string());
+            }
             if let Some(message) = bus.timed_pop(gstreamer::ClockTime::from_mseconds(250)) {
                 match message.view() {
                     gstreamer::MessageView::Eos(..) => break Ok(()),
