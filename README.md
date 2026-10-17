@@ -147,7 +147,7 @@ graph LR
     end
 
     subgraph Core ["Rust Core (saturn-core)"]
-        Doc["Project Document (Schema v8)"]
+        Doc["Project Document (Schema v9)"]
         Time["Exact Rational Tick Timebase"]
         Jobs["JobManager (Background Daemon)"]
         History["Undo / Redo Checkpoints"]
@@ -167,13 +167,15 @@ graph LR
     Playback -->|Custom URI Streaming| Protocol
     Protocol -->|Proxy Decoder| Render
     Jobs -->|Batch Export Task| Render
-    Render -->|Hardware Encoders (NVENC/VAAPI)| Output["MP4 / WebM Video"]
+    Render -->|Hardware Encoders: NVENC / VAAPI| Output["MP4 / WebM Video"]
 ```
 
 ### Rational Integer Timebase
 To avoid accumulated frame drift over long sequences, Easy Edits Pro calculates all time values in exact integer ticks:
 
-$$\text{TICKS\_PER\_SECOND} = 254{,}016{,}000{,}000$$
+$$\text{Ticks Per Second} = 254{,}016{,}000{,}000$$
+
+`TICKS_PER_SECOND = 254_016_000_000`
 
 This tick base is evenly divisible by all broadcast and digital frame rates: **23.976**, **24**, **25**, **29.97**, **30**, **48**, **50**, **59.94**, and **60 fps**, as well as pro audio sample rates (**44.1 kHz**, **48 kHz**, **96 kHz**, and **192 kHz**).
 
