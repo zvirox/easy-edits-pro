@@ -179,12 +179,24 @@ pub struct Track {
     pub name: String,
     #[serde(default)]
     pub gain_db: f64,
+    #[serde(default)]
+    pub pan: f64,
+    #[serde(default)]
+    pub muted: bool,
+    #[serde(default)]
+    pub solo: bool,
+    #[serde(default)]
+    pub locked: bool,
     pub clips: Vec<Clip>,
     #[serde(default)]
     pub transitions: Vec<Transition>,
 }
 
 impl Track {
+    pub fn is_audible(&self, any_solo: bool) -> bool {
+        !self.muted && (!any_solo || self.solo)
+    }
+
     pub fn clip_at(&self, tick: Tick) -> Option<&Clip> {
         self.clips.iter().find(|clip| {
             let start = clip.timeline_start.0;
@@ -490,6 +502,10 @@ impl ProjectDocument {
                             kind: TrackKind::Video,
                             name: "V1".into(),
                             gain_db: 0.0,
+                            pan: 0.0,
+                            muted: false,
+                            solo: false,
+                            locked: false,
                             clips: Vec::new(),
                             transitions: Vec::new(),
                         },
@@ -498,6 +514,10 @@ impl ProjectDocument {
                             kind: TrackKind::Audio,
                             name: "A1".into(),
                             gain_db: 0.0,
+                            pan: 0.0,
+                            muted: false,
+                            solo: false,
+                            locked: false,
                             clips: Vec::new(),
                             transitions: Vec::new(),
                         },
@@ -908,5 +928,54 @@ mod tests {
         assert_eq!(loaded_clip.effects[2].kind(), EffectKind::Crop);
         assert_eq!(loaded_clip.effects[3].kind(), EffectKind::Vignette);
         assert_eq!(loaded_clip.effects[4].kind(), EffectKind::ChromaKey);
+    }
+
+    #[test]
+    fn test_track_audio_properties_and_audibility() {
+        let mut t1 = Track {
+            id: 1,
+            kind: TrackKind::Audio,
+            name: "A1".into(),
+            gain_db: -3.0,
+            pan: -0.5,
+            muted: false,
+            solo: false,
+            locked: false,
+            clips: Vec::new(),
+            transitions: Vec::new(),
+        };
+
+        let mut t2 = Track {
+            id: 2,
+            kind: TrackKind::Audio,
+            name: "A2".into(),
+            gain_db: 0.0,
+            pan: 0.5,
+            muted: false,
+            solo: false,
+            locked: false,
+            clips: Vec::new(),
+            transitions: Vec::new(),
+        };
+
+        // Neither soloed, neither muted -> both audible
+        assert!(t1.is_audible(false));
+        assert!(t2.is_audible(false));
+
+        // Mute t1
+        t1.muted = true;
+        assert!(!t1.is_audible(false));
+        assert!(t2.is_audible(false));
+        t1.muted = false;
+
+        // Solo t2 -> any_solo is true, t1 not soloed -> t1 inaudible, t2 audible
+        t2.solo = true;
+        assert!(!t1.is_audible(true));
+        assert!(t2.is_audible(true));
+
+        // Both soloed -> both audible
+        t1.solo = true;
+        assert!(t1.is_audible(true));
+        assert!(t2.is_audible(true));
     }
 }

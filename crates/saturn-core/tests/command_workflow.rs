@@ -486,3 +486,83 @@ fn effect_stack_workflow_with_undo() {
     );
 }
 
+#[test]
+fn track_audio_and_lock_controls_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name":"Audio and Lock Test"}),
+        ))
+        .unwrap();
+
+    let track_id = engine.document().project.sequence.tracks[0].id;
+
+    // 1. Set track pan
+    engine
+        .execute(CommandRequest::new(
+            "track.set_pan",
+            json!({"track_id": track_id, "pan": -0.75}),
+        ))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].pan,
+        -0.75
+    );
+
+    // 2. Set track mute
+    engine
+        .execute(CommandRequest::new(
+            "track.set_muted",
+            json!({"track_id": track_id, "muted": true}),
+        ))
+        .unwrap();
+    assert!(engine.document().project.sequence.tracks[0].muted);
+
+    // 3. Set track solo
+    engine
+        .execute(CommandRequest::new(
+            "track.set_solo",
+            json!({"track_id": track_id, "solo": true}),
+        ))
+        .unwrap();
+    assert!(engine.document().project.sequence.tracks[0].solo);
+
+    // 4. Set track locked
+    engine
+        .execute(CommandRequest::new(
+            "track.set_locked",
+            json!({"track_id": track_id, "locked": true}),
+        ))
+        .unwrap();
+    assert!(engine.document().project.sequence.tracks[0].locked);
+
+    // 5. Verify editing on locked track fails
+    let err = engine.execute(CommandRequest::new(
+        "timeline.add_clip",
+        json!({"track_id": track_id, "media_id": 1}),
+    ));
+    assert!(err.is_err());
+
+    // 6. Test Undo
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert!(!engine.document().project.sequence.tracks[0].locked);
+
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert!(!engine.document().project.sequence.tracks[0].solo);
+
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert!(!engine.document().project.sequence.tracks[0].muted);
+
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].pan, 0.0);
+}
+

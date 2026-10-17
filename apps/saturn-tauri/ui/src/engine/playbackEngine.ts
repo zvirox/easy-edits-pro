@@ -100,6 +100,10 @@ export interface Track {
   kind: "video" | "audio";
   name: string;
   gain_db: number;
+  pan?: number;
+  muted?: boolean;
+  solo?: boolean;
+  locked?: boolean;
   clips: Clip[];
   transitions?: Transition[];
 }
@@ -147,12 +151,20 @@ export interface ProjectDocument {
 
 /**
  * AudioClockMaster manages a hardware-synchronized Web Audio context
- * providing monotonic, drift-free master clock timing and per-track audio mixing.
+ * providing monotonic, drift-free master clock timing, stereo panning,
+ * mute/solo matrix routing, and real-time peak VU metering.
  */
 class AudioClockMaster {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private masterAnalyser: AnalyserNode | null = null;
   private trackGains = new Map<number, GainNode>();
+  private trackPanners = new Map<number, StereoPannerNode>();
+  private trackAnalysers = new Map<number, AnalyserNode>();
+  private trackPans = new Map<number, number>();
+  private trackRawGains = new Map<number, number>();
+  private trackMutes = new Map<number, boolean>();
+  private trackSolos = new Map<number, boolean>();
 
   getContext(): AudioContext | null {
     if (typeof window === "undefined") return null;
@@ -161,7 +173,12 @@ class AudioClockMaster {
       if (AudioCtx) {
         this.ctx = new AudioCtx();
         this.masterGain = this.ctx.createGain();
-        this.masterGain.connect(this.ctx.destination);
+        this.masterAnalyser = this.ctx.createAnalyser();
+        this.masterAnalyser.fftSize = 256;
+        this.masterAnalyser.smoothingTimeConstant = 0.5;
+
+        this.masterGain.connect(this.masterAnalyser);
+        this.masterAnalyser.connect(this.ctx.destination);
       }
     }
     if (this.ctx && this.ctx.state === "suspended") {
@@ -183,7 +200,26 @@ class AudioClockMaster {
     let node = this.trackGains.get(trackId);
     if (!node) {
       node = ctx.createGain();
-      node.connect(this.masterGain);
+
+      let pannerNode: StereoPannerNode | null = null;
+      if (ctx.createStereoPanner) {
+        pannerNode = ctx.createStereoPanner();
+        this.trackPanners.set(trackId, pannerNode);
+      }
+
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.4;
+      this.trackAnalysers.set(trackId, analyser);
+
+      if (pannerNode) {
+        node.connect(pannerNode);
+        pannerNode.connect(analyser);
+      } else {
+        node.connect(analyser);
+      }
+      analyser.connect(this.masterGain);
+
       this.trackGains.set(trackId, node);
     }
     const linearGain = Math.max(0, Math.min(2, 10 ** (gainDb / 20)));
@@ -193,11 +229,95 @@ class AudioClockMaster {
 
   updateTrackGain(trackId: number, gainDb: number): void {
     const ctx = this.getContext();
+    this.trackRawGains.set(trackId, gainDb);
     const node = this.trackGains.get(trackId);
     if (ctx && node) {
-      const linearGain = Math.max(0, Math.min(2, 10 ** (gainDb / 20)));
+      const isMuted = this.trackMutes.get(trackId) ?? false;
+      const anySolo = Array.from(this.trackSolos.values()).some(Boolean);
+      const isSolo = this.trackSolos.get(trackId) ?? false;
+      const isAudible = !isMuted && (!anySolo || isSolo);
+      const linearGain = isAudible ? Math.max(0, Math.min(2, 10 ** (gainDb / 20))) : 0;
       node.gain.setTargetAtTime(linearGain, ctx.currentTime, 0.02);
     }
+  }
+
+  updateTrackPan(trackId: number, pan: number): void {
+    const ctx = this.getContext();
+    this.trackPans.set(trackId, pan);
+    const panner = this.trackPanners.get(trackId);
+    if (ctx && panner && panner.pan) {
+      panner.pan.setTargetAtTime(Math.max(-1, Math.min(1, pan)), ctx.currentTime, 0.02);
+    }
+  }
+
+  updateTracksState(tracks: Track[]): void {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    const anySolo = tracks.some((t) => t.solo);
+    for (const track of tracks) {
+      this.trackRawGains.set(track.id, track.gain_db);
+      this.trackMutes.set(track.id, !!track.muted);
+      this.trackSolos.set(track.id, !!track.solo);
+      this.trackPans.set(track.id, track.pan ?? 0);
+
+      const panner = this.trackPanners.get(track.id);
+      if (panner && panner.pan) {
+        panner.pan.setTargetAtTime(Math.max(-1, Math.min(1, track.pan ?? 0)), ctx.currentTime, 0.02);
+      }
+
+      const isAudible = !track.muted && (!anySolo || track.solo);
+      const linearGain = isAudible ? Math.max(0, Math.min(2, 10 ** (track.gain_db / 20))) : 0;
+      const gainNode = this.trackGains.get(track.id);
+      if (gainNode) {
+        gainNode.gain.setTargetAtTime(linearGain, ctx.currentTime, 0.02);
+      }
+    }
+  }
+
+  setMasterGain(gainDb: number): void {
+    const ctx = this.getContext();
+    if (ctx && this.masterGain) {
+      const linearGain = Math.max(0, Math.min(2, 10 ** (gainDb / 20)));
+      this.masterGain.gain.setTargetAtTime(linearGain, ctx.currentTime, 0.02);
+    }
+  }
+
+  getTrackLevels(trackId: number): { left: number; right: number; peakDb: number } {
+    const analyser = this.trackAnalysers.get(trackId);
+    if (!analyser) return { left: 0, right: 0, peakDb: -60 };
+    const buffer = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteTimeDomainData(buffer);
+    let maxDelta = 0;
+    for (let i = 0; i < buffer.length; i++) {
+      const v = Math.abs(buffer[i] - 128) / 128;
+      if (v > maxDelta) maxDelta = v;
+    }
+    const peakDb = maxDelta > 0.001 ? 20 * Math.log10(maxDelta) : -60;
+    const pan = this.trackPans.get(trackId) ?? 0;
+    const leftMult = pan <= 0 ? 1 : Math.max(0, 1 - pan);
+    const rightMult = pan >= 0 ? 1 : Math.max(0, 1 + pan);
+    return {
+      left: Math.min(1, maxDelta * leftMult),
+      right: Math.min(1, maxDelta * rightMult),
+      peakDb: Math.max(-60, Math.min(6, peakDb)),
+    };
+  }
+
+  getMasterLevels(): { left: number; right: number; peakDb: number } {
+    if (!this.masterAnalyser) return { left: 0, right: 0, peakDb: -60 };
+    const buffer = new Uint8Array(this.masterAnalyser.frequencyBinCount);
+    this.masterAnalyser.getByteTimeDomainData(buffer);
+    let maxDelta = 0;
+    for (let i = 0; i < buffer.length; i++) {
+      const v = Math.abs(buffer[i] - 128) / 128;
+      if (v > maxDelta) maxDelta = v;
+    }
+    const peakDb = maxDelta > 0.001 ? 20 * Math.log10(maxDelta) : -60;
+    return {
+      left: Math.min(1, maxDelta),
+      right: Math.min(1, maxDelta),
+      peakDb: Math.max(-60, Math.min(6, peakDb)),
+    };
   }
 
   smoothMicroFade(gainNode: GainNode, fadeIn: boolean, durationSec = 0.015): void {

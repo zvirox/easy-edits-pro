@@ -237,6 +237,30 @@ struct SetTrackGainParams {
 }
 
 #[derive(Deserialize)]
+struct SetTrackPanParams {
+    track_id: u64,
+    pan: f64,
+}
+
+#[derive(Deserialize)]
+struct SetTrackMutedParams {
+    track_id: u64,
+    muted: bool,
+}
+
+#[derive(Deserialize)]
+struct SetTrackSoloParams {
+    track_id: u64,
+    solo: bool,
+}
+
+#[derive(Deserialize)]
+struct SetTrackLockedParams {
+    track_id: u64,
+    locked: bool,
+}
+
+#[derive(Deserialize)]
 struct SetKeyframeParams {
     track_id: u64,
     clip_index: usize,
@@ -521,6 +545,9 @@ impl EditorEngine {
                     .ok_or_else(|| {
                         DispatchError::InvalidParameters("No matching timeline track exists".into())
                     })?;
+                if self.document.project.sequence.tracks[track_index].locked {
+                    return Err(DispatchError::Operation("Track is locked".into()));
+                }
                 let duration = params
                     .duration
                     .or(media_duration)
@@ -579,6 +606,9 @@ impl EditorEngine {
                             params.track_id
                         ))
                     })?;
+                if self.document.project.sequence.tracks[track_index].locked {
+                    return Err(DispatchError::Operation("Track is locked".into()));
+                }
                 if params.clip_index
                     >= self.document.project.sequence.tracks[track_index]
                         .clips
@@ -597,6 +627,9 @@ impl EditorEngine {
             "timeline.ripple_delete" => {
                 let params: RemoveClipParams = parse_params(request.params)?;
                 let track_index = find_track_index(&self.document, params.track_id)?;
+                if self.document.project.sequence.tracks[track_index].locked {
+                    return Err(DispatchError::Operation("Track is locked".into()));
+                }
                 let clips = &self.document.project.sequence.tracks[track_index].clips;
                 let clip = clips.get(params.clip_index).ok_or_else(|| {
                     DispatchError::InvalidParameters("Timeline clip does not exist".into())
@@ -619,8 +652,11 @@ impl EditorEngine {
                     return Err(DispatchError::InvalidParameters("Select one or more timeline clips".into()));
                 }
                 let mut removals = std::collections::BTreeMap::<usize, Vec<usize>>::new();
-                for reference in params.clips {
+                for reference in &params.clips {
                     let track_index = find_track_index(&self.document, reference.track_id)?;
+                    if self.document.project.sequence.tracks[track_index].locked {
+                        return Err(DispatchError::Operation("Track is locked".into()));
+                    }
                     if reference.clip_index >= self.document.project.sequence.tracks[track_index].clips.len() {
                         return Err(DispatchError::InvalidParameters("Timeline clip does not exist".into()));
                     }
@@ -650,6 +686,9 @@ impl EditorEngine {
             "timeline.split_clip" => {
                 let params: SplitClipParams = parse_params(request.params)?;
                 let track_index = find_track_index(&self.document, params.track_id)?;
+                if self.document.project.sequence.tracks[track_index].locked {
+                    return Err(DispatchError::Operation("Track is locked".into()));
+                }
                 let track = &self.document.project.sequence.tracks[track_index];
                 let clip = track.clips.get(params.clip_index).ok_or_else(|| {
                     DispatchError::InvalidParameters("Timeline clip does not exist".into())
@@ -696,6 +735,9 @@ impl EditorEngine {
             "timeline.slip_clip" => {
                 let params: SlipClipParams = parse_params(request.params)?;
                 let track_index = find_track_index(&self.document, params.track_id)?;
+                if self.document.project.sequence.tracks[track_index].locked {
+                    return Err(DispatchError::Operation("Track is locked".into()));
+                }
                 let clip = find_clip(&self.document, track_index, params.clip_index)?;
                 let next_source_in = clip.source_in.0.saturating_add(params.delta.0);
                 if next_source_in < 0 {
@@ -780,6 +822,11 @@ impl EditorEngine {
                     })
                     .transpose()?
                     .unwrap_or(track_index);
+                if self.document.project.sequence.tracks[track_index].locked
+                    || self.document.project.sequence.tracks[target_track_index].locked
+                {
+                    return Err(DispatchError::Operation("Track is locked".into()));
+                }
                 if params.clip_index
                     >= self.document.project.sequence.tracks[track_index]
                         .clips
@@ -891,6 +938,39 @@ impl EditorEngine {
                 self.checkpoint();
                 self.document.project.sequence.tracks[track_index].gain_db = params.gain_db;
                 Ok(json!({"updated": true}))
+            }
+            "track.set_pan" => {
+                let params: SetTrackPanParams = parse_params(request.params)?;
+                if !params.pan.is_finite() || !(-1.0..=1.0).contains(&params.pan) {
+                    return Err(DispatchError::InvalidParameters(
+                        "Track pan must be between -1.0 and +1.0".into(),
+                    ));
+                }
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].pan = params.pan;
+                Ok(json!({"updated": true, "pan": params.pan}))
+            }
+            "track.set_muted" => {
+                let params: SetTrackMutedParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].muted = params.muted;
+                Ok(json!({"updated": true, "muted": params.muted}))
+            }
+            "track.set_solo" => {
+                let params: SetTrackSoloParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].solo = params.solo;
+                Ok(json!({"updated": true, "solo": params.solo}))
+            }
+            "track.set_locked" => {
+                let params: SetTrackLockedParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].locked = params.locked;
+                Ok(json!({"updated": true, "locked": params.locked}))
             }
             "clip.set_keyframe" => {
                 let params: SetKeyframeParams = parse_params(request.params)?;
@@ -1047,6 +1127,9 @@ impl EditorEngine {
             "timeline.add_transition" => {
                 let params: AddTransitionParams = parse_params(request.params)?;
                 let track_index = find_track_index(&self.document, params.track_id)?;
+                if self.document.project.sequence.tracks[track_index].locked {
+                    return Err(DispatchError::Operation("Track is locked".into()));
+                }
                 let duration = params.duration.unwrap_or(Tick(TICKS_PER_SECOND));
                 let kind = params.kind.unwrap_or(TransitionKind::Crossfade);
                 if duration.0 <= 0 || params.cut_at.0 < 0 {
@@ -1074,6 +1157,9 @@ impl EditorEngine {
             "timeline.remove_transition" => {
                 let params: RemoveTransitionParams = parse_params(request.params)?;
                 let track_index = find_track_index(&self.document, params.track_id)?;
+                if self.document.project.sequence.tracks[track_index].locked {
+                    return Err(DispatchError::Operation("Track is locked".into()));
+                }
                 self.checkpoint();
                 let track = &mut self.document.project.sequence.tracks[track_index];
                 let initial_count = track.transitions.len();
@@ -1091,6 +1177,9 @@ impl EditorEngine {
                     .iter()
                     .position(|t| t.id == track_id && matches!(t.kind, TrackKind::Video))
                     .ok_or_else(|| DispatchError::InvalidParameters("Target video track does not exist".into()))?;
+                if self.document.project.sequence.tracks[track_index].locked {
+                    return Err(DispatchError::Operation("Track is locked".into()));
+                }
 
                 self.checkpoint();
                 let media_id = self.document.project.next_id;

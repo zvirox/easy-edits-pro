@@ -343,7 +343,11 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
         .build();
     audio_track.update_restriction_caps(&audio_caps);
 
+    let any_solo = document.project.sequence.tracks.iter().any(|t| t.solo);
+
     for track in &document.project.sequence.tracks {
+        let is_audible = track.is_audible(any_solo);
+        let effective_gain_db = if is_audible { track.gain_db } else { -120.0 };
         let layer = timeline.append_layer();
         for clip in &track.clips {
             let media = document
@@ -398,7 +402,7 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
             apply_clip_effects(
                 &ges_clip,
                 clip,
-                track.gain_db,
+                effective_gain_db,
                 matches!(media.kind, MediaKind::Video | MediaKind::Image),
                 document.project.settings.width,
                 document.project.settings.height,
