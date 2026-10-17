@@ -566,3 +566,247 @@ fn track_audio_and_lock_controls_workflow_with_undo() {
     assert_eq!(engine.document().project.sequence.tracks[0].pan, 0.0);
 }
 
+#[test]
+fn rolling_and_slide_edit_workflow_with_undo() {
+    use saturn_core::TICKS_PER_SECOND;
+
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name":"Roll & Slide Test"})))
+        .unwrap();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name":"clip.mp4", "path":"/assets/clip.mp4", "kind":"video"}),
+        ))
+        .unwrap();
+    let media_id = media["media_id"].as_u64().unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "project.update_media",
+            json!({"path":"/assets/clip.mp4", "kind":"video", "duration": 20 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+
+    let track_id = engine.document().project.sequence.tracks[0].id;
+
+    // Add 3 adjacent clips (3 seconds each)
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"track_id": track_id, "media_id": media_id, "timeline_start": 0, "source_in": 0, "duration": 3 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"track_id": track_id, "media_id": media_id, "timeline_start": 3 * TICKS_PER_SECOND, "source_in": 0, "duration": 3 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"track_id": track_id, "media_id": media_id, "timeline_start": 6 * TICKS_PER_SECOND, "source_in": 0, "duration": 3 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+
+    assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 3);
+
+    // 1. Perform Rolling Edit: Move boundary between Clip 0 and Clip 1 right by 1s (+TICKS_PER_SECOND)
+    engine
+        .execute(CommandRequest::new(
+            "timeline.roll_edit",
+            json!({"track_id": track_id, "left_clip_index": 0, "delta": TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[0].duration.0, 4 * TICKS_PER_SECOND);
+    assert_eq!(clips[1].timeline_start.0, 4 * TICKS_PER_SECOND);
+    assert_eq!(clips[1].source_in.0, 1 * TICKS_PER_SECOND);
+    assert_eq!(clips[1].duration.0, 2 * TICKS_PER_SECOND);
+
+    // Undo Rolling Edit
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[0].duration.0, 3 * TICKS_PER_SECOND);
+    assert_eq!(clips[1].timeline_start.0, 3 * TICKS_PER_SECOND);
+    assert_eq!(clips[1].source_in.0, 0);
+    assert_eq!(clips[1].duration.0, 3 * TICKS_PER_SECOND);
+
+    // Redo Rolling Edit
+    engine
+        .execute(CommandRequest::new("edit.redo", serde_json::Value::Null))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[0].duration.0, 4 * TICKS_PER_SECOND);
+    assert_eq!(clips[1].timeline_start.0, 4 * TICKS_PER_SECOND);
+    assert_eq!(clips[1].source_in.0, 1 * TICKS_PER_SECOND);
+
+    // 2. Perform Slide Edit: Slide Clip 1 right by 0.5s
+    let delta = TICKS_PER_SECOND / 2;
+    engine
+        .execute(CommandRequest::new(
+            "timeline.slide_clip",
+            json!({"track_id": track_id, "clip_index": 1, "delta": delta}),
+        ))
+        .unwrap();
+
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    // Clip 0 duration expands to fill gap: 4s + 0.5s = 4.5s
+    assert_eq!(clips[0].duration.0, 4 * TICKS_PER_SECOND + delta);
+    // Clip 1 start moves right by 0.5s: 4s + 0.5s = 4.5s, duration stays 2s
+    assert_eq!(clips[1].timeline_start.0, 4 * TICKS_PER_SECOND + delta);
+    assert_eq!(clips[1].duration.0, 2 * TICKS_PER_SECOND);
+    // Clip 2 start moves right by 0.5s: 6s + 0.5s = 6.5s, source_in increases by 0.5s, duration shrinks by 0.5s
+    assert_eq!(clips[2].timeline_start.0, 6 * TICKS_PER_SECOND + delta);
+    assert_eq!(clips[2].source_in.0, delta);
+    assert_eq!(clips[2].duration.0, 3 * TICKS_PER_SECOND - delta);
+
+    // Undo Slide Edit
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[0].duration.0, 4 * TICKS_PER_SECOND);
+    assert_eq!(clips[1].timeline_start.0, 4 * TICKS_PER_SECOND);
+    assert_eq!(clips[2].timeline_start.0, 6 * TICKS_PER_SECOND);
+    assert_eq!(clips[2].source_in.0, 0);
+    assert_eq!(clips[2].duration.0, 3 * TICKS_PER_SECOND);
+}
+
+#[test]
+fn rate_stretch_and_clip_link_workflow_with_undo() {
+    use saturn_core::TICKS_PER_SECOND;
+
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name":"Rate & Link Test"})))
+        .unwrap();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name":"video.mp4", "path":"/assets/video.mp4", "kind":"video"}),
+        ))
+        .unwrap();
+    let media_id = media["media_id"].as_u64().unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "project.update_media",
+            json!({"path":"/assets/video.mp4", "kind":"video", "duration": 30 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+
+    let v_track_id = engine.document().project.sequence.tracks[0].id;
+    let a_track_id = engine.document().project.sequence.tracks[1].id;
+
+    // Add video clip and audio clip
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"track_id": v_track_id, "media_id": media_id, "timeline_start": 0, "source_in": 0, "duration": 4 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"track_id": a_track_id, "media_id": media_id, "timeline_start": 0, "source_in": 0, "duration": 4 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+
+    // 1. Link the two clips
+    let link_res = engine
+        .execute(CommandRequest::new(
+            "timeline.link_clips",
+            json!({
+                "clips": [
+                    {"track_id": v_track_id, "clip_index": 0},
+                    {"track_id": a_track_id, "clip_index": 0}
+                ]
+            }),
+        ))
+        .unwrap();
+    assert!(link_res["linked"].as_bool().unwrap());
+    let group_id = link_res["group_id"].as_u64().unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].group_id, Some(group_id));
+    assert_eq!(engine.document().project.sequence.tracks[1].clips[0].group_id, Some(group_id));
+
+    // 2. Batch move linked clips together by +2s
+    engine
+        .execute(CommandRequest::new(
+            "timeline.move_clips_batch",
+            json!({
+                "moves": [
+                    {"track_id": v_track_id, "clip_index": 0, "timeline_start": 2 * TICKS_PER_SECOND},
+                    {"track_id": a_track_id, "clip_index": 0, "timeline_start": 2 * TICKS_PER_SECOND}
+                ]
+            }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].timeline_start.0, 2 * TICKS_PER_SECOND);
+    assert_eq!(engine.document().project.sequence.tracks[1].clips[0].timeline_start.0, 2 * TICKS_PER_SECOND);
+
+    // 3. Rate Stretch video clip from 4s to 8s (slow motion -> 0.5x speed)
+    let stretch_res = engine
+        .execute(CommandRequest::new(
+            "timeline.rate_stretch",
+            json!({
+                "track_id": v_track_id,
+                "clip_index": 0,
+                "new_duration": 8 * TICKS_PER_SECOND
+            }),
+        ))
+        .unwrap();
+    assert!(stretch_res["stretched"].as_bool().unwrap());
+    assert_eq!(stretch_res["speed"].as_f64().unwrap(), 0.5);
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].duration.0, 8 * TICKS_PER_SECOND);
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].speed, 0.5);
+
+    // Test setting speed directly: 2.0x (fast motion)
+    let speed_res = engine
+        .execute(CommandRequest::new(
+            "timeline.rate_stretch",
+            json!({
+                "track_id": v_track_id,
+                "clip_index": 0,
+                "speed": 2.0
+            }),
+        ))
+        .unwrap();
+    assert_eq!(speed_res["speed"].as_f64().unwrap(), 2.0);
+    // At 2x speed, the 4s content takes 2s timeline duration
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].duration.0, 2 * TICKS_PER_SECOND);
+
+    // Undo rate stretch
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].speed, 0.5);
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].speed, 1.0);
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].duration.0, 4 * TICKS_PER_SECOND);
+
+    // 4. Unlink clips
+    engine
+        .execute(CommandRequest::new(
+            "timeline.unlink_clips",
+            json!({
+                "clips": [{"track_id": v_track_id, "clip_index": 0}]
+            }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].group_id, None);
+    assert_eq!(engine.document().project.sequence.tracks[1].clips[0].group_id, None);
+
+    // Undo unlink
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].group_id, Some(group_id));
+    assert_eq!(engine.document().project.sequence.tracks[1].clips[0].group_id, Some(group_id));
+}
+

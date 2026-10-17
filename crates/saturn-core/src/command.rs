@@ -299,6 +299,48 @@ pub const COMMANDS: &[CommandSpec] = &[
         shortcut: None,
         mutating: true,
     },
+    CommandSpec {
+        id: "timeline.roll_edit",
+        label: "Rolling Edit",
+        menu: &["Timeline"],
+        shortcut: Some("N"),
+        mutating: true,
+    },
+    CommandSpec {
+        id: "timeline.slide_clip",
+        label: "Slide Edit",
+        menu: &["Timeline"],
+        shortcut: Some("U"),
+        mutating: true,
+    },
+    CommandSpec {
+        id: "timeline.rate_stretch",
+        label: "Rate Stretch",
+        menu: &["Clip"],
+        shortcut: Some("X"),
+        mutating: true,
+    },
+    CommandSpec {
+        id: "timeline.link_clips",
+        label: "Link Clips",
+        menu: &["Clip"],
+        shortcut: Some("Ctrl+L"),
+        mutating: true,
+    },
+    CommandSpec {
+        id: "timeline.unlink_clips",
+        label: "Unlink Clips",
+        menu: &["Clip"],
+        shortcut: Some("Ctrl+Shift+L"),
+        mutating: true,
+    },
+    CommandSpec {
+        id: "timeline.move_clips_batch",
+        label: "Move Clips Batch",
+        menu: &["Timeline"],
+        shortcut: None,
+        mutating: true,
+    },
 ];
 
 pub fn command_catalogue() -> &'static [CommandSpec] {

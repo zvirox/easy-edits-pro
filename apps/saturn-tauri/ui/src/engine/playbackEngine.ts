@@ -90,6 +90,8 @@ export interface Clip {
   timeline_start: number;
   source_in: number;
   duration: number;
+  speed?: number;
+  group_id?: number | null;
   color: ColorAdjustments;
   effects?: EffectInstance[];
   keyframes: Keyframe[];
@@ -608,7 +610,8 @@ export function evaluateTimelinePlayback(
         if (item && (item.kind === "audio" || (item.kind === "video" && track.kind === "video"))) {
           const src = resolveMediaStreamUrl(item, preparedPreviews, mediaServerPort);
           if (src) {
-            const currentTime = Math.max(0, (clip.source_in + playhead - clip.timeline_start) / TICKS_PER_SECOND);
+            const speed = clip.speed ?? 1.0;
+            const currentTime = Math.max(0, (clip.source_in + (playhead - clip.timeline_start) * speed) / TICKS_PER_SECOND);
             activeAudioClips.push({
               track,
               clip,
@@ -775,8 +778,10 @@ export function evaluateTimelinePlayback(
     const outSrc = resolveMediaStreamUrl(outMedia, preparedPreviews, mediaServerPort);
     const inSrc = resolveMediaStreamUrl(inMedia, preparedPreviews, mediaServerPort);
 
-    const outTime = outgoing ? Math.max(0, (outgoing.source_in + playhead - outgoing.timeline_start) / TICKS_PER_SECOND) : 0;
-    const inTime = incoming ? Math.max(0, (incoming.source_in + playhead - incoming.timeline_start) / TICKS_PER_SECOND) : 0;
+    const outSpeed = outgoing?.speed ?? 1.0;
+    const inSpeed = incoming?.speed ?? 1.0;
+    const outTime = outgoing ? Math.max(0, (outgoing.source_in + (playhead - outgoing.timeline_start) * outSpeed) / TICKS_PER_SECOND) : 0;
+    const inTime = incoming ? Math.max(0, (incoming.source_in + (playhead - incoming.timeline_start) * inSpeed) / TICKS_PER_SECOND) : 0;
 
     const blend = computeTransitionBlend(activeTransition, playhead);
     const outBaseStyle = computeVisualStyles(outgoing ?? null);
@@ -821,7 +826,8 @@ export function evaluateTimelinePlayback(
   // Case B: Standard Single Active Clip with Next Clip Preloaded on Staging Deck
   if (activeClip && activeMedia && activeTrack) {
     const activeSrc = resolveMediaStreamUrl(activeMedia, preparedPreviews, mediaServerPort);
-    const activeTime = Math.max(0, (activeClip.source_in + playhead - activeClip.timeline_start) / TICKS_PER_SECOND);
+    const clipSpeed = activeClip.speed ?? 1.0;
+    const activeTime = Math.max(0, (activeClip.source_in + (playhead - activeClip.timeline_start) * clipSpeed) / TICKS_PER_SECOND);
     const activeStyle = computeVisualStyles(activeClip);
 
     // Look ahead for the next clip on the same video track

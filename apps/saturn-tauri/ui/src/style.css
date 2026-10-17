@@ -622,6 +622,44 @@ button:disabled { opacity: .48; cursor: not-allowed; }
 .clip-waveform-container { position: absolute; inset: 0; pointer-events: none; display: flex; align-items: center; overflow: hidden; color: #34d399; opacity: 0.82; }
 .clip-waveform-svg { width: 100%; height: 100%; }
 
+.timeline-clip.tool-select { cursor: grab; }
+.timeline-clip.tool-razor { cursor: crosshair; }
+.timeline-clip.tool-slip { cursor: ew-resize; }
+.timeline-clip.tool-rolling { cursor: col-resize; }
+.timeline-clip.tool-slide { cursor: grab; }
+.timeline-clip.tool-rateStretch { cursor: ew-resize; }
+.timeline-clip.tool-ripple { cursor: w-resize; }
+.timeline-clip.tool-trackSelectForward { cursor: e-resize; }
+.timeline-clip.tool-hand { cursor: grab; }
+
+.timeline-clip.tool-rolling.dragging { cursor: col-resize !important; }
+.timeline-clip.tool-slide.dragging { cursor: grabbing !important; }
+.timeline-clip.tool-rateStretch.dragging { cursor: ew-resize !important; }
+.timeline-clip.tool-slip.dragging { cursor: ew-resize !important; }
+
+.clip-speed-badge {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(234, 179, 8, 0.25);
+  border: 1px solid rgba(234, 179, 8, 0.6);
+  color: #fde047;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.clip-group-badge {
+  position: relative;
+  z-index: 1;
+  margin-left: 4px;
+  font-size: 9px;
+  opacity: 0.85;
+}
+
 /* Transitions */
 .timeline-transition-badge { position: absolute; top: 9px; height: 26px; z-index: 3; display: flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 4px; background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); border: 1px solid #38bdf8; color: #7dd3fc; font-size: 8.5px; font-weight: 600; cursor: pointer; user-select: none; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 6px rgba(56, 189, 248, 0.2); backdrop-filter: blur(6px); transition: all 0.15s ease; }
 .timeline-transition-badge:hover { border-color: #00f2fe; box-shadow: 0 0 10px rgba(0, 242, 254, 0.4); transform: translateY(-1px); }

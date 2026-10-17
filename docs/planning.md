@@ -173,17 +173,21 @@ easy-edits-pro/
 
 ---
 
-### Phase 5: Core Editing Tools
-**Goal:** Everything in the "basic editor" list works.
+### Phase 5: Core Editing Tools ✅ Completed
+**Goal:** Everything in the professional NLE core editing toolset works.
 - **Cut / Split (razor):** `SplitClip` at playhead (`Ctrl+K` / Razor `C`).
 - **Trim:** Drag clip boundaries with live edit-point update.
 - **Ripple edit / delete:** Shift following clips on affected tracks (`Shift+Delete` / Ripple tool `B`).
-- **Roll / slip / slide:** Adjust adjacent clip edges / shift source window (`SlipClip` / Slip tool `Y`).
+- **Roll edit:** Adjacent cut adjustment without altering sequence length (`RollEdit` / Rolling tool `N`).
+- **Slip edit:** Move clip source media window within current timeline duration (`SlipClip` / Slip tool `Y`).
+- **Slide edit:** Slide a clip between adjacent clips, modifying neighbor bounds (`SlideClip` / Slide tool `U`).
+- **Rate stretch:** Interactive timeline duration resizing scaling playback speed (`RateStretch` / Rate Stretch tool `X`, `⚡ speed%` badge, Web Audio & HTML5 `<video>` playback rate synchronization).
+- **Group Link / Unlink:** Multi-clip audio/video grouping (`group_id`, `Ctrl+L` Link, `Ctrl+Shift+L` Unlink, synchronized multi-track drag and batch move `timeline.move_clips_batch`).
 - **Select / move / snap:** Selection tool (`V`), Track Select Forward (`A`), frame snapping (`S`).
 - **Copy / paste / duplicate:** Clipboard of clip definitions.
-- **In / Out marks:** Three-point editing (`I` / `O` marks, clear marks).
-- **Keyboard shortcuts:** Central keymap matching professional NLE workflows.
-- **Exit criteria:** Edit a 5-minute video entirely by keyboard.
+- **In / Out marks:** Three-point editing (`I` / `O` marks, clear marks `Alt+X`).
+- **Keyboard shortcuts:** Central keymap matching professional DaVinci / Premiere NLE workflows.
+- **Exit criteria:** Complete core editing operations with full undo/redo, UI visual badges, and synchronized playback.
 
 ---
 

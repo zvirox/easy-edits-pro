@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 pub const PROJECT_FORMAT: &str = "project-saturn.project";
-pub const PROJECT_SCHEMA_VERSION: u32 = 5;
+pub const PROJECT_SCHEMA_VERSION: u32 = 6;
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -217,12 +217,20 @@ pub enum TrackKind {
     Audio,
 }
 
+fn default_speed() -> f64 {
+    1.0
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Clip {
     pub media_id: u64,
     pub timeline_start: Tick,
     pub source_in: Tick,
     pub duration: Tick,
+    #[serde(default = "default_speed")]
+    pub speed: f64,
+    #[serde(default)]
+    pub group_id: Option<u64>,
     #[serde(default)]
     pub color: ColorAdjustments,
     #[serde(default)]
@@ -731,7 +739,7 @@ fn migrate_project(value: &mut serde_json::Value) -> Result<(), String> {
             });
             migrate_project(value)
         }
-        2 | 3 | 4 => {
+        2 | 3 | 4 | 5 => {
             value
                 .as_object_mut()
                 .ok_or_else(|| "Project root must be an object".to_string())?
@@ -816,6 +824,8 @@ mod tests {
             timeline_start: Tick(0),
             source_in: Tick(100),
             duration: Tick(500),
+            speed: 1.0,
+            group_id: None,
             color: Default::default(),
             effects: Vec::new(),
             keyframes: Vec::new(),
@@ -825,6 +835,8 @@ mod tests {
             timeline_start: Tick(500),
             source_in: Tick(0),
             duration: Tick(400),
+            speed: 1.0,
+            group_id: None,
             color: Default::default(),
             effects: Vec::new(),
             keyframes: Vec::new(),
@@ -869,6 +881,8 @@ mod tests {
             timeline_start: Tick(0),
             source_in: Tick(0),
             duration: Tick(300),
+            speed: 1.0,
+            group_id: None,
             color: Default::default(),
             effects: Vec::new(),
             keyframes: Vec::new(),

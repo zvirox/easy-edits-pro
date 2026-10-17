@@ -39,7 +39,7 @@ interface JobInfo {
 }
 
 type Workspace = "edit" | "color" | "effects" | "audio" | "keyframes" | "export" | "library" | "ai";
-type TimelineTool = "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand" | "zoom";
+type TimelineTool = "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "pen" | "hand" | "zoom";
 type DavinciWorkspace = "media" | "edit" | "color" | "audio" | "effects" | "deliver";
 type FilmoraTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
 type MediaKind = "video" | "audio" | "image" | "title" | "unknown";
@@ -85,6 +85,8 @@ type Clip = {
   timeline_start: number;
   source_in: number;
   duration: number;
+  speed?: number;
+  group_id?: number | null;
   color: ColorAdjustments;
   effects?: EffectInstance[];
   keyframes: Keyframe[];
@@ -247,8 +249,11 @@ const timelineTools: { id: TimelineTool; icon: IconName; label: string; shortLab
   { id: "select", icon: "select", label: "Selection Tool", shortLabel: "Select", shortcut: "V" },
   { id: "trackForward", icon: "trackForward", label: "Track Select Forward", shortLabel: "Track", shortcut: "A" },
   { id: "ripple", icon: "ripple", label: "Ripple Edit Tool", shortLabel: "Ripple", shortcut: "B" },
+  { id: "rolling", icon: "rolling", label: "Rolling Edit Tool", shortLabel: "Rolling", shortcut: "N" },
   { id: "razor", icon: "razor", label: "Razor Tool", shortLabel: "Razor", shortcut: "C" },
   { id: "slip", icon: "slip", label: "Slip Tool", shortLabel: "Slip", shortcut: "Y" },
+  { id: "slide", icon: "slide", label: "Slide Edit Tool", shortLabel: "Slide", shortcut: "U" },
+  { id: "rateStretch", icon: "rateStretch", label: "Rate Stretch Tool", shortLabel: "Stretch", shortcut: "X" },
   { id: "pen", icon: "pen", label: "Keyframe Pen Tool", shortLabel: "Pen", shortcut: "P" },
   { id: "hand", icon: "hand", label: "Hand Pan Tool", shortLabel: "Hand", shortcut: "H" },
   { id: "zoom", icon: "zoomIn", label: "Zoom Tool", shortLabel: "Zoom", shortcut: "Z" },
@@ -267,7 +272,7 @@ async function runCommand<T = unknown>(id: string, params: unknown = null): Prom
   return invoke<T>("execute_command", { request: { id, params } });
 }
 
-type IconName = "fullscreen" | "restore" | "close" | "media" | "add" | "undo" | "redo" | "select" | "trackForward" | "ripple" | "razor" | "slip" | "pen" | "hand" | "snap" | "split" | "remove" | "markIn" | "markOut" | "zoomIn" | "zoomOut" | "clearMarks" | "export" | "fileNew" | "fileOpen" | "fileSave" | "import" | "help" | "window" | "title" | "transition" | "sun" | "moon" | "color" | "audio" | "effects" | "deliver" | "edit" | "check";
+type IconName = "fullscreen" | "restore" | "close" | "media" | "add" | "undo" | "redo" | "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "link" | "unlink" | "pen" | "hand" | "snap" | "split" | "remove" | "markIn" | "markOut" | "zoomIn" | "zoomOut" | "clearMarks" | "export" | "fileNew" | "fileOpen" | "fileSave" | "import" | "help" | "window" | "title" | "transition" | "sun" | "moon" | "color" | "audio" | "effects" | "deliver" | "edit" | "check";
 
 function Icon({ name }: { name: IconName }) {
   const paths = {
@@ -282,8 +287,13 @@ function Icon({ name }: { name: IconName }) {
     select: <path d="m5 3 10 9-5 .7L8 18z" />,
     trackForward: <><path d="M3 4h8v4H3zM3 10h8v4H3zM3 16h8v2H3z" /><path d="M13 10h5m-2-2 2 2-2 2" /></>,
     ripple: <><path d="m8 5-4 5 4 5M16 5l4 5-4 5M10 10h4" /><path d="M3 18h14" /></>,
+    rolling: <><path d="M7 4v12m6-12v12M4 8l3 3-3 3m12-6-3 3 3 3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>,
     razor: <><circle cx="6" cy="6" r="2" /><circle cx="6" cy="14" r="2" /><path d="m8 7 9 9M8 13l9-9" /></>,
     slip: <><path d="M3 4h14v12H3zM6 2v2m8-2v2m-8 12v2m8-2v2" /><path d="M8 10h6m-2-2 2 2-2 2" /></>,
+    slide: <><rect x="6" y="5" width="8" height="10" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M3 10H1m0 0 1.5-1.5M1 10l1.5 1.5m16.5-1.5h-2m0 0-1.5-1.5m1.5 1.5 1.5 1.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>,
+    rateStretch: <><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M10 6v4l2.5 1.5M2 10h1.5m13 0h1.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>,
+    link: <path d="M8 11a3.5 3.5 0 0 0 5 .5l2-2a3.5 3.5 0 0 0-5-5l-1 1M12 9a3.5 3.5 0 0 0-5-.5l-2 2a3.5 3.5 0 0 0 5 5l1-1" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
+    unlink: <><path d="M13.5 8.5l1.5-1.5a3.5 3.5 0 0 0-5-5l-1 1M6.5 11.5l-1.5 1.5a3.5 3.5 0 0 0 5 5l1-1M3 3l14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>,
     pen: <><path d="m4 14 9-9 3 3-9 9H4zM12 6l3 3M4 17h12" /></>,
     hand: <path d="M6 11V5a1.5 1.5 0 0 1 3 0v5-7a1.5 1.5 0 0 1 3 0v7-5a1.5 1.5 0 0 1 3 0v6-3a1.5 1.5 0 0 1 3 0v5c0 4-2 7-6 7h-1c-2 0-3.5-1-4.5-2.5L3 13a1.8 1.8 0 0 1 3-2z" />,
     snap: <path d="M4 3v5a6 6 0 0 0 12 0V3M4 8h12M10 14v3m-3 0h6" />,
@@ -539,6 +549,10 @@ function App() {
   const previewPreparationInFlight = useRef(new Set<number>());
   const handPan = useRef<{ x: number; scrollLeft: number } | null>(null);
   const slipDrag = useRef<{ x: number; trackId: number; clipIndex: number } | null>(null);
+  const rollDrag = useRef<{ startX: number; trackId: number; leftClipIndex: number } | null>(null);
+  const slideDrag = useRef<{ startX: number; trackId: number; clipIndex: number } | null>(null);
+  const stretchDrag = useRef<{ startX: number; trackId: number; clipIndex: number; initialDuration: number; initialSpeed: number } | null>(null);
+  const linkedClipsDrag = useRef<Array<{ trackId: number; clipIndex: number; initialStart: number }>>([]);
   const clipPointerDrag = useRef<ClipPointerDrag | null>(null);
   const suppressClipClick = useRef(false);
   const mediaPointerDrag = useRef<MediaPointerDrag | null>(null);
@@ -1604,6 +1618,23 @@ function App() {
     setSelectedClips([]);
   }
 
+  async function linkSelectedClips() {
+    if (selectedClips.length < 2) {
+      setNotice("Select at least 2 clips (Shift+Click) to link them");
+      return;
+    }
+    await perform("timeline.link_clips", { clips: selectedClips }, `${selectedClips.length} clips linked`);
+  }
+
+  async function unlinkSelectedClips() {
+    const targets = selectedClips.length > 0 ? selectedClips : (selectedClip ? [selectedClip] : []);
+    if (targets.length === 0) {
+      setNotice("Select linked clips to unlink");
+      return;
+    }
+    await perform("timeline.unlink_clips", { clips: targets }, "Clips unlinked");
+  }
+
   async function handleTimelineClipClick(event: MouseEvent<HTMLDivElement>, trackId: number, clipIndex: number, clip: Clip) {
     if (suppressClipClick.current) {
       suppressClipClick.current = false;
@@ -1616,6 +1647,33 @@ function App() {
       return;
     }
     const selection = { track_id: trackId, clip_index: clipIndex };
+
+    // Multi-select with Shift / Ctrl / Cmd
+    if (event.shiftKey || event.ctrlKey || event.metaKey) {
+      const exists = selectedClips.some((c) => c.track_id === trackId && c.clip_index === clipIndex);
+      const next = exists
+        ? selectedClips.filter((c) => !(c.track_id === trackId && c.clip_index === clipIndex))
+        : [...selectedClips, selection];
+      setSelectedClips(next);
+      setSelectedClip(next[next.length - 1] ?? null);
+      setSelectedTransition(null);
+      return;
+    }
+
+    // Automatically select all clips in the same link group
+    if (clip.group_id != null) {
+      const linked = (project?.sequence.tracks ?? []).flatMap((t) =>
+        t.clips
+          .map((c, i) => ({ track_id: t.id, clip_index: i, clip: c }))
+          .filter((item) => item.clip.group_id === clip.group_id)
+          .map((item) => ({ track_id: item.track_id, clip_index: item.clip_index }))
+      );
+      setSelectedClips(linked);
+      setSelectedClip(selection);
+      setSelectedTransition(null);
+      return;
+    }
+
     setSelectedClip(selection);
     setSelectedTransition(null);
     if (timelineTool === "trackForward") {
@@ -1624,7 +1682,7 @@ function App() {
       return;
     }
     setSelectedClips([]);
-    if (timelineTool === "hand" || timelineTool === "slip") return;
+    if (timelineTool === "hand" || timelineTool === "slip" || timelineTool === "rolling" || timelineTool === "slide" || timelineTool === "rateStretch") return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const fraction = Math.max(0, Math.min(1, (event.clientX - bounds.left) / Math.max(1, bounds.width)));
     const clickedTime = Math.round(clip.timeline_start + fraction * clip.duration);
@@ -1658,13 +1716,70 @@ function App() {
       slipDrag.current = { x: event.clientX, trackId, clipIndex };
       return;
     }
+    if (timelineTool === "rolling") {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      const bounds = event.currentTarget.getBoundingClientRect();
+      const fraction = (event.clientX - bounds.left) / Math.max(1, bounds.width);
+      let leftClipIndex = clipIndex;
+      if (fraction < 0.35 && clipIndex > 0) {
+        leftClipIndex = clipIndex - 1;
+      }
+      rollDrag.current = { startX: event.clientX, trackId, leftClipIndex };
+      setSelectedClip({ track_id: trackId, clip_index: clipIndex });
+      setSelectedClips([]);
+      setSelectedTransition(null);
+      return;
+    }
+    if (timelineTool === "slide") {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      slideDrag.current = { startX: event.clientX, trackId, clipIndex };
+      setSelectedClip({ track_id: trackId, clip_index: clipIndex });
+      setSelectedClips([]);
+      setSelectedTransition(null);
+      return;
+    }
+    if (timelineTool === "rateStretch") {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      stretchDrag.current = {
+        startX: event.clientX,
+        trackId,
+        clipIndex,
+        initialDuration: clip.duration,
+        initialSpeed: clip.speed ?? 1.0,
+      };
+      setSelectedClip({ track_id: trackId, clip_index: clipIndex });
+      setSelectedClips([]);
+      setSelectedTransition(null);
+      return;
+    }
     if (timelineTool !== "select" || event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
     setSelectedClip({ track_id: trackId, clip_index: clipIndex });
-    setSelectedClips([]);
     setSelectedTransition(null);
+
+    // Track linked clips for synchronized dragging
+    if (clip.group_id != null) {
+      const linked = (project?.sequence.tracks ?? []).flatMap((t) =>
+        t.clips
+          .map((c, i) => ({ trackId: t.id, clipIndex: i, initialStart: c.timeline_start, group_id: c.group_id }))
+          .filter((item) => item.group_id === clip.group_id)
+          .map((item) => ({ trackId: item.trackId, clipIndex: item.clipIndex, initialStart: item.initialStart }))
+      );
+      linkedClipsDrag.current = linked;
+      setSelectedClips(linked.map((l) => ({ track_id: l.trackId, clip_index: l.clipIndex })));
+    } else {
+      linkedClipsDrag.current = [];
+      setSelectedClips([]);
+    }
+
     clipPointerDrag.current = {
       pointerId: event.pointerId,
       trackId,
@@ -1677,6 +1792,26 @@ function App() {
   }
 
   function moveTimelineClipPointer(event: PointerEvent<HTMLDivElement>) {
+    if (rollDrag.current) {
+      const deltaX = event.clientX - rollDrag.current.startX;
+      const deltaSec = (deltaX / timelineZoom).toFixed(2);
+      setNotice(`Rolling Edit: ${deltaX >= 0 ? "+" : ""}${deltaSec}s`);
+      return;
+    }
+    if (slideDrag.current) {
+      const deltaX = event.clientX - slideDrag.current.startX;
+      const deltaSec = (deltaX / timelineZoom).toFixed(2);
+      setNotice(`Slide Edit: ${deltaX >= 0 ? "+" : ""}${deltaSec}s`);
+      return;
+    }
+    if (stretchDrag.current) {
+      const deltaX = event.clientX - stretchDrag.current.startX;
+      const deltaTicks = (deltaX / timelineZoom) * TICKS_PER_SECOND;
+      const proposedDur = Math.max(TICKS_PER_SECOND / 30, stretchDrag.current.initialDuration + deltaTicks);
+      const speed = (stretchDrag.current.initialDuration * stretchDrag.current.initialSpeed) / proposedDur;
+      setNotice(`Rate Stretch: ${Math.round(speed * 100)}% (${(proposedDur / TICKS_PER_SECOND).toFixed(2)}s)`);
+      return;
+    }
     const drag = clipPointerDrag.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     const x = event.clientX - drag.startX;
@@ -1689,6 +1824,10 @@ function App() {
     if (clipPointerDrag.current?.pointerId === event.pointerId) clipPointerDrag.current = null;
     setClipDragOffset(null);
     slipDrag.current = null;
+    rollDrag.current = null;
+    slideDrag.current = null;
+    stretchDrag.current = null;
+    linkedClipsDrag.current = [];
   }
 
   async function finishSlip(event: PointerEvent<HTMLDivElement>) {
@@ -1706,6 +1845,50 @@ function App() {
       await finishSlip(event);
       return;
     }
+    if (rollDrag.current) {
+      const drag = rollDrag.current;
+      rollDrag.current = null;
+      const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
+      const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
+      const deltaX = event.clientX - drag.startX;
+      const deltaTicks = snapEnabled
+        ? Math.round((deltaX / timelineZoom * TICKS_PER_SECOND) / frameTicks) * frameTicks
+        : Math.round(deltaX / timelineZoom * TICKS_PER_SECOND);
+      if (deltaTicks !== 0) {
+        await perform("timeline.roll_edit", { track_id: drag.trackId, left_clip_index: drag.leftClipIndex, delta: deltaTicks }, "Rolling edit applied");
+      }
+      return;
+    }
+    if (slideDrag.current) {
+      const drag = slideDrag.current;
+      slideDrag.current = null;
+      const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
+      const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
+      const deltaX = event.clientX - drag.startX;
+      const deltaTicks = snapEnabled
+        ? Math.round((deltaX / timelineZoom * TICKS_PER_SECOND) / frameTicks) * frameTicks
+        : Math.round(deltaX / timelineZoom * TICKS_PER_SECOND);
+      if (deltaTicks !== 0) {
+        await perform("timeline.slide_clip", { track_id: drag.trackId, clip_index: drag.clipIndex, delta: deltaTicks }, "Slide edit applied");
+      }
+      return;
+    }
+    if (stretchDrag.current) {
+      const drag = stretchDrag.current;
+      stretchDrag.current = null;
+      const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
+      const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
+      const deltaX = event.clientX - drag.startX;
+      const proposedDur = Math.max(frameTicks, drag.initialDuration + (deltaX / timelineZoom * TICKS_PER_SECOND));
+      const newDuration = snapEnabled
+        ? Math.round(proposedDur / frameTicks) * frameTicks
+        : Math.round(proposedDur);
+      if (newDuration !== drag.initialDuration) {
+        await perform("timeline.rate_stretch", { track_id: drag.trackId, clip_index: drag.clipIndex, new_duration: newDuration }, "Rate stretch applied");
+      }
+      return;
+    }
+
     const drag = clipPointerDrag.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     clipPointerDrag.current = null;
@@ -1721,13 +1904,29 @@ function App() {
     suppressClipClick.current = true;
     window.setTimeout(() => { suppressClipClick.current = false; }, 0);
 
+    const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
+    const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
+
+    // If moving linked clips together
+    if (linkedClipsDrag.current.length > 1) {
+      const deltaTicks = snapEnabled
+        ? Math.round((deltaX / timelineZoom * TICKS_PER_SECOND) / frameTicks) * frameTicks
+        : Math.round(deltaX / timelineZoom * TICKS_PER_SECOND);
+      const moves = linkedClipsDrag.current.map((item) => ({
+        track_id: item.trackId,
+        clip_index: item.clipIndex,
+        timeline_start: Math.max(0, item.initialStart + deltaTicks),
+      }));
+      linkedClipsDrag.current = [];
+      await perform("timeline.move_clips_batch", { moves }, "Linked clips moved");
+      return;
+    }
+
     const targetLane = Array.from(document.querySelectorAll<HTMLElement>(".track-lane")).find((lane) => {
       const bounds = lane.getBoundingClientRect();
       return event.clientY >= bounds.top && event.clientY <= bounds.bottom;
     });
     const targetTrackId = targetLane?.dataset.trackId ? Number(targetLane.dataset.trackId) : drag.trackId;
-    const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
-    const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
     const proposedStart = Math.max(0, drag.startTime + deltaX / timelineZoom * TICKS_PER_SECOND);
     const timelineStart = snapEnabled
       ? Math.round(proposedStart / frameTicks) * frameTicks
@@ -1787,7 +1986,9 @@ function App() {
       case "view.zoom_out": zoomTimeline(1 / 1.2); break;
       case "view.zoom_reset": zoomTimeline(72 / timelineZoom); break;
       case "app.quit": await getCurrentWindow().close(); break;
-      case "help.shortcuts": setNotice("Timeline tools: V Select · A Track Select Forward · C Razor · B Ripple · Y Slip · P Keyframe · H Hand · S Snap"); break;
+      case "timeline.link_clips": await linkSelectedClips(); break;
+      case "timeline.unlink_clips": await unlinkSelectedClips(); break;
+      case "help.shortcuts": setNotice("Timeline tools: V Select · A Track Select Forward · C Razor · B Ripple · N Rolling · Y Slip · U Slide · X Rate Stretch · P Keyframe · H Hand · S Snap · Ctrl+L Link · Ctrl+Shift+L Unlink"); break;
       case "help.about": setNotice("Easy Edits Pro · Open source Linux video editor"); break;
       default:
         if (id.startsWith("workspace.")) {
@@ -2649,7 +2850,21 @@ function App() {
               </>
             );
           }
-          return <><h2>Clip inspector</h2><p>{mediaForClip?.name ?? "Timeline clip"}</p><div className="control">Start <span>{formatTime(selectedTimelineClip.timeline_start)}</span></div><div className="control">Duration <span>{formatTime(selectedTimelineClip.duration)}</span></div><div className="control">Source in <span>{formatTime(selectedTimelineClip.source_in)}</span></div><button className="danger-button" onClick={removeSelectedClip}>Remove clip</button></>;
+          return (
+            <>
+              <h2>Clip inspector</h2>
+              <p>{mediaForClip?.name ?? "Timeline clip"}</p>
+              <div className="control">Start <span>{formatTime(selectedTimelineClip.timeline_start)}</span></div>
+              <div className="control">Duration <span>{formatTime(selectedTimelineClip.duration)}</span></div>
+              <div className="control">Source in <span>{formatTime(selectedTimelineClip.source_in)}</span></div>
+              <div className="control">Speed <span>{Math.round((selectedTimelineClip.speed ?? 1.0) * 100)}% ({selectedTimelineClip.speed ?? 1.0}x)</span></div>
+              <div className="control">Group Link <span>{selectedTimelineClip.group_id != null ? `Group #${selectedTimelineClip.group_id}` : "Unlinked"}</span></div>
+              {selectedTimelineClip.group_id != null ? (
+                <button className="secondary" onClick={() => void unlinkSelectedClips()} disabled={busy}>Unlink from group</button>
+              ) : null}
+              <button className="danger-button" onClick={removeSelectedClip}>Remove clip</button>
+            </>
+          );
         }
         return <><h2>Inspector</h2><p>Select media or a clip to inspect its properties.</p>{selectedMedia ? <><div className="control">Type <span>{selectedMedia.kind}</span></div><div className="control">Duration <span>{selectedMedia.duration ? formatTime(selectedMedia.duration) : "—"}</span></div><div className="control">Dimensions <span>{selectedMedia.width && selectedMedia.height ? `${selectedMedia.width} × ${selectedMedia.height}` : "—"}</span></div></> : <div className="control">No selection</div>}</>;
     }
@@ -4168,6 +4383,16 @@ function App() {
         void addTransitionToTimeline();
         return;
       }
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "l") {
+        event.preventDefault();
+        void unlinkSelectedClips();
+        return;
+      }
+      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "l") {
+        event.preventDefault();
+        void linkSelectedClips();
+        return;
+      }
       if ((event.ctrlKey || event.metaKey) && event.altKey && event.key.toLowerCase() === "t") {
         event.preventDefault();
         toggleTheme();
@@ -4747,6 +4972,9 @@ function App() {
                   <button className="timeline-icon-button" disabled={!selectedClip || busy} onClick={() => void rippleDeleteSelectedClip()} data-tooltip="Ripple Delete Selected Clip (Shift+Del)" data-tooltip-pos="top" aria-label="Ripple delete"><Icon name="ripple" /></button>
                   <button className="timeline-icon-button" disabled={!selectedClip || busy} onClick={() => void removeSelectedClip()} data-tooltip="Remove Selected Clip (Del)" data-tooltip-pos="top" aria-label="Remove clip"><Icon name="remove" /></button>
                   <span className="toolbar-divider" />
+                  <button className="timeline-icon-button" disabled={selectedClips.length < 2 || busy} onClick={() => void linkSelectedClips()} data-tooltip="Link Selected Clips (Ctrl+L)" data-tooltip-pos="top" aria-label="Link clips"><Icon name="link" /></button>
+                  <button className="timeline-icon-button" disabled={(!selectedClip && selectedClips.length === 0) || busy} onClick={() => void unlinkSelectedClips()} data-tooltip="Unlink Selected Clips (Ctrl+Shift+L)" data-tooltip-pos="top" aria-label="Unlink clips"><Icon name="unlink" /></button>
+                  <span className="toolbar-divider" />
                   <button className="timeline-icon-button" disabled={busy} onClick={() => void invokeMenuCommand("timeline.set_mark_in")} data-tooltip="Set In Point (I)" data-tooltip-pos="top" aria-label="Set In point"><Icon name="markIn" /></button>
                   <button className="timeline-icon-button" disabled={busy} onClick={() => void invokeMenuCommand("timeline.set_mark_out")} data-tooltip="Set Out Point (O)" data-tooltip-pos="top" aria-label="Set Out point"><Icon name="markOut" /></button>
                   <button className="timeline-icon-button" disabled={project?.sequence.mark_in == null && project?.sequence.mark_out == null} onClick={() => void invokeMenuCommand("timeline.clear_marks")} data-tooltip="Clear In/Out Markers (Alt+X)" data-tooltip-pos="top" aria-label="Clear markers"><Icon name="clearMarks" /></button>
@@ -4820,8 +5048,10 @@ function App() {
                         const item = media.find((entry) => entry.id === clip.media_id);
                         const isTitle = item?.kind === "title";
                         const selected = (selectedClip?.track_id === track.id && selectedClip.clip_index === index) || selectedClips.some((item) => item.track_id === track.id && item.clip_index === index);
-                        const dragOffset = clipDragOffset?.trackId === track.id && clipDragOffset.clipIndex === index ? clipDragOffset : null;
-                        return <div className={`timeline-clip ${selected ? "selected" : ""} ${track.kind} ${isTitle ? "title-clip" : ""} tool-${timelineTool} ${dragOffset ? "dragging" : ""}`} key={`${track.id}-${clip.media_id}-${index}-${clip.timeline_start}`} style={{ left: `${clip.timeline_start / TICKS_PER_SECOND * timelineZoom}px`, width: `${Math.max(34, clip.duration / TICKS_PER_SECOND * timelineZoom)}px`, transform: dragOffset ? `translate3d(${dragOffset.x}px, ${dragOffset.y}px, 0)` : undefined }} onPointerDown={(event) => beginTimelineClipPointer(event, track.id, index, clip)} onPointerMove={moveTimelineClipPointer} onPointerUp={(event) => void finishTimelineClipPointer(event)} onPointerCancel={handleTimelineClipPointerCancel} onClick={(event) => void handleTimelineClipClick(event, track.id, index, clip)} title={`${item?.name ?? "Clip"} · ${timelineTools.find((tool) => tool.id === timelineTool)?.label}`}>
+                        const isDirectDrag = clipDragOffset?.trackId === track.id && clipDragOffset.clipIndex === index;
+                        const isLinkedDrag = clipDragOffset != null && clip.group_id != null && linkedClipsDrag.current.some((l) => l.trackId === track.id && l.clipIndex === index);
+                        const activeDrag = isDirectDrag ? clipDragOffset : isLinkedDrag ? { x: clipDragOffset.x, y: 0 } : null;
+                        return <div className={`timeline-clip ${selected ? "selected" : ""} ${track.kind} ${isTitle ? "title-clip" : ""} tool-${timelineTool} ${activeDrag ? "dragging" : ""}`} key={`${track.id}-${clip.media_id}-${index}-${clip.timeline_start}`} style={{ left: `${clip.timeline_start / TICKS_PER_SECOND * timelineZoom}px`, width: `${Math.max(34, clip.duration / TICKS_PER_SECOND * timelineZoom)}px`, transform: activeDrag ? `translate3d(${activeDrag.x}px, ${activeDrag.y}px, 0)` : undefined }} onPointerDown={(event) => beginTimelineClipPointer(event, track.id, index, clip)} onPointerMove={moveTimelineClipPointer} onPointerUp={(event) => void finishTimelineClipPointer(event)} onPointerCancel={handleTimelineClipPointerCancel} onClick={(event) => void handleTimelineClipClick(event, track.id, index, clip)} title={`${item?.name ?? "Clip"} · ${timelineTools.find((tool) => tool.id === timelineTool)?.label}`}>
                           {track.kind === "audio" && item?.waveform && item.waveform.length > 0 && (
                             <div className="clip-waveform-container" aria-hidden="true">
                               <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
@@ -4840,6 +5070,12 @@ function App() {
                           )}
                           <span className="clip-kind-icon">{isTitle ? "T" : track.kind === "audio" ? "♪" : "▶"}</span>
                           <strong>{item?.name ?? "Missing media"}</strong>
+                          {clip.speed && clip.speed !== 1.0 && (
+                            <span className="clip-speed-badge">⚡{Math.round(clip.speed * 100)}%</span>
+                          )}
+                          {clip.group_id != null && (
+                            <span className="clip-group-badge" title={`Linked Group #${clip.group_id}`}>🔗</span>
+                          )}
                         </div>;
                       })}
                       <div className="playhead-grip" style={{ left: `${playhead / TICKS_PER_SECOND * timelineZoom}px` }} role="slider" aria-label="Timeline playhead" aria-valuenow={playhead / TICKS_PER_SECOND} aria-valuemin={0} aria-valuemax={timelineEndSeconds} onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}><i className="playhead" /></div>
