@@ -20,10 +20,17 @@ export interface Transition {
 
 export type KeyframeProperty = "position_x" | "position_y" | "scale" | "rotation" | "opacity";
 
+export type InterpolationKind = "linear" | "ease_in" | "ease_out" | "ease_in_out" | "bezier";
+
 export interface Keyframe {
   property: KeyframeProperty;
   time: number;
   value: number;
+  interpolation?: InterpolationKind;
+  handle_in_x?: number | null;
+  handle_in_y?: number | null;
+  handle_out_x?: number | null;
+  handle_out_y?: number | null;
 }
 
 export interface ColorAdjustments {
@@ -38,7 +45,8 @@ export type EffectKind =
   | "gaussian_blur"
   | "crop"
   | "vignette"
-  | "chroma_key";
+  | "chroma_key"
+  | "lut";
 
 export interface ColorCorrectionParams {
   exposure: number;
@@ -71,19 +79,27 @@ export interface ChromaKeyParams {
   spill_suppression: number;
 }
 
+export interface LutParams {
+  name: string;
+  path?: string | null;
+  intensity: number;
+  preset_id?: string | null;
+}
+
 export type EffectPayload =
   | { kind: "color_correction"; params: ColorCorrectionParams }
   | { kind: "gaussian_blur"; params: GaussianBlurParams }
   | { kind: "crop"; params: CropParams }
   | { kind: "vignette"; params: VignetteParams }
-  | { kind: "chroma_key"; params: ChromaKeyParams };
+  | { kind: "chroma_key"; params: ChromaKeyParams }
+  | { kind: "lut"; params: LutParams };
 
 export interface EffectInstance {
   id: number;
   name: string;
   enabled: boolean;
   kind: EffectKind;
-  params: ColorCorrectionParams | GaussianBlurParams | CropParams | VignetteParams | ChromaKeyParams;
+  params: ColorCorrectionParams | GaussianBlurParams | CropParams | VignetteParams | ChromaKeyParams | LutParams;
 }
 
 export interface Clip {
@@ -148,6 +164,13 @@ export interface MediaAsset {
   waveform?: number[] | null;
 }
 
+export interface SubtitleItem {
+  id: number;
+  start_ticks: number;
+  end_ticks: number;
+  text: string;
+}
+
 export interface ProjectDocument {
   project: {
     name: string;
@@ -157,6 +180,7 @@ export interface ProjectDocument {
       tracks: Track[];
       mark_in: number | null;
       mark_out: number | null;
+      subtitles?: SubtitleItem[];
     };
     settings: {
       width: number;
@@ -476,7 +500,66 @@ class AudioClockMaster {
 export const audioClockMaster = new AudioClockMaster();
 
 /**
- * Computes an animated keyframe property value with linear interpolation.
+ * Evaluates a cubic bezier curve at parameter t in [0, 1] with control points (0,0), (x1, y1), (x2, y2), (1,1).
+ */
+export function solveCubicBezier(t: number, x1: number, y1: number, x2: number, y2: number): number {
+  const clampedT = Math.max(0, Math.min(1, t));
+  if (clampedT <= 0) return 0;
+  if (clampedT >= 1) return 1;
+
+  // B(s) = 3(1-s)^2*s*P1 + 3(1-s)*s^2*P2 + s^3
+  const cx = 3 * x1;
+  const bx = 3 * (x2 - x1) - cx;
+  const ax = 1 - cx - bx;
+
+  const cy = 3 * y1;
+  const by = 3 * (y2 - y1) - cy;
+  const ay = 1 - cy - by;
+
+  const sampleCurveX = (s: number) => ((ax * s + bx) * s + cx) * s;
+  const sampleCurveY = (s: number) => ((ay * s + by) * s + cy) * s;
+  const sampleCurveDerivativeX = (s: number) => (3 * ax * s + 2 * bx) * s + cx;
+
+  // Newton-Raphson iteration
+  let s = clampedT;
+  for (let i = 0; i < 8; i++) {
+    const x = sampleCurveX(s) - clampedT;
+    if (Math.abs(x) < 1e-5) return sampleCurveY(s);
+    const d = sampleCurveDerivativeX(s);
+    if (Math.abs(d) < 1e-5) break;
+    s -= x / d;
+  }
+
+  // Binary subdivision fallback
+  let lo = 0;
+  let hi = 1;
+  s = clampedT;
+  for (let i = 0; i < 12; i++) {
+    const x = sampleCurveX(s);
+    if (Math.abs(x - clampedT) < 1e-4) return sampleCurveY(s);
+    if (clampedT > x) lo = s;
+    else hi = s;
+    s = (hi + lo) / 2;
+  }
+
+  return sampleCurveY(s);
+}
+
+/**
+ * Extracts active subtitle item at a specific timeline playhead in ticks.
+ */
+export function getActiveSubtitle(subtitles: SubtitleItem[] | undefined, playheadTicks: number): SubtitleItem | null {
+  if (!subtitles || subtitles.length === 0) return null;
+  for (const sub of subtitles) {
+    if (playheadTicks >= sub.start_ticks && playheadTicks < sub.end_ticks) {
+      return sub;
+    }
+  }
+  return null;
+}
+
+/**
+ * Computes an animated keyframe property value with bezier & ease curve interpolation.
  */
 export function interpolateKeyframe(
   clip: Clip | undefined,
@@ -496,8 +579,38 @@ export function interpolateKeyframe(
   if (!prev || !next) return fallback;
   const span = next.time - prev.time;
   if (span <= 0) return prev.value;
-  const ratio = (clipTimeTicks - prev.time) / span;
-  return prev.value + (next.value - prev.value) * ratio;
+  const ratio = Math.max(0, Math.min(1, (clipTimeTicks - prev.time) / span));
+
+  const interp = prev.interpolation ?? "linear";
+  let progress = ratio;
+
+  switch (interp) {
+    case "linear":
+      progress = ratio;
+      break;
+    case "ease_in":
+      progress = solveCubicBezier(ratio, 0.42, 0.0, 1.0, 1.0);
+      break;
+    case "ease_out":
+      progress = solveCubicBezier(ratio, 0.0, 0.0, 0.58, 1.0);
+      break;
+    case "ease_in_out":
+      progress = solveCubicBezier(ratio, 0.42, 0.0, 0.58, 1.0);
+      break;
+    case "bezier": {
+      const x1 = prev.handle_out_x ?? 0.33;
+      const y1 = prev.handle_out_y ?? 0.0;
+      const x2 = next.handle_in_x ?? 0.67;
+      const y2 = next.handle_in_y ?? 1.0;
+      progress = solveCubicBezier(ratio, x1, y1, x2, y2);
+      break;
+    }
+    default:
+      progress = ratio;
+      break;
+  }
+
+  return prev.value + (next.value - prev.value) * progress;
 }
 
 export interface TransitionBlend {
@@ -681,6 +794,7 @@ export interface TimelinePlaybackSnapshot {
   transitionKind: TransitionKind | null;
   activeAudioClips: ActiveAudioClip[];
   activeTitleClip: { track: Track; clip: Clip; media: MediaAsset; title: TitleProperties } | null;
+  activeSubtitle: SubtitleItem | null;
   hasVideoMedia: boolean;
 }
 
@@ -719,6 +833,7 @@ export function evaluateTimelinePlayback(
     transitionKind: null,
     activeAudioClips: [],
     activeTitleClip: null,
+    activeSubtitle: null,
     hasVideoMedia: false,
   };
 
@@ -727,6 +842,8 @@ export function evaluateTimelinePlayback(
   const tracks = project.project.sequence.tracks;
   const projectWidth = project.project.settings.width || 1920;
   const projectHeight = project.project.settings.height || 1080;
+  const subtitles = project.project.sequence.subtitles;
+  const activeSubtitle = getActiveSubtitle(subtitles, playhead);
 
   // Compute sequence duration across all tracks
   let maxEnd = 0;
@@ -866,6 +983,37 @@ export function evaluateTimelinePlayback(
         } else if (eff.kind === "crop") {
           const p = eff.params as CropParams;
           cropInset = `inset(${p.top ?? 0}% ${p.right ?? 0}% ${p.bottom ?? 0}% ${p.left ?? 0}%)`;
+        } else if (eff.kind === "lut") {
+          const p = eff.params as LutParams;
+          const blend = Math.max(0, Math.min(1, p.intensity ?? 1.0));
+          const preset = p.preset_id ?? "teal_orange";
+          if (blend > 0) {
+            switch (preset) {
+              case "teal_orange":
+                contrast *= 1 + 0.15 * blend;
+                saturate *= 1 + 0.25 * blend;
+                hueRotate += -12 * blend;
+                break;
+              case "vintage":
+                contrast *= 1 - 0.08 * blend;
+                brightness *= 1 + 0.05 * blend;
+                saturate *= 1 - 0.15 * blend;
+                hueRotate += 8 * blend;
+                break;
+              case "film_noir":
+                saturate *= 1 - 1.0 * blend;
+                contrast *= 1 + 0.35 * blend;
+                break;
+              case "rec709":
+                contrast *= 1 + 0.12 * blend;
+                saturate *= 1 + 0.12 * blend;
+                break;
+              default:
+                contrast *= 1 + 0.1 * blend;
+                saturate *= 1 + 0.1 * blend;
+                break;
+            }
+          }
         }
       }
     } else {
@@ -957,6 +1105,7 @@ export function evaluateTimelinePlayback(
       transitionKind: activeTransition.kind,
       activeAudioClips,
       activeTitleClip,
+      activeSubtitle,
       hasVideoMedia: Boolean(outSrc || inSrc),
     };
   }
@@ -1007,6 +1156,7 @@ export function evaluateTimelinePlayback(
       transitionKind: null,
       activeAudioClips,
       activeTitleClip,
+      activeSubtitle,
       hasVideoMedia: true,
     };
   }
@@ -1063,6 +1213,7 @@ export function evaluateTimelinePlayback(
     transitionKind: null,
     activeAudioClips,
     activeTitleClip,
+    activeSubtitle,
     hasVideoMedia: false,
   };
 }

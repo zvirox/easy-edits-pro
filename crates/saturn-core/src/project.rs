@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 pub const PROJECT_FORMAT: &str = "project-saturn.project";
-pub const PROJECT_SCHEMA_VERSION: u32 = 6;
+pub const PROJECT_SCHEMA_VERSION: u32 = 7;
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -123,6 +123,14 @@ pub struct Transition {
     pub duration: Tick,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SubtitleItem {
+    pub id: u64,
+    pub start_ticks: Tick,
+    pub end_ticks: Tick,
+    pub text: String,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sequence {
     pub name: String,
@@ -131,6 +139,8 @@ pub struct Sequence {
     pub mark_in: Option<Tick>,
     #[serde(default)]
     pub mark_out: Option<Tick>,
+    #[serde(default)]
+    pub subtitles: Vec<SubtitleItem>,
 }
 
 impl Sequence {
@@ -283,6 +293,7 @@ pub enum EffectKind {
     Crop,
     Vignette,
     ChromaKey,
+    Lut,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -391,6 +402,32 @@ impl Default for ChromaKeyParams {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct LutParams {
+    #[serde(default = "default_lut_name")]
+    pub name: String,
+    #[serde(default)]
+    pub path: Option<String>,
+    #[serde(default = "default_lut_intensity")]
+    pub intensity: f64,
+    #[serde(default)]
+    pub preset_id: Option<String>,
+}
+
+fn default_lut_name() -> String { "Teal & Orange".into() }
+fn default_lut_intensity() -> f64 { 1.0 }
+
+impl Default for LutParams {
+    fn default() -> Self {
+        Self {
+            name: default_lut_name(),
+            path: None,
+            intensity: default_lut_intensity(),
+            preset_id: Some("teal_orange".into()),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "kind", content = "params", rename_all = "snake_case")]
 pub enum EffectPayload {
     ColorCorrection(ColorCorrectionParams),
@@ -398,6 +435,7 @@ pub enum EffectPayload {
     Crop(CropParams),
     Vignette(VignetteParams),
     ChromaKey(ChromaKeyParams),
+    Lut(LutParams),
 }
 
 fn default_effect_enabled() -> bool { true }
@@ -420,6 +458,7 @@ impl EffectInstance {
             EffectPayload::Crop(_) => EffectKind::Crop,
             EffectPayload::Vignette(_) => EffectKind::Vignette,
             EffectPayload::ChromaKey(_) => EffectKind::ChromaKey,
+            EffectPayload::Lut(_) => EffectKind::Lut,
         }
     }
 
@@ -467,6 +506,15 @@ impl EffectInstance {
             payload: EffectPayload::ChromaKey(params),
         }
     }
+
+    pub fn new_lut(id: u64, params: LutParams) -> Self {
+        Self {
+            id,
+            name: "3D LUT".into(),
+            enabled: true,
+            payload: EffectPayload::Lut(params),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -500,12 +548,48 @@ pub enum KeyframeProperty {
     Opacity,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum InterpolationKind {
+    #[default]
+    Linear,
+    EaseIn,
+    EaseOut,
+    EaseInOut,
+    Bezier,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Keyframe {
     pub property: KeyframeProperty,
     /// Time relative to the clip's source in point.
     pub time: Tick,
     pub value: f64,
+    #[serde(default)]
+    pub interpolation: InterpolationKind,
+    #[serde(default)]
+    pub handle_in_x: Option<f64>,
+    #[serde(default)]
+    pub handle_in_y: Option<f64>,
+    #[serde(default)]
+    pub handle_out_x: Option<f64>,
+    #[serde(default)]
+    pub handle_out_y: Option<f64>,
+}
+
+impl Keyframe {
+    pub fn new(property: KeyframeProperty, time: Tick, value: f64) -> Self {
+        Self {
+            property,
+            time,
+            value,
+            interpolation: InterpolationKind::Linear,
+            handle_in_x: None,
+            handle_in_y: None,
+            handle_out_x: None,
+            handle_out_y: None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -543,6 +627,7 @@ impl ProjectDocument {
                     name: "Sequence 1".into(),
                     mark_in: None,
                     mark_out: None,
+                    subtitles: Vec::new(),
                     tracks: vec![
                         Track {
                             id: 1,
@@ -675,6 +760,11 @@ impl ProjectDocument {
                                 return Err("Project contains invalid chroma key effect values".into());
                             }
                         }
+                        EffectPayload::Lut(p) => {
+                            if !p.intensity.is_finite() || !(0.0..=1.0).contains(&p.intensity) {
+                                return Err("Project contains invalid LUT effect intensity".into());
+                            }
+                        }
                     }
                 }
                 for keyframe in &clip.keyframes {
@@ -701,6 +791,11 @@ impl ProjectDocument {
                 if transition.duration.0 <= 0 || transition.cut_at.0 < 0 {
                     return Err("Project contains an invalid transition".into());
                 }
+            }
+        }
+        for sub in &self.project.sequence.subtitles {
+            if sub.start_ticks.0 < 0 || sub.end_ticks.0 <= sub.start_ticks.0 || sub.text.trim().is_empty() {
+                return Err("Project contains an invalid subtitle item".into());
             }
         }
         Ok(())
@@ -791,7 +886,7 @@ fn migrate_project(value: &mut serde_json::Value) -> Result<(), String> {
             });
             migrate_project(value)
         }
-        2 | 3 | 4 | 5 => {
+        2 | 3 | 4 | 5 | 6 => {
             value
                 .as_object_mut()
                 .ok_or_else(|| "Project root must be an object".to_string())?

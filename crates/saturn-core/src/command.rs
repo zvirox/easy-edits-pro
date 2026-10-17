@@ -348,6 +348,34 @@ pub const COMMANDS: &[CommandSpec] = &[
         shortcut: None,
         mutating: true,
     },
+    CommandSpec {
+        id: "subtitle.add",
+        label: "Add Subtitle",
+        menu: &["Sequence", "Subtitles"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "subtitle.remove",
+        label: "Remove Subtitle",
+        menu: &["Sequence", "Subtitles"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "subtitle.update",
+        label: "Update Subtitle",
+        menu: &["Sequence", "Subtitles"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "subtitle.clear",
+        label: "Clear Subtitles",
+        menu: &["Sequence", "Subtitles"],
+        shortcut: None,
+        mutating: true,
+    },
 ];
 
 pub fn command_catalogue() -> &'static [CommandSpec] {

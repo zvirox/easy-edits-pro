@@ -25,6 +25,14 @@ impl Tick {
             / i128::from(TICKS_PER_SECOND);
         u64::try_from(nanoseconds).ok()
     }
+
+    pub fn from_millis(millis: i64) -> Self {
+        Self(millis.saturating_mul(TICKS_PER_SECOND / 1000))
+    }
+
+    pub fn as_millis(self) -> i64 {
+        self.0 / (TICKS_PER_SECOND / 1000)
+    }
 }
 
 impl From<i64> for Tick {

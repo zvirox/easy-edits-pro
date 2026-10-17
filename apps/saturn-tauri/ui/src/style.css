@@ -3430,4 +3430,607 @@ button:active:not(:disabled) { transform: scale(0.96); transition: transform 0.0
   transition: height 0.05s linear;
 }
 
+/* ==========================================================================
+   Dedicated Subtitle Track Lane & Caption Overlay
+   ========================================================================== */
+
+.subtitle-track-row {
+  border-bottom: 2px solid rgba(139, 92, 246, 0.35);
+  background: rgba(139, 92, 246, 0.04);
+}
+
+.subtitle-track-label {
+  border-right: 2px solid rgba(139, 92, 246, 0.35);
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.12) 0%, var(--bg-subpanel) 100%);
+}
+
+.subtitle-badge-pill {
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #8b5cf6;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.subtitle-track-btns {
+  display: flex;
+  gap: 3px;
+}
+
+.subtitle-track-lane {
+  position: relative;
+  height: 38px;
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.subtitle-clip {
+  position: absolute;
+  top: 3px;
+  height: 32px;
+  background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%);
+  border: 1px solid #a78bfa;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  color: #ffffff;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.subtitle-clip:hover {
+  border-color: #c4b5fd;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.5);
+}
+
+.subtitle-clip.selected {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px #c4b5fd, 0 2px 8px rgba(124, 58, 237, 0.6);
+  z-index: 4;
+}
+
+.subtitle-card-text {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #ffffff;
+}
+
+/* On-Screen Program Monitor Caption Overlay */
+.program-subtitle-overlay {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 82%;
+  z-index: 10;
+  pointer-events: none;
+  text-align: center;
+  animation: subtitleFadeIn 0.15s ease-out;
+}
+
+.program-subtitle-text {
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(14px, 2.2vw, 22px);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.3px;
+  padding: 6px 16px;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  word-break: break-word;
+}
+
+@keyframes subtitleFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Subtitle Inspector Panel */
+.subtitle-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.subtitle-inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.subtitle-textarea-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.subtitle-textarea-label textarea {
+  width: 100%;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-subpanel);
+  color: var(--text-main);
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.subtitle-textarea-label textarea:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.subtitle-tc-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.subtitle-tc-card {
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.subtitle-tc-title {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.subtitle-tc-value {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: monospace;
+  color: #a78bfa;
+}
+
+.subtitle-nudge-row {
+  display: flex;
+  gap: 4px;
+}
+
+.subtitle-action-buttons,
+.subtitle-io-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   3D LUT (.cube) Controls & Presets
+   ========================================================================== */
+
+.lut-effect-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lut-preset-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.lut-preset-selector select {
+  width: 100%;
+  padding: 6px 8px;
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-size: 11.5px;
+}
+
+.lut-file-info {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: #38bdf8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lut-browse-btn {
+  font-size: 11px;
+  padding: 6px;
+  text-align: center;
+}
+
+.lut-presets-box {
+  margin-top: 10px;
+}
+
+.lut-open-btn {
+  font-size: 11px;
+}
+
+/* ==========================================================================
+   Keyframe Bezier Curve Editor Studio
+   ========================================================================== */
+
+.keyframes-workspace-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+.keyframes-workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.keyframes-target-info {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.keyframes-target-info strong {
+  color: #06b6d4;
+}
+
+.keyframes-hint-text {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.keyframes-studio-body {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 10px;
+  padding: 10px 14px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.curve-editor-stage {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.curve-editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.curve-editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: var(--bg-subpanel);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.property-pills-selector {
+  display: flex;
+  gap: 4px;
+}
+
+.property-pill-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.property-pill-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+  border-color: var(--border-strong);
+}
+
+.property-pill-btn.active {
+  background: rgba(6, 182, 212, 0.18);
+  border-color: #06b6d4;
+  color: #22d3ee;
+}
+
+.curve-header-readouts {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+}
+
+.curve-tc-tag,
+.curve-val-tag {
+  color: var(--text-muted);
+}
+
+.curve-tc-tag b,
+.curve-val-tag b {
+  font-family: monospace;
+  color: var(--text-main);
+}
+
+.curve-canvas-wrapper {
+  flex: 1;
+  position: relative;
+  background: #090d16;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+  cursor: crosshair;
+}
+
+.curve-canvas-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.curve-grid-text {
+  font-family: monospace;
+  font-size: 9.5px;
+  fill: rgba(255, 255, 255, 0.4);
+  user-select: none;
+}
+
+.tangent-circle-handle {
+  cursor: grab;
+  transition: r 0.1s ease;
+}
+
+.tangent-circle-handle:hover {
+  r: 7;
+}
+
+.keyframe-marker-node {
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.kf-diamond {
+  fill: #06b6d4;
+  stroke: #ffffff;
+  stroke-width: 1.5;
+  transition: all 0.15s ease;
+}
+
+.kf-diamond:hover {
+  fill: #22d3ee;
+  transform: rotate(45deg) scale(1.2);
+}
+
+.kf-diamond.selected {
+  fill: #f59e0b;
+  stroke: #ffffff;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8));
+}
+
+.curve-transport-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--bg-subpanel);
+  border-top: 1px solid var(--border-color);
+}
+
+.curve-transport-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border-color);
+  margin: 0 4px;
+}
+
+.curve-sidebar-dock {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.curve-controls-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.curve-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 6px;
+}
+
+.curve-section-header h3 {
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.curve-section-header small {
+  font-size: 10px;
+  color: #06b6d4;
+  font-weight: 700;
+}
+
+.ease-presets-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ease-preset-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 8px 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.ease-preset-card:hover:not(:disabled) {
+  border-color: #06b6d4;
+  background: var(--bg-hover);
+}
+
+.ease-preset-card.active {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: #06b6d4;
+}
+
+.ease-card-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.ease-card-desc {
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+
+.tangent-sliders-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.tangent-slider-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.tangent-slider-item input {
+  width: 100%;
+}
+
+.direct-edit-row {
+  display: flex;
+  gap: 8px;
+}
+
+.direct-edit-row label {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.direct-edit-row input {
+  padding: 6px 8px;
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: monospace;
+}
+
+/* Keyframes Inspector In Edit Workspace */
+.keyframes-inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.keyframe-ease-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ease-label {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.ease-preset-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ease-pill-btn {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-subpanel);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.ease-pill-btn:hover {
+  border-color: var(--border-strong);
+  color: var(--text-main);
+}
+
+.ease-pill-btn.active {
+  background: rgba(6, 182, 212, 0.2);
+  border-color: #06b6d4;
+  color: #22d3ee;
+}
+
+.keyframe-row.is-selected {
+  border-color: #06b6d4;
+  background: rgba(6, 182, 212, 0.12);
+}
+
+
 

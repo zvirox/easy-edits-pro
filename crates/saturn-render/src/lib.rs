@@ -9,6 +9,9 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
+pub mod lut;
+pub use lut::{Lut3D, Lut3DInfo};
+
 static GST_INIT: OnceLock<Result<(), String>> = OnceLock::new();
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -583,6 +586,30 @@ fn apply_clip_effects(
                     }
                     EffectPayload::Vignette(_) => {
                         // Vignette is rendered visually on program monitor; no standalone GStreamer core element
+                    }
+                    EffectPayload::Lut(params) => {
+                        // Apply LUT color grading in GStreamer timeline export
+                        if params.intensity > 0.0 {
+                            let preset = params.preset_id.as_deref().unwrap_or("teal_orange");
+                            let (contrast, saturation, hue) = match preset {
+                                "teal_orange" => (1.15, 1.20, -0.05),
+                                "vintage" => (0.95, 0.85, 0.05),
+                                "film_noir" => (1.35, 0.0, 0.0),
+                                "rec709" => (1.10, 1.10, 0.0),
+                                _ => (1.05, 1.05, 0.0),
+                            };
+                            let blend = params.intensity.clamp(0.0, 1.0);
+                            let final_contrast = 1.0 + blend * (contrast - 1.0);
+                            let final_sat = 1.0 + blend * (saturation - 1.0);
+                            let final_hue = blend * hue;
+                            let effect_str = format!(
+                                "videobalance contrast={:.3} saturation={:.3} hue={:.3}",
+                                final_contrast, final_sat, final_hue
+                            );
+                            if let Ok(effect) = ges::Effect::new(&effect_str) {
+                                let _ = clip.add_top_effect(&effect, -1);
+                            }
+                        }
                     }
                 }
             }

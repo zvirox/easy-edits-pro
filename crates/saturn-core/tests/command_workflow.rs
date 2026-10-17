@@ -870,4 +870,224 @@ fn audio_processing_and_color_hue_workflow_with_undo() {
     assert!(engine.document().project.sequence.tracks[1].audio_processing.eq_enabled);
 }
 
+#[test]
+fn subtitles_crud_and_undo_workflow() {
+    let mut engine = EditorEngine::default();
+
+    // 1. Add subtitle 1
+    let res1 = engine
+        .execute(CommandRequest::new(
+            "subtitle.add",
+            json!({
+                "start_ticks": 254_016_000_000i64, // 1.0s
+                "end_ticks": 254_016_000_000i64 * 4, // 4.0s
+                "text": "First caption line"
+            }),
+        ))
+        .unwrap();
+    let sub1_id = res1["id"].as_u64().unwrap();
+    assert_eq!(engine.document().project.sequence.subtitles.len(), 1);
+    assert_eq!(engine.document().project.sequence.subtitles[0].text, "First caption line");
+
+    // 2. Add subtitle 2 (earlier time to verify sorting)
+    let res2 = engine
+        .execute(CommandRequest::new(
+            "subtitle.add",
+            json!({
+                "start_ticks": 0,
+                "end_ticks": 254_016_000_000i64,
+                "text": "Intro caption"
+            }),
+        ))
+        .unwrap();
+    let sub2_id = res2["id"].as_u64().unwrap();
+    assert_eq!(engine.document().project.sequence.subtitles.len(), 2);
+    // Intro should be first after sort
+    assert_eq!(engine.document().project.sequence.subtitles[0].id, sub2_id);
+    assert_eq!(engine.document().project.sequence.subtitles[1].id, sub1_id);
+
+    // 3. Update subtitle 1 text
+    engine
+        .execute(CommandRequest::new(
+            "subtitle.update",
+            json!({
+                "id": sub1_id,
+                "text": "Updated caption text"
+            }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.subtitles[1].text, "Updated caption text");
+
+    // 4. Undo update
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.subtitles[1].text, "First caption line");
+
+    // 5. Redo update
+    engine
+        .execute(CommandRequest::new("edit.redo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.subtitles[1].text, "Updated caption text");
+
+    // 6. Remove subtitle 2
+    engine
+        .execute(CommandRequest::new(
+            "subtitle.remove",
+            json!({ "id": sub2_id }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.subtitles.len(), 1);
+    assert_eq!(engine.document().project.sequence.subtitles[0].id, sub1_id);
+
+    // 7. Clear subtitles
+    engine
+        .execute(CommandRequest::new("subtitle.clear", json!({})))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.subtitles.len(), 0);
+
+    // Undo clear
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.subtitles.len(), 1);
+}
+
+#[test]
+fn keyframe_bezier_interpolation_workflow() {
+    let mut engine = EditorEngine::default();
+    let media_path = "/assets/clip.mov";
+    let add_media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "clip.mov",
+                "path": media_path,
+                "kind": "video",
+                "duration": 254_016_000_000i64 * 10
+            }),
+        ))
+        .unwrap();
+    let media_id = add_media["media_id"].as_u64().unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({ "media_id": media_id, "track_id": 1, "timeline_start": 0 }),
+        ))
+        .unwrap();
+
+    // Set linear keyframe
+    engine
+        .execute(CommandRequest::new(
+            "clip.set_keyframe",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "property": "opacity",
+                "time": 0,
+                "value": 0.0,
+                "interpolation": "linear"
+            }),
+        ))
+        .unwrap();
+
+    // Set bezier keyframe with tangent handles
+    engine
+        .execute(CommandRequest::new(
+            "clip.set_keyframe",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "property": "opacity",
+                "time": 254_016_000_000i64 * 2,
+                "value": 1.0,
+                "interpolation": "bezier",
+                "handle_in_x": 0.42,
+                "handle_in_y": 0.0,
+                "handle_out_x": 0.58,
+                "handle_out_y": 1.0
+            }),
+        ))
+        .unwrap();
+
+    let clip = &engine.document().project.sequence.tracks[0].clips[0];
+    assert_eq!(clip.keyframes.len(), 2);
+    assert_eq!(clip.keyframes[0].interpolation, saturn_core::InterpolationKind::Linear);
+    assert_eq!(clip.keyframes[1].interpolation, saturn_core::InterpolationKind::Bezier);
+    assert_eq!(clip.keyframes[1].handle_in_x, Some(0.42));
+    assert_eq!(clip.keyframes[1].handle_out_y, Some(1.0));
+}
+
+#[test]
+fn lut_effect_workflow() {
+    let mut engine = EditorEngine::default();
+    let media_path = "/assets/clip.mov";
+    let add_media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "clip.mov",
+                "path": media_path,
+                "kind": "video",
+                "duration": 254_016_000_000i64 * 10
+            }),
+        ))
+        .unwrap();
+    let media_id = add_media["media_id"].as_u64().unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({ "media_id": media_id, "track_id": 1, "timeline_start": 0 }),
+        ))
+        .unwrap();
+
+    // Add 3D LUT effect
+    let res = engine
+        .execute(CommandRequest::new(
+            "clip.add_effect",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "kind": "lut",
+                "name": "Cinematic Film LUT"
+            }),
+        ))
+        .unwrap();
+    let eff_id = res["effect_id"].as_u64().unwrap();
+
+    let clip = &engine.document().project.sequence.tracks[0].clips[0];
+    assert_eq!(clip.effects.len(), 1);
+    assert_eq!(clip.effects[0].kind(), saturn_core::EffectKind::Lut);
+
+    // Update LUT effect payload
+    engine
+        .execute(CommandRequest::new(
+            "clip.update_effect",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "effect_id": eff_id,
+                "payload": {
+                    "kind": "lut",
+                    "params": {
+                        "name": "Warm Vintage",
+                        "intensity": 0.85,
+                        "preset_id": "vintage"
+                    }
+                }
+            }),
+        ))
+        .unwrap();
+
+    let updated = &engine.document().project.sequence.tracks[0].clips[0].effects[0];
+    if let saturn_core::EffectPayload::Lut(ref p) = updated.payload {
+        assert_eq!(p.name, "Warm Vintage");
+        assert_eq!(p.intensity, 0.85);
+        assert_eq!(p.preset_id.as_deref(), Some("vintage"));
+    } else {
+        panic!("Expected Lut payload");
+    }
+}
+
+
 

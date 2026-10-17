@@ -19,6 +19,11 @@ import {
   type VignetteParams,
   type ChromaKeyParams,
   type TrackAudioProcessing,
+  type LutParams,
+  type InterpolationKind,
+  type SubtitleItem,
+  type Keyframe,
+  type KeyframeProperty,
 } from "./engine/playbackEngine";
 
 type JobState =
@@ -41,7 +46,7 @@ interface JobInfo {
 
 type Workspace = "edit" | "color" | "effects" | "audio" | "keyframes" | "export" | "library" | "ai";
 type TimelineTool = "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "pen" | "hand" | "zoom";
-type DavinciWorkspace = "media" | "edit" | "color" | "audio" | "effects" | "deliver";
+type DavinciWorkspace = "media" | "edit" | "color" | "audio" | "effects" | "keyframes" | "deliver";
 type FilmoraTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
 type MediaKind = "video" | "audio" | "image" | "title" | "unknown";
 type TitleProperties = {
@@ -79,8 +84,6 @@ type MediaAsset = {
   waveform?: number[] | null;
 };
 type ColorAdjustments = { exposure: number; contrast: number; saturation: number; hue?: number };
-type KeyframeProperty = "position_x" | "position_y" | "scale" | "rotation" | "opacity";
-type Keyframe = { property: KeyframeProperty; time: number; value: number };
 type Clip = {
   media_id: number;
   timeline_start: number;
@@ -116,7 +119,13 @@ type ProjectDocument = {
   project: {
     name: string;
     media: MediaAsset[];
-    sequence: { name: string; tracks: Track[]; mark_in: number | null; mark_out: number | null };
+    sequence: {
+      name: string;
+      tracks: Track[];
+      mark_in: number | null;
+      mark_out: number | null;
+      subtitles?: SubtitleItem[];
+    };
     settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
   };
 };
@@ -233,7 +242,8 @@ const davinciWorkspaces: { id: DavinciWorkspace; label: string; shortcut: string
   { id: "color", label: "Color", shortcut: "Shift+3", icon: "color" },
   { id: "audio", label: "Audio", shortcut: "Shift+4", icon: "audio" },
   { id: "effects", label: "Effects", shortcut: "Shift+5", icon: "effects" },
-  { id: "deliver", label: "Deliver", shortcut: "Shift+6", icon: "deliver" },
+  { id: "keyframes", label: "Curves", shortcut: "Shift+6", icon: "keyframe" },
+  { id: "deliver", label: "Deliver", shortcut: "Shift+7", icon: "deliver" },
 ];
 
 const filmoraTabs: { id: FilmoraTab; label: string; icon: IconName; tooltip: string }[] = [
@@ -339,7 +349,7 @@ async function runCommand<T = unknown>(id: string, params: unknown = null): Prom
   return invoke<T>("execute_command", { request: { id, params } });
 }
 
-type IconName = "fullscreen" | "restore" | "close" | "media" | "add" | "undo" | "redo" | "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "link" | "unlink" | "pen" | "hand" | "snap" | "split" | "remove" | "markIn" | "markOut" | "zoomIn" | "zoomOut" | "clearMarks" | "export" | "fileNew" | "fileOpen" | "fileSave" | "import" | "help" | "window" | "title" | "transition" | "sun" | "moon" | "color" | "audio" | "effects" | "deliver" | "edit" | "check";
+type IconName = "fullscreen" | "restore" | "close" | "media" | "add" | "undo" | "redo" | "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "link" | "unlink" | "pen" | "hand" | "snap" | "split" | "remove" | "markIn" | "markOut" | "zoomIn" | "zoomOut" | "clearMarks" | "export" | "fileNew" | "fileOpen" | "fileSave" | "import" | "help" | "window" | "title" | "transition" | "sun" | "moon" | "color" | "audio" | "effects" | "deliver" | "edit" | "check" | "keyframe" | "subtitle";
 
 function Icon({ name }: { name: IconName }) {
   const paths = {
@@ -387,6 +397,8 @@ function Icon({ name }: { name: IconName }) {
     effects: <><path d="m10 2 2 4.5L16.5 8l-4.5 1.5L10 14l-2-4.5L3.5 8l4.5-1.5z" /><path d="m4 14 1 2 2 1-2 1-1 2-1-2-2-1 2-1z" /></>,
     deliver: <><path d="M10 3v10m-4-4 4 4 4-4M3 15v3h14v-3" /></>,
     edit: <><circle cx="6" cy="6" r="2" /><circle cx="6" cy="14" r="2" /><path d="m8 7 9 9M8 13l9-9" /></>,
+    keyframe: <><path d="M10 3l6 7-6 7-6-7z" fill="none" stroke="currentColor" strokeWidth="1.5" /><circle cx="10" cy="10" r="2" fill="currentColor" /></>,
+    subtitle: <><rect x="3" y="4" width="14" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M6 8h8M6 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><path d="M7 15l-2 3v-3" fill="none" stroke="currentColor" strokeWidth="1.5" /></>,
   };
   return <svg viewBox="0 0 20 20" aria-hidden="true">{paths[name]}</svg>;
 }
@@ -418,6 +430,39 @@ const COLOR_PRESETS: { id: string; label: string; icon: string; exposure: number
   { id: "vintage", label: "Vintage 90s", icon: "📼", exposure: 0.15, contrast: 0.9, saturation: 0.8 },
 ];
 
+interface LutPresetItem {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+const LUT_PRESETS: LutPresetItem[] = [
+  {
+    id: "teal_orange",
+    name: "Teal & Orange",
+    description: "Blockbuster cinematic contrast with cool cyan shadows & warm skin tones",
+    icon: "🌅",
+  },
+  {
+    id: "vintage",
+    name: "Warm Vintage",
+    description: "Golden 70s celluloid film with rich amber warmth & soft roll-off",
+    icon: "🎞️",
+  },
+  {
+    id: "film_noir",
+    name: "Film Noir",
+    description: "Deep dramatic black & white with rich silver tones and crisp highlights",
+    icon: "🎥",
+  },
+  {
+    id: "rec709",
+    name: "Clean Rec.709",
+    description: "Neutral studio broadcast calibration curve with accurate skin tones",
+    icon: "📺",
+  },
+];
 
 function App() {
   const [appStage, setAppStage] = useState<AppStage>("welcome");
@@ -464,6 +509,7 @@ function App() {
     else if (ws === "color") setWorkspace("color");
     else if (ws === "effects") setWorkspace("effects");
     else if (ws === "audio") setWorkspace("audio");
+    else if (ws === "keyframes") setWorkspace("keyframes");
   }, []);
   const [projectState, setProjectState] = useState<ProjectStatus | null>(null);
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
@@ -604,6 +650,14 @@ function App() {
   const [selectedExportPreset, setSelectedExportPreset] = useState<string>("source");
   const [keyframeProperty, setKeyframeProperty] = useState<KeyframeProperty>("opacity");
   const [keyframeValue, setKeyframeValue] = useState("1");
+  const [selectedKeyframeTime, setSelectedKeyframeTime] = useState<number | null>(null);
+  const [keyframeInterpDraft, setKeyframeInterpDraft] = useState<InterpolationKind>("linear");
+  const [keyframeHandleInX, setKeyframeHandleInX] = useState<number>(0.42);
+  const [keyframeHandleInY, setKeyframeHandleInY] = useState<number>(0.0);
+  const [keyframeHandleOutX, setKeyframeHandleOutX] = useState<number>(0.58);
+  const [keyframeHandleOutY, setKeyframeHandleOutY] = useState<number>(1.0);
+  const [selectedSubtitle, setSelectedSubtitle] = useState<SubtitleItem | null>(null);
+  const [subtitleTextDraft, setSubtitleTextDraft] = useState<string | null>(null);
   const [exportFormat, setExportFormat] = useState<"mp4" | "webm">("mp4");
   const [exportResolution, setExportResolution] = useState("source");
   const [exportFrameRate, setExportFrameRate] = useState("source");
@@ -1003,9 +1057,21 @@ function App() {
     await perform("clip.set_color", { ...selectedClip, ...next }, "Color settings saved");
   }
 
-  async function addEffect(kind: EffectKind) {
-    if (!selectedClip) return;
-    await perform("clip.add_effect", { ...selectedClip, kind }, "Effect added to clip");
+  async function addEffect(kind: EffectKind, name?: string): Promise<number | null> {
+    if (!selectedClip) return null;
+    setBusy(true);
+    setNotice("");
+    try {
+      const res = await runCommand<{ added: boolean; effect_id: number }>("clip.add_effect", { ...selectedClip, kind, name });
+      await refreshProject();
+      setNotice("Effect added to clip");
+      return res?.effect_id ?? null;
+    } catch (error) {
+      setNotice(String(error));
+      return null;
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function removeEffect(effectId: number) {
@@ -1131,10 +1197,223 @@ function App() {
     setNotice(nextMuted ? "Muted all tracks" : "Unmuted all tracks");
   }
 
-  async function saveKeyframe(property: KeyframeProperty, value: number) {
+  async function applyLutPreset(preset: LutPresetItem) {
+    if (!selectedClip) return;
+    const existingLut = (selectedTimelineClip?.effects ?? []).find((e) => e.kind === "lut");
+    if (existingLut) {
+      const prev = existingLut.params as LutParams;
+      await updateEffectPayload(existingLut.id, {
+        kind: "lut",
+        params: {
+          name: preset.name,
+          preset_id: preset.id,
+          intensity: prev.intensity ?? 1.0,
+          path: null,
+        },
+      });
+    } else {
+      const effectId = await addEffect("lut", preset.name);
+      if (effectId != null) {
+        await updateEffectPayload(effectId, {
+          kind: "lut",
+          params: {
+            name: preset.name,
+            preset_id: preset.id,
+            intensity: 1.0,
+            path: null,
+          },
+        });
+      }
+    }
+    setNotice(`Applied 3D LUT preset "${preset.name}"`);
+  }
+
+  async function loadLutCubeDialog(effectId?: number) {
+    if (!selectedClip) return;
+    const selected = await open({
+      multiple: false,
+      filters: [{ name: "3D LUT (.cube)", extensions: ["cube"] }],
+    });
+    if (!selected || typeof selected !== "string") return;
+
+    try {
+      const info = await invoke<{ title: string; size: number }>("load_lut_cube_file", { path: selected });
+      const filename = selected.split("/").pop()?.replace(/\.cube$/i, "") || "Custom LUT";
+      const name = info.title ? `${info.title} (${info.size}³) ` : `${filename} (${info.size}³)`;
+
+      let targetEffectId = effectId;
+      if (targetEffectId === undefined) {
+        const existing = (selectedTimelineClip?.effects ?? []).find((e) => e.kind === "lut");
+        if (existing) {
+          targetEffectId = existing.id;
+        }
+      }
+
+      if (targetEffectId !== undefined) {
+        await updateEffectPayload(targetEffectId, {
+          kind: "lut",
+          params: {
+            name,
+            path: selected,
+            intensity: 1.0,
+            preset_id: null,
+          },
+        });
+      } else {
+        const newId = await addEffect("lut", name);
+        if (newId != null) {
+          await updateEffectPayload(newId, {
+            kind: "lut",
+            params: {
+              name,
+              path: selected,
+              intensity: 1.0,
+              preset_id: null,
+            },
+          });
+        }
+      }
+      setNotice(`Loaded 3D LUT "${name}" (${info.size}×${info.size}×${info.size})`);
+    } catch (err) {
+      setNotice(`Failed to load LUT: ${String(err)}`);
+    }
+  }
+
+  async function saveKeyframe(
+    property: KeyframeProperty,
+    value: number,
+    timeOverride?: number,
+    interpolation?: InterpolationKind,
+    handle_in_x?: number | null,
+    handle_in_y?: number | null,
+    handle_out_x?: number | null,
+    handle_out_y?: number | null
+  ) {
     if (!selectedClip || !selectedTimelineClip) return;
-    const time = Math.max(0, Math.min(selectedTimelineClip.duration, playhead - selectedTimelineClip.timeline_start));
-    await perform("clip.set_keyframe", { ...selectedClip, property, time, value }, "Keyframe saved");
+    const time = timeOverride !== undefined
+      ? timeOverride
+      : Math.max(0, Math.min(selectedTimelineClip.duration, playhead - selectedTimelineClip.timeline_start));
+    await perform("clip.set_keyframe", {
+      ...selectedClip,
+      property,
+      time,
+      value,
+      interpolation,
+      handle_in_x,
+      handle_in_y,
+      handle_out_x,
+      handle_out_y,
+    }, "Keyframe saved");
+    setSelectedKeyframeTime(time);
+  }
+
+  async function deleteKeyframe(property: KeyframeProperty, time: number) {
+    if (!selectedClip) return;
+    await perform("clip.remove_keyframe", { ...selectedClip, property, time }, "Keyframe removed");
+    if (selectedKeyframeTime === time) {
+      setSelectedKeyframeTime(null);
+    }
+  }
+
+  async function addSubtitleAtPlayhead() {
+    const start_ticks = playhead;
+    const end_ticks = playhead + 3 * TICKS_PER_SECOND;
+    const text = "New Subtitle";
+    setBusy(true);
+    setNotice("");
+    try {
+      const res = await runCommand<SubtitleItem>("subtitle.add", { start_ticks, end_ticks, text });
+      await refreshProject();
+      if (res) {
+        setSelectedSubtitle(res);
+      }
+      setNotice("Subtitle card added at playhead");
+    } catch (error) {
+      setNotice(String(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeSubtitle(id: number) {
+    await perform("subtitle.remove", { id }, "Subtitle removed");
+    if (selectedSubtitle?.id === id) {
+      setSelectedSubtitle(null);
+    }
+  }
+
+  async function updateSubtitle(id: number, updates: { text?: string; start_ticks?: number; end_ticks?: number }) {
+    await perform("subtitle.update", { id, ...updates }, "Subtitle updated");
+    setSelectedSubtitle((curr) => {
+      if (curr && curr.id === id) {
+        return { ...curr, ...updates };
+      }
+      return curr;
+    });
+  }
+
+  async function clearSubtitles() {
+    const confirmed = await confirm("Are you sure you want to delete all subtitles in the project?", {
+      title: "Clear all subtitles",
+      kind: "warning",
+    });
+    if (!confirmed) return;
+    await perform("subtitle.clear", {}, "All subtitles cleared");
+    setSelectedSubtitle(null);
+  }
+
+  async function importSubtitlesDialog() {
+    const selected = await open({
+      multiple: false,
+      filters: [{ name: "Subtitle files (*.srt, *.vtt)", extensions: ["srt", "vtt"] }],
+    });
+    if (!selected || typeof selected !== "string") return;
+
+    try {
+      const items = await invoke<SubtitleItem[]>("import_subtitles_file", { path: selected });
+      if (!items || items.length === 0) {
+        setNotice("No subtitles found in file");
+        return;
+      }
+      setBusy(true);
+      for (const item of items) {
+        await runCommand("subtitle.add", {
+          start_ticks: item.start_ticks,
+          end_ticks: item.end_ticks,
+          text: item.text,
+        });
+      }
+      await refreshProject();
+      setNotice(`Imported ${items.length} subtitles from ${selected.split("/").pop()}`);
+    } catch (err) {
+      setNotice(`Failed to import subtitles: ${String(err)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function exportSubtitlesDialog() {
+    const subtitles = project?.sequence.subtitles ?? [];
+    if (subtitles.length === 0) {
+      setNotice("No subtitles in sequence to export");
+      return;
+    }
+    const selected = await save({
+      defaultPath: `${project?.name ?? "Subtitles"}.srt`,
+      filters: [
+        { name: "SubRip (.srt)", extensions: ["srt"] },
+        { name: "WebVTT (.vtt)", extensions: ["vtt"] },
+      ],
+    });
+    if (!selected || typeof selected !== "string") return;
+
+    try {
+      const format = selected.toLowerCase().endsWith(".vtt") ? "vtt" : "srt";
+      await invoke("export_subtitles_file", { path: selected, format });
+      setNotice(`Exported ${subtitles.length} subtitles to ${selected.split("/").pop()}`);
+    } catch (err) {
+      setNotice(`Failed to export subtitles: ${String(err)}`);
+    }
   }
 
   async function ensureDiscardIsOkay() {
@@ -2141,6 +2420,159 @@ function App() {
   }
 
   function renderInspector() {
+    if (selectedSubtitle) {
+      const durationSec = (selectedSubtitle.end_ticks - selectedSubtitle.start_ticks) / TICKS_PER_SECOND;
+      return (
+        <div className="subtitle-inspector">
+          <div className="subtitle-inspector-header">
+            <h2>Subtitle Inspector</h2>
+            <button
+              type="button"
+              className="inspector-close-btn"
+              onClick={() => setSelectedSubtitle(null)}
+              title="Close Subtitle Inspector"
+            >
+              ×
+            </button>
+          </div>
+          <p>Caption text and millisecond timecodes for card #{selectedSubtitle.id}.</p>
+
+          <label className="subtitle-textarea-label">
+            <span>Caption Text</span>
+            <textarea
+              rows={4}
+              value={subtitleTextDraft !== null ? subtitleTextDraft : selectedSubtitle.text}
+              placeholder="Enter subtitle caption text…"
+              onChange={(e) => setSubtitleTextDraft(e.target.value)}
+              onBlur={(e) => {
+                const val = e.target.value;
+                void updateSubtitle(selectedSubtitle.id, { text: val });
+                setSubtitleTextDraft(null);
+              }}
+            />
+          </label>
+
+          <div className="subtitle-tc-cards">
+            <div className="subtitle-tc-card">
+              <span className="subtitle-tc-title">START TIME</span>
+              <code className="subtitle-tc-value">{formatTime(selectedSubtitle.start_ticks)}</code>
+              <div className="subtitle-nudge-row">
+                <button
+                  type="button"
+                  className="btn-tiny"
+                  onClick={() => {
+                    const newStart = Math.max(0, selectedSubtitle.start_ticks - Math.round(0.5 * TICKS_PER_SECOND));
+                    void updateSubtitle(selectedSubtitle.id, { start_ticks: newStart });
+                  }}
+                  title="Nudge 0.5s Earlier"
+                >
+                  -0.5s
+                </button>
+                <button
+                  type="button"
+                  className="btn-tiny"
+                  onClick={() => {
+                    const newStart = Math.min(
+                      selectedSubtitle.end_ticks - Math.round(0.2 * TICKS_PER_SECOND),
+                      selectedSubtitle.start_ticks + Math.round(0.5 * TICKS_PER_SECOND)
+                    );
+                    void updateSubtitle(selectedSubtitle.id, { start_ticks: newStart });
+                  }}
+                  title="Nudge 0.5s Later"
+                >
+                  +0.5s
+                </button>
+              </div>
+            </div>
+
+            <div className="subtitle-tc-card">
+              <span className="subtitle-tc-title">END TIME</span>
+              <code className="subtitle-tc-value">{formatTime(selectedSubtitle.end_ticks)}</code>
+              <div className="subtitle-nudge-row">
+                <button
+                  type="button"
+                  className="btn-tiny"
+                  onClick={() => {
+                    const newEnd = Math.max(
+                      selectedSubtitle.start_ticks + Math.round(0.2 * TICKS_PER_SECOND),
+                      selectedSubtitle.end_ticks - Math.round(0.5 * TICKS_PER_SECOND)
+                    );
+                    void updateSubtitle(selectedSubtitle.id, { end_ticks: newEnd });
+                  }}
+                  title="Nudge 0.5s Earlier"
+                >
+                  -0.5s
+                </button>
+                <button
+                  type="button"
+                  className="btn-tiny"
+                  onClick={() => {
+                    const newEnd = selectedSubtitle.end_ticks + Math.round(0.5 * TICKS_PER_SECOND);
+                    void updateSubtitle(selectedSubtitle.id, { end_ticks: newEnd });
+                  }}
+                  title="Nudge 0.5s Later"
+                >
+                  +0.5s
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="control">
+            Duration <span>{durationSec.toFixed(2)}s ({formatTime(selectedSubtitle.end_ticks - selectedSubtitle.start_ticks)})</span>
+          </div>
+
+          <div className="subtitle-action-buttons">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                const start = selectedSubtitle.end_ticks;
+                const end = start + 3 * TICKS_PER_SECOND;
+                void perform("subtitle.add", { start_ticks: start, end_ticks: end, text: "Next Subtitle" });
+              }}
+            >
+              ＋ Add Subtitle Next
+            </button>
+            <button
+              type="button"
+              className="danger-button"
+              onClick={() => void removeSubtitle(selectedSubtitle.id)}
+            >
+              🗑 Delete Subtitle
+            </button>
+          </div>
+
+          <div className="subtitle-io-buttons">
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => void importSubtitlesDialog()}
+            >
+              📥 Import .SRT/.VTT
+            </button>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => void exportSubtitlesDialog()}
+            >
+              📤 Export .SRT/.VTT
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="danger-button"
+            style={{ marginTop: "4px" }}
+            onClick={() => void clearSubtitles()}
+            title="Delete all subtitles in the project"
+          >
+            🗑 Clear All Subtitles
+          </button>
+        </div>
+      );
+    }
+
     switch (workspace) {
       case "color": {
         const updateColorField = (field: keyof ColorAdjustments, value: number) => {
@@ -2178,6 +2610,7 @@ function App() {
                     <option value="crop">✂️ Crop</option>
                     <option value="vignette">🔘 Vignette</option>
                     <option value="chroma_key">🟩 Chroma Key</option>
+                    <option value="lut">🎬 3D LUT (.cube)</option>
                   </select>
                 </div>
               )}
@@ -2503,6 +2936,73 @@ function App() {
                               </>
                             );
                           })()}
+
+                          {eff.kind === "lut" && (() => {
+                            const p = eff.params as LutParams;
+                            return (
+                              <div className="lut-effect-body">
+                                <div className="lut-preset-selector">
+                                  <span>Cinematic Look</span>
+                                  <select
+                                    value={p.preset_id || (p.path ? "custom" : "rec709")}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      if (val === "custom") {
+                                        void loadLutCubeDialog(eff.id);
+                                      } else {
+                                        const preset = LUT_PRESETS.find((pr) => pr.id === val);
+                                        if (preset) {
+                                          void updateEffectPayload(eff.id, {
+                                            kind: "lut",
+                                            params: {
+                                              name: preset.name,
+                                              preset_id: preset.id,
+                                              intensity: p.intensity ?? 1.0,
+                                              path: null,
+                                            },
+                                          });
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    {LUT_PRESETS.map((pr) => (
+                                      <option key={pr.id} value={pr.id}>{pr.icon} {pr.name}</option>
+                                    ))}
+                                    <option value="custom">📁 Custom .cube File…</option>
+                                  </select>
+                                </div>
+
+                                {p.path && (
+                                  <div className="lut-file-info">
+                                    <small title={p.path}>File: {p.path.split("/").pop()}</small>
+                                  </div>
+                                )}
+
+                                <button
+                                  type="button"
+                                  className="btn-secondary lut-browse-btn"
+                                  onClick={() => void loadLutCubeDialog(eff.id)}
+                                >
+                                  📂 Browse .cube File…
+                                </button>
+
+                                <label>
+                                  <span>LUT Intensity ({Math.round((p.intensity ?? 1.0) * 100)}%)</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    value={p.intensity ?? 1.0}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "lut",
+                                      params: { ...p, intensity: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                              </div>
+                            );
+                          })()}
                         </div>
                       )}
                     </article>
@@ -2783,13 +3283,130 @@ function App() {
       case "keyframes": {
         const option = keyframeOptions.find((item) => item.value === keyframeProperty)!;
         const keyframes = selectedTimelineClip?.keyframes ?? [];
-        return <><h2>Keyframes</h2><p>{selectedTimelineClip ? "Add or remove clip property keys at the current playhead." : "Select a timeline clip to edit its keyframes."}</p>
-          <label>Property <select disabled={!selectedClip} value={keyframeProperty} onChange={(event) => { const value = event.target.value as KeyframeProperty; setKeyframeProperty(value); setKeyframeValue(String(keyframeOptions.find((item) => item.value === value)?.defaultValue ?? 0)); }}>{keyframeOptions.map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
-          <div className="control">Clip time <span>{selectedTimelineClip ? formatTime(Math.max(0, Math.min(selectedTimelineClip.duration, playhead - selectedTimelineClip.timeline_start))) : "—"}</span></div>
-          <label>Value <input type="number" min={option.min} max={option.max} step={option.step} disabled={!selectedClip} value={keyframeValue} onChange={(event) => setKeyframeValue(event.target.value)} /></label>
-          <button className="primary" disabled={!selectedClip || !Number.isFinite(Number(keyframeValue))} onClick={() => void saveKeyframe(keyframeProperty, Number(keyframeValue))}>Set keyframe</button>
-          <div className="keyframe-list">{keyframes.map((keyframe) => <div className="control" key={`${keyframe.property}-${keyframe.time}`}><span>{keyframeOptions.find((item) => item.value === keyframe.property)?.label} · {formatTime(keyframe.time)} · {keyframe.value}</span><button aria-label="Remove keyframe" onClick={() => selectedClip && void perform("clip.remove_keyframe", { ...selectedClip, property: keyframe.property, time: keyframe.time }, "Keyframe removed")}>×</button></div>)}</div>
-          <small>Keyframes are stored in the project. Animated playback interpolation is not connected yet.</small></>;
+        const propKeyframes = keyframes.filter((k) => k.property === keyframeProperty);
+        const selectedKf = propKeyframes.find((k) => k.time === selectedKeyframeTime) ?? propKeyframes[0] ?? null;
+
+        return (
+          <div className="keyframes-inspector">
+            <div className="keyframes-inspector-header">
+              <h2>Keyframes &amp; Curves</h2>
+              <button
+                type="button"
+                className="btn-primary-subtle"
+                onClick={() => selectDavinciWorkspace("keyframes")}
+                title="Open Dedicated Full-Screen Curve Editor (Shift+6)"
+              >
+                📈 Full Curve Editor
+              </button>
+            </div>
+            <p>{selectedTimelineClip ? "Edit animated properties and smooth bezier transitions." : "Select a timeline clip to edit its keyframes."}</p>
+
+            <label>
+              Property
+              <select
+                disabled={!selectedClip}
+                value={keyframeProperty}
+                onChange={(event) => {
+                  const value = event.target.value as KeyframeProperty;
+                  setKeyframeProperty(value);
+                  setKeyframeValue(String(keyframeOptions.find((item) => item.value === value)?.defaultValue ?? 0));
+                }}
+              >
+                {keyframeOptions.map((item) => (
+                  <option value={item.value} key={item.value}>{item.label}</option>
+                ))}
+              </select>
+            </label>
+
+            <div className="control">
+              Clip time <span>{selectedTimelineClip ? formatTime(Math.max(0, Math.min(selectedTimelineClip.duration, playhead - selectedTimelineClip.timeline_start))) : "—"}</span>
+            </div>
+
+            <label>
+              Value ({option.label})
+              <input
+                type="number"
+                min={option.min}
+                max={option.max}
+                step={option.step}
+                disabled={!selectedClip}
+                value={keyframeValue}
+                onChange={(event) => setKeyframeValue(event.target.value)}
+              />
+            </label>
+
+            <div className="keyframe-ease-bar">
+              <span className="ease-label">Interpolation</span>
+              <div className="ease-preset-pills">
+                {(["linear", "ease_in", "ease_out", "ease_in_out", "bezier"] as InterpolationKind[]).map((kind) => {
+                  const isCurrent = (selectedKf?.interpolation ?? keyframeInterpDraft) === kind;
+                  return (
+                    <button
+                      key={kind}
+                      type="button"
+                      className={`ease-pill-btn ${isCurrent ? "active" : ""}`}
+                      disabled={!selectedClip}
+                      onClick={() => {
+                        setKeyframeInterpDraft(kind);
+                        if (selectedKf) {
+                          const hInX = kind === "ease_in" ? 1.0 : kind === "ease_out" ? 0.58 : kind === "ease_in_out" ? 0.58 : keyframeHandleInX;
+                          const hInY = kind === "ease_in" ? 0.42 : kind === "ease_out" ? 1.0 : kind === "ease_in_out" ? 1.0 : keyframeHandleInY;
+                          const hOutX = kind === "ease_in" ? 0.42 : kind === "ease_out" ? 0.0 : kind === "ease_in_out" ? 0.42 : keyframeHandleOutX;
+                          const hOutY = kind === "ease_in" ? 0.0 : kind === "ease_out" ? 0.58 : kind === "ease_in_out" ? 0.0 : keyframeHandleOutY;
+                          void saveKeyframe(keyframeProperty, selectedKf.value, selectedKf.time, kind, hInX, hInY, hOutX, hOutY);
+                        }
+                      }}
+                    >
+                      {kind === "linear" ? "Linear" : kind === "ease_in" ? "Ease In" : kind === "ease_out" ? "Ease Out" : kind === "ease_in_out" ? "Ease In-Out" : "Bezier"}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button
+              className="primary"
+              disabled={!selectedClip || !Number.isFinite(Number(keyframeValue))}
+              onClick={() => {
+                const hInX = keyframeInterpDraft === "ease_in" ? 1.0 : keyframeInterpDraft === "ease_out" ? 0.58 : keyframeInterpDraft === "ease_in_out" ? 0.58 : keyframeHandleInX;
+                const hInY = keyframeInterpDraft === "ease_in" ? 0.42 : keyframeInterpDraft === "ease_out" ? 1.0 : keyframeInterpDraft === "ease_in_out" ? 1.0 : keyframeHandleInY;
+                const hOutX = keyframeInterpDraft === "ease_in" ? 0.42 : keyframeInterpDraft === "ease_out" ? 0.0 : keyframeInterpDraft === "ease_in_out" ? 0.42 : keyframeHandleOutX;
+                const hOutY = keyframeInterpDraft === "ease_in" ? 0.0 : keyframeInterpDraft === "ease_out" ? 0.58 : keyframeInterpDraft === "ease_in_out" ? 0.0 : keyframeHandleOutY;
+                void saveKeyframe(keyframeProperty, Number(keyframeValue), undefined, keyframeInterpDraft, hInX, hInY, hOutX, hOutY);
+              }}
+            >
+              Set keyframe at Playhead
+            </button>
+
+            <div className="keyframe-list">
+              {propKeyframes.map((kf) => (
+                <div
+                  className={`control keyframe-row ${selectedKeyframeTime === kf.time ? "is-selected" : ""}`}
+                  key={`${kf.property}-${kf.time}`}
+                  onClick={() => {
+                    setSelectedKeyframeTime(kf.time);
+                    setKeyframeValue(String(kf.value));
+                    setKeyframeInterpDraft(kf.interpolation ?? "linear");
+                  }}
+                >
+                  <span>
+                    <b>{formatTime(kf.time)}</b> · {kf.value} · <i>{(kf.interpolation ?? "linear").replace("_", " ")}</i>
+                  </span>
+                  <button
+                    aria-label="Remove keyframe"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void deleteKeyframe(kf.property, kf.time);
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <small>Keyframe curves are evaluated with hardware cubic bezier math in real-time preview and export.</small>
+          </div>
+        );
       }
       case "export":
         return <><h2>Export</h2><p>Render the sequence using its project resolution and frame rate.</p>
@@ -3050,6 +3667,13 @@ function App() {
 
           {/* Title Overlay */}
           {renderTitleOverlay(deckSnapshot?.activeTitleClip?.title)}
+
+          {/* On-Screen Subtitle / Closed Caption Overlay */}
+          {deckSnapshot?.activeSubtitle && (
+            <div className="program-subtitle-overlay" aria-live="polite">
+              <div className="program-subtitle-text">{deckSnapshot.activeSubtitle.text}</div>
+            </div>
+          )}
 
           {/* Dedicated Audio Track Players for Multi-Track Audio */}
           {deckSnapshot?.activeAudioClips
@@ -4308,6 +4932,36 @@ function App() {
                   ))}
                 </div>
               </div>
+
+              <div className="color-presets-box lut-presets-box">
+                <div className="color-section-header">
+                  <h3>3D Film Looks (.cube)</h3>
+                  <small>Trilinear 3D Tables</small>
+                </div>
+                <div className="color-presets-grid compact">
+                  {LUT_PRESETS.map((lut) => (
+                    <button
+                      key={lut.id}
+                      className="color-preset-card compact"
+                      disabled={!selectedClip}
+                      onClick={() => void applyLutPreset(lut)}
+                      title={`Apply ${lut.name}: ${lut.description}`}
+                    >
+                      <span className="preset-card-icon">{lut.icon}</span>
+                      <strong className="preset-card-title">{lut.name}</strong>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="btn-secondary lut-open-btn"
+                  disabled={!selectedClip}
+                  onClick={() => void loadLutCubeDialog()}
+                  style={{ marginTop: "8px", width: "100%", fontSize: "11px", padding: "6px" }}
+                >
+                  📂 Load Custom .cube File…
+                </button>
+              </div>
             </aside>
           </div>
         </div>
@@ -4379,6 +5033,7 @@ function App() {
                   <option value="vignette">🔘 Vignette</option>
                   <option value="chroma_key">🟩 Chroma Key</option>
                   <option value="color_correction">🎨 Color Correction</option>
+                  <option value="lut">🎬 3D LUT (.cube)</option>
                 </select>
               </div>
             )}
@@ -4744,6 +5399,73 @@ function App() {
                               </>
                             );
                           })()}
+
+                          {eff.kind === "lut" && (() => {
+                            const p = eff.params as LutParams;
+                            return (
+                              <div className="lut-effect-body">
+                                <div className="lut-preset-selector">
+                                  <span>Cinematic Look</span>
+                                  <select
+                                    value={p.preset_id || (p.path ? "custom" : "rec709")}
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      if (val === "custom") {
+                                        void loadLutCubeDialog(eff.id);
+                                      } else {
+                                        const preset = LUT_PRESETS.find((pr) => pr.id === val);
+                                        if (preset) {
+                                          void updateEffectPayload(eff.id, {
+                                            kind: "lut",
+                                            params: {
+                                              name: preset.name,
+                                              preset_id: preset.id,
+                                              intensity: p.intensity ?? 1.0,
+                                              path: null,
+                                            },
+                                          });
+                                        }
+                                      }
+                                    }}
+                                  >
+                                    {LUT_PRESETS.map((pr) => (
+                                      <option key={pr.id} value={pr.id}>{pr.icon} {pr.name}</option>
+                                    ))}
+                                    <option value="custom">📁 Custom .cube File…</option>
+                                  </select>
+                                </div>
+
+                                {p.path && (
+                                  <div className="lut-file-info">
+                                    <small title={p.path}>File: {p.path.split("/").pop()}</small>
+                                  </div>
+                                )}
+
+                                <button
+                                  type="button"
+                                  className="btn-secondary lut-browse-btn"
+                                  onClick={() => void loadLutCubeDialog(eff.id)}
+                                >
+                                  📂 Browse .cube File…
+                                </button>
+
+                                <label>
+                                  <span>LUT Intensity ({Math.round((p.intensity ?? 1.0) * 100)}%)</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    value={p.intensity ?? 1.0}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "lut",
+                                      params: { ...p, intensity: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                              </div>
+                            );
+                          })()}
                         </div>
                       )}
                     </article>
@@ -4780,6 +5502,654 @@ function App() {
                   </div>
                   <strong className="reel-clip-name">{mediaItem?.name ?? "Clip"}</strong>
                   <span className="reel-clip-dur">{formatTime(clip.duration)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  function renderKeyframesWorkspace() {
+    const allClips = (project?.sequence.tracks ?? []).flatMap((track) =>
+      track.clips.map((clip, index) => ({ track, clip, index, mediaItem: media.find((m) => m.id === clip.media_id) }))
+    );
+
+    const option = keyframeOptions.find((item) => item.value === keyframeProperty)!;
+    const clipKeyframes = selectedTimelineClip?.keyframes ?? [];
+    const propKeyframes = clipKeyframes.filter((k) => k.property === keyframeProperty).sort((a, b) => a.time - b.time);
+    const activeKf = propKeyframes.find((k) => k.time === selectedKeyframeTime) ?? propKeyframes[0] ?? null;
+
+    // Viewport coordinates for the graph
+    const svgW = 860;
+    const svgH = 340;
+    const padL = 70;
+    const padR = 40;
+    const padT = 30;
+    const padB = 40;
+    const plotW = svgW - padL - padR;
+    const plotH = svgH - padT - padB;
+
+    const clipDuration = Math.max(TICKS_PER_SECOND, selectedTimelineClip?.duration ?? (5 * TICKS_PER_SECOND));
+    const minVal = option.min;
+    const maxVal = option.max;
+    const valRange = maxVal - minVal || 1;
+
+    const timeToX = (t: number) => padL + (Math.max(0, Math.min(clipDuration, t)) / clipDuration) * plotW;
+    const valToY = (v: number) => padT + plotH - ((Math.max(minVal, Math.min(maxVal, v)) - minVal) / valRange) * plotH;
+
+    const relPlayhead = selectedTimelineClip
+      ? Math.max(0, Math.min(selectedTimelineClip.duration, playhead - selectedTimelineClip.timeline_start))
+      : 0;
+
+    // Build the SVG bezier curve path
+    let curvePath = "";
+    let areaPath = "";
+
+    if (propKeyframes.length === 0) {
+      const yDef = valToY(option.defaultValue);
+      curvePath = `M ${timeToX(0)} ${yDef} L ${timeToX(clipDuration)} ${yDef}`;
+      areaPath = `${curvePath} L ${timeToX(clipDuration)} ${padT + plotH} L ${timeToX(0)} ${padT + plotH} Z`;
+    } else if (propKeyframes.length === 1) {
+      const yVal = valToY(propKeyframes[0].value);
+      curvePath = `M ${timeToX(0)} ${yVal} L ${timeToX(clipDuration)} ${yVal}`;
+      areaPath = `${curvePath} L ${timeToX(clipDuration)} ${padT + plotH} L ${timeToX(0)} ${padT + plotH} Z`;
+    } else {
+      const k0 = propKeyframes[0];
+      const y0 = valToY(k0.value);
+      curvePath = `M ${timeToX(0)} ${y0} L ${timeToX(k0.time)} ${y0}`;
+
+      for (let i = 0; i < propKeyframes.length - 1; i++) {
+        const k1 = propKeyframes[i];
+        const k2 = propKeyframes[i + 1];
+        const x1 = timeToX(k1.time);
+        const y1 = valToY(k1.value);
+        const x2 = timeToX(k2.time);
+        const y2 = valToY(k2.value);
+
+        const interp = k1.interpolation ?? "linear";
+        if (interp === "linear") {
+          curvePath += ` L ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+        } else {
+          const hOutX = interp === "ease_in" ? 0.42 : interp === "ease_out" ? 0.0 : interp === "ease_in_out" ? 0.42 : (k1.handle_out_x ?? 0.33);
+          const hOutY = interp === "ease_in" ? 0.0 : interp === "ease_out" ? 0.58 : interp === "ease_in_out" ? 0.0 : (k1.handle_out_y ?? 0.33);
+          const hInX = interp === "ease_in" ? 1.0 : interp === "ease_out" ? 0.58 : interp === "ease_in_out" ? 0.58 : (k2.handle_in_x ?? 0.67);
+          const hInY = interp === "ease_in" ? 0.42 : interp === "ease_out" ? 1.0 : interp === "ease_in_out" ? 1.0 : (k2.handle_in_y ?? 0.67);
+
+          const cx1 = x1 + hOutX * (x2 - x1);
+          const cy1 = y1 + hOutY * (y2 - y1);
+          const cx2 = x1 + hInX * (x2 - x1);
+          const cy2 = y1 + hInY * (y2 - y1);
+          curvePath += ` C ${cx1.toFixed(1)} ${cy1.toFixed(1)}, ${cx2.toFixed(1)} ${cy2.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+        }
+      }
+
+      const kLast = propKeyframes[propKeyframes.length - 1];
+      const yLast = valToY(kLast.value);
+      curvePath += ` L ${timeToX(clipDuration)} ${yLast.toFixed(1)}`;
+      areaPath = `${curvePath} L ${timeToX(clipDuration)} ${padT + plotH} L ${timeToX(0)} ${padT + plotH} Z`;
+    }
+
+    // Tangent handles for active keyframe
+    const activeTangents: {
+      outLine?: { x1: number; y1: number; x2: number; y2: number };
+      inLine?: { x1: number; y1: number; x2: number; y2: number };
+    } = {};
+
+    if (activeKf) {
+      const idx = propKeyframes.findIndex((k) => k.time === activeKf.time);
+      const kfX = timeToX(activeKf.time);
+      const kfY = valToY(activeKf.value);
+
+      if (idx < propKeyframes.length - 1) {
+        const nextKf = propKeyframes[idx + 1];
+        const nextX = timeToX(nextKf.time);
+        const nextY = valToY(nextKf.value);
+        const interp = activeKf.interpolation ?? "linear";
+        if (interp !== "linear") {
+          const hOutX = interp === "ease_in" ? 0.42 : interp === "ease_out" ? 0.0 : interp === "ease_in_out" ? 0.42 : (activeKf.handle_out_x ?? 0.33);
+          const hOutY = interp === "ease_in" ? 0.0 : interp === "ease_out" ? 0.58 : interp === "ease_in_out" ? 0.0 : (activeKf.handle_out_y ?? 0.33);
+          const cx1 = kfX + hOutX * (nextX - kfX);
+          const cy1 = kfY + hOutY * (nextY - kfY);
+          activeTangents.outLine = { x1: kfX, y1: kfY, x2: cx1, y2: cy1 };
+        }
+      }
+
+      if (idx > 0) {
+        const prevKf = propKeyframes[idx - 1];
+        const prevX = timeToX(prevKf.time);
+        const prevY = valToY(prevKf.value);
+        const interp = prevKf.interpolation ?? "linear";
+        if (interp !== "linear") {
+          const hInX = interp === "ease_in" ? 1.0 : interp === "ease_out" ? 0.58 : interp === "ease_in_out" ? 0.58 : (activeKf.handle_in_x ?? 0.67);
+          const hInY = interp === "ease_in" ? 0.42 : interp === "ease_out" ? 1.0 : interp === "ease_in_out" ? 1.0 : (activeKf.handle_in_y ?? 0.67);
+          const cx2 = prevX + hInX * (kfX - prevX);
+          const cy2 = prevY + hInY * (kfY - prevY);
+          activeTangents.inLine = { x1: kfX, y1: kfY, x2: cx2, y2: cy2 };
+        }
+      }
+    }
+
+    // Grid ticks
+    const vSteps = 5;
+    const vTicks = Array.from({ length: vSteps + 1 }, (_, i) => {
+      const val = minVal + (valRange / vSteps) * (vSteps - i);
+      const y = padT + (plotH / vSteps) * i;
+      return { val, y };
+    });
+
+    const durSec = clipDuration / TICKS_PER_SECOND;
+    const tSteps = Math.min(8, Math.max(3, Math.round(durSec)));
+    const tTicks = Array.from({ length: tSteps + 1 }, (_, i) => {
+      const frac = i / tSteps;
+      const t = frac * clipDuration;
+      const x = padL + frac * plotW;
+      return { t, x };
+    });
+
+    const jumpPrevKeyframe = () => {
+      if (!selectedTimelineClip) return;
+      const current = relPlayhead;
+      const prev = [...propKeyframes].reverse().find((k) => k.time < current - 1000);
+      if (prev) {
+        seekProgramTo(selectedTimelineClip.timeline_start + prev.time);
+        setSelectedKeyframeTime(prev.time);
+        setKeyframeValue(String(prev.value));
+        setKeyframeInterpDraft(prev.interpolation ?? "linear");
+      }
+    };
+
+    const jumpNextKeyframe = () => {
+      if (!selectedTimelineClip) return;
+      const current = relPlayhead;
+      const next = propKeyframes.find((k) => k.time > current + 1000);
+      if (next) {
+        seekProgramTo(selectedTimelineClip.timeline_start + next.time);
+        setSelectedKeyframeTime(next.time);
+        setKeyframeValue(String(next.value));
+        setKeyframeInterpDraft(next.interpolation ?? "linear");
+      }
+    };
+
+    const handleCanvasClick = (event: MouseEvent<SVGSVGElement>) => {
+      if (!selectedTimelineClip) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      const clickX = ((event.clientX - rect.left) / rect.width) * svgW;
+      if (clickX >= padL && clickX <= padL + plotW) {
+        const clickedFrac = (clickX - padL) / plotW;
+        const newTime = Math.round(clickedFrac * clipDuration);
+        seekProgramTo(selectedTimelineClip.timeline_start + newTime);
+      }
+    };
+
+    return (
+      <main className="workspace-page keyframes-workspace-page">
+        <header className="workspace-sub-header keyframes-workspace-header">
+          <div className="workspace-header-title">
+            <span className="workspace-eyebrow">CURVES &amp; SPLINES · KEYFRAME GRAPH EDITOR</span>
+            <h1>Keyframe Bezier Curve Editor</h1>
+            <p>Sculpt property curves with interactive cubic bezier tangents, smooth ease-in/out transitions, and live preview sync.</p>
+          </div>
+          <div className="keyframes-header-actions">
+            <span className="keyframes-target-info">
+              {selectedTimelineClip ? (
+                <>Target: <strong>{media.find((m) => m.id === selectedTimelineClip.media_id)?.name ?? "Clip"}</strong></>
+              ) : (
+                <span className="keyframes-hint-text">Select a clip in the reel below to edit curves</span>
+              )}
+            </span>
+            <button
+              className="btn-primary-subtle"
+              onClick={() => selectDavinciWorkspace("edit")}
+            >
+              ← Back to Edit
+            </button>
+          </div>
+        </header>
+
+        <div className="keyframes-studio-body">
+          {/* Main Visual Curve Editor Area */}
+          <section className="curve-editor-stage">
+            <div className="curve-editor-container">
+              <div className="curve-editor-toolbar">
+                <div className="property-pills-selector">
+                  {keyframeOptions.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`property-pill-btn ${keyframeProperty === opt.value ? "active" : ""}`}
+                      onClick={() => {
+                        setKeyframeProperty(opt.value);
+                        setKeyframeValue(String(opt.defaultValue));
+                        setSelectedKeyframeTime(null);
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="curve-header-readouts">
+                  <span className="curve-tc-tag">PLAYHEAD: <b>{formatTime(playhead)}</b></span>
+                  <span className="curve-val-tag">CLIP OFFSET: <b>{formatTime(relPlayhead)}</b></span>
+                </div>
+              </div>
+
+              {/* The Interactive SVG Graph Canvas */}
+              <div className="curve-canvas-wrapper">
+                <svg
+                  className="curve-canvas-svg"
+                  viewBox={`0 0 ${svgW} ${svgH}`}
+                  preserveAspectRatio="none"
+                  onClick={handleCanvasClick}
+                >
+                  <defs>
+                    <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Horizontal Grid lines */}
+                  {vTicks.map((tick, i) => (
+                    <g key={`vtick-${i}`}>
+                      <line
+                        x1={padL}
+                        y1={tick.y}
+                        x2={padL + plotW}
+                        y2={tick.y}
+                        stroke="rgba(255, 255, 255, 0.07)"
+                        strokeDasharray="4 4"
+                      />
+                      <text
+                        x={padL - 10}
+                        y={tick.y + 4}
+                        textAnchor="end"
+                        className="curve-grid-text"
+                      >
+                        {tick.val.toFixed(option.step < 0.1 ? 2 : 1)}
+                      </text>
+                    </g>
+                  ))}
+
+                  {/* Vertical Time Grid lines */}
+                  {tTicks.map((tick, i) => (
+                    <g key={`ttick-${i}`}>
+                      <line
+                        x1={tick.x}
+                        y1={padT}
+                        x2={tick.x}
+                        y2={padT + plotH}
+                        stroke="rgba(255, 255, 255, 0.05)"
+                      />
+                      <text
+                        x={tick.x}
+                        y={padT + plotH + 20}
+                        textAnchor="middle"
+                        className="curve-grid-text"
+                      >
+                        {(tick.t / TICKS_PER_SECOND).toFixed(1)}s
+                      </text>
+                    </g>
+                  ))}
+
+                  {/* Bezier Curve Filled Area */}
+                  {areaPath && (
+                    <path d={areaPath} fill="url(#curveGradient)" pointerEvents="none" />
+                  )}
+
+                  {/* Bezier Spline Stroke */}
+                  {curvePath && (
+                    <path
+                      d={curvePath}
+                      fill="none"
+                      stroke="#06b6d4"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      pointerEvents="none"
+                    />
+                  )}
+
+                  {/* Active Keyframe Tangent Handles */}
+                  {activeTangents.outLine && (
+                    <g className="tangent-handle-group">
+                      <line
+                        x1={activeTangents.outLine.x1}
+                        y1={activeTangents.outLine.y1}
+                        x2={activeTangents.outLine.x2}
+                        y2={activeTangents.outLine.y2}
+                        stroke="#f59e0b"
+                        strokeWidth="1.5"
+                        strokeDasharray="3 3"
+                      />
+                      <circle
+                        cx={activeTangents.outLine.x2}
+                        cy={activeTangents.outLine.y2}
+                        r="5"
+                        fill="#f59e0b"
+                        stroke="#ffffff"
+                        strokeWidth="1.5"
+                        className="tangent-circle-handle"
+                      />
+                    </g>
+                  )}
+
+                  {activeTangents.inLine && (
+                    <g className="tangent-handle-group">
+                      <line
+                        x1={activeTangents.inLine.x1}
+                        y1={activeTangents.inLine.y1}
+                        x2={activeTangents.inLine.x2}
+                        y2={activeTangents.inLine.y2}
+                        stroke="#f59e0b"
+                        strokeWidth="1.5"
+                        strokeDasharray="3 3"
+                      />
+                      <circle
+                        cx={activeTangents.inLine.x2}
+                        cy={activeTangents.inLine.y2}
+                        r="5"
+                        fill="#f59e0b"
+                        stroke="#ffffff"
+                        strokeWidth="1.5"
+                        className="tangent-circle-handle"
+                      />
+                    </g>
+                  )}
+
+                  {/* Playhead vertical line */}
+                  <line
+                    x1={timeToX(relPlayhead)}
+                    y1={padT - 6}
+                    x2={timeToX(relPlayhead)}
+                    y2={padT + plotH + 8}
+                    stroke="#ef4444"
+                    strokeWidth="2"
+                    pointerEvents="none"
+                  />
+                  <polygon
+                    points={`${timeToX(relPlayhead) - 6},${padT - 6} ${timeToX(relPlayhead) + 6},${padT - 6} ${timeToX(relPlayhead)},${padT + 4}`}
+                    fill="#ef4444"
+                    pointerEvents="none"
+                  />
+
+                  {/* Keyframe Diamond Markers */}
+                  {propKeyframes.map((kf) => {
+                    const kfX = timeToX(kf.time);
+                    const kfY = valToY(kf.value);
+                    const isSelected = activeKf?.time === kf.time;
+                    return (
+                      <g
+                        key={`kf-${kf.property}-${kf.time}`}
+                        transform={`translate(${kfX}, ${kfY})`}
+                        className={`keyframe-marker-node ${isSelected ? "is-selected" : ""}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedKeyframeTime(kf.time);
+                          setKeyframeValue(String(kf.value));
+                          setKeyframeInterpDraft(kf.interpolation ?? "linear");
+                          if (kf.handle_in_x != null) setKeyframeHandleInX(kf.handle_in_x);
+                          if (kf.handle_in_y != null) setKeyframeHandleInY(kf.handle_in_y);
+                          if (kf.handle_out_x != null) setKeyframeHandleOutX(kf.handle_out_x);
+                          if (kf.handle_out_y != null) setKeyframeHandleOutY(kf.handle_out_y);
+                          if (selectedTimelineClip) {
+                            seekProgramTo(selectedTimelineClip.timeline_start + kf.time);
+                          }
+                        }}
+                      >
+                        <rect
+                          x="-7"
+                          y="-7"
+                          width="14"
+                          height="14"
+                          transform="rotate(45)"
+                          className={`kf-diamond ${isSelected ? "selected" : ""}`}
+                        />
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+
+              {/* Curve Transport Bar */}
+              <div className="curve-transport-bar">
+                <button
+                  type="button"
+                  className="transport-btn"
+                  onClick={jumpPrevKeyframe}
+                  title="Jump to Previous Keyframe"
+                >
+                  ⏮
+                </button>
+                <button
+                  type="button"
+                  className={`transport-btn ${programPlaying ? "active-toggle" : ""}`}
+                  onClick={() => toggleProgramPlayback()}
+                  title={programPlaying ? "Pause Playback" : "Play Clip"}
+                >
+                  {programPlaying ? "⏸ Pause" : "▶ Play"}
+                </button>
+                <button
+                  type="button"
+                  className="transport-btn"
+                  onClick={jumpNextKeyframe}
+                  title="Jump to Next Keyframe"
+                >
+                  ⏭
+                </button>
+
+                <div className="curve-transport-divider" />
+
+                <button
+                  type="button"
+                  className="btn-primary-subtle"
+                  disabled={!selectedClip}
+                  onClick={() => {
+                    const hInX = keyframeInterpDraft === "ease_in" ? 1.0 : keyframeInterpDraft === "ease_out" ? 0.58 : keyframeInterpDraft === "ease_in_out" ? 0.58 : keyframeHandleInX;
+                    const hInY = keyframeInterpDraft === "ease_in" ? 0.42 : keyframeInterpDraft === "ease_out" ? 1.0 : keyframeInterpDraft === "ease_in_out" ? 1.0 : keyframeHandleInY;
+                    const hOutX = keyframeInterpDraft === "ease_in" ? 0.42 : keyframeInterpDraft === "ease_out" ? 0.0 : keyframeInterpDraft === "ease_in_out" ? 0.42 : keyframeHandleOutX;
+                    const hOutY = keyframeInterpDraft === "ease_in" ? 0.0 : keyframeInterpDraft === "ease_out" ? 0.58 : keyframeInterpDraft === "ease_in_out" ? 0.0 : keyframeHandleOutY;
+                    void saveKeyframe(keyframeProperty, Number(keyframeValue), undefined, keyframeInterpDraft, hInX, hInY, hOutX, hOutY);
+                  }}
+                  title="Add Keyframe at Current Playhead"
+                >
+                  ＋ Add Keyframe at Playhead
+                </button>
+
+                {activeKf && (
+                  <button
+                    type="button"
+                    className="danger-button"
+                    onClick={() => void deleteKeyframe(activeKf.property, activeKf.time)}
+                    title="Delete Selected Keyframe"
+                  >
+                    🗑 Delete Keyframe
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Right Sidebar: Tangents & Interpolation Controls */}
+          <aside className="curve-sidebar-dock">
+            <div className="curve-controls-box">
+              <div className="curve-section-header">
+                <h3>Interpolation Style</h3>
+                <small>{(activeKf?.interpolation ?? keyframeInterpDraft).toUpperCase().replace("_", " ")}</small>
+              </div>
+
+              <div className="ease-presets-grid">
+                {(["linear", "ease_in", "ease_out", "ease_in_out", "bezier"] as InterpolationKind[]).map((kind) => {
+                  const isCurrent = (activeKf?.interpolation ?? keyframeInterpDraft) === kind;
+                  return (
+                    <button
+                      key={kind}
+                      type="button"
+                      className={`ease-preset-card ${isCurrent ? "active" : ""}`}
+                      disabled={!selectedClip}
+                      onClick={() => {
+                        setKeyframeInterpDraft(kind);
+                        if (activeKf) {
+                          const hInX = kind === "ease_in" ? 1.0 : kind === "ease_out" ? 0.58 : kind === "ease_in_out" ? 0.58 : keyframeHandleInX;
+                          const hInY = kind === "ease_in" ? 0.42 : kind === "ease_out" ? 1.0 : kind === "ease_in_out" ? 1.0 : keyframeHandleInY;
+                          const hOutX = kind === "ease_in" ? 0.42 : kind === "ease_out" ? 0.0 : kind === "ease_in_out" ? 0.42 : keyframeHandleOutX;
+                          const hOutY = kind === "ease_in" ? 0.0 : kind === "ease_out" ? 0.58 : kind === "ease_in_out" ? 0.0 : keyframeHandleOutY;
+                          void saveKeyframe(keyframeProperty, activeKf.value, activeKf.time, kind, hInX, hInY, hOutX, hOutY);
+                        }
+                      }}
+                    >
+                      <strong className="ease-card-title">
+                        {kind === "linear" ? "Linear (Straight)" : kind === "ease_in" ? "Ease In (Smooth Entry)" : kind === "ease_out" ? "Ease Out (Smooth Exit)" : kind === "ease_in_out" ? "Ease In-Out (S-Curve)" : "Custom Bezier"}
+                      </strong>
+                      <span className="ease-card-desc">
+                        {kind === "linear" ? "Constant rate of change without smoothing" : kind === "ease_in" ? "Starts slow and accelerates toward end" : kind === "ease_out" ? "Starts fast and decelerates into destination" : kind === "ease_in_out" ? "Natural organic ease on both endpoints" : "Sculpt custom tangents with precision handles"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Tangent Handle Precision Sliders */}
+              <div className="tangent-sliders-section">
+                <div className="curve-section-header">
+                  <h3>Tangent Handles</h3>
+                  <small>Cubic Coordinates</small>
+                </div>
+
+                <div className="tangent-sliders-grid">
+                  <label className="tangent-slider-item">
+                    <span>In Handle X: {keyframeHandleInX.toFixed(2)}</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={keyframeHandleInX}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setKeyframeHandleInX(val);
+                        if (activeKf) {
+                          void saveKeyframe(keyframeProperty, activeKf.value, activeKf.time, "bezier", val, keyframeHandleInY, keyframeHandleOutX, keyframeHandleOutY);
+                        }
+                      }}
+                    />
+                  </label>
+
+                  <label className="tangent-slider-item">
+                    <span>In Handle Y: {keyframeHandleInY.toFixed(2)}</span>
+                    <input
+                      type="range"
+                      min="-1"
+                      max="2"
+                      step="0.01"
+                      value={keyframeHandleInY}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setKeyframeHandleInY(val);
+                        if (activeKf) {
+                          void saveKeyframe(keyframeProperty, activeKf.value, activeKf.time, "bezier", keyframeHandleInX, val, keyframeHandleOutX, keyframeHandleOutY);
+                        }
+                      }}
+                    />
+                  </label>
+
+                  <label className="tangent-slider-item">
+                    <span>Out Handle X: {keyframeHandleOutX.toFixed(2)}</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={keyframeHandleOutX}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setKeyframeHandleOutX(val);
+                        if (activeKf) {
+                          void saveKeyframe(keyframeProperty, activeKf.value, activeKf.time, "bezier", keyframeHandleInX, keyframeHandleInY, val, keyframeHandleOutY);
+                        }
+                      }}
+                    />
+                  </label>
+
+                  <label className="tangent-slider-item">
+                    <span>Out Handle Y: {keyframeHandleOutY.toFixed(2)}</span>
+                    <input
+                      type="range"
+                      min="-1"
+                      max="2"
+                      step="0.01"
+                      value={keyframeHandleOutY}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setKeyframeHandleOutY(val);
+                        if (activeKf) {
+                          void saveKeyframe(keyframeProperty, activeKf.value, activeKf.time, "bezier", keyframeHandleInX, keyframeHandleInY, keyframeHandleOutX, val);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Value and Time Direct Tuning */}
+              <div className="keyframe-direct-edit">
+                <div className="curve-section-header">
+                  <h3>Keyframe Numerical Value</h3>
+                  <small>{option.label}</small>
+                </div>
+
+                <div className="direct-edit-row">
+                  <label>
+                    <span>Value</span>
+                    <input
+                      type="number"
+                      min={option.min}
+                      max={option.max}
+                      step={option.step}
+                      disabled={!selectedClip}
+                      value={keyframeValue}
+                      onChange={(e) => setKeyframeValue(e.target.value)}
+                      onBlur={() => {
+                        if (activeKf) {
+                          void saveKeyframe(keyframeProperty, Number(keyframeValue), activeKf.time);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* Bottom Clips Reel Tray */}
+        <section className="clips-reel-tray">
+          <div className="reel-tray-header">
+            <strong>SEQUENCE CLIPS REEL</strong>
+            <small>{allClips.length} clips on timeline · Click any clip to view its curves</small>
+          </div>
+          <div className="reel-clips-strip">
+            {allClips.map(({ track, clip, index, mediaItem }) => {
+              const isSelected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
+              const clipKfCount = clip.keyframes?.length ?? 0;
+              return (
+                <button
+                  key={`reel-curves-${track.id}-${clip.media_id}-${index}`}
+                  className={`reel-clip-card ${isSelected ? "selected" : ""}`}
+                  onClick={() => {
+                    setSelectedClip({ track_id: track.id, clip_index: index });
+                    setSelectedClips([{ track_id: track.id, clip_index: index }]);
+                    seekProgramTo(clip.timeline_start);
+                    setSelectedKeyframeTime(null);
+                  }}
+                >
+                  <div className="reel-clip-badge">
+                    <span className={`reel-track-kind ${track.kind}`}>{track.name}</span>
+                    <span className="reel-clip-name">{mediaItem?.name ?? "Clip"}</span>
+                  </div>
+                  <span className="reel-fx-count">{clipKfCount} keyframe{clipKfCount !== 1 ? "s" : ""}</span>
                 </button>
               );
             })}
@@ -4982,7 +6352,8 @@ function App() {
           "3": "color",
           "4": "audio",
           "5": "effects",
-          "6": "deliver",
+          "6": "keyframes",
+          "7": "deliver",
         };
         const ws = map[event.key];
         if (ws) selectDavinciWorkspace(ws);
@@ -5237,6 +6608,7 @@ function App() {
        davinciWorkspace === "audio" ? renderAudioWorkspace() :
        davinciWorkspace === "color" ? renderColorWorkspace() :
        davinciWorkspace === "effects" ? renderEffectsWorkspace() :
+       davinciWorkspace === "keyframes" ? renderKeyframesWorkspace() :
        <main className="editor">
         {/* Filmora 15 Inspired Left Panel Tabs */}
         <aside className="media-panel">
@@ -5562,6 +6934,89 @@ function App() {
               <div ref={timelineScrollerRef} className={`timeline-scroller ${timelineTool === "hand" ? "hand-mode" : ""}`} onPointerDown={handleTimelinePanStart} onPointerMove={handleTimelinePanMove} onPointerUp={handleTimelinePanEnd} onPointerCancel={handleTimelinePanEnd}>
                 <div className="timeline-content" style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
                   <div className="timeline-ruler"><span className="track-spacer">Time</span><div className="ruler-lane" onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}>{project?.sequence.mark_in != null && <i className="sequence-marker in-point" style={{ left: `${project.sequence.mark_in / TICKS_PER_SECOND * timelineZoom}px` }} title={`In · ${formatTime(project.sequence.mark_in)}`}><Icon name="markIn" /></i>}{project?.sequence.mark_out != null && <i className="sequence-marker out-point" style={{ left: `${project.sequence.mark_out / TICKS_PER_SECOND * timelineZoom}px` }} title={`Out · ${formatTime(project.sequence.mark_out)}`}><Icon name="markOut" /></i>}{Array.from({ length: Math.ceil(timelineWidth / (timelineZoom * 5)) + 1 }, (_, index) => <span key={index} style={{ left: `${index * timelineZoom * 5}px` }}>{formatTime(index * TICKS_PER_SECOND * 5)}</span>)}<div className="playhead-grip ruler-playhead-grip" style={{ left: `${playhead / TICKS_PER_SECOND * timelineZoom}px` }} role="slider" aria-label="Timeline playhead" aria-valuenow={playhead / TICKS_PER_SECOND} aria-valuemin={0} aria-valuemax={timelineEndSeconds} onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}><i className="playhead" /></div></div></div>
+
+                  {/* Dedicated Subtitle Track Lane */}
+                  <div className="track-row subtitle-track-row">
+                    <div className="track-label subtitle-track-label">
+                      <div className="track-label-top">
+                        <b>Subtitles</b>
+                        <span className="subtitle-badge-pill">CC</span>
+                      </div>
+                      <div className="track-label-btns subtitle-track-btns">
+                        <button
+                          type="button"
+                          className="track-mini-btn"
+                          title="Add Subtitle at Playhead"
+                          onClick={() => void addSubtitleAtPlayhead()}
+                        >
+                          ＋
+                        </button>
+                        <button
+                          type="button"
+                          className="track-mini-btn"
+                          title="Import SRT/VTT Subtitles"
+                          onClick={() => void importSubtitlesDialog()}
+                        >
+                          📥
+                        </button>
+                        <button
+                          type="button"
+                          className="track-mini-btn"
+                          title="Export SRT/VTT Subtitles"
+                          onClick={() => void exportSubtitlesDialog()}
+                        >
+                          📤
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      className="track-lane subtitle-track-lane"
+                      onClick={() => {
+                        setSelectedSubtitle(null);
+                      }}
+                    >
+                      {(project?.sequence.subtitles ?? []).map((sub) => {
+                        const left = (sub.start_ticks / TICKS_PER_SECOND) * timelineZoom;
+                        const width = Math.max(34, ((sub.end_ticks - sub.start_ticks) / TICKS_PER_SECOND) * timelineZoom);
+                        const isSelected = selectedSubtitle?.id === sub.id;
+                        return (
+                          <div
+                            key={sub.id}
+                            className={`timeline-clip subtitle-clip ${isSelected ? "selected" : ""}`}
+                            style={{ left: `${left}px`, width: `${width}px` }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedSubtitle(sub);
+                              setSubtitleTextDraft(null);
+                              setSelectedClip(null);
+                              setSelectedClips([]);
+                              setSelectedTransition(null);
+                            }}
+                            title={`Subtitle: "${sub.text}" (${formatTime(sub.start_ticks)} - ${formatTime(sub.end_ticks)})`}
+                          >
+                            <span className="clip-kind-icon">💬</span>
+                            <strong className="subtitle-card-text">{sub.text || "(Empty)"}</strong>
+                          </div>
+                        );
+                      })}
+                      <div
+                        className="playhead-grip"
+                        style={{ left: `${(playhead / TICKS_PER_SECOND) * timelineZoom}px` }}
+                        role="slider"
+                        aria-label="Timeline playhead"
+                        aria-valuenow={playhead / TICKS_PER_SECOND}
+                        aria-valuemin={0}
+                        aria-valuemax={timelineEndSeconds}
+                        onPointerDown={beginTimelineScrub}
+                        onPointerMove={moveTimelineScrub}
+                        onPointerUp={finishTimelineScrub}
+                        onPointerCancel={finishTimelineScrub}
+                      >
+                        <i className="playhead" />
+                      </div>
+                    </div>
+                  </div>
+
                   {(project?.sequence.tracks ?? []).map((track) => <div className={`track-row ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""}`} key={track.id}>
                     <div className="track-label">
                       <div className="track-label-top">

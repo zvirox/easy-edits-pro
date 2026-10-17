@@ -970,6 +970,39 @@ async fn ask_local_ai(prompt: String, model: String) -> Result<String, String> {
         .ok_or_else(|| "Ollama returned no assistant text".to_string())
 }
 
+#[tauri::command]
+async fn import_subtitles_file(path: String) -> Result<Vec<saturn_core::project::SubtitleItem>, String> {
+    let content = std::fs::read_to_string(&path)
+        .map_err(|e| format!("Could not read subtitles file `{path}`: {e}"))?;
+    saturn_core::subtitles::detect_and_parse_subtitles(&content)
+}
+
+#[tauri::command]
+async fn export_subtitles_file(state: State<'_, AppState>, path: String, format: String) -> Result<(), String> {
+    let engine = state.0.lock().map_err(|_| "Editor state is unavailable".to_string())?;
+    let subtitles = &engine.document().project.sequence.subtitles;
+    let text = if format.eq_ignore_ascii_case("vtt") || path.ends_with(".vtt") {
+        saturn_core::subtitles::export_vtt(subtitles)
+    } else {
+        saturn_core::subtitles::export_srt(subtitles)
+    };
+    std::fs::write(&path, text)
+        .map_err(|e| format!("Could not write subtitles to `{path}`: {e}"))
+}
+
+#[tauri::command]
+async fn load_lut_cube_file(path: String) -> Result<saturn_render::lut::Lut3DInfo, String> {
+    let content = std::fs::read_to_string(&path)
+        .map_err(|e| format!("Could not read LUT file `{path}`: {e}"))?;
+    let lut = saturn_render::lut::Lut3D::parse_cube(&content)?;
+    Ok(lut.info())
+}
+
+#[tauri::command]
+async fn get_lut_preset_cube(preset_id: String) -> Result<String, String> {
+    saturn_render::lut::Lut3D::generate_preset_cube(&preset_id, 17)
+}
+
 fn main() {
     #[cfg(target_os = "linux")]
     if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
@@ -1013,7 +1046,11 @@ fn main() {
             clear_job_history,
             search_openverse,
             download_openverse_asset,
-            ask_local_ai
+            ask_local_ai,
+            import_subtitles_file,
+            export_subtitles_file,
+            load_lut_cube_file,
+            get_lut_preset_cube
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Easy Edits Pro");

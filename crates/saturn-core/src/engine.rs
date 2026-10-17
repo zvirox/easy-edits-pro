@@ -1,9 +1,9 @@
 use crate::command::{COMMANDS, CommandRequest, CommandStatus, status};
 use crate::project::{
     Clip, ColorAdjustments, ColorCorrectionParams, CropParams, EffectInstance, EffectKind,
-    EffectPayload, GaussianBlurParams, Keyframe, KeyframeProperty, MediaAsset, MediaKind,
-    ProjectDocument, TitleProperties, TrackAudioProcessing, TrackKind, Transition, TransitionKind,
-    VignetteParams, ChromaKeyParams,
+    EffectPayload, GaussianBlurParams, InterpolationKind, Keyframe, KeyframeProperty, LutParams,
+    MediaAsset, MediaKind, ProjectDocument, SubtitleItem, TitleProperties, TrackAudioProcessing,
+    TrackKind, Transition, TransitionKind, VignetteParams, ChromaKeyParams,
 };
 use crate::time::{FrameRate, TICKS_PER_SECOND, Tick};
 use serde::Deserialize;
@@ -351,6 +351,39 @@ struct SetKeyframeParams {
     property: KeyframeProperty,
     time: Tick,
     value: f64,
+    #[serde(default)]
+    interpolation: Option<InterpolationKind>,
+    #[serde(default)]
+    handle_in_x: Option<f64>,
+    #[serde(default)]
+    handle_in_y: Option<f64>,
+    #[serde(default)]
+    handle_out_x: Option<f64>,
+    #[serde(default)]
+    handle_out_y: Option<f64>,
+}
+
+#[derive(Deserialize)]
+struct AddSubtitleParams {
+    start_ticks: Tick,
+    end_ticks: Tick,
+    text: String,
+}
+
+#[derive(Deserialize)]
+struct RemoveSubtitleParams {
+    id: u64,
+}
+
+#[derive(Deserialize)]
+struct UpdateSubtitleParams {
+    id: u64,
+    #[serde(default)]
+    start_ticks: Option<Tick>,
+    #[serde(default)]
+    end_ticks: Option<Tick>,
+    #[serde(default)]
+    text: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -798,7 +831,7 @@ impl EditorEngine {
                 for property in &properties {
                     if let Some(value) = keyframe_value_at(&clip.keyframes, property, split_offset) {
                         if !left.keyframes.iter().any(|key| &key.property == property && key.time.0 == split_offset) {
-                            left.keyframes.push(Keyframe { property: property.clone(), time: Tick(split_offset), value });
+                            left.keyframes.push(Keyframe::new(property.clone(), Tick(split_offset), value));
                         }
                     }
                 }
@@ -809,7 +842,7 @@ impl EditorEngine {
                 }
                 for property in properties {
                     if let Some(value) = keyframe_value_at(&clip.keyframes, &property, split_offset) {
-                        right.keyframes.push(Keyframe { property, time: Tick(0), value });
+                        right.keyframes.push(Keyframe::new(property, Tick(0), value));
                     }
                 }
                 self.checkpoint();
@@ -1391,15 +1424,28 @@ impl EditorEngine {
                 self.checkpoint();
                 let clip = &mut self.document.project.sequence.tracks[track_index].clips
                     [params.clip_index];
+                let interp = params.interpolation.unwrap_or_default();
                 if let Some(existing) = clip.keyframes.iter_mut().find(|keyframe| {
                     keyframe.property == params.property && keyframe.time == params.time
                 }) {
                     existing.value = params.value;
+                    if params.interpolation.is_some() {
+                        existing.interpolation = interp;
+                        existing.handle_in_x = params.handle_in_x;
+                        existing.handle_in_y = params.handle_in_y;
+                        existing.handle_out_x = params.handle_out_x;
+                        existing.handle_out_y = params.handle_out_y;
+                    }
                 } else {
                     clip.keyframes.push(Keyframe {
                         property: params.property,
                         time: params.time,
                         value: params.value,
+                        interpolation: interp,
+                        handle_in_x: params.handle_in_x,
+                        handle_in_y: params.handle_in_y,
+                        handle_out_x: params.handle_out_x,
+                        handle_out_y: params.handle_out_y,
                     });
                     clip.keyframes.sort_by_key(|keyframe| keyframe.time);
                 }
@@ -1449,6 +1495,11 @@ impl EditorEngine {
                     }
                     EffectKind::ChromaKey => {
                         let mut inst = EffectInstance::new_chroma_key(effect_id, ChromaKeyParams::default());
+                        if let Some(name) = params.name { inst.name = name; }
+                        inst
+                    }
+                    EffectKind::Lut => {
+                        let mut inst = EffectInstance::new_lut(effect_id, LutParams::default());
                         if let Some(name) = params.name { inst.name = name; }
                         inst
                     }
@@ -1659,6 +1710,59 @@ impl EditorEngine {
                 if let Some(bg) = params.bg_color { title.bg_color = Some(bg); }
                 media.title = Some(title.clone());
                 Ok(json!({"media_id": params.media_id, "title": title}))
+            }
+
+            "subtitle.add" => {
+                let params: AddSubtitleParams = parse_params(request.params)?;
+                if params.start_ticks.0 < 0 || params.end_ticks.0 <= params.start_ticks.0 {
+                    return Err(DispatchError::InvalidParameters("Subtitle start time must be non-negative and before end time".into()));
+                }
+                if params.text.trim().is_empty() {
+                    return Err(DispatchError::InvalidParameters("Subtitle text cannot be empty".into()));
+                }
+                self.checkpoint();
+                let sub_id = self.document.project.next_id;
+                self.document.project.next_id = sub_id.saturating_add(1);
+                self.document.project.sequence.subtitles.push(SubtitleItem {
+                    id: sub_id,
+                    start_ticks: params.start_ticks,
+                    end_ticks: params.end_ticks,
+                    text: params.text,
+                });
+                self.document.project.sequence.subtitles.sort_by_key(|s| s.start_ticks);
+                Ok(json!({"added": true, "id": sub_id}))
+            }
+            "subtitle.remove" => {
+                let params: RemoveSubtitleParams = parse_params(request.params)?;
+                let initial = self.document.project.sequence.subtitles.len();
+                self.checkpoint();
+                self.document.project.sequence.subtitles.retain(|s| s.id != params.id);
+                Ok(json!({"removed": self.document.project.sequence.subtitles.len() < initial}))
+            }
+            "subtitle.update" => {
+                let params: UpdateSubtitleParams = parse_params(request.params)?;
+                let Some(sub) = self.document.project.sequence.subtitles.iter_mut().find(|s| s.id == params.id) else {
+                    return Err(DispatchError::InvalidParameters(format!("Subtitle {} does not exist", params.id)));
+                };
+                let new_start = params.start_ticks.unwrap_or(sub.start_ticks);
+                let new_end = params.end_ticks.unwrap_or(sub.end_ticks);
+                if new_start.0 < 0 || new_end.0 <= new_start.0 {
+                    return Err(DispatchError::InvalidParameters("Invalid subtitle timing: start must precede end".into()));
+                }
+                self.checkpoint();
+                let sub = self.document.project.sequence.subtitles.iter_mut().find(|s| s.id == params.id).unwrap();
+                sub.start_ticks = new_start;
+                sub.end_ticks = new_end;
+                if let Some(t) = params.text {
+                    sub.text = t;
+                }
+                self.document.project.sequence.subtitles.sort_by_key(|s| s.start_ticks);
+                Ok(json!({"updated": true, "id": params.id}))
+            }
+            "subtitle.clear" => {
+                self.checkpoint();
+                self.document.project.sequence.subtitles.clear();
+                Ok(json!({"cleared": true}))
             }
 
             _ => Err(DispatchError::UnknownCommand(request.id)),
