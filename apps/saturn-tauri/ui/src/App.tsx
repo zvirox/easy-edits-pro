@@ -4,6 +4,8 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import { LoadingButton } from "./components/interior/loading-button";
+import { VideoScopes } from "./components/VideoScopes";
+import { ColorWheels, type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "./components/ColorWheels";
 import {
   audioClockMaster,
   evaluateTimelinePlayback,
@@ -511,6 +513,7 @@ function App() {
   const [timelineTool, setTimelineTool] = useState<TimelineTool>("select");
   const [timelineZoom, setTimelineZoom] = useState(72);
   const [colorDraft, setColorDraft] = useState<ColorAdjustments>({ exposure: 0, contrast: 1, saturation: 1 });
+  const [colorWheelsDraft, setColorWheelsDraft] = useState<ColorWheelsData>(DEFAULT_COLOR_WHEELS);
   const [gainDrafts, setGainDrafts] = useState<Record<number, number>>({});
   const [panDrafts, setPanDrafts] = useState<Record<number, number>>({});
   const [masterGainDraft, setMasterGainDraft] = useState(0);
@@ -978,6 +981,23 @@ function App() {
       setNotice(`Selected "${preset.label}" preset. Select a clip to save it.`);
     }
   }
+
+  const updateColorWheels = useCallback((wheels: ColorWheelsData) => {
+    setColorWheelsDraft(wheels);
+    const expDelta = wheels.offset.yLum * 2.0 + wheels.lift.yLum * 0.5;
+    const nextContrast = Math.max(0.1, 1.0 + wheels.gamma.yLum * 0.6);
+    const nextSat = Math.max(0, 1.0 + wheels.gain.yLum * 0.6);
+
+    const next: ColorAdjustments = {
+      exposure: Math.round(expDelta * 10) / 10,
+      contrast: Math.round(nextContrast * 100) / 100,
+      saturation: Math.round(nextSat * 100) / 100,
+    };
+    setColorDraft(next);
+    if (selectedClip) {
+      void saveColor(next);
+    }
+  }, [selectedClip]);
 
   async function clearAllSolos() {
     if (!project) return;
@@ -3383,6 +3403,7 @@ function App() {
     const resetColorGrading = () => {
       const reset = { exposure: 0, contrast: 1.0, saturation: 1.0 };
       setColorDraft(reset);
+      setColorWheelsDraft(DEFAULT_COLOR_WHEELS);
       void saveColor(reset);
     };
 
@@ -3390,9 +3411,9 @@ function App() {
       <main className="workspace-page color-workspace-page">
         <header className="workspace-sub-header color-workspace-header">
           <div className="workspace-header-title">
-            <span className="workspace-eyebrow">COLOR · PRIMARY GRADING &amp; LOOKS</span>
+            <span className="workspace-eyebrow">COLOR · PRIMARY GRADING &amp; SCOPES</span>
             <h1>Color Grading Studio</h1>
-            <p>Color balance, exposure, contrast, saturation, and 1-click cinematic film emulation presets.</p>
+            <p>Real-time GPU video scopes (Waveform, Vectorscope, Parade, Histogram), 3-way color balance wheels &amp; cinematic presets.</p>
           </div>
           <div className="color-header-actions">
             <span className="color-target-info">
@@ -3406,9 +3427,9 @@ function App() {
               className="btn-secondary"
               onClick={resetColorGrading}
               disabled={!selectedClip}
-              title="Reset exposure, contrast, and saturation to neutral defaults"
+              title="Reset exposure, contrast, saturation, and color wheels to neutral"
             >
-              Reset Grade
+              Reset All
             </button>
             <button
               className="btn-primary-subtle"
@@ -3420,120 +3441,144 @@ function App() {
         </header>
 
         <div className="color-studio-body">
-          {/* Main Stage: Large Program Monitor Viewer + Transport Controls */}
-          <section className="color-monitor-stage">
-            <div className="color-viewer-container">
-              <div className="color-viewer-header">
-                <span className="viewer-title">PROGRAM MONITOR</span>
-                <code>{formatTime(playhead)}</code>
-              </div>
-              <div className="color-monitor-wrapper">
-                {renderProgramMonitor()}
-              </div>
-              <div className="color-transport-bar">
-                <button aria-label="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</button>
-                <button
-                  className={programPlaying ? "active-toggle" : ""}
-                  aria-label={programPlaying ? "Pause playback" : "Play clip"}
-                  onClick={() => toggleProgramPlayback()}
-                >
-                  {programPlaying ? "⏸ Pause" : "▶ Play"}
-                </button>
-                <button aria-label="Next frame" onClick={() => stepProgramFrame(1)}>▶|</button>
-                <code>{formatTime(playhead)}</code>
-              </div>
-            </div>
-          </section>
-
-          {/* Right Sidebar: Primary Sliders & Creative Presets */}
-          <aside className="color-grading-sidebar">
-            <div className="color-grading-box">
-              <div className="color-section-header">
-                <h3>Primary Grading</h3>
-                <small>Live hardware preview</small>
-              </div>
-
-              <div className="color-sliders-group">
-                <label className="color-slider-item">
-                  <div className="slider-label-row">
-                    <span>Exposure</span>
-                    <b>{colorDraft.exposure > 0 ? `+${colorDraft.exposure.toFixed(1)}` : colorDraft.exposure.toFixed(1)}</b>
-                  </div>
-                  <input
-                    type="range"
-                    min="-5"
-                    max="5"
-                    step="0.1"
-                    disabled={!selectedClip}
-                    value={colorDraft.exposure}
-                    onChange={(e) => setColorDraft((v) => ({ ...v, exposure: Number(e.target.value) }))}
-                    onPointerUp={(e) => updateColorField("exposure", Number(e.currentTarget.value))}
-                    onKeyUp={(e) => updateColorField("exposure", Number(e.currentTarget.value))}
-                  />
-                </label>
-
-                <label className="color-slider-item">
-                  <div className="slider-label-row">
-                    <span>Contrast</span>
-                    <b>{colorDraft.contrast.toFixed(2)}</b>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="2"
-                    step="0.01"
-                    disabled={!selectedClip}
-                    value={colorDraft.contrast}
-                    onChange={(e) => setColorDraft((v) => ({ ...v, contrast: Number(e.target.value) }))}
-                    onPointerUp={(e) => updateColorField("contrast", Number(e.currentTarget.value))}
-                    onKeyUp={(e) => updateColorField("contrast", Number(e.currentTarget.value))}
-                  />
-                </label>
-
-                <label className="color-slider-item">
-                  <div className="slider-label-row">
-                    <span>Saturation</span>
-                    <b>{colorDraft.saturation.toFixed(2)}</b>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="2"
-                    step="0.01"
-                    disabled={!selectedClip}
-                    value={colorDraft.saturation}
-                    onChange={(e) => setColorDraft((v) => ({ ...v, saturation: Number(e.target.value) }))}
-                    onPointerUp={(e) => updateColorField("saturation", Number(e.currentTarget.value))}
-                    onKeyUp={(e) => updateColorField("saturation", Number(e.currentTarget.value))}
-                  />
-                </label>
-              </div>
-            </div>
-
-            <div className="color-presets-box">
-              <div className="color-section-header">
-                <h3>Creative Look Presets</h3>
-                <small>Click to apply instantly</small>
-              </div>
-              <div className="color-presets-grid">
-                {COLOR_PRESETS.map((preset) => (
+          {/* Top Half: Side-by-Side Program Monitor + Video Scopes */}
+          <div className="color-top-row">
+            <section className="color-monitor-stage">
+              <div className="color-viewer-container">
+                <div className="color-viewer-header">
+                  <span className="viewer-title">PROGRAM MONITOR</span>
+                  <code>{formatTime(playhead)}</code>
+                </div>
+                <div className="color-monitor-wrapper">
+                  {renderProgramMonitor()}
+                </div>
+                <div className="color-transport-bar">
+                  <button aria-label="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</button>
                   <button
-                    key={preset.id}
-                    className="color-preset-card"
-                    disabled={!selectedClip}
-                    onClick={() => void applyColorPreset(preset)}
-                    title={`Apply ${preset.label} grade: Exp ${preset.exposure}, Contrast ${preset.contrast}, Sat ${preset.saturation}`}
+                    className={programPlaying ? "active-toggle" : ""}
+                    aria-label={programPlaying ? "Pause playback" : "Play clip"}
+                    onClick={() => toggleProgramPlayback()}
                   >
-                    <span className="preset-card-icon">{preset.icon}</span>
-                    <strong className="preset-card-title">{preset.label}</strong>
-                    <span className="preset-card-meta">
-                      Exp {preset.exposure > 0 ? `+${preset.exposure}` : preset.exposure} · Sat {preset.saturation}
-                    </span>
+                    {programPlaying ? "⏸ Pause" : "▶ Play"}
                   </button>
-                ))}
+                  <button aria-label="Next frame" onClick={() => stepProgramFrame(1)}>▶|</button>
+                  <code>{formatTime(playhead)}</code>
+                </div>
               </div>
+            </section>
+
+            {/* Video Scopes Stage: Real-Time Waveform / Vectorscope / Parade / Histogram */}
+            <section className="color-scopes-stage">
+              <VideoScopes
+                getActiveVideo={() => {
+                  if (deckSnapshot?.deckB.visible && deckBRef.current) return deckBRef.current;
+                  return deckARef.current;
+                }}
+                activeFilter={
+                  deckSnapshot?.deckB.visible
+                    ? (deckSnapshot.deckB.style.filter as string | undefined)
+                    : (deckSnapshot?.deckA.style.filter as string | undefined)
+                }
+              />
+            </section>
+          </div>
+
+          {/* Bottom Half: 4 Primary Color Wheels Dock + Sliders & Presets */}
+          <div className="color-bottom-row">
+            <div className="color-wheels-dock-wrapper">
+              <ColorWheels
+                value={colorWheelsDraft}
+                onChange={updateColorWheels}
+                disabled={!selectedClip}
+              />
             </div>
-          </aside>
+
+            <aside className="color-sidebar-dock">
+              <div className="color-grading-box">
+                <div className="color-section-header">
+                  <h3>Primary Sliders</h3>
+                  <small>Exposure / Contrast / Sat</small>
+                </div>
+
+                <div className="color-sliders-group">
+                  <label className="color-slider-item">
+                    <div className="slider-label-row">
+                      <span>Exposure</span>
+                      <b>{colorDraft.exposure > 0 ? `+${colorDraft.exposure.toFixed(1)}` : colorDraft.exposure.toFixed(1)}</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="-5"
+                      max="5"
+                      step="0.1"
+                      disabled={!selectedClip}
+                      value={colorDraft.exposure}
+                      onChange={(e) => setColorDraft((v) => ({ ...v, exposure: Number(e.target.value) }))}
+                      onPointerUp={(e) => updateColorField("exposure", Number(e.currentTarget.value))}
+                      onKeyUp={(e) => updateColorField("exposure", Number(e.currentTarget.value))}
+                    />
+                  </label>
+
+                  <label className="color-slider-item">
+                    <div className="slider-label-row">
+                      <span>Contrast</span>
+                      <b>{colorDraft.contrast.toFixed(2)}</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="2"
+                      step="0.01"
+                      disabled={!selectedClip}
+                      value={colorDraft.contrast}
+                      onChange={(e) => setColorDraft((v) => ({ ...v, contrast: Number(e.target.value) }))}
+                      onPointerUp={(e) => updateColorField("contrast", Number(e.currentTarget.value))}
+                      onKeyUp={(e) => updateColorField("contrast", Number(e.currentTarget.value))}
+                    />
+                  </label>
+
+                  <label className="color-slider-item">
+                    <div className="slider-label-row">
+                      <span>Saturation</span>
+                      <b>{colorDraft.saturation.toFixed(2)}</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="2"
+                      step="0.01"
+                      disabled={!selectedClip}
+                      value={colorDraft.saturation}
+                      onChange={(e) => setColorDraft((v) => ({ ...v, saturation: Number(e.target.value) }))}
+                      onPointerUp={(e) => updateColorField("saturation", Number(e.currentTarget.value))}
+                      onKeyUp={(e) => updateColorField("saturation", Number(e.currentTarget.value))}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="color-presets-box">
+                <div className="color-section-header">
+                  <h3>Look Presets</h3>
+                  <small>1-Click</small>
+                </div>
+                <div className="color-presets-grid compact">
+                  {COLOR_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      className="color-preset-card compact"
+                      disabled={!selectedClip}
+                      onClick={() => void applyColorPreset(preset)}
+                      title={`Apply ${preset.label} grade`}
+                    >
+                      <span className="preset-card-icon">{preset.icon}</span>
+                      <strong className="preset-card-title">{preset.label}</strong>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </aside>
+          </div>
         </div>
 
         {/* Bottom Clips Reel Tray */}
