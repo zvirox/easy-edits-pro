@@ -1,99 +1,324 @@
+<div align="center">
+
+<img src="assets/logo.png" alt="Easy Edits Pro Logo" width="160" />
+
 # Easy Edits Pro
 
-Easy Edits Pro is an open-source Linux desktop video editor in early development. The app was previously called Project Saturn; its Rust crates, repository URL, and existing `.saturn` project format retain those internal identifiers for compatibility.
+**力と美のために** &middot; *Precision, Performance & Power for Modern Linux Video Editing.*
 
-The Tauri desktop UI uses React, TypeScript, and Vite in `apps/saturn-tauri`. The Rust workspace contains the framework-independent project core, CLI, and GStreamer renderer; the core provides project commands, exact rational frame timing, versioned `.saturn` project files, atomic saves, and undo/redo.
+Easy Edits Pro is a high-performance, non-linear desktop video editor engineered in Rust and Tauri 2 for Linux. Designed to combine the workspace fluidity of DaVinci Resolve, the rich asset shelf ergonomics of Wondershare Filmora, and the cutting precision of Adobe Premiere Pro—all inside an obsidian-dark interface crafted specifically for modern Linux desktop rices (Hyprland, Niri, Sway, GNOME, and KDE).
 
-## Build and run
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-E2342A?style=for-the-badge)](LICENSE)
+[![Rust](https://img.shields.io/badge/Rust-2021_Edition-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Tauri 2](https://img.shields.io/badge/Tauri-2.0-24C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://v2.tauri.app/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![GStreamer](https://img.shields.io/badge/GStreamer-GES_1.24+-E2342A?style=for-the-badge&logo=gstreamer&logoColor=white)](https://gstreamer.freedesktop.org/)
+[![Platform: Linux](https://img.shields.io/badge/Platform-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/zvirox/easy-edits-pro)
 
-### Tauri desktop UI
+<br />
 
-Install the Tauri 2 [Linux prerequisites](https://v2.tauri.app/start/prerequisites/), Rust, Node.js, pnpm, and GStreamer Editing Services development/runtime packages with the H.264/AAC and VP8/Vorbis plugins. From the repository root, run:
+[![GitHub](https://img.shields.io/badge/GitHub-zvirox-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/zvirox)
+[![YouTube: @zvirox_in](https://img.shields.io/badge/YouTube-@zvirox__in-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@zvirox_in)
+[![YouTube: @climin_in](https://img.shields.io/badge/YouTube-@climin__in-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@climin_in)
+[![Instagram](https://img.shields.io/badge/Instagram-@plg.sevala-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/plg.sevala)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-plgsevala-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/plgsevala/)
+[![Facebook](https://img.shields.io/badge/Facebook-plg.sevala-1877F2?style=for-the-badge&logo=facebook&logoColor=white)](https://www.facebook.com/plg.sevala)
 
-```sh
-cd apps/saturn-tauri
+<br />
+
+<kbd>[Overview](#about)</kbd> &middot; <kbd>[Workspaces](#workspaces-suite)</kbd> &middot; <kbd>[Key Capabilities](#key-capabilities)</kbd> &middot; <kbd>[Architecture](#core-architecture)</kbd> &middot; <kbd>[Quick Start](#quick-start)</kbd> &middot; <kbd>[Roadmap](#development-roadmap)</kbd> &middot; <kbd>[Connect](#connect--follow)</kbd>
+
+</div>
+
+---
+
+<div align="center">
+
+<img src="assets/screenshots/wcss.png" alt="Easy Edits Pro Main Workspace Suite" width="960" />
+
+<sub><b>The Easy Edits Pro Desktop Suite.</b> Multi-track timeline, DaVinci Resolve workspace ribbon, Filmora left asset shelf, Premiere tool rail, multi-cam quad split, and Fairlight audio console.</sub>
+
+</div>
+
+---
+
+## About
+
+Easy Edits Pro (originally *Project Saturn*) is an open-source, framework-independent desktop video editor built from first principles for Linux creators. Traditional Linux editors often force a choice between unstable monolithic wrappers or clunky legacy interfaces. Easy Edits Pro bridges that gap with a modern, decoupled architecture:
+
+1. **Rust Core Engine (`saturn-core`):** A rock-solid, zero-drift rational timebase (`254,016,000,000` integer ticks/second) that manages sequences, clips, transitions, keyframes, bus routing, and transactional command history with instantaneous atomic undo/redo.
+2. **GStreamer Render Engine (`saturn-render`):** Direct hardware-accelerated video decoding, 3D LUT tetrahedral interpolation, optical flow motion displacement tracking, audio cross-correlation sync, and GStreamer Editing Services (GES) multi-job rendering.
+3. **Fluid Tauri 2 Shell (`saturn-tauri`):** A responsive, hardware-accelerated UI styled in obsidian dark (`#080a0f`) with 1px glowing borders, neon cyan/violet accents, real-time SVG audio waveforms, and tactile feedback built to complement tiling compositors like Hyprland and Niri.
+
+---
+
+## Workspaces Suite
+
+Easy Edits Pro mirrors the streamlined, task-oriented workflow of industry-standard post-production suites through its integrated workspace ribbon:
+
+<table>
+  <tr>
+    <td width="50%">
+      <h3>1. Media Studio <kbd>Shift + 1</kbd></h3>
+      <p>High-density project media bin with multi-file drag-and-drop, asynchronous GStreamer metadata probing, live cached video/audio proxies, and integrated Openverse FOSS stock media search.</p>
+    </td>
+    <td width="50%">
+      <h3>2. Edit Suite <kbd>Shift + 2</kbd></h3>
+      <p>Multi-track timeline with Premiere Pro tool rail (<kbd>V</kbd>, <kbd>A</kbd>, <kbd>B</kbd>, <kbd>C</kbd>, <kbd>Y</kbd>, <kbd>P</kbd>, <kbd>H</kbd>, <kbd>Z</kbd>), dual-deck preview staging (Deck A / Deck B), frame snapping, and real-time SVG waveform display.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>3. Color Grading Studio <kbd>Shift + 3</kbd></h3>
+      <p>4 interactive 3-way color balance wheels (Lift, Gamma, Gain, Offset) with 2D chromaticity pucks, master luma rings, 3D LUT (.cube) tetrahedral grading, and real-time GPU scopes (Waveform, Vectorscope, Histogram, Parade).</p>
+    </td>
+    <td width="50%">
+      <h3>4. Fairlight Audio Studio <kbd>Shift + 4</kbd></h3>
+      <p>Multi-track mixing console with long-throw vertical dB faders, 60fps LED stereo peak VU meters, track pan knobs, Submix/Aux bus routing, fader automation modes (Read/Touch/Latch/Write), and VST3 plugin inserts.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>5. Effects &amp; Keyframes <kbd>Shift + 5</kbd></h3>
+      <p>Composable multi-effect stack (Color Correction, Gaussian Blur, Crop, Vignette, Chroma Key), cubic bezier keyframe spline editor with Ease-In / Ease-Out tangent handles, and Lucas-Kanade optical flow motion tracking.</p>
+    </td>
+    <td width="50%">
+      <h3>6. Delivery &amp; Batch Queue <kbd>Shift + 6</kbd></h3>
+      <p>Multi-job batch export queue with background worker daemon, atomic pause/resume controls, target delivery presets (YouTube, TikTok 9:16, Cinema 4K), and GPU hardware encoding (NVENC, VA-API, QSV).</p>
+    </td>
+  </tr>
+</table>
+
+---
+
+## Key Capabilities
+
+### 🎥 Multi-Cam Synchronized Editing
+- **Audio Waveform Cross-Correlation:** Automatically synchronizes multi-angle footage by cross-correlating decoded audio waveforms, calculating lag offsets with sub-millisecond precision.
+- **2x2 Quad-Split Monitor:** Displays Angles 1–4 simultaneously in the Program stage.
+- **Live Tally Indicator:** Active on-air angle glows in brilliant broadcast red with an `ON AIR` badge, while hovered preview tiles display a green tally border.
+- **One-Key Angle Switching:** Cut live between camera angles on the fly using number keys <kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd>, and <kbd>4</kbd> during playback.
+
+### 🎨 Color Grading &amp; 3D LUTs
+- **Primary Color Wheels:** Lift modulates shadows ($1 - v$), Gamma curves midtones ($v^{1 - 0.5\gamma}$), Gain expands highlights ($v \cdot (1 + \text{gain})$), and Offset translates the pedestal across RGBA.
+- **3D LUT (.cube) Support:** Parses standard $17\times17\times17$ to $64\times64\times64$ 3D LUT files and interpolates RGB color tables in-place.
+- **GPU Scopes:** Real-time visual monitoring via Vectorscope, Waveform Monitor, RGB Parade, and Luminance Histogram.
+
+### 🎯 Motion Tracking &amp; Camera Stabilization
+- **Lucas-Kanade Optical Flow Tracker:** Tracks sub-pixel patch displacements frame-by-frame across high-motion sequences.
+- **Camera Shake Stabilization:** Smooths raw trajectory curves using a Gaussian low-pass filter and applies real-time inverse transformation matrices.
+- **Sticker &amp; Overlay Pinning:** Locks titles, lower-thirds, or graphic overlays to tracked object coordinates.
+- **On-Screen Tracking Target:** High-visibility dashed crosshair overlay with corner brackets on the Program monitor.
+
+### 🎚️ Fairlight Multitrack Mixer &amp; Automation
+- **Console Strips:** Motorized vertical faders with unity gain resets (<kbd>0 dB</kbd>), rotary stereo pan sliders, and dual stereo LED VU peak meters.
+- **Bus Routing Matrix:** Assign each track dynamically to `Master`, `Submix 1 (DX Dialogue)`, `Submix 2 (MX Music)`, or `Aux FX (Reverb)`.
+- **Fader Automation Modes:** `Read`, `Touch` (punch-in on mouse drag), `Latch`, and `Write` for volume and pan envelopes.
+- **VST3 Host Architecture:** Insert native DSP effects including Parametric 4-band EQ, Dynamics Compressor, De-Esser Pro, and Stereo Chorus.
+
+### ⚡ Batch Render Queue &amp; Background Worker
+- **Thread-Safe Daemon:** Multi-threaded Rust worker daemon (`saturn-core/src/job.rs`) with prioritized execution (`Immediate`, `High`, `Normal`, `Background`) and cooperative cancellation tokens.
+- **Pause &amp; Resume:** Pause active rendering without dropping frame buffers, allowing resource recovery for foreground editing.
+- **Hardware Acceleration:** Auto-probes Linux hardware encoders: NVIDIA NVENC (`nvcodec`), Intel Quick Sync (`vaapi`/`qsv`), AMD AMF / VA-API (`vaapih264enc`), with seamless CPU fallback (`x264enc`).
+
+### 📝 Dedicated Subtitle Track &amp; CC
+- **Timeline Subtitle Lane:** Independent subtitle card track on the sequence with auto-wrapping text blocks and live preview rendering.
+- **Standards Compliant:** One-click import and export for both `.srt` (SubRip) and `.vtt` (WebVTT) formats.
+
+---
+
+## Core Architecture
+
+Easy Edits Pro enforces a strict separation between domain state, native rendering, and UI presentation:
+
+```mermaid
+graph LR
+    subgraph Frontend ["Tauri 2 Desktop Shell (TypeScript + React 19)"]
+        UI["Obsidian UI & Timeline"]
+        Playback["Dual-Deck Playback Engine"]
+        Scopes["Video Scopes & Meters"]
+    end
+
+    subgraph IPC ["Tauri IPC Bridge"]
+        Commands["Transactional Commands"]
+        Events["Channel Progress Events"]
+        Protocol["Custom Asset Streamer"]
+    end
+
+    subgraph Core ["Rust Core (saturn-core)"]
+        Doc["Project Document (Schema v8)"]
+        Time["Exact Rational Tick Timebase"]
+        Jobs["JobManager (Background Daemon)"]
+        History["Undo / Redo Checkpoints"]
+    end
+
+    subgraph Render ["Native Engine (saturn-render)"]
+        GES["GStreamer Editing Services"]
+        Wheels["RGBA Color Wheels Engine"]
+        LUT["3D LUT Tetrahedral Engine"]
+        Tracker["Optical Flow Motion Tracker"]
+        Audio["Waveform Cross-Correlation Sync"]
+    end
+
+    UI -->|Execute JSON Command| Commands
+    Commands -->|Dispatch| Core
+    Core -->|State Snapshot| UI
+    Playback -->|Custom URI Streaming| Protocol
+    Protocol -->|Proxy Decoder| Render
+    Jobs -->|Batch Export Task| Render
+    Render -->|Hardware Encoders (NVENC/VAAPI)| Output["MP4 / WebM Video"]
+```
+
+### Rational Integer Timebase
+To avoid accumulated frame drift over long sequences, Easy Edits Pro calculates all time values in exact integer ticks:
+
+$$\text{TICKS\_PER\_SECOND} = 254{,}016{,}000{,}000$$
+
+This tick base is evenly divisible by all broadcast and digital frame rates: **23.976**, **24**, **25**, **29.97**, **30**, **48**, **50**, **59.94**, and **60 fps**, as well as pro audio sample rates (**44.1 kHz**, **48 kHz**, **96 kHz**, and **192 kHz**).
+
+---
+
+## System Requirements
+
+| Component | Minimum | Recommended |
+|:---|:---|:---|
+| **Operating System** | Linux (Kernel 5.15+) | Modern Linux distribution (Arch, Fedora, Debian 12+, Ubuntu 22.04+) |
+| **Desktop Environment** | Any X11 or Wayland compositor | Hyprland, Niri, Sway, GNOME 44+, or KDE Plasma 6 |
+| **CPU** | 64-bit x86_64, Dual-Core | 64-bit Quad-Core (Intel Core i5/i7/i9 or AMD Ryzen 5/7/9) |
+| **RAM** | 4 GB | 16 GB+ for smooth 4K timeline scrub and multi-cam playback |
+| **GPU** | OpenGL 3.3 / Vulkan compatible | Dedicated NVIDIA (GTX 1060+), AMD Radeon (RX 580+), or Intel Arc |
+| **Hardware Encoders** | Software fallback (`x264enc`) | NVIDIA NVENC, Intel VA-API / QSV, or AMD VA-API |
+| **Storage** | 500 MB for application | NVMe SSD for fast media cache proxies and scratch disks |
+
+---
+
+## Quick Start
+
+### 1. Prerequisites (Ubuntu/Debian)
+```bash
+sudo apt update && sudo apt install -y \
+  build-essential curl wget git pkg-config \
+  libwebkit2gtk-4.1-dev libssl-dev libgtk-3-dev libayatana-appindicator3-dev \
+  librsvg2-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+  libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base \
+  gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+  gstreamer1.0-libav gstreamer1.0-tools libges-1.0-dev
+```
+
+### 2. Prerequisites (Arch Linux)
+```bash
+sudo pacman -S --needed \
+  base-devel curl git gstreamer gst-plugins-base gst-plugins-good \
+  gst-plugins-bad gst-plugins-ugly gst-libav gst-editing-services \
+  webkit2gtk-4.1 rustup nodejs pnpm
+```
+
+### 3. Clone and Run in Development
+```bash
+git clone https://github.com/zvirox/easy-edits-pro.git
+cd easy-edits-pro/apps/saturn-tauri
 pnpm install
 pnpm tauri dev
 ```
 
-On launch, the Tauri interface opens a project welcome screen where you can create a project with a name, resolution, and frame rate, reopen a recent project, or browse for an existing `.saturn` project. Inside the editor, clearly labeled Import, Edit, and Export workspaces organize media intake, timeline editing, and delivery settings. Import provides searchable project media cards and a direct browse action; Edit retains the timeline, labeled tools, monitors, and existing editing workspaces. Export provides format, frame-size and frame-rate presets, an output location, marked-range export, and a summary of the resulting file. The editor provides native multi-file media import, GStreamer metadata discovery, a searchable media bin, source and program previews, and shared Rust undo/redo. Video previews are decoded by GStreamer into cached WebM/VP8 proxies, so playback does not rely on WebKit having native MP4 codec support; the original file remains the source for editing and export. Drag media from the Project panel onto a matching timeline track to place it at that time; the orange playhead can be dragged to scrub the timeline and preview the active clip. Timeline editing includes clip move, split, remove, zoom, frame snapping, transitions, title graphics, and keyframe tools. The program preview supports play/pause, seeking, and frame stepping. The native renderer uses GStreamer Editing Services to export MP4 (H.264/AAC) or WebM (VP8/Vorbis) with selectable output size and frame rate, supporting transitions, title clips, color controls, and track gain. MP4 export can prefer an installed VA-API, Intel Quick Sync, NVIDIA NVENC, or V4L2 H.264 encoder, with GStreamer software encoders used when hardware encoding is unavailable. Export progress appears in the Export workspace.
-
-The UI is custom-styled to fit modern Linux desktop rices (Hyprland / Niri), featuring an obsidian dark canvas (`#080a0f`), 1px subtle glowing borders, electric cyan and neon violet accents, and tactile micro-interactions on button clicks. Audio clips on the timeline display real-time mirrored SVG waveforms generated from decoded peak samples. Video and audio transitions (`Crossfade`, `Dip to Black`, `Dip to White`, `Wipe`, `Slide`) can be inserted at any cut point (`Ctrl+D`) and configured via a dedicated Transition Inspector. Title and lower-third graphic clips (`Ctrl+T`) render live glassmorphic graphics on top of the program monitor and in final exports.
-
-The Asset Library searches Openverse for openly licensed images and audio, downloads selected media into Easy Edits Pro's application data folder, and saves a neighboring attribution JSON file. Review each source and license before distributing a project. The AI Assistant can send prompts to a local Ollama instance at `http://127.0.0.1:11434`; install Ollama and pull a model such as `llama3.2:3b` first. Prompts and responses stay on the local machine.
-
-The interface bundles the Inter Variable font for consistent typography. Inter is licensed under the SIL Open Font License; see [`assets/fonts/OFL.txt`](assets/fonts/OFL.txt).
-
-### Linux packages
-
-The Tauri bundler is configured for Debian (`.deb`) and RPM (`.rpm`) packages. On Linux, build them with:
-
-```sh
+### 4. Build Native Linux Packages (.deb / .rpm)
+```bash
 cd apps/saturn-tauri
-pnpm install
 pnpm tauri build
 ```
+The compiled binaries, `.deb`, and `.rpm` packages will be placed in `apps/saturn-tauri/target/release/bundle/`.
 
-The package build needs the Tauri/WebKitGTK build prerequisites, GStreamer Editing Services development files, GStreamer runtime plugins, and the Debian/RPM packaging tools. The `Linux packages` GitHub Actions workflow builds both package formats on manual dispatch or a `v*` tag. Package dependencies declare GStreamer and Tauri runtime libraries; the encoder/decoder plugin packages are included as dependencies as well.
-
-Headless CLI examples:
-
-```sh
+### 5. Headless CLI Control
+```bash
+# Query available engine commands
 cargo run -p saturn-cli -- commands
-cargo run -p saturn-cli -- new ~/Videos/first-edit.saturn "First edit"
-cargo run -p saturn-cli -- inspect ~/Videos/first-edit.saturn
-cargo run -p saturn-cli -- add-media ~/Videos/first-edit.saturn ~/Videos/shot.mp4
+
+# Create and inspect project files
+cargo run -p saturn-cli -- new ~/Videos/edit.saturn "My Video"
+cargo run -p saturn-cli -- inspect ~/Videos/edit.saturn
+
+# Batch automated command runner
+cargo run -p saturn-cli -- control
 ```
 
-The project is licensed under **GNU GPL version 3**; see [`LICENSE`](LICENSE).
+---
 
-## Current progress
+## Repository Structure
 
-- Easy Edits Pro Tauri 2 React/TypeScript/Vite desktop shell with responsive editing workspaces and bundled Inter Variable typography
-- Modern Linux desktop rice identity styled for Hyprland / Niri (obsidian dark canvas, subtle 1px border glows, neon cyan/violet accents, tactile button click animations)
-- **DaVinci Resolve 2026 Workspace Flow**: Integrated sequential workspace bar (`Media` Shift+1, `Edit` Shift+2, `Color` Shift+3, `Audio` Shift+4, `Effects` Shift+5, `Deliver` Shift+6) unifying asset management, multi-track cutting, color grading, Fairlight audio mixing, keyframing, and delivery
-- **Wondershare Filmora 15 Left Asset Panel**: Tabbed category navigation (`Media`, `Titles`, `Transitions`, `Audio`, `Stock`, `AI Tools`) featuring instant 1-click visual preset cards for Title templates (`Broadcast Lower-Third`, `Minimal Pill`, `Cinematic Headline`, `Cyber Neon`, `Documentary Card`, `Framed Banner`) and Transitions (`Crossfade`, `Dip to Black`, `Dip to White`, `Wipe Left/Right`, `Slide Left/Right`)
-- **Adobe Premiere Pro Timeline Tool Rail**: Dedicated vertical tool rail beside the timeline with pro NLE tools and single-key shortcuts: Selection Tool (`V`), Track Select Forward (`A`), Ripple Edit (`B`), Razor (`C`), Slip (`Y`), Keyframe Pen (`P`), Hand Pan (`H`), and Zoom (`Z`)
-- **Automatic Floating Tooltips**: Tooltips on hover across all tools, workspace buttons, menu items, timeline actions, and transport controls showing tool name and keyboard shortcut
-- **Light & Dark Mode Theme Switcher**: Easily accessible header toggle button (`Ctrl+Alt+T`) switching between Obsidian Dark Rice (`#080a0f`) and Pro Studio Clean Slate (`#f1f5f9`), with local storage persistence
-- **Background Job Queue Manager (Phase 2.1)**: Dedicated multi-threaded Rust job queue (`saturn-core/src/job.rs`) with prioritized execution (`Immediate`, `High`, `Normal`, `Background`), cooperative cancellation (`CancellationToken`), real-time progress events over Tauri IPC, header status pill with active task counters, and popover drawer with live progress bars and one-click task cancellation
-- **Seamless Multi-Track Playback Engine (Phase 2.2)**: Hardware-synchronized audio-clock master transport (`AudioContext.currentTime`) eliminating drift and timer stutter; Dual-Deck Video Compositor (Deck A / Deck B) in the Program Monitor that stages upcoming clips in advance to eliminate cut freezing; real-time Program Monitor visual transitions (`Crossfade`, `Dip to Black`, `Dip to White`, `Wipe`, `Slide`); multi-track audio playback with track gain faders; continuous 60fps playhead animation through cuts and gaps; and pro JKL shuttle playback (-4x, -2x, -1x, 1x, 2x, 4x)
-- **Composable Effect Stack (Phase 3.1)**: Extensible multi-effect stack (`Vec<EffectInstance>`) supporting Color Correction (exposure, contrast, saturation, hue), Gaussian Blur (kernel sigma), Video Crop (pixel-accurate top/bottom/left/right), Radial Vignette (radius, softness, strength), and Custom Chroma Keying (hex target color, tolerance angle). Built with project schema version 5 and seamless backward compatibility, 5 transactional commands with full undo/redo (`clip.add_effect`, `clip.remove_effect`, `clip.update_effect`, `clip.toggle_effect`, `clip.reorder_effects`), live Program Monitor CSS visual shaders, card-based Effects Inspector in the `Effects` workspace, and native GStreamer Editing Services export rendering via `videobalance`, `gaussianblur`, `videocrop`, and `alpha` pipeline elements
-- **Fairlight-Style Audio Mixing Console & Metering Engine (Phase 4.1)**: Dedicated multi-track vertical channel strip audio console in the `Audio` workspace (`Shift+4`), inspired by DaVinci Fairlight and FilmCraft. Features linear stereo balance panning knobs/sliders (`StereoPannerNode`), Mute/Solo/Lock matrix buttons, long-throw vertical faders (-60 to +6 dB), real-time dual-channel LED peak VU meters evaluated at 60fps via Web Audio `AnalyserNode`, 0 dB unity gain resets, and an Obsidian & Gold Master Bus channel strip. Fully transactional with commands `track.set_pan`, `track.set_muted`, `track.set_solo`, `track.set_locked` with undo/redo, strict track locked protection across all timeline modifications (cuts, deletes, slips, transitions), GStreamer GES mute/solo matrix mixdown during export, and mini M/S/L controls right on the timeline track headers
-- Video and audio transitions (`Crossfade`, `Dip to Black`, `Dip to White`, `Wipe Left/Right`, `Slide Left/Right`) with interactive timeline badge handles, duration adjustment, GStreamer Editing Services (`ges::TransitionClip`) export rendering, and `Ctrl+D` shortcut
-- Title and Lower-Third graphic clips (`Ctrl+T`), neon-violet timeline graphic clips, live Program Monitor overlay rendering with glassmorphism backdrop blur (`lower_third`, `center_title`, `minimal_pill`), GStreamer `ges::TitleClip` export rendering, and dedicated Title & Graphic Inspector
-- Audio waveform peak visualization decoded via GStreamer audio pipelines and rendered as crisp mirrored SVG waveforms across timeline audio clips
-- Pro keyboard shortcuts: `Space` (toggle play/pause), `Ctrl+T` (add title graphic), `Ctrl+D` (add default transition), `Shift+1`..`Shift+6` (workspaces), `V`/`A`/`B`/`C`/`Y`/`P`/`H`/`Z` (tools), `Delete` / `Backspace` (remove selected clip or transition)
-- Rust Tauri command bridge backed by `saturn-core`, including project status and timeline editing commands with undo/redo
-- Native project and media dialogs, asynchronous GStreamer metadata discovery, and asset-protocol media access
-- Project welcome screen with new/open/recent project workflows, resolution and frame-rate settings, and interrupted-project recovery
-- Tauri source and program monitors, media-bin preview, timeline clip operations, and undo/redo
-- Draggable orange playhead for timeline scrubbing, with the program monitor following the active timeline clip
-- Pointer drag from the Project media panel to a matching video/audio track, placing clips at the drop time with frame snapping
-- Program preview transport with play/pause, seeking, and frame stepping; timeline clip movement, split, remove, and zoom
-- Framework-independent core with stable command IDs, enabled-state reasons, and undo/redo
-- Exact integer timeline ticks with rational frame and sample-rate conversion
-- Versioned project files with migration, external media references, and atomic saves
-- JSON Lines control mode for agent and automation clients: `cargo run -p saturn-cli -- control`
-- Edit, Color, Audio, Keyframes, and Export workspaces; Color, Audio, and Keyframes controls persist and affect Tauri preview
-- Native GStreamer Editing Services rendering from the Export workspace to MP4 or WebM, with progress and error reporting
-- GStreamer-decoded cached VP8 proxies for reliable video previews across common source codecs
-- MP4 H.264 export that prefers supported hardware encoders and falls back to installed software encoders
-- Openverse image/audio search and download with license/creator/source attribution sidecar files
-- Local Ollama prompt integration, opt-in through the AI Assistant workspace
-- Debian and RPM package configuration plus a GitHub Actions build workflow
-- Playwright editor smoke test with mocked Tauri IPC for project creation, pointer-based media placement, program seek/playback, timeline zoom, and clip movement (`cd apps/saturn-tauri && pnpm test:e2e`)
+| Directory | Purpose |
+|:---|:---|
+| [`apps/saturn-tauri/`](apps/saturn-tauri/) | Tauri 2 desktop shell, IPC command bridge, hardware encoder detection |
+| [`apps/saturn-tauri/ui/`](apps/saturn-tauri/ui/) | React 19 UI, dual-deck playback engine, Fairlight console, VideoScopes |
+| [`crates/saturn-core/`](crates/saturn-core/) | Core schema, integer timebase, undo/redo transactions, job manager |
+| [`crates/saturn-render/`](crates/saturn-render/) | Color wheels, optical flow tracker, 3D LUT parser, GStreamer exporter |
+| [`crates/saturn-cli/`](crates/saturn-cli/) | Headless automation CLI, project inspector, and script runner |
+| [`assets/`](assets/) | Brand marks, icons, fonts, and screenshot showcases |
+| [`docs/`](docs/) | Control protocol specifications and architectural documentation |
 
-Clip effects support a composable stack of Color Correction, Gaussian Blur, Video Crop, Radial Vignette, and Chroma Keying. Audio controls feature Fairlight-style vertical channel strips with stereo panning, mute/solo matrix routing, long-throw faders, and real-time dual-channel peak VU meters. Keyframes can animate position, scale, rotation, and opacity in the preview, but those transforms are not rendered in exports. Track gain and mute/solo attenuation, composable clip effect stacks, transitions, and title clips are rendered in export. See [the control protocol](docs/control-protocol.md) for the shared command interface and [the planning roadmap](docs/planning.md) for the complete multi-phase development plan.
+---
 
-## Upcoming features
+## Development Roadmap
 
-The editor is still in active development. The next major editing features are:
+- [x] **Phase 1:** Core Timeline, Trimming, Razor, Rolling Edit, Slide &amp; Slip Edits.
+- [x] **Phase 2:** Seamless Multi-Track Playback Engine, Audio-Clock Master, JKL Shuttle.
+- [x] **Phase 3:** Composable Effect Stack (Blur, Crop, Vignette, Chroma Key).
+- [x] **Phase 4:** Interactive Color Wheels (Lift, Gamma, Gain, Offset) &amp; Real-time Video Scopes.
+- [x] **Phase 5:** Multi-Cam Synchronized Editing via Audio Waveform Cross-Correlation &amp; Quad Split.
+- [x] **Phase 6:** Hardware Accelerated Rendering (NVENC/VA-API/QSV) &amp; Batch Export Queue Daemon.
+- [x] **Phase 7:** Keyframe Cubic Bezier Curve Editor, Optical Flow Motion Tracking &amp; Stabilization.
+- [x] **Phase 8:** 3D LUT (.cube) tetrahedral interpolation across preview &amp; export.
+- [x] **Phase 9:** Dedicated Subtitle Track with one-click `.srt` and `.vtt` Import/Export.
+- [x] **Phase 10:** Fairlight Multitrack Console, dB Fader Automation (Read/Touch/Latch/Write), Submix Routing.
+- [ ] **Phase 11:** Node-Based Compositing Workspace (Fusion-style node graph &amp; roto-splines).
+- [ ] **Phase 12:** Real-Time LAN &amp; Cloud Multi-Editor Collaborative Project Locking.
 
-- Real-time GPU video scopes (Waveform Monitor, Vectorscope, Histogram, RGB Parade) in the Color workspace
-- Parametric 4-band EQ and dynamic compression/limiting audio DSP nodes
-- A broader effect stack, including effect parameters that can be animated at the playhead and rendered
-- Bezier keyframe curve editor for smooth speed ramps and position animations
-- Queued exports and more detailed codec, bitrate, and audio delivery controls
-- Timeline-aware AI editing actions and smart cuts
-- Verified Linux release packages and broader platform/runtime testing
+---
+
+## Connect &amp; Follow
+
+Follow development, report issues, and watch tutorials:
+
+<div align="center">
+
+<p>
+  <a href="https://github.com/zvirox">
+    <img src="https://img.shields.io/badge/GitHub-zvirox-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+  </a> &nbsp;
+  <a href="https://www.youtube.com/@zvirox_in">
+    <img src="https://img.shields.io/badge/YouTube-@zvirox__in-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube @zvirox_in" />
+  </a> &nbsp;
+  <a href="https://www.youtube.com/@climin_in">
+    <img src="https://img.shields.io/badge/YouTube-@climin__in-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube @climin_in" />
+  </a>
+</p>
+
+<p>
+  <a href="https://www.instagram.com/plg.sevala">
+    <img src="https://img.shields.io/badge/Instagram-@plg.sevala-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram" />
+  </a> &nbsp;
+  <a href="https://www.linkedin.com/in/plgsevala/">
+    <img src="https://img.shields.io/badge/LinkedIn-plgsevala-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
+  </a> &nbsp;
+  <a href="https://www.facebook.com/plg.sevala">
+    <img src="https://img.shields.io/badge/Facebook-plg.sevala-1877F2?style=for-the-badge&logo=facebook&logoColor=white" alt="Facebook" />
+  </a>
+</p>
+
+</div>
+
+---
+
+## License
+
+Easy Edits Pro is released under the **[GNU General Public License v3.0](LICENSE)**.
+
+```
+Easy Edits Pro — Open Source Linux Video Editor
+Copyright (C) 2026 zvirox & contributors.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+```
