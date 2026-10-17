@@ -119,7 +119,6 @@ type TimelineScrub = { pointerId: number; axis: HTMLElement };
 type OpenverseAsset = { id: string; title: string; mediaUrl: string; sourceUrl: string; thumbnailUrl: string | null; creator: string | null; license: string | null; licenseUrl: string | null };
 type RecentProject = { name: string; path: string };
 type AppStage = "welcome" | "loading" | "editor";
-type EditorWorkspace = "import" | "edit" | "export";
 
 const recentProjectsKey = "easy-edits-pro.recent-projects.v1";
 const resolutionPresets = [
@@ -331,6 +330,15 @@ function formatDb(db: number): string {
   return `${db > 0 ? "+" : ""}${db.toFixed(1)} dB`;
 }
 
+const COLOR_PRESETS: { id: string; label: string; icon: string; exposure: number; contrast: number; saturation: number }[] = [
+  { id: "neutral", label: "Neutral Rec.709", icon: "⚪", exposure: 0, contrast: 1.0, saturation: 1.0 },
+  { id: "teal_orange", label: "Teal & Orange", icon: "🎬", exposure: 0.2, contrast: 1.25, saturation: 1.35 },
+  { id: "golden_hour", label: "Golden Hour", icon: "🌅", exposure: 0.3, contrast: 1.15, saturation: 1.2 },
+  { id: "cool_scifi", label: "Cool Sci-Fi", icon: "❄️", exposure: -0.2, contrast: 1.3, saturation: 0.85 },
+  { id: "monochrome", label: "B&W Noir", icon: "🎞️", exposure: 0.1, contrast: 1.35, saturation: 0 },
+  { id: "vintage", label: "Vintage 90s", icon: "📼", exposure: 0.15, contrast: 0.9, saturation: 0.8 },
+];
+
 
 function App() {
   const [appStage, setAppStage] = useState<AppStage>("welcome");
@@ -350,7 +358,6 @@ function App() {
   const [setupHeight, setSetupHeight] = useState("1080");
   const [setupFrameRate, setSetupFrameRate] = useState("30/1");
   const [workspace, setWorkspace] = useState<Workspace>("edit");
-  const [editorWorkspace, setEditorWorkspace] = useState<EditorWorkspace>("edit");
   const [davinciWorkspace, setDavinciWorkspace] = useState<DavinciWorkspace>("edit");
   const [filmoraTab, setFilmoraTab] = useState<FilmoraTab>("media");
   const [theme, setTheme] = useState<"dark" | "light">(() => {
@@ -374,17 +381,10 @@ function App() {
 
   const selectDavinciWorkspace = useCallback((ws: DavinciWorkspace) => {
     setDavinciWorkspace(ws);
-    if (ws === "media") {
-      setEditorWorkspace("import");
-    } else if (ws === "deliver") {
-      setEditorWorkspace("export");
-    } else {
-      setEditorWorkspace("edit");
-      if (ws === "edit") setWorkspace("edit");
-      else if (ws === "color") setWorkspace("color");
-      else if (ws === "effects") setWorkspace("effects");
-      else if (ws === "audio") setWorkspace("audio");
-    }
+    if (ws === "edit") setWorkspace("edit");
+    else if (ws === "color") setWorkspace("color");
+    else if (ws === "effects") setWorkspace("effects");
+    else if (ws === "audio") setWorkspace("audio");
   }, []);
   const [projectState, setProjectState] = useState<ProjectStatus | null>(null);
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
@@ -966,6 +966,41 @@ function App() {
   async function toggleTrackLock(track: Track) {
     const nextLocked = !track.locked;
     await perform("track.set_locked", { track_id: track.id, locked: nextLocked }, nextLocked ? "Track locked" : "Track unlocked");
+  }
+
+  async function applyColorPreset(preset: typeof COLOR_PRESETS[number]) {
+    const next: ColorAdjustments = { exposure: preset.exposure, contrast: preset.contrast, saturation: preset.saturation };
+    setColorDraft(next);
+    if (selectedClip) {
+      await saveColor(next);
+      setNotice(`Applied "${preset.label}" color grade to clip`);
+    } else {
+      setNotice(`Selected "${preset.label}" preset. Select a clip to save it.`);
+    }
+  }
+
+  async function clearAllSolos() {
+    if (!project) return;
+    for (const track of project.sequence.tracks) {
+      if (track.solo) {
+        await perform("track.set_solo", { track_id: track.id, solo: false }, "Track unsoloed");
+      }
+    }
+    const updated = project.sequence.tracks.map((t) => ({ ...t, solo: false }));
+    audioClockMaster.updateTracksState(updated);
+    setNotice("Cleared all solo tracks");
+  }
+
+  async function muteAllTracks() {
+    if (!project) return;
+    const anyUnmuted = project.sequence.tracks.some((t) => !t.muted);
+    const nextMuted = anyUnmuted;
+    for (const track of project.sequence.tracks) {
+      await perform("track.set_muted", { track_id: track.id, muted: nextMuted }, nextMuted ? "Tracks muted" : "Tracks unmuted");
+    }
+    const updated = project.sequence.tracks.map((t) => ({ ...t, muted: nextMuted }));
+    audioClockMaster.updateTracksState(updated);
+    setNotice(nextMuted ? "Muted all tracks" : "Unmuted all tracks");
   }
 
   async function saveKeyframe(property: KeyframeProperty, value: number) {
@@ -1726,7 +1761,7 @@ function App() {
       case "timeline.set_mark_out": await perform(id, { at: playhead }, "Out point set"); break;
       case "timeline.clear_marks": await perform(id, null, "In/Out points cleared"); break;
       case "timeline.add_clip": await addSelectedToTimeline(); break;
-      case "app.export": setWorkspace("export"); break;
+      case "app.export": selectDavinciWorkspace("deliver"); break;
       case "view.toggle_snap": setSnapEnabled((enabled) => !enabled); break;
       case "view.zoom_in": zoomTimeline(1.2); break;
       case "view.zoom_out": zoomTimeline(1 / 1.2); break;
@@ -1735,7 +1770,13 @@ function App() {
       case "help.shortcuts": setNotice("Timeline tools: V Select · A Track Select Forward · C Razor · B Ripple · Y Slip · P Keyframe · H Hand · S Snap"); break;
       case "help.about": setNotice("Easy Edits Pro · Open source Linux video editor"); break;
       default:
-        if (id.startsWith("workspace.")) setWorkspace(id.slice("workspace.".length) as Workspace);
+        if (id.startsWith("workspace.")) {
+          const ws = id.slice("workspace.".length);
+          if (ws === "export" || ws === "deliver") selectDavinciWorkspace("deliver");
+          else if (ws === "library" || ws === "media") selectDavinciWorkspace("media");
+          else if (["edit", "color", "audio", "effects"].includes(ws)) selectDavinciWorkspace(ws as DavinciWorkspace);
+          else setWorkspace(ws as Workspace);
+        }
         break;
     }
   }
@@ -2871,12 +2912,1113 @@ function App() {
     </main>;
   }
 
+  function renderAudioWorkspace() {
+    const tracks = project?.sequence.tracks ?? [];
+    const sequenceEnd = Math.max(0, ...tracks.flatMap((t) => t.clips.map((c) => c.timeline_start + c.duration)));
+    const audioTracks = tracks.filter((t) => t.kind === "audio");
+    const videoTracks = tracks.filter((t) => t.kind === "video");
+
+    return (
+      <main className="workspace-page audio-workspace-page">
+        <header className="workspace-sub-header audio-workspace-header">
+          <div className="workspace-header-title">
+            <span className="workspace-eyebrow">FAIRLIGHT · AUDIO STUDIO</span>
+            <h1>Fairlight Sound Suite</h1>
+            <p>Multi-track mixing console, dual stereo peak VU meters, track panning, and transport sync.</p>
+          </div>
+          <div className="audio-header-actions">
+            <div className="audio-transport-readout">
+              <span className="transport-tc-label">TIMECODE</span>
+              <code className="transport-tc-val">{formatTime(playhead)}</code>
+            </div>
+            <div className="audio-transport-buttons">
+              <button
+                className="transport-btn"
+                onClick={() => handleShuttleKey("j")}
+                title="Shuttle Reverse (J)"
+              >
+                ◀◀
+              </button>
+              <button
+                className="transport-btn"
+                onClick={() => stepProgramFrame(-1)}
+                title="Previous Frame (Left Arrow)"
+              >
+                ◀|
+              </button>
+              <button
+                className={`transport-btn play-btn ${programPlaying ? "active-toggle" : ""}`}
+                onClick={() => toggleProgramPlayback()}
+                title="Play / Pause (Space / K)"
+              >
+                {programPlaying ? "⏸ Pause" : "▶ Play"}
+              </button>
+              <button
+                className="transport-btn"
+                onClick={() => stepProgramFrame(1)}
+                title="Next Frame (Right Arrow)"
+              >
+                |▶
+              </button>
+              <button
+                className="transport-btn"
+                onClick={() => handleShuttleKey("l")}
+                title="Shuttle Forward (L)"
+              >
+                ▶▶
+              </button>
+            </div>
+            <div className="audio-matrix-global-actions">
+              <button
+                className="btn-secondary"
+                onClick={() => void clearAllSolos()}
+                title="Clear all soloed tracks"
+              >
+                Clear Solos
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => void muteAllTracks()}
+                title="Toggle mute for all tracks"
+              >
+                Mute All
+              </button>
+              <button
+                className="btn-primary-subtle"
+                onClick={() => selectDavinciWorkspace("edit")}
+              >
+                ← Back to Edit
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div className="audio-studio-body">
+          {/* Left Monitor Column: Picture Sync + Master Bus Card */}
+          <section className="audio-monitor-column">
+            <div className="audio-video-sync-box">
+              <div className="audio-box-title">
+                <span>PICTURE SYNC MONITOR</span>
+                <code>{formatTime(playhead)} / {formatTime(sequenceEnd)}</code>
+              </div>
+              <div className="audio-sync-preview-stage">
+                {renderProgramMonitor()}
+              </div>
+            </div>
+
+            <div className="audio-master-bus-card">
+              <div className="master-bus-header">
+                <div className="master-bus-title">
+                  <strong>MASTER OUTPUT BUS</strong>
+                  <span className="bus-badge">Stereo Main · 48 kHz</span>
+                </div>
+                <span className={`mixer-live-badge ${programPlaying ? "playing" : "stopped"}`}>
+                  {programPlaying ? "LIVE" : "STANDBY"}
+                </span>
+              </div>
+
+              <div className="master-bus-controls">
+                {/* Dual Stereo Master VU Meter */}
+                <div className="master-vu-column">
+                  <div className="vu-meter-pair master-vu-pair">
+                    <div className="vu-bar-slot">
+                      <div
+                        className="vu-bar-fill left"
+                        style={{ height: `${Math.min(100, (masterVu.left || 0) * 100)}%` }}
+                      />
+                    </div>
+                    <div className="vu-bar-slot">
+                      <div
+                        className="vu-bar-fill right"
+                        style={{ height: `${Math.min(100, (masterVu.right || 0) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="vu-db-readout">{formatDb(masterVu.peakDb)}</div>
+                </div>
+
+                {/* Master Vertical Fader */}
+                <div className="master-fader-column">
+                  <div className="fader-scale-ticks">
+                    <span>+6</span>
+                    <span className="unity">0</span>
+                    <span>-6</span>
+                    <span>-12</span>
+                    <span>-24</span>
+                    <span>-48</span>
+                    <span>-∞</span>
+                  </div>
+                  <div className="fader-track-container">
+                    <input
+                      type="range"
+                      className="vertical-fader master-fader"
+                      min="-60"
+                      max="6"
+                      step="0.5"
+                      value={masterGainDraft}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setMasterGainDraft(val);
+                        audioClockMaster.setMasterGain(val);
+                      }}
+                    />
+                  </div>
+                  <div className="strip-fader-footer">
+                    <button
+                      type="button"
+                      className="strip-unity-btn master-unity"
+                      title="Reset master gain to unity 0 dB"
+                      onClick={() => {
+                        setMasterGainDraft(0);
+                        audioClockMaster.setMasterGain(0);
+                      }}
+                    >
+                      0 dB
+                    </button>
+                    <span className="strip-gain-text master-gain-text">{formatDb(masterGainDraft)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Right Column: Full-Height Channel Strip Mixer Rack */}
+          <section className="audio-mixer-rack-column">
+            <div className="mixer-rack-toolbar">
+              <div className="mixer-rack-info">
+                <strong>CHANNEL STRIP RACK</strong>
+                <small>{tracks.length} Tracks ({audioTracks.length} Audio, {videoTracks.length} Video)</small>
+              </div>
+            </div>
+
+            <div className="mixer-strips-scroll-area">
+              <div className="fairlight-strips-grid">
+                {tracks.map((track) => {
+                  const trackVu = vuLevels[track.id] ?? { left: 0, right: 0, peakDb: -60 };
+                  const currentGain = gainDrafts[track.id] ?? track.gain_db;
+                  const currentPan = panDrafts[track.id] ?? track.pan ?? 0;
+                  return (
+                    <article
+                      className={`fairlight-channel-strip ${track.muted ? "is-muted" : ""} ${track.solo ? "is-solo" : ""} ${track.locked ? "is-locked" : ""}`}
+                      key={track.id}
+                    >
+                      <div className="strip-top">
+                        <div className="strip-track-badge">
+                          <span className={`strip-kind-pill ${track.kind}`}>
+                            {track.kind === "audio" ? "A" : "V"}
+                          </span>
+                          <strong className="strip-track-name" title={track.name}>
+                            {track.name}
+                          </strong>
+                        </div>
+                        <div className="strip-meta">
+                          <span className="strip-clip-count">
+                            {track.clips.length} clip{track.clips.length !== 1 ? "s" : ""}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Pan Section */}
+                      <div className="strip-pan-section">
+                        <div className="strip-pan-header">
+                          <span className="strip-section-label">PAN</span>
+                          <span className="strip-pan-val">{formatPan(currentPan)}</span>
+                          <button
+                            type="button"
+                            className="strip-pan-center-btn"
+                            title="Reset pan to center"
+                            onClick={() => void saveTrackPan(track.id, 0)}
+                          >
+                            C
+                          </button>
+                        </div>
+                        <input
+                          type="range"
+                          className="strip-pan-slider"
+                          min="-1"
+                          max="1"
+                          step="0.02"
+                          value={currentPan}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setPanDrafts((prev) => ({ ...prev, [track.id]: val }));
+                            audioClockMaster.updateTrackPan(track.id, val);
+                          }}
+                          onPointerUp={(e) => void saveTrackPan(track.id, Number(e.currentTarget.value))}
+                          onKeyUp={(e) => void saveTrackPan(track.id, Number(e.currentTarget.value))}
+                        />
+                      </div>
+
+                      {/* Matrix M / S / L Buttons */}
+                      <div className="strip-matrix-buttons">
+                        <button
+                          type="button"
+                          className={`strip-btn btn-mute ${track.muted ? "active" : ""}`}
+                          title={track.muted ? "Unmute track" : "Mute track"}
+                          onClick={() => void toggleTrackMute(track)}
+                        >
+                          M
+                        </button>
+                        <button
+                          type="button"
+                          className={`strip-btn btn-solo ${track.solo ? "active" : ""}`}
+                          title={track.solo ? "Solo track" : "Solo track"}
+                          onClick={() => void toggleTrackSolo(track)}
+                        >
+                          S
+                        </button>
+                        <button
+                          type="button"
+                          className={`strip-btn btn-lock ${track.locked ? "active" : ""}`}
+                          title={track.locked ? "Unlock track" : "Lock track"}
+                          onClick={() => void toggleTrackLock(track)}
+                        >
+                          {track.locked ? "🔒" : "🔓"}
+                        </button>
+                      </div>
+
+                      {/* Meter + Vertical Fader Section */}
+                      <div className="strip-meter-fader-row">
+                        <div className="strip-vu-meter-column" title={`Peak: ${formatDb(trackVu.peakDb)}`}>
+                          <div className="vu-meter-pair">
+                            <div className="vu-bar-slot">
+                              <div
+                                className="vu-bar-fill left"
+                                style={{ height: `${Math.min(100, (trackVu.left || 0) * 100)}%` }}
+                              />
+                            </div>
+                            <div className="vu-bar-slot">
+                              <div
+                                className="vu-bar-fill right"
+                                style={{ height: `${Math.min(100, (trackVu.right || 0) * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div className="vu-db-readout">{formatDb(trackVu.peakDb)}</div>
+                        </div>
+
+                        <div className="strip-fader-column">
+                          <div className="fader-scale-ticks">
+                            <span>+6</span>
+                            <span className="unity">0</span>
+                            <span>-6</span>
+                            <span>-12</span>
+                            <span>-24</span>
+                            <span>-48</span>
+                            <span>-∞</span>
+                          </div>
+                          <div className="fader-track-container">
+                            <input
+                              type="range"
+                              className="vertical-fader"
+                              min="-60"
+                              max="6"
+                              step="0.5"
+                              value={currentGain}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                setGainDrafts((prev) => ({ ...prev, [track.id]: val }));
+                                audioClockMaster.updateTrackGain(track.id, val);
+                              }}
+                              onPointerUp={(e) => void saveTrackGain(track.id, Number(e.currentTarget.value))}
+                              onKeyUp={(e) => void saveTrackGain(track.id, Number(e.currentTarget.value))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="strip-fader-footer">
+                        <button
+                          type="button"
+                          className="strip-unity-btn"
+                          title="Reset track gain to 0.0 dB unity"
+                          onClick={() => void saveTrackGain(track.id, 0)}
+                        >
+                          0 dB
+                        </button>
+                        <span className="strip-gain-text">
+                          {currentGain > 0 ? "+" : ""}{currentGain.toFixed(1)} dB
+                        </span>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Bottom Tray: Audio Waveforms & Timeline Ruler */}
+        <section className="audio-timeline-tray">
+          <div className="audio-tray-header">
+            <div className="audio-tray-title">
+              <strong>AUDIO SEQUENCE TIMELINE &amp; WAVEFORMS</strong>
+              <code>{formatTime(playhead)}</code>
+            </div>
+            <div className="audio-tray-tools">
+              <button className="timeline-icon-button" onClick={() => zoomTimeline(1 / 1.2)} title="Zoom Out Timeline">
+                <Icon name="zoomOut" />
+              </button>
+              <button className="timeline-icon-button" onClick={() => zoomTimeline(1.2)} title="Zoom In Timeline">
+                <Icon name="zoomIn" />
+              </button>
+            </div>
+          </div>
+          <div className="audio-tray-scroller">
+            <div className="timeline-content" style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
+              <div className="timeline-ruler">
+                <span className="track-spacer">Time</span>
+                <div
+                  className="ruler-lane"
+                  onPointerDown={beginTimelineScrub}
+                  onPointerMove={moveTimelineScrub}
+                  onPointerUp={finishTimelineScrub}
+                  onPointerCancel={finishTimelineScrub}
+                >
+                  {Array.from({ length: Math.ceil(timelineWidth / (timelineZoom * 5)) + 1 }, (_, index) => (
+                    <span key={index} style={{ left: `${index * timelineZoom * 5}px` }}>
+                      {formatTime(index * TICKS_PER_SECOND * 5)}
+                    </span>
+                  ))}
+                  <div
+                    className="playhead-grip ruler-playhead-grip"
+                    style={{ left: `${(playhead / TICKS_PER_SECOND) * timelineZoom}px` }}
+                    role="slider"
+                    aria-label="Audio timeline playhead"
+                  >
+                    <i className="playhead" />
+                  </div>
+                </div>
+              </div>
+              {tracks.map((track) => (
+                <div
+                  className={`track-row ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""}`}
+                  key={`audio-tray-track-${track.id}`}
+                >
+                  <div className="track-label">
+                    <div className="track-label-top">
+                      <b>{track.name}</b>
+                      <span>{track.kind}</span>
+                    </div>
+                    <div className="track-label-btns">
+                      <button
+                        type="button"
+                        className={`track-mini-btn mute-btn ${track.muted ? "active" : ""}`}
+                        onClick={() => void toggleTrackMute(track)}
+                      >
+                        M
+                      </button>
+                      <button
+                        type="button"
+                        className={`track-mini-btn solo-btn ${track.solo ? "active" : ""}`}
+                        onClick={() => void toggleTrackSolo(track)}
+                      >
+                        S
+                      </button>
+                    </div>
+                  </div>
+                  <div className="track-lane">
+                    {track.clips.map((clip, index) => {
+                      const item = media.find((entry) => entry.id === clip.media_id);
+                      const selected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
+                      return (
+                        <div
+                          className={`timeline-clip ${selected ? "selected" : ""} ${track.kind}`}
+                          key={`audio-tray-clip-${track.id}-${clip.media_id}-${index}`}
+                          style={{
+                            left: `${(clip.timeline_start / TICKS_PER_SECOND) * timelineZoom}px`,
+                            width: `${Math.max(34, (clip.duration / TICKS_PER_SECOND) * timelineZoom)}px`,
+                          }}
+                          onClick={() => {
+                            setSelectedClip({ track_id: track.id, clip_index: index });
+                            setSelectedClips([{ track_id: track.id, clip_index: index }]);
+                          }}
+                        >
+                          {item?.waveform && item.waveform.length > 0 && (
+                            <div className="clip-waveform-container" aria-hidden="true">
+                              <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
+                                <path
+                                  d={item.waveform.map((peak, i) => {
+                                    const norm = Math.max(1, (peak / 255) * 14);
+                                    const x = (i / item.waveform!.length) * 100;
+                                    return `M ${x.toFixed(1)} ${(16 - norm).toFixed(1)} L ${x.toFixed(1)} ${(16 + norm).toFixed(1)}`;
+                                  }).join(" ")}
+                                  stroke="currentColor"
+                                  strokeWidth="1.2"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                          <span className="clip-kind-icon">{track.kind === "audio" ? "♪" : "▶"}</span>
+                          <strong>{item?.name ?? "Clip"}</strong>
+                        </div>
+                      );
+                    })}
+                    <div
+                      className="playhead-grip"
+                      style={{ left: `${(playhead / TICKS_PER_SECOND) * timelineZoom}px` }}
+                    >
+                      <i className="playhead" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  function renderColorWorkspace() {
+    const allClips = (project?.sequence.tracks ?? []).flatMap((track) =>
+      track.clips.map((clip, index) => ({ track, clip, index, mediaItem: media.find((m) => m.id === clip.media_id) }))
+    );
+    const updateColorField = (field: keyof ColorAdjustments, value: number) => {
+      const next = { ...colorDraft, [field]: value };
+      setColorDraft(next);
+      void saveColor(next);
+    };
+    const resetColorGrading = () => {
+      const reset = { exposure: 0, contrast: 1.0, saturation: 1.0 };
+      setColorDraft(reset);
+      void saveColor(reset);
+    };
+
+    return (
+      <main className="workspace-page color-workspace-page">
+        <header className="workspace-sub-header color-workspace-header">
+          <div className="workspace-header-title">
+            <span className="workspace-eyebrow">COLOR · PRIMARY GRADING &amp; LOOKS</span>
+            <h1>Color Grading Studio</h1>
+            <p>Color balance, exposure, contrast, saturation, and 1-click cinematic film emulation presets.</p>
+          </div>
+          <div className="color-header-actions">
+            <span className="color-target-info">
+              {selectedTimelineClip ? (
+                <>Target: <strong>{media.find((m) => m.id === selectedTimelineClip.media_id)?.name ?? "Selected Clip"}</strong></>
+              ) : (
+                <span className="color-hint-text">Select a clip in the reel below to grade</span>
+              )}
+            </span>
+            <button
+              className="btn-secondary"
+              onClick={resetColorGrading}
+              disabled={!selectedClip}
+              title="Reset exposure, contrast, and saturation to neutral defaults"
+            >
+              Reset Grade
+            </button>
+            <button
+              className="btn-primary-subtle"
+              onClick={() => selectDavinciWorkspace("edit")}
+            >
+              ← Back to Edit
+            </button>
+          </div>
+        </header>
+
+        <div className="color-studio-body">
+          {/* Main Stage: Large Program Monitor Viewer + Transport Controls */}
+          <section className="color-monitor-stage">
+            <div className="color-viewer-container">
+              <div className="color-viewer-header">
+                <span className="viewer-title">PROGRAM MONITOR</span>
+                <code>{formatTime(playhead)}</code>
+              </div>
+              <div className="color-monitor-wrapper">
+                {renderProgramMonitor()}
+              </div>
+              <div className="color-transport-bar">
+                <button aria-label="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</button>
+                <button
+                  className={programPlaying ? "active-toggle" : ""}
+                  aria-label={programPlaying ? "Pause playback" : "Play clip"}
+                  onClick={() => toggleProgramPlayback()}
+                >
+                  {programPlaying ? "⏸ Pause" : "▶ Play"}
+                </button>
+                <button aria-label="Next frame" onClick={() => stepProgramFrame(1)}>▶|</button>
+                <code>{formatTime(playhead)}</code>
+              </div>
+            </div>
+          </section>
+
+          {/* Right Sidebar: Primary Sliders & Creative Presets */}
+          <aside className="color-grading-sidebar">
+            <div className="color-grading-box">
+              <div className="color-section-header">
+                <h3>Primary Grading</h3>
+                <small>Live hardware preview</small>
+              </div>
+
+              <div className="color-sliders-group">
+                <label className="color-slider-item">
+                  <div className="slider-label-row">
+                    <span>Exposure</span>
+                    <b>{colorDraft.exposure > 0 ? `+${colorDraft.exposure.toFixed(1)}` : colorDraft.exposure.toFixed(1)}</b>
+                  </div>
+                  <input
+                    type="range"
+                    min="-5"
+                    max="5"
+                    step="0.1"
+                    disabled={!selectedClip}
+                    value={colorDraft.exposure}
+                    onChange={(e) => setColorDraft((v) => ({ ...v, exposure: Number(e.target.value) }))}
+                    onPointerUp={(e) => updateColorField("exposure", Number(e.currentTarget.value))}
+                    onKeyUp={(e) => updateColorField("exposure", Number(e.currentTarget.value))}
+                  />
+                </label>
+
+                <label className="color-slider-item">
+                  <div className="slider-label-row">
+                    <span>Contrast</span>
+                    <b>{colorDraft.contrast.toFixed(2)}</b>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="2"
+                    step="0.01"
+                    disabled={!selectedClip}
+                    value={colorDraft.contrast}
+                    onChange={(e) => setColorDraft((v) => ({ ...v, contrast: Number(e.target.value) }))}
+                    onPointerUp={(e) => updateColorField("contrast", Number(e.currentTarget.value))}
+                    onKeyUp={(e) => updateColorField("contrast", Number(e.currentTarget.value))}
+                  />
+                </label>
+
+                <label className="color-slider-item">
+                  <div className="slider-label-row">
+                    <span>Saturation</span>
+                    <b>{colorDraft.saturation.toFixed(2)}</b>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="2"
+                    step="0.01"
+                    disabled={!selectedClip}
+                    value={colorDraft.saturation}
+                    onChange={(e) => setColorDraft((v) => ({ ...v, saturation: Number(e.target.value) }))}
+                    onPointerUp={(e) => updateColorField("saturation", Number(e.currentTarget.value))}
+                    onKeyUp={(e) => updateColorField("saturation", Number(e.currentTarget.value))}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="color-presets-box">
+              <div className="color-section-header">
+                <h3>Creative Look Presets</h3>
+                <small>Click to apply instantly</small>
+              </div>
+              <div className="color-presets-grid">
+                {COLOR_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    className="color-preset-card"
+                    disabled={!selectedClip}
+                    onClick={() => void applyColorPreset(preset)}
+                    title={`Apply ${preset.label} grade: Exp ${preset.exposure}, Contrast ${preset.contrast}, Sat ${preset.saturation}`}
+                  >
+                    <span className="preset-card-icon">{preset.icon}</span>
+                    <strong className="preset-card-title">{preset.label}</strong>
+                    <span className="preset-card-meta">
+                      Exp {preset.exposure > 0 ? `+${preset.exposure}` : preset.exposure} · Sat {preset.saturation}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* Bottom Clips Reel Tray */}
+        <section className="clips-reel-tray">
+          <div className="reel-tray-header">
+            <strong>SEQUENCE CLIPS REEL</strong>
+            <small>{allClips.length} clips on timeline · Click any clip to grade</small>
+          </div>
+          <div className="reel-clips-strip">
+            {allClips.map(({ track, clip, index, mediaItem }) => {
+              const isSelected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
+              return (
+                <button
+                  key={`reel-${track.id}-${clip.media_id}-${index}`}
+                  className={`reel-clip-card ${isSelected ? "selected" : ""}`}
+                  onClick={() => {
+                    setSelectedClip({ track_id: track.id, clip_index: index });
+                    setSelectedClips([{ track_id: track.id, clip_index: index }]);
+                    seekProgramTo(clip.timeline_start);
+                  }}
+                >
+                  <div className="reel-clip-badge">
+                    <span className={`reel-track-kind ${track.kind}`}>{track.name}</span>
+                    <code>{formatTime(clip.timeline_start)}</code>
+                  </div>
+                  <strong className="reel-clip-name">{mediaItem?.name ?? "Clip"}</strong>
+                  <span className="reel-clip-dur">{formatTime(clip.duration)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  function renderEffectsWorkspace() {
+    const allClips = (project?.sequence.tracks ?? []).flatMap((track) =>
+      track.clips.map((clip, index) => ({ track, clip, index, mediaItem: media.find((m) => m.id === clip.media_id) }))
+    );
+    const effects: EffectInstance[] = selectedTimelineClip?.effects ?? [];
+
+    return (
+      <main className="workspace-page effects-workspace-page">
+        <header className="workspace-sub-header effects-workspace-header">
+          <div className="workspace-header-title">
+            <span className="workspace-eyebrow">EFFECTS · VISUAL FX &amp; COMPOSITING</span>
+            <h1>Visual Effects Lab</h1>
+            <p>Compound visual effects stack, blur, crop, vignette, chroma keying, and motion transforms.</p>
+          </div>
+          <div className="effects-header-actions">
+            {selectedClip && (
+              <div className="add-effect-control">
+                <select
+                  className="add-effect-select"
+                  defaultValue=""
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      void addEffect(e.target.value as EffectKind);
+                      e.target.value = "";
+                    }
+                  }}
+                >
+                  <option value="" disabled>＋ Add Effect to Clip…</option>
+                  <option value="gaussian_blur">💧 Gaussian Blur</option>
+                  <option value="crop">✂️ Crop</option>
+                  <option value="vignette">🔘 Vignette</option>
+                  <option value="chroma_key">🟩 Chroma Key</option>
+                  <option value="color_correction">🎨 Color Correction</option>
+                </select>
+              </div>
+            )}
+            <button
+              className="btn-primary-subtle"
+              onClick={() => selectDavinciWorkspace("edit")}
+            >
+              ← Back to Edit
+            </button>
+          </div>
+        </header>
+
+        <div className="effects-studio-body">
+          {/* Main Stage: Large Program Monitor Viewer + Transport Controls */}
+          <section className="effects-monitor-stage">
+            <div className="effects-viewer-container">
+              <div className="effects-viewer-header">
+                <span className="viewer-title">PROGRAM MONITOR &amp; FX COMPOSITE</span>
+                <code>{formatTime(playhead)}</code>
+              </div>
+              <div className="effects-monitor-wrapper">
+                {renderProgramMonitor()}
+              </div>
+              <div className="effects-transport-bar">
+                <button aria-label="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</button>
+                <button
+                  className={programPlaying ? "active-toggle" : ""}
+                  aria-label={programPlaying ? "Pause playback" : "Play clip"}
+                  onClick={() => toggleProgramPlayback()}
+                >
+                  {programPlaying ? "⏸ Pause" : "▶ Play"}
+                </button>
+                <button aria-label="Next frame" onClick={() => stepProgramFrame(1)}>▶|</button>
+                <code>{formatTime(playhead)}</code>
+              </div>
+            </div>
+          </section>
+
+          {/* Right Sidebar: Effects Stack */}
+          <aside className="effects-stack-sidebar">
+            <div className="effects-stack-box">
+              <div className="effects-section-header">
+                <h3>Active Effect Stack</h3>
+                <small>{effects.length} effect{effects.length !== 1 ? "s" : ""} on clip</small>
+              </div>
+
+              {!selectedTimelineClip ? (
+                <div className="effect-empty-card">
+                  <p>Select a clip in the sequence reel below to inspect and configure its effects.</p>
+                </div>
+              ) : effects.length === 0 ? (
+                <div className="effect-empty-card">
+                  <p>No effects applied to this clip yet.</p>
+                  <small>Choose an effect from the "＋ Add Effect" dropdown above to begin compounding visual effects.</small>
+                </div>
+              ) : (
+                <div className="effects-stack-list">
+                  {effects.map((eff, idx) => (
+                    <article key={eff.id} className={`effect-stack-card ${eff.enabled ? "is-active" : "is-bypassed"}`}>
+                      <header className="effect-card-header">
+                        <button
+                          type="button"
+                          className={`effect-toggle-btn ${eff.enabled ? "enabled" : "bypassed"}`}
+                          title={eff.enabled ? "Bypass Effect" : "Enable Effect"}
+                          onClick={() => void toggleEffect(eff.id, !eff.enabled)}
+                        >
+                          {eff.enabled ? "👁" : "👁‍🗨"}
+                        </button>
+                        <div className="effect-card-title">
+                          <strong>{eff.name}</strong>
+                          <span className="effect-kind-badge">{eff.kind.replace("_", " ")}</span>
+                        </div>
+                        <div className="effect-card-actions">
+                          <button
+                            type="button"
+                            className="effect-action-btn"
+                            disabled={idx === 0}
+                            title="Move Up"
+                            onClick={() => void reorderEffect(idx, idx - 1)}
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            className="effect-action-btn"
+                            disabled={idx === effects.length - 1}
+                            title="Move Down"
+                            onClick={() => void reorderEffect(idx, idx + 1)}
+                          >
+                            ▼
+                          </button>
+                          <button
+                            type="button"
+                            className="effect-action-btn delete"
+                            title="Remove Effect"
+                            onClick={() => void removeEffect(eff.id)}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </header>
+
+                      {eff.enabled && (
+                        <div className="effect-card-body">
+                          {eff.kind === "color_correction" && (() => {
+                            const p = eff.params as ColorCorrectionParams;
+                            return (
+                              <>
+                                <label>
+                                  <span>Exposure ({p.exposure > 0 ? `+${p.exposure.toFixed(1)}` : p.exposure.toFixed(1)})</span>
+                                  <input
+                                    type="range"
+                                    min="-5"
+                                    max="5"
+                                    step="0.1"
+                                    value={p.exposure ?? 0}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "color_correction",
+                                      params: { ...p, exposure: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Contrast ({p.contrast.toFixed(2)})</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="2"
+                                    step="0.01"
+                                    value={p.contrast ?? 1}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "color_correction",
+                                      params: { ...p, contrast: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Saturation ({p.saturation.toFixed(2)})</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="2"
+                                    step="0.01"
+                                    value={p.saturation ?? 1}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "color_correction",
+                                      params: { ...p, saturation: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Hue Shift ({Math.round((p.hue ?? 0) * 180)}°)</span>
+                                  <input
+                                    type="range"
+                                    min="-1"
+                                    max="1"
+                                    step="0.01"
+                                    value={p.hue ?? 0}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "color_correction",
+                                      params: { ...p, hue: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                              </>
+                            );
+                          })()}
+
+                          {eff.kind === "gaussian_blur" && (() => {
+                            const p = eff.params as GaussianBlurParams;
+                            return (
+                              <label>
+                                <span>Blur Radius ({p.sigma.toFixed(1)} px)</span>
+                                <input
+                                  type="range"
+                                  min="0"
+                                  max="20"
+                                  step="0.1"
+                                  value={p.sigma ?? 2}
+                                  onChange={(e) => void updateEffectPayload(eff.id, {
+                                    kind: "gaussian_blur",
+                                    params: { sigma: Number(e.target.value) },
+                                  })}
+                                />
+                              </label>
+                            );
+                          })()}
+
+                          {eff.kind === "crop" && (() => {
+                            const p = eff.params as CropParams;
+                            return (
+                              <div className="crop-controls-grid">
+                                <label>
+                                  <span>Top ({p.top ?? 0}%)</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    step="0.5"
+                                    value={p.top ?? 0}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "crop",
+                                      params: { ...p, top: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Bottom ({p.bottom ?? 0}%)</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    step="0.5"
+                                    value={p.bottom ?? 0}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "crop",
+                                      params: { ...p, bottom: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Left ({p.left ?? 0}%)</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    step="0.5"
+                                    value={p.left ?? 0}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "crop",
+                                      params: { ...p, left: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Right ({p.right ?? 0}%)</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    step="0.5"
+                                    value={p.right ?? 0}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "crop",
+                                      params: { ...p, right: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                              </div>
+                            );
+                          })()}
+
+                          {eff.kind === "vignette" && (() => {
+                            const p = eff.params as VignetteParams;
+                            return (
+                              <>
+                                <label>
+                                  <span>Intensity ({Math.round((p.intensity ?? 0.5) * 100)}%)</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    value={p.intensity ?? 0.5}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "vignette",
+                                      params: { ...p, intensity: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Radius ({p.radius?.toFixed(2) ?? "0.80"})</span>
+                                  <input
+                                    type="range"
+                                    min="0.1"
+                                    max="2"
+                                    step="0.01"
+                                    value={p.radius ?? 0.8}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "vignette",
+                                      params: { ...p, radius: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Softness ({Math.round((p.softness ?? 0.5) * 100)}%)</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    value={p.softness ?? 0.5}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "vignette",
+                                      params: { ...p, softness: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                              </>
+                            );
+                          })()}
+
+                          {eff.kind === "chroma_key" && (() => {
+                            const p = eff.params as ChromaKeyParams;
+                            return (
+                              <>
+                                <div className="chroma-color-picker-row">
+                                  <span>Key Color</span>
+                                  <div className="chroma-inputs">
+                                    <input
+                                      type="color"
+                                      value={p.color ?? "#00ff00"}
+                                      onChange={(e) => void updateEffectPayload(eff.id, {
+                                        kind: "chroma_key",
+                                        params: { ...p, color: e.target.value },
+                                      })}
+                                    />
+                                    <code>{p.color ?? "#00ff00"}</code>
+                                  </div>
+                                </div>
+                                <label>
+                                  <span>Tolerance ({Math.round(p.tolerance ?? 25)}%)</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    step="1"
+                                    value={p.tolerance ?? 25}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "chroma_key",
+                                      params: { ...p, tolerance: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Edge Softness ({Math.round(p.softness ?? 10)}%)</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="50"
+                                    step="1"
+                                    value={p.softness ?? 10}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "chroma_key",
+                                      params: { ...p, softness: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Spill Suppression ({Math.round((p.spill_suppression ?? 0.5) * 100)}%)</span>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.01"
+                                    value={p.spill_suppression ?? 0.5}
+                                    onChange={(e) => void updateEffectPayload(eff.id, {
+                                      kind: "chroma_key",
+                                      params: { ...p, spill_suppression: Number(e.target.value) },
+                                    })}
+                                  />
+                                </label>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          </aside>
+        </div>
+
+        {/* Bottom Clips Reel Tray */}
+        <section className="clips-reel-tray">
+          <div className="reel-tray-header">
+            <strong>SEQUENCE CLIPS REEL</strong>
+            <small>{allClips.length} clips on timeline · Click any clip to apply or edit effects</small>
+          </div>
+          <div className="reel-clips-strip">
+            {allClips.map(({ track, clip, index, mediaItem }) => {
+              const isSelected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
+              const clipFxCount = clip.effects?.length ?? 0;
+              return (
+                <button
+                  key={`reel-fx-${track.id}-${clip.media_id}-${index}`}
+                  className={`reel-clip-card ${isSelected ? "selected" : ""}`}
+                  onClick={() => {
+                    setSelectedClip({ track_id: track.id, clip_index: index });
+                    setSelectedClips([{ track_id: track.id, clip_index: index }]);
+                    seekProgramTo(clip.timeline_start);
+                  }}
+                >
+                  <div className="reel-clip-badge">
+                    <span className={`reel-track-kind ${track.kind}`}>{track.name}</span>
+                    {clipFxCount > 0 && <span className="reel-fx-count-pill">{clipFxCount} FX</span>}
+                  </div>
+                  <strong className="reel-clip-name">{mediaItem?.name ?? "Clip"}</strong>
+                  <span className="reel-clip-dur">{formatTime(clip.duration)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   function renderImportWorkspace() {
     return <main className="workspace-page import-workspace">
       <header className="workspace-page-heading"><div><span className="workspace-eyebrow">MEDIA · STEP 1</span><h1>Import</h1><p>Bring footage, audio, and graphics into this project.</p></div><button className="primary workspace-heading-action" onClick={() => void importMedia()} disabled={busy}><Icon name="import" /> Browse files…</button></header>
       <section className="import-drop-panel"><div className="import-drop-icon"><Icon name="media" /></div><div><h2>Add media to your project</h2><p>Choose video, audio, or still images from your computer. Imported files stay in their original location.</p></div><button className="primary" onClick={() => void importMedia()} disabled={busy}>＋ Import media</button></section>
       <section className="import-library-section"><header><div><h2>Project media</h2><p>{media.length} item{media.length === 1 ? "" : "s"} in {project?.name ?? "this project"}</p></div><input className="search" type="search" placeholder="Search project media" aria-label="Search project media" value={search} onChange={(event) => setSearch(event.target.value)} /></header>
-        {visibleMedia.length ? <div className="import-media-grid">{visibleMedia.map((item) => <button className={`import-media-card ${selectedMediaId === item.id ? "selected" : ""}`} key={item.id} onClick={() => { setSelectedMediaId(item.id); setSelectedClip(null); setSelectedClips([]); setEditorWorkspace("edit"); }} title="Select this media and open the Edit workspace"><span className="import-media-icon"><Icon name="media" /></span><strong>{item.name}</strong><small>{item.kind.toUpperCase()} {item.width && item.height ? `· ${item.width} × ${item.height}` : ""}</small><small>{item.duration ? formatTime(item.duration) : missingMediaIds.has(item.id) ? "Missing · relink required" : "Ready to edit"}</small></button>)}</div> : <div className="import-empty"><Icon name="media" /><strong>{search ? "No matching media" : "Your project is ready for media"}</strong><span>{search ? "Try another search." : "Import a clip to begin building your timeline."}</span><button onClick={() => void importMedia()} disabled={busy}>Browse files…</button></div>}
+        {visibleMedia.length ? <div className="import-media-grid">{visibleMedia.map((item) => <button className={`import-media-card ${selectedMediaId === item.id ? "selected" : ""}`} key={item.id} onClick={() => { setSelectedMediaId(item.id); setSelectedClip(null); setSelectedClips([]); selectDavinciWorkspace("edit"); }} title="Select this media and open the Edit workspace"><span className="import-media-icon"><Icon name="media" /></span><strong>{item.name}</strong><small>{item.kind.toUpperCase()} {item.width && item.height ? `· ${item.width} × ${item.height}` : ""}</small><small>{item.duration ? formatTime(item.duration) : missingMediaIds.has(item.id) ? "Missing · relink required" : "Ready to edit"}</small></button>)}</div> : <div className="import-empty"><Icon name="media" /><strong>{search ? "No matching media" : "Your project is ready for media"}</strong><span>{search ? "Try another search." : "Import a clip to begin building your timeline."}</span><button onClick={() => void importMedia()} disabled={busy}>Browse files…</button></div>}
       </section>
     </main>;
   }
@@ -3244,7 +4386,12 @@ function App() {
         </div>
       </header>
 
-      {editorWorkspace === "import" ? renderImportWorkspace() : editorWorkspace === "export" ? renderExportWorkspace() : <main className="editor">
+      {davinciWorkspace === "media" ? renderImportWorkspace() :
+       davinciWorkspace === "deliver" ? renderExportWorkspace() :
+       davinciWorkspace === "audio" ? renderAudioWorkspace() :
+       davinciWorkspace === "color" ? renderColorWorkspace() :
+       davinciWorkspace === "effects" ? renderEffectsWorkspace() :
+       <main className="editor">
         {/* Filmora 15 Inspired Left Panel Tabs */}
         <aside className="media-panel">
           <div className="filmora-tabs" role="tablist" aria-label="Filmora Asset Categories">
