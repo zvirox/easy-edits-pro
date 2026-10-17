@@ -2069,3 +2069,226 @@ fn nested_sequences_and_compound_clips_workflow() {
         .unwrap();
     assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 2);
 }
+
+#[test]
+fn media_bins_properties_and_missing_detection_workflow() {
+    let mut engine = EditorEngine::default();
+
+    // 1. Import media
+    let add_res = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "broll1.mp4",
+                "path": "/media/broll1.mp4",
+                "kind": "video",
+                "duration": 5 * TICKS_PER_SECOND,
+                "width": 3840,
+                "height": 2160,
+                "fps": 59.94,
+                "codec": "h264",
+                "audio_channels": 2,
+            }),
+        ))
+        .unwrap();
+    let media_id = add_res["media_id"].as_u64().unwrap();
+    assert_eq!(engine.document().project.media[0].fps, Some(59.94));
+    assert_eq!(engine.document().project.media[0].codec.as_deref(), Some("h264"));
+    assert_eq!(engine.document().project.media[0].audio_channels, Some(2));
+
+    // 2. Create Media Bin
+    let bin_res = engine
+        .execute(CommandRequest::new(
+            "media.create_bin",
+            json!({
+                "name": "B-Roll Shots",
+                "color": "#10b981",
+            }),
+        ))
+        .unwrap();
+    let bin_id = bin_res["bin"]["id"].as_u64().unwrap();
+    assert_eq!(engine.document().project.bins.len(), 1);
+    assert_eq!(engine.document().project.bins[0].name, "B-Roll Shots");
+
+    // 3. Rename Bin
+    engine
+        .execute(CommandRequest::new(
+            "media.rename_bin",
+            json!({
+                "bin_id": bin_id,
+                "name": "Cinematic B-Roll",
+            }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.bins[0].name, "Cinematic B-Roll");
+
+    // 4. Move media to bin
+    engine
+        .execute(CommandRequest::new(
+            "media.move_to_bin",
+            json!({
+                "media_id": media_id,
+                "bin_id": bin_id,
+            }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.media[0].bin_id, Some(bin_id));
+
+    // 5. Update media properties (color label, tags, rename)
+    engine
+        .execute(CommandRequest::new(
+            "media.update_properties",
+            json!({
+                "media_id": media_id,
+                "name": "Drone_Beach_Sunset.mp4",
+                "color_label": "emerald",
+                "tags": ["drone", "sunset", "4k"],
+            }),
+        ))
+        .unwrap();
+    let media = &engine.document().project.media[0];
+    assert_eq!(media.name, "Drone_Beach_Sunset.mp4");
+    assert_eq!(media.color_label.as_deref(), Some("emerald"));
+    assert_eq!(media.tags, vec!["drone", "sunset", "4k"]);
+
+    // 6. Check missing media (mock path doesn't exist on disk)
+    let check_res = engine
+        .execute(CommandRequest::new("media.check_missing", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(check_res["checked"], true);
+    assert_eq!(check_res["missing_count"], 1);
+    assert!(engine.document().project.media[0].is_missing);
+
+    // 7. Delete Bin -> media resets bin_id to None
+    engine
+        .execute(CommandRequest::new(
+            "media.delete_bin",
+            json!({ "bin_id": bin_id }),
+        ))
+        .unwrap();
+    assert!(engine.document().project.bins.is_empty());
+    assert_eq!(engine.document().project.media[0].bin_id, None);
+
+    // 8. Undo bin deletion -> restores bin and media bin_id
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.bins.len(), 1);
+    assert_eq!(engine.document().project.media[0].bin_id, Some(bin_id));
+}
+
+#[test]
+fn timeline_add_remove_track_and_ripple_gap_workflow() {
+    let mut engine = EditorEngine::default();
+
+    // Initial project has 2 tracks (V1, A1)
+    assert_eq!(engine.document().project.sequence.tracks.len(), 2);
+    assert_eq!(engine.document().project.sequence.tracks[0].name, "V1");
+    assert_eq!(engine.document().project.sequence.tracks[1].name, "A1");
+
+    // 1. Add Video Track V2
+    let add_v_res = engine
+        .execute(CommandRequest::new(
+            "timeline.add_track",
+            json!({ "kind": "video" }),
+        ))
+        .unwrap();
+    let v2_id = add_v_res["track_id"].as_u64().unwrap();
+    assert_eq!(add_v_res["name"], "V2");
+    assert_eq!(engine.document().project.sequence.tracks.len(), 3);
+
+    // 2. Add Audio Track A2
+    let add_a_res = engine
+        .execute(CommandRequest::new(
+            "timeline.add_track",
+            json!({ "kind": "audio", "name": "SFX Lane" }),
+        ))
+        .unwrap();
+    let _a2_id = add_a_res["track_id"].as_u64().unwrap();
+    assert_eq!(add_a_res["name"], "SFX Lane");
+    assert_eq!(engine.document().project.sequence.tracks.len(), 4);
+
+    // 3. Locked track cannot be removed
+    engine
+        .execute(CommandRequest::new(
+            "track.set_locked",
+            json!({ "track_id": v2_id, "locked": true }),
+        ))
+        .unwrap();
+    let locked_remove_err = engine
+        .execute(CommandRequest::new(
+            "timeline.remove_track",
+            json!({ "track_id": v2_id }),
+        ));
+    assert!(locked_remove_err.is_err());
+
+    // Unlock and remove V2
+    engine
+        .execute(CommandRequest::new(
+            "track.set_locked",
+            json!({ "track_id": v2_id, "locked": false }),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.remove_track",
+            json!({ "track_id": v2_id }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks.len(), 3);
+
+    // 4. Test Ripple Delete Gap
+    // Setup media and clips on V1: Clip A [0..3s], Clip B [6..10s] -> empty gap of 3s at [3s..6s]
+    let add_media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({ "name": "clip.mp4", "path": "/media/clip.mp4", "kind": "video" }),
+        ))
+        .unwrap();
+    let media_id = add_media["media_id"].as_u64().unwrap();
+    let v1_id = engine.document().project.sequence.tracks[0].id;
+
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({ "track_id": v1_id, "media_id": media_id, "timeline_start": 0, "source_in": 0, "duration": 3 * TICKS_PER_SECOND }),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({ "track_id": v1_id, "media_id": media_id, "timeline_start": 6 * TICKS_PER_SECOND, "source_in": 0, "duration": 4 * TICKS_PER_SECOND }),
+        ))
+        .unwrap();
+
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[0].timeline_start.0, 0);
+    assert_eq!(clips[1].timeline_start.0, 6 * TICKS_PER_SECOND);
+
+    // Ripple delete gap at 4.5s (which is inside [3s..6s])
+    let gap_res = engine
+        .execute(CommandRequest::new(
+            "timeline.ripple_delete_gap",
+            json!({ "track_id": v1_id, "at_tick": (4.5 * TICKS_PER_SECOND as f64) as i64 }),
+        ))
+        .unwrap();
+    assert_eq!(gap_res["gap_deleted"], true);
+    assert_eq!(gap_res["gap_start"].as_i64().unwrap(), 3 * TICKS_PER_SECOND);
+    assert_eq!(gap_res["gap_end"].as_i64().unwrap(), 6 * TICKS_PER_SECOND);
+
+    // Clip B should now start right at 3s!
+    let clips_after = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips_after[1].timeline_start.0, 3 * TICKS_PER_SECOND);
+
+    // 5. Undo gap ripple delete -> Clip B returns to 6s
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[1].timeline_start.0, 6 * TICKS_PER_SECOND);
+
+    // Redo gap ripple delete -> Clip B returns to 3s
+    engine
+        .execute(CommandRequest::new("edit.redo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[1].timeline_start.0, 3 * TICKS_PER_SECOND);
+}

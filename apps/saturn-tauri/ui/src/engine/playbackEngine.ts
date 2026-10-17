@@ -351,6 +351,13 @@ export interface Sequence {
   node_graph?: NodeGraph | null;
 }
 
+export interface MediaBin {
+  id: number;
+  name: string;
+  parent_id?: number | null;
+  color?: string | null;
+}
+
 export interface MediaAsset {
   id: number;
   name: string;
@@ -359,6 +366,13 @@ export interface MediaAsset {
   duration: number | null;
   width: number | null;
   height: number | null;
+  fps?: number | null;
+  audio_channels?: number | null;
+  codec?: string | null;
+  bin_id?: number | null;
+  color_label?: string | null;
+  tags?: string[] | null;
+  is_missing?: boolean;
   title?: TitleProperties | null;
   waveform?: number[] | null;
   nested_sequence?: Sequence | null;
@@ -375,6 +389,7 @@ export interface ProjectDocument {
   project: {
     name: string;
     media: MediaAsset[];
+    bins?: MediaBin[];
     sequence: Sequence;
     sequences?: Sequence[];
     settings: {

@@ -86,6 +86,18 @@ struct AddMediaParams {
     #[serde(default)]
     height: Option<u32>,
     #[serde(default)]
+    fps: Option<f64>,
+    #[serde(default)]
+    audio_channels: Option<u32>,
+    #[serde(default)]
+    codec: Option<String>,
+    #[serde(default)]
+    bin_id: Option<u64>,
+    #[serde(default)]
+    color_label: Option<String>,
+    #[serde(default)]
+    tags: Vec<String>,
+    #[serde(default)]
     title: Option<TitleProperties>,
     #[serde(default)]
     waveform: Option<Vec<u8>>,
@@ -678,6 +690,57 @@ struct SwitchSequenceParams {
     sequence_id: u64,
 }
 
+#[derive(Deserialize)]
+struct CreateBinParams {
+    name: String,
+    parent_id: Option<u64>,
+    color: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct RenameBinParams {
+    bin_id: u64,
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct DeleteBinParams {
+    bin_id: u64,
+}
+
+#[derive(Deserialize)]
+struct MoveToBinParams {
+    media_id: u64,
+    bin_id: Option<u64>,
+}
+
+#[derive(Deserialize)]
+struct UpdateMediaPropertiesParams {
+    media_id: u64,
+    name: Option<String>,
+    color_label: Option<String>,
+    tags: Option<Vec<String>>,
+}
+
+#[derive(Deserialize)]
+struct AddTrackParams {
+    #[serde(default)]
+    kind: TrackKind,
+    #[serde(default)]
+    name: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct RemoveTrackParams {
+    track_id: u64,
+}
+
+#[derive(Deserialize)]
+struct RippleDeleteGapParams {
+    track_id: Option<u64>,
+    at_tick: Tick,
+}
+
 fn get_or_create_node_graph<'a>(
     doc: &'a mut ProjectDocument,
     track_id: Option<u64>,
@@ -809,6 +872,13 @@ impl EditorEngine {
                     duration: params.duration,
                     width: params.width,
                     height: params.height,
+                    fps: params.fps,
+                    audio_channels: params.audio_channels,
+                    codec: params.codec,
+                    bin_id: params.bin_id,
+                    color_label: params.color_label,
+                    tags: params.tags,
+                    is_missing: false,
                     title: params.title,
                     waveform: params.waveform,
                     nested_sequence: None,
@@ -1924,8 +1994,7 @@ impl EditorEngine {
                     width: Some(self.document.project.settings.width),
                     height: Some(self.document.project.settings.height),
                     title: Some(title_props),
-                    waveform: None,
-                    nested_sequence: None,
+                    ..Default::default()
                 };
                 self.document.project.media.push(media_item);
 
@@ -2564,9 +2633,8 @@ impl EditorEngine {
                     duration: Some(compound_duration),
                     width: Some(self.document.project.settings.width),
                     height: Some(self.document.project.settings.height),
-                    title: None,
-                    waveform: None,
                     nested_sequence: Some(nested_sequence.clone()),
+                    ..Default::default()
                 };
 
                 self.document.project.media.push(compound_media_asset);
@@ -2730,6 +2798,296 @@ impl EditorEngine {
                     "sequence_id": new_id,
                     "name": new_name,
                     "switched": true
+                }))
+            }
+
+            "media.create_bin" => {
+                let params: CreateBinParams = parse_params(request.params)?;
+                if params.name.trim().is_empty() {
+                    return Err(DispatchError::InvalidParameters("Bin name cannot be empty".into()));
+                }
+                self.checkpoint();
+                let bin_id = self.document.project.next_id;
+                self.document.project.next_id = bin_id.saturating_add(1);
+                let bin = crate::project::MediaBin {
+                    id: bin_id,
+                    name: params.name.trim().to_string(),
+                    parent_id: params.parent_id,
+                    color: params.color.unwrap_or_else(|| "#38bdf8".into()),
+                };
+                self.document.project.bins.push(bin.clone());
+                Ok(json!({
+                    "created": true,
+                    "bin": bin,
+                }))
+            }
+
+            "media.rename_bin" => {
+                let params: RenameBinParams = parse_params(request.params)?;
+                if params.name.trim().is_empty() {
+                    return Err(DispatchError::InvalidParameters("Bin name cannot be empty".into()));
+                }
+                let bin_idx = self.document.project.bins.iter().position(|b| b.id == params.bin_id)
+                    .ok_or_else(|| DispatchError::InvalidParameters(format!("Bin {} not found", params.bin_id)))?;
+                self.checkpoint();
+                self.document.project.bins[bin_idx].name = params.name.trim().to_string();
+                Ok(json!({
+                    "renamed": true,
+                    "bin_id": params.bin_id,
+                    "name": self.document.project.bins[bin_idx].name,
+                }))
+            }
+
+            "media.delete_bin" => {
+                let params: DeleteBinParams = parse_params(request.params)?;
+                if !self.document.project.bins.iter().any(|b| b.id == params.bin_id) {
+                    return Err(DispatchError::InvalidParameters(format!("Bin {} not found", params.bin_id)));
+                }
+                self.checkpoint();
+                self.document.project.bins.retain(|b| b.id != params.bin_id && b.parent_id != Some(params.bin_id));
+                for media in &mut self.document.project.media {
+                    if media.bin_id == Some(params.bin_id) {
+                        media.bin_id = None;
+                    }
+                }
+                Ok(json!({
+                    "deleted": true,
+                    "bin_id": params.bin_id,
+                }))
+            }
+
+            "media.move_to_bin" => {
+                let params: MoveToBinParams = parse_params(request.params)?;
+                let media_idx = self.document.project.media.iter().position(|m| m.id == params.media_id)
+                    .ok_or_else(|| DispatchError::InvalidParameters(format!("Media {} not found", params.media_id)))?;
+                if let Some(target_bin) = params.bin_id {
+                    if !self.document.project.bins.iter().any(|b| b.id == target_bin) {
+                        return Err(DispatchError::InvalidParameters(format!("Target bin {} not found", target_bin)));
+                    }
+                }
+                self.checkpoint();
+                self.document.project.media[media_idx].bin_id = params.bin_id;
+                Ok(json!({
+                    "moved": true,
+                    "media_id": params.media_id,
+                    "bin_id": params.bin_id,
+                }))
+            }
+
+            "media.update_properties" => {
+                let params: UpdateMediaPropertiesParams = parse_params(request.params)?;
+                let media_idx = self.document.project.media.iter().position(|m| m.id == params.media_id)
+                    .ok_or_else(|| DispatchError::InvalidParameters(format!("Media {} not found", params.media_id)))?;
+                self.checkpoint();
+                let media = &mut self.document.project.media[media_idx];
+                if let Some(name) = params.name {
+                    if !name.trim().is_empty() {
+                        media.name = name.trim().to_string();
+                    }
+                }
+                if let Some(color_label) = params.color_label {
+                    media.color_label = Some(color_label);
+                }
+                if let Some(tags) = params.tags {
+                    media.tags = tags;
+                }
+                Ok(json!({
+                    "updated": true,
+                    "media_id": params.media_id,
+                    "name": media.name,
+                    "color_label": media.color_label,
+                    "tags": media.tags,
+                }))
+            }
+
+            "media.check_missing" => {
+                let mut missing_count = 0;
+                let mut missing_ids = Vec::new();
+                for media in &mut self.document.project.media {
+                    if media.kind != MediaKind::Title && media.kind != MediaKind::CompoundSequence {
+                        let is_missing = !media.path.exists();
+                        media.is_missing = is_missing;
+                        if is_missing {
+                            missing_count += 1;
+                            missing_ids.push(media.id);
+                        }
+                    }
+                }
+                Ok(json!({
+                    "checked": true,
+                    "missing_count": missing_count,
+                    "missing_ids": missing_ids,
+                }))
+            }
+
+            "timeline.add_track" => {
+                let params: AddTrackParams = parse_params(request.params)?;
+                self.checkpoint();
+                let track_id = self.document.project.next_id;
+                self.document.project.next_id = track_id.saturating_add(1);
+                let count = self.document.project.sequence.tracks.iter().filter(|t| t.kind == params.kind).count();
+                let default_prefix = match params.kind {
+                    TrackKind::Video => "V",
+                    TrackKind::Audio => "A",
+                };
+                let track_name = params.name.unwrap_or_else(|| format!("{}{}", default_prefix, count + 1));
+                let new_track = Track {
+                    id: track_id,
+                    kind: params.kind,
+                    name: track_name.clone(),
+                    gain_db: 0.0,
+                    pan: 0.0,
+                    muted: false,
+                    solo: false,
+                    locked: false,
+                    audio_processing: crate::project::TrackAudioProcessing::default(),
+                    bus: crate::project::BusTarget::Master,
+                    automation: crate::project::TrackAutomation::default(),
+                    plugins: Vec::new(),
+                    clips: Vec::new(),
+                    transitions: Vec::new(),
+                };
+                self.document.project.sequence.tracks.push(new_track);
+                Ok(json!({
+                    "added": true,
+                    "track_id": track_id,
+                    "name": track_name,
+                    "kind": params.kind,
+                }))
+            }
+
+            "timeline.remove_track" => {
+                let params: RemoveTrackParams = parse_params(request.params)?;
+                let track_idx = self.document.project.sequence.tracks.iter().position(|t| t.id == params.track_id)
+                    .ok_or_else(|| DispatchError::InvalidParameters(format!("Track {} not found", params.track_id)))?;
+                let track = &self.document.project.sequence.tracks[track_idx];
+                if track.locked {
+                    return Err(DispatchError::Operation("Cannot remove locked track".into()));
+                }
+                let kind = track.kind;
+                let kind_count = self.document.project.sequence.tracks.iter().filter(|t| t.kind == kind).count();
+                if kind_count <= 1 {
+                    return Err(DispatchError::Operation("Sequence must have at least one track of each kind".into()));
+                }
+                self.checkpoint();
+                self.document.project.sequence.tracks.remove(track_idx);
+                Ok(json!({
+                    "removed": true,
+                    "track_id": params.track_id,
+                }))
+            }
+
+            "timeline.ripple_delete_gap" => {
+                let params: RippleDeleteGapParams = parse_params(request.params)?;
+                let at = params.at_tick.0;
+
+                // Determine gap boundary [gap_start, gap_end]
+                let (gap_start, gap_end) = if let Some(t_id) = params.track_id {
+                    let t_idx = find_track_index(&self.document, t_id)?;
+                    let track = &self.document.project.sequence.tracks[t_idx];
+                    if track.locked {
+                        return Err(DispatchError::Operation("Track is locked".into()));
+                    }
+                    let mut clips = track.clips.clone();
+                    clips.sort_by_key(|c| c.timeline_start.0);
+
+                    if clips.is_empty() {
+                        return Err(DispatchError::Operation("Track contains no clips".into()));
+                    }
+
+                    // Check before first clip
+                    if at >= 0 && at < clips[0].timeline_start.0 {
+                        (0, clips[0].timeline_start.0)
+                    } else {
+                        let mut found = None;
+                        for i in 0..clips.len() - 1 {
+                            let end_prev = clips[i].timeline_start.0 + clips[i].duration.0;
+                            let start_next = clips[i + 1].timeline_start.0;
+                            if at >= end_prev && at < start_next {
+                                found = Some((end_prev, start_next));
+                                break;
+                            }
+                        }
+                        found.ok_or_else(|| DispatchError::Operation("No gap found at specified playhead time".into()))?
+                    }
+                } else {
+                    // Global gap across all tracks
+                    let mut max_end_before: i64 = 0;
+                    let mut min_start_after: i64 = i64::MAX;
+                    let mut has_clips_before = false;
+                    let mut has_clips_after = false;
+
+                    for track in &self.document.project.sequence.tracks {
+                        for clip in &track.clips {
+                            let start = clip.timeline_start.0;
+                            let end = start + clip.duration.0;
+                            if at >= start && at < end {
+                                return Err(DispatchError::Operation("Playhead is inside a clip, not an empty gap".into()));
+                            }
+                            if end <= at {
+                                max_end_before = max_end_before.max(end);
+                                has_clips_before = true;
+                            }
+                            if start > at {
+                                min_start_after = min_start_after.min(start);
+                                has_clips_after = true;
+                            }
+                        }
+                    }
+
+                    let start = if has_clips_before { max_end_before } else { 0 };
+                    let end = if has_clips_after { min_start_after } else {
+                        return Err(DispatchError::Operation("No clips found after playhead to ripple".into()));
+                    };
+
+                    if end <= start {
+                        return Err(DispatchError::Operation("Invalid gap duration".into()));
+                    }
+                    (start, end)
+                };
+
+                let gap_duration = gap_end - gap_start;
+                if gap_duration <= 0 {
+                    return Err(DispatchError::Operation("Gap duration is zero".into()));
+                }
+
+                self.checkpoint();
+
+                // Shift clips to close the gap
+                if let Some(t_id) = params.track_id {
+                    let t_idx = find_track_index(&self.document, t_id)?;
+                    for clip in &mut self.document.project.sequence.tracks[t_idx].clips {
+                        if clip.timeline_start.0 >= gap_end {
+                            clip.timeline_start = Tick(clip.timeline_start.0 - gap_duration);
+                        }
+                    }
+                    for trans in &mut self.document.project.sequence.tracks[t_idx].transitions {
+                        if trans.cut_at.0 >= gap_end {
+                            trans.cut_at = Tick(trans.cut_at.0 - gap_duration);
+                        }
+                    }
+                } else {
+                    for track in &mut self.document.project.sequence.tracks {
+                        if !track.locked {
+                            for clip in &mut track.clips {
+                                if clip.timeline_start.0 >= gap_end {
+                                    clip.timeline_start = Tick(clip.timeline_start.0 - gap_duration);
+                                }
+                            }
+                            for trans in &mut track.transitions {
+                                if trans.cut_at.0 >= gap_end {
+                                    trans.cut_at = Tick(trans.cut_at.0 - gap_duration);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Ok(json!({
+                    "gap_deleted": true,
+                    "gap_start": gap_start,
+                    "gap_end": gap_end,
+                    "duration_ticks": gap_duration,
                 }))
             }
 

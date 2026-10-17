@@ -19,11 +19,27 @@ pub struct ProjectDocument {
     pub view: ProjectView,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct MediaBin {
+    pub id: u64,
+    pub name: String,
+    #[serde(default)]
+    pub parent_id: Option<u64>,
+    #[serde(default = "default_bin_color")]
+    pub color: String,
+}
+
+fn default_bin_color() -> String {
+    "#38bdf8".into()
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Project {
     pub name: String,
     pub settings: ProjectSettings,
     pub media: Vec<MediaAsset>,
+    #[serde(default)]
+    pub bins: Vec<MediaBin>,
     pub sequence: Sequence,
     #[serde(default)]
     pub sequences: Vec<Sequence>,
@@ -102,11 +118,49 @@ pub struct MediaAsset {
     #[serde(default)]
     pub height: Option<u32>,
     #[serde(default)]
+    pub fps: Option<f64>,
+    #[serde(default)]
+    pub audio_channels: Option<u32>,
+    #[serde(default)]
+    pub codec: Option<String>,
+    #[serde(default)]
+    pub bin_id: Option<u64>,
+    #[serde(default)]
+    pub color_label: Option<String>,
+    #[serde(default)]
+    pub tags: Vec<String>,
+    #[serde(default)]
+    pub is_missing: bool,
+    #[serde(default)]
     pub title: Option<TitleProperties>,
     #[serde(default)]
     pub waveform: Option<Vec<u8>>,
     #[serde(default)]
     pub nested_sequence: Option<Sequence>,
+}
+
+impl Default for MediaAsset {
+    fn default() -> Self {
+        Self {
+            id: 0,
+            name: String::new(),
+            path: PathBuf::new(),
+            kind: MediaKind::Unknown,
+            duration: None,
+            width: None,
+            height: None,
+            fps: None,
+            audio_channels: None,
+            codec: None,
+            bin_id: None,
+            color_label: None,
+            tags: Vec::new(),
+            is_missing: false,
+            title: None,
+            waveform: None,
+            nested_sequence: None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -626,9 +680,10 @@ impl Track {
     }
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum TrackKind {
+    #[default]
     Video,
     Audio,
 }
@@ -1040,6 +1095,7 @@ impl ProjectDocument {
                     audio_sample_rate: 48_000,
                 },
                 media: Vec::new(),
+                bins: Vec::new(),
                 sequence: Sequence {
                     id: 1,
                     name: "Sequence 1".into(),
@@ -1403,9 +1459,7 @@ mod tests {
             duration: Some(Tick(42)),
             width: Some(1920),
             height: Some(1080),
-            title: None,
-            waveform: None,
-            nested_sequence: None,
+            ..Default::default()
         });
         doc.save_atomic(&path).unwrap();
         let loaded = ProjectDocument::load(&path).unwrap();

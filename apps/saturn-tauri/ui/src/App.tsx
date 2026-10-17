@@ -109,6 +109,12 @@ type Sequence = {
   buses?: AudioBus[];
   node_graph?: NodeGraph | null;
 };
+type MediaBin = {
+  id: number;
+  name: string;
+  parent_id?: number | null;
+  color?: string | null;
+};
 type MediaAsset = {
   id: number;
   name: string;
@@ -117,6 +123,13 @@ type MediaAsset = {
   duration: number | null;
   width: number | null;
   height: number | null;
+  fps?: number | null;
+  audio_channels?: number | null;
+  codec?: string | null;
+  bin_id?: number | null;
+  color_label?: string | null;
+  tags?: string[] | null;
+  is_missing?: boolean;
   title?: TitleProperties | null;
   waveform?: number[] | null;
   nested_sequence?: Sequence | null;
@@ -189,6 +202,7 @@ type LoudnessReport = {
 type ProjectDocument = {
   project: {
     name: string;
+    bins?: MediaBin[];
     media: MediaAsset[];
     sequence: Sequence;
     sequences?: Sequence[];
@@ -879,6 +893,16 @@ function App() {
   const [clipDragOffset, setClipDragOffset] = useState<{ trackId: number; clipIndex: number; x: number; y: number } | null>(null);
   const [draggedMediaId, setDraggedMediaId] = useState<number | null>(null);
   const [mediaDropTargetTrackId, setMediaDropTargetTrackId] = useState<number | null>(null);
+  const [activeBinId, setActiveBinId] = useState<number | null>(null);
+  const [mediaViewMode, setMediaViewMode] = useState<"grid" | "list">("grid");
+  const [createBinModalOpen, setCreateBinModalOpen] = useState(false);
+  const [newBinName, setNewBinName] = useState("");
+  const [newBinColor, setNewBinColor] = useState("#38bdf8");
+  const [mediaEditPropsId, setMediaEditPropsId] = useState<number | null>(null);
+  const [mediaEditPropsName, setMediaEditPropsName] = useState("");
+  const [mediaEditPropsColor, setMediaEditPropsColor] = useState("");
+  const [mediaEditPropsTags, setMediaEditPropsTags] = useState("");
+  const [timelineTrackHeight, setTimelineTrackHeight] = useState<"compact" | "normal" | "expanded">("normal");
 
   const refreshProject = useCallback(async () => {
     const [status, undo, redo, mediaAvailability] = await Promise.all([
@@ -945,8 +969,16 @@ function App() {
   const media = project?.media ?? [];
   const visibleMedia = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return media.filter((item) => !query || item.name.toLowerCase().includes(query) || item.path.toLowerCase().includes(query));
-  }, [media, search]);
+    return media.filter((item) => {
+      if (activeBinId !== null && item.bin_id !== activeBinId) return false;
+      if (!query) return true;
+      const matchName = item.name.toLowerCase().includes(query);
+      const matchPath = item.path.toLowerCase().includes(query);
+      const matchCodec = item.codec?.toLowerCase().includes(query) ?? false;
+      const matchTag = item.tags?.some((t) => t.toLowerCase().includes(query)) ?? false;
+      return matchName || matchPath || matchCodec || matchTag;
+    });
+  }, [media, search, activeBinId]);
   const selectedMedia = media.find((item) => item.id === selectedMediaId) ?? null;
   const selectedTimelineClip = selectedClip
     ? project?.sequence.tracks.find((track) => track.id === selectedClip.track_id)?.clips[selectedClip.clip_index] ?? null
@@ -2796,6 +2828,88 @@ function App() {
     audioClockMaster.resetLoudness();
     setLoudnessReport(audioClockMaster.getLoudnessReport(loudnessStandard));
     setNotice("Loudness meter and integrated gates reset");
+  }
+
+  function getTrackGaps(clips: Clip[]): Array<{ start: number; end: number }> {
+    if (clips.length === 0) return [];
+    const sorted = [...clips].sort((a, b) => a.timeline_start - b.timeline_start);
+    const gaps: Array<{ start: number; end: number }> = [];
+
+    if (sorted[0].timeline_start > TICKS_PER_SECOND * 0.05) {
+      gaps.push({ start: 0, end: sorted[0].timeline_start });
+    }
+
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const endPrev = sorted[i].timeline_start + sorted[i].duration;
+      const startNext = sorted[i + 1].timeline_start;
+      if (startNext - endPrev > TICKS_PER_SECOND * 0.05) {
+        gaps.push({ start: endPrev, end: startNext });
+      }
+    }
+
+    return gaps;
+  }
+
+  async function addTrackToTimeline(kind: "video" | "audio") {
+    await perform("timeline.add_track", { kind }, `Added new ${kind} track`);
+  }
+
+  async function removeTrackFromTimeline(trackId: number) {
+    await perform("timeline.remove_track", { track_id: trackId }, "Removed track");
+  }
+
+  async function rippleDeleteTimelineGap(trackId: number, atTick: number) {
+    await perform("timeline.ripple_delete_gap", { track_id: trackId, at_tick: atTick }, "Closed empty gap");
+  }
+
+  async function createMediaBin(name: string, color?: string) {
+    if (!name.trim()) return;
+    await perform("media.create_bin", { name: name.trim(), color }, `Created Bin "${name.trim()}"`);
+    setCreateBinModalOpen(false);
+    setNewBinName("");
+  }
+
+  async function deleteMediaBin(binId: number) {
+    await perform("media.delete_bin", { bin_id: binId }, "Deleted bin");
+    if (activeBinId === binId) setActiveBinId(null);
+  }
+
+  async function moveMediaToBin(mediaId: number, binId: number | null) {
+    await perform("media.move_to_bin", { media_id: mediaId, bin_id: binId }, binId ? "Moved media to bin" : "Moved to All Media");
+  }
+
+  async function updateMediaProperties(mediaId: number, name?: string, colorLabel?: string, tags?: string[]) {
+    await perform("media.update_properties", { media_id: mediaId, name, color_label: colorLabel, tags }, "Updated media properties");
+    setMediaEditPropsId(null);
+  }
+
+  async function checkMissingMedia() {
+    await perform("media.check_missing", {}, "Checked missing media");
+  }
+
+  async function handleDropOnTrackLane(e: React.DragEvent, trackId: number) {
+    e.preventDefault();
+    setMediaDropTargetTrackId(null);
+    try {
+      const dataStr = e.dataTransfer.getData("application/json");
+      if (!dataStr) return;
+      const { media_id } = JSON.parse(dataStr);
+      if (!media_id) return;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const relX = Math.max(0, e.clientX - rect.left);
+      const dropTick = Math.max(0, Math.round((relX / timelineZoom) * TICKS_PER_SECOND));
+      const mediaItem = media.find((m) => m.id === media_id);
+      const duration = mediaItem?.duration ?? TICKS_PER_SECOND * 5;
+      await perform("timeline.add_clip", {
+        track_id: trackId,
+        media_id,
+        timeline_start: dropTick,
+        source_in: 0,
+        duration,
+      }, `Added ${mediaItem?.name ?? "clip"} to timeline`);
+    } catch (err) {
+      console.error("Drop on track lane failed:", err);
+    }
   }
 
   async function handleTimelineClipClick(event: MouseEvent<HTMLDivElement>, trackId: number, clipIndex: number, clip: Clip) {
@@ -8906,67 +9020,323 @@ function App() {
             {filmoraTab === "media" && (
               <>
                 <div className="panel-heading">
-                  <strong>Project media</strong>
-                  <button className="primary" onClick={() => void importMedia()} disabled={busy} data-tooltip="Import Media Files" data-tooltip-pos="bottom">
-                    ＋ Import
-                  </button>
-                </div>
-                <input
-                  className="search"
-                  type="search"
-                  placeholder="Search project media…"
-                  aria-label="Search project media"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
-                {visibleMedia.length > 0 ? (
-                  <div className="media-list">
-                    {visibleMedia.map((item) => (
-                      <div className="media-row" key={item.id}>
-                        <button
-                          className={`media-item ${selectedMediaId === item.id ? "selected" : ""} ${draggedMediaId === item.id ? "pointer-dragging" : ""} ${item.kind === "compound_sequence" ? "compound-item" : ""}`}
-                          onPointerDown={(event) => beginMediaPointer(event, item.id)}
-                          onPointerMove={moveMediaPointer}
-                          onPointerUp={(event) => void finishMediaPointer(event)}
-                          onPointerCancel={cancelMediaPointer}
-                          onDoubleClick={() => {
-                            if (item.kind === "compound_sequence" && item.nested_sequence?.id) {
-                              void switchSequence(item.nested_sequence.id);
-                            }
-                          }}
-                          onClick={() => {
-                            if (suppressMediaClick.current) {
-                              suppressMediaClick.current = false;
-                              return;
-                            }
-                            setSelectedMediaId(item.id);
-                            setSelectedClip(null);
-                            setSelectedClips([]);
-                          }}
-                          data-tooltip={`Click to inspect · ${item.kind === "compound_sequence" ? "COMPOUND CLIP (Double-click to open)" : item.kind.toUpperCase()} (${item.duration ? formatTime(item.duration) : "Media"})`}
-                          data-tooltip-pos="right"
-                        >
-                          <span className="media-kind-badge-icon" style={{ fontSize: "14px", marginRight: "6px" }}>
-                            {item.kind === "compound_sequence" ? "⧉" : <Icon name="media" />}
-                          </span>
-                          <span>
-                            <strong>{item.name}</strong>
-                            <small>{item.kind === "compound_sequence" ? "Compound Sequence (Double-click)" : missingMediaIds.has(item.id) ? "Missing · relink required" : `${item.kind} · ${item.width && item.height ? `${item.width} × ${item.height}` : item.duration ? formatTime(item.duration) : "Ready"}`}</small>
-                          </span>
-                        </button>
-                        {missingMediaIds.has(item.id) && (
-                          <button className="relink-button" onClick={() => void relinkMedia(item.id)} data-tooltip={`Locate file on disk for ${item.name}`}>
-                            Relink
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <strong>Project media</strong>
+                    <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>({media.length})</span>
                   </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: "4px 7px", fontSize: "11px" }}
+                      onClick={() => void checkMissingMedia()}
+                      disabled={busy}
+                      data-tooltip="Scan & relink missing media files"
+                      data-tooltip-pos="bottom"
+                    >
+                      🔍 Scan
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: "4px 7px", fontSize: "11px" }}
+                      onClick={() => setCreateBinModalOpen(true)}
+                      disabled={busy}
+                      data-tooltip="Create new media bin / folder"
+                      data-tooltip-pos="bottom"
+                    >
+                      ＋ Bin
+                    </button>
+                    <button
+                      className="primary"
+                      style={{ padding: "4px 8px", fontSize: "11px" }}
+                      onClick={() => void importMedia()}
+                      disabled={busy}
+                      data-tooltip="Import Media Files (Ctrl+I)"
+                      data-tooltip-pos="bottom"
+                    >
+                      ＋ Import
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", margin: "0 9px 6px" }}>
+                  <input
+                    className="search"
+                    style={{ margin: 0, flex: 1 }}
+                    type="search"
+                    placeholder="Search media, codec, tags…"
+                    aria-label="Search project media"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                  />
+                  <div className="media-view-toggle">
+                    <button
+                      type="button"
+                      className={mediaViewMode === "grid" ? "active" : ""}
+                      onClick={() => setMediaViewMode("grid")}
+                      title="Grid View"
+                    >
+                      ⊞
+                    </button>
+                    <button
+                      type="button"
+                      className={mediaViewMode === "list" ? "active" : ""}
+                      onClick={() => setMediaViewMode("list")}
+                      title="List View"
+                    >
+                      ☰
+                    </button>
+                  </div>
+                </div>
+
+                <div className="media-bins-bar">
+                  <button
+                    type="button"
+                    className={`media-bin-pill ${activeBinId === null ? "active" : ""}`}
+                    onClick={() => setActiveBinId(null)}
+                    title="Show all project media"
+                  >
+                    📁 All ({media.length})
+                  </button>
+                  {(project?.bins ?? []).map((bin) => {
+                    const binCount = media.filter((m) => m.bin_id === bin.id).length;
+                    return (
+                      <button
+                        key={bin.id}
+                        type="button"
+                        className={`media-bin-pill ${activeBinId === bin.id ? "active" : ""}`}
+                        onClick={() => setActiveBinId(bin.id)}
+                        title={`Filter by Bin: ${bin.name}`}
+                      >
+                        <span className="bin-color-dot" style={{ backgroundColor: bin.color || "#38bdf8" }} />
+                        <span>{bin.name} ({binCount})</span>
+                        <span
+                          className="bin-delete-btn"
+                          title="Delete bin (media returns to All Media)"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void deleteMediaBin(bin.id);
+                          }}
+                        >
+                          ✕
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {visibleMedia.length > 0 ? (
+                  mediaViewMode === "grid" ? (
+                    <div className="media-list">
+                      {visibleMedia.map((item) => {
+                        const isMissing = missingMediaIds.has(item.id) || item.is_missing;
+                        const isSelected = selectedMediaId === item.id;
+                        const binName = project?.bins?.find((b) => b.id === item.bin_id)?.name;
+                        return (
+                          <div className="media-row" key={item.id} style={{ position: "relative" }}>
+                            <button
+                              draggable={true}
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData("application/json", JSON.stringify({ media_id: item.id }));
+                                setDraggedMediaId(item.id);
+                              }}
+                              onDragEnd={() => setDraggedMediaId(null)}
+                              className={`media-item ${isSelected ? "selected" : ""} ${draggedMediaId === item.id ? "pointer-dragging" : ""} ${item.kind === "compound_sequence" ? "compound-item" : ""}`}
+                              style={{
+                                borderLeft: item.color_label ? `3px solid ${item.color_label}` : undefined,
+                              }}
+                              onPointerDown={(event) => beginMediaPointer(event, item.id)}
+                              onPointerMove={moveMediaPointer}
+                              onPointerUp={(event) => void finishMediaPointer(event)}
+                              onPointerCancel={cancelMediaPointer}
+                              onDoubleClick={() => {
+                                if (item.kind === "compound_sequence" && item.nested_sequence?.id) {
+                                  void switchSequence(item.nested_sequence.id);
+                                }
+                              }}
+                              onClick={() => {
+                                if (suppressMediaClick.current) {
+                                  suppressMediaClick.current = false;
+                                  return;
+                                }
+                                setSelectedMediaId(item.id);
+                                setSelectedClip(null);
+                                setSelectedClips([]);
+                              }}
+                              data-tooltip={`Click to inspect · ${item.kind === "compound_sequence" ? "COMPOUND CLIP (Double-click to open)" : item.kind.toUpperCase()} (${item.duration ? formatTime(item.duration) : "Media"})`}
+                              data-tooltip-pos="right"
+                            >
+                              <span className="media-kind-badge-icon" style={{ fontSize: "14px", marginRight: "6px" }}>
+                                {item.kind === "compound_sequence" ? "⧉" : item.kind === "audio" ? "♪" : <Icon name="media" />}
+                              </span>
+                              <span style={{ flex: 1, minWidth: 0 }}>
+                                <strong>{item.name}</strong>
+                                <small style={{ display: "flex", flexWrap: "wrap", gap: "4px", alignItems: "center", marginTop: "2px" }}>
+                                  {item.kind === "compound_sequence" ? (
+                                    "Compound Sequence (Double-click)"
+                                  ) : isMissing ? (
+                                    <span style={{ color: "#ef4444", fontWeight: 600 }}>⚠️ Missing · relink required</span>
+                                  ) : (
+                                    <>
+                                      <span>{item.kind}</span>
+                                      {item.width && item.height ? <span>· {item.width}×{item.height}</span> : null}
+                                      {item.duration ? <span>· {formatTime(item.duration)}</span> : null}
+                                      {item.fps ? <span className="media-badge">{item.fps}fps</span> : null}
+                                      {item.codec ? <span className="media-badge">{item.codec}</span> : null}
+                                      {item.audio_channels ? <span className="media-badge">{item.audio_channels}ch</span> : null}
+                                      {binName ? <span style={{ color: "#94a3b8" }}>· 📁 {binName}</span> : null}
+                                    </>
+                                  )}
+                                </small>
+                                {item.tags && item.tags.length > 0 && (
+                                  <div style={{ marginTop: "2px" }}>
+                                    {item.tags.map((t) => (
+                                      <span key={t} className="media-tag-chip">#{t}</span>
+                                    ))}
+                                  </div>
+                                )}
+                              </span>
+                            </button>
+                            <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                              {isMissing && (
+                                <button className="relink-button" onClick={() => void relinkMedia(item.id)} data-tooltip={`Locate file on disk for ${item.name}`}>
+                                  Relink
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className="track-mini-btn"
+                                style={{ padding: "4px 6px", fontSize: "12px", border: "none", background: "transparent" }}
+                                title="Edit properties, tags, color, or move to bin"
+                                onClick={() => {
+                                  setMediaEditPropsId(item.id);
+                                  setMediaEditPropsName(item.name);
+                                  setMediaEditPropsColor(item.color_label || "");
+                                  setMediaEditPropsTags((item.tags || []).join(", "));
+                                }}
+                              >
+                                ⋮
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="media-table-list-wrapper">
+                      <table className="media-table-list">
+                        <thead>
+                          <tr>
+                            <th>Name</th>
+                            <th>Kind</th>
+                            <th>Duration</th>
+                            <th>Res</th>
+                            <th>FPS</th>
+                            <th>Codec</th>
+                            <th>Audio</th>
+                            <th>Bin</th>
+                            <th>Tags</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {visibleMedia.map((item) => {
+                            const isMissing = missingMediaIds.has(item.id) || item.is_missing;
+                            const isSelected = selectedMediaId === item.id;
+                            const binName = project?.bins?.find((b) => b.id === item.bin_id)?.name;
+                            return (
+                              <tr
+                                key={item.id}
+                                className={`media-table-row ${isSelected ? "selected" : ""}`}
+                                draggable={true}
+                                onDragStart={(e) => {
+                                  e.dataTransfer.setData("application/json", JSON.stringify({ media_id: item.id }));
+                                  setDraggedMediaId(item.id);
+                                }}
+                                onDragEnd={() => setDraggedMediaId(null)}
+                                onClick={() => {
+                                  setSelectedMediaId(item.id);
+                                  setSelectedClip(null);
+                                  setSelectedClips([]);
+                                }}
+                                onDoubleClick={() => {
+                                  if (item.kind === "compound_sequence" && item.nested_sequence?.id) {
+                                    void switchSequence(item.nested_sequence.id);
+                                  }
+                                }}
+                              >
+                                <td>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                    {item.color_label ? (
+                                      <span className="media-color-chip" style={{ backgroundColor: item.color_label }} />
+                                    ) : null}
+                                    <span style={{ fontSize: "12px" }}>
+                                      {item.kind === "compound_sequence" ? "⧉" : item.kind === "audio" ? "♪" : "▶"}
+                                    </span>
+                                    <strong style={{ fontWeight: 600 }}>{item.name}</strong>
+                                  </div>
+                                </td>
+                                <td>
+                                  <span style={{ textTransform: "uppercase", fontSize: "10px", color: "var(--text-muted)" }}>
+                                    {item.kind}
+                                  </span>
+                                </td>
+                                <td>{item.duration ? formatTime(item.duration) : "-"}</td>
+                                <td>{item.width && item.height ? `${item.width}×${item.height}` : "-"}</td>
+                                <td>{item.fps ? `${item.fps} fps` : "-"}</td>
+                                <td>{item.codec ? <span className="media-badge">{item.codec}</span> : "-"}</td>
+                                <td>{item.audio_channels ? `${item.audio_channels} ch` : "-"}</td>
+                                <td>{binName ? `📁 ${binName}` : "-"}</td>
+                                <td>
+                                  {item.tags && item.tags.length > 0 ? (
+                                    item.tags.map((t) => <span key={t} className="media-tag-chip">#{t}</span>)
+                                  ) : "-"}
+                                </td>
+                                <td>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                    {isMissing && (
+                                      <button
+                                        type="button"
+                                        className="relink-button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          void relinkMedia(item.id);
+                                        }}
+                                        title="Relink missing media file"
+                                      >
+                                        Relink
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      className="track-mini-btn"
+                                      style={{ padding: "2px 5px", fontSize: "11px" }}
+                                      title="Edit Asset Properties"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setMediaEditPropsId(item.id);
+                                        setMediaEditPropsName(item.name);
+                                        setMediaEditPropsColor(item.color_label || "");
+                                        setMediaEditPropsTags((item.tags || []).join(", "));
+                                      }}
+                                    >
+                                      ✏
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )
                 ) : (
                   <div className="empty-media">
                     <span className="media-icon"><Icon name="media" /></span>
-                    <strong>{search ? "No matching media" : "No media imported"}</strong>
-                    <small>{search ? "Try another search query." : "Import video, audio, or images to begin editing."}</small>
+                    <strong>{search ? "No matching media" : activeBinId ? "No media in this bin" : "No media imported"}</strong>
+                    <small>{search ? "Try another search query or tag." : activeBinId ? "Move clips into this bin or import files." : "Import video, audio, or images to begin editing."}</small>
                     <button onClick={() => void importMedia()} disabled={busy}>Browse files…</button>
                   </div>
                 )}
@@ -9265,6 +9635,57 @@ function App() {
                   <code>{formatTime(playhead)} / {formatTime(Math.max(0, ...((project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => clip.timeline_start + clip.duration)))))}</code>
                 </div>
                 <div className="timeline-toolbar-tools" aria-label="Timeline actions">
+                  <button
+                    className="timeline-icon-button"
+                    disabled={busy}
+                    onClick={() => void addTrackToTimeline("video")}
+                    data-tooltip="Add Video Track (+V)"
+                    data-tooltip-pos="top"
+                    aria-label="Add Video Track"
+                  >
+                    <span style={{ fontWeight: 700, fontSize: "11px" }}>+V</span>
+                  </button>
+                  <button
+                    className="timeline-icon-button"
+                    disabled={busy}
+                    onClick={() => void addTrackToTimeline("audio")}
+                    data-tooltip="Add Audio Track (+A)"
+                    data-tooltip-pos="top"
+                    aria-label="Add Audio Track"
+                  >
+                    <span style={{ fontWeight: 700, fontSize: "11px" }}>+A</span>
+                  </button>
+                  <span className="toolbar-divider" />
+                  <div className="track-height-selector" style={{ display: "inline-flex", gap: "2px", background: "var(--bg-input)", padding: "2px", borderRadius: "4px" }}>
+                    <button
+                      type="button"
+                      className={`timeline-mini-toggle ${timelineTrackHeight === "compact" ? "active" : ""}`}
+                      onClick={() => setTimelineTrackHeight("compact")}
+                      data-tooltip="Compact Track Height (40px)"
+                      data-tooltip-pos="top"
+                    >
+                      ▫
+                    </button>
+                    <button
+                      type="button"
+                      className={`timeline-mini-toggle ${timelineTrackHeight === "normal" ? "active" : ""}`}
+                      onClick={() => setTimelineTrackHeight("normal")}
+                      data-tooltip="Normal Track Height (64px)"
+                      data-tooltip-pos="top"
+                    >
+                      ◽
+                    </button>
+                    <button
+                      type="button"
+                      className={`timeline-mini-toggle ${timelineTrackHeight === "expanded" ? "active" : ""}`}
+                      onClick={() => setTimelineTrackHeight("expanded")}
+                      data-tooltip="Expanded Track Height (88px)"
+                      data-tooltip-pos="top"
+                    >
+                      ◻
+                    </button>
+                  </div>
+                  <span className="toolbar-divider" />
                   <button className={`timeline-icon-button ${snapEnabled ? "active-toggle" : ""}`} aria-pressed={snapEnabled} onClick={() => setSnapEnabled((enabled) => !enabled)} data-tooltip={`Snap to Frame: ${snapEnabled ? "On" : "Off"} (S)`} data-tooltip-pos="top" aria-label="Toggle snapping"><Icon name="snap" /></button>
                   <button className="timeline-icon-button" disabled={!selectedMedia || busy} onClick={() => void addSelectedToTimeline()} data-tooltip="Add Selected Media to Timeline (Shift+A)" data-tooltip-pos="top" aria-label="Add selected media"><Icon name="add" /></button>
                   <button className="timeline-icon-button" disabled={busy} onClick={() => void addTitleToTimeline()} data-tooltip="Add Title / Lower-Third Graphic (Ctrl+T)" data-tooltip-pos="top" aria-label="Add Title"><Icon name="title" /></button>
@@ -9398,7 +9819,7 @@ function App() {
                     </div>
                   </div>
 
-                  {(project?.sequence.tracks ?? []).map((track) => <div className={`track-row ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""}`} key={track.id}>
+                  {(project?.sequence.tracks ?? []).map((track) => <div className={`track-row track-height-${timelineTrackHeight} ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""}`} key={track.id}>
                     <div className="track-label">
                       <div className="track-label-top">
                         <b>{track.name}</b>
@@ -9429,9 +9850,63 @@ function App() {
                         >
                           {track.locked ? "🔒" : "🔓"}
                         </button>
+                        <button
+                          type="button"
+                          className="track-mini-btn delete-track-btn"
+                          title={track.locked ? "Cannot delete locked track" : `Delete ${track.name}`}
+                          disabled={track.locked || (project?.sequence.tracks.filter((t) => t.kind === track.kind).length ?? 0) <= 1}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void removeTrackFromTimeline(track.id);
+                          }}
+                        >
+                          ✕
+                        </button>
                       </div>
                     </div>
-                    <div className={`track-lane ${track.locked ? "track-lane-locked" : ""} ${mediaDropTargetTrackId === track.id ? "media-drop-target" : ""}`} data-track-id={track.id} onClick={() => { setSelectedTransition(null); }}>
+                    <div
+                      className={`track-lane ${track.locked ? "track-lane-locked" : ""} ${mediaDropTargetTrackId === track.id ? "media-drop-target" : ""}`}
+                      data-track-id={track.id}
+                      onDragOver={(e) => {
+                        if (track.locked) return;
+                        e.preventDefault();
+                        setMediaDropTargetTrackId(track.id);
+                      }}
+                      onDragLeave={() => {
+                        if (mediaDropTargetTrackId === track.id) {
+                          setMediaDropTargetTrackId(null);
+                        }
+                      }}
+                      onDrop={(e) => {
+                        if (track.locked) return;
+                        void handleDropOnTrackLane(e, track.id);
+                      }}
+                      onClick={() => { setSelectedTransition(null); }}
+                    >
+                      {/* Empty Gap Detection & 1-Click Ripple Deletion */}
+                      {getTrackGaps(track.clips).map((gap, gIdx) => {
+                        const gapLeft = (gap.start / TICKS_PER_SECOND) * timelineZoom;
+                        const gapWidth = ((gap.end - gap.start) / TICKS_PER_SECOND) * timelineZoom;
+                        if (gapWidth < 6) return null;
+                        return (
+                          <div
+                            key={`gap-${track.id}-${gap.start}-${gIdx}`}
+                            className="timeline-gap-segment"
+                            style={{ left: `${gapLeft}px`, width: `${gapWidth}px` }}
+                            title={`Empty Gap: ${((gap.end - gap.start) / TICKS_PER_SECOND).toFixed(2)}s · Click to ripple close`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void rippleDeleteTimelineGap(track.id, gap.start + (gap.end - gap.start) / 2);
+                            }}
+                          >
+                            {gapWidth >= 44 && (
+                              <span className="gap-ripple-pill">
+                                ⇥ Close Gap
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
                       {(track.transitions ?? []).map((trans) => {
                         const cutX = (trans.cut_at / TICKS_PER_SECOND) * timelineZoom;
                         const durPx = Math.max(26, (trans.duration / TICKS_PER_SECOND) * timelineZoom);
@@ -9918,6 +10393,151 @@ function App() {
               <button type="button" className="primary" onClick={() => setGpuTelemetryOpen(false)}>Close HUD</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Phase 2: Create Media Bin Modal */}
+      {createBinModalOpen && (
+        <div className="dialog-backdrop" role="presentation">
+          <form
+            className="modal-dialog-card"
+            style={{ maxWidth: "420px" }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void createMediaBin(newBinName, newBinColor);
+            }}
+          >
+            <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <h2 style={{ margin: 0, fontSize: "16px" }}>📁 Create New Media Bin</h2>
+              <button type="button" className="close-btn" onClick={() => setCreateBinModalOpen(false)}>✕</button>
+            </div>
+            <p className="modal-desc" style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px" }}>
+              Organize project clips, B-roll, music, and titles into color-coded media bins.
+            </p>
+            <label style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
+              Bin Name
+              <input
+                autoFocus
+                type="text"
+                placeholder="e.g. B-Roll, Interview Audio, VFX"
+                value={newBinName}
+                onChange={(e) => setNewBinName(e.target.value)}
+                style={{ padding: "8px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
+              />
+            </label>
+            <div style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "16px" }}>
+              <span>Color Label</span>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                {["#38bdf8", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#64748b"].map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setNewBinColor(c)}
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      borderRadius: "50%",
+                      background: c,
+                      border: newBinColor === c ? "2px solid #ffffff" : "2px solid transparent",
+                      cursor: "pointer",
+                      outline: "none",
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <button type="button" onClick={() => setCreateBinModalOpen(false)}>Cancel</button>
+              <button className="primary" type="submit" disabled={!newBinName.trim()}>Create Bin</button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Phase 2: Edit Media Properties & Metadata Modal */}
+      {mediaEditPropsId !== null && (
+        <div className="dialog-backdrop" role="presentation">
+          <form
+            className="modal-dialog-card"
+            style={{ maxWidth: "460px" }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              const tags = mediaEditPropsTags.split(",").map((t) => t.trim()).filter(Boolean);
+              void updateMediaProperties(mediaEditPropsId, mediaEditPropsName, mediaEditPropsColor || undefined, tags);
+            }}
+          >
+            <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <h2 style={{ margin: 0, fontSize: "16px" }}>🏷️ Edit Asset Properties</h2>
+              <button type="button" className="close-btn" onClick={() => setMediaEditPropsId(null)}>✕</button>
+            </div>
+            <label style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
+              Asset Name
+              <input
+                type="text"
+                value={mediaEditPropsName}
+                onChange={(e) => setMediaEditPropsName(e.target.value)}
+                style={{ padding: "8px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
+              />
+            </label>
+            <div style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
+              <span>Color Label</span>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
+                {["", "#38bdf8", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#64748b"].map((c) => (
+                  <button
+                    key={c || "none"}
+                    type="button"
+                    onClick={() => setMediaEditPropsColor(c)}
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      borderRadius: "50%",
+                      background: c || "transparent",
+                      border: mediaEditPropsColor === c ? "2px solid #ffffff" : "1px solid #475569",
+                      cursor: "pointer",
+                      outline: "none",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "10px",
+                      color: "#94a3b8",
+                    }}
+                  >
+                    {!c && "✕"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
+              Tags (Comma-separated)
+              <input
+                type="text"
+                placeholder="e.g. interview, b-roll, drone, 4k"
+                value={mediaEditPropsTags}
+                onChange={(e) => setMediaEditPropsTags(e.target.value)}
+                style={{ padding: "8px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
+              />
+            </label>
+            <label style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "16px" }}>
+              Organize in Media Bin
+              <select
+                value={media.find((m) => m.id === mediaEditPropsId)?.bin_id ?? ""}
+                onChange={(e) => {
+                  const val = e.target.value ? Number(e.target.value) : null;
+                  void moveMediaToBin(mediaEditPropsId, val);
+                }}
+                style={{ padding: "8px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
+              >
+                <option value="">📁 Root / All Media (No Bin)</option>
+                {(project?.bins ?? []).map((b) => (
+                  <option key={b.id} value={b.id}>📁 {b.name}</option>
+                ))}
+              </select>
+            </label>
+            <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <button type="button" onClick={() => setMediaEditPropsId(null)}>Cancel</button>
+              <button className="primary" type="submit">Save Properties</button>
+            </div>
+          </form>
         </div>
       )}
     </div>

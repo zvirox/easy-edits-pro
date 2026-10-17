@@ -1,5 +1,5 @@
 use gstreamer_pbutils::Discoverer;
-use gstreamer::prelude::*;
+use gstreamer_pbutils::prelude::*;
 use saturn_core::{
     CommandRequest, CommandStatus, EditorEngine, JobId, JobInfo, JobKind, JobManager, JobPriority,
     MediaKind, ProjectDocument, Tick, command_catalogue,
@@ -659,9 +659,25 @@ async fn import_media(
                         .and_then(|duration| Tick::from_nanoseconds(duration.nseconds()));
                     let width = videos.first().map(|video| video.width());
                     let height = videos.first().map(|video| video.height());
-                    (kind, duration, width, height)
+                    let fps = videos.first().and_then(|v| {
+                        let fr = v.framerate();
+                        if fr.denom() > 0 {
+                            Some(fr.numer() as f64 / fr.denom() as f64)
+                        } else {
+                            None
+                        }
+                    });
+                    let audio_channels = audios.first().map(|a| a.channels());
+                    let codec = videos.first().and_then(|v| {
+                        v.caps().and_then(|c| c.structure(0).map(|s| s.name().to_string()))
+                    }).or_else(|| {
+                        audios.first().and_then(|a| {
+                            a.caps().and_then(|c| c.structure(0).map(|s| s.name().to_string()))
+                        })
+                    });
+                    (kind, duration, width, height, fps, audio_channels, codec)
                 })
-                .unwrap_or((MediaKind::Unknown, None, None, None));
+                .unwrap_or((MediaKind::Unknown, None, None, None, None, None, None));
 
             discovered.push((name, path, metadata));
         }
@@ -669,7 +685,7 @@ async fn import_media(
         let mut engine_guard = engine
             .lock()
             .map_err(|_| "Editor state is unavailable".to_string())?;
-        for (name, path, (kind, duration, width, height)) in discovered {
+        for (name, path, (kind, duration, width, height, fps, audio_channels, codec)) in discovered {
             let waveform = if matches!(kind, MediaKind::Audio | MediaKind::Video) {
                 generate_waveform_peaks(&path)
             } else {
@@ -682,6 +698,9 @@ async fn import_media(
                 "duration": duration,
                 "width": width,
                 "height": height,
+                "fps": fps,
+                "audio_channels": audio_channels,
+                "codec": codec,
                 "waveform": waveform,
             });
             engine_guard

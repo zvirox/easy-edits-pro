@@ -147,9 +147,7 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
                         duration: Some(Tick(s_out.0 + 100_000)),
                         width: Some(1920),
                         height: Some(1080),
-                        title: None,
-                        waveform: None,
-                        nested_sequence: None,
+                        ..Default::default()
                     });
                     id
                 };
@@ -335,9 +333,7 @@ pub fn import_fcpxml(xml: &str) -> Result<ProjectDocument, String> {
                     duration: Some(Tick::from_millis(60_000)),
                     width: Some(1920),
                     height: Some(1080),
-                    title: None,
-                    waveform: None,
-                    nested_sequence: None,
+                    ..Default::default()
                 });
             }
         } else if trimmed.starts_with("<asset-clip ") {
@@ -517,9 +513,7 @@ pub fn import_premiere_xml(xml: &str) -> Result<ProjectDocument, String> {
             duration: Some(Tick((end_f - start_f).max(1) * frame_dur)),
             width: Some(1920),
             height: Some(1080),
-            title: None,
-            waveform: None,
-            nested_sequence: None,
+            ..Default::default()
         });
 
         clips.push(Clip {
@@ -640,9 +634,7 @@ mod tests {
             duration: Some(Tick::from_millis(10_000)),
             width: Some(1920),
             height: Some(1080),
-            title: None,
-            waveform: None,
-            nested_sequence: None,
+            ..Default::default()
         }];
         doc.project.sequence.name = "Main Sequence".to_string();
         doc.project.sequence.tracks = vec![Track {
