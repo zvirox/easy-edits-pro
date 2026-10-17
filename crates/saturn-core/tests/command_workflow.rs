@@ -1765,5 +1765,170 @@ fn collaborative_project_locking_and_conflict_resolution_workflow() {
     assert_eq!(collab.change_log.last().unwrap().action, "grade_applied");
 }
 
+#[test]
+fn speech_to_subtitles_and_ripple_deletion_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name":"interview.mp4", "path":"/assets/interview.mp4", "kind":"video"}),
+        ))
+        .unwrap();
+    let media_id = media["media_id"].as_u64().unwrap();
+    let track_id = engine.document().project.sequence.tracks[0].id;
+
+    // Add 10-second clip (10 * TICKS_PER_SECOND)
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": track_id,
+                "media_id": media_id,
+                "timeline_start": 0,
+                "source_in": 0,
+                "duration": 10 * TICKS_PER_SECOND
+            }),
+        ))
+        .unwrap();
+
+    // 1. Transcribe speech segments into subtitle track
+    let segments = json!([
+        {
+            "id": 1,
+            "start_ticks": 1 * TICKS_PER_SECOND,
+            "end_ticks": 3 * TICKS_PER_SECOND,
+            "text": "Hello world and welcome.",
+            "confidence": 0.98,
+            "words": [
+                {"word": "Hello", "start_ticks": 1 * TICKS_PER_SECOND, "end_ticks": 1500 * (TICKS_PER_SECOND / 1000), "confidence": 0.99, "is_filler": false},
+                {"word": "world", "start_ticks": 1500 * (TICKS_PER_SECOND / 1000), "end_ticks": 2 * TICKS_PER_SECOND, "confidence": 0.99, "is_filler": false}
+            ]
+        },
+        {
+            "id": 2,
+            "start_ticks": 4 * TICKS_PER_SECOND,
+            "end_ticks": 5 * TICKS_PER_SECOND,
+            "text": "Um, so basically...",
+            "confidence": 0.92,
+            "words": [
+                {"word": "Um", "start_ticks": 4 * TICKS_PER_SECOND, "end_ticks": 4500 * (TICKS_PER_SECOND / 1000), "confidence": 0.95, "is_filler": true},
+                {"word": "basically", "start_ticks": 4500 * (TICKS_PER_SECOND / 1000), "end_ticks": 5 * TICKS_PER_SECOND, "confidence": 0.95, "is_filler": true}
+            ]
+        },
+        {
+            "id": 3,
+            "start_ticks": 7 * TICKS_PER_SECOND,
+            "end_ticks": 9 * TICKS_PER_SECOND,
+            "text": "Final concluding words.",
+            "confidence": 0.99,
+            "words": []
+        }
+    ]);
+
+    let res = engine
+        .execute(CommandRequest::new(
+            "speech.transcribe_to_subtitles",
+            json!({ "segments": segments, "replace_existing": true }),
+        ))
+        .unwrap();
+    assert_eq!(res["transcribed"], true);
+    assert_eq!(res["subtitles_count"], 3);
+    assert_eq!(engine.document().project.sequence.subtitles.len(), 3);
+
+    // 2. Ripple delete filler words (removes 4s..5s interval = 1s duration)
+    let res = engine
+        .execute(CommandRequest::new(
+            "speech.ripple_delete_fillers",
+            json!({ "segments": segments }),
+        ))
+        .unwrap();
+    assert!(res["deleted_ranges_count"].as_u64().unwrap() >= 1);
+
+    // Sequence duration should now be 9s (10s - 1s)
+    let dur = engine.document().project.sequence.duration().0;
+    assert_eq!(dur, 9 * TICKS_PER_SECOND);
+
+    // 3. Undo ripple delete of filler words
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.duration().0, 10 * TICKS_PER_SECOND);
+    assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 1);
+}
+
+#[test]
+fn timeline_interop_edl_fcpxml_premiere_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name":"scene1.mp4", "path":"/assets/scene1.mp4", "kind":"video"}),
+        ))
+        .unwrap();
+    let media_id = media["media_id"].as_u64().unwrap();
+    let track_id = engine.document().project.sequence.tracks[0].id;
+
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": track_id,
+                "media_id": media_id,
+                "timeline_start": 0,
+                "source_in": 1 * TICKS_PER_SECOND,
+                "duration": 4 * TICKS_PER_SECOND
+            }),
+        ))
+        .unwrap();
+
+    // 1. Export CMX 3600 EDL and re-import through engine command
+    let edl_str = saturn_core::export_cmx3600_edl(engine.document()).unwrap();
+    assert!(edl_str.contains("TITLE: Sequence 1"));
+
+    let res = engine
+        .execute(CommandRequest::new(
+            "interop.import_edl",
+            json!({
+                "edl": edl_str,
+                "project_name": "EDL Project"
+            }),
+        ))
+        .unwrap();
+    assert_eq!(res["imported"], true);
+    assert_eq!(engine.document().project.name, "EDL Project");
+    assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 1);
+
+    // 2. Undo CMX 3600 EDL import
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.name, "Untitled project");
+
+    // 3. Export FCPXML and re-import
+    let fcpxml_str = saturn_core::export_fcpxml(engine.document()).unwrap();
+    assert!(fcpxml_str.contains("<fcpxml version=\"1.9\">"));
+
+    let res = engine
+        .execute(CommandRequest::new(
+            "interop.import_fcpxml",
+            json!({ "xml": fcpxml_str }),
+        ))
+        .unwrap();
+    assert_eq!(res["imported"], true);
+
+    // 4. Export Premiere XML and re-import
+    let prem_xml = saturn_core::export_premiere_xml(engine.document()).unwrap();
+    assert!(prem_xml.contains("<xmeml version=\"5\">"));
+
+    let res = engine
+        .execute(CommandRequest::new(
+            "interop.import_premiere_xml",
+            json!({ "xml": prem_xml }),
+        ))
+        .unwrap();
+    assert_eq!(res["imported"], true);
+}
+
+
 
 

@@ -530,6 +530,55 @@ pub const COMMANDS: &[CommandSpec] = &[
         shortcut: None,
         mutating: true,
     },
+    CommandSpec {
+        id: "speech.transcribe_to_subtitles",
+        label: "Transcribe Speech to Subtitles",
+        menu: &["Audio", "Speech"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "speech.ripple_delete_silence",
+        label: "Ripple Delete Audio Silence",
+        menu: &["Edit", "Speech"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "speech.ripple_delete_fillers",
+        label: "Ripple Delete Filler Words",
+        menu: &["Edit", "Speech"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "timeline.ripple_delete_ranges",
+        label: "Ripple Delete Time Ranges",
+        menu: &["Edit"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "interop.import_edl",
+        label: "Import CMX 3600 EDL",
+        menu: &["File", "Import"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "interop.import_fcpxml",
+        label: "Import Final Cut Pro XML",
+        menu: &["File", "Import"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "interop.import_premiere_xml",
+        label: "Import Premiere Pro XML",
+        menu: &["File", "Import"],
+        shortcut: None,
+        mutating: true,
+    },
 ];
 
 pub fn command_catalogue() -> &'static [CommandSpec] {

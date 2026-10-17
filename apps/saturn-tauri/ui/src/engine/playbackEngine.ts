@@ -1456,3 +1456,49 @@ export function evaluateTimelinePlayback(
     hasVideoMedia: false,
   };
 }
+
+export interface SpeechWord {
+  word: string;
+  startTicks: number;
+  endTicks: number;
+  confidence: number;
+  isFiller: boolean;
+}
+
+export interface SpeechSegment {
+  id: number;
+  startTicks: number;
+  endTicks: number;
+  text: string;
+  speaker?: string | null;
+  confidence: number;
+  words: SpeechWord[];
+}
+
+export interface SilenceInterval {
+  startTicks: number;
+  endTicks: number;
+  durationMs: number;
+}
+
+export interface RippleDeleteReport {
+  deletedRangesCount: number;
+  totalDurationRemovedTicks: number;
+  tracksAffected: number;
+  clipsModified: number;
+  subtitlesAdjusted: number;
+}
+
+export interface PresentationMetrics {
+  frameIndex: number;
+  presentationTimeUs: number;
+  fpsMeasured: number;
+  bandwidthGbps: number;
+  surfaceWidth: number;
+  surfaceHeight: number;
+  droppedFrames: number;
+  isHardwareAccelerated: boolean;
+}
+
+export type InteropFormat = "edl" | "fcpxml" | "premiere_xml";
+

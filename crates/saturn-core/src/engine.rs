@@ -615,6 +615,40 @@ struct RecordChangeParams {
     summary: String,
 }
 
+#[derive(Deserialize)]
+struct TranscribeToSubtitlesParams {
+    segments: Vec<crate::speech::SpeechSegment>,
+    replace_existing: Option<bool>,
+}
+
+#[derive(Deserialize)]
+struct RippleDeleteSilenceParams {
+    peaks: Vec<u8>,
+    options: Option<crate::speech::SilenceDetectOptions>,
+}
+
+#[derive(Deserialize)]
+struct RippleDeleteFillersParams {
+    segments: Vec<crate::speech::SpeechSegment>,
+    custom_fillers: Option<Vec<String>>,
+}
+
+#[derive(Deserialize)]
+struct RippleDeleteRangesParams {
+    ranges: Vec<(Tick, Tick)>,
+}
+
+#[derive(Deserialize)]
+struct ImportEdlParams {
+    edl: String,
+    project_name: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct ImportXmlParams {
+    xml: String,
+}
+
 fn get_or_create_node_graph<'a>(
     doc: &'a mut ProjectDocument,
     track_id: Option<u64>,
@@ -2310,6 +2344,81 @@ impl EditorEngine {
                     summary: params.summary,
                 });
                 Ok(json!({"recorded": true, "entry_id": entry_id}))
+            }
+
+            "speech.transcribe_to_subtitles" => {
+                let params: TranscribeToSubtitlesParams = parse_params(request.params)?;
+                if params.segments.is_empty() {
+                    return Err(DispatchError::InvalidParameters("No speech segments provided".into()));
+                }
+                self.checkpoint();
+                let new_subs = crate::speech::speech_segments_to_subtitles(&params.segments);
+                let count = new_subs.len();
+                if params.replace_existing.unwrap_or(true) {
+                    self.document.project.sequence.subtitles = new_subs;
+                } else {
+                    self.document.project.sequence.subtitles.extend(new_subs);
+                    self.document.project.sequence.subtitles.sort_by_key(|s| s.start_ticks);
+                }
+                Ok(json!({"transcribed": true, "subtitles_count": count}))
+            }
+            "speech.ripple_delete_silence" => {
+                let params: RippleDeleteSilenceParams = parse_params(request.params)?;
+                let opts = params.options.unwrap_or_default();
+                let total_dur = self.document.project.sequence.duration();
+                let silences = crate::speech::detect_silence_from_peaks(&params.peaks, total_dur, &opts);
+                let ranges: Vec<(Tick, Tick)> = silences.into_iter().map(|s| (s.start_ticks, s.end_ticks)).collect();
+                self.checkpoint();
+                let report = crate::speech::ripple_delete_time_ranges(&mut self.document.project.sequence, &ranges)
+                    .map_err(DispatchError::Operation)?;
+                Ok(serde_json::to_value(&report).unwrap_or(json!({"deleted": true})))
+            }
+            "speech.ripple_delete_fillers" => {
+                let params: RippleDeleteFillersParams = parse_params(request.params)?;
+                let custom_slice: Option<Vec<&str>> = params.custom_fillers.as_ref().map(|v| v.iter().map(|s| s.as_str()).collect());
+                let fillers = crate::speech::extract_filler_intervals(&params.segments, custom_slice.as_deref());
+                let ranges: Vec<(Tick, Tick)> = fillers.into_iter().map(|s| (s.start_ticks, s.end_ticks)).collect();
+                self.checkpoint();
+                let report = crate::speech::ripple_delete_time_ranges(&mut self.document.project.sequence, &ranges)
+                    .map_err(DispatchError::Operation)?;
+                Ok(serde_json::to_value(&report).unwrap_or(json!({"deleted": true})))
+            }
+            "timeline.ripple_delete_ranges" => {
+                let params: RippleDeleteRangesParams = parse_params(request.params)?;
+                self.checkpoint();
+                let report = crate::speech::ripple_delete_time_ranges(&mut self.document.project.sequence, &params.ranges)
+                    .map_err(DispatchError::Operation)?;
+                Ok(serde_json::to_value(&report).unwrap_or(json!({"deleted": true})))
+            }
+            "interop.import_edl" => {
+                let params: ImportEdlParams = parse_params(request.params)?;
+                let name = params.project_name.unwrap_or_else(|| "Imported EDL".to_string());
+                let imported = crate::interop::import_cmx3600_edl(&params.edl, &name)
+                    .map_err(DispatchError::Operation)?;
+                self.checkpoint();
+                self.document = imported;
+                self.current_path = None;
+                Ok(json!({"imported": true, "name": name}))
+            }
+            "interop.import_fcpxml" => {
+                let params: ImportXmlParams = parse_params(request.params)?;
+                let imported = crate::interop::import_fcpxml(&params.xml)
+                    .map_err(DispatchError::Operation)?;
+                let name = imported.project.name.clone();
+                self.checkpoint();
+                self.document = imported;
+                self.current_path = None;
+                Ok(json!({"imported": true, "name": name}))
+            }
+            "interop.import_premiere_xml" => {
+                let params: ImportXmlParams = parse_params(request.params)?;
+                let imported = crate::interop::import_premiere_xml(&params.xml)
+                    .map_err(DispatchError::Operation)?;
+                let name = imported.project.name.clone();
+                self.checkpoint();
+                self.document = imported;
+                self.current_path = None;
+                Ok(json!({"imported": true, "name": name}))
             }
 
             _ => Err(DispatchError::UnknownCommand(request.id)),
