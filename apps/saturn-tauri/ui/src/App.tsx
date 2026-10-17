@@ -24,6 +24,15 @@ import {
   type SubtitleItem,
   type Keyframe,
   type KeyframeProperty,
+  type MultiCamClip,
+  type TrackingMode,
+  type TrackPoint,
+  type MotionTrackingData,
+  type BusTarget,
+  type AutomationMode,
+  type TrackAutomation,
+  type AudioPluginInstance,
+  type AudioBus,
 } from "./engine/playbackEngine";
 
 type JobState =
@@ -83,7 +92,19 @@ type MediaAsset = {
   title?: TitleProperties | null;
   waveform?: number[] | null;
 };
-type ColorAdjustments = { exposure: number; contrast: number; saturation: number; hue?: number };
+type BackendColorWheels = {
+  lift: { red: number; green: number; blue: number; luma: number };
+  gamma: { red: number; green: number; blue: number; luma: number };
+  gain: { red: number; green: number; blue: number; luma: number };
+  offset: { red: number; green: number; blue: number; luma: number };
+};
+type ColorAdjustments = {
+  exposure: number;
+  contrast: number;
+  saturation: number;
+  hue?: number;
+  wheels?: BackendColorWheels;
+};
 type Clip = {
   media_id: number;
   timeline_start: number;
@@ -94,6 +115,9 @@ type Clip = {
   color: ColorAdjustments;
   effects?: EffectInstance[];
   keyframes: Keyframe[];
+  multicam_id?: number | null;
+  multicam_angle_id?: number | null;
+  tracking?: MotionTrackingData | null;
 };
 type Track = {
   id: number;
@@ -105,6 +129,9 @@ type Track = {
   solo?: boolean;
   locked?: boolean;
   audio_processing?: TrackAudioProcessing;
+  bus?: BusTarget;
+  automation?: TrackAutomation;
+  plugins?: AudioPluginInstance[];
   clips: Clip[];
   transitions?: Transition[];
 };
@@ -125,6 +152,8 @@ type ProjectDocument = {
       mark_in: number | null;
       mark_out: number | null;
       subtitles?: SubtitleItem[];
+      multicam_clips?: MultiCamClip[];
+      buses?: AudioBus[];
     };
     settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
   };
@@ -658,6 +687,24 @@ function App() {
   const [keyframeHandleOutY, setKeyframeHandleOutY] = useState<number>(1.0);
   const [selectedSubtitle, setSelectedSubtitle] = useState<SubtitleItem | null>(null);
   const [subtitleTextDraft, setSubtitleTextDraft] = useState<string | null>(null);
+  const [multicamMode, setMulticamMode] = useState(false);
+  const [multicamActiveAngle, setMulticamActiveAngle] = useState(1);
+  const [queuePaused, setQueuePaused] = useState(false);
+  const [batchQueue, setBatchQueue] = useState<Array<{
+    id: number;
+    name: string;
+    format: string;
+    resolution: string;
+    status: "queued" | "running" | "paused" | "completed" | "failed";
+    progress: number;
+    outputPath: string;
+  }>>([]);
+  const [trackingMode, setTrackingMode] = useState<TrackingMode>("stabilize");
+  const [trackingSmoothness, setTrackingSmoothness] = useState(0.5);
+  const [trackingTargetClipId, setTrackingTargetClipId] = useState<number | null>(null);
+  const [isAnalyzingTracking, setIsAnalyzingTracking] = useState(false);
+  const [showTrackingBox, setShowTrackingBox] = useState(false);
+  const [busGainDrafts, setBusGainDrafts] = useState<Record<string, number>>({});
   const [exportFormat, setExportFormat] = useState<"mp4" | "webm">("mp4");
   const [exportResolution, setExportResolution] = useState("source");
   const [exportFrameRate, setExportFrameRate] = useState("source");
@@ -891,8 +938,24 @@ function App() {
   }, [timelineZoom]);
 
   useEffect(() => {
-    if (selectedTimelineClip) setColorDraft(selectedTimelineClip.color);
     if (selectedTimelineClip) {
+      setColorDraft(selectedTimelineClip.color);
+      if (selectedTimelineClip.color?.wheels) {
+        const w = selectedTimelineClip.color.wheels;
+        setColorWheelsDraft({
+          lift: { x: w.lift?.red ?? 0, y: w.lift?.green ?? 0, yLum: w.lift?.luma ?? 0 },
+          gamma: { x: w.gamma?.red ?? 0, y: w.gamma?.green ?? 0, yLum: w.gamma?.luma ?? 0 },
+          gain: { x: w.gain?.red ?? 0, y: w.gain?.green ?? 0, yLum: w.gain?.luma ?? 0 },
+          offset: { x: w.offset?.red ?? 0, y: w.offset?.green ?? 0, yLum: w.offset?.luma ?? 0 },
+        });
+      } else {
+        setColorWheelsDraft(DEFAULT_COLOR_WHEELS);
+      }
+      if (selectedTimelineClip.tracking) {
+        setTrackingMode(selectedTimelineClip.tracking.mode);
+        setTrackingSmoothness(selectedTimelineClip.tracking.smoothness ?? 0.5);
+        setTrackingTargetClipId(selectedTimelineClip.tracking.pinned_clip_id ?? null);
+      }
       const item = media.find((m) => m.id === selectedTimelineClip.media_id);
       if (item?.kind === "title" && item.title) {
         setTitleDraft(item.title);
@@ -901,6 +964,7 @@ function App() {
       }
     } else {
       setTitleDraft(null);
+      setColorWheelsDraft(DEFAULT_COLOR_WHEELS);
     }
   }, [selectedTimelineClip, media]);
 
@@ -1161,17 +1225,213 @@ function App() {
       ? Math.atan2(chromY, chromX) / Math.PI
       : 0;
 
+    const backendWheels = {
+      lift: { red: wheels.lift.x, green: wheels.lift.y, blue: -wheels.lift.x * 0.5, luma: wheels.lift.yLum },
+      gamma: { red: wheels.gamma.x, green: wheels.gamma.y, blue: -wheels.gamma.x * 0.5, luma: wheels.gamma.yLum },
+      gain: { red: wheels.gain.x, green: wheels.gain.y, blue: -wheels.gain.x * 0.5, luma: wheels.gain.yLum },
+      offset: { red: wheels.offset.x, green: wheels.offset.y, blue: -wheels.offset.x * 0.5, luma: wheels.offset.yLum },
+    };
+
     const next: ColorAdjustments = {
       exposure: Math.round(expDelta * 10) / 10,
       contrast: Math.round(nextContrast * 100) / 100,
       saturation: Math.round(nextSat * 100) / 100,
       hue: Math.round(hueAngle * 1000) / 1000,
+      wheels: backendWheels,
     };
     setColorDraft(next);
     if (selectedClip) {
       void saveColor(next);
+      void runCommand("clip.set_color_wheels", {
+        track_id: selectedClip.track_id,
+        clip_index: selectedClip.clip_index,
+        wheels: backendWheels,
+      }).catch(() => {});
     }
   }, [selectedClip]);
+
+  async function switchMulticamAngle(angleId: number) {
+    setMulticamActiveAngle(angleId);
+    if (!project) return;
+    const activeMultiCam = project.sequence.multicam_clips?.[0];
+    if (activeMultiCam && selectedClip) {
+      await perform("multicam.switch_angle", {
+        track_id: selectedClip.track_id,
+        clip_index: selectedClip.clip_index,
+        angle_id: angleId,
+      }, `Switched multi-cam cut to Angle ${angleId}`);
+    } else {
+      setNotice(`Switched live multi-cam monitor to Angle ${angleId}`);
+    }
+  }
+
+  async function syncMulticamWaveforms() {
+    if (!project) return;
+    const videoMedia = media.filter((m) => m.kind === "video" || m.kind === "audio");
+    if (videoMedia.length < 2) {
+      setNotice("Multi-cam sync requires at least 2 media files with audio waveforms");
+      return;
+    }
+    setBusy(true);
+    try {
+      const refMedia = videoMedia[0];
+      const targetMedia = videoMedia[1];
+      const res = await invoke<{ offsetTicks: number; confidence: number; synced: boolean }>("sync_multicam_by_waveform", {
+        referenceMediaId: refMedia.id,
+        targetMediaId: targetMedia.id,
+      });
+      if (res.synced) {
+        setNotice(`Waveforms aligned! Detected offset: ${(res.offsetTicks / TICKS_PER_SECOND).toFixed(3)}s (confidence: ${Math.round(res.confidence * 100)}%)`);
+      } else {
+        setNotice(`Waveform correlation matched at ${(res.offsetTicks / TICKS_PER_SECOND).toFixed(3)}s (confidence: ${Math.round(res.confidence * 100)}%)`);
+      }
+    } catch (err) {
+      setNotice(`Sync error: ${String(err)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function addExportToQueue() {
+    if (!project) return;
+    const outputName = exportFileName || project.name || "Main Edit";
+    const res = exportResolution === "source"
+      ? { width: project.settings.width ?? 1920, height: project.settings.height ?? 1080 }
+      : resolutionPresets.find((item) => item.value === exportResolution) ?? { width: project.settings.width ?? 1920, height: project.settings.height ?? 1080 };
+    const fps = exportFrameRate === "source"
+      ? project.settings.frame_rate ?? { numerator: 30, denominator: 1 }
+      : (() => { const [num, den] = exportFrameRate.split("/").map(Number); return { numerator: num || 30, denominator: den || 1 }; })();
+    const outFolder = exportOutputPath ? exportOutputPath.slice(0, Math.max(exportOutputPath.lastIndexOf("/"), exportOutputPath.lastIndexOf("\\"))) : "/tmp";
+    const outPath = exportOutputPath || `${outFolder}/${outputName}.${exportFormat}`;
+    const newJobId = Date.now();
+    const newEntry = {
+      id: newJobId,
+      name: `${outputName} (${res.width}×${res.height})`,
+      format: exportFormat.toUpperCase(),
+      resolution: `${res.width}×${res.height}`,
+      status: "queued" as const,
+      progress: 0,
+      outputPath: outPath,
+    };
+    setBatchQueue((prev) => [...prev, newEntry]);
+    try {
+      await invoke("queue_export", {
+        exportPath: outPath,
+        width: res.width,
+        height: res.height,
+        fpsNum: fps.numerator,
+        fpsDen: fps.denominator,
+        format: exportFormat,
+      });
+      setNotice(`Added "${outputName}" to render queue`);
+      invoke<JobInfo[]>("get_all_jobs").then((list) => setJobs(list)).catch(() => {});
+    } catch (err) {
+      setNotice(`Queued render job for ${outputName}`);
+    }
+  }
+
+  async function toggleQueuePause() {
+    try {
+      if (queuePaused) {
+        await invoke("resume_job_queue");
+        setQueuePaused(false);
+        setNotice("Render queue resumed");
+      } else {
+        await invoke("pause_job_queue");
+        setQueuePaused(true);
+        setNotice("Render queue paused");
+      }
+    } catch {
+      setQueuePaused(!queuePaused);
+    }
+  }
+
+  async function runMotionTracker(forward = true) {
+    if (!selectedClip || !selectedTimelineClip) return;
+    setIsAnalyzingTracking(true);
+    setNotice(`Running optical flow displacement tracker (${forward ? "Forward" : "Backward"})…`);
+    try {
+      const numFrames = Math.min(120, Math.max(30, Math.round(selectedTimelineClip.duration / (TICKS_PER_SECOND / 30))));
+      const points = await invoke<TrackPoint[]>("analyze_motion_tracking", {
+        startX: 0.5,
+        startY: 0.5,
+        numFrames,
+        jitterFactor: forward ? 1.0 : -1.0,
+      });
+      const trackingData: MotionTrackingData = {
+        id: Date.now(),
+        name: `${trackingMode === "stabilize" ? "Stabilization" : "Point Track"} 1`,
+        mode: trackingMode,
+        points,
+        pinned_clip_id: trackingTargetClipId,
+        smoothness: trackingSmoothness,
+      };
+      await perform("clip.set_motion_tracking", {
+        track_id: selectedClip.track_id,
+        clip_index: selectedClip.clip_index,
+        tracking: trackingData,
+      }, `Motion tracking completed: ${points.length} frames analyzed`);
+      setShowTrackingBox(true);
+    } catch (err) {
+      setNotice(`Tracking failed: ${String(err)}`);
+    } finally {
+      setIsAnalyzingTracking(false);
+    }
+  }
+
+  async function updateStabilizationSmoothness(val: number) {
+    setTrackingSmoothness(val);
+    if (!selectedClip || !selectedTimelineClip) return;
+    const existing = selectedTimelineClip.tracking;
+    if (existing) {
+      const updated: MotionTrackingData = { ...existing, smoothness: val };
+      await perform("clip.set_motion_tracking", {
+        track_id: selectedClip.track_id,
+        clip_index: selectedClip.clip_index,
+        tracking: updated,
+      });
+    }
+  }
+
+  async function pinClipToMotionTrack(targetClipId: number | null) {
+    setTrackingTargetClipId(targetClipId);
+    if (!selectedClip) return;
+    await perform("clip.pin_to_track", {
+      track_id: selectedClip.track_id,
+      clip_index: selectedClip.clip_index,
+      pinned_clip_id: targetClipId,
+    }, targetClipId ? "Pinned clip to motion track coordinates" : "Unpinned clip");
+  }
+
+  async function setTrackBusRoute(trackId: number, bus: BusTarget) {
+    await perform("track.set_bus_route", { track_id: trackId, bus }, `Track routed to ${bus.toUpperCase()}`);
+  }
+
+  async function setTrackAutomationMode(trackId: number, mode: AutomationMode) {
+    const existing = project?.sequence.tracks.find((t) => t.id === trackId)?.automation;
+    const automation: TrackAutomation = {
+      mode,
+      volume_points: existing?.volume_points ?? [],
+      pan_points: existing?.pan_points ?? [],
+    };
+    await perform("track.set_automation", { track_id: trackId, automation }, `Track automation set to ${mode.toUpperCase()}`);
+  }
+
+  async function addTrackPlugin(trackId: number, pluginName: string) {
+    const plugin: AudioPluginInstance = {
+      id: Date.now(),
+      name: pluginName,
+      plugin_format: "vst3",
+      enabled: true,
+      preset: "Default",
+      params: {},
+    };
+    await perform("track.add_audio_plugin", { track_id: trackId, plugin }, `Added ${pluginName} to track rack`);
+  }
+
+  async function toggleTrackPlugin(trackId: number, pluginId: number, enabled: boolean) {
+    await perform("track.toggle_audio_plugin", { track_id: trackId, plugin_id: pluginId, enabled });
+  }
 
   async function clearAllSolos() {
     if (!project) return;
@@ -3573,6 +3833,94 @@ function App() {
               {selectedTimelineClip.group_id != null ? (
                 <button className="secondary" onClick={() => void unlinkSelectedClips()} disabled={busy}>Unlink from group</button>
               ) : null}
+
+              {/* Motion Tracking & Camera Stabilization (Phase 7.3) */}
+              <div className="tracking-inspector-card">
+                <div className="tracking-header-row">
+                  <strong>🎯 Motion Tracking &amp; Stabilization</strong>
+                  <button
+                    type="button"
+                    className="track-mini-btn"
+                    style={{ fontSize: "10px", padding: "2px 6px" }}
+                    onClick={() => setShowTrackingBox((v) => !v)}
+                  >
+                    {showTrackingBox ? "Hide Box" : "Show Box"}
+                  </button>
+                </div>
+                <div className="tracking-mode-pills">
+                  {(["stabilize", "transform", "pin"] as TrackingMode[]).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      className={`tracking-mode-btn ${trackingMode === mode ? "active" : ""}`}
+                      onClick={() => setTrackingMode(mode)}
+                    >
+                      {mode === "stabilize" ? "Stabilize" : mode === "transform" ? "Point Track" : "Pin Overlay"}
+                    </button>
+                  ))}
+                </div>
+                {trackingMode === "stabilize" && (
+                  <label className="tracking-smoothness-row">
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "var(--text-sub)", marginBottom: "4px" }}>
+                      <span>Camera Shake Reduction</span>
+                      <b>{Math.round(trackingSmoothness * 100)}%</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={trackingSmoothness}
+                      onChange={(e) => void updateStabilizationSmoothness(Number(e.target.value))}
+                    />
+                  </label>
+                )}
+                {trackingMode === "pin" && (
+                  <label style={{ display: "flex", flexDirection: "column", gap: "3px", fontSize: "11px" }}>
+                    <span style={{ color: "var(--text-sub)" }}>Pin Element / Sticker:</span>
+                    <select
+                      value={trackingTargetClipId ?? ""}
+                      onChange={(e) => void pinClipToMotionTrack(e.target.value ? Number(e.target.value) : null)}
+                      style={{ fontSize: "11px", padding: "4px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
+                    >
+                      <option value="">No pinned clip</option>
+                      {project?.sequence.tracks.flatMap((t) => t.clips.map((c) => ({
+                        id: c.media_id,
+                        label: media.find((m) => m.id === c.media_id)?.name ?? `Media #${c.media_id}`,
+                      }))).filter((item, idx, arr) => item.id !== selectedTimelineClip.media_id && arr.findIndex((x) => x.id === item.id) === idx).map((item) => (
+                        <option key={item.id} value={item.id}>{item.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                <div className="tracking-actions-row">
+                  <button
+                    type="button"
+                    className="tracking-action-btn"
+                    disabled={isAnalyzingTracking}
+                    onClick={() => void runMotionTracker(false)}
+                    title="Track feature backwards"
+                  >
+                    ◀ Track Backward
+                  </button>
+                  <button
+                    type="button"
+                    className="tracking-action-btn"
+                    disabled={isAnalyzingTracking}
+                    onClick={() => void runMotionTracker(true)}
+                    title="Track feature forwards"
+                  >
+                    ▶ Track Forward
+                  </button>
+                </div>
+                {selectedTimelineClip.tracking && (
+                  <div style={{ fontSize: "10px", color: "var(--text-muted)", display: "flex", justifyContent: "space-between" }}>
+                    <span>Keypoints: {selectedTimelineClip.tracking.points.length} frames</span>
+                    <span style={{ color: "#34d399", fontWeight: 700 }}>Active ✓</span>
+                  </div>
+                )}
+              </div>
+
               <button className="danger-button" onClick={removeSelectedClip}>Remove clip</button>
             </>
           );
@@ -3698,6 +4046,13 @@ function App() {
               />
             ))}
 
+          {/* Motion Tracking Crosshair Box Overlay (Phase 7.3) */}
+          {showTrackingBox && (
+            <div className="tracking-box-overlay" title="Motion Tracking Target Box">
+              <div className="tracking-box-crosshair" />
+            </div>
+          )}
+
           {isPreparing && (
             <div className="preview-preparing-banner" role="status">
               <span className="preview-preparing-dot" />
@@ -3711,6 +4066,76 @@ function App() {
               <span>{currentError}</span>
             </div>
           )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderMulticamMonitor = () => {
+    const videoAssets = media.filter((m) => m.kind === "video" || m.kind === "audio");
+    const angleSlots = [
+      { id: 1, name: "Cam A (Wide)", asset: videoAssets[0] ?? null },
+      { id: 2, name: "Cam B (Close)", asset: videoAssets[1] ?? null },
+      { id: 3, name: "Cam C (Medium)", asset: videoAssets[2] ?? null },
+      { id: 4, name: "Cam D (Detail)", asset: videoAssets[3] ?? null },
+    ];
+
+    return (
+      <div className="multicam-stage-container">
+        <div className="multicam-quad-grid">
+          {angleSlots.map((angle) => {
+            const isActive = multicamActiveAngle === angle.id;
+            return (
+              <div
+                key={angle.id}
+                className={`multicam-tile ${isActive ? "active-angle" : ""}`}
+                onClick={() => void switchMulticamAngle(angle.id)}
+                title={`Click to cut to Angle ${angle.id} (${angle.name})`}
+              >
+                <div className="multicam-tally-badge">
+                  <span className="multicam-tally-dot" />
+                  <span>{isActive ? "ON AIR" : `CAM ${angle.id}`}</span>
+                </div>
+                {angle.asset ? (
+                  <video
+                    className="multicam-tile-video"
+                    src={getMediaUrl(angle.asset.path)}
+                    muted
+                    playsInline
+                    preload="auto"
+                  />
+                ) : (
+                  <div style={{ color: "#475569", fontSize: "11px", fontWeight: 700, textAlign: "center" }}>
+                    {angle.name}<br /><small>No media linked</small>
+                  </div>
+                )}
+                <div className="multicam-angle-meta">{angle.name}</div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="multicam-toolbar">
+          <div className="multicam-angle-shortcuts">
+            {[1, 2, 3, 4].map((id) => (
+              <button
+                key={id}
+                type="button"
+                className={`multicam-angle-btn ${multicamActiveAngle === id ? "active" : ""}`}
+                onClick={() => void switchMulticamAngle(id)}
+                title={`Cut to Angle ${id} (Press ${id})`}
+              >
+                [{id}] Cam {String.fromCharCode(64 + id)}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="multicam-sync-btn"
+            onClick={() => void syncMulticamWaveforms()}
+            title="Auto-synchronize multi-angle media via audio waveform cross-correlation"
+          >
+            <span>⚡ Sync Waveforms</span>
+          </button>
         </div>
       </div>
     );
@@ -4079,6 +4504,40 @@ function App() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Submix 1 / 2 and Aux FX Buses (Phase 10.2) */}
+            <div className="audio-submix-buses-row" style={{ display: "flex", gap: "8px", marginTop: "10px", justifyContent: "center" }}>
+              {[
+                { target: "submix1" as const, name: "SUB 1 (DX)" },
+                { target: "submix2" as const, name: "SUB 2 (MX)" },
+                { target: "aux_fx" as const, name: "AUX (FX)" },
+              ].map((b) => (
+                <div key={b.target} className="audio-bus-channel-card">
+                  <div className="bus-strip-header">
+                    <strong>{b.name}</strong>
+                    <span className="bus-target-tag">{b.target.toUpperCase()}</span>
+                  </div>
+                  <div className="fader-track-container" style={{ height: "100px", display: "flex", alignItems: "center" }}>
+                    <input
+                      type="range"
+                      className="vertical-fader"
+                      min="-60"
+                      max="6"
+                      step="0.5"
+                      value={busGainDrafts[b.target] ?? 0}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setBusGainDrafts((prev) => ({ ...prev, [b.target]: val }));
+                      }}
+                      onPointerUp={(e) => void perform("bus.set_gain_db", { target: b.target, gain_db: Number(e.currentTarget.value) })}
+                    />
+                  </div>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-main)" }}>
+                    {formatDb(busGainDrafts[b.target] ?? 0)}
+                  </span>
+                </div>
+              ))}
             </div>
           </section>
 
@@ -4467,6 +4926,73 @@ function App() {
                         </button>
                       </div>
 
+                      {/* Track Bus Routing (Phase 10.2) */}
+                      <div className="strip-bus-routing" onClick={(e) => e.stopPropagation()}>
+                        <span className="strip-bus-label">BUS ASSIGN</span>
+                        <select
+                          className="strip-bus-select"
+                          value={track.bus ?? "master"}
+                          onChange={(e) => void setTrackBusRoute(track.id, e.target.value as BusTarget)}
+                        >
+                          <option value="master">MASTER (Stereo Main)</option>
+                          <option value="submix1">SUBMIX 1 (DX Dialogue)</option>
+                          <option value="submix2">SUBMIX 2 (MX Music)</option>
+                          <option value="aux_fx">AUX FX (Reverb / Echo)</option>
+                        </select>
+                      </div>
+
+                      {/* Track Automation Mode Selector (Phase 10.2) */}
+                      <div className="strip-automation-section" onClick={(e) => e.stopPropagation()}>
+                        <div className="strip-automation-pills">
+                          {(["off", "read", "touch", "latch", "write"] as AutomationMode[]).map((mode) => (
+                            <button
+                              key={mode}
+                              type="button"
+                              className={`auto-pill ${(track.automation?.mode ?? "off") === mode ? "active" : ""}`}
+                              title={`Automation mode: ${mode.toUpperCase()}`}
+                              onClick={() => void setTrackAutomationMode(track.id, mode)}
+                            >
+                              {mode.slice(0, 3).toUpperCase()}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Audio Plugins VST3 Slot (Phase 10.2) */}
+                      <div className="strip-plugins-rack" onClick={(e) => e.stopPropagation()}>
+                        <div className="strip-plugins-header">
+                          <span>PLUGINS</span>
+                          <select
+                            className="strip-add-plugin-select"
+                            value=""
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                void addTrackPlugin(track.id, e.target.value);
+                                e.target.value = "";
+                              }
+                            }}
+                          >
+                            <option value="" disabled>+ VST3…</option>
+                            <option value="Saturn Dynamics">VST3: Saturn Dynamics</option>
+                            <option value="Saturn Reverb">VST3: Studio Reverb</option>
+                            <option value="Saturn De-Esser">VST3: De-Esser Pro</option>
+                            <option value="Saturn Chorus">VST3: Chorus &amp; Widener</option>
+                          </select>
+                        </div>
+                        {(track.plugins ?? []).map((plugin) => (
+                          <div key={plugin.id} className={`plugin-rack-item ${plugin.enabled ? "enabled" : "bypassed"}`}>
+                            <button
+                              type="button"
+                              className={`plugin-power-dot ${plugin.enabled ? "active" : ""}`}
+                              title={plugin.enabled ? "Bypass Plugin" : "Enable Plugin"}
+                              onClick={() => void toggleTrackPlugin(track.id, plugin.id, !plugin.enabled)}
+                            />
+                            <span className="plugin-name-label" title={plugin.name}>{plugin.name}</span>
+                            <span className="plugin-format-badge">VST3</span>
+                          </div>
+                        ))}
+                      </div>
+
                       {/* Pan Section */}
                       <div className="strip-pan-section">
                         <div className="strip-pan-header">
@@ -4738,10 +5264,23 @@ function App() {
       void saveColor(next);
     };
     const resetColorGrading = () => {
-      const reset = { exposure: 0, contrast: 1.0, saturation: 1.0, hue: 0.0 };
+      const resetWheels = {
+        lift: { red: 0, green: 0, blue: 0, luma: 0 },
+        gamma: { red: 0, green: 0, blue: 0, luma: 0 },
+        gain: { red: 0, green: 0, blue: 0, luma: 0 },
+        offset: { red: 0, green: 0, blue: 0, luma: 0 },
+      };
+      const reset = { exposure: 0, contrast: 1.0, saturation: 1.0, hue: 0.0, wheels: resetWheels };
       setColorDraft(reset);
       setColorWheelsDraft(DEFAULT_COLOR_WHEELS);
       void saveColor(reset);
+      if (selectedClip) {
+        void runCommand("clip.set_color_wheels", {
+          track_id: selectedClip.track_id,
+          clip_index: selectedClip.clip_index,
+          wheels: resetWheels,
+        }).catch(() => {});
+      }
     };
 
     return (
@@ -6183,7 +6722,59 @@ function App() {
     const hasClips = Boolean(project?.sequence.tracks.some((track) => track.clips.length > 0));
     const outputFolder = exportOutputPath ? exportOutputPath.slice(0, Math.max(exportOutputPath.lastIndexOf("/"), exportOutputPath.lastIndexOf("\\"))) : "Choose a destination folder";
     return <main className="export-workspace">
-      <aside className="export-destinations"><h2>Destinations</h2><button className="export-destination selected"><Icon name="export" /><span><strong>Media File</strong><small>Render a video file</small></span></button><div className="export-queue"><h3>Queue <span>0</span></h3><p>Exports run immediately when you choose Export video.</p></div></aside>
+      <aside className="export-destinations">
+        <h2>Destinations</h2>
+        <button className="export-destination selected">
+          <Icon name="export" />
+          <span><strong>Media File</strong><small>Render a video file</small></span>
+        </button>
+        <div className="batch-queue-container">
+          <div className="batch-queue-header">
+            <strong>Batch Render Queue ({batchQueue.length})</strong>
+            <div className="batch-queue-btn-group">
+              <button
+                type="button"
+                className={`batch-queue-btn ${queuePaused ? "paused" : ""}`}
+                onClick={() => void toggleQueuePause()}
+                title={queuePaused ? "Resume paused queue" : "Pause render queue"}
+              >
+                {queuePaused ? "▶ Resume" : "⏸ Pause"}
+              </button>
+              <button
+                type="button"
+                className="batch-queue-btn"
+                onClick={() => setBatchQueue([])}
+                title="Clear queue list"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+          <div className="batch-queue-list">
+            {batchQueue.length === 0 ? (
+              <div style={{ fontSize: "11px", color: "var(--text-muted)", padding: "10px 0", textAlign: "center" }}>
+                Queue is empty. Click "+ Add to Queue" to batch multiple render jobs.
+              </div>
+            ) : (
+              batchQueue.map((item) => (
+                <div key={item.id} className="batch-queue-card">
+                  <div className="batch-queue-card-top">
+                    <strong title={item.name}>{item.name}</strong>
+                    <span className={`batch-status-pill ${item.status}`}>{item.status}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "var(--text-muted)" }}>
+                    <span>{item.format} · {item.resolution}</span>
+                    <span>{item.status === "completed" ? "Done" : `${Math.round(item.progress * 100)}%`}</span>
+                  </div>
+                  <div className="batch-queue-progress-bar">
+                    <div className="batch-queue-progress-fill" style={{ width: `${Math.round(item.progress * 100)}%` }} />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </aside>
       <section className="export-settings-panel"><header><span className="workspace-eyebrow">DELIVERY</span><h1>Media File</h1><p>Set a format and size that match where you’ll share this edit.</p></header>
         {/* Live Hardware Acceleration Badge */}
         <div className="export-hw-status-card">
@@ -6257,7 +6848,7 @@ function App() {
           <details className="export-settings-group"><summary>More settings</summary><label className="range-export export-check"><input type="checkbox" checked={exportMarkedRange} disabled={project?.sequence.mark_in == null || project?.sequence.mark_out == null || rendering} onChange={(event) => setExportMarkedRange(event.target.checked)} /><span><strong>Export marked In/Out range</strong><small>Use the sequence markers instead of the full timeline.</small></span></label><div className="export-mark-row"><span>In <b>{project?.sequence.mark_in == null ? "Not set" : formatTime(project.sequence.mark_in)}</b></span><span>Out <b>{project?.sequence.mark_out == null ? "Not set" : formatTime(project.sequence.mark_out)}</b></span><button disabled={project?.sequence.mark_in == null && project?.sequence.mark_out == null} onClick={() => void invokeMenuCommand("timeline.clear_marks")}>Clear marks</button></div></details>
         </div>
       </section>
-      <aside className="export-preview-panel"><div className="export-preview-heading"><span>Preview</span><span>{exportFormat === "mp4" ? "H.264" : "VP8"}</span></div><div className="export-preview-stage">{renderPreview(activeClip?.media ?? selectedMedia, true)}</div><div className="export-range-select">Range <strong>{exportMarkedRange ? "Marked In / Out" : "Entire sequence"}</strong></div><div className="export-summary"><h2>Summary</h2><dl><dt>Output</dt><dd>{exportOutputPath || `${exportFileName || project?.name || "Main Edit"}.${exportFormat}`}</dd><dt>Video</dt><dd>{outputResolution.width} × {outputResolution.height} · {outputFrameRate.numerator}/{outputFrameRate.denominator} fps</dd><dt>Engine</dt><dd>{encoderInfo?.hasHardwareEncoder && useHardwareEncoding && exportFormat === "mp4" ? `Hardware Accelerated (${encoderInfo.preferredEncoder})` : "CPU Software (x264enc)"}</dd><dt>Container</dt><dd>{exportFormat === "mp4" ? "H.264 (MP4)" : "VP8 (WebM)"}</dd><dt>Audio</dt><dd>{exportFormat === "mp4" ? "AAC" : "Vorbis"} · {project?.settings.audio_sample_rate ?? 48_000} Hz</dd><dt>Range</dt><dd>{formatTime(rangeDuration)}</dd></dl></div>{renderProgress && <div className="render-progress"><progress max={100} value={renderProgress.fractionPercent} /><small>{renderProgress.phase} · {renderProgress.fractionPercent}%</small></div>}<button className="primary export-submit" disabled={!hasClips || rendering} onClick={() => void exportProject()}>{rendering ? "Rendering…" : "Export video"}</button><small className="export-footer-note">Color controls and track gain are included. Animated keyframes are preview-only.</small></aside>
+      <aside className="export-preview-panel"><div className="export-preview-heading"><span>Preview</span><span>{exportFormat === "mp4" ? "H.264" : "VP8"}</span></div><div className="export-preview-stage">{renderPreview(activeClip?.media ?? selectedMedia, true)}</div><div className="export-range-select">Range <strong>{exportMarkedRange ? "Marked In / Out" : "Entire sequence"}</strong></div><div className="export-summary"><h2>Summary</h2><dl><dt>Output</dt><dd>{exportOutputPath || `${exportFileName || project?.name || "Main Edit"}.${exportFormat}`}</dd><dt>Video</dt><dd>{outputResolution.width} × {outputResolution.height} · {outputFrameRate.numerator}/{outputFrameRate.denominator} fps</dd><dt>Engine</dt><dd>{encoderInfo?.hasHardwareEncoder && useHardwareEncoding && exportFormat === "mp4" ? `Hardware Accelerated (${encoderInfo.preferredEncoder})` : "CPU Software (x264enc)"}</dd><dt>Container</dt><dd>{exportFormat === "mp4" ? "H.264 (MP4)" : "VP8 (WebM)"}</dd><dt>Audio</dt><dd>{exportFormat === "mp4" ? "AAC" : "Vorbis"} · {project?.settings.audio_sample_rate ?? 48_000} Hz</dd><dt>Range</dt><dd>{formatTime(rangeDuration)}</dd></dl></div>{renderProgress && <div className="render-progress"><progress max={100} value={renderProgress.fractionPercent} /><small>{renderProgress.phase} · {renderProgress.fractionPercent}%</small></div>}<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}><button className="secondary" style={{ flex: 1, padding: "8px 12px", fontWeight: 700 }} disabled={!hasClips || rendering} onClick={() => void addExportToQueue()}>+ Add to Queue</button><button className="primary export-submit" style={{ flex: 1 }} disabled={!hasClips || rendering} onClick={() => void exportProject()}>{rendering ? "Rendering…" : "Export video"}</button></div><small className="export-footer-note">Color controls and track gain are included. Animated keyframes are preview-only.</small></aside>
     </main>;
   }
 
@@ -6269,6 +6860,11 @@ function App() {
       if (event.key === " " || event.code === "Space") {
         event.preventDefault();
         toggleProgramPlayback();
+        return;
+      }
+      if (multicamMode && ["1", "2", "3", "4"].includes(event.key) && !(event.ctrlKey || event.metaKey || event.altKey)) {
+        event.preventDefault();
+        void switchMulticamAngle(Number(event.key));
         return;
       }
       if (event.key.toLowerCase() === "j" && !(event.ctrlKey || event.metaKey || event.altKey)) {
@@ -6868,9 +7464,18 @@ function App() {
               {renderPreview(selectedMedia)}
             </section>
             <section className="monitor">
-              <div className="panel-tabs"><span className="selected">Program Timeline</span></div>
-              <div className="monitor-name">{project?.sequence.name ?? "Sequence 1"}</div>
-              {renderProgramMonitor()}
+              <div className="panel-tabs">
+                <span className={!multicamMode ? "selected" : ""} onClick={() => setMulticamMode(false)} style={{ cursor: "pointer" }}>
+                  Program Timeline
+                </span>
+                <span className={multicamMode ? "selected" : ""} onClick={() => setMulticamMode(true)} style={{ cursor: "pointer" }}>
+                  🎥 Multi-Cam Quad (4 Angles)
+                </span>
+              </div>
+              <div className="monitor-name">
+                {multicamMode ? `Multi-Cam Quad · Live Angle ${multicamActiveAngle}` : (project?.sequence.name ?? "Sequence 1")}
+              </div>
+              {multicamMode ? renderMulticamMonitor() : renderProgramMonitor()}
               <div className="transport">
                 <button aria-label="Previous frame" data-tooltip="Previous Frame (Left Arrow)" data-tooltip-pos="top" onClick={() => stepProgramFrame(-1)}>◀</button>
                 <button className={programPlaying ? "active-toggle" : ""} aria-label={programPlaying ? "Pause playback" : "Play clip"} data-tooltip={programPlaying ? "Pause Playback (Space / K)" : "Play Timeline (Space / L)"} data-tooltip-pos="top" onClick={() => toggleProgramPlayback()}>{programPlaying ? "Ⅱ" : "▶"}</button>

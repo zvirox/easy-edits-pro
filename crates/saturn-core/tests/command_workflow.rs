@@ -1,5 +1,5 @@
 use saturn_core::{CommandRequest, EditorEngine};
-use serde_json::json;
+use serde_json::{Value, json};
 
 #[test]
 fn new_add_save_reopen_and_list_media_uses_one_command_path() {
@@ -1087,6 +1087,369 @@ fn lut_effect_workflow() {
     } else {
         panic!("Expected Lut payload");
     }
+}
+
+#[test]
+fn color_wheels_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    let m_res = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({ "name": "color_sample.mp4", "path": "/media/color_sample.mp4", "kind": "video" }),
+        ))
+        .unwrap();
+    let media_id = m_res["media_id"].as_u64().unwrap();
+
+    let clip_res = engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": 1,
+                "media_id": media_id,
+                "timeline_start": 0,
+                "source_in": 0,
+                "duration": 500,
+            }),
+        ))
+        .unwrap();
+    let clip_index = clip_res["clip_index"].as_u64().unwrap() as usize;
+
+    // Set interactive color wheels
+    engine
+        .execute(CommandRequest::new(
+            "clip.set_color_wheels",
+            json!({
+                "track_id": 1,
+                "clip_index": clip_index,
+                "wheels": {
+                    "lift": { "red": 0.1, "green": -0.05, "blue": 0.0, "luma": -0.2 },
+                    "gamma": { "red": -0.02, "green": 0.05, "blue": 0.1, "luma": 0.05 },
+                    "gain": { "red": 0.15, "green": 0.1, "blue": -0.1, "luma": 0.1 },
+                    "offset": { "red": 0.0, "green": 0.0, "blue": 0.0, "luma": 0.0 }
+                }
+            }),
+        ))
+        .unwrap();
+
+    let clip = &engine.document().project.sequence.tracks[0].clips[clip_index];
+    assert_eq!(clip.color.wheels.lift.red, 0.1);
+    assert_eq!(clip.color.wheels.lift.luma, -0.2);
+    assert_eq!(clip.color.wheels.gain.red, 0.15);
+
+    // Test Undo
+    engine
+        .execute(CommandRequest::new("edit.undo", Value::Null))
+        .unwrap();
+    let undone = &engine.document().project.sequence.tracks[0].clips[clip_index];
+    assert_eq!(undone.color.wheels.lift.red, 0.0);
+    assert_eq!(undone.color.wheels.lift.luma, 0.0);
+
+    // Test Redo
+    engine
+        .execute(CommandRequest::new("edit.redo", Value::Null))
+        .unwrap();
+    let redone = &engine.document().project.sequence.tracks[0].clips[clip_index];
+    assert_eq!(redone.color.wheels.lift.red, 0.1);
+    assert_eq!(redone.color.wheels.lift.luma, -0.2);
+}
+
+#[test]
+fn multicam_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    let m1_res = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({ "name": "cam_a.mp4", "path": "/media/cam_a.mp4", "kind": "video" }),
+        ))
+        .unwrap();
+    let m1_id = m1_res["media_id"].as_u64().unwrap();
+
+    let m2_res = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({ "name": "cam_b.mp4", "path": "/media/cam_b.mp4", "kind": "video" }),
+        ))
+        .unwrap();
+    let m2_id = m2_res["media_id"].as_u64().unwrap();
+
+    let clip_res = engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": 1,
+                "media_id": m1_id,
+                "timeline_start": 0,
+                "source_in": 0,
+                "duration": 600,
+            }),
+        ))
+        .unwrap();
+    let clip_index = clip_res["clip_index"].as_u64().unwrap() as usize;
+
+    // Create Multicam group
+    let multi_res = engine
+        .execute(CommandRequest::new(
+            "multicam.create",
+            json!({
+                "name": "Interview Multicam",
+                "angles": [
+                    { "id": 1, "name": "Host (Cam A)", "media_id": m1_id, "sync_offset_ticks": 0 },
+                    { "id": 2, "name": "Guest (Cam B)", "media_id": m2_id, "sync_offset_ticks": 100 }
+                ],
+                "sync_mode": "audio_waveform"
+            }),
+        ))
+        .unwrap();
+    let multicam_id = multi_res["id"].as_u64().unwrap();
+
+    assert_eq!(engine.document().project.sequence.multicam_clips.len(), 1);
+    assert_eq!(engine.document().project.sequence.multicam_clips[0].name, "Interview Multicam");
+
+    // Switch active angle to Angle 2 (Cam B)
+    engine
+        .execute(CommandRequest::new(
+            "multicam.switch_angle",
+            json!({
+                "track_id": 1,
+                "clip_index": clip_index,
+                "angle_id": 2
+            }),
+        ))
+        .unwrap();
+
+    let clip = &engine.document().project.sequence.tracks[0].clips[clip_index];
+    assert_eq!(clip.multicam_id, Some(multicam_id));
+    assert_eq!(clip.multicam_angle_id, Some(2));
+    assert_eq!(clip.media_id, m2_id);
+    assert_eq!(clip.source_in, saturn_core::Tick(100));
+
+    // Sync multicam with detected audio offsets
+    engine
+        .execute(CommandRequest::new(
+            "multicam.sync",
+            json!({
+                "multicam_id": multicam_id,
+                "sync_mode": "audio_waveform",
+                "offsets": { "1": 0, "2": 250 }
+            }),
+        ))
+        .unwrap();
+
+    let group = &engine.document().project.sequence.multicam_clips[0];
+    assert_eq!(group.angles[1].sync_offset_ticks, saturn_core::Tick(250));
+
+    // Test Undo
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    assert_eq!(engine.document().project.sequence.multicam_clips[0].angles[1].sync_offset_ticks, saturn_core::Tick(100));
+}
+
+#[test]
+fn motion_tracking_and_pinning_workflow() {
+    let mut engine = EditorEngine::default();
+    let m_res = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({ "name": "motion.mp4", "path": "/media/motion.mp4", "kind": "video" }),
+        ))
+        .unwrap();
+    let media_id = m_res["media_id"].as_u64().unwrap();
+
+    let clip_res = engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": 1,
+                "media_id": media_id,
+                "timeline_start": 0,
+                "source_in": 0,
+                "duration": 500,
+            }),
+        ))
+        .unwrap();
+    let clip_index = clip_res["clip_index"].as_u64().unwrap() as usize;
+
+    // Set motion tracking
+    engine
+        .execute(CommandRequest::new(
+            "clip.set_motion_tracking",
+            json!({
+                "track_id": 1,
+                "clip_index": clip_index,
+                "tracking": {
+                    "id": 1,
+                    "name": "Skateboarder",
+                    "mode": "stabilize",
+                    "points": [
+                        { "time": 0, "x": 0.5, "y": 0.5, "confidence": 0.99 },
+                        { "time": 250, "x": 0.52, "y": 0.49, "confidence": 0.97 },
+                        { "time": 500, "x": 0.55, "y": 0.48, "confidence": 0.95 }
+                    ],
+                    "pinned_clip_id": null,
+                    "smoothness": 0.75
+                }
+            }),
+        ))
+        .unwrap();
+
+    let clip = &engine.document().project.sequence.tracks[0].clips[clip_index];
+    assert!(clip.tracking.is_some());
+    let tr = clip.tracking.as_ref().unwrap();
+    assert_eq!(tr.name, "Skateboarder");
+    assert_eq!(tr.points.len(), 3);
+    assert_eq!(tr.smoothness, 0.75);
+
+    // Pin a sticker/title clip to track
+    engine
+        .execute(CommandRequest::new(
+            "clip.pin_to_track",
+            json!({
+                "track_id": 1,
+                "clip_index": clip_index,
+                "pinned_clip_id": 99
+            }),
+        ))
+        .unwrap();
+
+    let pinned = engine.document().project.sequence.tracks[0].clips[clip_index].tracking.as_ref().unwrap();
+    assert_eq!(pinned.pinned_clip_id, Some(99));
+
+    // Test Undo
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    let unpinned = engine.document().project.sequence.tracks[0].clips[clip_index].tracking.as_ref().unwrap();
+    assert_eq!(unpinned.pinned_clip_id, None);
+}
+
+#[test]
+fn fairlight_bus_routing_and_automation_workflow() {
+    let mut engine = EditorEngine::default();
+
+    // 1. Set track bus routing
+    engine
+        .execute(CommandRequest::new(
+            "track.set_bus_route",
+            json!({
+                "track_id": 2,
+                "bus": "submix1"
+            }),
+        ))
+        .unwrap();
+
+    assert_eq!(engine.document().project.sequence.tracks[1].bus, saturn_core::BusTarget::Submix1);
+
+    // 2. Set fader volume & pan automation
+    engine
+        .execute(CommandRequest::new(
+            "track.set_automation",
+            json!({
+                "track_id": 2,
+                "automation": {
+                    "mode": "read",
+                    "volume_points": [
+                        { "time": 0, "value": 0.0 },
+                        { "time": 254016000000_i64, "value": -6.0 }
+                    ],
+                    "pan_points": [
+                        { "time": 0, "value": -0.5 },
+                        { "time": 254016000000_i64, "value": 0.5 }
+                    ]
+                }
+            }),
+        ))
+        .unwrap();
+
+    let auto = &engine.document().project.sequence.tracks[1].automation;
+    assert_eq!(auto.mode, saturn_core::AutomationMode::Read);
+    assert_eq!(auto.volume_points.len(), 2);
+    assert_eq!(auto.pan_points.len(), 2);
+
+    // 3. Add Audio Plugin (Parametric EQ / VST3)
+    engine
+        .execute(CommandRequest::new(
+            "track.add_audio_plugin",
+            json!({
+                "track_id": 2,
+                "plugin": {
+                    "id": 101,
+                    "name": "Fairlight 4-Band Studio EQ",
+                    "plugin_format": "vst3",
+                    "enabled": true,
+                    "preset": "Warm Dialogue",
+                    "params": {
+                        "gain_low": 2.0,
+                        "gain_high": -1.5
+                    }
+                }
+            }),
+        ))
+        .unwrap();
+
+    assert_eq!(engine.document().project.sequence.tracks[1].plugins.len(), 1);
+    assert_eq!(engine.document().project.sequence.tracks[1].plugins[0].name, "Fairlight 4-Band Studio EQ");
+
+    // 4. Toggle plugin
+    engine
+        .execute(CommandRequest::new(
+            "track.toggle_audio_plugin",
+            json!({
+                "track_id": 2,
+                "plugin_id": 101,
+                "enabled": false
+            }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[1].plugins[0].enabled, false);
+
+    // 5. Set Audio Bus Gain
+    engine
+        .execute(CommandRequest::new(
+            "bus.set_gain_db",
+            json!({
+                "target": "master",
+                "gain_db": -2.5
+            }),
+        ))
+        .unwrap();
+
+    let master_bus = engine.document().project.sequence.buses.iter().find(|b| b.target == saturn_core::BusTarget::Master).unwrap();
+    assert_eq!(master_bus.gain_db, -2.5);
+
+    // Test Undo
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    let undone_bus = engine.document().project.sequence.buses.iter().find(|b| b.target == saturn_core::BusTarget::Master).unwrap();
+    assert_eq!(undone_bus.gain_db, 0.0);
+}
+
+#[test]
+fn job_manager_pause_resume_batch_workflow() {
+    let manager = saturn_core::JobManager::new(2);
+    assert!(!manager.is_paused());
+
+    manager.pause();
+    assert!(manager.is_paused());
+
+    let (job_id, _cancel, rx) = manager.submit(
+        "Batch Job 1",
+        saturn_core::JobKind::BatchExport {
+            output_path: std::path::PathBuf::from("/out/test.mp4"),
+            preset: "YouTube 4K".into(),
+        },
+        saturn_core::JobPriority::Normal,
+        |ctx| {
+            ctx.update_progress(0.5, "Encoding");
+            Ok(Some("/out/test.mp4".into()))
+        },
+    );
+
+    // While paused, job stays Queued
+    let job_info = manager.get_job(job_id).unwrap();
+    assert_eq!(job_info.state, saturn_core::JobState::Queued);
+
+    // Resume queue -> job executes to Completed
+    manager.resume();
+    assert!(!manager.is_paused());
+
+    let result = rx.recv().unwrap();
+    assert_eq!(result.unwrap().as_deref(), Some("/out/test.mp4"));
 }
 
 

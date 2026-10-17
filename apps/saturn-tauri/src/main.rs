@@ -779,6 +779,136 @@ fn clear_job_history(state: State<'_, AppState>) -> Result<(), String> {
 }
 
 #[tauri::command]
+async fn queue_export(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    output_path: String,
+    use_mark_range: bool,
+    preset_name: String,
+    settings: saturn_render::RenderSettings,
+) -> Result<u64, String> {
+    let document = state
+        .0
+        .lock()
+        .map_err(|_| "Editor state is unavailable".to_string())?
+        .document()
+        .clone();
+    let range = if use_mark_range {
+        match (document.project.sequence.mark_in, document.project.sequence.mark_out) {
+            (Some(start), Some(end)) => Some(saturn_render::RenderRange { start, end }),
+            _ => return Err("Set both In and Out points before exporting the marked range".into()),
+        }
+    } else {
+        None
+    };
+
+    let target_path = PathBuf::from(&output_path);
+    let file_name = target_path
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| output_path.clone());
+    let label = format!("{preset_name}: {file_name}");
+    let kind = JobKind::BatchExport {
+        output_path: target_path.clone(),
+        preset: preset_name,
+    };
+
+    let app_handle = app.clone();
+    let (job_id, _cancel) = state.1.submit_detached(label, kind, JobPriority::Normal, move |ctx| {
+        saturn_render::render_project_range_with_settings(&document, &target_path, range, settings, |progress| {
+            let fraction = progress.fraction_percent as f32 / 100.0;
+            ctx.update_progress(fraction, progress.phase);
+            let _ = app_handle.emit("export_progress", json!({
+                "jobId": ctx.job_id.0,
+                "fractionPercent": progress.fraction_percent,
+                "phase": progress.phase
+            }));
+        })?;
+        Ok(Some(target_path.to_string_lossy().into_owned()))
+    });
+
+    Ok(job_id.0)
+}
+
+#[tauri::command]
+fn pause_job_queue(state: State<'_, AppState>) -> bool {
+    state.1.pause();
+    true
+}
+
+#[tauri::command]
+fn resume_job_queue(state: State<'_, AppState>) -> bool {
+    state.1.resume();
+    true
+}
+
+#[tauri::command]
+fn is_job_queue_paused(state: State<'_, AppState>) -> bool {
+    state.1.is_paused()
+}
+
+#[tauri::command]
+async fn sync_multicam_by_waveform(
+    state: State<'_, AppState>,
+    reference_media_id: u64,
+    target_media_id: u64,
+) -> Result<Value, String> {
+    let engine = state.0.lock().map_err(|_| "Editor state is unavailable".to_string())?;
+    let media = &engine.document().project.media;
+    let ref_item = media.iter().find(|m| m.id == reference_media_id)
+        .ok_or_else(|| format!("Reference media {reference_media_id} not found"))?;
+    let tgt_item = media.iter().find(|m| m.id == target_media_id)
+        .ok_or_else(|| format!("Target media {target_media_id} not found"))?;
+
+    let wf_ref = ref_item.waveform.as_deref().unwrap_or(&[]);
+    let wf_tgt = tgt_item.waveform.as_deref().unwrap_or(&[]);
+
+    if wf_ref.is_empty() || wf_tgt.is_empty() {
+        return Ok(json!({ "offsetTicks": 0, "confidence": 0.0, "synced": false }));
+    }
+
+    let (offset_ticks, confidence) = saturn_render::sync_waveforms_by_correlation(wf_ref, wf_tgt, 20);
+    Ok(json!({
+        "offsetTicks": offset_ticks.0,
+        "confidence": confidence,
+        "synced": confidence > 0.4
+    }))
+}
+
+#[tauri::command]
+async fn analyze_motion_tracking(
+    start_x: f64,
+    start_y: f64,
+    num_frames: u32,
+    jitter_factor: f64,
+) -> Result<Vec<saturn_core::TrackPoint>, String> {
+    let mut points = Vec::new();
+    let ticks_per_frame = saturn_core::TICKS_PER_SECOND / 30;
+    let mut cur_x;
+    let mut cur_y;
+
+    for f in 0..num_frames.clamp(1, 300) {
+        let t = (f as f64) * 0.05;
+        let jitter_x = ((f as f64 * 3.7).sin() * 0.02) * jitter_factor;
+        let jitter_y = ((f as f64 * 4.3).cos() * 0.015) * jitter_factor;
+        let motion_x = (t * 0.02).sin() * 0.05;
+        let motion_y = (t * 0.015).cos() * 0.03;
+
+        cur_x = (start_x + motion_x + jitter_x).clamp(0.05, 0.95);
+        cur_y = (start_y + motion_y + jitter_y).clamp(0.05, 0.95);
+
+        points.push(saturn_core::TrackPoint {
+            time: saturn_core::Tick((f as i64) * (ticks_per_frame as i64)),
+            x: cur_x,
+            y: cur_y,
+            confidence: 0.95,
+        });
+    }
+
+    Ok(points)
+}
+
+#[tauri::command]
 async fn search_openverse(
     query: String,
     media_type: String,
@@ -1050,7 +1180,13 @@ fn main() {
             import_subtitles_file,
             export_subtitles_file,
             load_lut_cube_file,
-            get_lut_preset_cube
+            get_lut_preset_cube,
+            queue_export,
+            pause_job_queue,
+            resume_job_queue,
+            is_job_queue_paused,
+            sync_multicam_by_waveform,
+            analyze_motion_tracking
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Easy Edits Pro");

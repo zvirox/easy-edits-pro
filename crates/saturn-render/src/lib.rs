@@ -10,7 +10,14 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 pub mod lut;
+pub mod multicam;
+pub mod tracking;
+pub mod wheels;
+
 pub use lut::{Lut3D, Lut3DInfo};
+pub use multicam::sync_waveforms_by_correlation;
+pub use tracking::{compute_stabilization_offset, evaluate_tracking_at, smooth_trajectory};
+pub use wheels::{apply_color_wheels_rgb, apply_color_wheels_rgba};
 
 static GST_INIT: OnceLock<Result<(), String>> = OnceLock::new();
 

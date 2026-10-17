@@ -12,9 +12,12 @@ pub use job::{
     JobState,
 };
 pub use project::{
-    Clip, ColorAdjustments, ColorCorrectionParams, CropParams, EffectInstance, EffectKind,
-    EffectPayload, GaussianBlurParams, InterpolationKind, Keyframe, KeyframeProperty, LutParams,
-    MediaAsset, MediaKind, ProjectDocument, ProjectSettings, Sequence, SubtitleItem,
-    TitleProperties, Track, TrackKind, Transition, TransitionKind, VignetteParams, ChromaKeyParams,
+    AudioBus, AudioPluginInstance, AutomationMode, AutomationPoint, BusTarget, Clip,
+    ColorAdjustments, ColorCorrectionParams, ColorWheelParam, ColorWheels, CropParams,
+    EffectInstance, EffectKind, EffectPayload, GaussianBlurParams, InterpolationKind, Keyframe,
+    KeyframeProperty, LutParams, MediaAsset, MediaKind, MotionTrackingData, MultiCamAngle,
+    MultiCamClip, MultiCamSyncMode, ProjectDocument, ProjectSettings, Sequence, SubtitleItem,
+    TitleProperties, Track, TrackAudioProcessing, TrackAutomation, TrackKind, TrackingMode,
+    TrackPoint, Transition, TransitionKind, VignetteParams, ChromaKeyParams,
 };
 pub use time::{FrameRate, TICKS_PER_SECOND, Tick};

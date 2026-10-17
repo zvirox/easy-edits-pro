@@ -1,9 +1,11 @@
 use crate::command::{COMMANDS, CommandRequest, CommandStatus, status};
 use crate::project::{
-    Clip, ColorAdjustments, ColorCorrectionParams, CropParams, EffectInstance, EffectKind,
-    EffectPayload, GaussianBlurParams, InterpolationKind, Keyframe, KeyframeProperty, LutParams,
-    MediaAsset, MediaKind, ProjectDocument, SubtitleItem, TitleProperties, TrackAudioProcessing,
-    TrackKind, Transition, TransitionKind, VignetteParams, ChromaKeyParams,
+    AudioPluginInstance, BusTarget, Clip, ColorAdjustments, ColorCorrectionParams,
+    ColorWheels, CropParams, EffectInstance, EffectKind, EffectPayload, GaussianBlurParams,
+    InterpolationKind, Keyframe, KeyframeProperty, LutParams, MediaAsset, MediaKind,
+    MotionTrackingData, MultiCamAngle, MultiCamClip, MultiCamSyncMode, ProjectDocument,
+    SubtitleItem, TitleProperties, TrackAudioProcessing, TrackAutomation, TrackKind,
+    TrackingMode, Transition, TransitionKind, VignetteParams, ChromaKeyParams,
 };
 use crate::time::{FrameRate, TICKS_PER_SECOND, Tick};
 use serde::Deserialize;
@@ -435,6 +437,81 @@ struct ReorderEffectsParams {
     to_index: usize,
 }
 
+#[derive(Deserialize)]
+struct SetColorWheelsParams {
+    track_id: u64,
+    clip_index: usize,
+    wheels: ColorWheels,
+}
+
+#[derive(Deserialize)]
+struct CreateMulticamParams {
+    name: String,
+    angles: Vec<MultiCamAngle>,
+    #[serde(default)]
+    sync_mode: MultiCamSyncMode,
+}
+
+#[derive(Deserialize)]
+struct SwitchMulticamAngleParams {
+    track_id: u64,
+    clip_index: usize,
+    angle_id: u64,
+}
+
+#[derive(Deserialize)]
+struct SyncMulticamParams {
+    multicam_id: u64,
+    sync_mode: MultiCamSyncMode,
+    #[serde(default)]
+    offsets: Option<std::collections::HashMap<u64, i64>>,
+}
+
+#[derive(Deserialize)]
+struct SetMotionTrackingParams {
+    track_id: u64,
+    clip_index: usize,
+    tracking: MotionTrackingData,
+}
+
+#[derive(Deserialize)]
+struct PinToTrackParams {
+    track_id: u64,
+    clip_index: usize,
+    pinned_clip_id: Option<u64>,
+}
+
+#[derive(Deserialize)]
+struct SetTrackBusRouteParams {
+    track_id: u64,
+    bus: BusTarget,
+}
+
+#[derive(Deserialize)]
+struct SetTrackAutomationParams {
+    track_id: u64,
+    automation: TrackAutomation,
+}
+
+#[derive(Deserialize)]
+struct AddAudioPluginParams {
+    track_id: u64,
+    plugin: AudioPluginInstance,
+}
+
+#[derive(Deserialize)]
+struct ToggleAudioPluginParams {
+    track_id: u64,
+    plugin_id: u64,
+    enabled: bool,
+}
+
+#[derive(Deserialize)]
+struct SetBusGainParams {
+    target: BusTarget,
+    gain_db: f64,
+}
+
 impl Default for EditorEngine {
     fn default() -> Self {
         let document = ProjectDocument::default();
@@ -707,6 +784,9 @@ impl EditorEngine {
                     color: ColorAdjustments::default(),
                     effects: Vec::new(),
                     keyframes: Vec::new(),
+                    multicam_id: None,
+                    multicam_angle_id: None,
+                    tracking: None,
                 });
                 Ok(json!({"track_id": track.id, "clip_index": track.clips.len() - 1}))
             }
@@ -1314,12 +1394,10 @@ impl EditorEngine {
                 find_clip(&self.document, track_index, params.clip_index)?;
                 self.checkpoint();
                 let clip = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
-                clip.color = ColorAdjustments {
-                    exposure: params.exposure,
-                    contrast: params.contrast,
-                    saturation: params.saturation,
-                    hue: params.hue,
-                };
+                clip.color.exposure = params.exposure;
+                clip.color.contrast = params.contrast;
+                clip.color.saturation = params.saturation;
+                clip.color.hue = params.hue;
                 if let Some(existing) = clip.effects.iter_mut().find_map(|e| match &mut e.payload {
                     EffectPayload::ColorCorrection(c) => Some(c),
                     _ => None,
@@ -1534,13 +1612,12 @@ impl EditorEngine {
                 let target = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index].effects[pos];
                 target.payload = params.payload.clone();
                 if let EffectPayload::ColorCorrection(ref c) = params.payload {
-                    self.document.project.sequence.tracks[track_index].clips[params.clip_index].color =
-                        ColorAdjustments {
-                            exposure: c.exposure,
-                            contrast: c.contrast,
-                            saturation: c.saturation,
-                            hue: c.hue,
-                        };
+                    let clip_ref = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                    clip_ref.color.exposure = c.exposure;
+                    clip_ref.color.contrast = c.contrast;
+                    clip_ref.color.saturation = c.saturation;
+                    clip_ref.color.hue = c.hue;
+                    clip_ref.color.wheels = c.wheels.clone();
                 }
                 Ok(json!({"updated": true}))
             }
@@ -1673,6 +1750,9 @@ impl EditorEngine {
                     color: ColorAdjustments::default(),
                     effects: Vec::new(),
                     keyframes: Vec::new(),
+                    multicam_id: None,
+                    multicam_angle_id: None,
+                    tracking: None,
                 };
                 let track = &mut self.document.project.sequence.tracks[track_index];
                 track.clips.push(clip);
@@ -1763,6 +1843,154 @@ impl EditorEngine {
                 self.checkpoint();
                 self.document.project.sequence.subtitles.clear();
                 Ok(json!({"cleared": true}))
+            }
+            "clip.set_color_wheels" => {
+                let params: SetColorWheelsParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                clip.color.wheels = params.wheels.clone();
+                if let Some(existing) = clip.effects.iter_mut().find_map(|e| match &mut e.payload {
+                    EffectPayload::ColorCorrection(c) => Some(c),
+                    _ => None,
+                }) {
+                    existing.wheels = params.wheels;
+                }
+                Ok(json!({"updated": true}))
+            }
+            "multicam.create" => {
+                let params: CreateMulticamParams = parse_params(request.params)?;
+                if params.name.trim().is_empty() {
+                    return Err(DispatchError::InvalidParameters("Multicam name cannot be empty".into()));
+                }
+                if params.angles.is_empty() {
+                    return Err(DispatchError::InvalidParameters("Multicam must contain at least one angle".into()));
+                }
+                self.checkpoint();
+                let id = self.document.project.next_id;
+                self.document.project.next_id = id.saturating_add(1);
+                let active_angle_id = params.angles[0].id;
+                let group = MultiCamClip {
+                    id,
+                    name: params.name,
+                    angles: params.angles,
+                    active_angle_id,
+                    sync_mode: params.sync_mode,
+                };
+                self.document.project.sequence.multicam_clips.push(group);
+                Ok(json!({"id": id, "active_angle_id": active_angle_id}))
+            }
+            "multicam.switch_angle" => {
+                let params: SwitchMulticamAngleParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                let clip = &self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                let group = if let Some(m_id) = clip.multicam_id {
+                    self.document.project.sequence.multicam_clips.iter().find(|g| g.id == m_id)
+                } else {
+                    self.document.project.sequence.multicam_clips.iter().find(|g| g.angles.iter().any(|a| a.id == params.angle_id))
+                }.ok_or_else(|| DispatchError::InvalidParameters("Multicam group not found".into()))?;
+                let angle = group.angles.iter().find(|a| a.id == params.angle_id)
+                    .ok_or_else(|| DispatchError::InvalidParameters(format!("Angle {} not found in multicam", params.angle_id)))?;
+                let group_id = group.id;
+                let angle_media_id = angle.media_id;
+                let sync_offset = angle.sync_offset_ticks;
+                self.checkpoint();
+                let clip_mut = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                clip_mut.multicam_id = Some(group_id);
+                clip_mut.multicam_angle_id = Some(params.angle_id);
+                clip_mut.media_id = angle_media_id;
+                clip_mut.source_in = sync_offset;
+                Ok(json!({"switched": true, "media_id": angle_media_id, "angle_id": params.angle_id}))
+            }
+            "multicam.sync" => {
+                let params: SyncMulticamParams = parse_params(request.params)?;
+                let pos = self.document.project.sequence.multicam_clips.iter()
+                    .position(|g| g.id == params.multicam_id)
+                    .ok_or_else(|| DispatchError::InvalidParameters(format!("Multicam {} does not exist", params.multicam_id)))?;
+                self.checkpoint();
+                let group = &mut self.document.project.sequence.multicam_clips[pos];
+                group.sync_mode = params.sync_mode;
+                if let Some(offsets) = params.offsets {
+                    for angle in &mut group.angles {
+                        if let Some(&offset) = offsets.get(&angle.id) {
+                            angle.sync_offset_ticks = Tick(offset.max(0));
+                        }
+                    }
+                }
+                Ok(json!({"synced": true, "multicam_id": params.multicam_id}))
+            }
+            "clip.set_motion_tracking" => {
+                let params: SetMotionTrackingParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                clip.tracking = Some(params.tracking);
+                Ok(json!({"updated": true}))
+            }
+            "clip.pin_to_track" => {
+                let params: PinToTrackParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                if let Some(ref mut tr) = clip.tracking {
+                    tr.pinned_clip_id = params.pinned_clip_id;
+                } else {
+                    let tr = MotionTrackingData {
+                        id: 1,
+                        name: "Track Point".into(),
+                        mode: TrackingMode::Pin,
+                        points: Vec::new(),
+                        pinned_clip_id: params.pinned_clip_id,
+                        smoothness: 0.5,
+                    };
+                    clip.tracking = Some(tr);
+                }
+                Ok(json!({"pinned": true, "pinned_clip_id": params.pinned_clip_id}))
+            }
+            "track.set_bus_route" => {
+                let params: SetTrackBusRouteParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].bus = params.bus;
+                Ok(json!({"updated": true, "bus": params.bus}))
+            }
+            "track.set_automation" => {
+                let params: SetTrackAutomationParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].automation = params.automation;
+                Ok(json!({"updated": true}))
+            }
+            "track.add_audio_plugin" => {
+                let params: AddAudioPluginParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].plugins.push(params.plugin);
+                Ok(json!({"added": true}))
+            }
+            "track.toggle_audio_plugin" => {
+                let params: ToggleAudioPluginParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                if let Some(p) = self.document.project.sequence.tracks[track_index].plugins.iter_mut().find(|p| p.id == params.plugin_id) {
+                    p.enabled = params.enabled;
+                }
+                Ok(json!({"updated": true}))
+            }
+            "bus.set_gain_db" => {
+                let params: SetBusGainParams = parse_params(request.params)?;
+                if !params.gain_db.is_finite() || !(-60.0..=12.0).contains(&params.gain_db) {
+                    return Err(DispatchError::InvalidParameters("Bus gain must be between -60 and +12 dB".into()));
+                }
+                self.checkpoint();
+                if let Some(bus) = self.document.project.sequence.buses.iter_mut().find(|b| b.target == params.target) {
+                    bus.gain_db = params.gain_db;
+                }
+                Ok(json!({"updated": true, "gain_db": params.gain_db}))
             }
 
             _ => Err(DispatchError::UnknownCommand(request.id)),

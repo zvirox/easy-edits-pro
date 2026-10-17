@@ -33,11 +33,93 @@ export interface Keyframe {
   handle_out_y?: number | null;
 }
 
+export interface ColorWheelParam {
+  red: number;
+  green: number;
+  blue: number;
+  luma: number;
+}
+
+export interface ColorWheels {
+  lift: ColorWheelParam;
+  gamma: ColorWheelParam;
+  gain: ColorWheelParam;
+  offset: ColorWheelParam;
+}
+
 export interface ColorAdjustments {
   exposure: number;
   contrast: number;
   saturation: number;
   hue?: number;
+  wheels?: ColorWheels;
+}
+
+export type MultiCamSyncMode = "timecode" | "audio_waveform" | "marker";
+
+export interface MultiCamAngle {
+  id: number;
+  name: string;
+  media_id: number;
+  sync_offset_ticks: number;
+}
+
+export interface MultiCamClip {
+  id: number;
+  name: string;
+  angles: MultiCamAngle[];
+  active_angle_id: number;
+  sync_mode?: MultiCamSyncMode;
+}
+
+export type TrackingMode = "transform" | "stabilize" | "pin";
+
+export interface TrackPoint {
+  time: number;
+  x: number;
+  y: number;
+  confidence: number;
+}
+
+export interface MotionTrackingData {
+  id: number;
+  name: string;
+  mode: TrackingMode;
+  points: TrackPoint[];
+  pinned_clip_id?: number | null;
+  smoothness: number;
+}
+
+export type BusTarget = "master" | "submix1" | "submix2" | "aux_fx";
+export type AutomationMode = "off" | "read" | "touch" | "latch" | "write";
+
+export interface AutomationPoint {
+  time: number;
+  value: number;
+}
+
+export interface TrackAutomation {
+  mode: AutomationMode;
+  volume_points: AutomationPoint[];
+  pan_points: AutomationPoint[];
+}
+
+export interface AudioPluginInstance {
+  id: number;
+  name: string;
+  plugin_format: string;
+  enabled: boolean;
+  preset: string;
+  params: Record<string, number>;
+}
+
+export interface AudioBus {
+  target: BusTarget;
+  name: string;
+  gain_db: number;
+  muted: boolean;
+  solo: boolean;
+  processing: TrackAudioProcessing;
 }
 
 export type EffectKind =
@@ -53,6 +135,7 @@ export interface ColorCorrectionParams {
   contrast: number;
   saturation: number;
   hue: number;
+  wheels?: ColorWheels;
 }
 
 export interface GaussianBlurParams {
@@ -112,6 +195,9 @@ export interface Clip {
   color: ColorAdjustments;
   effects?: EffectInstance[];
   keyframes: Keyframe[];
+  multicam_id?: number | null;
+  multicam_angle_id?: number | null;
+  tracking?: MotionTrackingData | null;
 }
 
 export interface TrackAudioProcessing {
@@ -138,6 +224,9 @@ export interface Track {
   solo?: boolean;
   locked?: boolean;
   audio_processing?: TrackAudioProcessing;
+  bus?: BusTarget;
+  automation?: TrackAutomation;
+  plugins?: AudioPluginInstance[];
   clips: Clip[];
   transitions?: Transition[];
 }
@@ -181,6 +270,8 @@ export interface ProjectDocument {
       mark_in: number | null;
       mark_out: number | null;
       subtitles?: SubtitleItem[];
+      multicam_clips?: MultiCamClip[];
+      buses?: AudioBus[];
     };
     settings: {
       width: number;
@@ -1024,6 +1115,23 @@ export function evaluateTimelinePlayback(
       hueRotate += (color.hue ?? 0) * 180;
     }
 
+    // Color Wheels (Lift, Gamma, Gain, Offset)
+    const wheels = clip.color?.wheels;
+    if (wheels) {
+      const liftY = wheels.lift?.luma ?? 0;
+      const gammaY = wheels.gamma?.luma ?? 0;
+      const gainY = wheels.gain?.luma ?? 0;
+      const offsetY = wheels.offset?.luma ?? 0;
+
+      brightness *= 1 + (liftY * 0.25 + gainY * 0.35 + offsetY * 0.3);
+      contrast *= 1 + (gainY * 0.2 - liftY * 0.15 + gammaY * 0.1);
+
+      const rShift = (wheels.lift?.red ?? 0) * 0.15 + (wheels.gain?.red ?? 0) * 0.2 + (wheels.offset?.red ?? 0) * 0.1;
+      const bShift = (wheels.lift?.blue ?? 0) * 0.15 + (wheels.gain?.blue ?? 0) * 0.2 + (wheels.offset?.blue ?? 0) * 0.1;
+      const tintDeg = (rShift - bShift) * 40;
+      hueRotate += tintDeg;
+    }
+
     const filterParts: string[] = [];
     if (Math.abs(brightness - 1) > 0.001) filterParts.push(`brightness(${brightness.toFixed(3)})`);
     if (Math.abs(contrast - 1) > 0.001) filterParts.push(`contrast(${contrast.toFixed(3)})`);
@@ -1031,8 +1139,22 @@ export function evaluateTimelinePlayback(
     if (Math.abs(hueRotate) > 0.1) filterParts.push(`hue-rotate(${hueRotate.toFixed(1)}deg)`);
     if (blurPx > 0) filterParts.push(`blur(${blurPx.toFixed(1)}px)`);
 
-    const posX = interpolateKeyframe(clip, "position_x", clipTime, 0);
-    const posY = interpolateKeyframe(clip, "position_y", clipTime, 0);
+    let stabX = 0;
+    let stabY = 0;
+    if (clip.tracking?.points && clip.tracking.points.length > 0) {
+      if (clip.tracking.mode === "stabilize") {
+        const pts = clip.tracking.points;
+        const smoothness = clip.tracking.smoothness ?? 0.5;
+        const pt = pts.find((p) => Math.abs(p.time - clipTime) < TICKS_PER_SECOND / 10) || pts[0];
+        if (pt) {
+          stabX = (0.5 - pt.x) * projectWidth * smoothness;
+          stabY = (0.5 - pt.y) * projectHeight * smoothness;
+        }
+      }
+    }
+
+    const posX = interpolateKeyframe(clip, "position_x", clipTime, 0) + stabX;
+    const posY = interpolateKeyframe(clip, "position_y", clipTime, 0) + stabY;
     const scale = interpolateKeyframe(clip, "scale", clipTime, 1);
     const rotation = interpolateKeyframe(clip, "rotation", clipTime, 0);
     const opacity = interpolateKeyframe(clip, "opacity", clipTime, 1);

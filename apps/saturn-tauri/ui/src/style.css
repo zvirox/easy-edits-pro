@@ -4034,3 +4034,589 @@ button:active:not(:disabled) { transform: scale(0.96); transition: transform 0.0
 
 
 
+
+
+/* ==========================================================================
+   Phase 4.3 / 5.2 / 6.2 / 7.3 / 10.2: Advanced Suite Styles
+   ========================================================================== */
+
+/* Multi-cam Quad Split Monitor */
+.multicam-stage-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.multicam-quad-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 4px;
+  width: 100%;
+  height: calc(100% - 38px);
+  padding: 4px;
+  box-sizing: border-box;
+  background: #090c12;
+}
+
+.multicam-tile {
+  position: relative;
+  background: #05070a;
+  border-radius: 4px;
+  border: 2px solid #1e293b;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+
+.multicam-tile:hover {
+  border-color: #22c55e;
+}
+
+.multicam-tile.active-angle {
+  border-color: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+}
+
+.multicam-tile-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.multicam-tally-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 5;
+}
+
+.multicam-tile.active-angle .multicam-tally-badge {
+  background: #ef4444;
+  color: #fff;
+  border-color: #b91c1c;
+}
+
+.multicam-tally-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #64748b;
+}
+
+.multicam-tile.active-angle .multicam-tally-dot {
+  background: #fff;
+  box-shadow: 0 0 6px #fff;
+}
+
+.multicam-angle-meta {
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #e2e8f0;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2px 6px;
+  border-radius: 3px;
+  z-index: 5;
+}
+
+.multicam-toolbar {
+  height: 38px;
+  background: var(--bg-subpanel);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  gap: 8px;
+}
+
+.multicam-angle-shortcuts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.multicam-angle-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-button);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.multicam-angle-btn:hover {
+  color: var(--text-main);
+  border-color: var(--border-strong);
+}
+
+.multicam-angle-btn.active {
+  background: #ef4444;
+  color: #fff;
+  border-color: #b91c1c;
+}
+
+.multicam-sync-btn {
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid #06b6d4;
+  color: #22d3ee;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.multicam-sync-btn:hover {
+  background: rgba(6, 182, 212, 0.25);
+  color: #fff;
+}
+
+/* Batch Export Queue in Deliver Workspace */
+.batch-queue-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px;
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.batch-queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.batch-queue-header strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.batch-queue-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.batch-queue-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-button);
+  color: var(--text-sub);
+  cursor: pointer;
+}
+
+.batch-queue-btn:hover {
+  color: var(--text-main);
+  border-color: var(--border-strong);
+}
+
+.batch-queue-btn.paused {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: #f59e0b;
+  color: #fbbf24;
+}
+
+.batch-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.batch-queue-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+}
+
+.batch-queue-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.batch-queue-card-top strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.batch-status-pill {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: #334155;
+  color: #94a3b8;
+}
+
+.batch-status-pill.running {
+  background: rgba(6, 182, 212, 0.2);
+  color: #22d3ee;
+}
+
+.batch-status-pill.completed {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.batch-queue-progress-bar {
+  height: 4px;
+  width: 100%;
+  background: var(--bg-subpanel);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.batch-queue-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4, #3b82f6);
+  border-radius: 2px;
+  transition: width 0.2s ease;
+}
+
+/* Motion Tracking & Camera Stabilization Inspector Card */
+.tracking-inspector-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
+.tracking-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tracking-header-row strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tracking-mode-pills {
+  display: flex;
+  gap: 4px;
+}
+
+.tracking-mode-btn {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-panel);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.tracking-mode-btn.active {
+  background: rgba(6, 182, 212, 0.18);
+  border-color: #06b6d4;
+  color: #22d3ee;
+}
+
+.tracking-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.tracking-action-btn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-button);
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.12s ease;
+}
+
+.tracking-action-btn:hover:not(:disabled) {
+  border-color: #06b6d4;
+  color: #22d3ee;
+}
+
+.tracking-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tracking-box-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  border: 2px dashed #00f2fe;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.4), inset 0 0 10px rgba(0, 242, 254, 0.2);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tracking-box-crosshair {
+  width: 14px;
+  height: 14px;
+  position: relative;
+}
+
+.tracking-box-crosshair::before,
+.tracking-box-crosshair::after {
+  content: "";
+  position: absolute;
+  background: #00f2fe;
+}
+
+.tracking-box-crosshair::before {
+  top: 6px;
+  left: 0;
+  width: 14px;
+  height: 2px;
+}
+
+.tracking-box-crosshair::after {
+  top: 0;
+  left: 6px;
+  width: 2px;
+  height: 14px;
+}
+
+/* Fairlight Bus Routing & Audio Plugins */
+.strip-bus-routing {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 4px 0;
+}
+
+.strip-bus-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.strip-bus-select {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 3px;
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.strip-automation-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 4px 0;
+}
+
+.strip-automation-pills {
+  display: flex;
+  gap: 2px;
+}
+
+.auto-pill {
+  flex: 1;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 0;
+  border-radius: 2px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-subpanel);
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.12s ease;
+}
+
+.auto-pill:hover {
+  color: var(--text-main);
+  border-color: var(--border-strong);
+}
+
+.auto-pill.active {
+  background: #10b981;
+  color: #fff;
+  border-color: #059669;
+}
+
+.strip-plugins-rack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.strip-plugins-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.strip-add-plugin-select {
+  font-size: 9px;
+  padding: 2px 4px;
+  border-radius: 2px;
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  color: var(--text-sub);
+  cursor: pointer;
+}
+
+.plugin-rack-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  background: var(--bg-panel);
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  font-size: 10px;
+}
+
+.plugin-rack-item.bypassed {
+  opacity: 0.5;
+}
+
+.plugin-power-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #64748b;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.plugin-power-dot.active {
+  background: #22c55e;
+  box-shadow: 0 0 5px #22c55e;
+}
+
+.plugin-name-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.plugin-format-badge {
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+}
+
+.audio-bus-channel-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 70px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 4px;
+  gap: 6px;
+}
+
+.bus-strip-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.bus-strip-header strong {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.bus-target-tag {
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: rgba(2, 132, 199, 0.2);
+  color: #38bdf8;
+}

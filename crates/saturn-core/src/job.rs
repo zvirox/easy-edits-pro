@@ -23,6 +23,8 @@ pub enum JobKind {
     ProxyGeneration { media_id: u64, source_path: PathBuf },
     WaveformDecoding { media_id: u64, source_path: PathBuf },
     ExportRendering { output_path: PathBuf },
+    BatchExport { output_path: PathBuf, preset: String },
+    MotionTracking { clip_id: u64 },
     MediaProbe { path: PathBuf },
     Custom { name: String },
 }
@@ -94,12 +96,17 @@ impl CancellationToken {
 pub struct JobContext {
     pub job_id: JobId,
     cancellation: CancellationToken,
+    paused: Arc<AtomicBool>,
     progress_sender: Arc<dyn Fn(f32, String) + Send + Sync>,
 }
 
 impl JobContext {
     pub fn is_cancelled(&self) -> bool {
         self.cancellation.is_cancelled()
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.paused.load(Ordering::SeqCst)
     }
 
     pub fn update_progress(&self, fraction: f32, phase: impl Into<String>) {
@@ -120,6 +127,7 @@ struct QueuedTask {
 struct InnerManager {
     next_id: AtomicU64,
     shutdown: AtomicBool,
+    paused: Arc<AtomicBool>,
     queue: Mutex<JobQueueState>,
     condvar: Condvar,
     listeners: Mutex<Vec<JobListener>>,
@@ -150,6 +158,7 @@ impl JobManager {
         let inner = Arc::new(InnerManager {
             next_id: AtomicU64::new(1),
             shutdown: AtomicBool::new(false),
+            paused: Arc::new(AtomicBool::new(false)),
             queue: Mutex::new(JobQueueState {
                 pending: VecDeque::new(),
                 running: Vec::new(),
@@ -353,6 +362,19 @@ impl JobManager {
         state.history.clear();
     }
 
+    pub fn pause(&self) {
+        self.inner.paused.store(true, Ordering::SeqCst);
+    }
+
+    pub fn resume(&self) {
+        self.inner.paused.store(false, Ordering::SeqCst);
+        self.inner.condvar.notify_all();
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.inner.paused.load(Ordering::SeqCst)
+    }
+
     fn push_history(state: &mut JobQueueState, info: JobInfo) {
         if state.history.len() >= state.max_history {
             state.history.pop_back();
@@ -367,6 +389,10 @@ impl JobManager {
                 loop {
                     if inner.shutdown.load(Ordering::SeqCst) {
                         return;
+                    }
+                    if inner.paused.load(Ordering::SeqCst) {
+                        state = inner.condvar.wait(state).unwrap();
+                        continue;
                     }
                     if let Some(queued) = state.pending.pop_front() {
                         let mut info = queued.info;
@@ -412,6 +438,7 @@ impl JobManager {
             let ctx = JobContext {
                 job_id,
                 cancellation: cancellation.clone(),
+                paused: Arc::clone(&inner.paused),
                 progress_sender,
             };
 

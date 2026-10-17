@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 pub const PROJECT_FORMAT: &str = "project-saturn.project";
-pub const PROJECT_SCHEMA_VERSION: u32 = 7;
+pub const PROJECT_SCHEMA_VERSION: u32 = 8;
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -131,6 +131,139 @@ pub struct SubtitleItem {
     pub text: String,
 }
 
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum MultiCamSyncMode {
+    #[default]
+    Timecode,
+    AudioWaveform,
+    Marker,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct MultiCamAngle {
+    pub id: u64,
+    pub name: String,
+    pub media_id: u64,
+    #[serde(default)]
+    pub sync_offset_ticks: Tick,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct MultiCamClip {
+    pub id: u64,
+    pub name: String,
+    pub angles: Vec<MultiCamAngle>,
+    pub active_angle_id: u64,
+    #[serde(default)]
+    pub sync_mode: MultiCamSyncMode,
+}
+
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BusTarget {
+    #[default]
+    Master,
+    Submix1,
+    Submix2,
+    AuxFx,
+}
+
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum AutomationMode {
+    #[default]
+    Off,
+    Read,
+    Touch,
+    Latch,
+    Write,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct AutomationPoint {
+    pub time: Tick,
+    pub value: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct TrackAutomation {
+    #[serde(default)]
+    pub mode: AutomationMode,
+    #[serde(default)]
+    pub volume_points: Vec<AutomationPoint>,
+    #[serde(default)]
+    pub pan_points: Vec<AutomationPoint>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct AudioPluginInstance {
+    pub id: u64,
+    pub name: String,
+    #[serde(default = "default_plugin_format")]
+    pub plugin_format: String,
+    #[serde(default = "default_plugin_enabled")]
+    pub enabled: bool,
+    #[serde(default)]
+    pub preset: String,
+    #[serde(default)]
+    pub params: std::collections::HashMap<String, f64>,
+}
+
+fn default_plugin_format() -> String { "builtin".into() }
+fn default_plugin_enabled() -> bool { true }
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct AudioBus {
+    pub target: BusTarget,
+    pub name: String,
+    #[serde(default)]
+    pub gain_db: f64,
+    #[serde(default)]
+    pub muted: bool,
+    #[serde(default)]
+    pub solo: bool,
+    #[serde(default)]
+    pub processing: TrackAudioProcessing,
+}
+
+pub fn default_audio_buses() -> Vec<AudioBus> {
+    vec![
+        AudioBus {
+            target: BusTarget::Master,
+            name: "Master Out".into(),
+            gain_db: 0.0,
+            muted: false,
+            solo: false,
+            processing: TrackAudioProcessing::default(),
+        },
+        AudioBus {
+            target: BusTarget::Submix1,
+            name: "Submix 1 (Dialogue)".into(),
+            gain_db: 0.0,
+            muted: false,
+            solo: false,
+            processing: TrackAudioProcessing::default(),
+        },
+        AudioBus {
+            target: BusTarget::Submix2,
+            name: "Submix 2 (Music)".into(),
+            gain_db: 0.0,
+            muted: false,
+            solo: false,
+            processing: TrackAudioProcessing::default(),
+        },
+        AudioBus {
+            target: BusTarget::AuxFx,
+            name: "Aux FX (Reverb)".into(),
+            gain_db: 0.0,
+            muted: false,
+            solo: false,
+            processing: TrackAudioProcessing::default(),
+        },
+    ]
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sequence {
     pub name: String,
@@ -141,6 +274,10 @@ pub struct Sequence {
     pub mark_out: Option<Tick>,
     #[serde(default)]
     pub subtitles: Vec<SubtitleItem>,
+    #[serde(default)]
+    pub multicam_clips: Vec<MultiCamClip>,
+    #[serde(default = "default_audio_buses")]
+    pub buses: Vec<AudioBus>,
 }
 
 impl Sequence {
@@ -216,6 +353,41 @@ impl Default for TrackAudioProcessing {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TrackingMode {
+    #[default]
+    Transform,
+    Stabilize,
+    Pin,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct TrackPoint {
+    pub time: Tick,
+    pub x: f64,
+    pub y: f64,
+    #[serde(default = "default_track_confidence")]
+    pub confidence: f64,
+}
+
+fn default_track_confidence() -> f64 { 1.0 }
+fn default_smoothness() -> f64 { 0.5 }
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct MotionTrackingData {
+    pub id: u64,
+    pub name: String,
+    #[serde(default)]
+    pub mode: TrackingMode,
+    #[serde(default)]
+    pub points: Vec<TrackPoint>,
+    #[serde(default)]
+    pub pinned_clip_id: Option<u64>,
+    #[serde(default = "default_smoothness")]
+    pub smoothness: f64,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Track {
     pub id: u64,
@@ -233,6 +405,12 @@ pub struct Track {
     pub locked: bool,
     #[serde(default)]
     pub audio_processing: TrackAudioProcessing,
+    #[serde(default)]
+    pub bus: BusTarget,
+    #[serde(default)]
+    pub automation: TrackAutomation,
+    #[serde(default)]
+    pub plugins: Vec<AudioPluginInstance>,
     pub clips: Vec<Clip>,
     #[serde(default)]
     pub transitions: Vec<Transition>,
@@ -283,6 +461,12 @@ pub struct Clip {
     pub effects: Vec<EffectInstance>,
     #[serde(default)]
     pub keyframes: Vec<Keyframe>,
+    #[serde(default)]
+    pub multicam_id: Option<u64>,
+    #[serde(default)]
+    pub multicam_angle_id: Option<u64>,
+    #[serde(default)]
+    pub tracking: Option<MotionTrackingData>,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -296,6 +480,30 @@ pub enum EffectKind {
     Lut,
 }
 
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct ColorWheelParam {
+    #[serde(default)]
+    pub red: f64,
+    #[serde(default)]
+    pub green: f64,
+    #[serde(default)]
+    pub blue: f64,
+    #[serde(default)]
+    pub luma: f64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct ColorWheels {
+    #[serde(default)]
+    pub lift: ColorWheelParam,
+    #[serde(default)]
+    pub gamma: ColorWheelParam,
+    #[serde(default)]
+    pub gain: ColorWheelParam,
+    #[serde(default)]
+    pub offset: ColorWheelParam,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct ColorCorrectionParams {
     #[serde(default = "default_exposure")]
@@ -306,6 +514,8 @@ pub struct ColorCorrectionParams {
     pub saturation: f64,
     #[serde(default)]
     pub hue: f64,
+    #[serde(default)]
+    pub wheels: ColorWheels,
 }
 
 fn default_exposure() -> f64 { 0.0 }
@@ -319,6 +529,7 @@ impl Default for ColorCorrectionParams {
             contrast: 1.0,
             saturation: 1.0,
             hue: 0.0,
+            wheels: ColorWheels::default(),
         }
     }
 }
@@ -520,11 +731,16 @@ impl EffectInstance {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(default)]
 pub struct ColorAdjustments {
+    #[serde(default)]
     pub exposure: f64,
+    #[serde(default = "default_contrast")]
     pub contrast: f64,
+    #[serde(default = "default_saturation")]
     pub saturation: f64,
     #[serde(default)]
     pub hue: f64,
+    #[serde(default)]
+    pub wheels: ColorWheels,
 }
 
 impl Default for ColorAdjustments {
@@ -534,6 +750,7 @@ impl Default for ColorAdjustments {
             contrast: 1.0,
             saturation: 1.0,
             hue: 0.0,
+            wheels: ColorWheels::default(),
         }
     }
 }
@@ -628,6 +845,8 @@ impl ProjectDocument {
                     mark_in: None,
                     mark_out: None,
                     subtitles: Vec::new(),
+                    multicam_clips: Vec::new(),
+                    buses: default_audio_buses(),
                     tracks: vec![
                         Track {
                             id: 1,
@@ -639,6 +858,9 @@ impl ProjectDocument {
                             solo: false,
                             locked: false,
                             audio_processing: TrackAudioProcessing::default(),
+                            bus: BusTarget::Master,
+                            automation: TrackAutomation::default(),
+                            plugins: Vec::new(),
                             clips: Vec::new(),
                             transitions: Vec::new(),
                         },
@@ -652,6 +874,9 @@ impl ProjectDocument {
                             solo: false,
                             locked: false,
                             audio_processing: TrackAudioProcessing::default(),
+                            bus: BusTarget::Master,
+                            automation: TrackAutomation::default(),
+                            plugins: Vec::new(),
                             clips: Vec::new(),
                             transitions: Vec::new(),
                         },
@@ -886,7 +1111,7 @@ fn migrate_project(value: &mut serde_json::Value) -> Result<(), String> {
             });
             migrate_project(value)
         }
-        2 | 3 | 4 | 5 | 6 => {
+        2 | 3 | 4 | 5 | 6 | 7 => {
             value
                 .as_object_mut()
                 .ok_or_else(|| "Project root must be an object".to_string())?
@@ -976,6 +1201,9 @@ mod tests {
             color: Default::default(),
             effects: Vec::new(),
             keyframes: Vec::new(),
+            multicam_id: None,
+            multicam_angle_id: None,
+            tracking: None,
         });
         video_track.clips.push(Clip {
             media_id: 2,
@@ -987,6 +1215,9 @@ mod tests {
             color: Default::default(),
             effects: Vec::new(),
             keyframes: Vec::new(),
+            multicam_id: None,
+            multicam_angle_id: None,
+            tracking: None,
         });
         video_track.transitions.push(Transition {
             id: 1,
@@ -1033,6 +1264,9 @@ mod tests {
             color: Default::default(),
             effects: Vec::new(),
             keyframes: Vec::new(),
+            multicam_id: None,
+            multicam_angle_id: None,
+            tracking: None,
         };
 
         clip.effects.push(EffectInstance::new_color_correction(
@@ -1042,6 +1276,7 @@ mod tests {
                 contrast: 1.1,
                 saturation: 1.2,
                 hue: 0.05,
+                wheels: ColorWheels::default(),
             },
         ));
         clip.effects.push(EffectInstance::new_gaussian_blur(
@@ -1103,6 +1338,9 @@ mod tests {
             solo: false,
             locked: false,
             audio_processing: TrackAudioProcessing::default(),
+            bus: BusTarget::Master,
+            automation: TrackAutomation::default(),
+            plugins: Vec::new(),
             clips: Vec::new(),
             transitions: Vec::new(),
         };
@@ -1117,6 +1355,9 @@ mod tests {
             solo: false,
             locked: false,
             audio_processing: TrackAudioProcessing::default(),
+            bus: BusTarget::Master,
+            automation: TrackAutomation::default(),
+            plugins: Vec::new(),
             clips: Vec::new(),
             transitions: Vec::new(),
         };
