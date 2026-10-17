@@ -1932,3 +1932,140 @@ fn timeline_interop_edl_fcpxml_premiere_workflow_with_undo() {
 
 
 
+
+#[test]
+fn nested_sequences_and_compound_clips_workflow() {
+    let mut engine = EditorEngine::default();
+    let res = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "a-roll.mp4",
+                "path": "/media/a-roll.mp4",
+                "kind": "video",
+                "duration": 20 * TICKS_PER_SECOND
+            }),
+        ))
+        .unwrap();
+    let media_id = res["media_id"].as_u64().unwrap();
+    let v_track_id = engine.document().project.sequence.tracks[0].id;
+
+    // Add 2 clips to V1: [0s to 4s], [4s to 10s]
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": v_track_id,
+                "media_id": media_id,
+                "timeline_start": 0,
+                "source_in": 0,
+                "duration": 4 * TICKS_PER_SECOND
+            }),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": v_track_id,
+                "media_id": media_id,
+                "timeline_start": 4 * TICKS_PER_SECOND,
+                "source_in": 0,
+                "duration": 6 * TICKS_PER_SECOND
+            }),
+        ))
+        .unwrap();
+
+    assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 2);
+
+    // 1. Create Compound Clip grouping both clips
+    let compound_res = engine
+        .execute(CommandRequest::new(
+            "timeline.create_compound_clip",
+            json!({
+                "name": "Interview Sequence Compound",
+                "target_track_id": v_track_id,
+                "clips": [
+                    {"track_id": v_track_id, "clip_index": 0},
+                    {"track_id": v_track_id, "clip_index": 1}
+                ]
+            }),
+        ))
+        .unwrap();
+
+    let compound_media_id = compound_res["compound_media_id"].as_u64().unwrap();
+    let nested_seq_id = compound_res["sequence_id"].as_u64().unwrap();
+    assert_eq!(compound_res["duration"].as_i64().unwrap(), 10 * TICKS_PER_SECOND);
+
+    // Active sequence track V1 now has 1 single compound clip spanning 10s
+    let v_track = &engine.document().project.sequence.tracks[0];
+    assert_eq!(v_track.clips.len(), 1);
+    assert_eq!(v_track.clips[0].media_id, compound_media_id);
+    assert_eq!(v_track.clips[0].duration.0, 10 * TICKS_PER_SECOND);
+    assert_eq!(v_track.clips[0].compound_sequence_id, Some(compound_media_id));
+
+    // Project sequences list contains the nested sequence
+    assert_eq!(engine.document().project.sequences.len(), 1);
+    assert_eq!(engine.document().project.sequences[0].id, nested_seq_id);
+    assert_eq!(engine.document().project.sequences[0].name, "Interview Sequence Compound");
+
+    // Media asset created
+    let compound_media = engine.document().project.media.iter().find(|m| m.id == compound_media_id).unwrap();
+    assert_eq!(compound_media.kind, saturn_core::project::MediaKind::CompoundSequence);
+    assert!(compound_media.nested_sequence.is_some());
+
+    // 2. Switch Sequence into the nested sequence
+    let switch_res = engine
+        .execute(CommandRequest::new(
+            "project.switch_sequence",
+            json!({ "sequence_id": nested_seq_id }),
+        ))
+        .unwrap();
+    assert_eq!(switch_res["switched"], true);
+    assert_eq!(engine.document().project.sequence.id, nested_seq_id);
+    assert_eq!(engine.document().project.sequence.name, "Interview Sequence Compound");
+    // Inside the nested sequence, there are 2 clips
+    assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 2);
+
+    // Switch back to root sequence
+    let root_seq_id = engine.document().project.sequences[0].id;
+    let switch_back_res = engine
+        .execute(CommandRequest::new(
+            "project.switch_sequence",
+            json!({ "sequence_id": root_seq_id }),
+        ))
+        .unwrap();
+    assert_eq!(switch_back_res["switched"], true);
+    assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 1);
+
+    // 3. Decompose Compound Clip in Place
+    let decomp_res = engine
+        .execute(CommandRequest::new(
+            "timeline.decompose_compound_clip",
+            json!({ "track_id": v_track_id, "clip_index": 0 }),
+        ))
+        .unwrap();
+    assert_eq!(decomp_res["decomposed"], true);
+    assert_eq!(decomp_res["unpacked_clips_count"], 2);
+
+    // Timeline tracks now have the unpacked 2 clips restored
+    let restored_v_track = &engine.document().project.sequence.tracks[0];
+    assert_eq!(restored_v_track.clips.len(), 2);
+    assert_eq!(restored_v_track.clips[0].timeline_start.0, 0);
+    assert_eq!(restored_v_track.clips[0].duration.0, 4 * TICKS_PER_SECOND);
+    assert_eq!(restored_v_track.clips[1].timeline_start.0, 4 * TICKS_PER_SECOND);
+    assert_eq!(restored_v_track.clips[1].duration.0, 6 * TICKS_PER_SECOND);
+
+    // 4. Undo decomposition -> restores compound clip
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 1);
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].compound_sequence_id, Some(compound_media_id));
+
+    // Redo decomposition -> expands again
+    engine
+        .execute(CommandRequest::new("edit.redo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 2);
+}

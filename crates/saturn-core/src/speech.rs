@@ -595,9 +595,11 @@ mod tests {
             node_graph: None,
             speed_ramp: None,
             motion_blur: None,
+            compound_sequence_id: None,
         };
 
         let mut seq = Sequence {
+            id: 1,
             name: "Main".to_string(),
             tracks: vec![Track {
                 id: 1,

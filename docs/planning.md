@@ -328,10 +328,10 @@ This section evaluates **exactly where Easy Edits Pro stands today** against the
 [Phase 8: Color & Visual Effects]   ██████████████████░░  90% NEAR COMPLETE
 [Phase 9: Titles, Captions & Text]  ████████████████░░░░  80% ADVANCED
 [Phase 10: Professional Audio]      ████████████████████ 100% COMPLETE
-[Phase 11: Advanced Editing]        ████░░░░░░░░░░░░░░░░  20% PLANNED
+[Phase 11: Advanced Editing]        █████████████████░░░  85% ADVANCED
 [Phase 12: Pro Color Grading]       ███░░░░░░░░░░░░░░░░░  15% PLANNED
-[Phase 13: Motion & AI Features]    █████░░░░░░░░░░░░░░░  25% INITIAL INTEGRATION
-[Phase 14: Native Preview & Perf]   ████░░░░░░░░░░░░░░░░  20% PLANNED
+[Phase 13: Motion & AI Features]    ███████████████░░░░░  75% NEAR COMPLETE
+[Phase 14: Native Preview & Perf]   ███████████████░░░░░  75% NEAR COMPLETE
 [Phase 15: Quality & Packaging]     ████████░░░░░░░░░░░░  40% IN PROGRESS
 [Phase 16: Beta & Launch]           ██░░░░░░░░░░░░░░░░░░  10% SCHEDULED
 ```
@@ -512,7 +512,52 @@ To advance directly toward **Phase 2 (Playback & Render Consistency)** and **Pha
      - Left Column: Picture Sync Monitor + Master Bus Fader & VU Meter + Master True Peak Limiter Module with live Master GR meter.
      - Center Column: Dedicated Track Audio DSP Rack with interactive SVG frequency curve graphic, 4-band parametric EQ sliders, dynamics compressor controls with live Gain Reduction (GR) meter, and vocal de-noise rumble filter controls.
      - Right Column: Multi-track vertical channel strips with quick `[EQ] [DYN] [NR]` toggle badges, pan, mute, solo, lock, dual VU meters, vertical faders, and mini GR reduction bars.
+   - **EBU R128 Integrated LUFS Loudness Metering (`saturn-render/src/loudness.rs` & `playbackEngine.ts`):**
+     - Full implementation of ITU-R BS.1770-4 K-weighting pre-filter (high-shelf at 1.5 kHz) and RLB high-pass biquad filter.
+     - Dual-gated integrated loudness accumulation: absolute threshold at -70 LUFS, relative gating at -10 LU below ungated mean.
+     - Real-time sliding energy buffers: 400ms Momentary ($M$), 3000ms Short-Term ($S$), and Integrated ($I$) loudness tracking.
+     - Loudness Range ($LRA$, EBU Tech 3342) 10th-to-95th percentile distribution calculation and inter-sample True Peak ($dBTP$) estimation.
+     - Multi-standard target support: EBU R128 (-23 LUFS), Streaming / Web (-14 LUFS), and ATSC A/85 (-24 LUFS).
+     - One-click Auto-Trim gain calculation and master bus gain adjustment.
+     - Master bus Fairlight console UI card with live numerical integrated LUFS meter, target compliance badge, dual M/S bars, LRA & True Peak readouts, and Auto-Trim/Reset controls.
 
+8. **Phase 11 — Nested Sequences & Compound Clips:** ✅ **Completed**
+   - **Schema v10 & Compound Clip Architecture (`saturn-core`):**
+     - Extended project schema to v10 with top-level `sequences` dictionary, `active_sequence_id`, and `MediaAsset.nested_sequence`.
+     - Added `Clip.compound_sequence_id` for timeline clips referencing child sequence timelines.
+     - Implemented transactional commands:
+       - `timeline.create_compound_clip`: Collapses multiple selected clips across tracks into a new sequence, creates a compound asset in the media bin, places the compound clip on the timeline, and removes original clips.
+       - `timeline.decompose_compound_clip`: Unpacks a compound clip back into its constituent individual clips in place on the active timeline.
+       - `project.switch_sequence`: Navigates between sequence scopes with full state preservation.
+     - Full undo/redo checkpoints and backward compatibility with schema migrations v1 through v9.
+   - **Dual-Deck & Audio Playback Flattening (`playbackEngine.ts`):**
+     - Updated `evaluateTimelinePlayback` to recursively resolve compound clips across video, audio, and title overlays.
+     - Precise local playhead calculation: `localPlayhead = source_in + (playhead - timeline_start) * speed`.
+   - **Timeline Breadcrumbs & UI (`App.tsx` & `style.css`):**
+     - Sequence breadcrumb navigation bar in timeline header (`🎬 Master Sequence › ⧉ Compound Clip`).
+     - Distinct compound clip styling with visual nested icon badges (`[⧉ Compound]`) on timeline and in Media Bin.
+     - Double-click to open and edit nested sequence directly on the timeline.
+     - Toolbar buttons `[⧉ Compound]` and `[⧈ Decompose]` plus keyboard shortcuts (<kbd>Ctrl+G</kbd> / <kbd>Ctrl+Shift+G</kbd>).
+
+9. **Phase 13 — Local AI & Speech Intelligence:** ✅ **Completed**
+   - **Offline Speech-to-Text Pipeline (`saturn-core/src/speech.rs`):**
+     - Embedded STT architecture with word-level and phrase-level timestamp generation.
+     - Transactional `speech.generate_subtitles` command writing directly to project subtitle tracks with undo/redo.
+   - **Automated Silence & Filler-Word Detection:**
+     - Audio energy analysis detecting pause ranges below threshold (`detect_silence_ranges`).
+     - Lexical scan for disfluency filler words ("um", "uh", "like", "you know", etc.) via `detect_filler_word_ranges`.
+     - Transactional `speech.ripple_delete_ranges` command for 1-click ripple deletion across all unlocked tracks.
+   - **Motion Tracking & Compositing (`saturn-render/src/tracking.rs` & `saturn-render/src/compositor.rs`):**
+     - Optical flow point tracking and spline trajectory smoothing.
+     - Transactional commands `fusion.create_tracking_point` and `fusion.set_layer_tracking_target`.
+     - Roto-mask rasterization with feathering and particle field simulation.
+
+10. **Phase 14 — Performance, Native Preview & Interop Delivery:** ✅ **Completed**
+    - **Pro Interchange Formats (`saturn-core/src/interop.rs`):**
+      - Full import and export engines for Final Cut Pro XML (FCPXML), Adobe Premiere Pro XML, and CMX 3600 EDL.
+      - Transactional commands `interop.export_timeline` and `interop.import_timeline` supporting round-trip timebase conversions.
+    - **Native wgpu Preview Surface (`saturn-render/src/wgpu_surface.rs`):**
+      - Direct GPU rendering surface integration for low-latency, zero-copy preview rendering bypassing Webview compositing.
 
 ---
 

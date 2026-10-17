@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 pub const PROJECT_FORMAT: &str = "project-saturn.project";
-pub const PROJECT_SCHEMA_VERSION: u32 = 9;
+pub const PROJECT_SCHEMA_VERSION: u32 = 10;
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -25,6 +25,8 @@ pub struct Project {
     pub settings: ProjectSettings,
     pub media: Vec<MediaAsset>,
     pub sequence: Sequence,
+    #[serde(default)]
+    pub sequences: Vec<Sequence>,
     pub next_id: u64,
     #[serde(default)]
     pub collaboration: CollaborationState,
@@ -45,6 +47,7 @@ pub enum MediaKind {
     Audio,
     Image,
     Title,
+    CompoundSequence,
     #[default]
     Unknown,
 }
@@ -102,6 +105,8 @@ pub struct MediaAsset {
     pub title: Option<TitleProperties>,
     #[serde(default)]
     pub waveform: Option<Vec<u8>>,
+    #[serde(default)]
+    pub nested_sequence: Option<Sequence>,
 }
 
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -445,6 +450,8 @@ impl Default for CollaborationState {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sequence {
+    #[serde(default = "default_sequence_id")]
+    pub id: u64,
     pub name: String,
     pub tracks: Vec<Track>,
     #[serde(default)]
@@ -459,6 +466,10 @@ pub struct Sequence {
     pub buses: Vec<AudioBus>,
     #[serde(default)]
     pub node_graph: Option<NodeGraph>,
+}
+
+fn default_sequence_id() -> u64 {
+    1
 }
 
 impl Sequence {
@@ -654,6 +665,8 @@ pub struct Clip {
     pub speed_ramp: Option<SpeedRamp>,
     #[serde(default)]
     pub motion_blur: Option<MotionBlurParams>,
+    #[serde(default)]
+    pub compound_sequence_id: Option<u64>,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -1028,6 +1041,7 @@ impl ProjectDocument {
                 },
                 media: Vec::new(),
                 sequence: Sequence {
+                    id: 1,
                     name: "Sequence 1".into(),
                     mark_in: None,
                     mark_out: None,
@@ -1070,6 +1084,7 @@ impl ProjectDocument {
                         },
                     ],
                 },
+                sequences: Vec::new(),
                 next_id: 3,
                 collaboration: CollaborationState::default(),
             },
@@ -1300,7 +1315,7 @@ fn migrate_project(value: &mut serde_json::Value) -> Result<(), String> {
             });
             migrate_project(value)
         }
-        2 | 3 | 4 | 5 | 6 | 7 | 8 => {
+        2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 => {
             value
                 .as_object_mut()
                 .ok_or_else(|| "Project root must be an object".to_string())?
@@ -1316,6 +1331,18 @@ fn migrate_project(value: &mut serde_json::Value) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn v9_project_migrates_to_v10_schema() {
+        let mut legacy = serde_json::to_value(ProjectDocument::new("V9 project")).unwrap();
+        legacy["schema_version"] = 9.into();
+        legacy["project"].as_object_mut().unwrap().remove("sequences");
+        migrate_project(&mut legacy).unwrap();
+        let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
+        assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
+        assert!(loaded.project.sequences.is_empty());
+        assert_eq!(loaded.project.sequence.id, 1);
+    }
 
     #[test]
     fn v1_project_migrates_to_current_schema() {
@@ -1378,6 +1405,7 @@ mod tests {
             height: Some(1080),
             title: None,
             waveform: None,
+            nested_sequence: None,
         });
         doc.save_atomic(&path).unwrap();
         let loaded = ProjectDocument::load(&path).unwrap();
@@ -1408,6 +1436,7 @@ mod tests {
             node_graph: None,
             speed_ramp: None,
             motion_blur: None,
+            compound_sequence_id: None,
         });
         video_track.clips.push(Clip {
             media_id: 2,
@@ -1425,6 +1454,7 @@ mod tests {
             node_graph: None,
             speed_ramp: None,
             motion_blur: None,
+            compound_sequence_id: None,
         });
         video_track.transitions.push(Transition {
             id: 1,
@@ -1477,6 +1507,7 @@ mod tests {
             node_graph: None,
             speed_ramp: None,
             motion_blur: None,
+            compound_sequence_id: None,
         };
 
         clip.effects.push(EffectInstance::new_color_correction(

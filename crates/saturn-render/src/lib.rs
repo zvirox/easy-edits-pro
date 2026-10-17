@@ -10,6 +10,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 pub mod compositor;
+pub mod loudness;
 pub mod lut;
 pub mod multicam;
 pub mod speedramp;
@@ -18,6 +19,9 @@ pub mod wgpu_surface;
 pub mod wheels;
 
 pub use compositor::{BlendMode, Particle, ParticleEmitter, merge_alpha_over_rgba, rasterize_roto_mask, simulate_particle_field};
+pub use loudness::{
+    analyze_pcm_loudness, EbuR128Meter, LoudnessReport, LoudnessStandard,
+};
 pub use lut::{Lut3D, Lut3DInfo};
 pub use multicam::sync_waveforms_by_correlation;
 pub use speedramp::{apply_motion_blur_synthesis, blend_bidirectional_optical_flow, interpolate_speed_ramp};

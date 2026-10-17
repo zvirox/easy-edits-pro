@@ -149,6 +149,7 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
                         height: Some(1080),
                         title: None,
                         waveform: None,
+                        nested_sequence: None,
                     });
                     id
                 };
@@ -169,6 +170,7 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
                     node_graph: None,
                     speed_ramp: None,
                     motion_blur: None,
+                    compound_sequence_id: None,
                 };
 
                 if track_type.starts_with('V') {
@@ -335,6 +337,7 @@ pub fn import_fcpxml(xml: &str) -> Result<ProjectDocument, String> {
                     height: Some(1080),
                     title: None,
                     waveform: None,
+                    nested_sequence: None,
                 });
             }
         } else if trimmed.starts_with("<asset-clip ") {
@@ -365,6 +368,7 @@ pub fn import_fcpxml(xml: &str) -> Result<ProjectDocument, String> {
                     node_graph: None,
                     speed_ramp: None,
                     motion_blur: None,
+                    compound_sequence_id: None,
                 });
             }
         }
@@ -515,6 +519,7 @@ pub fn import_premiere_xml(xml: &str) -> Result<ProjectDocument, String> {
             height: Some(1080),
             title: None,
             waveform: None,
+            nested_sequence: None,
         });
 
         clips.push(Clip {
@@ -533,6 +538,7 @@ pub fn import_premiere_xml(xml: &str) -> Result<ProjectDocument, String> {
             node_graph: None,
             speed_ramp: None,
             motion_blur: None,
+            compound_sequence_id: None,
         });
     }
 
@@ -621,6 +627,7 @@ mod tests {
             node_graph: None,
             speed_ramp: None,
             motion_blur: None,
+            compound_sequence_id: None,
         };
 
         let mut doc = ProjectDocument::new("Test Interop");
@@ -635,6 +642,7 @@ mod tests {
             height: Some(1080),
             title: None,
             waveform: None,
+            nested_sequence: None,
         }];
         doc.project.sequence.name = "Main Sequence".to_string();
         doc.project.sequence.tracks = vec![Track {

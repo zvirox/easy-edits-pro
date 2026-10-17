@@ -579,6 +579,27 @@ pub const COMMANDS: &[CommandSpec] = &[
         shortcut: None,
         mutating: true,
     },
+    CommandSpec {
+        id: "timeline.create_compound_clip",
+        label: "Create Compound Clip",
+        menu: &["Clip", "Compound"],
+        shortcut: Some("Ctrl+G"),
+        mutating: true,
+    },
+    CommandSpec {
+        id: "timeline.decompose_compound_clip",
+        label: "Decompose Compound Clip in Place",
+        menu: &["Clip", "Compound"],
+        shortcut: Some("Ctrl+Shift+G"),
+        mutating: true,
+    },
+    CommandSpec {
+        id: "project.switch_sequence",
+        label: "Switch Active Sequence",
+        menu: &["Sequence"],
+        shortcut: None,
+        mutating: true,
+    },
 ];
 
 pub fn command_catalogue() -> &'static [CommandSpec] {

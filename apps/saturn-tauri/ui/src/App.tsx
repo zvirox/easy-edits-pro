@@ -74,7 +74,7 @@ type Workspace = "edit" | "color" | "effects" | "audio" | "keyframes" | "export"
 type TimelineTool = "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "pen" | "hand" | "zoom";
 type DavinciWorkspace = "media" | "edit" | "fusion" | "color" | "audio" | "effects" | "keyframes" | "deliver";
 type FilmoraTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
-type MediaKind = "video" | "audio" | "image" | "title" | "unknown";
+type MediaKind = "video" | "audio" | "image" | "title" | "compound_sequence" | "unknown";
 type TitleProperties = {
   text: string;
   subtitle?: string | null;
@@ -98,6 +98,17 @@ type Transition = {
   cut_at: number;
   duration: number;
 };
+type Sequence = {
+  id?: number;
+  name: string;
+  tracks: Track[];
+  mark_in: number | null;
+  mark_out: number | null;
+  subtitles?: SubtitleItem[];
+  multicam_clips?: MultiCamClip[];
+  buses?: AudioBus[];
+  node_graph?: NodeGraph | null;
+};
 type MediaAsset = {
   id: number;
   name: string;
@@ -108,6 +119,7 @@ type MediaAsset = {
   height: number | null;
   title?: TitleProperties | null;
   waveform?: number[] | null;
+  nested_sequence?: Sequence | null;
 };
 type BackendColorWheels = {
   lift: { red: number; green: number; blue: number; luma: number };
@@ -138,6 +150,7 @@ type Clip = {
   speed_ramp?: SpeedRamp | null;
   motion_blur?: MotionBlurParams | null;
   node_graph?: NodeGraph | null;
+  compound_sequence_id?: number | null;
 };
 type Track = {
   id: number;
@@ -162,20 +175,23 @@ interface HardwareEncoderInfo {
   description: string;
   availableEncoders: string[];
 }
+type LoudnessStandard = "ebu_r128" | "streaming" | "atsc_a85";
+type LoudnessReport = {
+  momentaryLufs: number;
+  shortTermLufs: number;
+  integratedLufs: number;
+  loudnessRangeLu: number;
+  truePeakDbtp: number;
+  targetLufs: number;
+  isCompliant: boolean;
+  gainRecommendationDb: number;
+};
 type ProjectDocument = {
   project: {
     name: string;
     media: MediaAsset[];
-    sequence: {
-      name: string;
-      tracks: Track[];
-      mark_in: number | null;
-      mark_out: number | null;
-      subtitles?: SubtitleItem[];
-      multicam_clips?: MultiCamClip[];
-      buses?: AudioBus[];
-      node_graph?: NodeGraph | null;
-    };
+    sequence: Sequence;
+    sequences?: Sequence[];
     collaboration?: CollaborationState;
     settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
   };
@@ -780,6 +796,23 @@ function App() {
   const [interopContent, setInteropContent] = useState("");
   const [isInteropBusy, setIsInteropBusy] = useState(false);
 
+  // Option B: Nested Sequences / Compound Clips
+  const [compoundClipModalOpen, setCompoundClipModalOpen] = useState(false);
+  const [compoundClipNameDraft, setCompoundClipNameDraft] = useState("");
+
+  // Option C: EBU R128 Master Bus Loudness Compliance
+  const [loudnessStandard, setLoudnessStandard] = useState<LoudnessStandard>("ebu_r128");
+  const [loudnessReport, setLoudnessReport] = useState<LoudnessReport>({
+    momentaryLufs: -70,
+    shortTermLufs: -70,
+    integratedLufs: -70,
+    loudnessRangeLu: 0,
+    truePeakDbtp: -60,
+    targetLufs: -23,
+    isCompliant: false,
+    gainRecommendationDb: 0,
+  });
+
   const [gpuTelemetryOpen, setGpuTelemetryOpen] = useState(false);
   const [gpuMetrics, setGpuMetrics] = useState<PresentationMetrics | null>(null);
   const [deliverDestination, setDeliverDestination] = useState<"render" | "interop">("render");
@@ -897,6 +930,7 @@ function App() {
           setTrackGr(nextGr);
           setMasterVu(audioClockMaster.getMasterLevels());
           setMasterGr(audioClockMaster.getMasterGainReduction());
+          setLoudnessReport(audioClockMaster.getLoudnessReport(loudnessStandard));
         }
       }
       animId = requestAnimationFrame(pollMeters);
@@ -907,7 +941,7 @@ function App() {
       active = false;
       cancelAnimationFrame(animId);
     };
-  }, [workspace, davinciWorkspace, programPlaying, project]);
+  }, [workspace, davinciWorkspace, programPlaying, project, loudnessStandard]);
   const media = project?.media ?? [];
   const visibleMedia = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -2710,6 +2744,60 @@ function App() {
     await perform("timeline.unlink_clips", { clips: targets }, "Clips unlinked");
   }
 
+  async function createCompoundClip(customName?: string) {
+    if (!project) return;
+    const targets = selectedClips.length > 0 ? selectedClips : (selectedClip ? [selectedClip] : []);
+    if (targets.length === 0) {
+      setNotice("Select one or more clips to create a Compound Clip");
+      return;
+    }
+    const name = customName?.trim() || `Compound Clip ${(project.sequences?.length ?? 1) + 1}`;
+    const ok = await perform("timeline.create_compound_clip", { name, clips: targets }, `Created Compound Clip "${name}"`);
+    if (ok) {
+      setSelectedClip(null);
+      setSelectedClips([]);
+    }
+  }
+
+  async function decomposeSelectedCompoundClip() {
+    if (!selectedClip) {
+      setNotice("Select a Compound Clip on the timeline to decompose");
+      return;
+    }
+    const ok = await perform(
+      "timeline.decompose_compound_clip",
+      { track_id: selectedClip.track_id, clip_index: selectedClip.clip_index },
+      "Decomposed Compound Clip in place"
+    );
+    if (ok) {
+      setSelectedClip(null);
+      setSelectedClips([]);
+    }
+  }
+
+  async function switchSequence(sequenceId: number) {
+    if (!project || (project.sequence.id ?? 1) === sequenceId) return;
+    const seqName = project.sequences?.find((s) => (s.id ?? 1) === sequenceId)?.name || `Sequence #${sequenceId}`;
+    const ok = await perform("project.switch_sequence", { sequence_id: sequenceId }, `Switched to "${seqName}"`);
+    if (ok) {
+      setSelectedClip(null);
+      setSelectedClips([]);
+      seekProgramTo(0);
+    }
+  }
+
+  function autoTrimLoudness() {
+    const newGain = audioClockMaster.applyLoudnessAutoTrim(loudnessStandard);
+    setMasterGainDraft(newGain);
+    setNotice(`Master Bus auto-trimmed to ${formatDb(newGain)} for ${loudnessStandard.toUpperCase()} compliance`);
+  }
+
+  function resetLoudness() {
+    audioClockMaster.resetLoudness();
+    setLoudnessReport(audioClockMaster.getLoudnessReport(loudnessStandard));
+    setNotice("Loudness meter and integrated gates reset");
+  }
+
   async function handleTimelineClipClick(event: MouseEvent<HTMLDivElement>, trackId: number, clipIndex: number, clip: Clip) {
     if (suppressClipClick.current) {
       suppressClipClick.current = false;
@@ -3067,6 +3155,16 @@ function App() {
       case "app.quit": await getCurrentWindow().close(); break;
       case "timeline.link_clips": await linkSelectedClips(); break;
       case "timeline.unlink_clips": await unlinkSelectedClips(); break;
+      case "timeline.create_compound_clip":
+        setCompoundClipNameDraft(`Compound Clip ${(project?.sequences?.length ?? 1) + 1}`);
+        setCompoundClipModalOpen(true);
+        break;
+      case "timeline.decompose_compound_clip":
+        await decomposeSelectedCompoundClip();
+        break;
+      case "project.switch_sequence":
+        await switchSequence(1);
+        break;
       case "help.shortcuts": setNotice("Timeline tools: V Select · A Track Select Forward · C Razor · B Ripple · N Rolling · Y Slip · U Slide · X Rate Stretch · P Keyframe · H Hand · S Snap · Ctrl+L Link · Ctrl+Shift+L Unlink"); break;
       case "help.about": setNotice("Easy Edits Pro · Open source Linux video editor"); break;
       default:
@@ -5120,6 +5218,152 @@ function App() {
                       style={{ width: `${Math.min(100, Math.max(0, -masterGr * 5))}%` }}
                     />
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* EBU R128 Broadcast Loudness Meter & Auto-Trim (Option C) */}
+            <div className="audio-master-loudness-card">
+              <div className="loudness-card-header">
+                <div className="loudness-title">
+                  <strong>EBU R128 LOUDNESS METER</strong>
+                  <span className="loudness-badge">ITU-R BS.1770-4</span>
+                </div>
+                <div className="loudness-standard-tabs">
+                  <button
+                    type="button"
+                    className={`loudness-tab-btn ${loudnessStandard === "ebu_r128" ? "active" : ""}`}
+                    onClick={() => {
+                      setLoudnessStandard("ebu_r128");
+                      audioClockMaster.setLoudnessStandard("ebu_r128");
+                    }}
+                    title="EBU R128: -23.0 LUFS, Max TP -1.0 dBTP"
+                  >
+                    EBU R128
+                  </button>
+                  <button
+                    type="button"
+                    className={`loudness-tab-btn ${loudnessStandard === "streaming" ? "active" : ""}`}
+                    onClick={() => {
+                      setLoudnessStandard("streaming");
+                      audioClockMaster.setLoudnessStandard("streaming");
+                    }}
+                    title="Streaming: -14.0 LUFS (YouTube, Spotify, Apple)"
+                  >
+                    Streaming (-14)
+                  </button>
+                  <button
+                    type="button"
+                    className={`loudness-tab-btn ${loudnessStandard === "atsc_a85" ? "active" : ""}`}
+                    onClick={() => {
+                      setLoudnessStandard("atsc_a85");
+                      audioClockMaster.setLoudnessStandard("atsc_a85");
+                    }}
+                    title="ATSC A/85: -24.0 LUFS, Max TP -2.0 dBTP"
+                  >
+                    ATSC A/85
+                  </button>
+                </div>
+              </div>
+
+              <div className="loudness-card-body">
+                {/* Big Integrated LUFS Readout + Compliance Badge */}
+                <div className="loudness-main-readout-row">
+                  <div className="integrated-display">
+                    <span className="lufs-value">
+                      {loudnessReport.integratedLufs <= -69 ? "-∞" : loudnessReport.integratedLufs.toFixed(1)}
+                    </span>
+                    <span className="lufs-unit">LUFS (Int)</span>
+                  </div>
+                  <div className="compliance-column">
+                    <span className={`compliance-badge ${loudnessReport.isCompliant ? "compliant" : loudnessReport.integratedLufs > -60 ? "non-compliant" : "standby"}`}>
+                      {loudnessReport.isCompliant ? "✓ COMPLIANT" : loudnessReport.integratedLufs > -60 ? "✕ OUT OF SPEC" : "WAITING"}
+                    </span>
+                    <span className="target-label">
+                      Target: <b>{loudnessReport.targetLufs.toFixed(1)} LUFS</b>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Momentary & Short-term Visual Bars */}
+                <div className="loudness-meters-section">
+                  <div className="loudness-meter-row">
+                    <span className="meter-label">M (400ms)</span>
+                    <div className="loudness-bar-track">
+                      <div
+                        className="loudness-bar-fill momentary"
+                        style={{ width: `${Math.max(0, Math.min(100, (loudnessReport.momentaryLufs + 60) * 2))}%` }}
+                      />
+                      <div
+                        className="loudness-target-marker"
+                        style={{ left: `${Math.max(0, Math.min(100, (loudnessReport.targetLufs + 60) * 2))}%` }}
+                        title={`Target: ${loudnessReport.targetLufs} LUFS`}
+                      />
+                    </div>
+                    <span className="meter-readout">
+                      {loudnessReport.momentaryLufs <= -69 ? "-∞" : `${loudnessReport.momentaryLufs.toFixed(1)}`}
+                    </span>
+                  </div>
+
+                  <div className="loudness-meter-row">
+                    <span className="meter-label">S (3.0s)</span>
+                    <div className="loudness-bar-track">
+                      <div
+                        className="loudness-bar-fill short-term"
+                        style={{ width: `${Math.max(0, Math.min(100, (loudnessReport.shortTermLufs + 60) * 2))}%` }}
+                      />
+                      <div
+                        className="loudness-target-marker"
+                        style={{ left: `${Math.max(0, Math.min(100, (loudnessReport.targetLufs + 60) * 2))}%` }}
+                        title={`Target: ${loudnessReport.targetLufs} LUFS`}
+                      />
+                    </div>
+                    <span className="meter-readout">
+                      {loudnessReport.shortTermLufs <= -69 ? "-∞" : `${loudnessReport.shortTermLufs.toFixed(1)}`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Secondary Metrics: LRA & True Peak & Trim */}
+                <div className="loudness-metrics-grid">
+                  <div className="metric-box">
+                    <span className="metric-title">LRA (Range)</span>
+                    <b className="metric-val">{loudnessReport.loudnessRangeLu.toFixed(1)} LU</b>
+                  </div>
+                  <div className="metric-box">
+                    <span className="metric-title">True Peak</span>
+                    <b className={`metric-val ${loudnessReport.truePeakDbtp > (loudnessStandard === "atsc_a85" ? -2.0 : -1.0) ? "tp-warn" : ""}`}>
+                      {loudnessReport.truePeakDbtp <= -59 ? "-∞" : `${loudnessReport.truePeakDbtp.toFixed(1)} dBTP`}
+                    </b>
+                  </div>
+                  <div className="metric-box">
+                    <span className="metric-title">Trim Rec</span>
+                    <b className="metric-val trim-val">
+                      {loudnessReport.gainRecommendationDb > 0 ? "+" : ""}
+                      {loudnessReport.gainRecommendationDb.toFixed(1)} dB
+                    </b>
+                  </div>
+                </div>
+
+                {/* Actions: 1-Click Auto Trim & Reset */}
+                <div className="loudness-actions-row">
+                  <button
+                    type="button"
+                    className="loudness-autotrim-btn primary"
+                    onClick={autoTrimLoudness}
+                    disabled={loudnessReport.integratedLufs <= -60 || loudnessReport.isCompliant}
+                    title="Automatically adjust Master Fader to meet compliance target"
+                  >
+                    ⚡ Auto-Trim ({loudnessReport.gainRecommendationDb > 0 ? "+" : ""}{loudnessReport.gainRecommendationDb.toFixed(1)} dB)
+                  </button>
+                  <button
+                    type="button"
+                    className="loudness-reset-btn"
+                    onClick={resetLoudness}
+                    title="Reset accumulated loudness history & gates"
+                  >
+                    ↺ Reset
+                  </button>
                 </div>
               </div>
             </div>
@@ -8181,6 +8425,17 @@ function App() {
         void linkSelectedClips();
         return;
       }
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "g") {
+        event.preventDefault();
+        void decomposeSelectedCompoundClip();
+        return;
+      }
+      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "g") {
+        event.preventDefault();
+        setCompoundClipNameDraft(`Compound Clip ${(project?.sequences?.length ?? 1) + 1}`);
+        setCompoundClipModalOpen(true);
+        return;
+      }
       if ((event.ctrlKey || event.metaKey) && event.altKey && event.key.toLowerCase() === "t") {
         event.preventDefault();
         toggleTheme();
@@ -8669,11 +8924,16 @@ function App() {
                     {visibleMedia.map((item) => (
                       <div className="media-row" key={item.id}>
                         <button
-                          className={`media-item ${selectedMediaId === item.id ? "selected" : ""} ${draggedMediaId === item.id ? "pointer-dragging" : ""}`}
+                          className={`media-item ${selectedMediaId === item.id ? "selected" : ""} ${draggedMediaId === item.id ? "pointer-dragging" : ""} ${item.kind === "compound_sequence" ? "compound-item" : ""}`}
                           onPointerDown={(event) => beginMediaPointer(event, item.id)}
                           onPointerMove={moveMediaPointer}
                           onPointerUp={(event) => void finishMediaPointer(event)}
                           onPointerCancel={cancelMediaPointer}
+                          onDoubleClick={() => {
+                            if (item.kind === "compound_sequence" && item.nested_sequence?.id) {
+                              void switchSequence(item.nested_sequence.id);
+                            }
+                          }}
                           onClick={() => {
                             if (suppressMediaClick.current) {
                               suppressMediaClick.current = false;
@@ -8683,13 +8943,15 @@ function App() {
                             setSelectedClip(null);
                             setSelectedClips([]);
                           }}
-                          data-tooltip={`Click to inspect · ${item.kind.toUpperCase()} (${item.duration ? formatTime(item.duration) : "Media"})`}
+                          data-tooltip={`Click to inspect · ${item.kind === "compound_sequence" ? "COMPOUND CLIP (Double-click to open)" : item.kind.toUpperCase()} (${item.duration ? formatTime(item.duration) : "Media"})`}
                           data-tooltip-pos="right"
                         >
-                          <Icon name="media" />
+                          <span className="media-kind-badge-icon" style={{ fontSize: "14px", marginRight: "6px" }}>
+                            {item.kind === "compound_sequence" ? "⧉" : <Icon name="media" />}
+                          </span>
                           <span>
                             <strong>{item.name}</strong>
-                            <small>{missingMediaIds.has(item.id) ? "Missing · relink required" : `${item.kind} · ${item.width && item.height ? `${item.width} × ${item.height}` : item.duration ? formatTime(item.duration) : "Ready"}`}</small>
+                            <small>{item.kind === "compound_sequence" ? "Compound Sequence (Double-click)" : missingMediaIds.has(item.id) ? "Missing · relink required" : `${item.kind} · ${item.width && item.height ? `${item.width} × ${item.height}` : item.duration ? formatTime(item.duration) : "Ready"}`}</small>
                           </span>
                         </button>
                         {missingMediaIds.has(item.id) && (
@@ -8960,7 +9222,46 @@ function App() {
             <div className="timeline-workbench">
               <div className="timeline-toolbar">
                 <div className="timeline-toolbar-start">
-                  <strong>Timeline</strong>
+                  <div className="sequence-breadcrumbs">
+                    <button
+                      type="button"
+                      className={`seq-crumb-btn ${(project?.sequence.id ?? 1) === 1 ? "active" : ""}`}
+                      onClick={() => void switchSequence(1)}
+                      title="Switch to Master Sequence"
+                    >
+                      🎬 {project?.sequences?.find((s) => (s.id ?? 1) === 1)?.name || "Master Sequence"}
+                    </button>
+                    {(project?.sequence.id ?? 1) !== 1 && (
+                      <>
+                        <span className="seq-crumb-arrow">›</span>
+                        <span className="seq-crumb-btn active compound-crumb">
+                          ⧉ {project?.sequence.name}
+                        </span>
+                        <button
+                          type="button"
+                          className="seq-exit-compound-btn"
+                          onClick={() => void switchSequence(1)}
+                          title="Return to Master Sequence"
+                        >
+                          ↶ Exit
+                        </button>
+                      </>
+                    )}
+                    {project?.sequences && project.sequences.length > 1 && (
+                      <select
+                        className="seq-dropdown-select"
+                        value={project.sequence.id ?? 1}
+                        onChange={(e) => void switchSequence(Number(e.target.value))}
+                        title="Jump to Sequence"
+                      >
+                        {project.sequences.map((s) => (
+                          <option key={s.id ?? 1} value={s.id ?? 1}>
+                            {(s.id ?? 1) === 1 ? "🎬 " : "⧉ "} {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
                   <code>{formatTime(playhead)} / {formatTime(Math.max(0, ...((project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => clip.timeline_start + clip.duration)))))}</code>
                 </div>
                 <div className="timeline-toolbar-tools" aria-label="Timeline actions">
@@ -8978,6 +9279,30 @@ function App() {
                   <span className="toolbar-divider" />
                   <button className="timeline-icon-button" disabled={selectedClips.length < 2 || busy} onClick={() => void linkSelectedClips()} data-tooltip="Link Selected Clips (Ctrl+L)" data-tooltip-pos="top" aria-label="Link clips"><Icon name="link" /></button>
                   <button className="timeline-icon-button" disabled={(!selectedClip && selectedClips.length === 0) || busy} onClick={() => void unlinkSelectedClips()} data-tooltip="Unlink Selected Clips (Ctrl+Shift+L)" data-tooltip-pos="top" aria-label="Unlink clips"><Icon name="unlink" /></button>
+                  <span className="toolbar-divider" />
+                  <button
+                    className="timeline-icon-button"
+                    disabled={(!selectedClip && selectedClips.length === 0) || busy}
+                    onClick={() => {
+                      setCompoundClipNameDraft(`Compound Clip ${(project?.sequences?.length ?? 1) + 1}`);
+                      setCompoundClipModalOpen(true);
+                    }}
+                    data-tooltip="Create Compound Clip (Ctrl+G)"
+                    data-tooltip-pos="top"
+                    aria-label="Create Compound Clip"
+                  >
+                    <span style={{ fontWeight: 800, fontSize: "14px" }}>⧉</span>
+                  </button>
+                  <button
+                    className="timeline-icon-button"
+                    disabled={!selectedClip || busy}
+                    onClick={() => void decomposeSelectedCompoundClip()}
+                    data-tooltip="Decompose Compound Clip in Place (Ctrl+Shift+G)"
+                    data-tooltip-pos="top"
+                    aria-label="Decompose Compound Clip"
+                  >
+                    <span style={{ fontWeight: 800, fontSize: "14px" }}>⧈</span>
+                  </button>
                   <span className="toolbar-divider" />
                   <button className="timeline-icon-button" disabled={busy} onClick={() => void invokeMenuCommand("timeline.set_mark_in")} data-tooltip="Set In Point (I)" data-tooltip-pos="top" aria-label="Set In point"><Icon name="markIn" /></button>
                   <button className="timeline-icon-button" disabled={busy} onClick={() => void invokeMenuCommand("timeline.set_mark_out")} data-tooltip="Set Out Point (O)" data-tooltip-pos="top" aria-label="Set Out point"><Icon name="markOut" /></button>
@@ -9134,11 +9459,18 @@ function App() {
                       {track.clips.map((clip, index) => {
                         const item = media.find((entry) => entry.id === clip.media_id);
                         const isTitle = item?.kind === "title";
+                        const isCompound = item?.kind === "compound_sequence" || clip.compound_sequence_id != null;
                         const selected = (selectedClip?.track_id === track.id && selectedClip.clip_index === index) || selectedClips.some((item) => item.track_id === track.id && item.clip_index === index);
                         const isDirectDrag = clipDragOffset?.trackId === track.id && clipDragOffset.clipIndex === index;
                         const isLinkedDrag = clipDragOffset != null && clip.group_id != null && linkedClipsDrag.current.some((l) => l.trackId === track.id && l.clipIndex === index);
                         const activeDrag = isDirectDrag ? clipDragOffset : isLinkedDrag ? { x: clipDragOffset.x, y: 0 } : null;
-                        return <div className={`timeline-clip ${selected ? "selected" : ""} ${track.kind} ${isTitle ? "title-clip" : ""} tool-${timelineTool} ${activeDrag ? "dragging" : ""}`} key={`${track.id}-${clip.media_id}-${index}-${clip.timeline_start}`} style={{ left: `${clip.timeline_start / TICKS_PER_SECOND * timelineZoom}px`, width: `${Math.max(34, clip.duration / TICKS_PER_SECOND * timelineZoom)}px`, transform: activeDrag ? `translate3d(${activeDrag.x}px, ${activeDrag.y}px, 0)` : undefined }} onPointerDown={(event) => beginTimelineClipPointer(event, track.id, index, clip)} onPointerMove={moveTimelineClipPointer} onPointerUp={(event) => void finishTimelineClipPointer(event)} onPointerCancel={handleTimelineClipPointerCancel} onClick={(event) => void handleTimelineClipClick(event, track.id, index, clip)} title={`${item?.name ?? "Clip"} · ${timelineTools.find((tool) => tool.id === timelineTool)?.label}`}>
+                        return <div className={`timeline-clip ${selected ? "selected" : ""} ${track.kind} ${isTitle ? "title-clip" : ""} ${isCompound ? "compound-clip" : ""} tool-${timelineTool} ${activeDrag ? "dragging" : ""}`} key={`${track.id}-${clip.media_id}-${index}-${clip.timeline_start}`} style={{ left: `${clip.timeline_start / TICKS_PER_SECOND * timelineZoom}px`, width: `${Math.max(34, clip.duration / TICKS_PER_SECOND * timelineZoom)}px`, transform: activeDrag ? `translate3d(${activeDrag.x}px, ${activeDrag.y}px, 0)` : undefined }} onPointerDown={(event) => beginTimelineClipPointer(event, track.id, index, clip)} onPointerMove={moveTimelineClipPointer} onPointerUp={(event) => void finishTimelineClipPointer(event)} onPointerCancel={handleTimelineClipPointerCancel} onClick={(event) => void handleTimelineClipClick(event, track.id, index, clip)} onDoubleClick={(event) => {
+                          if (isCompound) {
+                            event.stopPropagation();
+                            const targetSeqId = clip.compound_sequence_id ?? item?.nested_sequence?.id;
+                            if (targetSeqId) void switchSequence(targetSeqId);
+                          }
+                        }} title={`${item?.name ?? (isCompound ? "Compound Sequence" : "Clip")} · ${timelineTools.find((tool) => tool.id === timelineTool)?.label}`}>
                           {track.kind === "audio" && item?.waveform && item.waveform.length > 0 && (
                             <div className="clip-waveform-container" aria-hidden="true">
                               <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
@@ -9155,8 +9487,21 @@ function App() {
                               </svg>
                             </div>
                           )}
-                          <span className="clip-kind-icon">{isTitle ? "T" : track.kind === "audio" ? "♪" : "▶"}</span>
-                          <strong>{item?.name ?? "Missing media"}</strong>
+                          <span className="clip-kind-icon">{isCompound ? "⧉" : isTitle ? "T" : track.kind === "audio" ? "♪" : "▶"}</span>
+                          <strong>{item?.name ?? (isCompound ? "Compound Sequence" : "Missing media")}</strong>
+                          {isCompound && (
+                            <span
+                              className="clip-compound-badge"
+                              title="Compound Clip · Double-click to open nested sequence"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const targetSeqId = clip.compound_sequence_id ?? item?.nested_sequence?.id;
+                                if (targetSeqId) void switchSequence(targetSeqId);
+                              }}
+                            >
+                              ⧉ Compound
+                            </span>
+                          )}
                           {clip.speed && clip.speed !== 1.0 && (
                             <span className="clip-speed-badge">⚡{Math.round(clip.speed * 100)}%</span>
                           )}
@@ -9485,6 +9830,44 @@ function App() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Option B: Compound Clip Modal */}
+      {compoundClipModalOpen && (
+        <div className="dialog-backdrop" role="presentation">
+          <form
+            className="modal-dialog-card compound-modal"
+            style={{ maxWidth: "440px" }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              setCompoundClipModalOpen(false);
+              void createCompoundClip(compoundClipNameDraft);
+            }}
+          >
+            <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <h2 style={{ margin: 0, fontSize: "16px" }}>⧉ New Compound Clip</h2>
+              <button type="button" className="close-btn" onClick={() => setCompoundClipModalOpen(false)}>✕</button>
+            </div>
+            <p className="modal-desc" style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px" }}>
+              Combine selected clips across tracks into a single nested compound sequence. You can double-click it at any time to open and edit inside.
+            </p>
+            <label style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "6px", marginBottom: "16px" }}>
+              Compound Clip Name
+              <input
+                autoFocus
+                type="text"
+                value={compoundClipNameDraft}
+                onChange={(e) => setCompoundClipNameDraft(e.target.value)}
+                placeholder="e.g. Intro Sequence, B-Roll Montage"
+                style={{ padding: "8px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
+              />
+            </label>
+            <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <button type="button" onClick={() => setCompoundClipModalOpen(false)}>Cancel</button>
+              <button className="primary" type="submit" disabled={!compoundClipNameDraft.trim()}>Create Compound Clip</button>
+            </div>
+          </form>
         </div>
       )}
 

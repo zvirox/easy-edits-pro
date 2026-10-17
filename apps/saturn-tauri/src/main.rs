@@ -6,7 +6,9 @@ use saturn_core::{
     export_cmx3600_edl, export_fcpxml, export_premiere_xml,
     is_filler_word, TICKS_PER_SECOND,
 };
-use saturn_render::{GpuPreviewPipeline, PresentationMetrics};
+use saturn_render::{
+    GpuPreviewPipeline, PresentationMetrics, LoudnessReport, LoudnessStandard, analyze_pcm_loudness,
+};
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::{Value, json};
@@ -1490,6 +1492,24 @@ async fn present_gpu_preview_frame(
     Ok(pipeline.present_frame_rgba(width, height, &rgba_bytes))
 }
 
+#[tauri::command]
+async fn measure_ebu_r128_loudness(
+    samples: Vec<f32>,
+    sample_rate: Option<u32>,
+    channels: Option<usize>,
+    standard: Option<String>,
+) -> Result<LoudnessReport, String> {
+    let rate = sample_rate.unwrap_or(48000);
+    let ch = channels.unwrap_or(2).max(1);
+    let std = match standard.as_deref().unwrap_or("ebu_r128") {
+        "streaming" => LoudnessStandard::Streaming,
+        "atsc_a85" | "atsc" => LoudnessStandard::AtscA85,
+        _ => LoudnessStandard::EbuR128,
+    };
+    let report = analyze_pcm_loudness(&samples, ch, rate, std);
+    Ok(report)
+}
+
 fn main() {
     #[cfg(target_os = "linux")]
     if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
@@ -1555,7 +1575,8 @@ fn main() {
             export_timeline_interop,
             import_timeline_interop,
             get_gpu_preview_metrics,
-            present_gpu_preview_frame
+            present_gpu_preview_frame,
+            measure_ebu_r128_loudness
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Easy Edits Pro");
