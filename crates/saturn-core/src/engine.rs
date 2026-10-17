@@ -1,7 +1,9 @@
 use crate::command::{COMMANDS, CommandRequest, CommandStatus, status};
 use crate::project::{
-    Clip, ColorAdjustments, Keyframe, KeyframeProperty, MediaAsset, MediaKind, ProjectDocument,
-    TitleProperties, TrackKind, Transition, TransitionKind,
+    Clip, ColorAdjustments, ColorCorrectionParams, CropParams, EffectInstance, EffectKind,
+    EffectPayload, GaussianBlurParams, Keyframe, KeyframeProperty, MediaAsset, MediaKind,
+    ProjectDocument, TitleProperties, TrackKind, Transition, TransitionKind, VignetteParams,
+    ChromaKeyParams,
 };
 use crate::time::{FrameRate, TICKS_PER_SECOND, Tick};
 use serde::Deserialize;
@@ -249,6 +251,47 @@ struct RemoveKeyframeParams {
     clip_index: usize,
     property: KeyframeProperty,
     time: Tick,
+}
+
+#[derive(Deserialize)]
+struct AddEffectParams {
+    track_id: u64,
+    clip_index: usize,
+    kind: EffectKind,
+    #[serde(default)]
+    name: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct RemoveEffectParams {
+    track_id: u64,
+    clip_index: usize,
+    effect_id: u64,
+}
+
+#[derive(Deserialize)]
+struct UpdateEffectParams {
+    track_id: u64,
+    clip_index: usize,
+    effect_id: u64,
+    payload: EffectPayload,
+}
+
+#[derive(Deserialize)]
+struct ToggleEffectParams {
+    track_id: u64,
+    clip_index: usize,
+    effect_id: u64,
+    #[serde(default)]
+    enabled: Option<bool>,
+}
+
+#[derive(Deserialize)]
+struct ReorderEffectsParams {
+    track_id: u64,
+    clip_index: usize,
+    from_index: usize,
+    to_index: usize,
 }
 
 impl Default for EditorEngine {
@@ -516,6 +559,7 @@ impl EditorEngine {
                     source_in: params.source_in,
                     duration,
                     color: ColorAdjustments::default(),
+                    effects: Vec::new(),
                     keyframes: Vec::new(),
                 });
                 Ok(json!({"track_id": track.id, "clip_index": track.clips.len() - 1}))
@@ -820,12 +864,20 @@ impl EditorEngine {
                 let track_index = find_track_index(&self.document, params.track_id)?;
                 find_clip(&self.document, track_index, params.clip_index)?;
                 self.checkpoint();
-                self.document.project.sequence.tracks[track_index].clips[params.clip_index].color =
-                    ColorAdjustments {
-                        exposure: params.exposure,
-                        contrast: params.contrast,
-                        saturation: params.saturation,
-                    };
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                clip.color = ColorAdjustments {
+                    exposure: params.exposure,
+                    contrast: params.contrast,
+                    saturation: params.saturation,
+                };
+                if let Some(existing) = clip.effects.iter_mut().find_map(|e| match &mut e.payload {
+                    EffectPayload::ColorCorrection(c) => Some(c),
+                    _ => None,
+                }) {
+                    existing.exposure = params.exposure;
+                    existing.contrast = params.contrast;
+                    existing.saturation = params.saturation;
+                }
                 Ok(json!({"updated": true}))
             }
             "track.set_gain_db" => {
@@ -887,6 +939,110 @@ impl EditorEngine {
                     .keyframes
                     .remove(index);
                 Ok(json!({"removed": true}))
+            }
+            "clip.add_effect" => {
+                let params: AddEffectParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                let effect_id = self.document.project.next_id;
+                self.document.project.next_id = effect_id.saturating_add(1);
+                let effect = match params.kind {
+                    EffectKind::ColorCorrection => {
+                        let mut inst = EffectInstance::new_color_correction(effect_id, ColorCorrectionParams::default());
+                        if let Some(name) = params.name { inst.name = name; }
+                        inst
+                    }
+                    EffectKind::GaussianBlur => {
+                        let mut inst = EffectInstance::new_gaussian_blur(effect_id, GaussianBlurParams::default());
+                        if let Some(name) = params.name { inst.name = name; }
+                        inst
+                    }
+                    EffectKind::Crop => {
+                        let mut inst = EffectInstance::new_crop(effect_id, CropParams::default());
+                        if let Some(name) = params.name { inst.name = name; }
+                        inst
+                    }
+                    EffectKind::Vignette => {
+                        let mut inst = EffectInstance::new_vignette(effect_id, VignetteParams::default());
+                        if let Some(name) = params.name { inst.name = name; }
+                        inst
+                    }
+                    EffectKind::ChromaKey => {
+                        let mut inst = EffectInstance::new_chroma_key(effect_id, ChromaKeyParams::default());
+                        if let Some(name) = params.name { inst.name = name; }
+                        inst
+                    }
+                };
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].clips[params.clip_index]
+                    .effects
+                    .push(effect);
+                Ok(json!({"added": true, "effect_id": effect_id}))
+            }
+            "clip.remove_effect" => {
+                let params: RemoveEffectParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                let Some(pos) = clip.effects.iter().position(|e| e.id == params.effect_id) else {
+                    return Ok(json!({"removed": false}));
+                };
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].clips[params.clip_index]
+                    .effects
+                    .remove(pos);
+                Ok(json!({"removed": true}))
+            }
+            "clip.update_effect" => {
+                let params: UpdateEffectParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                let Some(pos) = clip.effects.iter().position(|e| e.id == params.effect_id) else {
+                    return Err(DispatchError::Operation("Effect could not be found".into()));
+                };
+                self.checkpoint();
+                let target = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index].effects[pos];
+                target.payload = params.payload.clone();
+                if let EffectPayload::ColorCorrection(ref c) = params.payload {
+                    self.document.project.sequence.tracks[track_index].clips[params.clip_index].color =
+                        ColorAdjustments {
+                            exposure: c.exposure,
+                            contrast: c.contrast,
+                            saturation: c.saturation,
+                        };
+                }
+                Ok(json!({"updated": true}))
+            }
+            "clip.toggle_effect" => {
+                let params: ToggleEffectParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                let Some(pos) = clip.effects.iter().position(|e| e.id == params.effect_id) else {
+                    return Err(DispatchError::Operation("Effect could not be found".into()));
+                };
+                self.checkpoint();
+                let target = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index].effects[pos];
+                target.enabled = params.enabled.unwrap_or(!target.enabled);
+                let enabled = target.enabled;
+                Ok(json!({"updated": true, "enabled": enabled}))
+            }
+            "clip.reorder_effects" => {
+                let params: ReorderEffectsParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                let total = clip.effects.len();
+                if params.from_index >= total || params.to_index >= total {
+                    return Err(DispatchError::InvalidParameters("Effect index out of bounds".into()));
+                }
+                if params.from_index != params.to_index {
+                    self.checkpoint();
+                    let effect = self.document.project.sequence.tracks[track_index].clips[params.clip_index]
+                        .effects
+                        .remove(params.from_index);
+                    self.document.project.sequence.tracks[track_index].clips[params.clip_index]
+                        .effects
+                        .insert(params.to_index, effect);
+                }
+                Ok(json!({"reordered": true}))
             }
             "timeline.add_transition" => {
                 let params: AddTransitionParams = parse_params(request.params)?;
@@ -972,6 +1128,7 @@ impl EditorEngine {
                     source_in: Tick(0),
                     duration,
                     color: ColorAdjustments::default(),
+                    effects: Vec::new(),
                     keyframes: Vec::new(),
                 };
                 let track = &mut self.document.project.sequence.tracks[track_index];

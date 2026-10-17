@@ -4,7 +4,7 @@ use gstreamer_editing_services as ges;
 use gstreamer_editing_services::prelude::*;
 use gstreamer_pbutils as gst_pbutils;
 use saturn_core::{FrameRate, Tick};
-use saturn_core::project::{Clip, MediaKind, ProjectDocument, TrackKind, TransitionKind};
+use saturn_core::project::{Clip, EffectPayload, MediaKind, ProjectDocument, TrackKind, TransitionKind};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
@@ -400,6 +400,8 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
                 clip,
                 track.gain_db,
                 matches!(media.kind, MediaKind::Video | MediaKind::Image),
+                document.project.settings.width,
+                document.project.settings.height,
             )?;
             layer.add_clip(&ges_clip).map_err(|error| {
                 format!(
@@ -440,20 +442,79 @@ fn apply_clip_effects(
     model: &Clip,
     gain_db: f64,
     has_video: bool,
+    project_width: u32,
+    project_height: u32,
 ) -> Result<(), String> {
-    if has_video
-        && (model.color.exposure != 0.0
-            || model.color.contrast != 1.0
-            || model.color.saturation != 1.0)
-    {
-        let brightness = exposure_to_brightness(model.color.exposure);
-        let effect = ges::Effect::new(&format!(
-            "videobalance brightness={brightness} contrast={} saturation={}",
-            model.color.contrast, model.color.saturation
-        ))
-        .map_err(|error| format!("Could not create clip color effect: {error}"))?;
-        clip.add_top_effect(&effect, -1)
-            .map_err(|error| format!("Could not apply clip color effect: {error}"))?;
+    if has_video {
+        if model.effects.is_empty() {
+            if model.color.exposure != 0.0
+                || model.color.contrast != 1.0
+                || model.color.saturation != 1.0
+            {
+                let brightness = exposure_to_brightness(model.color.exposure);
+                let effect = ges::Effect::new(&format!(
+                    "videobalance brightness={brightness} contrast={} saturation={}",
+                    model.color.contrast, model.color.saturation
+                ))
+                .map_err(|error| format!("Could not create clip color effect: {error}"))?;
+                clip.add_top_effect(&effect, -1)
+                    .map_err(|error| format!("Could not apply clip color effect: {error}"))?;
+            }
+        } else {
+            for effect_inst in model.effects.iter().filter(|e| e.enabled) {
+                match &effect_inst.payload {
+                    EffectPayload::ColorCorrection(params) => {
+                        let brightness = exposure_to_brightness(params.exposure);
+                        let effect_str = format!(
+                            "videobalance brightness={brightness:.3} contrast={:.3} saturation={:.3} hue={:.3}",
+                            params.contrast, params.saturation, params.hue
+                        );
+                        let effect = ges::Effect::new(&effect_str)
+                            .map_err(|error| format!("Could not create color correction effect: {error}"))?;
+                        clip.add_top_effect(&effect, -1)
+                            .map_err(|error| format!("Could not apply color correction effect: {error}"))?;
+                    }
+                    EffectPayload::GaussianBlur(params) => {
+                        if params.sigma > 0.0 {
+                            let effect_str = format!("gaussianblur sigma={:.2}", params.sigma);
+                            let effect = ges::Effect::new(&effect_str)
+                                .map_err(|error| format!("Could not create gaussian blur effect: {error}"))?;
+                            clip.add_top_effect(&effect, -1)
+                                .map_err(|error| format!("Could not apply gaussian blur effect: {error}"))?;
+                        }
+                    }
+                    EffectPayload::Crop(params) => {
+                        let top_px = ((params.top / 100.0) * project_height as f64).round() as u32;
+                        let bottom_px = ((params.bottom / 100.0) * project_height as f64).round() as u32;
+                        let left_px = ((params.left / 100.0) * project_width as f64).round() as u32;
+                        let right_px = ((params.right / 100.0) * project_width as f64).round() as u32;
+                        if top_px > 0 || bottom_px > 0 || left_px > 0 || right_px > 0 {
+                            let effect_str = format!(
+                                "videocrop top={top_px} bottom={bottom_px} left={left_px} right={right_px}"
+                            );
+                            let effect = ges::Effect::new(&effect_str)
+                                .map_err(|error| format!("Could not create crop effect: {error}"))?;
+                            clip.add_top_effect(&effect, -1)
+                                .map_err(|error| format!("Could not apply crop effect: {error}"))?;
+                        }
+                    }
+                    EffectPayload::ChromaKey(params) => {
+                        let (r, g, b) = parse_hex_color(&params.color);
+                        let angle = (params.tolerance / 100.0 * 90.0).clamp(0.0, 90.0);
+                        let effect_str = format!(
+                            "alpha method=custom target-r={r} target-g={g} target-b={b} angle={angle:.1}"
+                        );
+                        let effect = ges::Effect::new(&effect_str)
+                            .map_err(|error| format!("Could not create chroma key effect: {error}"))?;
+                        clip.add_top_effect(&effect, -1)
+                            .map_err(|error| format!("Could not apply chroma key effect: {error}"))?;
+                    }
+                    EffectPayload::Vignette(_) => {
+                        // Vignette is rendered visually on program monitor; no standalone GStreamer core element
+                    }
+                }
+            }
+        }
     }
     if gain_db != 0.0 {
         let amplitude = 10_f64.powf(gain_db / 20.0);
@@ -463,6 +524,18 @@ fn apply_clip_effects(
             .map_err(|error| format!("Could not apply track gain effect: {error}"))?;
     }
     Ok(())
+}
+
+fn parse_hex_color(hex: &str) -> (u8, u8, u8) {
+    let clean = hex.trim().trim_start_matches('#');
+    if clean.len() == 6 {
+        let r = u8::from_str_radix(&clean[0..2], 16).unwrap_or(0);
+        let g = u8::from_str_radix(&clean[2..4], 16).unwrap_or(255);
+        let b = u8::from_str_radix(&clean[4..6], 16).unwrap_or(0);
+        (r, g, b)
+    } else {
+        (0, 255, 0)
+    }
 }
 
 fn absolute_output_path(path: &Path) -> Result<PathBuf, String> {
@@ -557,5 +630,13 @@ mod tests {
         assert_eq!(exposure_to_brightness(0.0), 0.0);
         assert_eq!(exposure_to_brightness(-5.0), -1.0);
         assert_eq!(exposure_to_brightness(5.0), 1.0);
+    }
+
+    #[test]
+    fn hex_color_parsing_and_fallback() {
+        assert_eq!(parse_hex_color("#00ff00"), (0, 255, 0));
+        assert_eq!(parse_hex_color("#ff0000"), (255, 0, 0));
+        assert_eq!(parse_hex_color("0000ff"), (0, 0, 255));
+        assert_eq!(parse_hex_color("invalid"), (0, 255, 0));
     }
 }

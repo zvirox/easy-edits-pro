@@ -236,6 +236,41 @@ pub const COMMANDS: &[CommandSpec] = &[
         shortcut: None,
         mutating: true,
     },
+    CommandSpec {
+        id: "clip.add_effect",
+        label: "Add Clip Effect",
+        menu: &["Clip", "Effects"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "clip.remove_effect",
+        label: "Remove Clip Effect",
+        menu: &["Clip", "Effects"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "clip.update_effect",
+        label: "Update Clip Effect",
+        menu: &["Clip", "Effects"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "clip.toggle_effect",
+        label: "Toggle Clip Effect",
+        menu: &["Clip", "Effects"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
+        id: "clip.reorder_effects",
+        label: "Reorder Clip Effects",
+        menu: &["Clip", "Effects"],
+        shortcut: None,
+        mutating: true,
+    },
 ];
 
 pub fn command_catalogue() -> &'static [CommandSpec] {

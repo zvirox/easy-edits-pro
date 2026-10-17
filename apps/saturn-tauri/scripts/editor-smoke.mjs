@@ -51,7 +51,7 @@ try {
       const { id, params = {} } = request;
       if (id === 'project.status') return snapshot();
       if (id === 'project.new') {
-        doc = { format: 'project-saturn.project', schema_version: 4, generator: 'browser-smoke-test', project: {
+        doc = { format: 'project-saturn.project', schema_version: 5, generator: 'browser-smoke-test', project: {
           name: params.name ?? 'Browser Test', settings: { width: params.width ?? 1920, height: params.height ?? 1080, frame_rate: params.frame_rate ?? { numerator: 30, denominator: 1 }, audio_sample_rate: 48000 },
           media: [], next_id: 3, sequence: { name: params.sequence_name ?? 'Sequence 1', mark_in: null, mark_out: null, tracks: [
             { id: 1, kind: 'video', name: 'V1', gain_db: 0, clips: [] }, { id: 2, kind: 'audio', name: 'A1', gain_db: 0, clips: [] },
@@ -67,7 +67,7 @@ try {
         const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
         const media = doc.project.media.find(item => item.id === params.media_id);
         const start = params.timeline_start ?? track.clips.reduce((end, clip) => Math.max(end, clip.timeline_start + clip.duration), 0);
-        track.clips.push({ media_id: media.id, timeline_start: start, source_in: 0, duration: media.duration ?? 6 * second, color: { exposure: 0, contrast: 1, saturation: 1 }, keyframes: [] });
+        track.clips.push({ media_id: media.id, timeline_start: start, source_in: 0, duration: media.duration ?? 6 * second, color: { exposure: 0, contrast: 1, saturation: 1 }, effects: [], keyframes: [] });
         track.clips.sort((a, b) => a.timeline_start - b.timeline_start);
         return { track_id: track.id, clip_index: track.clips.findIndex(clip => clip.media_id === media.id && clip.timeline_start === start) };
       }

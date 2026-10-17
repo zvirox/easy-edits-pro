@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 pub const PROJECT_FORMAT: &str = "project-saturn.project";
-pub const PROJECT_SCHEMA_VERSION: u32 = 4;
+pub const PROJECT_SCHEMA_VERSION: u32 = 5;
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -214,7 +214,203 @@ pub struct Clip {
     #[serde(default)]
     pub color: ColorAdjustments,
     #[serde(default)]
+    pub effects: Vec<EffectInstance>,
+    #[serde(default)]
     pub keyframes: Vec<Keyframe>,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum EffectKind {
+    ColorCorrection,
+    GaussianBlur,
+    Crop,
+    Vignette,
+    ChromaKey,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct ColorCorrectionParams {
+    #[serde(default = "default_exposure")]
+    pub exposure: f64,
+    #[serde(default = "default_contrast")]
+    pub contrast: f64,
+    #[serde(default = "default_saturation")]
+    pub saturation: f64,
+    #[serde(default)]
+    pub hue: f64,
+}
+
+fn default_exposure() -> f64 { 0.0 }
+fn default_contrast() -> f64 { 1.0 }
+fn default_saturation() -> f64 { 1.0 }
+
+impl Default for ColorCorrectionParams {
+    fn default() -> Self {
+        Self {
+            exposure: 0.0,
+            contrast: 1.0,
+            saturation: 1.0,
+            hue: 0.0,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct GaussianBlurParams {
+    #[serde(default = "default_blur_sigma")]
+    pub sigma: f64,
+}
+
+fn default_blur_sigma() -> f64 { 2.0 }
+
+impl Default for GaussianBlurParams {
+    fn default() -> Self {
+        Self { sigma: 2.0 }
+    }
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct CropParams {
+    #[serde(default)]
+    pub top: f64,
+    #[serde(default)]
+    pub bottom: f64,
+    #[serde(default)]
+    pub left: f64,
+    #[serde(default)]
+    pub right: f64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct VignetteParams {
+    #[serde(default = "default_vignette_intensity")]
+    pub intensity: f64,
+    #[serde(default = "default_vignette_radius")]
+    pub radius: f64,
+    #[serde(default = "default_vignette_softness")]
+    pub softness: f64,
+}
+
+fn default_vignette_intensity() -> f64 { 0.5 }
+fn default_vignette_radius() -> f64 { 0.8 }
+fn default_vignette_softness() -> f64 { 0.5 }
+
+impl Default for VignetteParams {
+    fn default() -> Self {
+        Self {
+            intensity: 0.5,
+            radius: 0.8,
+            softness: 0.5,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct ChromaKeyParams {
+    #[serde(default = "default_chroma_color")]
+    pub color: String,
+    #[serde(default = "default_chroma_tolerance")]
+    pub tolerance: f64,
+    #[serde(default = "default_chroma_softness")]
+    pub softness: f64,
+    #[serde(default = "default_chroma_spill")]
+    pub spill_suppression: f64,
+}
+
+fn default_chroma_color() -> String { "#00ff00".into() }
+fn default_chroma_tolerance() -> f64 { 25.0 }
+fn default_chroma_softness() -> f64 { 10.0 }
+fn default_chroma_spill() -> f64 { 0.5 }
+
+impl Default for ChromaKeyParams {
+    fn default() -> Self {
+        Self {
+            color: default_chroma_color(),
+            tolerance: default_chroma_tolerance(),
+            softness: default_chroma_softness(),
+            spill_suppression: default_chroma_spill(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "kind", content = "params", rename_all = "snake_case")]
+pub enum EffectPayload {
+    ColorCorrection(ColorCorrectionParams),
+    GaussianBlur(GaussianBlurParams),
+    Crop(CropParams),
+    Vignette(VignetteParams),
+    ChromaKey(ChromaKeyParams),
+}
+
+fn default_effect_enabled() -> bool { true }
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct EffectInstance {
+    pub id: u64,
+    pub name: String,
+    #[serde(default = "default_effect_enabled")]
+    pub enabled: bool,
+    #[serde(flatten)]
+    pub payload: EffectPayload,
+}
+
+impl EffectInstance {
+    pub fn kind(&self) -> EffectKind {
+        match &self.payload {
+            EffectPayload::ColorCorrection(_) => EffectKind::ColorCorrection,
+            EffectPayload::GaussianBlur(_) => EffectKind::GaussianBlur,
+            EffectPayload::Crop(_) => EffectKind::Crop,
+            EffectPayload::Vignette(_) => EffectKind::Vignette,
+            EffectPayload::ChromaKey(_) => EffectKind::ChromaKey,
+        }
+    }
+
+    pub fn new_color_correction(id: u64, params: ColorCorrectionParams) -> Self {
+        Self {
+            id,
+            name: "Color Correction".into(),
+            enabled: true,
+            payload: EffectPayload::ColorCorrection(params),
+        }
+    }
+
+    pub fn new_gaussian_blur(id: u64, params: GaussianBlurParams) -> Self {
+        Self {
+            id,
+            name: "Gaussian Blur".into(),
+            enabled: true,
+            payload: EffectPayload::GaussianBlur(params),
+        }
+    }
+
+    pub fn new_crop(id: u64, params: CropParams) -> Self {
+        Self {
+            id,
+            name: "Crop".into(),
+            enabled: true,
+            payload: EffectPayload::Crop(params),
+        }
+    }
+
+    pub fn new_vignette(id: u64, params: VignetteParams) -> Self {
+        Self {
+            id,
+            name: "Vignette".into(),
+            enabled: true,
+            payload: EffectPayload::Vignette(params),
+        }
+    }
+
+    pub fn new_chroma_key(id: u64, params: ChromaKeyParams) -> Self {
+        Self {
+            id,
+            name: "Chroma Key".into(),
+            enabled: true,
+            payload: EffectPayload::ChromaKey(params),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -353,6 +549,54 @@ impl ProjectDocument {
                 {
                     return Err("Project contains invalid clip properties".into());
                 }
+                for effect in &clip.effects {
+                    match &effect.payload {
+                        EffectPayload::ColorCorrection(p) => {
+                            if !p.exposure.is_finite()
+                                || !(-5.0..=5.0).contains(&p.exposure)
+                                || !p.contrast.is_finite()
+                                || !(0.0..=2.0).contains(&p.contrast)
+                                || !p.saturation.is_finite()
+                                || !(0.0..=2.0).contains(&p.saturation)
+                                || !p.hue.is_finite()
+                                || !(-1.0..=1.0).contains(&p.hue)
+                            {
+                                return Err("Project contains invalid color correction effect values".into());
+                            }
+                        }
+                        EffectPayload::GaussianBlur(p) => {
+                            if !p.sigma.is_finite() || !(0.0..=50.0).contains(&p.sigma) {
+                                return Err("Project contains invalid gaussian blur effect values".into());
+                            }
+                        }
+                        EffectPayload::Crop(p) => {
+                            if !p.top.is_finite() || !(0.0..=100.0).contains(&p.top)
+                                || !p.bottom.is_finite() || !(0.0..=100.0).contains(&p.bottom)
+                                || !p.left.is_finite() || !(0.0..=100.0).contains(&p.left)
+                                || !p.right.is_finite() || !(0.0..=100.0).contains(&p.right)
+                            {
+                                return Err("Project contains invalid crop effect values".into());
+                            }
+                        }
+                        EffectPayload::Vignette(p) => {
+                            if !p.intensity.is_finite() || !(0.0..=1.0).contains(&p.intensity)
+                                || !p.radius.is_finite() || !(0.0..=2.0).contains(&p.radius)
+                                || !p.softness.is_finite() || !(0.0..=1.0).contains(&p.softness)
+                            {
+                                return Err("Project contains invalid vignette effect values".into());
+                            }
+                        }
+                        EffectPayload::ChromaKey(p) => {
+                            if p.color.trim().is_empty()
+                                || !p.tolerance.is_finite() || !(0.0..=100.0).contains(&p.tolerance)
+                                || !p.softness.is_finite() || !(0.0..=100.0).contains(&p.softness)
+                                || !p.spill_suppression.is_finite() || !(0.0..=1.0).contains(&p.spill_suppression)
+                            {
+                                return Err("Project contains invalid chroma key effect values".into());
+                            }
+                        }
+                    }
+                }
                 for keyframe in &clip.keyframes {
                     let value_in_range = match &keyframe.property {
                         KeyframeProperty::PositionX | KeyframeProperty::PositionY => {
@@ -467,7 +711,7 @@ fn migrate_project(value: &mut serde_json::Value) -> Result<(), String> {
             });
             migrate_project(value)
         }
-        2 | 3 => {
+        2 | 3 | 4 => {
             value
                 .as_object_mut()
                 .ok_or_else(|| "Project root must be an object".to_string())?
@@ -553,6 +797,7 @@ mod tests {
             source_in: Tick(100),
             duration: Tick(500),
             color: Default::default(),
+            effects: Vec::new(),
             keyframes: Vec::new(),
         });
         video_track.clips.push(Clip {
@@ -561,6 +806,7 @@ mod tests {
             source_in: Tick(0),
             duration: Tick(400),
             color: Default::default(),
+            effects: Vec::new(),
             keyframes: Vec::new(),
         });
         video_track.transitions.push(Transition {
@@ -592,5 +838,75 @@ mod tests {
         assert!(trans_outside.is_none());
 
         assert_eq!(seq.tracks[0].next_clip_after(Tick(200)).unwrap().media_id, 2);
+    }
+
+    #[test]
+    fn test_effect_stack_serialization_and_migration() {
+        let mut doc = ProjectDocument::new("Effect test");
+        let video_track = &mut doc.project.sequence.tracks[0];
+        let mut clip = Clip {
+            media_id: 1,
+            timeline_start: Tick(0),
+            source_in: Tick(0),
+            duration: Tick(300),
+            color: Default::default(),
+            effects: Vec::new(),
+            keyframes: Vec::new(),
+        };
+
+        clip.effects.push(EffectInstance::new_color_correction(
+            10,
+            ColorCorrectionParams {
+                exposure: 0.5,
+                contrast: 1.1,
+                saturation: 1.2,
+                hue: 0.05,
+            },
+        ));
+        clip.effects.push(EffectInstance::new_gaussian_blur(
+            11,
+            GaussianBlurParams { sigma: 4.5 },
+        ));
+        clip.effects.push(EffectInstance::new_crop(
+            12,
+            CropParams {
+                top: 5.0,
+                bottom: 10.0,
+                left: 2.0,
+                right: 2.0,
+            },
+        ));
+        clip.effects.push(EffectInstance::new_vignette(
+            13,
+            VignetteParams {
+                intensity: 0.7,
+                radius: 0.9,
+                softness: 0.6,
+            },
+        ));
+        clip.effects.push(EffectInstance::new_chroma_key(
+            14,
+            ChromaKeyParams {
+                color: "#00ff00".into(),
+                tolerance: 35.0,
+                softness: 12.0,
+                spill_suppression: 0.75,
+            },
+        ));
+
+        video_track.clips.push(clip);
+        assert!(doc.validate().is_ok());
+
+        // Serialize and deserialize roundtrip
+        let json = serde_json::to_string_pretty(&doc).unwrap();
+        let loaded: ProjectDocument = serde_json::from_str(&json).unwrap();
+        assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
+        let loaded_clip = &loaded.project.sequence.tracks[0].clips[0];
+        assert_eq!(loaded_clip.effects.len(), 5);
+        assert_eq!(loaded_clip.effects[0].kind(), EffectKind::ColorCorrection);
+        assert_eq!(loaded_clip.effects[1].kind(), EffectKind::GaussianBlur);
+        assert_eq!(loaded_clip.effects[2].kind(), EffectKind::Crop);
+        assert_eq!(loaded_clip.effects[3].kind(), EffectKind::Vignette);
+        assert_eq!(loaded_clip.effects[4].kind(), EffectKind::ChromaKey);
     }
 }

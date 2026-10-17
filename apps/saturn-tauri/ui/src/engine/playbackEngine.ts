@@ -32,12 +32,66 @@ export interface ColorAdjustments {
   saturation: number;
 }
 
+export type EffectKind =
+  | "color_correction"
+  | "gaussian_blur"
+  | "crop"
+  | "vignette"
+  | "chroma_key";
+
+export interface ColorCorrectionParams {
+  exposure: number;
+  contrast: number;
+  saturation: number;
+  hue: number;
+}
+
+export interface GaussianBlurParams {
+  sigma: number;
+}
+
+export interface CropParams {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
+export interface VignetteParams {
+  intensity: number;
+  radius: number;
+  softness: number;
+}
+
+export interface ChromaKeyParams {
+  color: string;
+  tolerance: number;
+  softness: number;
+  spill_suppression: number;
+}
+
+export type EffectPayload =
+  | { kind: "color_correction"; params: ColorCorrectionParams }
+  | { kind: "gaussian_blur"; params: GaussianBlurParams }
+  | { kind: "crop"; params: CropParams }
+  | { kind: "vignette"; params: VignetteParams }
+  | { kind: "chroma_key"; params: ChromaKeyParams };
+
+export interface EffectInstance {
+  id: number;
+  name: string;
+  enabled: boolean;
+  kind: EffectKind;
+  params: ColorCorrectionParams | GaussianBlurParams | CropParams | VignetteParams | ChromaKeyParams;
+}
+
 export interface Clip {
   media_id: number;
   timeline_start: number;
   source_in: number;
   duration: number;
   color: ColorAdjustments;
+  effects?: EffectInstance[];
   keyframes: Keyframe[];
 }
 
@@ -342,6 +396,8 @@ export interface DeckConfig {
   currentTime: number;
   visible: boolean;
   style: CSSProperties;
+  vignette?: { intensity: number; radius: number; softness: number } | null;
+  chromaKey?: ChromaKeyParams | null;
   clip: Clip | null;
   track: Track | null;
   isPreload: boolean;
@@ -502,14 +558,69 @@ export function evaluateTimelinePlayback(
     if (activeTransition) break;
   }
 
-  // Visual transform and color styling helper
+  // Helper to extract vignette params from clip
+  const getClipVignette = (clip: Clip | null): { intensity: number; radius: number; softness: number } | null => {
+    if (!clip || !clip.effects) return null;
+    const vig = clip.effects.find((e) => e.enabled && e.kind === "vignette");
+    if (!vig) return null;
+    const p = vig.params as VignetteParams;
+    return {
+      intensity: p.intensity ?? 0.5,
+      radius: p.radius ?? 0.8,
+      softness: p.softness ?? 0.5,
+    };
+  };
+
+  // Helper to extract chroma key params from clip
+  const getClipChromaKey = (clip: Clip | null): ChromaKeyParams | null => {
+    if (!clip || !clip.effects) return null;
+    const chroma = clip.effects.find((e) => e.enabled && e.kind === "chroma_key");
+    if (!chroma) return null;
+    return chroma.params as ChromaKeyParams;
+  };
+
+  // Visual transform and composable effect stack styling helper
   const computeVisualStyles = (clip: Clip | null, isPrimary = true): CSSProperties => {
     if (!clip) return {};
     const clipTime = playhead - clip.timeline_start;
-    const color = clip.color || { exposure: 0, contrast: 1, saturation: 1 };
-    const exposure = color.exposure ?? 0;
-    const contrast = color.contrast ?? 1;
-    const saturation = color.saturation ?? 1;
+
+    let brightness = 1;
+    let contrast = 1;
+    let saturate = 1;
+    let hueRotate = 0;
+    let blurPx = 0;
+    let cropInset: string | null = null;
+
+    if (clip.effects && clip.effects.length > 0) {
+      for (const eff of clip.effects) {
+        if (!eff.enabled) continue;
+        if (eff.kind === "color_correction") {
+          const p = eff.params as ColorCorrectionParams;
+          brightness *= 2 ** (p.exposure ?? 0);
+          contrast *= p.contrast ?? 1;
+          saturate *= p.saturation ?? 1;
+          hueRotate += (p.hue ?? 0) * 180;
+        } else if (eff.kind === "gaussian_blur") {
+          const p = eff.params as GaussianBlurParams;
+          blurPx += (p.sigma ?? 0) * 2;
+        } else if (eff.kind === "crop") {
+          const p = eff.params as CropParams;
+          cropInset = `inset(${p.top ?? 0}% ${p.right ?? 0}% ${p.bottom ?? 0}% ${p.left ?? 0}%)`;
+        }
+      }
+    } else {
+      const color = clip.color || { exposure: 0, contrast: 1, saturation: 1 };
+      brightness = 2 ** (color.exposure ?? 0);
+      contrast = color.contrast ?? 1;
+      saturate = color.saturation ?? 1;
+    }
+
+    const filterParts: string[] = [];
+    if (Math.abs(brightness - 1) > 0.001) filterParts.push(`brightness(${brightness.toFixed(3)})`);
+    if (Math.abs(contrast - 1) > 0.001) filterParts.push(`contrast(${contrast.toFixed(3)})`);
+    if (Math.abs(saturate - 1) > 0.001) filterParts.push(`saturate(${saturate.toFixed(3)})`);
+    if (Math.abs(hueRotate) > 0.1) filterParts.push(`hue-rotate(${hueRotate.toFixed(1)}deg)`);
+    if (blurPx > 0) filterParts.push(`blur(${blurPx.toFixed(1)}px)`);
 
     const posX = interpolateKeyframe(clip, "position_x", clipTime, 0);
     const posY = interpolateKeyframe(clip, "position_y", clipTime, 0);
@@ -520,7 +631,8 @@ export function evaluateTimelinePlayback(
     const transform = `translate(${(posX / projectWidth) * 100}%, ${(posY / projectHeight) * 100}%) scale(${scale}) rotate(${rotation}deg)`;
 
     return {
-      filter: `brightness(${2 ** exposure}) contrast(${contrast}) saturate(${saturation})`,
+      filter: filterParts.length > 0 ? filterParts.join(" ") : undefined,
+      clipPath: cropInset ?? undefined,
       transform: isPrimary ? transform : undefined,
       opacity,
       transformOrigin: "center",
@@ -559,6 +671,8 @@ export function evaluateTimelinePlayback(
         currentTime: outTime,
         visible: Boolean(outSrc),
         style: { ...outBaseStyle, ...blend.deckAStyle },
+        vignette: getClipVignette(outgoing ?? null),
+        chromaKey: getClipChromaKey(outgoing ?? null),
         clip: outgoing ?? null,
         track: transitionTrack,
         isPreload: false,
@@ -569,6 +683,8 @@ export function evaluateTimelinePlayback(
         currentTime: inTime,
         visible: Boolean(inSrc),
         style: { ...inBaseStyle, ...blend.deckBStyle },
+        vignette: getClipVignette(incoming ?? null),
+        chromaKey: getClipChromaKey(incoming ?? null),
         clip: incoming ?? null,
         track: transitionTrack,
         isPreload: false,
@@ -604,6 +720,8 @@ export function evaluateTimelinePlayback(
         currentTime: activeTime,
         visible: true,
         style: { ...activeStyle, opacity: 1 },
+        vignette: getClipVignette(activeClip),
+        chromaKey: getClipChromaKey(activeClip),
         clip: activeClip,
         track: activeTrack,
         isPreload: false,
@@ -614,6 +732,8 @@ export function evaluateTimelinePlayback(
         currentTime: nextTime,
         visible: false, // Preloaded, hidden until cut point
         style: { opacity: 0, pointerEvents: "none" },
+        vignette: getClipVignette(nextClip ?? null),
+        chromaKey: getClipChromaKey(nextClip ?? null),
         clip: nextClip ?? null,
         track: activeTrack,
         isPreload: true,
@@ -656,6 +776,8 @@ export function evaluateTimelinePlayback(
       currentTime: 0,
       visible: false,
       style: { opacity: 0 },
+      vignette: null,
+      chromaKey: null,
       clip: null,
       track: null,
       isPreload: false,
@@ -666,6 +788,8 @@ export function evaluateTimelinePlayback(
       currentTime: upcomingTime,
       visible: false, // Preloaded during gap, ready for cut arrival
       style: { opacity: 0, pointerEvents: "none" },
+      vignette: getClipVignette(upcomingClip ?? null),
+      chromaKey: getClipChromaKey(upcomingClip ?? null),
       clip: upcomingClip,
       track: upcomingTrack,
       isPreload: true,

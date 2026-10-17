@@ -11,7 +11,9 @@ pub use job::{
     JobState,
 };
 pub use project::{
-    Clip, ColorAdjustments, Keyframe, KeyframeProperty, MediaAsset, MediaKind, ProjectDocument,
-    ProjectSettings, Sequence, TitleProperties, Track, TrackKind, Transition, TransitionKind,
+    Clip, ColorAdjustments, ColorCorrectionParams, CropParams, EffectInstance, EffectKind,
+    EffectPayload, GaussianBlurParams, Keyframe, KeyframeProperty, MediaAsset, MediaKind,
+    ProjectDocument, ProjectSettings, Sequence, TitleProperties, Track, TrackKind, Transition,
+    TransitionKind, VignetteParams, ChromaKeyParams,
 };
 pub use time::{FrameRate, TICKS_PER_SECOND, Tick};

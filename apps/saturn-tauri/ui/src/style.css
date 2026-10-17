@@ -828,3 +828,57 @@ button:active:not(:disabled) { transform: scale(0.96); transition: transform 0.0
 .job-progress-bar-fill { height: 4px; border-radius: 2px; background: linear-gradient(90deg, #00f2fe, #a855f7); transition: width 0.2s ease; box-shadow: 0 0 6px rgba(0, 242, 254, 0.4); }
 .job-progress-text-row { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-muted); }
 .job-error-text { font-size: 10px; color: #f87171; word-break: break-word; line-height: 1.35; padding: 4px 6px; background: rgba(239, 68, 68, 0.08); border-radius: 4px; }
+
+/* ==========================================================================
+   Composable Effect Stack & Visual Effects (Phase 3.1)
+   ========================================================================== */
+.effects-inspector { display: flex; flex-direction: column; gap: 12px; }
+.effects-inspector-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+.effects-inspector-header h2 { margin: 0; font-size: 14px; font-weight: 650; color: var(--text-main); letter-spacing: -0.2px; }
+.add-effect-select { background: var(--bg-card); color: #00f2fe; border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 5px; font-size: 11px; font-weight: 600; padding: 4px 8px; cursor: pointer; transition: all 0.15s ease; outline: none; }
+.add-effect-select:hover { border-color: #00f2fe; box-shadow: 0 0 10px rgba(0, 242, 254, 0.25); background: rgba(0, 242, 254, 0.08); }
+.add-effect-select option { background: var(--bg-panel); color: var(--text-main); font-weight: normal; }
+
+.effect-empty-card { padding: 20px 14px; border: 1px dashed var(--border-color); border-radius: 6px; text-align: center; background: rgba(255, 255, 255, 0.015); }
+.effect-empty-card p { margin: 0 0 4px; font-size: 11.5px; color: var(--text-sub); }
+.effect-empty-card small { font-size: 10px; color: var(--text-muted); line-height: 1.4; display: block; }
+
+.effects-stack-list { display: flex; flex-direction: column; gap: 10px; }
+.effect-stack-card { border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); overflow: hidden; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.effect-stack-card.is-active { border-color: rgba(0, 242, 254, 0.2); }
+.effect-stack-card.is-active:hover { border-color: rgba(0, 242, 254, 0.4); box-shadow: 0 2px 12px rgba(0, 242, 254, 0.08); }
+.effect-stack-card.is-bypassed { opacity: 0.55; border-style: dashed; }
+
+.effect-card-header { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: var(--bg-subpanel); border-bottom: 1px solid var(--border-color); }
+.effect-toggle-btn { background: transparent; border: none; font-size: 13px; cursor: pointer; padding: 2px 4px; border-radius: 3px; color: var(--text-muted); transition: color 0.12s ease; }
+.effect-toggle-btn.enabled { color: #00f2fe; }
+.effect-toggle-btn.bypassed { color: #64748b; }
+.effect-toggle-btn:hover { background: rgba(255, 255, 255, 0.08); }
+
+.effect-card-title { flex: 1; display: flex; align-items: center; gap: 6px; overflow: hidden; }
+.effect-card-title strong { font-size: 11px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.effect-kind-badge { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; color: #c084fc; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 3px; padding: 1px 5px; flex-shrink: 0; }
+
+.effect-card-actions { display: flex; align-items: center; gap: 2px; }
+.effect-action-btn { background: transparent; border: 1px solid transparent; color: var(--text-muted); font-size: 10px; width: 20px; height: 20px; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.12s ease; padding: 0; }
+.effect-action-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-main); border-color: var(--border-color); }
+.effect-action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.effect-action-btn.delete:hover:not(:disabled) { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
+
+.effect-card-body { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.effect-card-body label { display: flex; flex-direction: column; gap: 3px; font-size: 10.5px; color: var(--text-sub); }
+.effect-card-body label span { display: flex; justify-content: space-between; font-weight: 500; }
+.effect-card-body input[type="range"] { width: 100%; accent-color: #00f2fe; height: 4px; margin: 3px 0; }
+
+.crop-controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.chroma-color-picker-row { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; color: var(--text-sub); font-weight: 500; }
+.chroma-inputs { display: flex; align-items: center; gap: 6px; }
+.chroma-inputs input[type="color"] { -webkit-appearance: none; border: 1px solid var(--border-color); border-radius: 4px; width: 26px; height: 22px; padding: 0; cursor: pointer; background: transparent; }
+.chroma-inputs input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+.chroma-inputs input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; }
+.chroma-inputs code { font-size: 10px; color: #a5f3fc; font-family: monospace; background: rgba(0, 242, 254, 0.1); padding: 2px 4px; border-radius: 3px; }
+
+.effects-footer-hint { font-size: 9.5px; color: var(--text-muted); line-height: 1.35; padding: 0 4px; }
+
+.deck-vignette-overlay { pointer-events: none; mix-blend-mode: multiply; }

@@ -386,6 +386,13 @@ This section evaluates **exactly where Easy Edits Pro stands today** against the
     - Multi-track audio mixing with track gain faders (`gain_db`) and micro-fade cut smoothing to eliminate DC offset clicks.
     - Continuous timeline sequence playback advancing smoothly at 60fps across cuts, transitions, and timeline gaps.
     - JKL shuttle playback (-4x, -2x, -1x, 1x, 2x, 4x), frame stepping (◀ / ▶ / Left / Right), and Home/End sequence seeking.
+12. **Composable Effect Stack (`saturn-core`, `saturn-render`, `playbackEngine.ts` & `App.tsx`):**
+    - Extensible `Vec<EffectInstance>` stack supporting Color Correction, Gaussian Blur, Video Crop, Radial Vignette, and Custom Chroma Keying.
+    - Project schema upgraded to version 5 with automated migration preserving legacy `Clip.color` settings.
+    - Full transactional command support: `clip.add_effect`, `clip.remove_effect`, `clip.update_effect`, `clip.toggle_effect`, `clip.reorder_effects` with full undo/redo checkpointing.
+    - GES video rendering pipeline integration using `videobalance`, `gaussianblur`, `videocrop`, and `alpha` elements with exact pixel calculations and hex color parsing.
+    - Real-time Program Monitor CSS visual shader integration (composite filters, clip-path insets, deck radial vignette overlays).
+    - Modern Effects Inspector panel with effect card bypass/reorder/delete controls, specialized property sliders, and DaVinci-inspired workspace switching.
 
 ---
 
@@ -400,8 +407,8 @@ This section evaluates **exactly where Easy Edits Pro stands today** against the
    - ✅ Working: `Keyframe` data model in `saturn-core` for `PositionX`, `PositionY`, `Scale`, `Rotation`, `Opacity`; keyframe evaluation in preview and export.
    - ⏳ Missing: Visual keyframe curve graph editor on the timeline with bezier tangent handles.
 4. **Color & Filters (Phase 8):**
-   - ✅ Working: Exposure, Contrast, Saturation controls with live preview and GES export.
-   - ⏳ Missing: Extensible effect plugin stack, LUT `.cube` loader, Chroma keyer, shape masks.
+   - ✅ Working: Composable effect stack (Color Correction, Gaussian Blur, Video Crop, Radial Vignette, Chroma Key) with full undo/redo, real-time preview, and GES export.
+   - ⏳ Missing: LUT `.cube` 3D loader, secondary HSL qualifiers, shape/bezier vector masks.
 5. **AI Features (Phase 13):**
    - ✅ Working: Local AI chat assistant connected to Ollama (`POST http://127.0.0.1:11434/api/chat`).
    - ⏳ Missing: Embedded offline Whisper speech-to-text auto-captions, silence detection, background rotoscoping.
@@ -441,7 +448,11 @@ To advance directly toward **Phase 2 (Playback & Render Consistency)** and **Pha
    - Built real-time Program Monitor visual transitions (`Crossfade`, `DipToBlack`, `DipToWhite`, `WipeLeft`, `WipeRight`, `SlideLeft`, `SlideRight`) playing both outgoing and incoming clips concurrently.
    - Added multi-track audio playback with track gain faders (`gain_db`) and cut smoothing.
    - Added JKL shuttle playback (-4x, -2x, -1x, 1x, 2x, 4x), frame stepping, and proactive timeline proxy pre-generation.
-3. **Phase 3.1 — Composable Effect Stack (Phase 8 advancement):**
-   - Refactor hardcoded color adjustments into an extensible `Vec<Effect>` stack supporting Blur, Crop, Vignette, and Chroma Key.
+3. **Phase 3.1 — Composable Effect Stack (Phase 8 advancement):** ✅ **Completed**
+   - Extensible `Vec<EffectInstance>` stack with Color Correction, Gaussian Blur, Video Crop, Radial Vignette, and Chroma Key.
+   - Schema version 5 with seamless migration and two-way sync for legacy `color`.
+   - 5 transactional commands with checkpointing and undo/redo (`clip.add_effect`, `clip.remove_effect`, `clip.update_effect`, `clip.toggle_effect`, `clip.reorder_effects`).
+   - GES render pipeline compiling `videobalance`, `gaussianblur`, `videocrop`, and `alpha` elements.
+   - Modern Effects Inspector in UI with cards, bypass toggles, sliders, and live Program Monitor CSS effects.
 4. **Phase 4.1 — Audio Mixer Channel Strips (Phase 10 advancement):**
    - Implement the Fairlight-style vertical channel strips with volume faders and live VU meters in the Audio workspace.

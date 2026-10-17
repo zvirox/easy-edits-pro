@@ -309,3 +309,180 @@ fn transitions_and_title_clips_workflow_with_undo() {
     assert_eq!(loaded.document().project.sequence.tracks[0].transitions.len(), 1);
 }
 
+#[test]
+fn effect_stack_workflow_with_undo() {
+    use saturn_core::EffectKind;
+
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("effect_stack.saturn");
+    let mut engine = EditorEngine::default();
+
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name": "Effect Stack Test"}),
+        ))
+        .unwrap();
+
+    let media_res = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "clip.mp4",
+                "path": "/tmp/clip.mp4",
+                "kind": "video"
+            }),
+        ))
+        .unwrap();
+    let media_id = media_res["media_id"].as_u64().unwrap();
+
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": 1,
+                "media_id": media_id,
+                "duration": 500
+            }),
+        ))
+        .unwrap();
+
+    // 1. Add Blur effect
+    let add_blur = engine
+        .execute(CommandRequest::new(
+            "clip.add_effect",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "kind": "gaussian_blur"
+            }),
+        ))
+        .unwrap();
+    let blur_id = add_blur["effect_id"].as_u64().unwrap();
+
+    // 2. Add Crop effect
+    let add_crop = engine
+        .execute(CommandRequest::new(
+            "clip.add_effect",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "kind": "crop"
+            }),
+        ))
+        .unwrap();
+    let crop_id = add_crop["effect_id"].as_u64().unwrap();
+
+    let clip = &engine.document().project.sequence.tracks[0].clips[0];
+    assert_eq!(clip.effects.len(), 2);
+    assert_eq!(clip.effects[0].kind(), EffectKind::GaussianBlur);
+    assert_eq!(clip.effects[1].kind(), EffectKind::Crop);
+
+    // 3. Update Crop effect parameters
+    engine
+        .execute(CommandRequest::new(
+            "clip.update_effect",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "effect_id": crop_id,
+                "payload": {
+                    "kind": "crop",
+                    "params": {
+                        "top": 10.0,
+                        "bottom": 10.0,
+                        "left": 5.0,
+                        "right": 5.0
+                    }
+                }
+            }),
+        ))
+        .unwrap();
+
+    // 4. Toggle Blur effect off
+    engine
+        .execute(CommandRequest::new(
+            "clip.toggle_effect",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "effect_id": blur_id,
+                "enabled": false
+            }),
+        ))
+        .unwrap();
+    assert!(!engine.document().project.sequence.tracks[0].clips[0].effects[0].enabled);
+
+    // 5. Reorder effects (move crop to index 0)
+    engine
+        .execute(CommandRequest::new(
+            "clip.reorder_effects",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "from_index": 1,
+                "to_index": 0
+            }),
+        ))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].effects[0].id,
+        crop_id
+    );
+
+    // 6. Test undo/redo
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].effects[0].id,
+        blur_id
+    );
+
+    engine
+        .execute(CommandRequest::new("edit.redo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].effects[0].id,
+        crop_id
+    );
+
+    // 7. Save and reload
+    engine
+        .execute(CommandRequest::new("file.save", json!({"path": path})))
+        .unwrap();
+
+    let mut loaded = EditorEngine::default();
+    loaded
+        .execute(CommandRequest::new("file.open", json!({"path": path})))
+        .unwrap();
+    let loaded_clip = &loaded.document().project.sequence.tracks[0].clips[0];
+    assert_eq!(loaded_clip.effects.len(), 2);
+    assert_eq!(loaded_clip.effects[0].id, crop_id);
+    assert_eq!(loaded_clip.effects[1].id, blur_id);
+
+    // 8. Remove effect
+    loaded
+        .execute(CommandRequest::new(
+            "clip.remove_effect",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "effect_id": crop_id
+            }),
+        ))
+        .unwrap();
+    assert_eq!(
+        loaded.document().project.sequence.tracks[0].clips[0].effects.len(),
+        1
+    );
+
+    loaded
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(
+        loaded.document().project.sequence.tracks[0].clips[0].effects.len(),
+        2
+    );
+}
+
