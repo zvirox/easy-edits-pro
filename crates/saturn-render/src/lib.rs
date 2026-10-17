@@ -4,11 +4,76 @@ use gstreamer_editing_services as ges;
 use gstreamer_editing_services::prelude::*;
 use gstreamer_pbutils as gst_pbutils;
 use saturn_core::{FrameRate, Tick};
-use saturn_core::project::{Clip, EffectPayload, MediaKind, ProjectDocument, TrackKind, TransitionKind};
+use saturn_core::project::{Clip, EffectPayload, MediaKind, ProjectDocument, TrackAudioProcessing, TrackKind, TransitionKind};
+use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 static GST_INIT: OnceLock<Result<(), String>> = OnceLock::new();
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct HardwareEncoderInfo {
+    pub has_hardware_encoder: bool,
+    pub preferred_encoder: String,
+    pub encoder_type: String, // "vaapi" | "nvenc" | "qsv" | "v4l2" | "software"
+    pub description: String,
+    pub available_encoders: Vec<String>,
+}
+
+pub fn detect_hardware_encoders() -> HardwareEncoderInfo {
+    let _ = GST_INIT.get_or_init(|| {
+        gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
+        ges::init().map_err(|error| {
+            format!("Could not initialize GStreamer Editing Services: {error}")
+        })
+    });
+
+    let candidates = [
+        ("vah264enc", "vaapi", "VA-API Hardware H.264 (Intel / AMD GPU)"),
+        ("nvh264enc", "nvenc", "NVIDIA NVENC Hardware H.264 (NVIDIA GPU)"),
+        ("qsvh264enc", "qsv", "Intel Quick Sync Video H.264 (Intel QSV)"),
+        ("v4l2h264enc", "v4l2", "V4L2 Hardware Codec H.264"),
+    ];
+
+    let mut available = Vec::new();
+    let mut selected = None;
+
+    for (name, enc_type, desc) in &candidates {
+        if gst::ElementFactory::find(name).is_some() {
+            available.push((*name).to_string());
+            if selected.is_none() {
+                selected = Some(((*name).to_string(), (*enc_type).to_string(), (*desc).to_string()));
+            }
+        }
+    }
+
+    if let Some((name, enc_type, desc)) = selected {
+        HardwareEncoderInfo {
+            has_hardware_encoder: true,
+            preferred_encoder: name,
+            encoder_type: enc_type,
+            description: desc,
+            available_encoders: available,
+        }
+    } else {
+        let sw_name = if gst::ElementFactory::find("x264enc").is_some() {
+            "x264enc"
+        } else if gst::ElementFactory::find("openh264enc").is_some() {
+            "openh264enc"
+        } else {
+            "software"
+        };
+        available.push(sw_name.to_string());
+        HardwareEncoderInfo {
+            has_hardware_encoder: false,
+            preferred_encoder: sw_name.to_string(),
+            encoder_type: "software".to_string(),
+            description: "High-Quality CPU Software Encoding (x264 / OpenH264)".to_string(),
+            available_encoders: available,
+        }
+    }
+}
 
 
 
@@ -403,6 +468,7 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
                 &ges_clip,
                 clip,
                 effective_gain_db,
+                &track.audio_processing,
                 matches!(media.kind, MediaKind::Video | MediaKind::Image),
                 document.project.settings.width,
                 document.project.settings.height,
@@ -445,6 +511,7 @@ fn apply_clip_effects(
     clip: &ges::UriClip,
     model: &Clip,
     gain_db: f64,
+    audio_proc: &TrackAudioProcessing,
     has_video: bool,
     project_width: u32,
     project_height: u32,
@@ -454,11 +521,12 @@ fn apply_clip_effects(
             if model.color.exposure != 0.0
                 || model.color.contrast != 1.0
                 || model.color.saturation != 1.0
+                || model.color.hue != 0.0
             {
                 let brightness = exposure_to_brightness(model.color.exposure);
                 let effect = ges::Effect::new(&format!(
-                    "videobalance brightness={brightness} contrast={} saturation={}",
-                    model.color.contrast, model.color.saturation
+                    "videobalance brightness={brightness:.3} contrast={:.3} saturation={:.3} hue={:.3}",
+                    model.color.contrast, model.color.saturation, model.color.hue
                 ))
                 .map_err(|error| format!("Could not create clip color effect: {error}"))?;
                 clip.add_top_effect(&effect, -1)
@@ -526,6 +594,22 @@ fn apply_clip_effects(
             .map_err(|error| format!("Could not create track gain effect: {error}"))?;
         clip.add_top_effect(&effect, -1)
             .map_err(|error| format!("Could not apply track gain effect: {error}"))?;
+    }
+    if audio_proc.eq_enabled {
+        let eq_str = format!(
+            "equalizer-3bands band1={:.1} band2={:.1} band3={:.1}",
+            audio_proc.eq_low_gain.clamp(-24.0, 12.0),
+            audio_proc.eq_mid_gain.clamp(-24.0, 12.0),
+            audio_proc.eq_high_gain.clamp(-24.0, 12.0)
+        );
+        if let Ok(effect) = ges::Effect::new(&eq_str) {
+            let _ = clip.add_top_effect(&effect, -1);
+        }
+    }
+    if audio_proc.denoise_enabled {
+        if let Ok(effect) = ges::Effect::new("audiocheblimit mode=1 cutoff=80.0") {
+            let _ = clip.add_top_effect(&effect, -1);
+        }
     }
     Ok(())
 }

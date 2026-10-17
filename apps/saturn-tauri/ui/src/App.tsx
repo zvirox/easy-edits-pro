@@ -18,6 +18,7 @@ import {
   type CropParams,
   type VignetteParams,
   type ChromaKeyParams,
+  type TrackAudioProcessing,
 } from "./engine/playbackEngine";
 
 type JobState =
@@ -77,7 +78,7 @@ type MediaAsset = {
   title?: TitleProperties | null;
   waveform?: number[] | null;
 };
-type ColorAdjustments = { exposure: number; contrast: number; saturation: number };
+type ColorAdjustments = { exposure: number; contrast: number; saturation: number; hue?: number };
 type KeyframeProperty = "position_x" | "position_y" | "scale" | "rotation" | "opacity";
 type Keyframe = { property: KeyframeProperty; time: number; value: number };
 type Clip = {
@@ -100,9 +101,17 @@ type Track = {
   muted?: boolean;
   solo?: boolean;
   locked?: boolean;
+  audio_processing?: TrackAudioProcessing;
   clips: Clip[];
   transitions?: Transition[];
 };
+interface HardwareEncoderInfo {
+  hasHardwareEncoder: boolean;
+  preferredEncoder: string;
+  encoderType: string;
+  description: string;
+  availableEncoders: string[];
+}
 type ProjectDocument = {
   project: {
     name: string;
@@ -131,7 +140,65 @@ const resolutionPresets = [
   { value: "2560x1440", label: "QHD · 2560 × 1440", width: 2560, height: 1440 },
   { value: "1280x720", label: "HD · 1280 × 720", width: 1280, height: 720 },
   { value: "1080x1920", label: "Vertical · 1080 × 1920", width: 1080, height: 1920 },
+  { value: "1080x1080", label: "Square · 1080 × 1080 (1:1)", width: 1080, height: 1080 },
   { value: "custom", label: "Custom resolution", width: 1920, height: 1080 },
+];
+
+const exportPresets = [
+  {
+    id: "yt_4k",
+    name: "YouTube 4K UHD",
+    subtitle: "3840 × 2160 · 60 fps",
+    resolution: "3840x2160",
+    frameRate: "60/1",
+    format: "mp4" as const,
+    icon: "▶",
+  },
+  {
+    id: "yt_1080p",
+    name: "YouTube 1080p",
+    subtitle: "1920 × 1080 · 60 fps",
+    resolution: "1920x1080",
+    frameRate: "60/1",
+    format: "mp4" as const,
+    icon: "▶",
+  },
+  {
+    id: "tiktok_reels",
+    name: "TikTok / Reels",
+    subtitle: "1080 × 1920 · 9:16 Vertical",
+    resolution: "1080x1920",
+    frameRate: "30/1",
+    format: "mp4" as const,
+    icon: "📱",
+  },
+  {
+    id: "instagram_square",
+    name: "Instagram Square",
+    subtitle: "1080 × 1080 · 1:1 Feed",
+    resolution: "1080x1080",
+    frameRate: "30/1",
+    format: "mp4" as const,
+    icon: "📷",
+  },
+  {
+    id: "cinema_4k",
+    name: "Cinema 4K DCI",
+    subtitle: "3840 × 2160 · 24 fps Film",
+    resolution: "3840x2160",
+    frameRate: "24/1",
+    format: "mp4" as const,
+    icon: "🎬",
+  },
+  {
+    id: "web_hd",
+    name: "Web HD 720p",
+    subtitle: "1280 × 720 · 30 fps Fast",
+    resolution: "1280x720",
+    frameRate: "30/1",
+    format: "mp4" as const,
+    icon: "🌐",
+  },
 ];
 const frameRateOptions = [
   { value: "24000/1001", label: "23.976 fps", numerator: 24_000, denominator: 1_001 },
@@ -522,13 +589,19 @@ function App() {
   const [snapEnabled, setSnapEnabled] = useState(true);
   const [timelineTool, setTimelineTool] = useState<TimelineTool>("select");
   const [timelineZoom, setTimelineZoom] = useState(72);
-  const [colorDraft, setColorDraft] = useState<ColorAdjustments>({ exposure: 0, contrast: 1, saturation: 1 });
+  const [colorDraft, setColorDraft] = useState<ColorAdjustments>({ exposure: 0, contrast: 1, saturation: 1, hue: 0 });
   const [colorWheelsDraft, setColorWheelsDraft] = useState<ColorWheelsData>(DEFAULT_COLOR_WHEELS);
   const [gainDrafts, setGainDrafts] = useState<Record<number, number>>({});
   const [panDrafts, setPanDrafts] = useState<Record<number, number>>({});
   const [masterGainDraft, setMasterGainDraft] = useState(0);
   const [vuLevels, setVuLevels] = useState<Record<number, { left: number; right: number; peakDb: number }>>({});
   const [masterVu, setMasterVu] = useState<{ left: number; right: number; peakDb: number }>({ left: 0, right: 0, peakDb: -60 });
+  const [trackGr, setTrackGr] = useState<Record<number, number>>({});
+  const [masterGr, setMasterGr] = useState<number>(0);
+  const [selectedFairlightTrackId, setSelectedFairlightTrackId] = useState<number | null>(null);
+  const [audioProcessingDrafts, setAudioProcessingDrafts] = useState<Record<number, TrackAudioProcessing>>({});
+  const [encoderInfo, setEncoderInfo] = useState<HardwareEncoderInfo | null>(null);
+  const [selectedExportPreset, setSelectedExportPreset] = useState<string>("source");
   const [keyframeProperty, setKeyframeProperty] = useState<KeyframeProperty>("opacity");
   const [keyframeValue, setKeyframeValue] = useState("1");
   const [exportFormat, setExportFormat] = useState<"mp4" | "webm">("mp4");
@@ -585,6 +658,7 @@ function App() {
     invoke<CommandSpec[]>("get_command_catalogue").then((catalogue) => { if (active) setCommands(catalogue); }).catch(() => {});
     invoke<RecoveryStatus>("recovery_status").then((recovery) => { if (active) { setRecoveryStatus(recovery); setConnection("Rust core connected"); } })
       .catch((error: unknown) => { if (active) setConnection(`Rust core error: ${String(error)}`); });
+    invoke<HardwareEncoderInfo>("detect_encoder_capabilities").then((info) => { if (active) setEncoderInfo(info); }).catch(() => {});
     return () => { active = false; };
   }, [refreshProject]);
 
@@ -601,14 +675,18 @@ function App() {
 
     const pollMeters = () => {
       if (!active) return;
-      if (workspace === "audio" || programPlaying) {
+      if (workspace === "audio" || davinciWorkspace === "audio" || programPlaying) {
         if (project) {
           const nextLevels: Record<number, { left: number; right: number; peakDb: number }> = {};
+          const nextGr: Record<number, number> = {};
           for (const track of project.sequence.tracks) {
             nextLevels[track.id] = audioClockMaster.getTrackLevels(track.id);
+            nextGr[track.id] = audioClockMaster.getTrackGainReduction(track.id);
           }
           setVuLevels(nextLevels);
+          setTrackGr(nextGr);
           setMasterVu(audioClockMaster.getMasterLevels());
+          setMasterGr(audioClockMaster.getMasterGainReduction());
         }
       }
       animId = requestAnimationFrame(pollMeters);
@@ -619,7 +697,7 @@ function App() {
       active = false;
       cancelAnimationFrame(animId);
     };
-  }, [workspace, programPlaying, project]);
+  }, [workspace, davinciWorkspace, programPlaying, project]);
   const media = project?.media ?? [];
   const visibleMedia = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -962,6 +1040,15 @@ function App() {
     await perform("track.set_pan", { track_id: trackId, pan }, "Track pan saved");
   }
 
+  async function saveTrackAudioProcessing(trackId: number, params: Partial<TrackAudioProcessing>) {
+    const track = project?.sequence.tracks.find((t) => t.id === trackId);
+    const current = audioProcessingDrafts[trackId] ?? track?.audio_processing ?? {};
+    const merged: TrackAudioProcessing = { ...current, ...params };
+    setAudioProcessingDrafts((prev) => ({ ...prev, [trackId]: merged }));
+    audioClockMaster.updateTrackAudioProcessing(trackId, merged);
+    await perform("track.set_audio_processing", { track_id: trackId, ...merged }, "Audio DSP settings saved");
+  }
+
   async function toggleTrackMute(track: Track) {
     const nextMuted = !track.muted;
     if (project) {
@@ -986,7 +1073,7 @@ function App() {
   }
 
   async function applyColorPreset(preset: typeof COLOR_PRESETS[number]) {
-    const next: ColorAdjustments = { exposure: preset.exposure, contrast: preset.contrast, saturation: preset.saturation };
+    const next: ColorAdjustments = { exposure: preset.exposure, contrast: preset.contrast, saturation: preset.saturation, hue: 0 };
     setColorDraft(next);
     if (selectedClip) {
       await saveColor(next);
@@ -1002,10 +1089,17 @@ function App() {
     const nextContrast = Math.max(0.1, 1.0 + wheels.gamma.yLum * 0.6);
     const nextSat = Math.max(0, 1.0 + wheels.gain.yLum * 0.6);
 
+    const chromX = wheels.gain.x + wheels.offset.x * 0.5;
+    const chromY = wheels.gain.y + wheels.offset.y * 0.5;
+    const hueAngle = Math.hypot(chromX, chromY) > 0.04
+      ? Math.atan2(chromY, chromX) / Math.PI
+      : 0;
+
     const next: ColorAdjustments = {
       exposure: Math.round(expDelta * 10) / 10,
       contrast: Math.round(nextContrast * 100) / 100,
       saturation: Math.round(nextSat * 100) / 100,
+      hue: Math.round(hueAngle * 1000) / 1000,
     };
     setColorDraft(next);
     if (selectedClip) {
@@ -3153,6 +3247,21 @@ function App() {
     const audioTracks = tracks.filter((t) => t.kind === "audio");
     const videoTracks = tracks.filter((t) => t.kind === "video");
 
+    const activeTrackId = selectedFairlightTrackId ?? audioTracks[0]?.id ?? tracks[0]?.id ?? 1;
+    const activeTrack = tracks.find((t) => t.id === activeTrackId) ?? tracks[0];
+    const activeDsp: TrackAudioProcessing = audioProcessingDrafts[activeTrackId] ?? activeTrack?.audio_processing ?? {};
+
+    const lowGain = activeDsp.eq_low_gain ?? 0;
+    const midGain = activeDsp.eq_mid_gain ?? 0;
+    const highGain = activeDsp.eq_high_gain ?? 0;
+    const dyLow = (lowGain / 15) * 22;
+    const dyMid = (midGain / 15) * 22;
+    const dyHigh = (highGain / 15) * 22;
+    const eqCurvePath = `M 0 ${(35 - dyLow).toFixed(1)} C 40 ${(35 - dyLow).toFixed(1)}, 70 ${(35 - dyMid).toFixed(1)}, 120 ${(35 - dyMid).toFixed(1)} C 170 ${(35 - dyMid).toFixed(1)}, 200 ${(35 - dyHigh).toFixed(1)}, 240 ${(35 - dyHigh).toFixed(1)}`;
+    const eqFillPath = `${eqCurvePath} L 240 70 L 0 70 Z`;
+
+    const activeTrackGr = trackGr[activeTrackId] || 0;
+
     return (
       <main className="workspace-page audio-workspace-page">
         <header className="workspace-sub-header audio-workspace-header">
@@ -3315,6 +3424,349 @@ function App() {
                 </div>
               </div>
             </div>
+
+            {/* Master True Peak Limiter Module */}
+            <div className="audio-master-limiter-card">
+              <div className="limiter-card-header">
+                <div className="limiter-title">
+                  <strong>TRUE PEAK LIMITER</strong>
+                  <span className="limiter-badge">-0.5 dBFS CEILING</span>
+                </div>
+                <span className="limiter-active-pill">BRICKWALL</span>
+              </div>
+              <div className="limiter-card-body">
+                <div className="limiter-specs">
+                  <span>Ceiling: <b>-0.5 dB</b></span>
+                  <span>Ratio: <b>20:1</b></span>
+                  <span>Attack: <b>1.0 ms</b></span>
+                </div>
+                <div className="limiter-gr-container">
+                  <div className="gr-label-row">
+                    <span>Master GR</span>
+                    <b className={masterGr < -0.1 ? "gr-active" : ""}>
+                      {masterGr < -0.05 ? `${masterGr.toFixed(1)} dB` : "0.0 dB"}
+                    </b>
+                  </div>
+                  <div className="gr-meter-bar-slot">
+                    <div
+                      className="gr-meter-bar-fill master"
+                      style={{ width: `${Math.min(100, Math.max(0, -masterGr * 5))}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Center Column: Dedicated Fairlight Track Audio DSP Rack */}
+          <section className="audio-dsp-rack-column">
+            <div className="dsp-rack-header">
+              <div className="dsp-header-left">
+                <span className="dsp-eyebrow">TRACK DSP PROCESSOR</span>
+                <h2>{activeTrack?.name ?? "Track"} Audio Rack</h2>
+              </div>
+              <div className="dsp-track-picker">
+                <span className="picker-label">Target:</span>
+                <select
+                  value={activeTrackId}
+                  onChange={(e) => setSelectedFairlightTrackId(Number(e.target.value))}
+                >
+                  {tracks.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.kind === "audio" ? "♪ " : "▶ "} {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="dsp-modules-scroll">
+              {/* Module 1: 4-Band Parametric Equalizer */}
+              <div className={`dsp-module-card eq-module ${activeDsp.eq_enabled ? "module-enabled" : "module-bypassed"}`}>
+                <div className="dsp-module-top">
+                  <div className="module-title-box">
+                    <span className="module-badge eq">EQ</span>
+                    <strong>4-Band Parametric Equalizer</strong>
+                    <small>Low Shelf · Mid Peak · High Shelf</small>
+                  </div>
+                  <button
+                    type="button"
+                    className={`dsp-power-btn ${activeDsp.eq_enabled ? "active" : ""}`}
+                    onClick={() => void saveTrackAudioProcessing(activeTrackId, { eq_enabled: !activeDsp.eq_enabled })}
+                  >
+                    {activeDsp.eq_enabled ? "ACTIVE" : "BYPASS"}
+                  </button>
+                </div>
+
+                {/* Live EQ Curve Graph */}
+                <div className="eq-curve-display">
+                  <svg viewBox="0 0 240 70" preserveAspectRatio="none" className="eq-curve-svg">
+                    <defs>
+                      <linearGradient id="eqGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.35" />
+                        <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0" />
+                      </linearGradient>
+                    </defs>
+                    <line x1="0" y1="35" x2="240" y2="35" stroke="#334155" strokeDasharray="3 3" strokeWidth="1" />
+                    <path d={eqFillPath} fill="url(#eqGrad)" />
+                    <path d={eqCurvePath} fill="none" stroke={activeDsp.eq_enabled ? "#22d3ee" : "#64748b"} strokeWidth="2.2" strokeLinecap="round" />
+                    <circle cx="20" cy={35 - dyLow} r="3.5" fill="#38bdf8" />
+                    <circle cx="120" cy={35 - dyMid} r="3.5" fill="#a78bfa" />
+                    <circle cx="220" cy={35 - dyHigh} r="3.5" fill="#34d399" />
+                  </svg>
+                  <div className="eq-freq-labels">
+                    <span>80 Hz (Low)</span>
+                    <span>1.0 kHz (Mid)</span>
+                    <span>8.0 kHz (High)</span>
+                  </div>
+                </div>
+
+                <div className="eq-bands-controls">
+                  <div className="eq-band-item">
+                    <div className="band-header">
+                      <span>Low Shelf (80 Hz)</span>
+                      <b>{lowGain > 0 ? `+${lowGain.toFixed(1)}` : lowGain.toFixed(1)} dB</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="-15"
+                      max="15"
+                      step="0.5"
+                      value={lowGain}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_low_gain: val } }));
+                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, eq_low_gain: val });
+                      }}
+                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_low_gain: Number(e.currentTarget.value) })}
+                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_low_gain: Number(e.currentTarget.value) })}
+                    />
+                  </div>
+
+                  <div className="eq-band-item">
+                    <div className="band-header">
+                      <span>Mid Bell (1 kHz)</span>
+                      <b>{midGain > 0 ? `+${midGain.toFixed(1)}` : midGain.toFixed(1)} dB</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="-15"
+                      max="15"
+                      step="0.5"
+                      value={midGain}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_mid_gain: val } }));
+                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, eq_mid_gain: val });
+                      }}
+                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_mid_gain: Number(e.currentTarget.value) })}
+                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_mid_gain: Number(e.currentTarget.value) })}
+                    />
+                  </div>
+
+                  <div className="eq-band-item">
+                    <div className="band-header">
+                      <span>High Shelf (8 kHz)</span>
+                      <b>{highGain > 0 ? `+${highGain.toFixed(1)}` : highGain.toFixed(1)} dB</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="-15"
+                      max="15"
+                      step="0.5"
+                      value={highGain}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_high_gain: val } }));
+                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, eq_high_gain: val });
+                      }}
+                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_high_gain: Number(e.currentTarget.value) })}
+                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_high_gain: Number(e.currentTarget.value) })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Module 2: Dynamics Compressor */}
+              <div className={`dsp-module-card comp-module ${activeDsp.comp_enabled ? "module-enabled" : "module-bypassed"}`}>
+                <div className="dsp-module-top">
+                  <div className="module-title-box">
+                    <span className="module-badge comp">DYN</span>
+                    <strong>Dynamics Compressor</strong>
+                    <small>Threshold · Ratio · Attack · Release</small>
+                  </div>
+                  <button
+                    type="button"
+                    className={`dsp-power-btn comp ${activeDsp.comp_enabled ? "active" : ""}`}
+                    onClick={() => void saveTrackAudioProcessing(activeTrackId, { comp_enabled: !activeDsp.comp_enabled })}
+                  >
+                    {activeDsp.comp_enabled ? "ACTIVE" : "BYPASS"}
+                  </button>
+                </div>
+
+                {/* Real-Time Gain Reduction (GR) Meter */}
+                <div className="comp-gr-meter-row">
+                  <div className="gr-meta">
+                    <span className="gr-title">GAIN REDUCTION (GR)</span>
+                    <b className={activeTrackGr < -0.1 ? "gr-active" : ""}>
+                      {activeTrackGr < -0.05 ? `${activeTrackGr.toFixed(1)} dB` : "0.0 dB"}
+                    </b>
+                  </div>
+                  <div className="gr-meter-bar-slot">
+                    <div
+                      className="gr-meter-bar-fill"
+                      style={{ width: `${Math.min(100, Math.max(0, -activeTrackGr * 4.16))}%` }}
+                    />
+                  </div>
+                  <div className="gr-scale-marks">
+                    <span>0</span>
+                    <span>-6</span>
+                    <span>-12</span>
+                    <span>-18</span>
+                    <span>-24 dB</span>
+                  </div>
+                </div>
+
+                <div className="comp-params-grid">
+                  <div className="comp-param-item">
+                    <div className="param-label-row">
+                      <span>Threshold</span>
+                      <b>{(activeDsp.comp_threshold ?? -24).toFixed(0)} dB</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="-60"
+                      max="0"
+                      step="1"
+                      value={activeDsp.comp_threshold ?? -24}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_threshold: val } }));
+                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_threshold: val });
+                      }}
+                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_threshold: Number(e.currentTarget.value) })}
+                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_threshold: Number(e.currentTarget.value) })}
+                    />
+                  </div>
+
+                  <div className="comp-param-item">
+                    <div className="param-label-row">
+                      <span>Ratio</span>
+                      <b>{(activeDsp.comp_ratio ?? 4).toFixed(1)}:1</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="20"
+                      step="0.5"
+                      value={activeDsp.comp_ratio ?? 4}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_ratio: val } }));
+                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_ratio: val });
+                      }}
+                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_ratio: Number(e.currentTarget.value) })}
+                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_ratio: Number(e.currentTarget.value) })}
+                    />
+                  </div>
+
+                  <div className="comp-param-item">
+                    <div className="param-label-row">
+                      <span>Attack</span>
+                      <b>{Math.round((activeDsp.comp_attack ?? 0.02) * 1000)} ms</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="200"
+                      step="1"
+                      value={Math.round((activeDsp.comp_attack ?? 0.02) * 1000)}
+                      onChange={(e) => {
+                        const val = Number(e.target.value) / 1000;
+                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_attack: val } }));
+                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_attack: val });
+                      }}
+                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_attack: Number(e.currentTarget.value) / 1000 })}
+                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_attack: Number(e.currentTarget.value) / 1000 })}
+                    />
+                  </div>
+
+                  <div className="comp-param-item">
+                    <div className="param-label-row">
+                      <span>Release</span>
+                      <b>{Math.round((activeDsp.comp_release ?? 0.25) * 1000)} ms</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="20"
+                      max="1000"
+                      step="10"
+                      value={Math.round((activeDsp.comp_release ?? 0.25) * 1000)}
+                      onChange={(e) => {
+                        const val = Number(e.target.value) / 1000;
+                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_release: val } }));
+                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_release: val });
+                      }}
+                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_release: Number(e.currentTarget.value) / 1000 })}
+                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_release: Number(e.currentTarget.value) / 1000 })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Module 3: Vocal De-Noise & Clean-Up */}
+              <div className={`dsp-module-card denoise-module ${activeDsp.denoise_enabled ? "module-enabled" : "module-bypassed"}`}>
+                <div className="dsp-module-top">
+                  <div className="module-title-box">
+                    <span className="module-badge denoise">NR</span>
+                    <strong>Vocal De-Noise &amp; Dialogue Isolation</strong>
+                    <small>80 Hz High-Pass Sub Cut · Real-Time Spectral Clean</small>
+                  </div>
+                  <button
+                    type="button"
+                    className={`dsp-power-btn denoise ${activeDsp.denoise_enabled ? "active" : ""}`}
+                    onClick={() => void saveTrackAudioProcessing(activeTrackId, { denoise_enabled: !activeDsp.denoise_enabled })}
+                  >
+                    {activeDsp.denoise_enabled ? "ACTIVE" : "BYPASS"}
+                  </button>
+                </div>
+
+                <div className="denoise-controls-row">
+                  <div className="denoise-rumble-badge">
+                    <span className="rumble-icon">⚡</span>
+                    <div className="rumble-text">
+                      <strong>80 Hz High-Pass Rumble Filter</strong>
+                      <small>Removes low-end mic bumps &amp; sub-bass rumble</small>
+                    </div>
+                    <span className={`rumble-status ${activeDsp.denoise_enabled ? "engaged" : "off"}`}>
+                      {activeDsp.denoise_enabled ? "ENGAGED" : "OFF"}
+                    </span>
+                  </div>
+
+                  <div className="denoise-amount-slider-item">
+                    <div className="slider-header-row">
+                      <span>Noise Suppression Intensity</span>
+                      <b>{Math.round((activeDsp.denoise_amount ?? 0.5) * 100)}%</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      disabled={!activeDsp.denoise_enabled}
+                      value={activeDsp.denoise_amount ?? 0.5}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, denoise_amount: val } }));
+                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, denoise_amount: val });
+                      }}
+                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { denoise_amount: Number(e.currentTarget.value) })}
+                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { denoise_amount: Number(e.currentTarget.value) })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* Right Column: Full-Height Channel Strip Mixer Rack */}
@@ -3334,8 +3786,9 @@ function App() {
                   const currentPan = panDrafts[track.id] ?? track.pan ?? 0;
                   return (
                     <article
-                      className={`fairlight-channel-strip ${track.muted ? "is-muted" : ""} ${track.solo ? "is-solo" : ""} ${track.locked ? "is-locked" : ""}`}
+                      className={`fairlight-channel-strip ${track.id === activeTrackId ? "is-selected" : ""} ${track.muted ? "is-muted" : ""} ${track.solo ? "is-solo" : ""} ${track.locked ? "is-locked" : ""}`}
                       key={track.id}
+                      onClick={() => setSelectedFairlightTrackId(track.id)}
                     >
                       <div className="strip-top">
                         <div className="strip-track-badge">
@@ -3351,6 +3804,43 @@ function App() {
                             {track.clips.length} clip{track.clips.length !== 1 ? "s" : ""}
                           </span>
                         </div>
+                      </div>
+
+                      {/* Quick DSP Badges Row */}
+                      <div className="strip-dsp-badges">
+                        <button
+                          type="button"
+                          className={`strip-dsp-btn ${track.audio_processing?.eq_enabled ? "active" : ""}`}
+                          title={`EQ: ${track.audio_processing?.eq_enabled ? "ON" : "OFF"}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void saveTrackAudioProcessing(track.id, { eq_enabled: !track.audio_processing?.eq_enabled });
+                          }}
+                        >
+                          EQ
+                        </button>
+                        <button
+                          type="button"
+                          className={`strip-dsp-btn comp ${track.audio_processing?.comp_enabled ? "active" : ""}`}
+                          title={`Dynamics: ${track.audio_processing?.comp_enabled ? "ON" : "OFF"}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void saveTrackAudioProcessing(track.id, { comp_enabled: !track.audio_processing?.comp_enabled });
+                          }}
+                        >
+                          DYN
+                        </button>
+                        <button
+                          type="button"
+                          className={`strip-dsp-btn denoise ${track.audio_processing?.denoise_enabled ? "active" : ""}`}
+                          title={`Noise Reduction: ${track.audio_processing?.denoise_enabled ? "ON" : "OFF"}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void saveTrackAudioProcessing(track.id, { denoise_enabled: !track.audio_processing?.denoise_enabled });
+                          }}
+                        >
+                          NR
+                        </button>
                       </div>
 
                       {/* Pan Section */}
@@ -3428,6 +3918,14 @@ function App() {
                                 style={{ height: `${Math.min(100, (trackVu.right || 0) * 100)}%` }}
                               />
                             </div>
+                            {track.audio_processing?.comp_enabled && (
+                              <div className="strip-mini-gr-slot" title={`Gain Reduction: ${(trackGr[track.id] || 0).toFixed(1)} dB`}>
+                                <div
+                                  className="strip-mini-gr-fill"
+                                  style={{ height: `${Math.min(100, Math.max(0, -(trackGr[track.id] || 0) * 4.16))}%` }}
+                                />
+                              </div>
+                            )}
                           </div>
                           <div className="vu-db-readout">{formatDb(trackVu.peakDb)}</div>
                         </div>
@@ -3616,7 +4114,7 @@ function App() {
       void saveColor(next);
     };
     const resetColorGrading = () => {
-      const reset = { exposure: 0, contrast: 1.0, saturation: 1.0 };
+      const reset = { exposure: 0, contrast: 1.0, saturation: 1.0, hue: 0.0 };
       setColorDraft(reset);
       setColorWheelsDraft(DEFAULT_COLOR_WHEELS);
       void saveColor(reset);
@@ -3767,6 +4265,24 @@ function App() {
                       onChange={(e) => setColorDraft((v) => ({ ...v, saturation: Number(e.target.value) }))}
                       onPointerUp={(e) => updateColorField("saturation", Number(e.currentTarget.value))}
                       onKeyUp={(e) => updateColorField("saturation", Number(e.currentTarget.value))}
+                    />
+                  </label>
+
+                  <label className="color-slider-item">
+                    <div className="slider-label-row">
+                      <span>Hue Tint</span>
+                      <b>{((colorDraft.hue ?? 0) * 180).toFixed(0)}°</b>
+                    </div>
+                    <input
+                      type="range"
+                      min="-1"
+                      max="1"
+                      step="0.01"
+                      disabled={!selectedClip}
+                      value={colorDraft.hue ?? 0}
+                      onChange={(e) => setColorDraft((v) => ({ ...v, hue: Number(e.target.value) }))}
+                      onPointerUp={(e) => updateColorField("hue", Number(e.currentTarget.value))}
+                      onKeyUp={(e) => updateColorField("hue", Number(e.currentTarget.value))}
                     />
                   </label>
                 </div>
@@ -4299,19 +4815,79 @@ function App() {
     return <main className="export-workspace">
       <aside className="export-destinations"><h2>Destinations</h2><button className="export-destination selected"><Icon name="export" /><span><strong>Media File</strong><small>Render a video file</small></span></button><div className="export-queue"><h3>Queue <span>0</span></h3><p>Exports run immediately when you choose Export video.</p></div></aside>
       <section className="export-settings-panel"><header><span className="workspace-eyebrow">DELIVERY</span><h1>Media File</h1><p>Set a format and size that match where you’ll share this edit.</p></header>
+        {/* Live Hardware Acceleration Badge */}
+        <div className="export-hw-status-card">
+          <div className="hw-status-indicator">
+            <span className={`hw-dot ${encoderInfo?.hasHardwareEncoder ? "active" : "fallback"}`} />
+            <div className="hw-status-details">
+              <strong>
+                {encoderInfo?.hasHardwareEncoder
+                  ? `Hardware Encoder: ${encoderInfo.preferredEncoder.toUpperCase()}`
+                  : `CPU Software Encoding Fallback (${encoderInfo?.preferredEncoder || "x264enc"})`}
+              </strong>
+              <small>{encoderInfo?.description || "Probing GStreamer hardware acceleration..."}</small>
+            </div>
+          </div>
+          <div className="hw-codecs-list">
+            {(encoderInfo?.availableEncoders ?? ["x264enc"]).map((enc) => (
+              <span
+                key={enc}
+                className={`hw-codec-tag ${enc === encoderInfo?.preferredEncoder ? "preferred" : ""}`}
+                title={`Detected GStreamer codec: ${enc}`}
+              >
+                {enc}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* 1-Click Target Delivery Presets */}
+        <div className="export-presets-shelf">
+          <div className="export-presets-shelf-header">
+            <strong>1-CLICK DELIVERY PRESETS</strong>
+            <small>YouTube, TikTok/Reels 9:16, Instagram 1:1, Cinema 4K</small>
+          </div>
+          <div className="export-presets-cards-grid">
+            {exportPresets.map((preset) => {
+              const isSelected = selectedExportPreset === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  className={`export-preset-card ${isSelected ? "selected" : ""}`}
+                  onClick={() => {
+                    setSelectedExportPreset(preset.id);
+                    setExportResolution(preset.resolution);
+                    setExportFrameRate(preset.frameRate);
+                    setExportFormat(preset.format);
+                  }}
+                  title={`Configure for ${preset.name}`}
+                >
+                  <span className="preset-card-icon">{preset.icon}</span>
+                  <div className="preset-card-text">
+                    <strong>{preset.name}</strong>
+                    <small>{preset.subtitle}</small>
+                  </div>
+                  <span className="preset-badge">{preset.format.toUpperCase()}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="export-form-scroll">
           <label className="export-field">File name<input value={exportFileName} disabled={rendering} onChange={(event) => { setExportFileName(event.target.value); setExportOutputPath(""); }} placeholder="Main Edit" /></label>
           <div className="export-field"><span>Location</span><div className="export-location"><small title={outputFolder}>{outputFolder}</small><button onClick={() => void chooseExportDestination()} disabled={!hasClips || rendering}>Choose…</button></div></div>
-          <label className="export-field">Preset<select disabled={rendering} value={exportResolution} onChange={(event) => setExportResolution(event.target.value)}><option value="source">Match sequence · {project?.settings.width ?? 1920} × {project?.settings.height ?? 1080}</option>{resolutionPresets.filter((item) => item.value !== "custom").map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
+          <label className="export-field">Preset<select disabled={rendering} value={exportResolution} onChange={(event) => { setExportResolution(event.target.value); setSelectedExportPreset("custom"); }}><option value="source">Match sequence · {project?.settings.width ?? 1920} × {project?.settings.height ?? 1080}</option>{resolutionPresets.filter((item) => item.value !== "custom").map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
           <label className="export-field">Format<select disabled={rendering} value={exportFormat} onChange={(event) => { setExportFormat(event.target.value as "mp4" | "webm"); setExportOutputPath(""); }}><option value="mp4">H.264 · MP4</option><option value="webm">VP8 · WebM</option></select></label>
-          <details className="export-settings-group" open><summary>Video</summary><div className="export-fields-grid"><label className="export-field">Frame size<select disabled={rendering} value={exportResolution} onChange={(event) => setExportResolution(event.target.value)}><option value="source">Match sequence</option>{resolutionPresets.filter((item) => item.value !== "custom").map((item) => <option value={item.value} key={item.value}>{item.width} × {item.height}</option>)}</select></label><label className="export-field">Frame rate<select disabled={rendering} value={exportFrameRate} onChange={(event) => setExportFrameRate(event.target.value)}>{exportFrameRateOptions.map((item) => <option value={item.value} key={item.value}>{item.value === "source" ? `${item.label} · ${project?.settings.frame_rate.numerator ?? 30}/${project?.settings.frame_rate.denominator ?? 1} fps` : item.label}</option>)}</select></label></div>
+          <details className="export-settings-group" open><summary>Video</summary><div className="export-fields-grid"><label className="export-field">Frame size<select disabled={rendering} value={exportResolution} onChange={(event) => { setExportResolution(event.target.value); setSelectedExportPreset("custom"); }}><option value="source">Match sequence</option>{resolutionPresets.filter((item) => item.value !== "custom").map((item) => <option value={item.value} key={item.value}>{item.width} × {item.height}</option>)}</select></label><label className="export-field">Frame rate<select disabled={rendering} value={exportFrameRate} onChange={(event) => { setExportFrameRate(event.target.value); setSelectedExportPreset("custom"); }}>{exportFrameRateOptions.map((item) => <option value={item.value} key={item.value}>{item.value === "source" ? `${item.label} · ${project?.settings.frame_rate.numerator ?? 30}/${project?.settings.frame_rate.denominator ?? 1} fps` : item.label}</option>)}</select></label></div>
             <label className={`export-check ${exportFormat !== "mp4" ? "disabled" : ""}`}><input type="checkbox" checked={useHardwareEncoding} disabled={rendering || exportFormat !== "mp4"} onChange={(event) => setUseHardwareEncoding(event.target.checked)} /><span><strong>Use hardware encoder when available</strong><small>{exportFormat === "mp4" ? "Try your GPU first; software encoding is used if it is unavailable." : "Hardware H.264 applies to MP4 exports."}</small></span></label>
           </details>
           <details className="export-settings-group" open><summary>Audio</summary><div className="export-audio-summary"><span>Audio format</span><strong>{exportFormat === "mp4" ? "AAC" : "Vorbis"}</strong><span>Sample rate</span><strong>{project?.settings.audio_sample_rate ?? 48_000} Hz · source mix</strong></div></details>
           <details className="export-settings-group"><summary>More settings</summary><label className="range-export export-check"><input type="checkbox" checked={exportMarkedRange} disabled={project?.sequence.mark_in == null || project?.sequence.mark_out == null || rendering} onChange={(event) => setExportMarkedRange(event.target.checked)} /><span><strong>Export marked In/Out range</strong><small>Use the sequence markers instead of the full timeline.</small></span></label><div className="export-mark-row"><span>In <b>{project?.sequence.mark_in == null ? "Not set" : formatTime(project.sequence.mark_in)}</b></span><span>Out <b>{project?.sequence.mark_out == null ? "Not set" : formatTime(project.sequence.mark_out)}</b></span><button disabled={project?.sequence.mark_in == null && project?.sequence.mark_out == null} onClick={() => void invokeMenuCommand("timeline.clear_marks")}>Clear marks</button></div></details>
         </div>
       </section>
-      <aside className="export-preview-panel"><div className="export-preview-heading"><span>Preview</span><span>{exportFormat === "mp4" ? "H.264" : "VP8"}</span></div><div className="export-preview-stage">{renderPreview(activeClip?.media ?? selectedMedia, true)}</div><div className="export-range-select">Range <strong>{exportMarkedRange ? "Marked In / Out" : "Entire sequence"}</strong></div><div className="export-summary"><h2>Summary</h2><dl><dt>Output</dt><dd>{exportOutputPath || `${exportFileName || project?.name || "Main Edit"}.${exportFormat}`}</dd><dt>Video</dt><dd>{outputResolution.width} × {outputResolution.height} · {outputFrameRate.numerator}/{outputFrameRate.denominator} fps</dd><dt>Container</dt><dd>{exportFormat === "mp4" ? "H.264 (MP4)" : "VP8 (WebM)"}</dd><dt>Audio</dt><dd>{exportFormat === "mp4" ? "AAC" : "Vorbis"} · {project?.settings.audio_sample_rate ?? 48_000} Hz</dd><dt>Range</dt><dd>{formatTime(rangeDuration)}</dd></dl></div>{renderProgress && <div className="render-progress"><progress max={100} value={renderProgress.fractionPercent} /><small>{renderProgress.phase} · {renderProgress.fractionPercent}%</small></div>}<button className="primary export-submit" disabled={!hasClips || rendering} onClick={() => void exportProject()}>{rendering ? "Rendering…" : "Export video"}</button><small className="export-footer-note">Color controls and track gain are included. Animated keyframes are preview-only.</small></aside>
+      <aside className="export-preview-panel"><div className="export-preview-heading"><span>Preview</span><span>{exportFormat === "mp4" ? "H.264" : "VP8"}</span></div><div className="export-preview-stage">{renderPreview(activeClip?.media ?? selectedMedia, true)}</div><div className="export-range-select">Range <strong>{exportMarkedRange ? "Marked In / Out" : "Entire sequence"}</strong></div><div className="export-summary"><h2>Summary</h2><dl><dt>Output</dt><dd>{exportOutputPath || `${exportFileName || project?.name || "Main Edit"}.${exportFormat}`}</dd><dt>Video</dt><dd>{outputResolution.width} × {outputResolution.height} · {outputFrameRate.numerator}/{outputFrameRate.denominator} fps</dd><dt>Engine</dt><dd>{encoderInfo?.hasHardwareEncoder && useHardwareEncoding && exportFormat === "mp4" ? `Hardware Accelerated (${encoderInfo.preferredEncoder})` : "CPU Software (x264enc)"}</dd><dt>Container</dt><dd>{exportFormat === "mp4" ? "H.264 (MP4)" : "VP8 (WebM)"}</dd><dt>Audio</dt><dd>{exportFormat === "mp4" ? "AAC" : "Vorbis"} · {project?.settings.audio_sample_rate ?? 48_000} Hz</dd><dt>Range</dt><dd>{formatTime(rangeDuration)}</dd></dl></div>{renderProgress && <div className="render-progress"><progress max={100} value={renderProgress.fractionPercent} /><small>{renderProgress.phase} · {renderProgress.fractionPercent}%</small></div>}<button className="primary export-submit" disabled={!hasClips || rendering} onClick={() => void exportProject()}>{rendering ? "Rendering…" : "Export video"}</button><small className="export-footer-note">Color controls and track gain are included. Animated keyframes are preview-only.</small></aside>
     </main>;
   }
 

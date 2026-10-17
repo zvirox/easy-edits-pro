@@ -30,6 +30,7 @@ export interface ColorAdjustments {
   exposure: number;
   contrast: number;
   saturation: number;
+  hue?: number;
 }
 
 export type EffectKind =
@@ -97,6 +98,20 @@ export interface Clip {
   keyframes: Keyframe[];
 }
 
+export interface TrackAudioProcessing {
+  eq_enabled?: boolean;
+  eq_low_gain?: number;
+  eq_mid_gain?: number;
+  eq_high_gain?: number;
+  comp_enabled?: boolean;
+  comp_threshold?: number;
+  comp_ratio?: number;
+  comp_attack?: number;
+  comp_release?: number;
+  denoise_enabled?: boolean;
+  denoise_amount?: number;
+}
+
 export interface Track {
   id: number;
   kind: "video" | "audio";
@@ -106,6 +121,7 @@ export interface Track {
   muted?: boolean;
   solo?: boolean;
   locked?: boolean;
+  audio_processing?: TrackAudioProcessing;
   clips: Clip[];
   transitions?: Transition[];
 }
@@ -159,10 +175,17 @@ export interface ProjectDocument {
 class AudioClockMaster {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private masterLimiter: DynamicsCompressorNode | null = null;
   private masterAnalyser: AnalyserNode | null = null;
+  private trackInputs = new Map<number, GainNode>();
   private trackGains = new Map<number, GainNode>();
   private trackPanners = new Map<number, StereoPannerNode>();
   private trackAnalysers = new Map<number, AnalyserNode>();
+  private trackDenoiseFilters = new Map<number, BiquadFilterNode>();
+  private trackLowShelfs = new Map<number, BiquadFilterNode>();
+  private trackMidPeaks = new Map<number, BiquadFilterNode>();
+  private trackHighShelfs = new Map<number, BiquadFilterNode>();
+  private trackCompressors = new Map<number, DynamicsCompressorNode>();
   private trackPans = new Map<number, number>();
   private trackRawGains = new Map<number, number>();
   private trackMutes = new Map<number, boolean>();
@@ -175,11 +198,21 @@ class AudioClockMaster {
       if (AudioCtx) {
         this.ctx = new AudioCtx();
         this.masterGain = this.ctx.createGain();
+
+        // Master Limiter (True-Peak brickwall at -0.5 dB)
+        this.masterLimiter = this.ctx.createDynamicsCompressor();
+        this.masterLimiter.threshold.setValueAtTime(-0.5, this.ctx.currentTime);
+        this.masterLimiter.knee.setValueAtTime(0, this.ctx.currentTime);
+        this.masterLimiter.ratio.setValueAtTime(20, this.ctx.currentTime);
+        this.masterLimiter.attack.setValueAtTime(0.001, this.ctx.currentTime);
+        this.masterLimiter.release.setValueAtTime(0.05, this.ctx.currentTime);
+
         this.masterAnalyser = this.ctx.createAnalyser();
         this.masterAnalyser.fftSize = 256;
         this.masterAnalyser.smoothingTimeConstant = 0.5;
 
-        this.masterGain.connect(this.masterAnalyser);
+        this.masterGain.connect(this.masterLimiter);
+        this.masterLimiter.connect(this.masterAnalyser);
         this.masterAnalyser.connect(this.ctx.destination);
       }
     }
@@ -199,34 +232,85 @@ class AudioClockMaster {
   getTrackGainNode(trackId: number, gainDb = 0): GainNode | null {
     const ctx = this.getContext();
     if (!ctx || !this.masterGain) return null;
-    let node = this.trackGains.get(trackId);
-    if (!node) {
-      node = ctx.createGain();
+    let inputNode = this.trackInputs.get(trackId);
+    if (!inputNode) {
+      inputNode = ctx.createGain();
+      this.trackInputs.set(trackId, inputNode);
 
+      // 1. Denoise Filter (High-pass rumble filter at 80 Hz)
+      const denoise = ctx.createBiquadFilter();
+      denoise.type = "highpass";
+      denoise.frequency.setValueAtTime(10, ctx.currentTime);
+      denoise.Q.setValueAtTime(0.707, ctx.currentTime);
+      this.trackDenoiseFilters.set(trackId, denoise);
+
+      // 2. 3-Band Parametric Equalizer
+      const lowShelf = ctx.createBiquadFilter();
+      lowShelf.type = "lowshelf";
+      lowShelf.frequency.setValueAtTime(80, ctx.currentTime);
+      lowShelf.gain.setValueAtTime(0, ctx.currentTime);
+      this.trackLowShelfs.set(trackId, lowShelf);
+
+      const midPeak = ctx.createBiquadFilter();
+      midPeak.type = "peaking";
+      midPeak.frequency.setValueAtTime(1000, ctx.currentTime);
+      midPeak.Q.setValueAtTime(1.0, ctx.currentTime);
+      midPeak.gain.setValueAtTime(0, ctx.currentTime);
+      this.trackMidPeaks.set(trackId, midPeak);
+
+      const highShelf = ctx.createBiquadFilter();
+      highShelf.type = "highshelf";
+      highShelf.frequency.setValueAtTime(8000, ctx.currentTime);
+      highShelf.gain.setValueAtTime(0, ctx.currentTime);
+      this.trackHighShelfs.set(trackId, highShelf);
+
+      // 3. Dynamics Compressor
+      const compressor = ctx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(0, ctx.currentTime);
+      compressor.ratio.setValueAtTime(1, ctx.currentTime);
+      compressor.attack.setValueAtTime(0.005, ctx.currentTime);
+      compressor.release.setValueAtTime(0.1, ctx.currentTime);
+      this.trackCompressors.set(trackId, compressor);
+
+      // 4. Track Output Gain
+      const gainNode = ctx.createGain();
+      this.trackGains.set(trackId, gainNode);
+
+      // 5. Stereo Panner
       let pannerNode: StereoPannerNode | null = null;
       if (ctx.createStereoPanner) {
         pannerNode = ctx.createStereoPanner();
         this.trackPanners.set(trackId, pannerNode);
       }
 
+      // 6. Track Analyser
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 256;
       analyser.smoothingTimeConstant = 0.4;
       this.trackAnalysers.set(trackId, analyser);
 
+      // Connect DSP chain: input -> denoise -> lowShelf -> midPeak -> highShelf -> compressor -> gainNode -> panner -> analyser -> masterGain
+      inputNode.connect(denoise);
+      denoise.connect(lowShelf);
+      lowShelf.connect(midPeak);
+      midPeak.connect(highShelf);
+      highShelf.connect(compressor);
+      compressor.connect(gainNode);
+
       if (pannerNode) {
-        node.connect(pannerNode);
+        gainNode.connect(pannerNode);
         pannerNode.connect(analyser);
       } else {
-        node.connect(analyser);
+        gainNode.connect(analyser);
       }
       analyser.connect(this.masterGain);
-
-      this.trackGains.set(trackId, node);
     }
-    const linearGain = Math.max(0, Math.min(2, 10 ** (gainDb / 20)));
-    node.gain.setValueAtTime(linearGain, ctx.currentTime);
-    return node;
+    const gainNode = this.trackGains.get(trackId);
+    if (gainNode) {
+      const linearGain = Math.max(0, Math.min(2, 10 ** (gainDb / 20)));
+      gainNode.gain.setValueAtTime(linearGain, ctx.currentTime);
+    }
+    return inputNode;
   }
 
   updateTrackGain(trackId: number, gainDb: number): void {
@@ -252,6 +336,58 @@ class AudioClockMaster {
     }
   }
 
+  updateTrackAudioProcessing(trackId: number, proc: TrackAudioProcessing | undefined): void {
+    const ctx = this.getContext();
+    if (!ctx) return;
+    this.getTrackGainNode(trackId);
+
+    const denoise = this.trackDenoiseFilters.get(trackId);
+    if (denoise) {
+      const freq = proc?.denoise_enabled ? 80 : 10;
+      denoise.frequency.setTargetAtTime(freq, ctx.currentTime, 0.02);
+    }
+
+    const lowShelf = this.trackLowShelfs.get(trackId);
+    if (lowShelf) {
+      const g = proc?.eq_enabled ? (proc.eq_low_gain ?? 0) : 0;
+      lowShelf.gain.setTargetAtTime(g, ctx.currentTime, 0.02);
+    }
+
+    const midPeak = this.trackMidPeaks.get(trackId);
+    if (midPeak) {
+      const g = proc?.eq_enabled ? (proc.eq_mid_gain ?? 0) : 0;
+      midPeak.gain.setTargetAtTime(g, ctx.currentTime, 0.02);
+    }
+
+    const highShelf = this.trackHighShelfs.get(trackId);
+    if (highShelf) {
+      const g = proc?.eq_enabled ? (proc.eq_high_gain ?? 0) : 0;
+      highShelf.gain.setTargetAtTime(g, ctx.currentTime, 0.02);
+    }
+
+    const comp = this.trackCompressors.get(trackId);
+    if (comp) {
+      if (proc?.comp_enabled) {
+        comp.threshold.setTargetAtTime(proc.comp_threshold ?? -24, ctx.currentTime, 0.02);
+        comp.ratio.setTargetAtTime(proc.comp_ratio ?? 4, ctx.currentTime, 0.02);
+        comp.attack.setTargetAtTime(proc.comp_attack ?? 0.005, ctx.currentTime, 0.02);
+        comp.release.setTargetAtTime(proc.comp_release ?? 0.1, ctx.currentTime, 0.02);
+      } else {
+        comp.threshold.setTargetAtTime(0, ctx.currentTime, 0.02);
+        comp.ratio.setTargetAtTime(1, ctx.currentTime, 0.02);
+      }
+    }
+  }
+
+  getTrackGainReduction(trackId: number): number {
+    const comp = this.trackCompressors.get(trackId);
+    return comp ? comp.reduction : 0;
+  }
+
+  getMasterGainReduction(): number {
+    return this.masterLimiter ? this.masterLimiter.reduction : 0;
+  }
+
   updateTracksState(tracks: Track[]): void {
     const ctx = this.getContext();
     if (!ctx) return;
@@ -261,6 +397,7 @@ class AudioClockMaster {
       this.trackMutes.set(track.id, !!track.muted);
       this.trackSolos.set(track.id, !!track.solo);
       this.trackPans.set(track.id, track.pan ?? 0);
+      this.updateTrackAudioProcessing(track.id, track.audio_processing);
 
       const panner = this.trackPanners.get(track.id);
       if (panner && panner.pan) {
@@ -736,6 +873,7 @@ export function evaluateTimelinePlayback(
       brightness = 2 ** (color.exposure ?? 0);
       contrast = color.contrast ?? 1;
       saturate = color.saturation ?? 1;
+      hueRotate += (color.hue ?? 0) * 180;
     }
 
     const filterParts: string[] = [];

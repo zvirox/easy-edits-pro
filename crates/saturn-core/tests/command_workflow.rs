@@ -810,3 +810,64 @@ fn rate_stretch_and_clip_link_workflow_with_undo() {
     assert_eq!(engine.document().project.sequence.tracks[1].clips[0].group_id, Some(group_id));
 }
 
+#[test]
+fn audio_processing_and_color_hue_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({ "name": "Audio & Color Test" }),
+        ))
+        .unwrap();
+
+    let a1_id = engine.document().project.sequence.tracks[1].id;
+
+    // 1. Set Track Audio Processing (EQ, Compressor, Denoise)
+    engine
+        .execute(CommandRequest::new(
+            "track.set_audio_processing",
+            json!({
+                "track_id": a1_id,
+                "eq_enabled": true,
+                "eq_low_gain": 3.5,
+                "eq_mid_gain": -2.0,
+                "eq_high_gain": 4.0,
+                "comp_enabled": true,
+                "comp_threshold": -18.0,
+                "comp_ratio": 3.5,
+                "comp_attack": 0.01,
+                "comp_release": 0.15,
+                "denoise_enabled": true,
+                "denoise_amount": 0.8
+            }),
+        ))
+        .unwrap();
+
+    let ap = &engine.document().project.sequence.tracks[1].audio_processing;
+    assert!(ap.eq_enabled);
+    assert_eq!(ap.eq_low_gain, 3.5);
+    assert_eq!(ap.eq_mid_gain, -2.0);
+    assert_eq!(ap.eq_high_gain, 4.0);
+    assert!(ap.comp_enabled);
+    assert_eq!(ap.comp_threshold, -18.0);
+    assert_eq!(ap.comp_ratio, 3.5);
+    assert!(ap.denoise_enabled);
+    assert_eq!(ap.denoise_amount, 0.8);
+
+    // Undo audio processing
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    let ap_undone = &engine.document().project.sequence.tracks[1].audio_processing;
+    assert!(!ap_undone.eq_enabled);
+    assert_eq!(ap_undone.eq_low_gain, 0.0);
+    assert!(!ap_undone.comp_enabled);
+
+    // Redo audio processing
+    engine
+        .execute(CommandRequest::new("edit.redo", serde_json::Value::Null))
+        .unwrap();
+    assert!(engine.document().project.sequence.tracks[1].audio_processing.eq_enabled);
+}
+
+

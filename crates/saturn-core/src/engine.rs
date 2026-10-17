@@ -2,8 +2,8 @@ use crate::command::{COMMANDS, CommandRequest, CommandStatus, status};
 use crate::project::{
     Clip, ColorAdjustments, ColorCorrectionParams, CropParams, EffectInstance, EffectKind,
     EffectPayload, GaussianBlurParams, Keyframe, KeyframeProperty, MediaAsset, MediaKind,
-    ProjectDocument, TitleProperties, TrackKind, Transition, TransitionKind, VignetteParams,
-    ChromaKeyParams,
+    ProjectDocument, TitleProperties, TrackAudioProcessing, TrackKind, Transition, TransitionKind,
+    VignetteParams, ChromaKeyParams,
 };
 use crate::time::{FrameRate, TICKS_PER_SECOND, Tick};
 use serde::Deserialize;
@@ -277,7 +277,42 @@ struct SetColorParams {
     exposure: f64,
     contrast: f64,
     saturation: f64,
+    #[serde(default)]
+    hue: f64,
 }
+
+#[derive(Deserialize)]
+struct SetTrackAudioProcessingParams {
+    track_id: u64,
+    #[serde(default)]
+    eq_enabled: bool,
+    #[serde(default)]
+    eq_low_gain: f64,
+    #[serde(default)]
+    eq_mid_gain: f64,
+    #[serde(default)]
+    eq_high_gain: f64,
+    #[serde(default)]
+    comp_enabled: bool,
+    #[serde(default = "default_threshold")]
+    comp_threshold: f64,
+    #[serde(default = "default_ratio")]
+    comp_ratio: f64,
+    #[serde(default = "default_attack")]
+    comp_attack: f64,
+    #[serde(default = "default_release")]
+    comp_release: f64,
+    #[serde(default)]
+    denoise_enabled: bool,
+    #[serde(default = "default_denoise_amount")]
+    denoise_amount: f64,
+}
+
+fn default_threshold() -> f64 { -24.0 }
+fn default_ratio() -> f64 { 4.0 }
+fn default_attack() -> f64 { 0.005 }
+fn default_release() -> f64 { 0.1 }
+fn default_denoise_amount() -> f64 { 0.5 }
 
 #[derive(Deserialize)]
 struct SetTrackGainParams {
@@ -1234,9 +1269,11 @@ impl EditorEngine {
                     || !(0.0..=2.0).contains(&params.contrast)
                     || !params.saturation.is_finite()
                     || !(0.0..=2.0).contains(&params.saturation)
+                    || !params.hue.is_finite()
+                    || !(-1.0..=1.0).contains(&params.hue)
                 {
                     return Err(DispatchError::InvalidParameters(
-                        "Color values must be exposure -5..5, contrast 0..2, and saturation 0..2"
+                        "Color values must be exposure -5..5, contrast 0..2, saturation 0..2, and hue -1..1"
                             .into(),
                     ));
                 }
@@ -1248,6 +1285,7 @@ impl EditorEngine {
                     exposure: params.exposure,
                     contrast: params.contrast,
                     saturation: params.saturation,
+                    hue: params.hue,
                 };
                 if let Some(existing) = clip.effects.iter_mut().find_map(|e| match &mut e.payload {
                     EffectPayload::ColorCorrection(c) => Some(c),
@@ -1256,6 +1294,7 @@ impl EditorEngine {
                     existing.exposure = params.exposure;
                     existing.contrast = params.contrast;
                     existing.saturation = params.saturation;
+                    existing.hue = params.hue;
                 }
                 Ok(json!({"updated": true}))
             }
@@ -1303,6 +1342,35 @@ impl EditorEngine {
                 self.checkpoint();
                 self.document.project.sequence.tracks[track_index].locked = params.locked;
                 Ok(json!({"updated": true, "locked": params.locked}))
+            }
+            "track.set_audio_processing" => {
+                let params: SetTrackAudioProcessingParams = parse_params(request.params)?;
+                if !params.eq_low_gain.is_finite() || !(-24.0..=24.0).contains(&params.eq_low_gain)
+                    || !params.eq_mid_gain.is_finite() || !(-24.0..=24.0).contains(&params.eq_mid_gain)
+                    || !params.eq_high_gain.is_finite() || !(-24.0..=24.0).contains(&params.eq_high_gain)
+                    || !params.comp_threshold.is_finite() || !(-80.0..=0.0).contains(&params.comp_threshold)
+                    || !params.comp_ratio.is_finite() || !(1.0..=50.0).contains(&params.comp_ratio)
+                {
+                    return Err(DispatchError::InvalidParameters(
+                        "Audio processing values are outside supported ranges".into(),
+                    ));
+                }
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].audio_processing = TrackAudioProcessing {
+                    eq_enabled: params.eq_enabled,
+                    eq_low_gain: params.eq_low_gain,
+                    eq_mid_gain: params.eq_mid_gain,
+                    eq_high_gain: params.eq_high_gain,
+                    comp_enabled: params.comp_enabled,
+                    comp_threshold: params.comp_threshold,
+                    comp_ratio: params.comp_ratio,
+                    comp_attack: params.comp_attack,
+                    comp_release: params.comp_release,
+                    denoise_enabled: params.denoise_enabled,
+                    denoise_amount: params.denoise_amount,
+                };
+                Ok(json!({"updated": true}))
             }
             "clip.set_keyframe" => {
                 let params: SetKeyframeParams = parse_params(request.params)?;
@@ -1420,6 +1488,7 @@ impl EditorEngine {
                             exposure: c.exposure,
                             contrast: c.contrast,
                             saturation: c.saturation,
+                            hue: c.hue,
                         };
                 }
                 Ok(json!({"updated": true}))

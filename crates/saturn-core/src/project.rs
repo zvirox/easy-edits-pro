@@ -172,6 +172,40 @@ impl Sequence {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct TrackAudioProcessing {
+    pub eq_enabled: bool,
+    pub eq_low_gain: f64,    // -15.0 to +15.0 dB
+    pub eq_mid_gain: f64,    // -15.0 to +15.0 dB
+    pub eq_high_gain: f64,   // -15.0 to +15.0 dB
+    pub comp_enabled: bool,
+    pub comp_threshold: f64, // -60.0 to 0.0 dB
+    pub comp_ratio: f64,     // 1.0 to 20.0
+    pub comp_attack: f64,    // 0.001 to 0.1 s
+    pub comp_release: f64,   // 0.05 to 1.0 s
+    pub denoise_enabled: bool,
+    pub denoise_amount: f64, // 0.0 to 1.0
+}
+
+impl Default for TrackAudioProcessing {
+    fn default() -> Self {
+        Self {
+            eq_enabled: false,
+            eq_low_gain: 0.0,
+            eq_mid_gain: 0.0,
+            eq_high_gain: 0.0,
+            comp_enabled: false,
+            comp_threshold: -24.0,
+            comp_ratio: 4.0,
+            comp_attack: 0.005,
+            comp_release: 0.1,
+            denoise_enabled: false,
+            denoise_amount: 0.5,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Track {
     pub id: u64,
@@ -187,6 +221,8 @@ pub struct Track {
     pub solo: bool,
     #[serde(default)]
     pub locked: bool,
+    #[serde(default)]
+    pub audio_processing: TrackAudioProcessing,
     pub clips: Vec<Clip>,
     #[serde(default)]
     pub transitions: Vec<Transition>,
@@ -433,12 +469,14 @@ impl EffectInstance {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(default)]
 pub struct ColorAdjustments {
     pub exposure: f64,
     pub contrast: f64,
     pub saturation: f64,
+    #[serde(default)]
+    pub hue: f64,
 }
 
 impl Default for ColorAdjustments {
@@ -447,6 +485,7 @@ impl Default for ColorAdjustments {
             exposure: 0.0,
             contrast: 1.0,
             saturation: 1.0,
+            hue: 0.0,
         }
     }
 }
@@ -514,6 +553,7 @@ impl ProjectDocument {
                             muted: false,
                             solo: false,
                             locked: false,
+                            audio_processing: TrackAudioProcessing::default(),
                             clips: Vec::new(),
                             transitions: Vec::new(),
                         },
@@ -526,6 +566,7 @@ impl ProjectDocument {
                             muted: false,
                             solo: false,
                             locked: false,
+                            audio_processing: TrackAudioProcessing::default(),
                             clips: Vec::new(),
                             transitions: Vec::new(),
                         },
@@ -566,6 +607,15 @@ impl ProjectDocument {
             if !track.gain_db.is_finite() || !(-60.0..=12.0).contains(&track.gain_db) {
                 return Err(format!("Track {} has invalid gain", track.name));
             }
+            let ap = &track.audio_processing;
+            if !ap.eq_low_gain.is_finite() || !(-24.0..=24.0).contains(&ap.eq_low_gain)
+                || !ap.eq_mid_gain.is_finite() || !(-24.0..=24.0).contains(&ap.eq_mid_gain)
+                || !ap.eq_high_gain.is_finite() || !(-24.0..=24.0).contains(&ap.eq_high_gain)
+                || !ap.comp_threshold.is_finite() || !(-80.0..=0.0).contains(&ap.comp_threshold)
+                || !ap.comp_ratio.is_finite() || !(1.0..=50.0).contains(&ap.comp_ratio)
+            {
+                return Err(format!("Track {} has invalid audio processing parameters", track.name));
+            }
             for clip in &track.clips {
                 if clip.duration.0 <= 0
                     || !clip.color.exposure.is_finite()
@@ -574,6 +624,8 @@ impl ProjectDocument {
                     || !(0.0..=2.0).contains(&clip.color.contrast)
                     || !clip.color.saturation.is_finite()
                     || !(0.0..=2.0).contains(&clip.color.saturation)
+                    || !clip.color.hue.is_finite()
+                    || !(-1.0..=1.0).contains(&clip.color.hue)
                 {
                     return Err("Project contains invalid clip properties".into());
                 }
@@ -955,6 +1007,7 @@ mod tests {
             muted: false,
             solo: false,
             locked: false,
+            audio_processing: TrackAudioProcessing::default(),
             clips: Vec::new(),
             transitions: Vec::new(),
         };
@@ -968,6 +1021,7 @@ mod tests {
             muted: false,
             solo: false,
             locked: false,
+            audio_processing: TrackAudioProcessing::default(),
             clips: Vec::new(),
             transitions: Vec::new(),
         };

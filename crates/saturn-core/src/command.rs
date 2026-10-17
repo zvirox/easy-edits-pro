@@ -223,6 +223,13 @@ pub const COMMANDS: &[CommandSpec] = &[
         mutating: true,
     },
     CommandSpec {
+        id: "track.set_audio_processing",
+        label: "Set Track Audio Processing",
+        menu: &["Audio"],
+        shortcut: None,
+        mutating: true,
+    },
+    CommandSpec {
         id: "clip.set_keyframe",
         label: "Set Keyframe",
         menu: &["Keyframes"],

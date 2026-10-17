@@ -747,6 +747,11 @@ async fn start_export(
 }
 
 #[tauri::command]
+fn detect_encoder_capabilities() -> saturn_render::HardwareEncoderInfo {
+    saturn_render::detect_hardware_encoders()
+}
+
+#[tauri::command]
 fn get_active_jobs(state: State<'_, AppState>) -> Vec<JobInfo> {
     state.1.list_active()
 }
@@ -1000,6 +1005,7 @@ fn main() {
             check_media_availability,
             import_media,
             start_export,
+            detect_encoder_capabilities,
             get_active_jobs,
             get_all_jobs,
             cancel_job,
