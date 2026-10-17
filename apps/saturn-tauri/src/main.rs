@@ -1133,6 +1133,93 @@ async fn get_lut_preset_cube(preset_id: String) -> Result<String, String> {
     saturn_render::lut::Lut3D::generate_preset_cube(&preset_id, 17)
 }
 
+#[tauri::command]
+async fn synthesize_speed_ramp_frames(
+    prev_frame: Vec<u8>,
+    next_frame: Vec<u8>,
+    alpha: f32,
+    width: usize,
+    height: usize,
+) -> Result<Vec<u8>, String> {
+    if prev_frame.len() != width * height * 4 || next_frame.len() != width * height * 4 {
+        return Err("Frame buffer sizes do not match dimensions (width * height * 4)".into());
+    }
+    let blended = saturn_render::blend_bidirectional_optical_flow(
+        &prev_frame,
+        &next_frame,
+        None,
+        None,
+        alpha,
+        width,
+        height,
+    );
+    Ok(blended)
+}
+
+#[tauri::command]
+async fn acquire_collaboration_lock(
+    state: State<'_, AppState>,
+    user_id: String,
+    user_name: String,
+    user_color: Option<String>,
+    target_kind: String,
+    target_id: u64,
+) -> Result<Value, String> {
+    let mut engine = state.0.lock().map_err(|_| "Editor state is unavailable".to_string())?;
+    let kind = match target_kind.to_lowercase().as_str() {
+        "bin" => saturn_core::project::LockTargetKind::Bin,
+        "sequence" => saturn_core::project::LockTargetKind::Sequence,
+        "track" => saturn_core::project::LockTargetKind::Track,
+        "clip" => saturn_core::project::LockTargetKind::Clip,
+        _ => return Err(format!("Unknown target kind: {target_kind}")),
+    };
+    let res = engine.execute(CommandRequest::new(
+        "collab.acquire_lock",
+        json!({
+            "user_id": user_id,
+            "user_name": user_name,
+            "user_color": user_color,
+            "target_kind": kind,
+            "target_id": target_id,
+        }),
+    )).map_err(|e| e.to_string())?;
+    Ok(res)
+}
+
+#[tauri::command]
+async fn release_collaboration_lock(
+    state: State<'_, AppState>,
+    user_id: String,
+    target_kind: String,
+    target_id: u64,
+) -> Result<Value, String> {
+    let mut engine = state.0.lock().map_err(|_| "Editor state is unavailable".to_string())?;
+    let kind = match target_kind.to_lowercase().as_str() {
+        "bin" => saturn_core::project::LockTargetKind::Bin,
+        "sequence" => saturn_core::project::LockTargetKind::Sequence,
+        "track" => saturn_core::project::LockTargetKind::Track,
+        "clip" => saturn_core::project::LockTargetKind::Clip,
+        _ => return Err(format!("Unknown target kind: {target_kind}")),
+    };
+    let res = engine.execute(CommandRequest::new(
+        "collab.release_lock",
+        json!({
+            "user_id": user_id,
+            "target_kind": kind,
+            "target_id": target_id,
+        }),
+    )).map_err(|e| e.to_string())?;
+    Ok(res)
+}
+
+#[tauri::command]
+async fn get_collaboration_state(
+    state: State<'_, AppState>,
+) -> Result<saturn_core::project::CollaborationState, String> {
+    let engine = state.0.lock().map_err(|_| "Editor state is unavailable".to_string())?;
+    Ok(engine.document().project.collaboration.clone())
+}
+
 fn main() {
     #[cfg(target_os = "linux")]
     if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
@@ -1186,7 +1273,11 @@ fn main() {
             resume_job_queue,
             is_job_queue_paused,
             sync_multicam_by_waveform,
-            analyze_motion_tracking
+            analyze_motion_tracking,
+            synthesize_speed_ramp_frames,
+            acquire_collaboration_lock,
+            release_collaboration_lock,
+            get_collaboration_state
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Easy Edits Pro");

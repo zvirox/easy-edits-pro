@@ -33,6 +33,18 @@ import {
   type TrackAutomation,
   type AudioPluginInstance,
   type AudioBus,
+  type CompositingNode,
+  type CompositingNodeKind,
+  type NodeConnection,
+  type RotoSplineMask,
+  type RotoSplinePoint,
+  type NodeGraph,
+  type SpeedRamp,
+  type MotionBlurParams,
+  type LockTargetKind,
+  type UserLock,
+  type TimelineChangeEntry,
+  type CollaborationState,
 } from "./engine/playbackEngine";
 
 type JobState =
@@ -55,7 +67,7 @@ interface JobInfo {
 
 type Workspace = "edit" | "color" | "effects" | "audio" | "keyframes" | "export" | "library" | "ai";
 type TimelineTool = "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "pen" | "hand" | "zoom";
-type DavinciWorkspace = "media" | "edit" | "color" | "audio" | "effects" | "keyframes" | "deliver";
+type DavinciWorkspace = "media" | "edit" | "fusion" | "color" | "audio" | "effects" | "keyframes" | "deliver";
 type FilmoraTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
 type MediaKind = "video" | "audio" | "image" | "title" | "unknown";
 type TitleProperties = {
@@ -118,6 +130,9 @@ type Clip = {
   multicam_id?: number | null;
   multicam_angle_id?: number | null;
   tracking?: MotionTrackingData | null;
+  speed_ramp?: SpeedRamp | null;
+  motion_blur?: MotionBlurParams | null;
+  node_graph?: NodeGraph | null;
 };
 type Track = {
   id: number;
@@ -154,7 +169,9 @@ type ProjectDocument = {
       subtitles?: SubtitleItem[];
       multicam_clips?: MultiCamClip[];
       buses?: AudioBus[];
+      node_graph?: NodeGraph | null;
     };
+    collaboration?: CollaborationState;
     settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
   };
 };
@@ -268,11 +285,12 @@ const workspaces: { id: Workspace; label: string }[] = [
 const davinciWorkspaces: { id: DavinciWorkspace; label: string; shortcut: string; icon: IconName }[] = [
   { id: "media", label: "Media", shortcut: "Shift+1", icon: "media" },
   { id: "edit", label: "Edit", shortcut: "Shift+2", icon: "edit" },
-  { id: "color", label: "Color", shortcut: "Shift+3", icon: "color" },
-  { id: "audio", label: "Audio", shortcut: "Shift+4", icon: "audio" },
-  { id: "effects", label: "Effects", shortcut: "Shift+5", icon: "effects" },
-  { id: "keyframes", label: "Curves", shortcut: "Shift+6", icon: "keyframe" },
-  { id: "deliver", label: "Deliver", shortcut: "Shift+7", icon: "deliver" },
+  { id: "fusion", label: "Fusion", shortcut: "Shift+3", icon: "effects" },
+  { id: "color", label: "Color", shortcut: "Shift+4", icon: "color" },
+  { id: "audio", label: "Fairlight", shortcut: "Shift+5", icon: "audio" },
+  { id: "effects", label: "Effects", shortcut: "Shift+6", icon: "effects" },
+  { id: "keyframes", label: "Curves", shortcut: "Shift+7", icon: "keyframe" },
+  { id: "deliver", label: "Deliver", shortcut: "Shift+8", icon: "deliver" },
 ];
 
 const filmoraTabs: { id: FilmoraTab; label: string; icon: IconName; tooltip: string }[] = [
@@ -705,6 +723,32 @@ function App() {
   const [isAnalyzingTracking, setIsAnalyzingTracking] = useState(false);
   const [showTrackingBox, setShowTrackingBox] = useState(false);
   const [busGainDrafts, setBusGainDrafts] = useState<Record<string, number>>({});
+  // Phase 11.1: Fusion Node Graph State
+  const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
+  const [draggingNodeId, setDraggingNodeId] = useState<number | null>(null);
+  const [nodeDragOffset, setNodeDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [connectingSocket, setConnectingSocket] = useState<{ nodeId: number; socket: string; isOutput: boolean } | null>(null);
+  const [fusionMaskPoints] = useState<RotoSplinePoint[]>([
+    { x: 25, y: 25, handle_in: [0, 0], handle_out: [0, 0] },
+    { x: 75, y: 25, handle_in: [0, 0], handle_out: [0, 0] },
+    { x: 75, y: 75, handle_in: [0, 0], handle_out: [0, 0] },
+    { x: 25, y: 75, handle_in: [0, 0], handle_out: [0, 0] },
+  ]);
+  const [fusionMaskFeather, setFusionMaskFeather] = useState(8.0);
+  const [fusionMaskInverted, setFusionMaskInverted] = useState(false);
+
+  // Phase 12.1: Multi-User Collaboration & Project Locking State
+  const [collabModalOpen, setCollabModalOpen] = useState(false);
+  const [collabUser, setCollabUser] = useState<{ id: string; name: string; color: string }>(() => {
+    try {
+      const saved = localStorage.getItem("eep-collab-user");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    const id = `user-${Math.floor(Math.random() * 9000 + 1000)}`;
+    const colors = ["#38bdf8", "#ec4899", "#10b981", "#f59e0b", "#8b5cf6", "#06b6d4"];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    return { id, name: "Lead Editor", color };
+  });
   const [exportFormat, setExportFormat] = useState<"mp4" | "webm">("mp4");
   const [exportResolution, setExportResolution] = useState("source");
   const [exportFrameRate, setExportFrameRate] = useState("source");
@@ -1113,6 +1157,126 @@ function App() {
     } finally {
       setBusy(false);
     }
+  }
+
+  // Phase 11.1: Fusion Node Graph Actions
+  async function addFusionNode(kind: CompositingNodeKind, title?: string, pos_x = 250, pos_y = 150, params: Record<string, unknown> = {}) {
+    const titles: Record<CompositingNodeKind, string> = {
+      merge: "Merge",
+      transform: "Transform",
+      keyer: "ChromaKey",
+      mask: "RotoMask",
+      particles: "Emitter",
+      media_source: "MediaIn",
+      output_sink: "MediaOut",
+    };
+    const nodeTitle = title || `${titles[kind] || "Node"} ${(project?.sequence.node_graph?.nodes.length ?? 0) + 1}`;
+    await perform("nodegraph.add_node", {
+      kind,
+      title: nodeTitle,
+      pos_x,
+      pos_y,
+      params,
+    }, `Added ${nodeTitle}`);
+  }
+
+  async function removeFusionNode(nodeId: number) {
+    await perform("nodegraph.remove_node", { node_id: nodeId }, "Removed node");
+    if (selectedNodeId === nodeId) setSelectedNodeId(null);
+  }
+
+  async function connectFusionSockets(from_node: number, from_socket: string, to_node: number, to_socket: string) {
+    if (from_node === to_node) return;
+    await perform("nodegraph.connect", { from_node, from_socket, to_node, to_socket }, "Connected sockets");
+  }
+
+  async function disconnectFusionSockets(from_node: number, from_socket: string, to_node: number, to_socket: string) {
+    await perform("nodegraph.disconnect", { from_node, from_socket, to_node, to_socket }, "Disconnected sockets");
+  }
+
+  async function updateFusionNodePos(node_id: number, pos_x: number, pos_y: number) {
+    await perform("nodegraph.update_node", { node_id, pos_x, pos_y });
+  }
+
+  async function updateFusionNodeParams(node_id: number, params: Record<string, unknown>) {
+    await perform("nodegraph.update_node", { node_id, params }, "Updated node parameters");
+  }
+
+  async function addRotoSplineMask(points: RotoSplinePoint[], feather = 8.0, closed = true, inverted = false) {
+    await perform("nodegraph.add_mask", {
+      mask: {
+        id: 0,
+        name: `RotoSpline ${(project?.sequence.node_graph?.masks?.length ?? 0) + 1}`,
+        closed,
+        inverted,
+        feather,
+        opacity: 1.0,
+        points,
+      }
+    }, "Added Roto-Spline Mask");
+  }
+
+  // Phase 11.2: Speed Ramping & Motion Blur Actions
+  async function saveSpeedRamp(ramp: SpeedRamp) {
+    if (!selectedClip) return;
+    await perform("clip.set_speed_ramp", {
+      track_id: selectedClip.track_id,
+      clip_index: selectedClip.clip_index,
+      speed_ramp: ramp,
+    }, "Speed ramp curve applied");
+  }
+
+  async function saveMotionBlur(mb: MotionBlurParams) {
+    if (!selectedClip) return;
+    await perform("clip.set_motion_blur", {
+      track_id: selectedClip.track_id,
+      clip_index: selectedClip.clip_index,
+      motion_blur: mb,
+    }, "Motion blur shutter settings updated");
+  }
+
+  // Phase 12.1: Multi-User Collaboration & Project Locking Actions
+  async function acquireProjectLock(target_kind: LockTargetKind, target_id: number) {
+    try {
+      const res = await invoke<{ acquired: boolean; locked_by?: string }>("acquire_collaboration_lock", {
+        userId: collabUser.id,
+        userName: collabUser.name,
+        userColor: collabUser.color,
+        targetKind: target_kind,
+        targetId: target_id,
+      });
+      if (res?.acquired) {
+        setNotice(`Locked ${target_kind} #${target_id} successfully`);
+      } else {
+        setNotice(`⚠️ Conflict: ${target_kind} #${target_id} is currently locked by ${res?.locked_by || "another collaborator"}`);
+      }
+      await refreshProject();
+    } catch (e) {
+      setNotice(String(e));
+    }
+  }
+
+  async function releaseProjectLock(target_kind: LockTargetKind, target_id: number) {
+    try {
+      await invoke("release_collaboration_lock", {
+        userId: collabUser.id,
+        targetKind: target_kind,
+        targetId: target_id,
+      });
+      setNotice(`Unlocked ${target_kind} #${target_id}`);
+      await refreshProject();
+    } catch (e) {
+      setNotice(String(e));
+    }
+  }
+
+  async function recordCollabAction(action: string, summary: string) {
+    await perform("collab.record_change", {
+      user_id: collabUser.id,
+      user_name: collabUser.name,
+      action,
+      summary,
+    });
   }
 
   async function saveColor(next: ColorAdjustments) {
@@ -3921,6 +4085,150 @@ function App() {
                 )}
               </div>
 
+              {/* Optical Flow Speed Ramping (Phase 11.2) */}
+              <div className="speed-ramp-inspector-card">
+                <div className="speed-ramp-header">
+                  <strong>⚡ Optical Flow Speed Ramping</strong>
+                  <span className="speed-badge">
+                    {selectedTimelineClip.speed_ramp?.points?.length
+                      ? `${selectedTimelineClip.speed_ramp.points.length} points`
+                      : "Standard"}
+                  </span>
+                </div>
+                <div className="speed-presets-row">
+                  {[0.25, 0.5, 1.0, 2.0, 4.0].map((spd) => (
+                    <button
+                      key={spd}
+                      type="button"
+                      className={`speed-preset-btn ${(selectedTimelineClip.speed ?? 1.0) === spd ? "active" : ""}`}
+                      onClick={() => {
+                        void perform("timeline.change_clip_speed", {
+                          track_id: selectedClip.track_id,
+                          clip_index: selectedClip.clip_index,
+                          speed: spd,
+                        });
+                        const ramp: SpeedRamp = {
+                          points: [
+                            { time: 0, speed_factor: spd, bezier_tangent: [0, 0] },
+                            { time: selectedTimelineClip.duration, speed_factor: spd, bezier_tangent: [0, 0] },
+                          ],
+                          optical_flow_interpolation: true,
+                          frame_blend: false,
+                        };
+                        void saveSpeedRamp(ramp);
+                      }}
+                    >
+                      {spd}x
+                    </button>
+                  ))}
+                </div>
+                <label className="checkbox-field" style={{ marginTop: "6px" }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedTimelineClip.speed_ramp?.optical_flow_interpolation ?? true}
+                    onChange={(e) => {
+                      const cur = selectedTimelineClip.speed_ramp ?? {
+                        points: [{ time: 0, speed_factor: selectedTimelineClip.speed ?? 1.0, bezier_tangent: [0, 0] }],
+                        optical_flow_interpolation: true,
+                        frame_blend: false,
+                      };
+                      void saveSpeedRamp({ ...cur, optical_flow_interpolation: e.target.checked });
+                    }}
+                  />
+                  <span>Bidirectional Optical Flow Synthesis</span>
+                </label>
+                <label className="checkbox-field">
+                  <input
+                    type="checkbox"
+                    checked={selectedTimelineClip.speed_ramp?.frame_blend ?? false}
+                    onChange={(e) => {
+                      const cur = selectedTimelineClip.speed_ramp ?? {
+                        points: [{ time: 0, speed_factor: selectedTimelineClip.speed ?? 1.0, bezier_tangent: [0, 0] }],
+                        optical_flow_interpolation: true,
+                        frame_blend: false,
+                      };
+                      void saveSpeedRamp({ ...cur, frame_blend: e.target.checked });
+                    }}
+                  />
+                  <span>Temporal Frame Blending</span>
+                </label>
+              </div>
+
+              {/* Dynamic Shutter Angle Motion Blur (Phase 11.2) */}
+              <div className="motion-blur-inspector-card">
+                <div className="motion-blur-header">
+                  <strong>🌀 Dynamic Shutter Motion Blur</strong>
+                  <label className="switch-label">
+                    <input
+                      type="checkbox"
+                      checked={selectedTimelineClip.motion_blur?.enabled ?? false}
+                      onChange={(e) => {
+                        const cur = selectedTimelineClip.motion_blur ?? {
+                          enabled: false,
+                          shutter_angle_deg: 180.0,
+                          samples: 8,
+                        };
+                        void saveMotionBlur({ ...cur, enabled: e.target.checked });
+                      }}
+                    />
+                    <span className="switch-toggle" />
+                  </label>
+                </div>
+                {selectedTimelineClip.motion_blur?.enabled && (
+                  <div className="motion-blur-controls">
+                    <label className="param-field">
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px" }}>
+                        <span>Shutter Angle:</span>
+                        <b>{(selectedTimelineClip.motion_blur.shutter_angle_deg ?? 180).toFixed(0)}°</b>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="360"
+                        step="15"
+                        value={selectedTimelineClip.motion_blur.shutter_angle_deg ?? 180}
+                        onChange={(e) => {
+                          const cur = selectedTimelineClip.motion_blur!;
+                          void saveMotionBlur({ ...cur, shutter_angle_deg: Number(e.target.value) });
+                        }}
+                      />
+                    </label>
+                    <div className="shutter-presets">
+                      {[90, 180, 270, 360].map((deg) => (
+                        <button
+                          key={deg}
+                          type="button"
+                          className={`shutter-btn ${Math.round(selectedTimelineClip.motion_blur?.shutter_angle_deg ?? 180) === deg ? "active" : ""}`}
+                          onClick={() => {
+                            const cur = selectedTimelineClip.motion_blur!;
+                            void saveMotionBlur({ ...cur, shutter_angle_deg: deg });
+                          }}
+                        >
+                          {deg === 180 ? "180° (Cinema)" : `${deg}°`}
+                        </button>
+                      ))}
+                    </div>
+                    <label className="param-field" style={{ marginTop: "6px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px" }}>
+                        <span>Temporal Multi-Samples:</span>
+                        <b>{selectedTimelineClip.motion_blur.samples ?? 8} samples</b>
+                      </div>
+                      <input
+                        type="range"
+                        min="4"
+                        max="32"
+                        step="2"
+                        value={selectedTimelineClip.motion_blur.samples ?? 8}
+                        onChange={(e) => {
+                          const cur = selectedTimelineClip.motion_blur!;
+                          void saveMotionBlur({ ...cur, samples: Number(e.target.value) });
+                        }}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+
               <button className="danger-button" onClick={removeSelectedClip}>Remove clip</button>
             </>
           );
@@ -5250,6 +5558,480 @@ function App() {
             </div>
           </div>
         </section>
+      </main>
+    );
+  }
+
+  function renderFusionWorkspace() {
+    const graph = project?.sequence?.node_graph ?? { nodes: [], connections: [], masks: [] };
+    const nodes: CompositingNode[] = graph.nodes;
+    const connections: NodeConnection[] = graph.connections;
+    const masks: RotoSplineMask[] = graph.masks ?? [];
+    const selectedNode = nodes.find((n: CompositingNode) => n.id === selectedNodeId);
+
+    const handleCanvasMouseDown = (e: MouseEvent<HTMLDivElement>) => {
+      if ((e.target as HTMLElement).closest(".fusion-node-card") || (e.target as HTMLElement).closest(".socket-port")) {
+        return;
+      }
+      setSelectedNodeId(null);
+      setConnectingSocket(null);
+    };
+
+    const handleNodeDragStart = (e: MouseEvent, node: CompositingNode) => {
+      e.stopPropagation();
+      setSelectedNodeId(node.id);
+      setDraggingNodeId(node.id);
+      setNodeDragOffset({
+        x: e.clientX - node.pos_x,
+        y: e.clientY - node.pos_y,
+      });
+    };
+
+    const handleCanvasMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+      if (draggingNodeId == null) return;
+      const newX = Math.max(20, Math.round(e.clientX - nodeDragOffset.x));
+      const newY = Math.max(20, Math.round(e.clientY - nodeDragOffset.y));
+      void updateFusionNodePos(draggingNodeId, newX, newY);
+    };
+
+    const handleCanvasMouseUp = () => {
+      setDraggingNodeId(null);
+    };
+
+    const handleSocketClick = (e: MouseEvent, nodeId: number, socket: string, isOutput: boolean) => {
+      e.stopPropagation();
+      if (!connectingSocket) {
+        setConnectingSocket({ nodeId, socket, isOutput });
+        setNotice(`Connecting from ${socket}... click a target socket`);
+      } else {
+        if (connectingSocket.nodeId === nodeId) {
+          setConnectingSocket(null);
+          return;
+        }
+        // One must be output and the other input
+        if (connectingSocket.isOutput !== isOutput) {
+          const fromNode = connectingSocket.isOutput ? connectingSocket.nodeId : nodeId;
+          const fromSock = connectingSocket.isOutput ? connectingSocket.socket : socket;
+          const toNode = connectingSocket.isOutput ? nodeId : connectingSocket.nodeId;
+          const toSock = connectingSocket.isOutput ? socket : connectingSocket.socket;
+          void connectFusionSockets(fromNode, fromSock, toNode, toSock);
+          setNotice("Connected sockets");
+        } else {
+          setNotice("⚠️ Connect an output socket to an input socket");
+        }
+        setConnectingSocket(null);
+      }
+    };
+
+    const initStarterTree = async () => {
+      await addFusionNode("media_source", "MediaIn1", 60, 160, { media_id: media[0]?.id ?? 1 });
+      await addFusionNode("keyer", "ChromaKey1", 280, 160, { color: "#00ff00", tolerance: 40.0 });
+      await addFusionNode("transform", "Transform1", 500, 160, { scale: 1.0, x: 0, y: 0 });
+      await addFusionNode("merge", "Merge1", 720, 160, { blend_mode: "normal", opacity: 1.0 });
+      await addFusionNode("output_sink", "MediaOut1", 940, 160);
+      setNotice("Initialized Fusion Starter Node Tree");
+    };
+
+    return (
+      <main className="workspace-page fusion-workspace-page">
+        <header className="workspace-sub-header fusion-workspace-header">
+          <div className="workspace-header-title">
+            <span className="workspace-eyebrow">FUSION · COMPOSITING SUITE</span>
+            <h1>Fusion Node-Based Compositor</h1>
+            <p>Visual procedural node graph ({nodes.length} nodes, {connections.length} links, {masks.length} masks), multi-layer alpha blending, ChromaKey, and particles.</p>
+          </div>
+
+          <div className="fusion-header-actions">
+            <div className="fusion-add-buttons">
+              <span className="fusion-add-label">+ Add Node:</span>
+              <button className="fusion-tool-btn" onClick={() => void addFusionNode("merge")}>Merge</button>
+              <button className="fusion-tool-btn" onClick={() => void addFusionNode("transform")}>Transform</button>
+              <button className="fusion-tool-btn" onClick={() => void addFusionNode("keyer")}>ChromaKey</button>
+              <button className="fusion-tool-btn" onClick={() => void addFusionNode("mask")}>RotoMask</button>
+              <button className="fusion-tool-btn" onClick={() => void addFusionNode("particles")}>Particles</button>
+              <button className="fusion-tool-btn" onClick={() => void addFusionNode("media_source")}>MediaIn</button>
+              <button className="fusion-tool-btn" onClick={() => void addFusionNode("output_sink")}>MediaOut</button>
+            </div>
+            {nodes.length === 0 && (
+              <button className="primary-action-btn" onClick={() => void initStarterTree()}>
+                ✨ Initialize Starter Node Tree
+              </button>
+            )}
+          </div>
+        </header>
+
+        <div className="fusion-body">
+          {/* Main Node Graph Canvas */}
+          <div
+            className="fusion-canvas-container"
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+          >
+            <svg className="fusion-wires-layer">
+              <defs>
+                <linearGradient id="wireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#38bdf8" />
+                  <stop offset="100%" stopColor="#818cf8" />
+                </linearGradient>
+                <linearGradient id="maskWireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#f59e0b" />
+                  <stop offset="100%" stopColor="#ec4899" />
+                </linearGradient>
+              </defs>
+
+              {/* Render SVG Bezier Connections */}
+              {connections.map((c: NodeConnection, i: number) => {
+                const fromNode = nodes.find((n: CompositingNode) => n.id === c.from_node);
+                const toNode = nodes.find((n: CompositingNode) => n.id === c.to_node);
+                if (!fromNode || !toNode) return null;
+
+                const x1 = fromNode.pos_x + 150;
+                const y1 = fromNode.pos_y + 40;
+                const x2 = toNode.pos_x;
+                const y2 = toNode.pos_y + 40;
+                const dx = Math.max(50, Math.abs(x2 - x1) * 0.5);
+                const pathData = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+                const isMaskWire = c.to_socket === "mask" || c.from_socket === "mask";
+
+                return (
+                  <g key={`${c.from_node}-${c.to_node}-${i}`} className="fusion-wire-group">
+                    <path
+                      d={pathData}
+                      className="fusion-wire-hitbox"
+                      onClick={() => void disconnectFusionSockets(c.from_node, c.from_socket, c.to_node, c.to_socket)}
+                    />
+                    <path
+                      d={pathData}
+                      className="fusion-wire"
+                      stroke={isMaskWire ? "url(#maskWireGrad)" : "url(#wireGrad)"}
+                      strokeWidth="2.5"
+                      fill="none"
+                    />
+                  </g>
+                );
+              })}
+            </svg>
+
+            {/* Render Node Cards */}
+            {nodes.map((node: CompositingNode) => {
+              const isSelected = selectedNodeId === node.id;
+              const nodeIcons: Record<CompositingNodeKind, string> = {
+                merge: "🔀",
+                transform: "📐",
+                keyer: "🟩",
+                mask: "✂️",
+                particles: "✨",
+                media_source: "🎬",
+                output_sink: "🖥️",
+              };
+
+              return (
+                <div
+                  key={node.id}
+                  className={`fusion-node-card ${isSelected ? "selected" : ""} kind-${node.kind}`}
+                  style={{ left: `${node.pos_x}px`, top: `${node.pos_y}px` }}
+                  onClick={(e) => { e.stopPropagation(); setSelectedNodeId(node.id); }}
+                >
+                  <div
+                    className="fusion-node-header"
+                    onMouseDown={(e) => handleNodeDragStart(e, node)}
+                  >
+                    <span className="node-icon">{nodeIcons[node.kind as CompositingNodeKind] || "🔷"}</span>
+                    <strong className="node-title">{node.title}</strong>
+                    <button
+                      type="button"
+                      className="node-delete-btn"
+                      onClick={(e) => { e.stopPropagation(); void removeFusionNode(node.id); }}
+                      title="Delete Node"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  <div className="fusion-node-body">
+                    {/* Left In sockets */}
+                    <div className="node-sockets-left">
+                      {node.kind === "merge" ? (
+                        <>
+                          <div
+                            className={`socket-port in ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "fg" ? "active" : ""}`}
+                            onClick={(e) => handleSocketClick(e, node.id, "fg", false)}
+                            title="Foreground Input"
+                          >
+                            <span className="socket-dot fg" />
+                            <small>FG</small>
+                          </div>
+                          <div
+                            className={`socket-port in ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "bg" ? "active" : ""}`}
+                            onClick={(e) => handleSocketClick(e, node.id, "bg", false)}
+                            title="Background Input"
+                          >
+                            <span className="socket-dot bg" />
+                            <small>BG</small>
+                          </div>
+                          <div
+                            className={`socket-port in mask ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "mask" ? "active" : ""}`}
+                            onClick={(e) => handleSocketClick(e, node.id, "mask", false)}
+                            title="Mask Input"
+                          >
+                            <span className="socket-dot mask" />
+                            <small>Mask</small>
+                          </div>
+                        </>
+                      ) : node.kind !== "media_source" && node.kind !== "particles" ? (
+                        <>
+                          <div
+                            className={`socket-port in ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "input" ? "active" : ""}`}
+                            onClick={(e) => handleSocketClick(e, node.id, "input", false)}
+                            title="Image Input"
+                          >
+                            <span className="socket-dot in" />
+                            <small>In</small>
+                          </div>
+                          <div
+                            className={`socket-port in mask ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "mask" ? "active" : ""}`}
+                            onClick={(e) => handleSocketClick(e, node.id, "mask", false)}
+                            title="Mask Input"
+                          >
+                            <span className="socket-dot mask" />
+                            <small>Mask</small>
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+
+                    {/* Right Out sockets */}
+                    <div className="node-sockets-right">
+                      {node.kind !== "output_sink" ? (
+                        <div
+                          className={`socket-port out ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "output" ? "active" : ""}`}
+                          onClick={(e) => handleSocketClick(e, node.id, "output", true)}
+                          title="Image Output"
+                        >
+                          <small>Out</small>
+                          <span className="socket-dot out" />
+                        </div>
+                      ) : (
+                        <span className="sink-label">Master Out</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Right Inspector Sidebar for Selected Node */}
+          <aside className="fusion-inspector-panel">
+            {selectedNode ? (
+              <div className="fusion-node-inspector">
+                <div className="inspector-title-row">
+                  <h3>{selectedNode.title}</h3>
+                  <span className="node-kind-badge">{selectedNode.kind.toUpperCase()}</span>
+                </div>
+
+                <div className="inspector-controls">
+                  {selectedNode.kind === "keyer" && (
+                    <div className="node-param-group">
+                      <h4>Chroma Key Settings</h4>
+                      <label className="param-field">
+                        <span>Key Color:</span>
+                        <input
+                          type="color"
+                          value={(selectedNode.params?.color as string) || "#00ff00"}
+                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, color: e.target.value })}
+                        />
+                      </label>
+                      <label className="param-field">
+                        <span>Tolerance: {((selectedNode.params?.tolerance as number) ?? 40).toFixed(0)}</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={(selectedNode.params?.tolerance as number) ?? 40}
+                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, tolerance: Number(e.target.value) })}
+                        />
+                      </label>
+                      <label className="param-field">
+                        <span>Spill Suppression: {(((selectedNode.params?.spill_suppression as number) ?? 0.75) * 100).toFixed(0)}%</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={(selectedNode.params?.spill_suppression as number) ?? 0.75}
+                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, spill_suppression: Number(e.target.value) })}
+                        />
+                      </label>
+                    </div>
+                  )}
+
+                  {selectedNode.kind === "transform" && (
+                    <div className="node-param-group">
+                      <h4>Spatial Transform</h4>
+                      <label className="param-field">
+                        <span>Scale: {((selectedNode.params?.scale as number) ?? 1.0).toFixed(2)}x</span>
+                        <input
+                          type="range"
+                          min="0.1"
+                          max="3"
+                          step="0.05"
+                          value={(selectedNode.params?.scale as number) ?? 1.0}
+                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, scale: Number(e.target.value) })}
+                        />
+                      </label>
+                      <label className="param-field">
+                        <span>X Offset: {((selectedNode.params?.x as number) ?? 0).toFixed(0)}px</span>
+                        <input
+                          type="range"
+                          min="-500"
+                          max="500"
+                          value={(selectedNode.params?.x as number) ?? 0}
+                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, x: Number(e.target.value) })}
+                        />
+                      </label>
+                      <label className="param-field">
+                        <span>Rotation: {((selectedNode.params?.rotation as number) ?? 0).toFixed(0)}°</span>
+                        <input
+                          type="range"
+                          min="-180"
+                          max="180"
+                          value={(selectedNode.params?.rotation as number) ?? 0}
+                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, rotation: Number(e.target.value) })}
+                        />
+                      </label>
+                    </div>
+                  )}
+
+                  {selectedNode.kind === "merge" && (
+                    <div className="node-param-group">
+                      <h4>Multi-Layer Compositing</h4>
+                      <label className="param-field">
+                        <span>Blend Mode:</span>
+                        <select
+                          value={(selectedNode.params?.blend_mode as string) || "normal"}
+                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, blend_mode: e.target.value })}
+                        >
+                          <option value="normal">Normal (Source Over)</option>
+                          <option value="multiply">Multiply</option>
+                          <option value="screen">Screen</option>
+                          <option value="add">Add</option>
+                          <option value="overlay">Overlay</option>
+                        </select>
+                      </label>
+                      <label className="param-field">
+                        <span>Foreground Opacity: {(((selectedNode.params?.opacity as number) ?? 1.0) * 100).toFixed(0)}%</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={(selectedNode.params?.opacity as number) ?? 1.0}
+                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, opacity: Number(e.target.value) })}
+                        />
+                      </label>
+                    </div>
+                  )}
+
+                  {selectedNode.kind === "mask" && (
+                    <div className="node-param-group">
+                      <h4>Roto-Spline Masking</h4>
+                      <label className="param-field">
+                        <span>Edge Feather: {fusionMaskFeather.toFixed(1)}px</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="30"
+                          step="0.5"
+                          value={fusionMaskFeather}
+                          onChange={(e) => {
+                            setFusionMaskFeather(Number(e.target.value));
+                            void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, feather: Number(e.target.value) });
+                          }}
+                        />
+                      </label>
+                      <label className="checkbox-field">
+                        <input
+                          type="checkbox"
+                          checked={fusionMaskInverted}
+                          onChange={(e) => {
+                            setFusionMaskInverted(e.target.checked);
+                            void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, inverted: e.target.checked });
+                          }}
+                        />
+                        <span>Invert Mask Matte</span>
+                      </label>
+                      <button
+                        className="secondary-btn"
+                        style={{ marginTop: "8px" }}
+                        onClick={() => void addRotoSplineMask(fusionMaskPoints, fusionMaskFeather, true, fusionMaskInverted)}
+                      >
+                        + Create Spline Polygon
+                      </button>
+                    </div>
+                  )}
+
+                  {selectedNode.kind === "particles" && (
+                    <div className="node-param-group">
+                      <h4>Particle Emitter Simulator</h4>
+                      <label className="param-field">
+                        <span>Emission Speed: {((selectedNode.params?.speed as number) ?? 120).toFixed(0)} px/s</span>
+                        <input
+                          type="range"
+                          min="20"
+                          max="300"
+                          value={(selectedNode.params?.speed as number) ?? 120}
+                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, speed: Number(e.target.value) })}
+                        />
+                      </label>
+                      <label className="param-field">
+                        <span>Gravity Y: {((selectedNode.params?.gravity as number) ?? 50).toFixed(0)}</span>
+                        <input
+                          type="range"
+                          min="-100"
+                          max="200"
+                          value={(selectedNode.params?.gravity as number) ?? 50}
+                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, gravity: Number(e.target.value) })}
+                        />
+                      </label>
+                    </div>
+                  )}
+
+                  {selectedNode.kind === "media_source" && (
+                    <div className="node-param-group">
+                      <h4>Source Media Feed</h4>
+                      <label className="param-field">
+                        <span>Media Asset:</span>
+                        <select
+                          value={(selectedNode.params?.media_id as number) || (media[0]?.id ?? 1)}
+                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, media_id: Number(e.target.value) })}
+                        >
+                          {media.map((m) => (
+                            <option key={m.id} value={m.id}>{m.name}</option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  )}
+
+                  <button
+                    className="danger-button"
+                    style={{ marginTop: "16px" }}
+                    onClick={() => void removeFusionNode(selectedNode.id)}
+                  >
+                    Remove Node
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="fusion-empty-inspector">
+                <span className="empty-icon">🔲</span>
+                <p>Select any node on the graph canvas to inspect parameters and routing sockets.</p>
+              </div>
+            )}
+          </aside>
+        </div>
       </main>
     );
   }
@@ -7176,31 +7958,207 @@ function App() {
             </button>
             <span className="action-divider" />
             <button
-              className="history-button"
-              onClick={() => void perform("edit.undo")}
-              disabled={!undoStatus.enabled}
-              data-tooltip={`Undo: ${undoStatus.reason ?? "Undo last action"} (Ctrl+Z)`}
+              className="collab-pill-btn"
+              onClick={() => setCollabModalOpen(true)}
+              data-tooltip="Collaborative Multi-User Project Locking (Phase 12.1)"
               data-tooltip-pos="bottom"
-              aria-label="Undo"
             >
-              <Icon name="undo" />
-            </button>
-            <button
-              className="history-button"
-              onClick={() => void perform("edit.redo")}
-              disabled={!redoStatus.enabled}
-              data-tooltip={`Redo: ${redoStatus.reason ?? "Redo action"} (Ctrl+Y)`}
-              data-tooltip-pos="bottom"
-              aria-label="Redo"
-            >
-              <Icon name="redo" />
+              <span className="collab-indicator-dot" style={{ backgroundColor: collabUser.color }} />
+              <span className="collab-name">{collabUser.name}</span>
+              <span className="collab-badge">
+                🔒 {project?.collaboration?.locks?.length ?? 0}
+              </span>
             </button>
           </nav>
         </div>
       </header>
 
+      {collabModalOpen && (
+        <div className="modal-overlay" onClick={() => setCollabModalOpen(false)}>
+          <div className="modal collab-modal" onClick={(e) => e.stopPropagation()}>
+            <header className="modal-header">
+              <div>
+                <h2>👥 Multi-User Collaboration &amp; Project Locking</h2>
+                <p>Real-time LAN / Cloud project synchronization with non-destructive bin and sequence locking.</p>
+              </div>
+              <button className="icon-button" onClick={() => setCollabModalOpen(false)}>
+                <Icon name="close" />
+              </button>
+            </header>
+
+            <div className="collab-modal-content">
+              {/* User Identity Section */}
+              <div className="collab-user-strip">
+                <div className="collab-avatar" style={{ backgroundColor: collabUser.color }}>
+                  {collabUser.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="collab-user-inputs">
+                  <label>
+                    <span>My Collaborator Alias:</span>
+                    <input
+                      type="text"
+                      value={collabUser.name}
+                      onChange={(e) => {
+                        const updated = { ...collabUser, name: e.target.value };
+                        setCollabUser(updated);
+                        localStorage.setItem("eep-collab-user", JSON.stringify(updated));
+                      }}
+                    />
+                  </label>
+                  <label>
+                    <span>Badge Color:</span>
+                    <input
+                      type="color"
+                      value={collabUser.color}
+                      onChange={(e) => {
+                        const updated = { ...collabUser, color: e.target.value };
+                        setCollabUser(updated);
+                        localStorage.setItem("eep-collab-user", JSON.stringify(updated));
+                      }}
+                    />
+                  </label>
+                </div>
+                <div className="collab-session-badge">
+                  <span className="session-dot" />
+                  <div>
+                    <small>SESSION</small>
+                    <code>{project?.collaboration?.session_id ?? "local-collab-session"}</code>
+                  </div>
+                </div>
+              </div>
+
+              {/* Resource Locking Matrix */}
+              <div className="collab-section">
+                <h3>🔒 Resource Locks &amp; Conflict Prevention</h3>
+                <div className="collab-locks-grid">
+                  <div className="collab-lock-card">
+                    <div className="lock-card-header">
+                      <strong>Current Sequence ("{project?.sequence.name}")</strong>
+                      {project?.collaboration?.locks?.find((l: UserLock) => l.target_kind === "sequence" && l.target_id === 1) ? (
+                        <span className="lock-status-badge locked">Locked</span>
+                      ) : (
+                        <span className="lock-status-badge available">Unlocked</span>
+                      )}
+                    </div>
+                    <p>Exclusive write lock prevents concurrent edit conflicts on this sequence timeline.</p>
+                    {project?.collaboration?.locks?.find((l: UserLock) => l.target_kind === "sequence" && l.target_id === 1) ? (
+                      <div className="lock-holder-info">
+                        <span>
+                          Held by: <b>{project?.collaboration?.locks?.find((l: UserLock) => l.target_kind === "sequence" && l.target_id === 1)?.user_name}</b>
+                        </span>
+                        {project?.collaboration?.locks?.find((l: UserLock) => l.target_kind === "sequence" && l.target_id === 1)?.user_id === collabUser.id && (
+                          <button
+                            className="secondary-btn small"
+                            onClick={() => void releaseProjectLock("sequence", 1)}
+                          >
+                            Release My Lock
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        className="primary-action-btn small"
+                        onClick={() => void acquireProjectLock("sequence", 1)}
+                      >
+                        🔒 Lock Sequence for Editing
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="collab-lock-card">
+                    <div className="lock-card-header">
+                      <strong>Media Bin</strong>
+                      {project?.collaboration?.locks?.find((l: UserLock) => l.target_kind === "bin" && l.target_id === 1) ? (
+                        <span className="lock-status-badge locked">Locked</span>
+                      ) : (
+                        <span className="lock-status-badge available">Unlocked</span>
+                      )}
+                    </div>
+                    <p>Bin lock prevents asset relinking and metadata conflicts during media ingest.</p>
+                    {project?.collaboration?.locks?.find((l: UserLock) => l.target_kind === "bin" && l.target_id === 1) ? (
+                      <div className="lock-holder-info">
+                        <span>
+                          Held by: <b>{project?.collaboration?.locks?.find((l: UserLock) => l.target_kind === "bin" && l.target_id === 1)?.user_name}</b>
+                        </span>
+                        {project?.collaboration?.locks?.find((l: UserLock) => l.target_kind === "bin" && l.target_id === 1)?.user_id === collabUser.id && (
+                          <button
+                            className="secondary-btn small"
+                            onClick={() => void releaseProjectLock("bin", 1)}
+                          >
+                            Release My Lock
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        className="primary-action-btn small"
+                        onClick={() => void acquireProjectLock("bin", 1)}
+                      >
+                        🔒 Lock Media Bin
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Real-time Timeline Change Audit Log */}
+              <div className="collab-section">
+                <h3>📜 Non-Destructive Timeline Change Log</h3>
+                <div className="collab-change-ledger">
+                  {project?.collaboration?.change_log && project.collaboration.change_log.length > 0 ? (
+                    project.collaboration.change_log.map((entry: TimelineChangeEntry) => (
+                      <div key={entry.id} className="ledger-entry">
+                        <span className="ledger-time">
+                          {new Date(entry.timestamp * 1000).toLocaleTimeString()}
+                        </span>
+                        <span className="ledger-user">{entry.user_name}</span>
+                        <span className="ledger-action">{entry.action}</span>
+                        <span className="ledger-summary">{entry.summary}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="ledger-empty">
+                      <span>No timeline modifications recorded yet. Edits will appear in this live audit ledger.</span>
+                    </div>
+                  )}
+                </div>
+                <div className="ledger-add-row">
+                  <input
+                    type="text"
+                    id="collabNoteInput"
+                    placeholder="Log a change memo or version marker..."
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const val = e.currentTarget.value.trim();
+                        if (val) {
+                          void recordCollabAction("version_memo", val);
+                          e.currentTarget.value = "";
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    className="secondary-btn"
+                    onClick={() => {
+                      const input = document.getElementById("collabNoteInput") as HTMLInputElement;
+                      if (input && input.value.trim()) {
+                        void recordCollabAction("version_memo", input.value.trim());
+                        input.value = "";
+                      }
+                    }}
+                  >
+                    + Log Memo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {davinciWorkspace === "media" ? renderImportWorkspace() :
        davinciWorkspace === "deliver" ? renderExportWorkspace() :
+       davinciWorkspace === "fusion" ? renderFusionWorkspace() :
        davinciWorkspace === "audio" ? renderAudioWorkspace() :
        davinciWorkspace === "color" ? renderColorWorkspace() :
        davinciWorkspace === "effects" ? renderEffectsWorkspace() :

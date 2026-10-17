@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 pub const PROJECT_FORMAT: &str = "project-saturn.project";
-pub const PROJECT_SCHEMA_VERSION: u32 = 8;
+pub const PROJECT_SCHEMA_VERSION: u32 = 9;
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -26,6 +26,8 @@ pub struct Project {
     pub media: Vec<MediaAsset>,
     pub sequence: Sequence,
     pub next_id: u64,
+    #[serde(default)]
+    pub collaboration: CollaborationState,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -264,6 +266,183 @@ pub fn default_audio_buses() -> Vec<AudioBus> {
     ]
 }
 
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum CompositingNodeKind {
+    #[default]
+    Merge,
+    Transform,
+    Keyer,
+    Mask,
+    Particles,
+    MediaSource,
+    OutputSink,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct CompositingNode {
+    pub id: u64,
+    pub kind: CompositingNodeKind,
+    pub title: String,
+    pub pos_x: f64,
+    pub pos_y: f64,
+    #[serde(default)]
+    pub params: serde_json::Value,
+    #[serde(default = "default_node_enabled")]
+    pub enabled: bool,
+}
+
+fn default_node_enabled() -> bool { true }
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct NodeConnection {
+    pub from_node: u64,
+    pub from_socket: String,
+    pub to_node: u64,
+    pub to_socket: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct RotoSplinePoint {
+    pub x: f64,
+    pub y: f64,
+    #[serde(default)]
+    pub handle_in: (f64, f64),
+    #[serde(default)]
+    pub handle_out: (f64, f64),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct RotoSplineMask {
+    pub id: u64,
+    pub name: String,
+    #[serde(default = "default_mask_closed")]
+    pub closed: bool,
+    #[serde(default)]
+    pub inverted: bool,
+    #[serde(default)]
+    pub feather: f64,
+    #[serde(default = "default_mask_opacity")]
+    pub opacity: f64,
+    #[serde(default)]
+    pub points: Vec<RotoSplinePoint>,
+}
+
+fn default_mask_closed() -> bool { true }
+fn default_mask_opacity() -> f64 { 1.0 }
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct NodeGraph {
+    #[serde(default)]
+    pub nodes: Vec<CompositingNode>,
+    #[serde(default)]
+    pub connections: Vec<NodeConnection>,
+    #[serde(default)]
+    pub masks: Vec<RotoSplineMask>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct SpeedRampPoint {
+    pub time: Tick,
+    pub speed_factor: f64,
+    #[serde(default)]
+    pub bezier_tangent: (f64, f64),
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+pub struct SpeedRamp {
+    #[serde(default)]
+    pub points: Vec<SpeedRampPoint>,
+    #[serde(default = "default_optical_flow")]
+    pub optical_flow_interpolation: bool,
+    #[serde(default)]
+    pub frame_blend: bool,
+}
+
+fn default_optical_flow() -> bool { true }
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct MotionBlurParams {
+    #[serde(default = "default_motion_blur_enabled")]
+    pub enabled: bool,
+    #[serde(default = "default_shutter_angle")]
+    pub shutter_angle_deg: f64,
+    #[serde(default = "default_motion_samples")]
+    pub samples: u32,
+}
+
+fn default_motion_blur_enabled() -> bool { true }
+fn default_shutter_angle() -> f64 { 180.0 }
+fn default_motion_samples() -> u32 { 8 }
+
+impl Default for MotionBlurParams {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            shutter_angle_deg: 180.0,
+            samples: 8,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum LockTargetKind {
+    #[default]
+    Bin,
+    Sequence,
+    Track,
+    Clip,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct UserLock {
+    pub user_id: String,
+    pub user_name: String,
+    #[serde(default = "default_user_color")]
+    pub user_color: String,
+    pub target_kind: LockTargetKind,
+    pub target_id: u64,
+    pub locked_at: u64,
+}
+
+fn default_user_color() -> String { "#38bdf8".into() }
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct TimelineChangeEntry {
+    pub id: u64,
+    pub user_id: String,
+    pub user_name: String,
+    pub timestamp: u64,
+    pub action: String,
+    pub summary: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct CollaborationState {
+    #[serde(default = "default_session_id")]
+    pub session_id: String,
+    #[serde(default)]
+    pub active_users: Vec<String>,
+    #[serde(default)]
+    pub locks: Vec<UserLock>,
+    #[serde(default)]
+    pub change_log: Vec<TimelineChangeEntry>,
+}
+
+fn default_session_id() -> String { "local-collab-session".into() }
+
+impl Default for CollaborationState {
+    fn default() -> Self {
+        Self {
+            session_id: default_session_id(),
+            active_users: Vec::new(),
+            locks: Vec::new(),
+            change_log: Vec::new(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sequence {
     pub name: String,
@@ -278,6 +457,8 @@ pub struct Sequence {
     pub multicam_clips: Vec<MultiCamClip>,
     #[serde(default = "default_audio_buses")]
     pub buses: Vec<AudioBus>,
+    #[serde(default)]
+    pub node_graph: Option<NodeGraph>,
 }
 
 impl Sequence {
@@ -467,6 +648,12 @@ pub struct Clip {
     pub multicam_angle_id: Option<u64>,
     #[serde(default)]
     pub tracking: Option<MotionTrackingData>,
+    #[serde(default)]
+    pub node_graph: Option<NodeGraph>,
+    #[serde(default)]
+    pub speed_ramp: Option<SpeedRamp>,
+    #[serde(default)]
+    pub motion_blur: Option<MotionBlurParams>,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -847,6 +1034,7 @@ impl ProjectDocument {
                     subtitles: Vec::new(),
                     multicam_clips: Vec::new(),
                     buses: default_audio_buses(),
+                    node_graph: None,
                     tracks: vec![
                         Track {
                             id: 1,
@@ -883,6 +1071,7 @@ impl ProjectDocument {
                     ],
                 },
                 next_id: 3,
+                collaboration: CollaborationState::default(),
             },
             view: ProjectView {
                 active_sequence: Some("Sequence 1".into()),
@@ -1111,7 +1300,7 @@ fn migrate_project(value: &mut serde_json::Value) -> Result<(), String> {
             });
             migrate_project(value)
         }
-        2 | 3 | 4 | 5 | 6 | 7 => {
+        2 | 3 | 4 | 5 | 6 | 7 | 8 => {
             value
                 .as_object_mut()
                 .ok_or_else(|| "Project root must be an object".to_string())?
@@ -1137,6 +1326,18 @@ mod tests {
         let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
         assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
         assert_eq!(loaded.view.active_sequence.as_deref(), Some("Sequence 1"));
+    }
+
+    #[test]
+    fn v8_project_migrates_to_v9_schema() {
+        let mut legacy = serde_json::to_value(ProjectDocument::new("V8 project")).unwrap();
+        legacy["schema_version"] = 8.into();
+        legacy["project"].as_object_mut().unwrap().remove("collaboration");
+        migrate_project(&mut legacy).unwrap();
+        let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
+        assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
+        assert_eq!(loaded.project.collaboration.session_id, "local-collab-session");
+        assert!(loaded.project.sequence.node_graph.is_none());
     }
 
     #[test]
@@ -1204,6 +1405,9 @@ mod tests {
             multicam_id: None,
             multicam_angle_id: None,
             tracking: None,
+            node_graph: None,
+            speed_ramp: None,
+            motion_blur: None,
         });
         video_track.clips.push(Clip {
             media_id: 2,
@@ -1218,6 +1422,9 @@ mod tests {
             multicam_id: None,
             multicam_angle_id: None,
             tracking: None,
+            node_graph: None,
+            speed_ramp: None,
+            motion_blur: None,
         });
         video_track.transitions.push(Transition {
             id: 1,
@@ -1267,6 +1474,9 @@ mod tests {
             multicam_id: None,
             multicam_angle_id: None,
             tracking: None,
+            node_graph: None,
+            speed_ramp: None,
+            motion_blur: None,
         };
 
         clip.effects.push(EffectInstance::new_color_correction(

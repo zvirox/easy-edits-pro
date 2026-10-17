@@ -1,4 +1,4 @@
-use saturn_core::{CommandRequest, EditorEngine};
+use saturn_core::{CommandRequest, EditorEngine, TICKS_PER_SECOND};
 use serde_json::{Value, json};
 
 #[test]
@@ -1450,6 +1450,319 @@ fn job_manager_pause_resume_batch_workflow() {
 
     let result = rx.recv().unwrap();
     assert_eq!(result.unwrap().as_deref(), Some("/out/test.mp4"));
+}
+
+#[test]
+fn fusion_node_graph_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+
+    // 1. Add MediaSource node
+    let res = engine
+        .execute(CommandRequest::new(
+            "nodegraph.add_node",
+            json!({
+                "kind": "media_source",
+                "title": "MediaIn1",
+                "pos_x": 100.0,
+                "pos_y": 150.0,
+                "params": {"media_id": 1}
+            }),
+        ))
+        .unwrap();
+    let src_id = res.get("node_id").unwrap().as_u64().unwrap();
+
+    // 2. Add Keyer node
+    let res = engine
+        .execute(CommandRequest::new(
+            "nodegraph.add_node",
+            json!({
+                "kind": "keyer",
+                "title": "ChromaKey1",
+                "pos_x": 300.0,
+                "pos_y": 150.0,
+                "params": {"color": "#00ff00"}
+            }),
+        ))
+        .unwrap();
+    let keyer_id = res.get("node_id").unwrap().as_u64().unwrap();
+
+    // 3. Add OutputSink node
+    let res = engine
+        .execute(CommandRequest::new(
+            "nodegraph.add_node",
+            json!({
+                "kind": "output_sink",
+                "title": "MediaOut1",
+                "pos_x": 500.0,
+                "pos_y": 150.0,
+            }),
+        ))
+        .unwrap();
+    let out_id = res.get("node_id").unwrap().as_u64().unwrap();
+
+    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    assert_eq!(graph.nodes.len(), 3);
+
+    // 4. Connect MediaSource -> Keyer, and Keyer -> OutputSink
+    engine
+        .execute(CommandRequest::new(
+            "nodegraph.connect",
+            json!({
+                "from_node": src_id,
+                "from_socket": "output",
+                "to_node": keyer_id,
+                "to_socket": "input",
+            }),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "nodegraph.connect",
+            json!({
+                "from_node": keyer_id,
+                "from_socket": "output",
+                "to_node": out_id,
+                "to_socket": "input",
+            }),
+        ))
+        .unwrap();
+
+    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    assert_eq!(graph.connections.len(), 2);
+
+    // 5. Update Keyer position and params
+    engine
+        .execute(CommandRequest::new(
+            "nodegraph.update_node",
+            json!({
+                "node_id": keyer_id,
+                "pos_x": 320.0,
+                "pos_y": 160.0,
+                "params": {"color": "#00ff00", "tolerance": 45.0}
+            }),
+        ))
+        .unwrap();
+
+    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    let keyer = graph.nodes.iter().find(|n| n.id == keyer_id).unwrap();
+    assert_eq!(keyer.pos_x, 320.0);
+    assert_eq!(keyer.params["tolerance"], 45.0);
+
+    // 6. Add RotoSpline Mask
+    engine
+        .execute(CommandRequest::new(
+            "nodegraph.add_mask",
+            json!({
+                "mask": {
+                    "id": 0,
+                    "name": "Garbage Matte",
+                    "closed": true,
+                    "inverted": false,
+                    "feather": 12.0,
+                    "opacity": 1.0,
+                    "points": [
+                        {"x": 10.0, "y": 10.0, "handle_in": [0.0, 0.0], "handle_out": [0.0, 0.0]},
+                        {"x": 100.0, "y": 10.0, "handle_in": [0.0, 0.0], "handle_out": [0.0, 0.0]},
+                        {"x": 100.0, "y": 100.0, "handle_in": [0.0, 0.0], "handle_out": [0.0, 0.0]},
+                        {"x": 10.0, "y": 100.0, "handle_in": [0.0, 0.0], "handle_out": [0.0, 0.0]},
+                    ]
+                }
+            }),
+        ))
+        .unwrap();
+
+    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    assert_eq!(graph.masks.len(), 1);
+    assert_eq!(graph.masks[0].name, "Garbage Matte");
+    assert_eq!(graph.masks[0].feather, 12.0);
+
+    // 7. Remove Keyer node (should also clean up connections attached to it)
+    engine
+        .execute(CommandRequest::new(
+            "nodegraph.remove_node",
+            json!({"node_id": keyer_id}),
+        ))
+        .unwrap();
+
+    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    assert_eq!(graph.nodes.len(), 2);
+    assert_eq!(graph.connections.len(), 0);
+
+    // 8. Test Undo
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    assert_eq!(graph.nodes.len(), 3);
+    assert_eq!(graph.connections.len(), 2);
+}
+
+#[test]
+fn optical_flow_speed_ramp_and_motion_blur_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    let media_id = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "skate.mp4",
+                "path": "/media/skate.mp4",
+                "kind": "video",
+                "duration": 10 * TICKS_PER_SECOND
+            }),
+        ))
+        .unwrap()
+        .get("media_id")
+        .unwrap()
+        .as_u64()
+        .unwrap();
+
+    let track_id = engine.document().project.sequence.tracks[0].id;
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": track_id,
+                "media_id": media_id,
+                "timeline_start": 0,
+                "source_in": 0,
+                "duration": 5 * TICKS_PER_SECOND
+            }),
+        ))
+        .unwrap();
+
+    // 1. Set Speed Ramp
+    engine
+        .execute(CommandRequest::new(
+            "clip.set_speed_ramp",
+            json!({
+                "track_id": track_id,
+                "clip_index": 0,
+                "speed_ramp": {
+                    "points": [
+                        {"time": 0, "speed_factor": 1.0, "bezier_tangent": [0.0, 0.0]},
+                        {"time": 2 * TICKS_PER_SECOND, "speed_factor": 0.25, "bezier_tangent": [0.2, -0.5]},
+                        {"time": 4 * TICKS_PER_SECOND, "speed_factor": 2.0, "bezier_tangent": [0.1, 0.8]}
+                    ],
+                    "optical_flow_interpolation": true,
+                    "frame_blend": false
+                }
+            }),
+        ))
+        .unwrap();
+
+    let clip = &engine.document().project.sequence.tracks[0].clips[0];
+    let ramp = clip.speed_ramp.as_ref().unwrap();
+    assert_eq!(ramp.points.len(), 3);
+    assert_eq!(ramp.points[1].speed_factor, 0.25);
+    assert!(ramp.optical_flow_interpolation);
+
+    // 2. Set Motion Blur
+    engine
+        .execute(CommandRequest::new(
+            "clip.set_motion_blur",
+            json!({
+                "track_id": track_id,
+                "clip_index": 0,
+                "motion_blur": {
+                    "enabled": true,
+                    "shutter_angle_deg": 270.0,
+                    "samples": 12
+                }
+            }),
+        ))
+        .unwrap();
+
+    let clip = &engine.document().project.sequence.tracks[0].clips[0];
+    let mb = clip.motion_blur.as_ref().unwrap();
+    assert_eq!(mb.shutter_angle_deg, 270.0);
+    assert_eq!(mb.samples, 12);
+
+    // 3. Test Undo
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    let clip = &engine.document().project.sequence.tracks[0].clips[0];
+    assert!(clip.motion_blur.is_none());
+}
+
+#[test]
+fn collaborative_project_locking_and_conflict_resolution_workflow() {
+    let mut engine = EditorEngine::default();
+
+    // 1. User Alice acquires lock on Sequence 1
+    let res = engine
+        .execute(CommandRequest::new(
+            "collab.acquire_lock",
+            json!({
+                "user_id": "alice-123",
+                "user_name": "Alice Editor",
+                "user_color": "#ec4899",
+                "target_kind": "sequence",
+                "target_id": 1
+            }),
+        ))
+        .unwrap();
+    assert_eq!(res["acquired"], true);
+
+    let collab = &engine.document().project.collaboration;
+    assert_eq!(collab.locks.len(), 1);
+    assert_eq!(collab.locks[0].user_name, "Alice Editor");
+    assert_eq!(collab.change_log.len(), 1);
+
+    // 2. User Bob attempts to acquire lock on Sequence 1 -> Conflict detected
+    let res = engine
+        .execute(CommandRequest::new(
+            "collab.acquire_lock",
+            json!({
+                "user_id": "bob-456",
+                "user_name": "Bob Colorist",
+                "target_kind": "sequence",
+                "target_id": 1
+            }),
+        ))
+        .unwrap();
+    assert_eq!(res["acquired"], false);
+    assert_eq!(res["locked_by"], "Alice Editor");
+
+    // 3. User Alice releases lock
+    let res = engine
+        .execute(CommandRequest::new(
+            "collab.release_lock",
+            json!({
+                "user_id": "alice-123",
+                "target_kind": "sequence",
+                "target_id": 1
+            }),
+        ))
+        .unwrap();
+    assert_eq!(res["released"], true);
+
+    // 4. Bob re-attempts -> succeeds
+    let res = engine
+        .execute(CommandRequest::new(
+            "collab.acquire_lock",
+            json!({
+                "user_id": "bob-456",
+                "user_name": "Bob Colorist",
+                "target_kind": "sequence",
+                "target_id": 1
+            }),
+        ))
+        .unwrap();
+    assert_eq!(res["acquired"], true);
+
+    // 5. Bob records a timeline change
+    let res = engine
+        .execute(CommandRequest::new(
+            "collab.record_change",
+            json!({
+                "user_id": "bob-456",
+                "user_name": "Bob Colorist",
+                "action": "grade_applied",
+                "summary": "Applied teal-and-orange grade to intro sequence"
+            }),
+        ))
+        .unwrap();
+    assert_eq!(res["recorded"], true);
+
+    let collab = &engine.document().project.collaboration;
+    assert_eq!(collab.change_log.last().unwrap().action, "grade_applied");
 }
 
 

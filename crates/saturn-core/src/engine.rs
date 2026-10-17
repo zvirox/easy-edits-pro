@@ -1,11 +1,14 @@
 use crate::command::{COMMANDS, CommandRequest, CommandStatus, status};
 use crate::project::{
     AudioPluginInstance, BusTarget, Clip, ColorAdjustments, ColorCorrectionParams,
-    ColorWheels, CropParams, EffectInstance, EffectKind, EffectPayload, GaussianBlurParams,
-    InterpolationKind, Keyframe, KeyframeProperty, LutParams, MediaAsset, MediaKind,
-    MotionTrackingData, MultiCamAngle, MultiCamClip, MultiCamSyncMode, ProjectDocument,
-    SubtitleItem, TitleProperties, TrackAudioProcessing, TrackAutomation, TrackKind,
-    TrackingMode, Transition, TransitionKind, VignetteParams, ChromaKeyParams,
+    ColorWheels, CompositingNode, CompositingNodeKind, CropParams, EffectInstance,
+    EffectKind, EffectPayload, GaussianBlurParams, InterpolationKind, Keyframe,
+    KeyframeProperty, LockTargetKind, LutParams, MediaAsset, MediaKind,
+    MotionBlurParams, MotionTrackingData, MultiCamAngle, MultiCamClip, MultiCamSyncMode,
+    NodeConnection, NodeGraph, ProjectDocument, RotoSplineMask, SpeedRamp,
+    SubtitleItem, TimelineChangeEntry, TitleProperties, TrackAudioProcessing,
+    TrackAutomation, TrackKind, TrackingMode, Transition, TransitionKind,
+    UserLock, VignetteParams, ChromaKeyParams,
 };
 use crate::time::{FrameRate, TICKS_PER_SECOND, Tick};
 use serde::Deserialize;
@@ -512,6 +515,127 @@ struct SetBusGainParams {
     gain_db: f64,
 }
 
+#[derive(Deserialize)]
+struct AddNodeParams {
+    track_id: Option<u64>,
+    clip_index: Option<usize>,
+    kind: CompositingNodeKind,
+    #[serde(default = "default_node_title")]
+    title: String,
+    #[serde(default)]
+    pos_x: f64,
+    #[serde(default)]
+    pos_y: f64,
+    #[serde(default)]
+    params: Value,
+}
+
+fn default_node_title() -> String { "New Node".into() }
+
+#[derive(Deserialize)]
+struct RemoveNodeParams {
+    track_id: Option<u64>,
+    clip_index: Option<usize>,
+    node_id: u64,
+}
+
+#[derive(Deserialize)]
+struct ConnectNodesParams {
+    track_id: Option<u64>,
+    clip_index: Option<usize>,
+    from_node: u64,
+    from_socket: String,
+    to_node: u64,
+    to_socket: String,
+}
+
+#[derive(Deserialize)]
+struct DisconnectNodesParams {
+    track_id: Option<u64>,
+    clip_index: Option<usize>,
+    from_node: u64,
+    from_socket: String,
+    to_node: u64,
+    to_socket: String,
+}
+
+#[derive(Deserialize)]
+struct UpdateNodeParams {
+    track_id: Option<u64>,
+    clip_index: Option<usize>,
+    node_id: u64,
+    pos_x: Option<f64>,
+    pos_y: Option<f64>,
+    enabled: Option<bool>,
+    params: Option<Value>,
+}
+
+#[derive(Deserialize)]
+struct AddMaskParams {
+    track_id: Option<u64>,
+    clip_index: Option<usize>,
+    mask: RotoSplineMask,
+}
+
+#[derive(Deserialize)]
+struct SetSpeedRampParams {
+    track_id: u64,
+    clip_index: usize,
+    speed_ramp: SpeedRamp,
+}
+
+#[derive(Deserialize)]
+struct SetMotionBlurParams {
+    track_id: u64,
+    clip_index: usize,
+    motion_blur: MotionBlurParams,
+}
+
+#[derive(Deserialize)]
+struct AcquireLockParams {
+    user_id: String,
+    user_name: String,
+    user_color: Option<String>,
+    target_kind: LockTargetKind,
+    target_id: u64,
+}
+
+#[derive(Deserialize)]
+struct ReleaseLockParams {
+    user_id: String,
+    target_kind: LockTargetKind,
+    target_id: u64,
+}
+
+#[derive(Deserialize)]
+struct RecordChangeParams {
+    user_id: String,
+    user_name: String,
+    action: String,
+    summary: String,
+}
+
+fn get_or_create_node_graph<'a>(
+    doc: &'a mut ProjectDocument,
+    track_id: Option<u64>,
+    clip_index: Option<usize>,
+) -> Result<&'a mut NodeGraph, DispatchError> {
+    if let (Some(t_id), Some(c_idx)) = (track_id, clip_index) {
+        let track_idx = find_track_index(doc, t_id)?;
+        find_clip(doc, track_idx, c_idx)?;
+        let clip_mut = &mut doc.project.sequence.tracks[track_idx].clips[c_idx];
+        if clip_mut.node_graph.is_none() {
+            clip_mut.node_graph = Some(NodeGraph::default());
+        }
+        Ok(clip_mut.node_graph.as_mut().unwrap())
+    } else {
+        if doc.project.sequence.node_graph.is_none() {
+            doc.project.sequence.node_graph = Some(NodeGraph::default());
+        }
+        Ok(doc.project.sequence.node_graph.as_mut().unwrap())
+    }
+}
+
 impl Default for EditorEngine {
     fn default() -> Self {
         let document = ProjectDocument::default();
@@ -787,6 +911,9 @@ impl EditorEngine {
                     multicam_id: None,
                     multicam_angle_id: None,
                     tracking: None,
+                    node_graph: None,
+                    speed_ramp: None,
+                    motion_blur: None,
                 });
                 Ok(json!({"track_id": track.id, "clip_index": track.clips.len() - 1}))
             }
@@ -1753,6 +1880,9 @@ impl EditorEngine {
                     multicam_id: None,
                     multicam_angle_id: None,
                     tracking: None,
+                    node_graph: None,
+                    speed_ramp: None,
+                    motion_blur: None,
                 };
                 let track = &mut self.document.project.sequence.tracks[track_index];
                 track.clips.push(clip);
@@ -1991,6 +2121,195 @@ impl EditorEngine {
                     bus.gain_db = params.gain_db;
                 }
                 Ok(json!({"updated": true, "gain_db": params.gain_db}))
+            }
+            "nodegraph.add_node" => {
+                let params: AddNodeParams = parse_params(request.params)?;
+                self.checkpoint();
+                let node_id = self.document.project.next_id;
+                self.document.project.next_id = node_id.saturating_add(1);
+                let graph = get_or_create_node_graph(&mut self.document, params.track_id, params.clip_index)?;
+                graph.nodes.push(CompositingNode {
+                    id: node_id,
+                    kind: params.kind,
+                    title: params.title,
+                    pos_x: params.pos_x,
+                    pos_y: params.pos_y,
+                    params: params.params,
+                    enabled: true,
+                });
+                Ok(json!({"added": true, "node_id": node_id}))
+            }
+            "nodegraph.remove_node" => {
+                let params: RemoveNodeParams = parse_params(request.params)?;
+                self.checkpoint();
+                let graph = get_or_create_node_graph(&mut self.document, params.track_id, params.clip_index)?;
+                let initial_len = graph.nodes.len();
+                graph.nodes.retain(|n| n.id != params.node_id);
+                let removed = graph.nodes.len() < initial_len;
+                if removed {
+                    graph.connections.retain(|c| c.from_node != params.node_id && c.to_node != params.node_id);
+                }
+                Ok(json!({"removed": removed}))
+            }
+            "nodegraph.connect" => {
+                let params: ConnectNodesParams = parse_params(request.params)?;
+                self.checkpoint();
+                let graph = get_or_create_node_graph(&mut self.document, params.track_id, params.clip_index)?;
+                if !graph.connections.iter().any(|c| {
+                    c.from_node == params.from_node
+                        && c.from_socket == params.from_socket
+                        && c.to_node == params.to_node
+                        && c.to_socket == params.to_socket
+                }) {
+                    graph.connections.push(NodeConnection {
+                        from_node: params.from_node,
+                        from_socket: params.from_socket,
+                        to_node: params.to_node,
+                        to_socket: params.to_socket,
+                    });
+                }
+                Ok(json!({"connected": true}))
+            }
+            "nodegraph.disconnect" => {
+                let params: DisconnectNodesParams = parse_params(request.params)?;
+                self.checkpoint();
+                let graph = get_or_create_node_graph(&mut self.document, params.track_id, params.clip_index)?;
+                let initial_len = graph.connections.len();
+                graph.connections.retain(|c| !(
+                    c.from_node == params.from_node
+                        && c.from_socket == params.from_socket
+                        && c.to_node == params.to_node
+                        && c.to_socket == params.to_socket
+                ));
+                Ok(json!({"disconnected": graph.connections.len() < initial_len}))
+            }
+            "nodegraph.update_node" => {
+                let params: UpdateNodeParams = parse_params(request.params)?;
+                self.checkpoint();
+                let graph = get_or_create_node_graph(&mut self.document, params.track_id, params.clip_index)?;
+                let node = graph.nodes.iter_mut().find(|n| n.id == params.node_id)
+                    .ok_or_else(|| DispatchError::Operation(format!("Node {} not found", params.node_id)))?;
+                if let Some(x) = params.pos_x { node.pos_x = x; }
+                if let Some(y) = params.pos_y { node.pos_y = y; }
+                if let Some(e) = params.enabled { node.enabled = e; }
+                if let Some(p) = params.params { node.params = p; }
+                Ok(json!({"updated": true, "node_id": params.node_id}))
+            }
+            "nodegraph.add_mask" => {
+                let params: AddMaskParams = parse_params(request.params)?;
+                self.checkpoint();
+                let mask_id = if params.mask.id == 0 {
+                    let id = self.document.project.next_id;
+                    self.document.project.next_id = id.saturating_add(1);
+                    id
+                } else {
+                    params.mask.id
+                };
+                let mut mask = params.mask;
+                mask.id = mask_id;
+                let graph = get_or_create_node_graph(&mut self.document, params.track_id, params.clip_index)?;
+                graph.masks.push(mask);
+                Ok(json!({"added": true, "mask_id": mask_id}))
+            }
+            "clip.set_speed_ramp" => {
+                let params: SetSpeedRampParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                clip.speed_ramp = Some(params.speed_ramp);
+                Ok(json!({"updated": true}))
+            }
+            "clip.set_motion_blur" => {
+                let params: SetMotionBlurParams = parse_params(request.params)?;
+                if !params.motion_blur.shutter_angle_deg.is_finite()
+                    || !(0.0..=360.0).contains(&params.motion_blur.shutter_angle_deg)
+                {
+                    return Err(DispatchError::InvalidParameters("Shutter angle must be between 0 and 360 degrees".into()));
+                }
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                clip.motion_blur = Some(params.motion_blur);
+                Ok(json!({"updated": true}))
+            }
+            "collab.acquire_lock" => {
+                let params: AcquireLockParams = parse_params(request.params)?;
+                self.checkpoint();
+                let collab = &mut self.document.project.collaboration;
+                if let Some(existing) = collab.locks.iter().find(|l| l.target_kind == params.target_kind && l.target_id == params.target_id) {
+                    if existing.user_id != params.user_id {
+                        return Ok(json!({
+                            "acquired": false,
+                            "locked_by": existing.user_name,
+                            "user_id": existing.user_id
+                        }));
+                    }
+                }
+                let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
+                let lock = UserLock {
+                    user_id: params.user_id.clone(),
+                    user_name: params.user_name.clone(),
+                    user_color: params.user_color.unwrap_or_else(|| "#38bdf8".into()),
+                    target_kind: params.target_kind,
+                    target_id: params.target_id,
+                    locked_at: now,
+                };
+                collab.locks.retain(|l| !(l.target_kind == params.target_kind && l.target_id == params.target_id));
+                collab.locks.push(lock);
+                if !collab.active_users.contains(&params.user_name) {
+                    collab.active_users.push(params.user_name.clone());
+                }
+                let change_id = self.document.project.next_id;
+                self.document.project.next_id = change_id.saturating_add(1);
+                collab.change_log.push(TimelineChangeEntry {
+                    id: change_id,
+                    user_id: params.user_id,
+                    user_name: params.user_name,
+                    timestamp: now,
+                    action: "lock_acquired".into(),
+                    summary: format!("Acquired lock on {:?} #{}", params.target_kind, params.target_id),
+                });
+                Ok(json!({"acquired": true}))
+            }
+            "collab.release_lock" => {
+                let params: ReleaseLockParams = parse_params(request.params)?;
+                self.checkpoint();
+                let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
+                let collab = &mut self.document.project.collaboration;
+                let initial_len = collab.locks.len();
+                collab.locks.retain(|l| !(l.target_kind == params.target_kind && l.target_id == params.target_id && l.user_id == params.user_id));
+                let released = collab.locks.len() < initial_len;
+                if released {
+                    let change_id = self.document.project.next_id;
+                    self.document.project.next_id = change_id.saturating_add(1);
+                    collab.change_log.push(TimelineChangeEntry {
+                        id: change_id,
+                        user_id: params.user_id,
+                        user_name: "Collaborator".into(),
+                        timestamp: now,
+                        action: "lock_released".into(),
+                        summary: format!("Released lock on {:?} #{}", params.target_kind, params.target_id),
+                    });
+                }
+                Ok(json!({"released": released}))
+            }
+            "collab.record_change" => {
+                let params: RecordChangeParams = parse_params(request.params)?;
+                self.checkpoint();
+                let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
+                let entry_id = self.document.project.next_id;
+                self.document.project.next_id = entry_id.saturating_add(1);
+                self.document.project.collaboration.change_log.push(TimelineChangeEntry {
+                    id: entry_id,
+                    user_id: params.user_id,
+                    user_name: params.user_name,
+                    timestamp: now,
+                    action: params.action,
+                    summary: params.summary,
+                });
+                Ok(json!({"recorded": true, "entry_id": entry_id}))
             }
 
             _ => Err(DispatchError::UnknownCommand(request.id)),

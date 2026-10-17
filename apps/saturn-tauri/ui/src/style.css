@@ -4620,3 +4620,801 @@ button:active:not(:disabled) { transform: scale(0.96); transition: transform 0.0
   background: rgba(2, 132, 199, 0.2);
   color: #38bdf8;
 }
+
+/* ==========================================================================
+   Phase 11.1 — Fusion Node-Based Compositing Workspace
+   ========================================================================== */
+
+.fusion-workspace-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #090d14;
+}
+
+.fusion-workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.fusion-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fusion-add-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.fusion-add-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-right: 2px;
+}
+
+.fusion-tool-btn {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fusion-tool-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-cyan);
+  color: #38bdf8;
+}
+
+.fusion-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Fusion Canvas */
+.fusion-canvas-container {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  overflow: auto;
+  background-color: #06090e;
+  background-image: 
+    radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 24px 24px, 120px 120px, 120px 120px;
+  user-select: none;
+}
+
+.fusion-wires-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2500px;
+  height: 2500px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.fusion-wire-group {
+  pointer-events: stroke;
+}
+
+.fusion-wire-hitbox {
+  stroke: transparent;
+  stroke-width: 14px;
+  fill: none;
+  cursor: pointer;
+}
+
+.fusion-wire {
+  pointer-events: none;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));
+  transition: stroke 0.2s ease;
+}
+
+.fusion-wire-hitbox:hover + .fusion-wire {
+  stroke: #ef4444 !important;
+  stroke-width: 3.5px;
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.7));
+}
+
+/* Fusion Node Cards */
+.fusion-node-card {
+  position: absolute;
+  width: 160px;
+  min-height: 80px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+  cursor: default;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.fusion-node-card:hover {
+  border-color: #64748b;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+.fusion-node-card.selected {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35), 0 8px 24px rgba(0, 0, 0, 0.7);
+  z-index: 3;
+}
+
+/* Node Kind Variants */
+.fusion-node-card.kind-merge {
+  border-top: 3px solid #8b5cf6;
+}
+.fusion-node-card.kind-transform {
+  border-top: 3px solid #38bdf8;
+}
+.fusion-node-card.kind-keyer {
+  border-top: 3px solid #22c55e;
+}
+.fusion-node-card.kind-mask {
+  border-top: 3px solid #ec4899;
+}
+.fusion-node-card.kind-particles {
+  border-top: 3px solid #f59e0b;
+}
+.fusion-node-card.kind-media_source {
+  border-top: 3px solid #06b6d4;
+}
+.fusion-node-card.kind-output_sink {
+  border-top: 3px solid #e11d48;
+}
+
+.fusion-node-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid #1e293b;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  cursor: grab;
+}
+
+.fusion-node-header:active {
+  cursor: grabbing;
+}
+
+.node-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.node-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #e2e8f0;
+  flex: 1;
+  margin-left: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.node-delete-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+.node-delete-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.fusion-node-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 6px;
+  flex: 1;
+  min-height: 48px;
+}
+
+.node-sockets-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.node-sockets-right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+/* Sockets */
+.socket-port {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.socket-port:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.socket-port.active {
+  background: rgba(56, 189, 248, 0.2);
+  outline: 1px solid #38bdf8;
+}
+
+.socket-port small {
+  font-size: 9px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+
+.socket-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.socket-dot.in {
+  background: #38bdf8;
+}
+
+.socket-dot.fg {
+  background: #a855f7;
+}
+
+.socket-dot.bg {
+  background: #3b82f6;
+}
+
+.socket-dot.mask {
+  background: #ec4899;
+}
+
+.socket-dot.out {
+  background: #10b981;
+}
+
+.sink-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #ef4444;
+  letter-spacing: 0.05em;
+  padding: 2px 4px;
+  background: rgba(239, 68, 68, 0.12);
+  border-radius: 3px;
+}
+
+/* Fusion Inspector Panel */
+.fusion-inspector-panel {
+  width: 320px;
+  min-width: 280px;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 14px;
+}
+
+.fusion-empty-inspector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  color: var(--text-muted);
+  gap: 12px;
+  padding: 20px;
+}
+
+.fusion-empty-inspector .empty-icon {
+  font-size: 36px;
+  opacity: 0.4;
+}
+
+.fusion-empty-inspector p {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.fusion-node-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.inspector-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.inspector-title-row h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.node-kind-badge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  letter-spacing: 0.06em;
+}
+
+.node-param-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.node-param-group h4 {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
+   Phase 11.2 — Speed Ramping & Dynamic Shutter Motion Blur
+   ========================================================================== */
+
+.speed-ramp-inspector-card,
+.motion-blur-inspector-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.speed-ramp-header,
+.motion-blur-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.speed-ramp-header strong,
+.motion-blur-header strong {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
+}
+
+.speed-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+.speed-presets-row,
+.shutter-presets {
+  display: flex;
+  gap: 4px;
+}
+
+.speed-preset-btn,
+.shutter-btn {
+  flex: 1;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 3px 0;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.speed-preset-btn:hover,
+.shutter-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.speed-preset-btn.active,
+.shutter-btn.active {
+  background: var(--accent-cyan);
+  color: #041017;
+  font-weight: 700;
+  border-color: var(--accent-cyan);
+}
+
+.motion-blur-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* ==========================================================================
+   Phase 12.1 — Multi-User Collaborative Project Locking
+   ========================================================================== */
+
+.collab-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  padding: 3px 10px !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.collab-pill-btn:hover {
+  border-color: #38bdf8 !important;
+  background: rgba(30, 41, 59, 0.9) !important;
+}
+
+.collab-indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.collab-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.collab-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 1px 5px;
+  border-radius: 8px;
+}
+
+/* Collaboration Modal */
+.collab-modal {
+  max-width: 680px;
+  width: 90vw;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+}
+
+.collab-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 20px;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
+.collab-user-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.collab-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.collab-user-inputs {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+}
+
+.collab-user-inputs label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.collab-user-inputs input[type="text"] {
+  background: #090d14;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.collab-user-inputs input[type="color"] {
+  height: 28px;
+  width: 48px;
+  padding: 1px 2px;
+  border-radius: 4px;
+  border: 1px solid #334155;
+  background: #090d14;
+  cursor: pointer;
+}
+
+.collab-session-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+}
+
+.session-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
+}
+
+.collab-session-badge small {
+  display: block;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.collab-session-badge code {
+  font-family: monospace;
+  font-size: 10.5px;
+  color: #38bdf8;
+}
+
+.collab-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.collab-section h3 {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.collab-locks-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.collab-lock-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lock-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lock-card-header strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.lock-status-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.lock-status-badge.available {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.lock-status-badge.locked {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.collab-lock-card p {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.4;
+  margin: 0;
+  flex: 1;
+}
+
+.lock-holder-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #cbd5e1;
+  padding-top: 4px;
+  border-top: 1px solid #334155;
+}
+
+.lock-holder-info b {
+  color: #38bdf8;
+}
+
+/* Timeline Change Audit Log */
+.collab-change-ledger {
+  background: #090d14;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.ledger-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+}
+
+.ledger-entry:last-child {
+  border-bottom: none;
+}
+
+.ledger-time {
+  font-family: monospace;
+  font-size: 10px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.ledger-user {
+  font-weight: 700;
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+
+.ledger-action {
+  font-size: 9.5px;
+  font-weight: 700;
+  background: #1e293b;
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.ledger-summary {
+  color: #cbd5e1;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ledger-empty {
+  padding: 24px;
+  text-align: center;
+  color: #64748b;
+  font-size: 11.5px;
+}
+
+.ledger-add-row {
+  display: flex;
+  gap: 8px;
+}
+
+.ledger-add-row input {
+  flex: 1;
+  background: #090d14;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 11.5px;
+}
+
+.ledger-add-row input:focus {
+  outline: none;
+  border-color: #38bdf8;
+}
+

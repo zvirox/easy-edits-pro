@@ -9,13 +9,17 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
+pub mod compositor;
 pub mod lut;
 pub mod multicam;
+pub mod speedramp;
 pub mod tracking;
 pub mod wheels;
 
+pub use compositor::{BlendMode, Particle, ParticleEmitter, merge_alpha_over_rgba, rasterize_roto_mask, simulate_particle_field};
 pub use lut::{Lut3D, Lut3DInfo};
 pub use multicam::sync_waveforms_by_correlation;
+pub use speedramp::{apply_motion_blur_synthesis, blend_bidirectional_optical_flow, interpolate_speed_ramp};
 pub use tracking::{compute_stabilization_offset, evaluate_tracking_at, smooth_trajectory};
 pub use wheels::{apply_color_wheels_rgb, apply_color_wheels_rgba};
 

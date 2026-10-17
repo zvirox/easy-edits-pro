@@ -185,6 +185,100 @@ export interface EffectInstance {
   params: ColorCorrectionParams | GaussianBlurParams | CropParams | VignetteParams | ChromaKeyParams | LutParams;
 }
 
+export type CompositingNodeKind =
+  | "merge"
+  | "transform"
+  | "keyer"
+  | "mask"
+  | "particles"
+  | "media_source"
+  | "output_sink";
+
+export interface CompositingNode {
+  id: number;
+  kind: CompositingNodeKind;
+  title: string;
+  pos_x: number;
+  pos_y: number;
+  params?: Record<string, unknown>;
+  enabled?: boolean;
+}
+
+export interface NodeConnection {
+  from_node: number;
+  from_socket: string;
+  to_node: number;
+  to_socket: string;
+}
+
+export interface RotoSplinePoint {
+  x: number;
+  y: number;
+  handle_in?: [number, number];
+  handle_out?: [number, number];
+}
+
+export interface RotoSplineMask {
+  id: number;
+  name: string;
+  closed?: boolean;
+  inverted?: boolean;
+  feather?: number;
+  opacity?: number;
+  points: RotoSplinePoint[];
+}
+
+export interface NodeGraph {
+  nodes: CompositingNode[];
+  connections: NodeConnection[];
+  masks?: RotoSplineMask[];
+}
+
+export interface SpeedRampPoint {
+  time: number;
+  speed_factor: number;
+  bezier_tangent?: [number, number];
+}
+
+export interface SpeedRamp {
+  points: SpeedRampPoint[];
+  optical_flow_interpolation?: boolean;
+  frame_blend?: boolean;
+}
+
+export interface MotionBlurParams {
+  enabled?: boolean;
+  shutter_angle_deg?: number;
+  samples?: number;
+}
+
+export type LockTargetKind = "bin" | "sequence" | "track" | "clip";
+
+export interface UserLock {
+  user_id: string;
+  user_name: string;
+  user_color?: string;
+  target_kind: LockTargetKind;
+  target_id: number;
+  locked_at: number;
+}
+
+export interface TimelineChangeEntry {
+  id: number;
+  user_id: string;
+  user_name: string;
+  timestamp: number;
+  action: string;
+  summary: string;
+}
+
+export interface CollaborationState {
+  session_id: string;
+  active_users: string[];
+  locks: UserLock[];
+  change_log: TimelineChangeEntry[];
+}
+
 export interface Clip {
   media_id: number;
   timeline_start: number;
@@ -198,6 +292,9 @@ export interface Clip {
   multicam_id?: number | null;
   multicam_angle_id?: number | null;
   tracking?: MotionTrackingData | null;
+  node_graph?: NodeGraph | null;
+  speed_ramp?: SpeedRamp | null;
+  motion_blur?: MotionBlurParams | null;
 }
 
 export interface TrackAudioProcessing {
@@ -272,6 +369,7 @@ export interface ProjectDocument {
       subtitles?: SubtitleItem[];
       multicam_clips?: MultiCamClip[];
       buses?: AudioBus[];
+      node_graph?: NodeGraph | null;
     };
     settings: {
       width: number;
@@ -279,6 +377,7 @@ export interface ProjectDocument {
       frame_rate: { numerator: number; denominator: number };
       audio_sample_rate: number;
     };
+    collaboration?: CollaborationState;
   };
 }
 
@@ -1130,6 +1229,24 @@ export function evaluateTimelinePlayback(
       const bShift = (wheels.lift?.blue ?? 0) * 0.15 + (wheels.gain?.blue ?? 0) * 0.2 + (wheels.offset?.blue ?? 0) * 0.1;
       const tintDeg = (rShift - bShift) * 40;
       hueRotate += tintDeg;
+    }
+
+    // Motion Blur (dynamic shutter angle simulation)
+    if (clip.motion_blur?.enabled && (clip.motion_blur.shutter_angle_deg ?? 180) > 0) {
+      const shutter = clip.motion_blur.shutter_angle_deg ?? 180;
+      const motionBlurPx = (shutter / 360) * 1.5;
+      if (motionBlurPx > 0.1) {
+        blurPx += motionBlurPx;
+      }
+    }
+
+    // Fusion Node Graph roto-spline mask polygon
+    if (clip.node_graph?.masks && clip.node_graph.masks.length > 0) {
+      const activeMask = clip.node_graph.masks[0];
+      if (activeMask.points && activeMask.points.length >= 3) {
+        const polyCoords = activeMask.points.map((p) => `${p.x}% ${p.y}%`).join(", ");
+        cropInset = `polygon(${polyCoords})`;
+      }
     }
 
     const filterParts: string[] = [];
