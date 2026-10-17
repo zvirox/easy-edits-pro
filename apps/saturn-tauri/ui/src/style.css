@@ -122,11 +122,12 @@
 
 * { box-sizing: border-box; }
 @font-face { font-family: "Inter Variable"; src: url("/fonts/InterVariable.woff2") format("woff2"); font-style: normal; font-weight: 100 900; font-display: swap; }
-body { margin: 0; min-width: 900px; min-height: 620px; overflow: hidden; font-family: "Inter Variable", Inter, sans-serif; background: var(--bg-app); color: var(--text-main); }
+html, body, #root { height: 100%; margin: 0; min-width: 900px; min-height: 620px; overflow: hidden; }
+body { font-family: "Inter Variable", Inter, sans-serif; background: var(--bg-app); color: var(--text-main); }
 button, input { font: inherit; }
 button { color: var(--text-main); background: var(--bg-button); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 9px; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
 button:disabled { opacity: .48; cursor: not-allowed; }
-.app-shell { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-app); color: var(--text-main); }
+.app-shell { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; display: flex; flex-direction: column; background: var(--bg-app); color: var(--text-main); }
 .app-header { display: flex; flex-direction: column; min-height: 80px; padding: 4px 12px 6px; background: var(--bg-header); border-bottom: 1px solid var(--border-color); }
 .header-menu-row, .app-toolbar { display: flex; align-items: center; min-width: 0; gap: 12px; }
 .header-menu-row { min-height: 38px; }
@@ -238,8 +239,8 @@ button:disabled { opacity: .48; cursor: not-allowed; }
 .icon-button:hover { background: var(--bg-hover); border-color: var(--border-color); color: var(--text-main); }
 .icon-button.close:hover { background: #ef444422; border-color: #ef4444; color: #ef4444; }
 
-.editor { display: grid; grid-template-columns: minmax(240px, 25vw) minmax(450px, 1fr) minmax(240px, 22vw); gap: 8px; flex: 1; min-height: 0; padding: 8px; background: var(--bg-app); }
-.media-panel, .monitor, .tool-panel, .timeline { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; min-width: 0; overflow: hidden; }
+.editor { display: grid; grid-template-columns: minmax(240px, 25vw) minmax(450px, 1fr) minmax(240px, 22vw); gap: 8px; flex: 1; min-height: 0; padding: 8px; overflow: hidden; grid-template-rows: minmax(0, 1fr); background: var(--bg-app); }
+.media-panel, .monitor, .tool-panel, .timeline { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; min-width: 0; min-height: 0; overflow: hidden; }
 .media-panel { display: flex; flex-direction: column; }
 
 /* Filmora Inspired Left Panel Tabs */
@@ -357,9 +358,10 @@ button:disabled { opacity: .48; cursor: not-allowed; }
 .media-item small { margin-top: 3px; color: var(--text-muted); font-size: 10px; }
 .empty-media strong { font-size: 12px; color: var(--text-main); }
 .empty-media small, .monitor-stage small { max-width: 210px; color: var(--text-muted); font-size: 10px; }
-.work-area { display: flex; flex-direction: column; min-width: 0; gap: 7px; }
-.monitors { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1; min-height: 250px; }
-.monitor { display: flex; flex-direction: column; min-width: 0; }
+.work-area { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 7px; }
+.monitors { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); gap: 6px; flex: 1 1 0; min-height: 150px; }
+.monitors .monitor-stage, .monitors .preview-stage, .monitors .program-stage { min-height: 60px; }
+.monitor { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .monitor-name { color: #bbb; }
 .monitor-stage { display: flex; flex: 1; min-height: 180px; flex-direction: column; align-items: center; justify-content: center; gap: 7px; margin: 0 7px; background: #090909; border: 1px solid #303030; text-align: center; }
 .monitor-stage strong { font-size: 12px; }
@@ -468,8 +470,8 @@ button:disabled { opacity: .48; cursor: not-allowed; }
   font-weight: 600;
   font-family: monospace;
 }
-.timeline { display: grid; grid-template-columns: 56px minmax(0, 1fr); min-height: 245px; padding: 0; overflow: hidden; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; }
-.timeline-tool-rail { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-right: 1px solid var(--border-color); background: var(--bg-subpanel); }
+.timeline { display: grid; grid-template-columns: 64px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); flex: none; height: var(--timeline-height, clamp(230px, 36vh, 440px)); min-height: 0; padding: 0; overflow: hidden; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; }
+.timeline-tool-rail { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 0; padding: 8px 2px 8px 4px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--border-color); background: var(--bg-subpanel); }
 .timeline-tool-button, .timeline-icon-button { display: grid; place-items: center; flex: none; padding: 4px; border: 1px solid transparent; border-radius: 5px; color: var(--text-sub); background: transparent; cursor: pointer; transition: all 0.12s ease; }
 .timeline-tool-button { grid-template-rows: 20px 12px; gap: 1px; width: 48px; height: 42px; }
 .timeline-icon-button { width: 30px; height: 30px; }
@@ -5556,4 +5558,22 @@ button:active:not(:disabled) { transform: scale(0.96); transition: transform 0.0
   color: #34d399;
   border: 1px solid rgba(16, 185, 129, 0.4);
 }
+
+/* ------------------------------------------------------------------
+   Layout and scrolling (Phase U1)
+   The shell is exactly one viewport tall, every panel scrolls on its
+   own, and the timeline keeps its ruler and track headers pinned.
+   ------------------------------------------------------------------ */
+
+/* Thin themed scrollbars (WebKitGTK, WebView2, WKWebView) */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border: 2px solid transparent; border-radius: 6px; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); background-clip: content-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* Timeline: ruler stays at the top, track headers stay at the left */
+.timeline-ruler { position: sticky; top: 0; z-index: 8; background: var(--bg-panel); }
+.timeline-ruler .track-spacer { position: sticky; left: 0; z-index: 9; background: var(--bg-subpanel); border-right: 1px solid #343434; }
+.track-row > .track-label { position: sticky; left: 0; z-index: 7; }
 

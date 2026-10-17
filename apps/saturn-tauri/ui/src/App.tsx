@@ -374,6 +374,9 @@ const transitionPresets: { id: TransitionKind; name: string; desc: string; iconS
   { id: "slide_right", name: "Slide Right", desc: "Push slide moving right", iconSymbol: "⇢" },
 ];
 
+/** Width of the track header column; the first lane pixel starts here. Keep in sync with `.track-label` in style.css. */
+const TRACK_LABEL_WIDTH = 114;
+
 const timelineTools: { id: TimelineTool; icon: IconName; label: string; shortLabel: string; shortcut: string }[] = [
   { id: "select", icon: "select", label: "Selection Tool", shortLabel: "Select", shortcut: "V" },
   { id: "trackForward", icon: "trackForward", label: "Track Select Forward", shortLabel: "Track", shortcut: "A" },
@@ -808,8 +811,38 @@ function App() {
   const mediaPointerDrag = useRef<MediaPointerDrag | null>(null);
   const suppressMediaClick = useRef(false);
   const timelineScrub = useRef<TimelineScrub | null>(null);
-  const timelineScrollerRef = useRef<HTMLDivElement>(null);
+  const timelineScrollerRef = useRef<HTMLDivElement | null>(null);
   const zoomAnchor = useRef<{ time: number; viewportX: number } | null>(null);
+  const zoomTimelineRef = useRef<(factor: number, clientX?: number) => void>(() => {});
+  const timelineWheelCleanup = useRef<(() => void) | null>(null);
+
+  // Native wheel listener (React's onWheel is passive, so it cannot preventDefault):
+  // Ctrl/Cmd/Alt + wheel zooms around the cursor, Shift + wheel scrolls sideways,
+  // a plain wheel keeps its normal vertical scroll.
+  const attachTimelineScroller = useCallback((node: HTMLDivElement | null) => {
+    timelineWheelCleanup.current?.();
+    timelineWheelCleanup.current = null;
+    timelineScrollerRef.current = node;
+    if (!node) return;
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) {
+        event.preventDefault();
+        zoomTimelineRef.current(Math.exp(-event.deltaY * 0.0015), event.clientX);
+      } else if (event.shiftKey) {
+        event.preventDefault();
+        node.scrollLeft += event.deltaY || event.deltaX;
+      }
+    };
+    node.addEventListener("wheel", onWheel, { passive: false });
+    timelineWheelCleanup.current = () => node.removeEventListener("wheel", onWheel);
+  }, []);
+
+  // Stop Ctrl + wheel / trackpad pinch from zooming the whole webview page.
+  useEffect(() => {
+    const blockPageZoom = (event: WheelEvent) => { if (event.ctrlKey) event.preventDefault(); };
+    window.addEventListener("wheel", blockPageZoom, { passive: false });
+    return () => window.removeEventListener("wheel", blockPageZoom);
+  }, []);
   const [clipDragOffset, setClipDragOffset] = useState<{ trackId: number; clipIndex: number; x: number; y: number } | null>(null);
   const [draggedMediaId, setDraggedMediaId] = useState<number | null>(null);
   const [mediaDropTargetTrackId, setMediaDropTargetTrackId] = useState<number | null>(null);
@@ -994,22 +1027,27 @@ function App() {
     }
   }, [project, media, selectedMediaId, preparedPreviews]);
 
-  function zoomTimeline(factor: number) {
+  /** Zoom the timeline. With `clientX` (mouse wheel) the time under the cursor stays put; otherwise the view centre does. */
+  function zoomTimeline(factor: number, clientX?: number) {
     const nextZoom = Math.max(24, Math.min(240, timelineZoom * factor));
     if (nextZoom === timelineZoom) return;
     const scroller = timelineScrollerRef.current;
     if (scroller) {
-      const viewportX = scroller.clientWidth / 2;
-      zoomAnchor.current = { time: (scroller.scrollLeft + viewportX) / timelineZoom, viewportX };
+      const viewportX = clientX === undefined
+        ? scroller.clientWidth / 2
+        : Math.min(Math.max(clientX - scroller.getBoundingClientRect().left, 0), scroller.clientWidth);
+      const time = Math.max(0, scroller.scrollLeft + viewportX - TRACK_LABEL_WIDTH) / timelineZoom;
+      zoomAnchor.current = { time, viewportX };
     }
     setTimelineZoom(nextZoom);
   }
+  zoomTimelineRef.current = zoomTimeline;
 
   useLayoutEffect(() => {
     const anchor = zoomAnchor.current;
     const scroller = timelineScrollerRef.current;
     if (!anchor || !scroller) return;
-    scroller.scrollLeft = Math.max(0, anchor.time * timelineZoom - anchor.viewportX);
+    scroller.scrollLeft = Math.max(0, TRACK_LABEL_WIDTH + anchor.time * timelineZoom - anchor.viewportX);
     zoomAnchor.current = null;
   }, [timelineZoom]);
 
@@ -8949,7 +8987,7 @@ function App() {
                   <button className="timeline-icon-button" onClick={() => zoomTimeline(1.2)} data-tooltip="Zoom In Timeline (Ctrl++)" data-tooltip-pos="top" aria-label="Zoom in"><Icon name="zoomIn" /></button>
                 </div>
               </div>
-              <div ref={timelineScrollerRef} className={`timeline-scroller ${timelineTool === "hand" ? "hand-mode" : ""}`} onPointerDown={handleTimelinePanStart} onPointerMove={handleTimelinePanMove} onPointerUp={handleTimelinePanEnd} onPointerCancel={handleTimelinePanEnd}>
+              <div ref={attachTimelineScroller} className={`timeline-scroller ${timelineTool === "hand" ? "hand-mode" : ""}`} onPointerDown={handleTimelinePanStart} onPointerMove={handleTimelinePanMove} onPointerUp={handleTimelinePanEnd} onPointerCancel={handleTimelinePanEnd}>
                 <div className="timeline-content" style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
                   <div className="timeline-ruler"><span className="track-spacer">Time</span><div className="ruler-lane" onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}>{project?.sequence.mark_in != null && <i className="sequence-marker in-point" style={{ left: `${project.sequence.mark_in / TICKS_PER_SECOND * timelineZoom}px` }} title={`In · ${formatTime(project.sequence.mark_in)}`}><Icon name="markIn" /></i>}{project?.sequence.mark_out != null && <i className="sequence-marker out-point" style={{ left: `${project.sequence.mark_out / TICKS_PER_SECOND * timelineZoom}px` }} title={`Out · ${formatTime(project.sequence.mark_out)}`}><Icon name="markOut" /></i>}{Array.from({ length: Math.ceil(timelineWidth / (timelineZoom * 5)) + 1 }, (_, index) => <span key={index} style={{ left: `${index * timelineZoom * 5}px` }}>{formatTime(index * TICKS_PER_SECOND * 5)}</span>)}<div className="playhead-grip ruler-playhead-grip" style={{ left: `${playhead / TICKS_PER_SECOND * timelineZoom}px` }} role="slider" aria-label="Timeline playhead" aria-valuenow={playhead / TICKS_PER_SECOND} aria-valuemin={0} aria-valuemax={timelineEndSeconds} onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}><i className="playhead" /></div></div></div>
 

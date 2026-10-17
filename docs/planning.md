@@ -513,3 +513,212 @@ To advance directly toward **Phase 2 (Playback & Render Consistency)** and **Pha
      - Center Column: Dedicated Track Audio DSP Rack with interactive SVG frequency curve graphic, 4-band parametric EQ sliders, dynamics compressor controls with live Gain Reduction (GR) meter, and vocal de-noise rumble filter controls.
      - Right Column: Multi-track vertical channel strips with quick `[EQ] [DYN] [NR]` toggle badges, pan, mute, solo, lock, dual VU meters, vertical faders, and mini GR reduction bars.
 
+
+---
+
+# Part 3: Video Editor UI/UX Development Roadmap (U0 — U13)
+
+Based on how **Premiere Pro**, **DaVinci Resolve**, and **Filmora** organize their workspaces, tools, menus, timelines, and waveforms.
+
+> **Design Tenet:**
+> Build **Filmora-style defaults** (clean, single-screen clarity) on a **Premiere-style docking engine** (full power-user configurability) with **Resolve-style task pages** (Media, Edit, Color, Fairlight Audio, Fusion VFX, Deliver).
+
+---
+
+## 1. UI Organization & Element Placement
+
+### 1.1 Layout Philosophy
+- **Premiere Pro:** Freeform dockable panels and saved workspaces (Assembly, Editing, Color, Effects, Audio, Captions).
+- **DaVinci Resolve:** Purpose-built, highly specialized task pages (Media, Cut, Edit, Fusion, Color, Fairlight, Deliver) switched via a bottom or top tab bar.
+- **Filmora:** Streamlined, beginner-friendly layout with top asset tabs and clear timeline toolbar.
+- **Easy Edits Pro Synthesis:** Unified Obsidian Dark Linux Rice shell with top DaVinci workspace tabs, Filmora categorized asset browser (left), Dual-Deck Program/Preview monitors (center), Inspector/Color/Fairlight channel strip (right), Premiere-style vertical tool rail (left of timeline), and horizontally virtualized multi-track timeline (bottom).
+
+### 1.2 Standard "Edit" Workspace Wireframe
+
+```text
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Menu bar:  File  Edit  Clip  Sequence  Markers  Graphics  View  Window  Help │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Header:  [Media] [Edit] [Color] [Audio] [Fusion] [Deliver]    Workspace ▾   │
+├───────────────────┬────────────────────────────────┬─────────────────────────┤
+│ LEFT PANEL        │ CENTER: PREVIEW / PROGRAM      │ RIGHT PANEL             │
+│ (tabbed)          │                                │ (tabbed)                │
+│ • Project / Media │      ┌──────────────────┐      │ • Inspector /           │
+│ • Effects         │      │   video frame    │      │   Effect Controls       │
+│ • Transitions     │      └──────────────────┘      │ • Color Wheels / Scopes │
+│ • Titles          │  00:00:12:05  Fit ▾  Full ▾    │ • Fairlight Mixer       │
+│ • Audio library   │  ⏮ ◀ ▶ ▶▶ ⏭   🔁   [In][Out]   │ • Text / Subtitles      │
+├───┬───────────────┴────────────────────────────────┴─────────────────────────┤
+│ T │ Timeline toolbar:  ↶ ↷  ✂  🧲 Snap  🔗 Link   ▬▬●▬▬ zoom   Fit           │
+│ O ├────────┬───────────────────────────────────────────────────────────────── │
+│ O │ Track  │ Ruler:  |0s    |5s     |10s    |15s                              │
+│ L │ header │ V2 ▢▢▢▢▢ clip ▢▢▢▢                                              │
+│ S │ V1 👁🔒 │ V1 ▢▢▢▢▢▢▢ clip ▢▢▢▢▢▢▢▢ clip ▢▢▢▢                              │
+│   │ A1 🔊M S│ A1 ▁▂▅▇▅▂▁▂▅▇█▇▅▂ waveform ▁▂▅▇▅▂▁                              │
+│   │ A2 🔊M S│ A2 ▁▂▃▂▁▁▂▃▂▁ waveform ▁▂▃▂▁▁                                  │
+├───┴────────┴──────────────────────────────────────────────────────────────── │
+│ Status bar: render progress · proxy on/off · dropped frames · project name   │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.3 Element Placement Matrix
+
+| Element | Premiere Pro | DaVinci Resolve | Filmora | **Easy Edits Pro (Target)** |
+|---|---|---|---|---|
+| **Media Library** | Project panel (left) | Media Pool (top-left) | Media tab (top-left) | Left panel, tab 1 |
+| **Effects & Transitions** | Effects panel | Effects Library | Top-left tabs | Left panel tabs + Inspector |
+| **Preview Monitors** | Program + Source Monitors | Viewer (Single/Dual) | Player | Center, Dual-Deck A/B + Quad Multi-cam |
+| **Properties / Inspector**| Effect Controls / Lumetri | Inspector (top-right) | Properties (right) | Right panel (contextual accordion) |
+| **Editing Tools** | Tools panel (vertical strip) | Timeline toolbar | Timeline toolbar | Vertical strip (left) + Toolbar (top) |
+| **Timeline** | Bottom full width | Bottom full width | Bottom full width | Bottom full width with pinned headers |
+| **Mixer & Scopes** | Audio Track Mixer / Scopes | Fairlight & Color Pages | Audio Mixer | Dedicated workspaces + split docks |
+| **Export** | Export page / dialog | Deliver page | Export dialog | Header Quick Export + Deliver Workspace |
+
+---
+
+## 2. Professional NLE Naming Glossary
+
+| Term | Professional Definition & Behavior |
+|---|---|
+| **Timeline / Sequence** | The non-destructive multi-track canvas where clips, audio, and transitions are arranged. |
+| **Playhead (CTI)** | The vertical line indicating current playback time, rendered with sub-pixel tick precision. |
+| **Ruler** | The horizontal timecode scale pinned to the top of the timeline displaying SMPTE timecodes. |
+| **Tracks** | Horizontal layers (V1, V2 for visual layers; A1, A2 for audio lanes; Subtitle lane). |
+| **Track Header** | Fixed left column housing track name, lock toggle, visibility eye, mute, solo, and pan. |
+| **Clip** | A trimmed instance of source media referencing in-point, out-point, and speed. |
+| **Gap** | Empty space between adjacent clips on a track. |
+| **Edit Point / Cut** | The boundary junction between two contiguous clips on the same track. |
+| **In / Out Marks** | Sub-range selection markers (`I` and `O`) defining three-point edits or export slices. |
+| **Snapping** | Magnetic attraction of playhead, clip boundaries, and markers (`S` toggle). |
+| **Rubber Band** | Clip-level overlay line for interactive volume gain or opacity keyframe adjustment. |
+| **Scrubbing / Skimming** | Real-time video/audio scrubbing when dragging the playhead or hovering over thumbnails. |
+| **Ripple Edit** | Trimming or deleting clips while automatically shifting subsequent clips to close or open gaps (`B`). |
+| **Rolling Edit** | Moving the cut point between two contiguous clips without changing overall sequence duration (`N`). |
+| **Slip Edit** | Shifting the in/out source media window without changing clip timeline position or duration (`Y`). |
+| **Slide Edit** | Moving a clip on the timeline while adjusting neighboring clip boundaries (`U`). |
+| **Rate Stretch** | Resizing clip duration on the timeline to interactively scale playback speed (`R` / `X`). |
+
+---
+
+## 3. Top Menu Bar & Central Command Registry
+
+All actions derive from a unified, type-safe command registry with ID, label, keyboard shortcut, enable conditions, and handlers:
+
+- **File:** New Project (`Ctrl+N`), Open (`Ctrl+O`), Save (`Ctrl+S`), Save As (`Ctrl+Shift+S`), Import Media (`Ctrl+I`), Export Media (`Ctrl+M`), Project Settings, Relink Missing Media, Exit.
+- **Edit:** Undo (`Ctrl+Z`), Redo (`Ctrl+Y` / `Ctrl+Shift+Z`), Cut (`Ctrl+X`), Copy (`Ctrl+C`), Paste (`Ctrl+V`), Duplicate (`Ctrl+D`), Delete (`Del`), Ripple Delete (`Shift+Del`), Select All (`Ctrl+A`), Deselect (`Ctrl+Shift+A`), Preferences (`Ctrl+,`), Keyboard Shortcuts.
+- **Clip:** Speed/Duration (`Ctrl+R`), Reverse, Link/Unlink Audio-Video (`Ctrl+L` / `Ctrl+Shift+L`), Group/Ungroup (`Ctrl+G`), Enable/Disable Clip (`D`), Audio Gain (`G`), Reset Transform.
+- **Sequence:** Sequence Settings, Add Video Track (`Ctrl+Shift+T`), Add Audio Track, Razor Split (`Ctrl+K` / `C`), Ripple Trim Previous (`Q`), Ripple Trim Next (`W`), Apply Default Transition (`Ctrl+D`), Zoom To Fit (`\`).
+- **Markers:** Add Marker (`M`), Next Marker (`Shift+M`), Previous Marker (`Ctrl+Shift+M`), Clear All Markers (`Alt+M`).
+- **View:** Toggle Scopes (`Ctrl+Shift+W`), Safe Margins, Show Waveforms, Show Thumbnails, Fullscreen Preview (`F11` / `Ctrl+` `\``).
+- **Workspace:** Switch to Media, Edit, Color, Audio, Fusion, Deliver; Reset Default Layout.
+- **Help:** Documentation, Keyboard Shortcuts Cheat Sheet, System Diagnostic Report, About Easy Edits Pro.
+
+---
+
+## 4. Timeline Interaction & Audio Waveform Engine
+
+### 4.1 Mouse Wheel, Cursor-Anchored Zoom & Navigation
+- **Ctrl / Cmd / Alt + Wheel:** Cursor-anchored logarithmic zoom (`Math.exp(-deltaY * 0.0015)`). The exact timecode under the cursor remains locked in place.
+- **Shift + Wheel:** Smooth horizontal timeline scrolling.
+- **Plain Wheel:** Vertical track scrolling.
+- **Page Zoom Protection:** Global wheel handler suppresses default webview page zoom (`preventDefault()` when `event.ctrlKey` is active).
+- **Backing Scale:** Minimum zoom fits entire sequence; maximum zoom resolves individual frames (40–80px per frame).
+
+### 4.2 Waveforms & Audio Peak Rendering
+- Multi-resolution mip-levels (64, 256, 1024, 4096 samples) cached in Rust.
+- Mirrored peak visualization with track-type tinting (Dialogue, Music, SFX).
+- Red peak clipping indicators when signal exceeds 0 dBFS.
+- Integrated clip rubber bands for interactive dB gain adjustments.
+
+---
+
+## 5. UI/UX Phases (U0 through U13)
+
+### Phase U0: Design Foundations
+- Tokenized Obsidian Linux Rice palette (`#080a0f`, `#12151e`, glowing cyan `#38bdf8`, neon violet `#a855f7`).
+- Tabular monospace numbers for SMPTE timecodes.
+- Density modes: Compact (high-density pro layout) and Comfortable.
+
+### Phase U1: App Shell, Layout Engine & Scrolling Fix ✅
+- Viewport-locked 100vh shell (`height: 100dvh; overflow: hidden`).
+- Flexible grid layout with bounded panel rows (`min-height: 0; min-width: 0`).
+- Individual panel independent scrolling with sticky timeline ruler and track headers.
+- Thin custom scrollbars styled for WebKitGTK and WebView2.
+- Minimum window constraints configured in `tauri.conf.json` (`minWidth: 900`, `minHeight: 620`).
+
+### Phase U2: Command System, Menus, Shortcuts & Tooltips
+- Centralized command registry pattern for all actions.
+- Interactive keyboard shortcuts editor dialog with search and conflict detection.
+- Command palette (`Ctrl+K` / `Ctrl+Shift+P`) with fuzzy search.
+- Global tooltip component with name, shortcut badge, and 500ms hover delay.
+
+### Phase U3: Tools Panel & Timeline Toolbar
+- Vertical tool rail left of the timeline (Select `V`, Track Forward `A`, Ripple `B`, Roll `N`, Rate Stretch `R`, Razor `C`, Slip `Y`, Slide `U`, Hand `H`, Zoom `Z`, Text `T`, Marker `M`).
+- Horizontal timeline toolbar: Undo/Redo, Snapping toggle (`S`), Linked selection toggle, Ripple toggle, Zoom slider, and Fit button (`\`).
+- Context-sensitive mouse cursors (trim brackets, blade, double-arrow slip, hand).
+
+### Phase U4: Media / Project Panel
+- Categorized left tabs: Media Pool, Effects, Transitions, Titles, Audio, Stock, AI Tools.
+- Grid thumbnail view and detailed metadata list view with hover-scrubbing.
+- Search filter, smart bins, color label tagging, and drag-and-drop to timeline.
+
+### Phase U5: Preview / Program Monitor
+- Dual-Deck A/B video player with aspect-ratio letterboxing and 25%–400% zoom.
+- Transport controls: Play/Pause (`Space`), Frame step (`←`/`→`), JKL shuttle (-4x to +4x), In/Out markers.
+- Interactive editable SMPTE timecode readout.
+- Safe margin overlays (90% action-safe, 80% title-safe) and grid guidelines.
+
+### Phase U6: Timeline Core
+- Pinned timecode ruler and track headers with synchronized scrolling.
+- Virtualized canvas/DOM track rendering for 60fps performance across 500+ clips.
+- Track controls: Name, Visibility (`Eye`), Lock, Mute, Solo, and Target Track indicators.
+- Non-destructive clip editing: trim handles, slip, slide, ripple delete, clip color labels.
+
+### Phase U7: Waveforms & Thumbnails on Timeline
+- Multi-tier mip-level audio peak waveform rendering with instant volume scaling.
+- Filmstrip video thumbnails cached by frame time.
+- View menu toggles for showing/hiding waveforms and thumbnails to optimize performance.
+
+### Phase U8: Inspector / Effect Controls
+- Right-panel tabs: Video, Audio, Color, Speed, Text.
+- Collapsible accordion sections with reset buttons per parameter.
+- Scrubby number inputs (horizontal drag on label changes value).
+- Keyframe animation toggles (◇) with mini-spline parameter editor.
+
+### Phase U9: Effects, Transitions, Titles & Audio Libraries
+- Visual preset cards with live hover previews.
+- Drag-and-drop transitions onto cut points with collision highlighting.
+- Built-in glassmorphic lower-third and title graphics customizer.
+
+### Phase U10: Fairlight Audio Mixer & Metering UI
+- Multitrack vertical console with 100mm dB faders, pan dials, and M/S/L buttons.
+- Real-time 60fps stereo peak VU meters with clipping indicators.
+- Integrated 4-band parametric EQ frequency visualizer, dynamics compressor GR meters, and EBU R128 LUFS readout.
+
+### Phase U11: Color Workspace UI
+- 4-way Lift, Gamma, Gain, and Offset chromaticity wheels with luminance faders.
+- Real-time 60fps GPU video scopes (Rec.709 Luma Waveform, Polar Vectorscope, RGB Parade, Histogram).
+- 3D LUT loader and cinematic color look library.
+
+### Phase U12: Export / Deliver UI
+- Header 1-click Quick Export.
+- Dedicated Deliver workspace with delivery presets (YouTube 4K, 1080p, TikTok 9:16, Instagram, Cinema DCI).
+- Background batch render queue with real-time ETA, progress bars, and pause/cancel controls.
+
+### Phase U13: Polish, Accessibility & End-to-End QA
+- Micro-interactions and subtle transitions (120–200ms) with `prefers-reduced-motion` compliance.
+- Full keyboard accessibility and ARIA roles for screen readers.
+- Performance budget: UI input latency <16ms, timeline 60fps redraw.
+- Playwright end-to-end regression test suite across multiple display scales (100%, 125%, 150%, 200%).
+
+---
+
+## 6. UI Quality Checklist (Pre-Release Gate)
+
+- [x] Shell locked to single viewport (`100dvh`); window never overflows or develops outer scrollbars.
+- [x] Every panel scrolls independently with bounded height and fixed headers.
+- [x] Timeline supports cursor-anchored logarithmic zoom via `Ctrl`/`Cmd`/`Alt` + mouse wheel without page zoom side-effects.
+- [x] Pinned timeline ruler and track headers maintain alignment during horizontal and vertical scrolling.
+- [ ] Universal command registry powering menus, tooltips, shortcuts, and command palette.
+- [ ] Responsive 60fps waveform rendering with mip-level LOD and instant volume scaling.
+- [ ] Multi-resolution verification at 1280×720, 1920×1080, and 4K displays at 100%–200% DPI scaling.
