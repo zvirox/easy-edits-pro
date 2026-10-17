@@ -128,6 +128,8 @@ try {
           for (const mediaPath of args.paths ?? []) doc.project.media.push({ id: nextId++, name: mediaPath.split('/').at(-1), path: mediaPath, kind: 'video', duration: 6 * second, width: 640, height: 360 });
           return snapshot();
         }
+        if (command === 'get_media_server_port') return 0;
+        if (command === 'get_all_jobs') return [];
         if (command === 'plugin:dialog|save') return '/tmp/browser-test.saturn';
         if (command === 'plugin:dialog|open') return ['/mock/editor-smoke.webm'];
         if (command.startsWith('plugin:window|')) return null;

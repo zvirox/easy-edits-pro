@@ -133,6 +133,45 @@ pub struct Sequence {
     pub mark_out: Option<Tick>,
 }
 
+impl Sequence {
+    pub fn duration(&self) -> Tick {
+        self.tracks
+            .iter()
+            .flat_map(|t| t.clips.iter())
+            .map(|c| Tick(c.timeline_start.0.saturating_add(c.duration.0)))
+            .max()
+            .unwrap_or(Tick(0))
+    }
+
+    pub fn active_clips_at(&self, tick: Tick) -> Vec<(&Track, &Clip)> {
+        let mut results = Vec::new();
+        for track in &self.tracks {
+            for clip in &track.clips {
+                let start = clip.timeline_start.0;
+                let end = start.saturating_add(clip.duration.0);
+                if tick.0 >= start && tick.0 < end {
+                    results.push((track, clip));
+                }
+            }
+        }
+        results
+    }
+
+    pub fn transition_at(&self, tick: Tick) -> Option<(&Track, &Transition)> {
+        for track in &self.tracks {
+            for transition in &track.transitions {
+                let half_dur = transition.duration.0 / 2;
+                let start = transition.cut_at.0.saturating_sub(half_dur);
+                let end = transition.cut_at.0.saturating_add(half_dur);
+                if tick.0 >= start && tick.0 <= end {
+                    return Some((track, transition));
+                }
+            }
+        }
+        None
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Track {
     pub id: u64,
@@ -145,8 +184,21 @@ pub struct Track {
     pub transitions: Vec<Transition>,
 }
 
+impl Track {
+    pub fn clip_at(&self, tick: Tick) -> Option<&Clip> {
+        self.clips.iter().find(|clip| {
+            let start = clip.timeline_start.0;
+            let end = start.saturating_add(clip.duration.0);
+            tick.0 >= start && tick.0 < end
+        })
+    }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+    pub fn next_clip_after(&self, tick: Tick) -> Option<&Clip> {
+        self.clips.iter().find(|clip| clip.timeline_start.0 > tick.0)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum TrackKind {
     Video,
@@ -489,5 +541,56 @@ mod tests {
             PathBuf::from("/media/shot.mov")
         );
         assert_eq!(loaded.project.media[0].duration, Some(Tick(42)));
+    }
+
+    #[test]
+    fn test_sequence_playback_queries() {
+        let mut doc = ProjectDocument::new("Playback test");
+        let video_track = &mut doc.project.sequence.tracks[0];
+        video_track.clips.push(Clip {
+            media_id: 1,
+            timeline_start: Tick(0),
+            source_in: Tick(100),
+            duration: Tick(500),
+            color: Default::default(),
+            keyframes: Vec::new(),
+        });
+        video_track.clips.push(Clip {
+            media_id: 2,
+            timeline_start: Tick(500),
+            source_in: Tick(0),
+            duration: Tick(400),
+            color: Default::default(),
+            keyframes: Vec::new(),
+        });
+        video_track.transitions.push(Transition {
+            id: 1,
+            kind: TransitionKind::Crossfade,
+            cut_at: Tick(500),
+            duration: Tick(100),
+        });
+
+        let seq = &doc.project.sequence;
+        assert_eq!(seq.duration(), Tick(900));
+
+        let active_mid_first = seq.active_clips_at(Tick(250));
+        assert_eq!(active_mid_first.len(), 1);
+        assert_eq!(active_mid_first[0].1.media_id, 1);
+
+        let active_at_cut = seq.active_clips_at(Tick(500));
+        assert_eq!(active_at_cut.len(), 1);
+        assert_eq!(active_at_cut[0].1.media_id, 2);
+
+        let trans = seq.transition_at(Tick(500));
+        assert!(trans.is_some());
+        assert_eq!(trans.unwrap().1.kind, TransitionKind::Crossfade);
+
+        let trans_boundary = seq.transition_at(Tick(460));
+        assert!(trans_boundary.is_some());
+
+        let trans_outside = seq.transition_at(Tick(400));
+        assert!(trans_outside.is_none());
+
+        assert_eq!(seq.tracks[0].next_clip_after(Tick(200)).unwrap().media_id, 2);
     }
 }

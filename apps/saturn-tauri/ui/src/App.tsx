@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import { LoadingButton } from "./components/interior/loading-button";
+import { audioClockMaster, evaluateTimelinePlayback, type TimelinePlaybackSnapshot } from "./engine/playbackEngine";
 
 type JobState =
   | { status: "queued" }
@@ -294,18 +295,6 @@ function formatTime(ticks: number) {
   return `${String(hours).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-function keyframedValue(clip: Clip | undefined, property: KeyframeProperty, time: number, fallback: number) {
-  const values = clip?.keyframes.filter((keyframe) => keyframe.property === property).sort((a, b) => a.time - b.time) ?? [];
-  if (!values.length) return fallback;
-  if (time <= values[0].time) return values[0].value;
-  const last = values[values.length - 1];
-  if (time >= last.time) return last.value;
-  const nextIndex = values.findIndex((keyframe) => keyframe.time >= time);
-  const previous = values[nextIndex - 1];
-  const next = values[nextIndex];
-  const ratio = (time - previous.time) / (next.time - previous.time);
-  return previous.value + (next.value - previous.value) * ratio;
-}
 
 function App() {
   const [appStage, setAppStage] = useState<AppStage>("welcome");
@@ -369,6 +358,17 @@ function App() {
   const [titleDraft, setTitleDraft] = useState<TitleProperties | null>(null);
   const [playhead, setPlayhead] = useState(0);
   const [programPlaying, setProgramPlaying] = useState(false);
+  const [shuttleSpeed, setShuttleSpeed] = useState(1);
+  const shuttleSpeedRef = useRef(1);
+  const isPlayingRef = useRef(false);
+  const clockStartAudioTimeRef = useRef(0);
+  const clockStartPlayheadRef = useRef(0);
+  const animFrameIdRef = useRef<number | null>(null);
+  const playheadRef = useRef(0);
+  const deckARef = useRef<HTMLVideoElement>(null);
+  const deckBRef = useRef<HTMLVideoElement>(null);
+  const [deckSnapshot, setDeckSnapshot] = useState<TimelinePlaybackSnapshot | null>(null);
+  const projectRef = useRef<ProjectDocument | null>(null);
   const [sourcePreviewError, setSourcePreviewError] = useState<string | null>(null);
   const [programPreviewError, setProgramPreviewError] = useState<string | null>(null);
   const [preparedPreviews, setPreparedPreviews] = useState<Record<number, string>>({});
@@ -493,10 +493,7 @@ function App() {
   const [aiModel, setAiModel] = useState("llama3.2:3b");
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiReply, setAiReply] = useState("");
-  const programVideoRef = useRef<HTMLVideoElement>(null);
-  const programAudioRef = useRef<HTMLAudioElement>(null);
   const previewPreparationInFlight = useRef(new Set<number>());
-  const requestedProgramSeek = useRef(false);
   const handPan = useRef<{ x: number; scrollLeft: number } | null>(null);
   const slipDrag = useRef<{ x: number; trackId: number; clipIndex: number } | null>(null);
   const clipPointerDrag = useRef<ClipPointerDrag | null>(null);
@@ -556,29 +553,84 @@ function App() {
     }
     return null;
   }, [media, playhead, project]);
-  const activeTitleClip = useMemo(() => {
-    if (!project) return null;
-    for (const track of project.sequence.tracks) {
-      if (track.kind !== "video") continue;
-      for (const clip of track.clips) {
-        if (playhead >= clip.timeline_start && playhead < clip.timeline_start + clip.duration) {
-          const clipMedia = media.find((item) => item.id === clip.media_id);
-          if (clipMedia && clipMedia.kind === "title" && clipMedia.title) {
-            return { track, clip, media: clipMedia, title: clipMedia.title };
-          }
-        }
-      }
-    }
-    return null;
-  }, [media, playhead, project]);
-  const programPlayable = Boolean(activeClip && (activeClip.media.kind === "video" || activeClip.media.kind === "audio"));
   const timelineEndSeconds = Math.max(14, ...(project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => (clip.timeline_start + clip.duration) / TICKS_PER_SECOND + 2)));
   const timelineWidth = timelineEndSeconds * timelineZoom + 120;
 
   useEffect(() => {
+    projectRef.current = projectState?.document ?? null;
+  }, [projectState]);
+
+  useEffect(() => {
+    playheadRef.current = playhead;
+  }, [playhead]);
+
+  // Synchronize Dual Decks and Audio Tracks with Playhead
+  const syncDecks = useCallback((currentPlayhead: number, isPlaying: boolean) => {
+    const doc = projectRef.current;
+    if (!doc) return;
+    const snapshot = evaluateTimelinePlayback(doc, currentPlayhead, media, preparedPreviews, mediaServerPort);
+    setDeckSnapshot(snapshot);
+
+    const deckA = deckARef.current;
+    const deckB = deckBRef.current;
+
+    if (deckA) {
+      if (snapshot.deckA.src) {
+        if (deckA.src !== snapshot.deckA.src) {
+          deckA.src = snapshot.deckA.src;
+          try { deckA.currentTime = snapshot.deckA.currentTime; } catch {}
+        } else if (Math.abs(deckA.currentTime - snapshot.deckA.currentTime) > 0.08) {
+          try { deckA.currentTime = snapshot.deckA.currentTime; } catch {}
+        }
+
+        if (isPlaying && snapshot.deckA.visible) {
+          if (deckA.paused) void deckA.play().catch(() => {});
+        } else {
+          if (!deckA.paused) deckA.pause();
+        }
+      } else {
+        if (!deckA.paused) deckA.pause();
+      }
+    }
+
+    if (deckB) {
+      if (snapshot.deckB.src) {
+        if (deckB.src !== snapshot.deckB.src) {
+          deckB.src = snapshot.deckB.src;
+          try { deckB.currentTime = snapshot.deckB.currentTime; } catch {}
+        } else if (Math.abs(deckB.currentTime - snapshot.deckB.currentTime) > 0.08) {
+          try { deckB.currentTime = snapshot.deckB.currentTime; } catch {}
+        }
+
+        if (isPlaying && snapshot.deckB.visible) {
+          if (deckB.paused) void deckB.play().catch(() => {});
+        } else {
+          if (!deckB.paused) deckB.pause();
+        }
+      } else {
+        if (!deckB.paused) deckB.pause();
+      }
+    }
+  }, [media, preparedPreviews, mediaServerPort]);
+
+  // Keep decks updated whenever playhead, preparedPreviews, or project changes when paused
+  useEffect(() => {
+    if (!isPlayingRef.current) {
+      syncDecks(playhead, false);
+    }
+  }, [playhead, syncDecks]);
+
+  // Proactively generate preview proxies for all video clips placed on the timeline
+  useEffect(() => {
+    if (!project) return;
     const requested = new Map<number, MediaAsset>();
-    for (const item of [selectedMedia, activeClip?.media ?? null]) {
-      if (item?.kind === "video" && !preparedPreviews[item.id]) requested.set(item.id, item);
+    const timelineMediaIds = new Set(project.sequence.tracks.flatMap((t) => t.clips.map((c) => c.media_id)));
+    for (const item of media) {
+      if (item.kind === "video" && !preparedPreviews[item.id]) {
+        if (item.id === selectedMediaId || timelineMediaIds.has(item.id)) {
+          requested.set(item.id, item);
+        }
+      }
     }
     if (requested.size === 0) return;
     for (const [id, item] of requested) {
@@ -597,7 +649,7 @@ function App() {
         setPreparingPreviews((current) => { const next = new Set(current); next.delete(id); return next; });
       });
     }
-  }, [selectedMedia?.id, selectedMedia?.path, activeClip?.media.id, activeClip?.media.path, preparedPreviews]);
+  }, [project, media, selectedMediaId, preparedPreviews]);
 
   function zoomTimeline(factor: number) {
     const nextZoom = Math.max(24, Math.min(240, timelineZoom * factor));
@@ -635,84 +687,132 @@ function App() {
   useEffect(() => {
     if (!project) return;
     setGainDrafts(Object.fromEntries(project.sequence.tracks.map((track) => [track.id, track.gain_db])));
-  }, [project]);
-
-  useEffect(() => {
-    const player = programVideoRef.current ?? programAudioRef.current;
-    if (!player || !activeClip) return;
-    const seconds = (activeClip.clip.source_in + playhead - activeClip.clip.timeline_start) / TICKS_PER_SECOND;
-    if (!Number.isFinite(seconds)) return;
-    if (requestedProgramSeek.current || player.paused) {
-      requestedProgramSeek.current = false;
-      if (Math.abs(player.currentTime - seconds) > 0.001) {
-        try { player.currentTime = Math.max(0, seconds); } catch { /* The browser will seek again when media metadata is available. */ }
-      }
+    for (const track of project.sequence.tracks) {
+      audioClockMaster.updateTrackGain(track.id, track.gain_db);
     }
-  }, [activeClip, playhead]);
-
-  useEffect(() => {
-    const player = programVideoRef.current ?? programAudioRef.current;
-    if (!player || !activeClip) return;
-    player.volume = Math.max(0, Math.min(1, 10 ** (activeClip.track.gain_db / 20)));
-  }, [activeClip]);
+  }, [project]);
 
   useEffect(() => {
     setSourcePreviewError(null);
   }, [selectedMedia?.id, selectedMedia?.path]);
 
-  useEffect(() => {
+  function stopPlayback(finalTicks?: number) {
+    if (animFrameIdRef.current) {
+      cancelAnimationFrame(animFrameIdRef.current);
+      animFrameIdRef.current = null;
+    }
+    isPlayingRef.current = false;
     setProgramPlaying(false);
+    shuttleSpeedRef.current = 1;
+    setShuttleSpeed(1);
+    if (finalTicks !== undefined) {
+      playheadRef.current = finalTicks;
+      setPlayhead(finalTicks);
+    }
+    if (deckARef.current && !deckARef.current.paused) deckARef.current.pause();
+    if (deckBRef.current && !deckBRef.current.paused) deckBRef.current.pause();
+    syncDecks(playheadRef.current, false);
+  }
+
+  function startPlayback(speed = 1) {
+    const ctx = audioClockMaster.getContext();
+    if (ctx && ctx.state === "suspended") void ctx.resume();
+
+    const seqDuration = Math.max(0, ...(project?.sequence.tracks ?? []).flatMap((t) => t.clips.map((c) => c.timeline_start + c.duration)));
+    if (playheadRef.current >= seqDuration && speed > 0) {
+      playheadRef.current = project?.sequence.mark_in ?? 0;
+      setPlayhead(playheadRef.current);
+    }
+
+    shuttleSpeedRef.current = speed;
+    setShuttleSpeed(speed);
+    isPlayingRef.current = true;
+    setProgramPlaying(true);
     setProgramPreviewError(null);
-  }, [activeClip?.media.path]);
+    clockStartAudioTimeRef.current = audioClockMaster.getCurrentTime();
+    clockStartPlayheadRef.current = playheadRef.current;
+
+    syncDecks(playheadRef.current, true);
+
+    const tick = () => {
+      if (!isPlayingRef.current) return;
+      const now = audioClockMaster.getCurrentTime();
+      const elapsedSec = (now - clockStartAudioTimeRef.current) * shuttleSpeedRef.current;
+      const nextTicks = clockStartPlayheadRef.current + Math.round(elapsedSec * TICKS_PER_SECOND);
+
+      const curDuration = Math.max(0, ...(projectRef.current?.project.sequence.tracks ?? []).flatMap((t) => t.clips.map((c) => c.timeline_start + c.duration)));
+
+      if (shuttleSpeedRef.current > 0 && nextTicks >= curDuration) {
+        stopPlayback(curDuration);
+        return;
+      } else if (shuttleSpeedRef.current < 0 && nextTicks <= 0) {
+        stopPlayback(0);
+        return;
+      }
+
+      playheadRef.current = nextTicks;
+      setPlayhead(nextTicks);
+      syncDecks(nextTicks, true);
+
+      animFrameIdRef.current = requestAnimationFrame(tick);
+    };
+
+    if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
+    animFrameIdRef.current = requestAnimationFrame(tick);
+  }
+
+  function toggleProgramPlayback() {
+    if (isPlayingRef.current) stopPlayback();
+    else startPlayback(1);
+  }
 
   function seekProgramTo(time: number) {
     const target = Math.max(0, time);
-    requestedProgramSeek.current = true;
+    playheadRef.current = target;
     setPlayhead(target);
-    const player = programVideoRef.current ?? programAudioRef.current;
-    if (player && activeClip) {
-      const seconds = (activeClip.clip.source_in + target - activeClip.clip.timeline_start) / TICKS_PER_SECOND;
-      if (Number.isFinite(seconds)) {
-        try { player.currentTime = Math.max(0, seconds); } catch { /* The metadata effect retries after the source is ready. */ }
-      }
+    if (isPlayingRef.current) {
+      clockStartAudioTimeRef.current = audioClockMaster.getCurrentTime();
+      clockStartPlayheadRef.current = target;
     }
+    syncDecks(target, isPlayingRef.current);
   }
 
   function stepProgramFrame(direction: -1 | 1) {
+    if (isPlayingRef.current) stopPlayback();
     const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
     const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
-    seekProgramTo(playhead + direction * frameTicks);
+    seekProgramTo(playheadRef.current + direction * frameTicks);
   }
 
-  async function toggleProgramPlayback() {
-    const player = programVideoRef.current ?? programAudioRef.current;
-    if (!player) return;
-    setProgramPreviewError(null);
-    try {
-      if (player.paused) await player.play();
-      else player.pause();
-    } catch (error) {
-      setProgramPlaying(false);
-      setProgramPreviewError(`Playback failed: ${String(error)}`);
-    }
-  }
-
-  function updateProgramPlayhead(currentTime: number) {
-    if (!activeClip) return;
-    const player = programVideoRef.current ?? programAudioRef.current;
-    if (player?.seeking) return;
-    const clipEnd = activeClip.clip.timeline_start + activeClip.clip.duration;
-    const next = activeClip.clip.timeline_start + (currentTime - activeClip.clip.source_in / TICKS_PER_SECOND) * TICKS_PER_SECOND;
-    if (next >= clipEnd) {
-      const player = programVideoRef.current ?? programAudioRef.current;
-      if (player) {
-        player.pause();
-        player.currentTime = (activeClip.clip.source_in + activeClip.clip.duration) / TICKS_PER_SECOND;
-      }
-      setPlayhead(clipEnd);
+  function handleShuttleKey(key: "j" | "k" | "l") {
+    if (key === "k") {
+      stopPlayback();
       return;
     }
-    setPlayhead(Math.max(activeClip.clip.timeline_start, next));
+    if (key === "l") {
+      if (!isPlayingRef.current) {
+        startPlayback(1);
+      } else if (shuttleSpeedRef.current === 1) {
+        startPlayback(2);
+      } else if (shuttleSpeedRef.current === 2) {
+        startPlayback(4);
+      } else {
+        startPlayback(1);
+      }
+      return;
+    }
+    if (key === "j") {
+      if (!isPlayingRef.current) {
+        startPlayback(-1);
+      } else if (shuttleSpeedRef.current === -1) {
+        startPlayback(-2);
+      } else if (shuttleSpeedRef.current === -2) {
+        startPlayback(-4);
+      } else {
+        startPlayback(-1);
+      }
+      return;
+    }
   }
 
   async function perform(id: string, params: unknown = null, success?: string): Promise<boolean> {
@@ -1753,52 +1853,110 @@ function App() {
     );
   };
 
-  const renderPreview = (item: MediaAsset | null, isProgram = false) => {
-    if (!item) {
-      if (isProgram && activeTitleClip?.title) {
-        return (
-          <div className="preview-stage title-preview-canvas">
-            {renderTitleOverlay(activeTitleClip.title)}
+  const renderProgramMonitor = () => {
+    const isPreparing = deckSnapshot?.deckA.mediaId ? preparingPreviews.has(deckSnapshot.deckA.mediaId) : false;
+    const currentError = programPreviewError;
+
+    return (
+      <div className="program-stage">
+        {deckSnapshot && (deckSnapshot.hasVideoMedia || deckSnapshot.inTransition) && (
+          <div className={`program-deck-indicator ${deckSnapshot.inTransition ? "transitioning" : ""}`}>
+            <span className="deck-dot" />
+            <span>{deckSnapshot.inTransition ? `TRANSITION: ${(deckSnapshot.transitionKind ?? "crossfade").toUpperCase().replace("_", " ")}` : "DECK A/B LIVE"}</span>
           </div>
-        );
-      }
-      return <div className="monitor-stage"><strong>{isProgram ? "Program monitor" : "Source monitor"}</strong><small>{isProgram ? "Add a clip to the timeline to preview the sequence" : "Select imported media to preview it here"}</small></div>;
+        )}
+
+        <div className="program-deck-canvas">
+          {/* Deck A Video Player */}
+          <video
+            ref={deckARef}
+            className={`program-deck deck-a ${deckSnapshot?.deckA.visible ? "" : "deck-hidden"}`}
+            style={deckSnapshot?.deckA.style}
+            muted={!deckSnapshot?.deckA.visible}
+            playsInline
+            preload="auto"
+            crossOrigin="anonymous"
+            onCanPlay={() => setProgramPreviewError(null)}
+          />
+
+          {/* Deck B Video Player */}
+          <video
+            ref={deckBRef}
+            className={`program-deck deck-b ${deckSnapshot?.deckB.visible ? "" : "deck-hidden"}`}
+            style={deckSnapshot?.deckB.style}
+            muted={!deckSnapshot?.deckB.visible}
+            playsInline
+            preload="auto"
+            crossOrigin="anonymous"
+            onCanPlay={() => setProgramPreviewError(null)}
+          />
+
+          {/* Title Overlay */}
+          {renderTitleOverlay(deckSnapshot?.activeTitleClip?.title)}
+
+          {/* Dedicated Audio Track Players for Multi-Track Audio */}
+          {deckSnapshot?.activeAudioClips
+            .filter((c) => c.track.kind === "audio")
+            .map((audioItem) => (
+              <audio
+                key={`audio-track-${audioItem.track.id}-${audioItem.clip.media_id}`}
+                src={audioItem.src}
+                autoPlay={programPlaying}
+                preload="auto"
+                crossOrigin="anonymous"
+                ref={(el) => {
+                  if (el) {
+                    el.volume = Math.max(0, Math.min(1, 10 ** (audioItem.gainDb / 20)));
+                    if (Math.abs(el.currentTime - audioItem.currentTime) > 0.1) {
+                      try { el.currentTime = audioItem.currentTime; } catch {}
+                    }
+                    if (programPlaying && el.paused) void el.play().catch(() => {});
+                    else if (!programPlaying && !el.paused) el.pause();
+                  }
+                }}
+              />
+            ))}
+
+          {isPreparing && (
+            <div className="preview-preparing-banner" role="status">
+              <span className="preview-preparing-dot" />
+              <span>Generating preview proxy…</span>
+            </div>
+          )}
+
+          {currentError && !isPreparing && (
+            <div className="preview-error" role="alert">
+              <strong>Preview notice</strong>
+              <span>{currentError}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderPreview = (item: MediaAsset | null, isProgram = false) => {
+    if (isProgram) {
+      return renderProgramMonitor();
+    }
+    if (!item) {
+      return <div className="monitor-stage"><strong>Source monitor</strong><small>Select imported media to preview it here</small></div>;
     }
     const isPreparing = item.kind === "video" && preparingPreviews.has(item.id) && !preparedPreviews[item.id];
     const sourcePath = item.kind === "video" && preparedPreviews[item.id] ? preparedPreviews[item.id] : item.path;
     const source = getMediaUrl(sourcePath);
-    const currentError = isProgram ? programPreviewError : sourcePreviewError;
-    const setCurrentError = isProgram ? setProgramPreviewError : setSourcePreviewError;
-    const color = isProgram ? activeClip?.clip.color : null;
-    const clipTime = activeClip ? playhead - activeClip.clip.timeline_start : 0;
-    const exposure = color?.exposure ?? 0;
-    const contrast = color?.contrast ?? 1;
-    const saturation = color?.saturation ?? 1;
-    const positionX = keyframedValue(activeClip?.clip, "position_x", clipTime, 0);
-    const positionY = keyframedValue(activeClip?.clip, "position_y", clipTime, 0);
-    const scale = keyframedValue(activeClip?.clip, "scale", clipTime, 1);
-    const rotation = keyframedValue(activeClip?.clip, "rotation", clipTime, 0);
-    const opacity = keyframedValue(activeClip?.clip, "opacity", clipTime, 1);
-    const transform = `translate(${positionX / (project?.settings.width ?? 1920) * 100}%, ${positionY / (project?.settings.height ?? 1080) * 100}%) scale(${scale}) rotate(${rotation}deg)`;
-    const visualStyle: CSSProperties = { filter: `brightness(${2 ** exposure}) contrast(${contrast}) saturate(${saturation})`, transform: isProgram ? transform : undefined, opacity: isProgram ? opacity : undefined, transformOrigin: "center" };
+    const currentError = sourcePreviewError;
+    const setCurrentError = setSourcePreviewError;
+    const visualStyle: CSSProperties = { width: "100%", height: "100%", objectFit: "contain" };
     if (item.kind === "video") return <div className="preview-stage">
       <video
-        key={`${item.id}-${sourcePath}`}
-        ref={isProgram ? programVideoRef : undefined}
+        key={`source-${item.id}-${sourcePath}`}
         src={mediaServerPort > 0 ? source : undefined}
         style={visualStyle}
-        controls={!isProgram}
+        controls
         playsInline
         preload="auto"
         crossOrigin="anonymous"
-        onLoadedMetadata={isProgram && activeClip ? (event) => {
-          const seconds = (activeClip.clip.source_in + playhead - activeClip.clip.timeline_start) / TICKS_PER_SECOND;
-          try { event.currentTarget.currentTime = Math.max(0, seconds); } catch { /* Browser metadata is available before this handler runs. */ }
-        } : undefined}
-        onTimeUpdate={isProgram ? (event) => updateProgramPlayhead(event.currentTarget.currentTime) : undefined}
-        onPlay={isProgram ? () => setProgramPlaying(true) : undefined}
-        onPause={isProgram ? () => setProgramPlaying(false) : undefined}
-        onEnded={isProgram && activeClip ? () => updateProgramPlayhead((activeClip.clip.source_in + activeClip.clip.duration) / TICKS_PER_SECOND) : undefined}
         onCanPlay={() => setCurrentError(null)}
         onError={() => {
           if (previewPreparationErrors[item.id]) {
@@ -1810,7 +1968,6 @@ function App() {
           }
         }}
       />
-      {isProgram && renderTitleOverlay(activeTitleClip?.title)}
       {isPreparing && (
         <div className="preview-preparing-banner" role="status">
           <span className="preview-preparing-dot" />
@@ -1821,21 +1978,12 @@ function App() {
     </div>;
     if (item.kind === "audio") return <div className="preview-stage audio-preview">
       <audio
-        key={`${item.id}-${sourcePath}`}
-        ref={isProgram ? programAudioRef : undefined}
+        key={`source-${item.id}-${sourcePath}`}
         src={mediaServerPort > 0 ? source : undefined}
         controls
         playsInline
         preload="auto"
         crossOrigin="anonymous"
-        onLoadedMetadata={isProgram && activeClip ? (event) => {
-          const seconds = (activeClip.clip.source_in + playhead - activeClip.clip.timeline_start) / TICKS_PER_SECOND;
-          try { event.currentTarget.currentTime = Math.max(0, seconds); } catch { /* Browser metadata is available before this handler runs. */ }
-        } : undefined}
-        onTimeUpdate={isProgram ? (event) => updateProgramPlayhead(event.currentTarget.currentTime) : undefined}
-        onPlay={isProgram ? () => setProgramPlaying(true) : undefined}
-        onPause={isProgram ? () => setProgramPlaying(false) : undefined}
-        onEnded={isProgram && activeClip ? () => updateProgramPlayhead((activeClip.clip.source_in + activeClip.clip.duration) / TICKS_PER_SECOND) : undefined}
         onCanPlay={() => setCurrentError(null)}
         onError={() => setCurrentError("This audio could not be loaded. Check that the file exists and uses a supported codec.")}
       />
@@ -1843,7 +1991,6 @@ function App() {
     </div>;
     if (item.kind === "image") return <div className="preview-stage">
       <img src={source} alt={item.name} style={visualStyle} />
-      {isProgram && renderTitleOverlay(activeTitleClip?.title)}
     </div>;
     if (item.kind === "title") return <div className="preview-stage title-preview-canvas">
       {renderTitleOverlay(item.title ?? titleDraft ?? undefined)}
@@ -1986,7 +2133,43 @@ function App() {
       if (target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
       if (event.key === " " || event.code === "Space") {
         event.preventDefault();
-        void toggleProgramPlayback();
+        toggleProgramPlayback();
+        return;
+      }
+      if (event.key.toLowerCase() === "j" && !(event.ctrlKey || event.metaKey || event.altKey)) {
+        event.preventDefault();
+        handleShuttleKey("j");
+        return;
+      }
+      if (event.key.toLowerCase() === "k" && !(event.ctrlKey || event.metaKey || event.altKey)) {
+        event.preventDefault();
+        handleShuttleKey("k");
+        return;
+      }
+      if (event.key.toLowerCase() === "l" && !(event.ctrlKey || event.metaKey || event.altKey)) {
+        event.preventDefault();
+        handleShuttleKey("l");
+        return;
+      }
+      if (event.key === "ArrowLeft" && !(event.ctrlKey || event.metaKey || event.altKey)) {
+        event.preventDefault();
+        stepProgramFrame(-1);
+        return;
+      }
+      if (event.key === "ArrowRight" && !(event.ctrlKey || event.metaKey || event.altKey)) {
+        event.preventDefault();
+        stepProgramFrame(1);
+        return;
+      }
+      if (event.key === "Home") {
+        event.preventDefault();
+        seekProgramTo(0);
+        return;
+      }
+      if (event.key === "End") {
+        event.preventDefault();
+        const curDuration = Math.max(0, ...(project?.sequence.tracks ?? []).flatMap((t) => t.clips.map((c) => c.timeline_start + c.duration)));
+        seekProgramTo(curDuration);
         return;
       }
       if (event.key === "Delete" || event.key === "Backspace") {
@@ -2535,11 +2718,14 @@ function App() {
             <section className="monitor">
               <div className="panel-tabs"><span className="selected">Program Timeline</span></div>
               <div className="monitor-name">{project?.sequence.name ?? "Sequence 1"}</div>
-              {renderPreview(activeClip?.media ?? null, true)}
+              {renderProgramMonitor()}
               <div className="transport">
-                <button disabled={!activeClip} aria-label="Previous frame" data-tooltip="Previous Frame (Left Arrow)" data-tooltip-pos="top" onClick={() => stepProgramFrame(-1)}>◀</button>
-                <button disabled={!programPlayable} aria-label={programPlaying ? "Pause playback" : "Play clip"} data-tooltip={programPlaying ? "Pause Playback (Space)" : "Play Timeline (Space)"} data-tooltip-pos="top" onClick={() => void toggleProgramPlayback()}>{programPlaying ? "Ⅱ" : "▶"}</button>
-                <button disabled={!activeClip} aria-label="Next frame" data-tooltip="Next Frame (Right Arrow)" data-tooltip-pos="top" onClick={() => stepProgramFrame(1)}>▶|</button>
+                <button aria-label="Previous frame" data-tooltip="Previous Frame (Left Arrow)" data-tooltip-pos="top" onClick={() => stepProgramFrame(-1)}>◀</button>
+                <button className={programPlaying ? "active-toggle" : ""} aria-label={programPlaying ? "Pause playback" : "Play clip"} data-tooltip={programPlaying ? "Pause Playback (Space / K)" : "Play Timeline (Space / L)"} data-tooltip-pos="top" onClick={() => toggleProgramPlayback()}>{programPlaying ? "Ⅱ" : "▶"}</button>
+                <button aria-label="Next frame" data-tooltip="Next Frame (Right Arrow)" data-tooltip-pos="top" onClick={() => stepProgramFrame(1)}>▶|</button>
+                {shuttleSpeed !== 1 && programPlaying && (
+                  <span className="transport-shuttle" title="Shuttle speed">{shuttleSpeed}x</span>
+                )}
                 <code>{formatTime(playhead)}</code>
               </div>
             </section>
