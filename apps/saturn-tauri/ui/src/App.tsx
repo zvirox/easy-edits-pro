@@ -6,6 +6,14 @@ import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import { LoadingButton } from "./components/interior/loading-button";
 import { VideoScopes } from "./components/VideoScopes";
 import { ColorWheels, type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "./components/ColorWheels";
+import { RgbCurvesEditor } from "./components/RgbCurvesEditor";
+import { HslQualifierEditor } from "./components/HslQualifierEditor";
+import { CustomShaderEditor } from "./components/CustomShaderEditor";
+import { BackgroundMattingCard } from "./components/BackgroundMattingCard";
+import { LiveMulticamSwitcher } from "./components/LiveMulticamSwitcher";
+import { NetworkImportModal } from "./components/NetworkImportModal";
+import { BatchQueueDrawer } from "./components/BatchQueueDrawer";
+import { OllamaChatDrawer } from "./components/OllamaChatDrawer";
 import {
   audioClockMaster,
   evaluateTimelinePlayback,
@@ -50,6 +58,10 @@ import {
   type RippleDeleteReport,
   type PresentationMetrics,
   type InteropFormat,
+  type TrackGroup,
+  type RgbCurves,
+  type HslQualifier,
+  type CustomShaderParams,
 } from "./engine/playbackEngine";
 
 type JobState =
@@ -102,6 +114,7 @@ type Sequence = {
   id?: number;
   name: string;
   tracks: Track[];
+  track_groups?: TrackGroup[];
   mark_in: number | null;
   mark_out: number | null;
   subtitles?: SubtitleItem[];
@@ -146,6 +159,8 @@ type ColorAdjustments = {
   saturation: number;
   hue?: number;
   wheels?: BackendColorWheels;
+  curves?: RgbCurves;
+  qualifier?: HslQualifier;
 };
 type Clip = {
   media_id: number;
@@ -167,6 +182,7 @@ type Clip = {
 };
 type Track = {
   id: number;
+  group_id?: number | null;
   kind: "video" | "audio";
   name: string;
   gain_db: number;
@@ -846,6 +862,36 @@ function App() {
   const [aiModel, setAiModel] = useState("llama3.2:3b");
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiReply, setAiReply] = useState("");
+
+  // Priority 10 Features State
+  const [networkImportModalOpen, setNetworkImportModalOpen] = useState(false);
+  const [batchQueueDrawerOpen, setBatchQueueDrawerOpen] = useState(false);
+  const [aiChatDrawerOpen, setAiChatDrawerOpen] = useState(false);
+  const [colorStudioTab, setColorStudioTab] = useState<"wheels" | "curves" | "qualifier">("wheels");
+  const [rgbCurvesDraft, setRgbCurvesDraft] = useState<RgbCurves>({
+    master: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+    red: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+    green: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+    blue: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+  });
+  const [hslQualifierDraft, setHslQualifierDraft] = useState<HslQualifier>({
+    enabled: true,
+    hue_center: 25.0,
+    hue_width: 35.0,
+    hue_softness: 15.0,
+    sat_center: 0.5,
+    sat_width: 0.4,
+    sat_softness: 0.1,
+    luma_center: 0.5,
+    luma_width: 0.4,
+    luma_softness: 0.1,
+    invert: false,
+    blur_radius: 1.0,
+    hue_shift: 0.0,
+    sat_boost: 0.0,
+    exposure_shift: 0.0,
+  });
+  const [showMatteDraft, setShowMatteDraft] = useState(false);
   const previewPreparationInFlight = useRef(new Set<number>());
   const handPan = useRef<{ x: number; scrollLeft: number } | null>(null);
   const slipDrag = useRef<{ x: number; trackId: number; clipIndex: number } | null>(null);
@@ -1130,6 +1176,19 @@ function App() {
         });
       } else {
         setColorWheelsDraft(DEFAULT_COLOR_WHEELS);
+      }
+      if (selectedTimelineClip.color?.curves) {
+        setRgbCurvesDraft(selectedTimelineClip.color.curves);
+      } else {
+        setRgbCurvesDraft({
+          master: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+          red: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+          green: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+          blue: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+        });
+      }
+      if (selectedTimelineClip.color?.qualifier) {
+        setHslQualifierDraft(selectedTimelineClip.color.qualifier);
       }
       if (selectedTimelineClip.tracking) {
         setTrackingMode(selectedTimelineClip.tracking.mode);
@@ -1549,6 +1608,108 @@ function App() {
       }).catch(() => {});
     }
   }, [selectedClip]);
+
+  const updateRgbCurves = useCallback(
+    async (curves: RgbCurves) => {
+      setRgbCurvesDraft(curves);
+      if (!selectedClip) return;
+      try {
+        await runCommand("clip.update_rgb_curves", {
+          track_id: selectedClip.track_id,
+          clip_index: selectedClip.clip_index,
+          curves,
+        });
+        await refreshProject();
+      } catch (e) {
+        console.error("Failed to update RGB curves", e);
+      }
+    },
+    [selectedClip, refreshProject]
+  );
+
+  const updateHslQualifier = useCallback(
+    async (qualifier: HslQualifier) => {
+      setHslQualifierDraft(qualifier);
+      if (!selectedClip) return;
+      try {
+        await runCommand("clip.update_hsl_qualifier", {
+          track_id: selectedClip.track_id,
+          clip_index: selectedClip.clip_index,
+          qualifier,
+        });
+        await refreshProject();
+      } catch (e) {
+        console.error("Failed to update HSL qualifier", e);
+      }
+    },
+    [selectedClip, refreshProject]
+  );
+
+  const handleCreateTrackGroup = useCallback(
+    async (name?: string, color?: string) => {
+      const groupName = name || prompt("Enter Track Group Name:", "Dialogue Group");
+      if (!groupName) return;
+      const groupColor = color || "#3182ce";
+      try {
+        await runCommand("timeline.create_track_group", { name: groupName, color: groupColor });
+        await refreshProject();
+        setNotice(`Track group "${groupName}" created`);
+      } catch (e) {
+        setNotice(`Failed to create track group: ${String(e)}`);
+      }
+    },
+    [refreshProject]
+  );
+
+  const handleAssignTrackGroup = useCallback(
+    async (trackId: number, groupId: number | null) => {
+      try {
+        await runCommand("timeline.assign_track_group", { track_id: trackId, group_id: groupId });
+        await refreshProject();
+        setNotice(groupId != null ? "Track assigned to group" : "Track removed from group");
+      } catch (e) {
+        setNotice(`Failed to assign track group: ${String(e)}`);
+      }
+    },
+    [refreshProject]
+  );
+
+  const handleToggleTrackGroupCollapsed = useCallback(
+    async (groupId: number) => {
+      try {
+        await runCommand("timeline.toggle_track_group_collapsed", { group_id: groupId });
+        await refreshProject();
+      } catch (e) {
+        setNotice(`Failed to toggle group collapse: ${String(e)}`);
+      }
+    },
+    [refreshProject]
+  );
+
+  const handleDeleteTrackGroup = useCallback(
+    async (groupId: number) => {
+      try {
+        await runCommand("timeline.delete_track_group", { group_id: groupId });
+        await refreshProject();
+        setNotice("Track group deleted");
+      } catch (e) {
+        setNotice(`Failed to delete track group: ${String(e)}`);
+      }
+    },
+    [refreshProject]
+  );
+
+  const handleSetTrackGroupProperties = useCallback(
+    async (groupId: number, props: { name?: string; color?: string; muted?: boolean; solo?: boolean; locked?: boolean }) => {
+      try {
+        await runCommand("timeline.set_track_group_properties", { group_id: groupId, ...props });
+        await refreshProject();
+      } catch (e) {
+        setNotice(`Failed to update track group: ${String(e)}`);
+      }
+    },
+    [refreshProject]
+  );
 
   async function switchMulticamAngle(angleId: number) {
     setMulticamActiveAngle(angleId);
@@ -2109,12 +2270,14 @@ function App() {
     const targetFormat = fmt ?? interopFormat;
     setIsInteropBusy(true);
     try {
-      const ext = targetFormat === "edl" ? "edl" : "xml";
+      const ext = targetFormat === "edl" ? "edl" : targetFormat === "otio" ? "otio" : "xml";
       const defaultName = `${project?.name ?? "Timeline"}.${ext}`;
       const filePath = await save({
         defaultPath: defaultName,
         filters: [
-          targetFormat === "edl"
+          targetFormat === "otio"
+            ? { name: "OpenTimelineIO (*.otio)", extensions: ["otio"] }
+            : targetFormat === "edl"
             ? { name: "CMX 3600 EDL (*.edl)", extensions: ["edl"] }
             : targetFormat === "fcpxml"
             ? { name: "Final Cut Pro XML (*.xml, *.fcpxml)", extensions: ["xml", "fcpxml"] }
@@ -2147,12 +2310,14 @@ function App() {
       const selected = await open({
         multiple: false,
         filters: [
-          { name: "Timeline Interchange (*.xml, *.fcpxml, *.edl)", extensions: ["xml", "fcpxml", "edl"] },
+          { name: "Timeline Interchange (*.otio, *.xml, *.fcpxml, *.edl)", extensions: ["otio", "xml", "fcpxml", "edl"] },
         ],
       });
       if (!selected || typeof selected !== "string") return;
 
-      const detectedFmt = selected.toLowerCase().endsWith(".edl")
+      const detectedFmt = selected.toLowerCase().endsWith(".otio")
+        ? "otio"
+        : selected.toLowerCase().endsWith(".edl")
         ? "edl"
         : selected.toLowerCase().includes("fcp")
         ? "fcpxml"
@@ -2167,7 +2332,7 @@ function App() {
 
       await refreshProject();
       setInteropModalOpen(false);
-      setNotice(`📥 Successfully imported timeline from ${selected.split("/").pop()}`);
+      setNotice(`📥 Successfully imported timeline from ${selected.split("/").pop()} (${detectedFmt.toUpperCase()})`);
     } catch (err) {
       setNotice(`Timeline import failed: ${String(err)}`);
     } finally {
@@ -2829,6 +2994,51 @@ function App() {
     setLoudnessReport(audioClockMaster.getLoudnessReport(loudnessStandard));
     setNotice("Loudness meter and integrated gates reset");
   }
+
+  const handleAiAction = useCallback(
+    (actionKey: string) => {
+      switch (actionKey) {
+        case "ripple_delete_pauses":
+          void handleDetectSilence();
+          setSilenceModalOpen(true);
+          break;
+        case "warm_sunset_curves": {
+          selectDavinciWorkspace("color");
+          setColorStudioTab("curves");
+          const sunsetCurves: RgbCurves = {
+            master: [{ x: 0, y: 0 }, { x: 0.25, y: 0.2 }, { x: 0.75, y: 0.8 }, { x: 1, y: 1 }],
+            red: [{ x: 0, y: 0 }, { x: 0.5, y: 0.55 }, { x: 1, y: 1 }],
+            green: [{ x: 0, y: 0 }, { x: 0.5, y: 0.48 }, { x: 1, y: 0.98 }],
+            blue: [{ x: 0, y: 0.05 }, { x: 0.5, y: 0.45 }, { x: 1, y: 0.92 }],
+          };
+          void updateRgbCurves(sunsetCurves);
+          setNotice("Applied Warm Sunset RGB Curves grade");
+          break;
+        }
+        case "ebu_r128_normalize":
+          selectDavinciWorkspace("audio");
+          autoTrimLoudness();
+          break;
+        case "group_dialogue_tracks":
+          void handleCreateTrackGroup("Dialogue DX", "#38a169");
+          break;
+        case "add_crt_shader":
+          selectDavinciWorkspace("effects");
+          void addEffect("custom_shader" as EffectKind, "CRT Scanlines");
+          break;
+        case "ai_matting_rvm":
+          selectDavinciWorkspace("effects");
+          setNotice("Open AI Matting Card in Effects Lab to extract alpha matte");
+          break;
+        case "export_otio":
+          void handleExportTimelineInterop("otio");
+          break;
+        default:
+          setNotice(`Executed AI Action: ${actionKey}`);
+      }
+    },
+    [handleDetectSilence, selectDavinciWorkspace, updateRgbCurves, handleCreateTrackGroup, addEffect, handleExportTimelineInterop, autoTrimLoudness]
+  );
 
   function getTrackGaps(clips: Clip[]): Array<{ start: number; end: number }> {
     if (clips.length === 0) return [];
@@ -4896,61 +5106,31 @@ function App() {
 
   const renderMulticamMonitor = () => {
     const videoAssets = media.filter((m) => m.kind === "video" || m.kind === "audio");
-    const angleSlots = [
-      { id: 1, name: "Cam A (Wide)", asset: videoAssets[0] ?? null },
-      { id: 2, name: "Cam B (Close)", asset: videoAssets[1] ?? null },
-      { id: 3, name: "Cam C (Medium)", asset: videoAssets[2] ?? null },
-      { id: 4, name: "Cam D (Detail)", asset: videoAssets[3] ?? null },
-    ];
+    const activeMultiCam: MultiCamClip = project?.sequence.multicam_clips?.[0] || {
+      id: 1,
+      name: "Multicam Sequence",
+      angles: [
+        { id: 1, name: "Cam A (Wide Main)", media_id: videoAssets[0]?.id ?? 1, sync_offset_ticks: 0 },
+        { id: 2, name: "Cam B (Close-up)", media_id: videoAssets[1]?.id ?? 2, sync_offset_ticks: 0 },
+        { id: 3, name: "Cam C (Medium)", media_id: videoAssets[2]?.id ?? 3, sync_offset_ticks: 0 },
+        { id: 4, name: "Cam D (Detail)", media_id: videoAssets[3]?.id ?? 4, sync_offset_ticks: 0 },
+      ],
+      active_angle_id: multicamActiveAngle,
+    };
 
     return (
       <div className="multicam-stage-container">
-        <div className="multicam-quad-grid">
-          {angleSlots.map((angle) => {
-            const isActive = multicamActiveAngle === angle.id;
-            return (
-              <div
-                key={angle.id}
-                className={`multicam-tile ${isActive ? "active-angle" : ""}`}
-                onClick={() => void switchMulticamAngle(angle.id)}
-                title={`Click to cut to Angle ${angle.id} (${angle.name})`}
-              >
-                <div className="multicam-tally-badge">
-                  <span className="multicam-tally-dot" />
-                  <span>{isActive ? "ON AIR" : `CAM ${angle.id}`}</span>
-                </div>
-                {angle.asset ? (
-                  <video
-                    className="multicam-tile-video"
-                    src={getMediaUrl(angle.asset.path)}
-                    muted
-                    playsInline
-                    preload="auto"
-                  />
-                ) : (
-                  <div style={{ color: "#475569", fontSize: "11px", fontWeight: 700, textAlign: "center" }}>
-                    {angle.name}<br /><small>No media linked</small>
-                  </div>
-                )}
-                <div className="multicam-angle-meta">{angle.name}</div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="multicam-toolbar">
-          <div className="multicam-angle-shortcuts">
-            {[1, 2, 3, 4].map((id) => (
-              <button
-                key={id}
-                type="button"
-                className={`multicam-angle-btn ${multicamActiveAngle === id ? "active" : ""}`}
-                onClick={() => void switchMulticamAngle(id)}
-                title={`Cut to Angle ${id} (Press ${id})`}
-              >
-                [{id}] Cam {String.fromCharCode(64 + id)}
-              </button>
-            ))}
-          </div>
+        <LiveMulticamSwitcher
+          multicamClip={activeMultiCam}
+          isPlaying={programPlaying}
+          onCutAngle={(angleId) => {
+            void switchMulticamAngle(angleId);
+          }}
+          onSelectPreviewAngle={(angleId) => {
+            setMulticamActiveAngle(angleId);
+          }}
+        />
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "8px 12px", background: "#0f172a", borderTop: "1px solid #1e293b" }}>
           <button
             type="button"
             className="multicam-sync-btn"
@@ -6812,11 +6992,90 @@ function App() {
           {/* Bottom Half: 4 Primary Color Wheels Dock + Sliders & Presets */}
           <div className="color-bottom-row">
             <div className="color-wheels-dock-wrapper">
-              <ColorWheels
-                value={colorWheelsDraft}
-                onChange={updateColorWheels}
-                disabled={!selectedClip}
-              />
+              <div
+                className="color-studio-tabs"
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  marginBottom: "12px",
+                  borderBottom: "1px solid #2d3748",
+                  paddingBottom: "8px",
+                }}
+              >
+                <button
+                  type="button"
+                  className={`btn-secondary ${colorStudioTab === "wheels" ? "active" : ""}`}
+                  style={{
+                    background: colorStudioTab === "wheels" ? "#3182ce" : "#1a202c",
+                    color: colorStudioTab === "wheels" ? "#ffffff" : "#a0aec0",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    padding: "6px 12px",
+                    borderRadius: "4px",
+                    border: "1px solid #2d3748",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setColorStudioTab("wheels")}
+                >
+                  🎡 3-Way Color Wheels
+                </button>
+                <button
+                  type="button"
+                  className={`btn-secondary ${colorStudioTab === "curves" ? "active" : ""}`}
+                  style={{
+                    background: colorStudioTab === "curves" ? "#3182ce" : "#1a202c",
+                    color: colorStudioTab === "curves" ? "#ffffff" : "#a0aec0",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    padding: "6px 12px",
+                    borderRadius: "4px",
+                    border: "1px solid #2d3748",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setColorStudioTab("curves")}
+                >
+                  📈 RGB Curves
+                </button>
+                <button
+                  type="button"
+                  className={`btn-secondary ${colorStudioTab === "qualifier" ? "active" : ""}`}
+                  style={{
+                    background: colorStudioTab === "qualifier" ? "#3182ce" : "#1a202c",
+                    color: colorStudioTab === "qualifier" ? "#ffffff" : "#a0aec0",
+                    fontWeight: 600,
+                    fontSize: "12px",
+                    padding: "6px 12px",
+                    borderRadius: "4px",
+                    border: "1px solid #2d3748",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setColorStudioTab("qualifier")}
+                >
+                  🎯 HSL Secondary Qualifier
+                </button>
+              </div>
+
+              {colorStudioTab === "wheels" && (
+                <ColorWheels
+                  value={colorWheelsDraft}
+                  onChange={updateColorWheels}
+                  disabled={!selectedClip}
+                />
+              )}
+              {colorStudioTab === "curves" && (
+                <RgbCurvesEditor
+                  curves={rgbCurvesDraft}
+                  onChange={updateRgbCurves}
+                />
+              )}
+              {colorStudioTab === "qualifier" && (
+                <HslQualifierEditor
+                  qualifier={hslQualifierDraft}
+                  onChange={updateHslQualifier}
+                  showMatte={showMatteDraft}
+                  onToggleShowMatte={setShowMatteDraft}
+                />
+              )}
             </div>
 
             <aside className="color-sidebar-dock">
@@ -7023,6 +7282,7 @@ function App() {
                   <option value="chroma_key">🟩 Chroma Key</option>
                   <option value="color_correction">🎨 Color Correction</option>
                   <option value="lut">🎬 3D LUT (.cube)</option>
+                  <option value="custom_shader">✨ Custom GLSL Shader</option>
                 </select>
               </div>
             )}
@@ -7455,12 +7715,36 @@ function App() {
                               </div>
                             );
                           })()}
+
+                          {eff.kind === "custom_shader" && (() => {
+                            const p = (eff.params as CustomShaderParams) || {
+                              name: "Custom GLSL Shader",
+                              shader_code: "",
+                              uniforms: {},
+                            };
+                            return (
+                              <CustomShaderEditor
+                                shaderParams={p}
+                                onApply={(updatedShader) => {
+                                  void updateEffectPayload(eff.id, {
+                                    kind: "custom_shader",
+                                    params: updatedShader,
+                                  });
+                                }}
+                              />
+                            );
+                          })()}
                         </div>
                       )}
                     </article>
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* AI Background Matting Card */}
+            <div style={{ marginTop: "16px" }}>
+              <BackgroundMattingCard clipId={selectedTimelineClip?.media_id} />
             </div>
           </aside>
         </div>
@@ -8151,7 +8435,7 @@ function App() {
   function renderImportWorkspace() {
     return <main className="workspace-page import-workspace">
       <header className="workspace-page-heading"><div><span className="workspace-eyebrow">MEDIA · STEP 1</span><h1>Import</h1><p>Bring footage, audio, and graphics into this project.</p></div><button className="primary workspace-heading-action" onClick={() => void importMedia()} disabled={busy}><Icon name="import" /> Browse files…</button></header>
-      <section className="import-drop-panel"><div className="import-drop-icon"><Icon name="media" /></div><div><h2>Add media to your project</h2><p>Choose video, audio, or still images from your computer. Imported files stay in their original location.</p></div><button className="primary" onClick={() => void importMedia()} disabled={busy}>＋ Import media</button></section>
+      <section className="import-drop-panel"><div className="import-drop-icon"><Icon name="media" /></div><div><h2>Add media to your project</h2><p>Choose video, audio, or still images from your computer or cloud URL. Imported files stay in their original location.</p></div><div style={{ display: "flex", gap: "8px" }}><button className="primary" onClick={() => void importMedia()} disabled={busy}>＋ Import Local Media</button><button className="btn-secondary" onClick={() => setNetworkImportModalOpen(true)} disabled={busy} style={{ background: "#2563eb", color: "#fff" }}>🌐 Import from URL / S3</button></div></section>
       <section className="import-library-section"><header><div><h2>Project media</h2><p>{media.length} item{media.length === 1 ? "" : "s"} in {project?.name ?? "this project"}</p></div><input className="search" type="search" placeholder="Search project media" aria-label="Search project media" value={search} onChange={(event) => setSearch(event.target.value)} /></header>
         {visibleMedia.length ? <div className="import-media-grid">{visibleMedia.map((item) => <button className={`import-media-card ${selectedMediaId === item.id ? "selected" : ""}`} key={item.id} onClick={() => { setSelectedMediaId(item.id); setSelectedClip(null); setSelectedClips([]); selectDavinciWorkspace("edit"); }} title="Select this media and open the Edit workspace"><span className="import-media-icon"><Icon name="media" /></span><strong>{item.name}</strong><small>{item.kind.toUpperCase()} {item.width && item.height ? `· ${item.width} × ${item.height}` : ""}</small><small>{item.duration ? formatTime(item.duration) : missingMediaIds.has(item.id) ? "Missing · relink required" : "Ready to edit"}</small></button>)}</div> : <div className="import-empty"><Icon name="media" /><strong>{search ? "No matching media" : "Your project is ready for media"}</strong><span>{search ? "Try another search." : "Import a clip to begin building your timeline."}</span><button onClick={() => void importMedia()} disabled={busy}>Browse files…</button></div>}
       </section>
@@ -8729,6 +9013,53 @@ function App() {
             </div>
 
             <button
+              type="button"
+              className="btn-secondary"
+              style={{
+                padding: "4px 8px",
+                fontSize: "11px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                cursor: "pointer",
+                borderRadius: "4px",
+                border: "1px solid #334155",
+                background: "#1e293b",
+                color: "#f1f5f9",
+              }}
+              onClick={() => setBatchQueueDrawerOpen(true)}
+              data-tooltip="Open Background Batch Render Queue"
+              data-tooltip-pos="bottom"
+            >
+              <span>📦</span>
+              <span>Queue</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{
+                padding: "4px 8px",
+                fontSize: "11px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                cursor: "pointer",
+                borderRadius: "4px",
+                border: "1px solid #3b82f6",
+                background: "#1e3a8a",
+                color: "#93c5fd",
+                fontWeight: 600,
+              }}
+              onClick={() => setAiChatDrawerOpen(true)}
+              data-tooltip="Open Saturn AI Assistant (Ollama)"
+              data-tooltip-pos="bottom"
+            >
+              <span>🧠</span>
+              <span>AI Assistant</span>
+            </button>
+
+            <button
               className="theme-toggle-btn"
               onClick={toggleTheme}
               aria-label="Toggle Light / Dark mode"
@@ -9046,6 +9377,17 @@ function App() {
                       data-tooltip-pos="bottom"
                     >
                       ＋ Bin
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ padding: "4px 8px", fontSize: "11px" }}
+                      onClick={() => setNetworkImportModalOpen(true)}
+                      disabled={busy}
+                      data-tooltip="Import from Network / Cloud URL (HTTP/HTTPS/S3)"
+                      data-tooltip-pos="bottom"
+                    >
+                      🌐 URL
                     </button>
                     <button
                       className="primary"
@@ -9731,6 +10073,17 @@ function App() {
                   <span className="toolbar-divider" />
                   <button className="timeline-icon-button" onClick={() => zoomTimeline(1 / 1.2)} data-tooltip="Zoom Out Timeline (Ctrl+-)" data-tooltip-pos="top" aria-label="Zoom out"><Icon name="zoomOut" /></button>
                   <button className="timeline-icon-button" onClick={() => zoomTimeline(1.2)} data-tooltip="Zoom In Timeline (Ctrl++)" data-tooltip-pos="top" aria-label="Zoom in"><Icon name="zoomIn" /></button>
+                  <span className="toolbar-divider" />
+                  <button
+                    type="button"
+                    className="timeline-icon-button"
+                    onClick={() => void handleCreateTrackGroup()}
+                    data-tooltip="Create Track Folder Group"
+                    data-tooltip-pos="top"
+                    aria-label="Create Track Group"
+                  >
+                    <span style={{ fontWeight: 700, fontSize: "13px" }}>📁＋</span>
+                  </button>
                 </div>
               </div>
               <div ref={attachTimelineScroller} className={`timeline-scroller ${timelineTool === "hand" ? "hand-mode" : ""}`} onPointerDown={handleTimelinePanStart} onPointerMove={handleTimelinePanMove} onPointerUp={handleTimelinePanEnd} onPointerCancel={handleTimelinePanEnd}>
@@ -9819,51 +10172,211 @@ function App() {
                     </div>
                   </div>
 
-                  {(project?.sequence.tracks ?? []).map((track) => <div className={`track-row track-height-${timelineTrackHeight} ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""}`} key={track.id}>
-                    <div className="track-label">
-                      <div className="track-label-top">
-                        <b>{track.name}</b>
-                        <span>{track.kind}</span>
-                      </div>
-                      <div className="track-label-btns">
-                        <button
-                          type="button"
-                          className={`track-mini-btn mute-btn ${track.muted ? "active" : ""}`}
-                          title={track.muted ? "Unmute track" : "Mute track"}
-                          onClick={(e) => { e.stopPropagation(); void toggleTrackMute(track); }}
-                        >
-                          M
-                        </button>
-                        <button
-                          type="button"
-                          className={`track-mini-btn solo-btn ${track.solo ? "active" : ""}`}
-                          title={track.solo ? "Unsolo track" : "Solo track"}
-                          onClick={(e) => { e.stopPropagation(); void toggleTrackSolo(track); }}
-                        >
-                          S
-                        </button>
-                        <button
-                          type="button"
-                          className={`track-mini-btn lock-btn ${track.locked ? "active" : ""}`}
-                          title={track.locked ? "Unlock track" : "Lock track"}
-                          onClick={(e) => { e.stopPropagation(); void toggleTrackLock(track); }}
-                        >
-                          {track.locked ? "🔒" : "🔓"}
-                        </button>
-                        <button
-                          type="button"
-                          className="track-mini-btn delete-track-btn"
-                          title={track.locked ? "Cannot delete locked track" : `Delete ${track.name}`}
-                          disabled={track.locked || (project?.sequence.tracks.filter((t) => t.kind === track.kind).length ?? 0) <= 1}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void removeTrackFromTimeline(track.id);
+                  {/* Track Groups Visual Folder Headers */}
+                  {(project?.sequence.track_groups ?? []).map((group) => {
+                    const memberTracks = (project?.sequence.tracks ?? []).filter((t) => t.group_id === group.id);
+                    return (
+                      <div className={`track-row track-group-row ${group.collapsed ? "is-collapsed" : ""}`} key={`group-${group.id}`}>
+                        <div
+                          className="track-label track-group-label"
+                          style={{
+                            borderLeft: `4px solid ${group.color || "#3182ce"}`,
+                            background: "#111827",
                           }}
                         >
-                          ✕
-                        </button>
+                          <div className="track-label-top" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <button
+                              type="button"
+                              className="track-group-collapse-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void handleToggleTrackGroupCollapsed(group.id);
+                              }}
+                              title={group.collapsed ? "Expand Group" : "Collapse Group"}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                color: "#90cdf4",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                                padding: 0,
+                              }}
+                            >
+                              {group.collapsed ? "▶" : "▼"}
+                            </button>
+                            <span
+                              style={{
+                                width: "8px",
+                                height: "8px",
+                                borderRadius: "50%",
+                                backgroundColor: group.color || "#3182ce",
+                                display: "inline-block",
+                              }}
+                            />
+                            <b style={{ color: "#f8fafc", fontSize: "12px" }}>📁 {group.name}</b>
+                            <span style={{ fontSize: "10px", color: "#64748b" }}>({memberTracks.length})</span>
+                          </div>
+                          <div className="track-label-btns">
+                            <button
+                              type="button"
+                              className={`track-mini-btn mute-btn ${group.muted ? "active" : ""}`}
+                              title={group.muted ? "Unmute group" : "Mute group"}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void handleSetTrackGroupProperties(group.id, { muted: !group.muted });
+                              }}
+                            >
+                              M
+                            </button>
+                            <button
+                              type="button"
+                              className={`track-mini-btn solo-btn ${group.solo ? "active" : ""}`}
+                              title={group.solo ? "Unsolo group" : "Solo group"}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void handleSetTrackGroupProperties(group.id, { solo: !group.solo });
+                              }}
+                            >
+                              S
+                            </button>
+                            <button
+                              type="button"
+                              className={`track-mini-btn lock-btn ${group.locked ? "active" : ""}`}
+                              title={group.locked ? "Unlock group" : "Lock group"}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void handleSetTrackGroupProperties(group.id, { locked: !group.locked });
+                              }}
+                            >
+                              {group.locked ? "🔒" : "🔓"}
+                            </button>
+                            <button
+                              type="button"
+                              className="track-mini-btn delete-track-btn"
+                              title={`Delete group "${group.name}"`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void handleDeleteTrackGroup(group.id);
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                        <div
+                          className="track-lane track-group-lane"
+                          style={{
+                            background: `${group.color || "#3182ce"}15`,
+                            borderBottom: "1px dashed rgba(255,255,255,0.1)",
+                            height: "28px",
+                            display: "flex",
+                            alignItems: "center",
+                            paddingLeft: "12px",
+                          }}
+                        >
+                          <span style={{ fontSize: "11px", color: group.color || "#60a5fa", opacity: 0.8, fontWeight: 500 }}>
+                            {group.collapsed ? `📁 ${group.name} (${memberTracks.length} tracks collapsed — click ▶ to expand)` : `📁 ${group.name} folder`}
+                          </span>
+                        </div>
                       </div>
-                    </div>
+                    );
+                  })}
+
+                  {(project?.sequence.tracks ?? []).map((track) => {
+                    const parentGroup = track.group_id != null ? (project?.sequence.track_groups ?? []).find((g) => g.id === track.group_id) : null;
+                    if (parentGroup?.collapsed) {
+                      return null;
+                    }
+                    return (
+                      <div
+                        className={`track-row track-height-${timelineTrackHeight} ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""} ${parentGroup ? "is-grouped-track" : ""}`}
+                        key={track.id}
+                        style={parentGroup ? { borderLeft: `3px solid ${parentGroup.color || "#3182ce"}` } : undefined}
+                      >
+                        <div className="track-label">
+                          <div className="track-label-top">
+                            <b>{track.name}</b>
+                            <span>{track.kind}</span>
+                            {parentGroup && (
+                              <span
+                                style={{
+                                  fontSize: "9px",
+                                  color: parentGroup.color || "#63b3ed",
+                                  background: "rgba(255,255,255,0.08)",
+                                  padding: "1px 4px",
+                                  borderRadius: "3px",
+                                }}
+                                title={`Folder: ${parentGroup.name}`}
+                              >
+                                📁 {parentGroup.name}
+                              </span>
+                            )}
+                          </div>
+                          <div className="track-label-btns">
+                            <button
+                              type="button"
+                              className={`track-mini-btn mute-btn ${track.muted ? "active" : ""}`}
+                              title={track.muted ? "Unmute track" : "Mute track"}
+                              onClick={(e) => { e.stopPropagation(); void toggleTrackMute(track); }}
+                            >
+                              M
+                            </button>
+                            <button
+                              type="button"
+                              className={`track-mini-btn solo-btn ${track.solo ? "active" : ""}`}
+                              title={track.solo ? "Unsolo track" : "Solo track"}
+                              onClick={(e) => { e.stopPropagation(); void toggleTrackSolo(track); }}
+                            >
+                              S
+                            </button>
+                            <button
+                              type="button"
+                              className={`track-mini-btn lock-btn ${track.locked ? "active" : ""}`}
+                              title={track.locked ? "Unlock track" : "Lock track"}
+                              onClick={(e) => { e.stopPropagation(); void toggleTrackLock(track); }}
+                            >
+                              {track.locked ? "🔒" : "🔓"}
+                            </button>
+                            {(project?.sequence.track_groups ?? []).length > 0 && (
+                              <select
+                                className="track-group-select"
+                                value={track.group_id ?? ""}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  const val = e.target.value ? Number(e.target.value) : null;
+                                  void handleAssignTrackGroup(track.id, val);
+                                }}
+                                title="Assign track to folder group"
+                                style={{
+                                  background: "#0f172a",
+                                  color: "#94a3b8",
+                                  border: "1px solid #334155",
+                                  borderRadius: "3px",
+                                  fontSize: "10px",
+                                  padding: "1px 2px",
+                                  maxWidth: "46px",
+                                }}
+                              >
+                                <option value="">📁 -</option>
+                                {(project?.sequence.track_groups ?? []).map((g) => (
+                                  <option key={g.id} value={g.id}>📁 {g.name}</option>
+                                ))}
+                              </select>
+                            )}
+                            <button
+                              type="button"
+                              className="track-mini-btn delete-track-btn"
+                              title={track.locked ? "Cannot delete locked track" : `Delete ${track.name}`}
+                              disabled={track.locked || (project?.sequence.tracks.filter((t) => t.kind === track.kind).length ?? 0) <= 1}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                void removeTrackFromTimeline(track.id);
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
                     <div
                       className={`track-lane ${track.locked ? "track-lane-locked" : ""} ${mediaDropTargetTrackId === track.id ? "media-drop-target" : ""}`}
                       data-track-id={track.id}
@@ -9987,7 +10500,9 @@ function App() {
                       })}
                       <div className="playhead-grip" style={{ left: `${playhead / TICKS_PER_SECOND * timelineZoom}px` }} role="slider" aria-label="Timeline playhead" aria-valuenow={playhead / TICKS_PER_SECOND} aria-valuemin={0} aria-valuemax={timelineEndSeconds} onPointerDown={beginTimelineScrub} onPointerMove={moveTimelineScrub} onPointerUp={finishTimelineScrub} onPointerCancel={finishTimelineScrub}><i className="playhead" /></div>
                     </div>
-                  </div>)}
+                  </div>
+                );
+              })}
                 </div>
               </div>
             </div>
@@ -10212,6 +10727,16 @@ function App() {
                 }}
               >
                 CMX 3600 EDL
+              </button>
+              <button
+                type="button"
+                className={`interop-tab-btn ${interopFormat === "otio" ? "active" : ""}`}
+                onClick={() => {
+                  setInteropFormat("otio");
+                  if (interopMode === "export") void handleExportTimelineInterop("otio");
+                }}
+              >
+                OpenTimelineIO (.otio)
               </button>
             </div>
 
@@ -10540,6 +11065,27 @@ function App() {
           </form>
         </div>
       )}
+
+      {/* Priority Modals and Drawers */}
+      <NetworkImportModal
+        isOpen={networkImportModalOpen}
+        onClose={() => setNetworkImportModalOpen(false)}
+        onSuccess={() => void refreshProject()}
+      />
+
+      <BatchQueueDrawer
+        isOpen={batchQueueDrawerOpen}
+        onClose={() => setBatchQueueDrawerOpen(false)}
+        onEnqueueCurrentTimeline={(preset) => {
+          setNotice(`Enqueued timeline with preset "${preset}" to batch render daemon`);
+        }}
+      />
+
+      <OllamaChatDrawer
+        isOpen={aiChatDrawerOpen}
+        onClose={() => setAiChatDrawerOpen(false)}
+        onExecuteAction={handleAiAction}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-use saturn_core::{CommandRequest, EditorEngine, TICKS_PER_SECOND};
+use saturn_core::{CommandRequest, EditorEngine, EffectPayload, TICKS_PER_SECOND};
 use serde_json::{Value, json};
 
 #[test]
@@ -2291,4 +2291,189 @@ fn timeline_add_remove_track_and_ripple_gap_workflow() {
         .execute(CommandRequest::new("edit.redo", serde_json::Value::Null))
         .unwrap();
     assert_eq!(engine.document().project.sequence.tracks[0].clips[1].timeline_start.0, 3 * TICKS_PER_SECOND);
+}
+
+#[test]
+fn track_groups_curves_qualifier_and_custom_shader_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    // Add media and clip
+    let add_media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "cinematic.mp4",
+                "path": "/media/cinematic.mp4",
+                "kind": "video",
+                "duration": 10 * TICKS_PER_SECOND
+            }),
+        ))
+        .unwrap();
+    let media_id = add_media["media_id"].as_u64().unwrap();
+    let track_id = engine.document().project.sequence.tracks[0].id;
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": track_id,
+                "media_id": media_id,
+                "timeline_start": 0,
+                "source_in": 0,
+                "duration": 5 * TICKS_PER_SECOND
+            }),
+        ))
+        .unwrap();
+
+    // 1. Create Track Group
+    let group_res = engine
+        .execute(CommandRequest::new(
+            "timeline.create_track_group",
+            json!({
+                "name": "Dialogue Group",
+                "color": "#3b82f6"
+            }),
+        ))
+        .unwrap();
+    assert_eq!(group_res["created"], true);
+    let group_id = group_res["group"]["id"].as_u64().unwrap();
+    assert_eq!(engine.document().project.sequence.track_groups.len(), 1);
+
+    // 2. Assign Track to Group
+    engine
+        .execute(CommandRequest::new(
+            "timeline.assign_track_group",
+            json!({
+                "track_id": track_id,
+                "group_id": group_id
+            }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].group_id, Some(group_id));
+
+    // 3. Toggle Group Collapsed
+    let toggle_res = engine
+        .execute(CommandRequest::new(
+            "timeline.toggle_track_group_collapsed",
+            json!({ "group_id": group_id }),
+        ))
+        .unwrap();
+    assert_eq!(toggle_res["collapsed"], true);
+    assert_eq!(engine.document().project.sequence.track_groups[0].collapsed, true);
+
+    // 4. Update Group Properties (Mute/Solo/Lock)
+    engine
+        .execute(CommandRequest::new(
+            "timeline.set_track_group_properties",
+            json!({
+                "group_id": group_id,
+                "name": "Vocals & Dialogue",
+                "muted": true
+            }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.track_groups[0].name, "Vocals & Dialogue");
+    assert_eq!(engine.document().project.sequence.track_groups[0].muted, true);
+    assert_eq!(engine.document().project.sequence.tracks[0].muted, true);
+
+    // 5. Update RGB Curves
+    let curves = json!({
+        "master": [{"x": 0.0, "y": 0.0}, {"x": 0.5, "y": 0.6}, {"x": 1.0, "y": 1.0}],
+        "red": [{"x": 0.0, "y": 0.0}, {"x": 1.0, "y": 1.0}],
+        "green": [{"x": 0.0, "y": 0.0}, {"x": 1.0, "y": 1.0}],
+        "blue": [{"x": 0.0, "y": 0.0}, {"x": 0.4, "y": 0.3}, {"x": 1.0, "y": 1.0}]
+    });
+    engine
+        .execute(CommandRequest::new(
+            "clip.update_rgb_curves",
+            json!({
+                "track_id": track_id,
+                "clip_index": 0,
+                "curves": curves
+            }),
+        ))
+        .unwrap();
+    assert!(engine.document().project.sequence.tracks[0].clips[0].color.curves.is_some());
+
+    // 6. Update HSL Qualifier
+    let qualifier = json!({
+        "hue_center": 0.1,
+        "hue_width": 0.15,
+        "hue_softness": 0.05,
+        "sat_min": 0.2,
+        "sat_max": 0.9,
+        "sat_softness": 0.1,
+        "luma_min": 0.1,
+        "luma_max": 0.95,
+        "luma_softness": 0.08,
+        "invert": false,
+        "blur_radius": 2.0,
+        "hue_shift": 15.0,
+        "sat_boost": 1.2,
+        "exposure_shift": 0.3
+    });
+    engine
+        .execute(CommandRequest::new(
+            "clip.update_hsl_qualifier",
+            json!({
+                "track_id": track_id,
+                "clip_index": 0,
+                "qualifier": qualifier
+            }),
+        ))
+        .unwrap();
+    assert!(engine.document().project.sequence.tracks[0].clips[0].color.qualifier.is_some());
+
+    // 7. Add Custom GLSL Shader Effect
+    let shader_res = engine
+        .execute(CommandRequest::new(
+            "clip.add_custom_shader",
+            json!({
+                "track_id": track_id,
+                "clip_index": 0,
+                "name": "Scanlines Plugin",
+                "shader_code": "void main() { gl_FragColor = vec4(1.0); }",
+                "preset_id": "crt",
+                "uniforms": { "u_intensity": 0.75 }
+            }),
+        ))
+        .unwrap();
+    assert_eq!(shader_res["added"], true);
+    let shader_effect_id = shader_res["effect_id"].as_u64().unwrap();
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].effects.len(), 1);
+
+    // 8. Update Custom Shader Uniforms
+    engine
+        .execute(CommandRequest::new(
+            "clip.update_custom_shader",
+            json!({
+                "track_id": track_id,
+                "clip_index": 0,
+                "effect_id": shader_effect_id,
+                "uniforms": { "u_intensity": 0.9 }
+            }),
+        ))
+        .unwrap();
+    let clip = &engine.document().project.sequence.tracks[0].clips[0];
+    if let EffectPayload::CustomShader(p) = &clip.effects[0].payload {
+        assert_eq!(p.uniforms.get("u_intensity"), Some(&0.9));
+    } else {
+        panic!("Effect should be CustomShader");
+    }
+
+    // 9. Undo & Redo Verification
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    if let EffectPayload::CustomShader(p) = &engine.document().project.sequence.tracks[0].clips[0].effects[0].payload {
+        assert_eq!(p.uniforms.get("u_intensity"), Some(&0.75));
+    }
+
+    // 10. Delete Track Group
+    engine
+        .execute(CommandRequest::new(
+            "timeline.delete_track_group",
+            json!({ "group_id": group_id }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.track_groups.len(), 0);
+    assert_eq!(engine.document().project.sequence.tracks[0].group_id, None);
 }

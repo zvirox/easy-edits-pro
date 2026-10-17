@@ -10,20 +10,28 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 pub mod compositor;
+pub mod curves;
+pub mod hsl;
 pub mod loudness;
 pub mod lut;
+pub mod matting;
 pub mod multicam;
+pub mod shader;
 pub mod speedramp;
 pub mod tracking;
 pub mod wgpu_surface;
 pub mod wheels;
 
 pub use compositor::{BlendMode, Particle, ParticleEmitter, merge_alpha_over_rgba, rasterize_roto_mask, simulate_particle_field};
+pub use curves::{apply_rgb_curves, apply_rgb_curves_buffer, evaluate_spline, generate_curve_lut};
+pub use hsl::{apply_hsl_qualifier_buffer, calculate_matte_factor, generate_hsl_matte, hsl_to_rgb, rgb_to_hsl};
 pub use loudness::{
     analyze_pcm_loudness, EbuR128Meter, LoudnessReport, LoudnessStandard,
 };
 pub use lut::{Lut3D, Lut3DInfo};
+pub use matting::{BackgroundMode, MattingModel, MattingOptions, MattingTemporalState, run_background_matting};
 pub use multicam::sync_waveforms_by_correlation;
+pub use shader::{SHADER_PRESETS, ShaderPreset, apply_shader_preset_buffer, get_preset_by_id};
 pub use speedramp::{apply_motion_blur_synthesis, blend_bidirectional_optical_flow, interpolate_speed_ramp};
 pub use tracking::{compute_stabilization_offset, evaluate_tracking_at, smooth_trajectory};
 pub use wgpu_surface::{DisplayColorSpace, GpuPreviewPipeline, PresentationMetrics, ScalingFilter, SurfaceBuffer, calculate_letterbox_viewport};
@@ -627,6 +635,9 @@ fn apply_clip_effects(
                                 let _ = clip.add_top_effect(&effect, -1);
                             }
                         }
+                    }
+                    EffectPayload::CustomShader(_) => {
+                        // Custom fragment shaders are executed in the wgpu presentation and offline shader compositor
                     }
                 }
             }

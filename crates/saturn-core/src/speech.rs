@@ -601,8 +601,10 @@ mod tests {
         let mut seq = Sequence {
             id: 1,
             name: "Main".to_string(),
+            track_groups: Vec::new(),
             tracks: vec![Track {
                 id: 1,
+                group_id: None,
                 kind: TrackKind::Video,
                 name: "V1".to_string(),
                 gain_db: 0.0,

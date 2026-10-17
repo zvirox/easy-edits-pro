@@ -47,12 +47,54 @@ export interface ColorWheels {
   offset: ColorWheelParam;
 }
 
+export interface CurvePoint {
+  x: number;
+  y: number;
+}
+
+export interface RgbCurves {
+  master: CurvePoint[];
+  red: CurvePoint[];
+  green: CurvePoint[];
+  blue: CurvePoint[];
+}
+
+export interface HslQualifier {
+  enabled: boolean;
+  hue_center: number;
+  hue_width: number;
+  hue_softness: number;
+  sat_center: number;
+  sat_width: number;
+  sat_softness: number;
+  luma_center: number;
+  luma_width: number;
+  luma_softness: number;
+  invert: boolean;
+  blur_radius: number;
+  hue_shift: number;
+  sat_boost: number;
+  exposure_shift: number;
+}
+
+export interface TrackGroup {
+  id: number;
+  name: string;
+  color: string;
+  collapsed: boolean;
+  muted: boolean;
+  solo: boolean;
+  locked: boolean;
+}
+
 export interface ColorAdjustments {
   exposure: number;
   contrast: number;
   saturation: number;
   hue?: number;
   wheels?: ColorWheels;
+  curves?: RgbCurves;
+  qualifier?: HslQualifier;
 }
 
 export type MultiCamSyncMode = "timecode" | "audio_waveform" | "marker";
@@ -128,7 +170,8 @@ export type EffectKind =
   | "crop"
   | "vignette"
   | "chroma_key"
-  | "lut";
+  | "lut"
+  | "custom_shader";
 
 export interface ColorCorrectionParams {
   exposure: number;
@@ -169,20 +212,28 @@ export interface LutParams {
   preset_id?: string | null;
 }
 
+export interface CustomShaderParams {
+  name: string;
+  shader_code: string;
+  preset_id?: string | null;
+  uniforms?: Record<string, number>;
+}
+
 export type EffectPayload =
   | { kind: "color_correction"; params: ColorCorrectionParams }
   | { kind: "gaussian_blur"; params: GaussianBlurParams }
   | { kind: "crop"; params: CropParams }
   | { kind: "vignette"; params: VignetteParams }
   | { kind: "chroma_key"; params: ChromaKeyParams }
-  | { kind: "lut"; params: LutParams };
+  | { kind: "lut"; params: LutParams }
+  | { kind: "custom_shader"; params: CustomShaderParams };
 
 export interface EffectInstance {
   id: number;
   name: string;
   enabled: boolean;
   kind: EffectKind;
-  params: ColorCorrectionParams | GaussianBlurParams | CropParams | VignetteParams | ChromaKeyParams | LutParams;
+  params: ColorCorrectionParams | GaussianBlurParams | CropParams | VignetteParams | ChromaKeyParams | LutParams | CustomShaderParams;
 }
 
 export type CompositingNodeKind =
@@ -314,6 +365,7 @@ export interface TrackAudioProcessing {
 
 export interface Track {
   id: number;
+  group_id?: number | null;
   kind: "video" | "audio";
   name: string;
   gain_db: number;
@@ -342,6 +394,7 @@ export interface TitleProperties {
 export interface Sequence {
   id?: number;
   name: string;
+  track_groups?: TrackGroup[];
   tracks: Track[];
   mark_in: number | null;
   mark_out: number | null;
@@ -1890,5 +1943,5 @@ export interface PresentationMetrics {
   isHardwareAccelerated: boolean;
 }
 
-export type InteropFormat = "edl" | "fcpxml" | "premiere_xml";
+export type InteropFormat = "edl" | "fcpxml" | "premiere_xml" | "otio";
 

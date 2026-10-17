@@ -23,8 +23,8 @@ pub use project::{
     TrackPoint, Transition, TransitionKind, VignetteParams, ChromaKeyParams,
 };
 pub use interop::{
-    export_cmx3600_edl, export_fcpxml, export_premiere_xml, import_cmx3600_edl, import_fcpxml,
-    import_premiere_xml, ticks_to_timecode, timecode_to_ticks,
+    export_cmx3600_edl, export_fcpxml, export_premiere_xml, export_otio, import_cmx3600_edl, import_fcpxml,
+    import_premiere_xml, import_otio, ticks_to_timecode, timecode_to_ticks,
 };
 pub use speech::{
     RippleDeleteReport, SilenceDetectOptions, SilenceInterval, SpeechSegment, SpeechWord,

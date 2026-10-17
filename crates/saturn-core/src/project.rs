@@ -502,12 +502,34 @@ impl Default for CollaborationState {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct TrackGroup {
+    pub id: u64,
+    pub name: String,
+    #[serde(default = "default_track_group_color")]
+    pub color: String,
+    #[serde(default)]
+    pub collapsed: bool,
+    #[serde(default)]
+    pub muted: bool,
+    #[serde(default)]
+    pub solo: bool,
+    #[serde(default)]
+    pub locked: bool,
+}
+
+fn default_track_group_color() -> String {
+    "#a855f7".into()
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Sequence {
     #[serde(default = "default_sequence_id")]
     pub id: u64,
     pub name: String,
     pub tracks: Vec<Track>,
+    #[serde(default)]
+    pub track_groups: Vec<TrackGroup>,
     #[serde(default)]
     pub mark_in: Option<Tick>,
     #[serde(default)]
@@ -640,6 +662,8 @@ pub struct Track {
     pub kind: TrackKind,
     pub name: String,
     #[serde(default)]
+    pub group_id: Option<u64>,
+    #[serde(default)]
     pub gain_db: f64,
     #[serde(default)]
     pub pan: f64,
@@ -733,6 +757,7 @@ pub enum EffectKind {
     Vignette,
     ChromaKey,
     Lut,
+    CustomShader,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
@@ -894,6 +919,39 @@ impl Default for LutParams {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct CustomShaderParams {
+    pub name: String,
+    pub shader_code: String,
+    #[serde(default)]
+    pub preset_id: Option<String>,
+    #[serde(default)]
+    pub uniforms: std::collections::HashMap<String, f64>,
+}
+
+impl Default for CustomShaderParams {
+    fn default() -> Self {
+        Self {
+            name: "Custom Shader".into(),
+            shader_code: r#"
+// Saturn Custom Fragment Shader (GLSL)
+precision highp float;
+uniform sampler2D u_texture;
+uniform vec2 u_resolution;
+uniform float u_time;
+varying vec2 v_texCoord;
+
+void main() {
+    vec4 color = texture2D(u_texture, v_texCoord);
+    gl_FragColor = color;
+}
+"#.trim().into(),
+            preset_id: Some("passthrough".into()),
+            uniforms: std::collections::HashMap::new(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "kind", content = "params", rename_all = "snake_case")]
 pub enum EffectPayload {
     ColorCorrection(ColorCorrectionParams),
@@ -902,6 +960,7 @@ pub enum EffectPayload {
     Vignette(VignetteParams),
     ChromaKey(ChromaKeyParams),
     Lut(LutParams),
+    CustomShader(CustomShaderParams),
 }
 
 fn default_effect_enabled() -> bool { true }
@@ -925,6 +984,7 @@ impl EffectInstance {
             EffectPayload::Vignette(_) => EffectKind::Vignette,
             EffectPayload::ChromaKey(_) => EffectKind::ChromaKey,
             EffectPayload::Lut(_) => EffectKind::Lut,
+            EffectPayload::CustomShader(_) => EffectKind::CustomShader,
         }
     }
 
@@ -981,6 +1041,116 @@ impl EffectInstance {
             payload: EffectPayload::Lut(params),
         }
     }
+
+    pub fn new_custom_shader(id: u64, params: CustomShaderParams) -> Self {
+        Self {
+            id,
+            name: params.name.clone(),
+            enabled: true,
+            payload: EffectPayload::CustomShader(params),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct CurvePoint {
+    pub x: f64,
+    pub y: f64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct RgbCurves {
+    #[serde(default = "default_curve_points")]
+    pub master: Vec<CurvePoint>,
+    #[serde(default = "default_curve_points")]
+    pub red: Vec<CurvePoint>,
+    #[serde(default = "default_curve_points")]
+    pub green: Vec<CurvePoint>,
+    #[serde(default = "default_curve_points")]
+    pub blue: Vec<CurvePoint>,
+}
+
+pub fn default_curve_points() -> Vec<CurvePoint> {
+    vec![
+        CurvePoint { x: 0.0, y: 0.0 },
+        CurvePoint { x: 1.0, y: 1.0 },
+    ]
+}
+
+impl Default for RgbCurves {
+    fn default() -> Self {
+        Self {
+            master: default_curve_points(),
+            red: default_curve_points(),
+            green: default_curve_points(),
+            blue: default_curve_points(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct HslQualifier {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default = "default_hue_center")]
+    pub hue_center: f64,
+    #[serde(default = "default_hue_width")]
+    pub hue_width: f64,
+    #[serde(default = "default_softness")]
+    pub hue_softness: f64,
+    #[serde(default = "default_sat_center")]
+    pub sat_center: f64,
+    #[serde(default = "default_sat_width")]
+    pub sat_width: f64,
+    #[serde(default = "default_softness")]
+    pub sat_softness: f64,
+    #[serde(default = "default_luma_center")]
+    pub luma_center: f64,
+    #[serde(default = "default_luma_width")]
+    pub luma_width: f64,
+    #[serde(default = "default_softness")]
+    pub luma_softness: f64,
+    #[serde(default)]
+    pub invert: bool,
+    #[serde(default)]
+    pub blur_radius: f64,
+    #[serde(default)]
+    pub hue_shift: f64,
+    #[serde(default = "default_one")]
+    pub sat_boost: f64,
+    #[serde(default)]
+    pub exposure_shift: f64,
+}
+
+fn default_hue_center() -> f64 { 120.0 }
+fn default_hue_width() -> f64 { 40.0 }
+fn default_sat_center() -> f64 { 0.5 }
+fn default_sat_width() -> f64 { 0.5 }
+fn default_luma_center() -> f64 { 0.5 }
+fn default_luma_width() -> f64 { 0.5 }
+fn default_softness() -> f64 { 0.15 }
+fn default_one() -> f64 { 1.0 }
+
+impl Default for HslQualifier {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            hue_center: default_hue_center(),
+            hue_width: default_hue_width(),
+            hue_softness: default_softness(),
+            sat_center: default_sat_center(),
+            sat_width: default_sat_width(),
+            sat_softness: default_softness(),
+            luma_center: default_luma_center(),
+            luma_width: default_luma_width(),
+            luma_softness: default_softness(),
+            invert: false,
+            blur_radius: 0.0,
+            hue_shift: 0.0,
+            sat_boost: 1.0,
+            exposure_shift: 0.0,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -996,6 +1166,10 @@ pub struct ColorAdjustments {
     pub hue: f64,
     #[serde(default)]
     pub wheels: ColorWheels,
+    #[serde(default)]
+    pub curves: Option<RgbCurves>,
+    #[serde(default)]
+    pub qualifier: Option<HslQualifier>,
 }
 
 impl Default for ColorAdjustments {
@@ -1006,6 +1180,8 @@ impl Default for ColorAdjustments {
             saturation: 1.0,
             hue: 0.0,
             wheels: ColorWheels::default(),
+            curves: None,
+            qualifier: None,
         }
     }
 }
@@ -1105,11 +1281,13 @@ impl ProjectDocument {
                     multicam_clips: Vec::new(),
                     buses: default_audio_buses(),
                     node_graph: None,
+                    track_groups: Vec::new(),
                     tracks: vec![
                         Track {
                             id: 1,
                             kind: TrackKind::Video,
                             name: "V1".into(),
+                            group_id: None,
                             gain_db: 0.0,
                             pan: 0.0,
                             muted: false,
@@ -1126,6 +1304,7 @@ impl ProjectDocument {
                             id: 2,
                             kind: TrackKind::Audio,
                             name: "A1".into(),
+                            group_id: None,
                             gain_db: 0.0,
                             pan: 0.0,
                             muted: false,
@@ -1248,6 +1427,11 @@ impl ProjectDocument {
                         EffectPayload::Lut(p) => {
                             if !p.intensity.is_finite() || !(0.0..=1.0).contains(&p.intensity) {
                                 return Err("Project contains invalid LUT effect intensity".into());
+                            }
+                        }
+                        EffectPayload::CustomShader(p) => {
+                            if p.shader_code.trim().is_empty() {
+                                return Err("Project contains empty custom shader code".into());
                             }
                         }
                     }
@@ -1625,6 +1809,7 @@ mod tests {
     fn test_track_audio_properties_and_audibility() {
         let mut t1 = Track {
             id: 1,
+            group_id: None,
             kind: TrackKind::Audio,
             name: "A1".into(),
             gain_db: -3.0,
@@ -1642,6 +1827,7 @@ mod tests {
 
         let mut t2 = Track {
             id: 2,
+            group_id: None,
             kind: TrackKind::Audio,
             name: "A2".into(),
             gain_db: 0.0,

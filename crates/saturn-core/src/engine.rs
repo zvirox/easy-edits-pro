@@ -7,8 +7,8 @@ use crate::project::{
     MotionBlurParams, MotionTrackingData, MultiCamAngle, MultiCamClip, MultiCamSyncMode,
     NodeConnection, NodeGraph, ProjectDocument, RotoSplineMask, Sequence, SpeedRamp,
     SubtitleItem, TimelineChangeEntry, TitleProperties, Track, TrackAudioProcessing,
-    TrackAutomation, TrackKind, TrackingMode, Transition, TransitionKind,
-    UserLock, VignetteParams, ChromaKeyParams,
+    TrackAutomation, TrackGroup, TrackKind, TrackingMode, Transition, TransitionKind,
+    UserLock, VignetteParams, ChromaKeyParams, CustomShaderParams,
 };
 use crate::time::{FrameRate, TICKS_PER_SECOND, Tick};
 use serde::Deserialize;
@@ -739,6 +739,89 @@ struct RemoveTrackParams {
 struct RippleDeleteGapParams {
     track_id: Option<u64>,
     at_tick: Tick,
+}
+
+#[derive(Deserialize)]
+struct CreateTrackGroupParams {
+    name: String,
+    #[serde(default)]
+    color: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct AssignTrackGroupParams {
+    track_id: u64,
+    group_id: Option<u64>,
+}
+
+#[derive(Deserialize)]
+struct ToggleTrackGroupCollapsedParams {
+    group_id: u64,
+}
+
+#[derive(Deserialize)]
+struct DeleteTrackGroupParams {
+    group_id: u64,
+}
+
+#[derive(Deserialize)]
+struct SetTrackGroupPropertiesParams {
+    group_id: u64,
+    name: Option<String>,
+    color: Option<String>,
+    muted: Option<bool>,
+    solo: Option<bool>,
+    locked: Option<bool>,
+}
+
+#[derive(Deserialize)]
+struct UpdateRgbCurvesParams {
+    track_id: u64,
+    clip_index: usize,
+    curves: crate::project::RgbCurves,
+}
+
+#[derive(Deserialize)]
+struct UpdateHslQualifierParams {
+    track_id: u64,
+    clip_index: usize,
+    qualifier: crate::project::HslQualifier,
+}
+
+#[derive(Deserialize)]
+struct AddCustomShaderParams {
+    track_id: u64,
+    clip_index: usize,
+    #[serde(default)]
+    name: Option<String>,
+    #[serde(default)]
+    shader_code: Option<String>,
+    #[serde(default)]
+    preset_id: Option<String>,
+    #[serde(default)]
+    uniforms: Option<std::collections::HashMap<String, f64>>,
+}
+
+#[derive(Deserialize)]
+struct UpdateCustomShaderParams {
+    track_id: u64,
+    clip_index: usize,
+    effect_id: u64,
+    #[serde(default)]
+    name: Option<String>,
+    #[serde(default)]
+    shader_code: Option<String>,
+    #[serde(default)]
+    preset_id: Option<String>,
+    #[serde(default)]
+    uniforms: Option<std::collections::HashMap<String, f64>>,
+}
+
+#[derive(Deserialize)]
+struct ImportOtioParams {
+    content: String,
+    #[serde(default)]
+    project_name: Option<String>,
 }
 
 fn get_or_create_node_graph<'a>(
@@ -1843,6 +1926,11 @@ impl EditorEngine {
                         if let Some(name) = params.name { inst.name = name; }
                         inst
                     }
+                    EffectKind::CustomShader => {
+                        let mut inst = EffectInstance::new_custom_shader(effect_id, crate::project::CustomShaderParams::default());
+                        if let Some(name) = params.name { inst.name = name; }
+                        inst
+                    }
                 };
                 self.checkpoint();
                 self.document.project.sequence.tracks[track_index].clips[params.clip_index]
@@ -2580,6 +2668,7 @@ impl EditorEngine {
                     } else {
                         nested_tracks.push(Track {
                             id: orig_track.id,
+                            group_id: orig_track.group_id,
                             kind: orig_track.kind,
                             name: orig_track.name.clone(),
                             gain_db: orig_track.gain_db,
@@ -2613,6 +2702,7 @@ impl EditorEngine {
                 let nested_sequence = Sequence {
                     id: new_sequence_id,
                     name: params.name.clone(),
+                    track_groups: Vec::new(),
                     tracks: nested_tracks,
                     mark_in: None,
                     mark_out: None,
@@ -2741,6 +2831,7 @@ impl EditorEngine {
                         self.document.project.next_id = new_id.saturating_add(1);
                         self.document.project.sequence.tracks.push(Track {
                             id: new_id,
+                            group_id: None,
                             kind: nested_track.kind,
                             name: nested_track.name.clone(),
                             gain_db: nested_track.gain_db,
@@ -2933,6 +3024,7 @@ impl EditorEngine {
                 let track_name = params.name.unwrap_or_else(|| format!("{}{}", default_prefix, count + 1));
                 let new_track = Track {
                     id: track_id,
+                    group_id: None,
                     kind: params.kind,
                     name: track_name.clone(),
                     gain_db: 0.0,
@@ -3088,6 +3180,214 @@ impl EditorEngine {
                     "gap_start": gap_start,
                     "gap_end": gap_end,
                     "duration_ticks": gap_duration,
+                }))
+            }
+
+            "timeline.create_track_group" => {
+                let params: CreateTrackGroupParams = parse_params(request.params)?;
+                if params.name.trim().is_empty() {
+                    return Err(DispatchError::InvalidParameters("Group name cannot be empty".into()));
+                }
+                self.checkpoint();
+                let group_id = self.document.project.next_id;
+                self.document.project.next_id = group_id.saturating_add(1);
+                let group = TrackGroup {
+                    id: group_id,
+                    name: params.name.trim().to_string(),
+                    color: params.color.unwrap_or_else(|| "#4a5568".to_string()),
+                    collapsed: false,
+                    muted: false,
+                    solo: false,
+                    locked: false,
+                };
+                self.document.project.sequence.track_groups.push(group.clone());
+                Ok(json!({
+                    "created": true,
+                    "group": group,
+                }))
+            }
+
+            "timeline.assign_track_group" => {
+                let params: AssignTrackGroupParams = parse_params(request.params)?;
+                if let Some(gid) = params.group_id {
+                    if !self.document.project.sequence.track_groups.iter().any(|g| g.id == gid) {
+                        return Err(DispatchError::InvalidParameters(format!("Track group {} not found", gid)));
+                    }
+                }
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].group_id = params.group_id;
+                Ok(json!({
+                    "updated": true,
+                    "track_id": params.track_id,
+                    "group_id": params.group_id,
+                }))
+            }
+
+            "timeline.toggle_track_group_collapsed" => {
+                let params: ToggleTrackGroupCollapsedParams = parse_params(request.params)?;
+                let group_idx = self.document.project.sequence.track_groups.iter()
+                    .position(|g| g.id == params.group_id)
+                    .ok_or_else(|| DispatchError::InvalidParameters(format!("Track group {} not found", params.group_id)))?;
+                self.checkpoint();
+                let group = &mut self.document.project.sequence.track_groups[group_idx];
+                group.collapsed = !group.collapsed;
+                let collapsed = group.collapsed;
+                Ok(json!({
+                    "updated": true,
+                    "group_id": params.group_id,
+                    "collapsed": collapsed,
+                }))
+            }
+
+            "timeline.delete_track_group" => {
+                let params: DeleteTrackGroupParams = parse_params(request.params)?;
+                let pos = self.document.project.sequence.track_groups.iter().position(|g| g.id == params.group_id)
+                    .ok_or_else(|| DispatchError::InvalidParameters(format!("Track group {} not found", params.group_id)))?;
+                self.checkpoint();
+                self.document.project.sequence.track_groups.remove(pos);
+                for track in &mut self.document.project.sequence.tracks {
+                    if track.group_id == Some(params.group_id) {
+                        track.group_id = None;
+                    }
+                }
+                Ok(json!({
+                    "deleted": true,
+                    "group_id": params.group_id,
+                }))
+            }
+
+            "timeline.set_track_group_properties" => {
+                let params: SetTrackGroupPropertiesParams = parse_params(request.params)?;
+                let group_idx = self.document.project.sequence.track_groups.iter()
+                    .position(|g| g.id == params.group_id)
+                    .ok_or_else(|| DispatchError::InvalidParameters(format!("Track group {} not found", params.group_id)))?;
+                self.checkpoint();
+                let group = &mut self.document.project.sequence.track_groups[group_idx];
+                if let Some(name) = params.name {
+                    group.name = name;
+                }
+                if let Some(color) = params.color {
+                    group.color = color;
+                }
+                if let Some(muted) = params.muted {
+                    group.muted = muted;
+                }
+                if let Some(solo) = params.solo {
+                    group.solo = solo;
+                }
+                if let Some(locked) = params.locked {
+                    group.locked = locked;
+                }
+                let updated_group = group.clone();
+                if let Some(muted) = params.muted {
+                    for t in &mut self.document.project.sequence.tracks {
+                        if t.group_id == Some(params.group_id) {
+                            t.muted = muted;
+                        }
+                    }
+                }
+                if let Some(solo) = params.solo {
+                    for t in &mut self.document.project.sequence.tracks {
+                        if t.group_id == Some(params.group_id) {
+                            t.solo = solo;
+                        }
+                    }
+                }
+                if let Some(locked) = params.locked {
+                    for t in &mut self.document.project.sequence.tracks {
+                        if t.group_id == Some(params.group_id) {
+                            t.locked = locked;
+                        }
+                    }
+                }
+                Ok(json!({
+                    "updated": true,
+                    "group": updated_group,
+                }))
+            }
+
+            "clip.update_rgb_curves" => {
+                let params: UpdateRgbCurvesParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                clip.color.curves = Some(params.curves.clone());
+                Ok(json!({"updated": true, "curves": params.curves}))
+            }
+
+            "clip.update_hsl_qualifier" => {
+                let params: UpdateHslQualifierParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                clip.color.qualifier = Some(params.qualifier.clone());
+                Ok(json!({"updated": true, "qualifier": params.qualifier}))
+            }
+
+            "clip.add_custom_shader" => {
+                let params: AddCustomShaderParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                let effect_id = self.document.project.next_id;
+                self.document.project.next_id = effect_id.saturating_add(1);
+                let shader_params = crate::project::CustomShaderParams {
+                    name: params.name.unwrap_or_else(|| "Custom Shader".into()),
+                    shader_code: params.shader_code.unwrap_or_else(|| CustomShaderParams::default().shader_code),
+                    preset_id: params.preset_id,
+                    uniforms: params.uniforms.unwrap_or_default(),
+                };
+                let effect = EffectInstance::new_custom_shader(effect_id, shader_params);
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].clips[params.clip_index]
+                    .effects
+                    .push(effect);
+                Ok(json!({"added": true, "effect_id": effect_id}))
+            }
+
+            "clip.update_custom_shader" => {
+                let params: UpdateCustomShaderParams = parse_params(request.params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips[params.clip_index];
+                let effect = clip.effects.iter_mut()
+                    .find(|e| e.id == params.effect_id)
+                    .ok_or_else(|| DispatchError::InvalidParameters(format!("Effect {} not found", params.effect_id)))?;
+                match &mut effect.payload {
+                    EffectPayload::CustomShader(p) => {
+                        if let Some(n) = params.name {
+                            effect.name = n.clone();
+                            p.name = n;
+                        }
+                        if let Some(c) = params.shader_code {
+                            p.shader_code = c;
+                        }
+                        if let Some(pid) = params.preset_id {
+                            p.preset_id = Some(pid);
+                        }
+                        if let Some(u) = params.uniforms {
+                            p.uniforms = u;
+                        }
+                    }
+                    _ => return Err(DispatchError::InvalidParameters("Effect is not a custom shader".into())),
+                }
+                Ok(json!({"updated": true, "effect_id": params.effect_id}))
+            }
+
+            "interop.import_otio" => {
+                let params: ImportOtioParams = parse_params(request.params)?;
+                let project_name = params.project_name.as_deref().unwrap_or("Imported OTIO");
+                let imported_doc = crate::interop::import_otio(&params.content, project_name)
+                    .map_err(DispatchError::Operation)?;
+                self.checkpoint();
+                self.document = imported_doc;
+                Ok(json!({
+                    "imported": true,
+                    "tracks": self.document.project.sequence.tracks.len(),
+                    "media_count": self.document.project.media.len(),
                 }))
             }
 
