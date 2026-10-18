@@ -1,0 +1,1 @@
+export const TICKS_PER_SECOND = 254_016_000_000;
