@@ -4,17 +4,18 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import { LoadingButton } from "./components/interior/loading-button";
-import { VideoScopes } from "./components/VideoScopes";
-import { ColorWheels, type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "./components/ColorWheels";
-import { RgbCurvesEditor } from "./components/RgbCurvesEditor";
-import { HslQualifierEditor } from "./components/HslQualifierEditor";
-import { CustomShaderEditor } from "./components/CustomShaderEditor";
-import { BackgroundMattingCard } from "./components/BackgroundMattingCard";
+import { type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "./components/ColorWheels";
 import { LiveMulticamSwitcher } from "./components/LiveMulticamSwitcher";
 import { NetworkImportModal } from "./components/NetworkImportModal";
 import { BatchQueueDrawer } from "./components/BatchQueueDrawer";
 import { OllamaChatDrawer } from "./components/OllamaChatDrawer";
-import { formatTime, formatPan, formatDb } from "./utils/formatters";
+import { formatTime, formatPan, formatDb, getClipWaveform } from "./utils/formatters";
+import { ProjectWelcomeScreen } from "./workspaces/ProjectWelcomeScreen";
+import { ExportWorkspace } from "./workspaces/ExportWorkspace";
+import { FusionWorkspace } from "./workspaces/FusionWorkspace";
+import { ColorWorkspace } from "./workspaces/ColorWorkspace";
+import { KeyframesWorkspace } from "./workspaces/KeyframesWorkspace";
+import { EffectsWorkspace } from "./workspaces/EffectsWorkspace";
 import {
   audioClockMaster,
   evaluateTimelinePlayback,
@@ -42,10 +43,7 @@ import {
   type TrackAutomation,
   type AudioPluginInstance,
   type AudioBus,
-  type CompositingNode,
   type CompositingNodeKind,
-  type NodeConnection,
-  type RotoSplineMask,
   type RotoSplinePoint,
   type NodeGraph,
   type SpeedRamp,
@@ -62,7 +60,6 @@ import {
   type TrackGroup,
   type RgbCurves,
   type HslQualifier,
-  type CustomShaderParams,
 } from "./engine/playbackEngine";
 
 type JobState =
@@ -251,62 +248,6 @@ const resolutionPresets = [
   { value: "custom", label: "Custom resolution", width: 1920, height: 1080 },
 ];
 
-const exportPresets = [
-  {
-    id: "yt_4k",
-    name: "YouTube 4K UHD",
-    subtitle: "3840 × 2160 · 60 fps",
-    resolution: "3840x2160",
-    frameRate: "60/1",
-    format: "mp4" as const,
-    icon: "▶",
-  },
-  {
-    id: "yt_1080p",
-    name: "YouTube 1080p",
-    subtitle: "1920 × 1080 · 60 fps",
-    resolution: "1920x1080",
-    frameRate: "60/1",
-    format: "mp4" as const,
-    icon: "▶",
-  },
-  {
-    id: "tiktok_reels",
-    name: "TikTok / Reels",
-    subtitle: "1080 × 1920 · 9:16 Vertical",
-    resolution: "1080x1920",
-    frameRate: "30/1",
-    format: "mp4" as const,
-    icon: "📱",
-  },
-  {
-    id: "instagram_square",
-    name: "Instagram Square",
-    subtitle: "1080 × 1080 · 1:1 Feed",
-    resolution: "1080x1080",
-    frameRate: "30/1",
-    format: "mp4" as const,
-    icon: "📷",
-  },
-  {
-    id: "cinema_4k",
-    name: "Cinema 4K DCI",
-    subtitle: "3840 × 2160 · 24 fps Film",
-    resolution: "3840x2160",
-    frameRate: "24/1",
-    format: "mp4" as const,
-    icon: "🎬",
-  },
-  {
-    id: "web_hd",
-    name: "Web HD 720p",
-    subtitle: "1280 × 720 · 30 fps Fast",
-    resolution: "1280x720",
-    frameRate: "30/1",
-    format: "mp4" as const,
-    icon: "🌐",
-  },
-];
 const frameRateOptions = [
   { value: "24000/1001", label: "23.976 fps", numerator: 24_000, denominator: 1_001 },
   { value: "24/1", label: "24 fps", numerator: 24, denominator: 1 },
@@ -316,10 +257,6 @@ const frameRateOptions = [
   { value: "50/1", label: "50 fps", numerator: 50, denominator: 1 },
   { value: "60000/1001", label: "59.94 fps", numerator: 60_000, denominator: 1_001 },
   { value: "60/1", label: "60 fps", numerator: 60, denominator: 1 },
-];
-const exportFrameRateOptions = [
-  { value: "source", label: "Match sequence" },
-  ...frameRateOptions.map((item) => ({ value: `${item.numerator}/${item.denominator}`, label: item.label })),
 ];
 
 const TICKS_PER_SECOND = 254_016_000_000;
@@ -612,6 +549,7 @@ function App() {
   const playheadRef = useRef(0);
   const deckARef = useRef<HTMLVideoElement>(null);
   const deckBRef = useRef<HTMLVideoElement>(null);
+  const audioPlayersRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const [deckSnapshot, setDeckSnapshot] = useState<TimelinePlaybackSnapshot | null>(null);
   const projectRef = useRef<ProjectDocument | null>(null);
   const [sourcePreviewError, setSourcePreviewError] = useState<string | null>(null);
@@ -1090,6 +1028,28 @@ function App() {
         if (!deckB.paused) deckB.pause();
       }
     }
+
+    // Synchronize all active audio tracks directly
+    if (snapshot.activeAudioClips) {
+      for (const audioItem of snapshot.activeAudioClips) {
+        if (audioItem.track.muted) continue;
+        const key = `audio-track-${audioItem.track.id}-${audioItem.clip.media_id}`;
+        const el = audioPlayersRef.current.get(key);
+        if (el) {
+          el.muted = false;
+          const targetVol = Math.max(0, Math.min(1, 10 ** (audioItem.gainDb / 20)));
+          if (Math.abs(el.volume - targetVol) > 0.02) el.volume = targetVol;
+          if (Math.abs(el.currentTime - audioItem.currentTime) > 0.08) {
+            try { el.currentTime = audioItem.currentTime; } catch {}
+          }
+          if (isPlaying) {
+            if (el.paused) void el.play().catch(() => {});
+          } else {
+            if (!el.paused) el.pause();
+          }
+        }
+      }
+    }
   }, [media, preparedPreviews, mediaServerPort, mediaServerToken]);
 
   // Keep decks updated whenever playhead, preparedPreviews, or project changes when paused
@@ -1225,6 +1185,9 @@ function App() {
     }
     if (deckARef.current && !deckARef.current.paused) deckARef.current.pause();
     if (deckBRef.current && !deckBRef.current.paused) deckBRef.current.pause();
+    audioPlayersRef.current.forEach((el) => {
+      if (!el.paused) el.pause();
+    });
     syncDecks(playheadRef.current, false);
   }
 
@@ -5062,26 +5025,32 @@ function App() {
 
           {/* Dedicated Audio Track Players for Multi-Track Audio */}
           {deckSnapshot?.activeAudioClips
-            .filter((c) => c.track.kind === "audio")
-            .map((audioItem) => (
-              <audio
-                key={`audio-track-${audioItem.track.id}-${audioItem.clip.media_id}`}
-                src={audioItem.src}
-                autoPlay={programPlaying}
-                preload="auto"
-                crossOrigin="anonymous"
-                ref={(el) => {
-                  if (el) {
-                    el.volume = Math.max(0, Math.min(1, 10 ** (audioItem.gainDb / 20)));
-                    if (Math.abs(el.currentTime - audioItem.currentTime) > 0.1) {
-                      try { el.currentTime = audioItem.currentTime; } catch {}
+            .filter((c) => !c.track.muted)
+            .map((audioItem) => {
+              const audioKey = `audio-track-${audioItem.track.id}-${audioItem.clip.media_id}`;
+              return (
+                <audio
+                  key={audioKey}
+                  src={audioItem.src}
+                  autoPlay={programPlaying}
+                  preload="auto"
+                  crossOrigin="anonymous"
+                  ref={(el) => {
+                    if (el) {
+                      audioPlayersRef.current.set(audioKey, el);
+                      el.volume = Math.max(0, Math.min(1, 10 ** (audioItem.gainDb / 20)));
+                      if (Math.abs(el.currentTime - audioItem.currentTime) > 0.08) {
+                        try { el.currentTime = audioItem.currentTime; } catch {}
+                      }
+                      if (programPlaying && el.paused) void el.play().catch(() => {});
+                      else if (!programPlaying && !el.paused) el.pause();
+                    } else {
+                      audioPlayersRef.current.delete(audioKey);
                     }
-                    if (programPlaying && el.paused) void el.play().catch(() => {});
-                    else if (!programPlaying && !el.paused) el.pause();
-                  }
-                }}
-              />
-            ))}
+                  }}
+                />
+              );
+            })}
 
           {/* Motion Tracking Crosshair Box Overlay (Phase 7.3) */}
           {showTrackingBox && (
@@ -5239,74 +5208,34 @@ function App() {
   }
 
   function renderProjectWelcome() {
-    if (appStage === "loading") return <main className="project-loading-screen" aria-live="polite" aria-busy="true">
-      <img src="/saturn-camera.png" alt="" />
-      <div className="loading-orbit"><span /><span /><span /></div>
-      <p className="welcome-kicker">EASY EDITS PRO</p>
-      <h1>{loadingMessage}</h1>
-      <p className="welcome-muted">Getting your workspace ready</p>
-      <div className="loading-track"><i /></div>
-    </main>;
-
-    return <main className="welcome-shell">
-      <header className="welcome-topbar">
-        <div className="welcome-brand"><img src="/saturn-camera.png" alt="" /><span><strong>Easy Edits Pro</strong><small>VIDEO EDITING WORKSPACE</small></span></div>
-        <div className="welcome-status"><i className={connection.includes("error") ? "offline" : "online"} />{connection.includes("error") ? "Core unavailable" : "Ready to edit"}</div>
-      </header>
-      <div className="welcome-layout">
-        <section className="welcome-hero">
-          <div className="welcome-hero-copy">
-            <p className="welcome-kicker">PROJECT STUDIO <span>·</span> {new Date().getFullYear()}</p>
-            <h1>Make room<br />for the <em>next cut.</em></h1>
-            <p className="welcome-intro">Pick up where you left off or shape a fresh timeline, tuned to the way you shoot.</p>
-          </div>
-          <div className="welcome-editor-art" aria-hidden="true">
-            <div className="welcome-art-toolbar"><span /><span /><span /><i /><b>PROGRAM</b><small>00:00:12:08</small></div>
-            <div className="welcome-art-preview"><span className="art-sun" /><span className="art-horizon" /><span className="art-caption">A FRAME OF YOUR OWN</span></div>
-            <div className="welcome-art-timeline"><div className="art-ruler"><span>00:00</span><span>00:05</span><span>00:10</span><span>00:15</span></div><div className="art-track"><b>V1</b><i /><i /></div><div className="art-track audio"><b>A1</b><i /></div><span className="art-playhead" /></div>
-          </div>
-          <div className="welcome-hero-foot"><span>01 <i /> Shape the sequence</span><span>02 <i /> Find your rhythm</span><span>03 <i /> Make it yours</span></div>
-        </section>
-
-        <section className="welcome-panel" aria-label="Project selection">
-          {welcomeMode === "home" ? <>
-            <div className="welcome-panel-heading"><p className="welcome-kicker">YOUR WORKSPACE</p><h2>Welcome back.</h2><p>Start something new or continue a project.</p></div>
-            <div className="welcome-actions">
-              <button className="welcome-action-card new" onClick={() => { setSetupProjectName("Untitled project"); setSetupSequenceName("Sequence 1"); setWelcomeMode("new-project"); }}>
-                <span className="welcome-action-icon">＋</span><span><strong>Create a new project</strong><small>Choose a format and start editing</small></span><b aria-hidden="true">↗</b>
-              </button>
-              <LoadingButton className="welcome-action-card open" onAction={() => openProject()} onError={(error) => setNotice(String(error))} pendingLabel="Opening project…" successLabel="Project ready" errorLabel="Could not open project">
-                <span className="welcome-action-icon folder">↗</span><span><strong>Open an existing project</strong><small>Browse for a .saturn project file</small></span><b aria-hidden="true">→</b>
-              </LoadingButton>
-            </div>
-            {recoveryStatus.available && <div className="welcome-recovery"><span><strong>Recovered session available</strong><small>{recoveryStatus.projectName ?? "Autosaved project"} · autosave found</small></span><LoadingButton className="welcome-recover-button" onAction={recoverProjectFromWelcome} onError={(error) => setNotice(String(error))} pendingLabel="Restoring…" successLabel="Restored" errorLabel="Restore failed">Recover</LoadingButton></div>}
-            <div className="welcome-recent-heading"><h3>Recent projects</h3><span>{recentProjects.length ? `${recentProjects.length} saved here` : "Ready when you are"}</span></div>
-            {recentProjects.length ? <div className="welcome-recent-list">{recentProjects.map((item) => <LoadingButton key={item.path} className="welcome-recent-item" onAction={() => openProject(item.path)} onError={(error) => setNotice(String(error))} pendingLabel="Opening…" successLabel="Opened" errorLabel="Could not open">
-              <span className="recent-project-icon">S</span><span className="recent-project-name"><strong>{item.name}</strong><small title={item.path}>{item.path}</small></span><b aria-hidden="true">→</b>
-            </LoadingButton>)}</div> : <div className="welcome-recent-empty"><span>⌁</span><p>Your recent projects will appear here.</p></div>}
-          </> : <>
-            <button className="welcome-back" onClick={() => setWelcomeMode("home")}>← <span>Back to projects</span></button>
-            <div className="welcome-panel-heading setup-heading"><p className="welcome-kicker">NEW PROJECT</p><h2>Set your canvas.</h2><p>Choose the timeline format for this edit.</p></div>
-            <form className="project-setup-form" onSubmit={(event) => { event.preventDefault(); void createProjectFromWelcome().catch((error: unknown) => setNotice(String(error))); }}>
-              <label>Project name<input autoFocus required maxLength={120} value={setupProjectName} onChange={(event) => setSetupProjectName(event.target.value)} placeholder="Untitled project" /></label>
-              <label>Timeline name<input required maxLength={120} value={setupSequenceName} onChange={(event) => setSetupSequenceName(event.target.value)} placeholder="Sequence 1" /></label>
-              <div className="setup-field-row"><label>Resolution<select value={setupResolution} onChange={(event) => {
-                const value = event.target.value; setSetupResolution(value);
-                const preset = resolutionPresets.find((item) => item.value === value);
-                if (preset && value !== "custom") { setSetupWidth(String(preset.width)); setSetupHeight(String(preset.height)); }
-              }}>{resolutionPresets.map((preset) => <option value={preset.value} key={preset.value}>{preset.label}</option>)}</select></label>
-                <label>Frame rate<select value={setupFrameRate} onChange={(event) => setSetupFrameRate(event.target.value)}>{frameRateOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label></div>
-              {setupResolution === "custom" && <div className="setup-field-row custom-resolution"><label>Width<input required type="number" min="1" max="16384" value={setupWidth} onChange={(event) => setSetupWidth(event.target.value)} /></label><span>×</span><label>Height<input required type="number" min="1" max="16384" value={setupHeight} onChange={(event) => setSetupHeight(event.target.value)} /></label></div>}
-              <div className="setup-summary"><span>PROJECT PROFILE</span><strong>{setupWidth} × {setupHeight}<i />{frameRateOptions.find((option) => option.value === setupFrameRate)?.label}</strong><small>These settings define playback and export for your sequence.</small></div>
-              {notice && <p className="welcome-notice" role="alert">{notice}</p>}
-              <div className="setup-actions"><button type="button" className="welcome-secondary-button" onClick={() => setWelcomeMode("home")}>Cancel</button><LoadingButton className="welcome-create-button" onAction={createProjectFromWelcome} onError={(error) => setNotice(String(error))} pendingLabel="Creating project…" successLabel="Project created" errorLabel="Could not create">Create project <span>→</span></LoadingButton></div>
-            </form>
-          </>}
-          {welcomeMode === "home" && notice && <p className="welcome-notice" role="status">{notice}</p>}
-          <footer className="welcome-panel-foot"><span>PROJECT FORMAT <b>.SATURN</b></span><span>LOCAL · PRIVATE · YOURS</span></footer>
-        </section>
-      </div>
-    </main>;
+    return (
+      <ProjectWelcomeScreen
+        appStage={appStage}
+        loadingMessage={loadingMessage}
+        connection={connection}
+        welcomeMode={welcomeMode}
+        setWelcomeMode={setWelcomeMode}
+        setupProjectName={setupProjectName}
+        setSetupProjectName={setSetupProjectName}
+        setupSequenceName={setupSequenceName}
+        setSetupSequenceName={setSetupSequenceName}
+        setupResolution={setupResolution}
+        setSetupResolution={setSetupResolution}
+        setupWidth={setupWidth}
+        setSetupWidth={setSetupWidth}
+        setupHeight={setupHeight}
+        setSetupHeight={setSetupHeight}
+        setupFrameRate={setupFrameRate}
+        setSetupFrameRate={setSetupFrameRate}
+        recentProjects={recentProjects}
+        recoveryStatus={recoveryStatus}
+        notice={notice}
+        setNotice={setNotice}
+        openProject={openProject}
+        createProjectFromWelcome={createProjectFromWelcome}
+        recoverProjectFromWelcome={recoverProjectFromWelcome}
+      />
+    );
   }
 
   function renderAudioWorkspace() {
@@ -6382,22 +6311,25 @@ function App() {
                             setSelectedClips([{ track_id: track.id, clip_index: index }]);
                           }}
                         >
-                          {item?.waveform && item.waveform.length > 0 && (
-                            <div className="clip-waveform-container" aria-hidden="true">
-                              <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
-                                <path
-                                  d={item.waveform.map((peak, i) => {
-                                    const norm = Math.max(1, (peak / 255) * 14);
-                                    const x = (i / item.waveform!.length) * 100;
-                                    return `M ${x.toFixed(1)} ${(16 - norm).toFixed(1)} L ${x.toFixed(1)} ${(16 + norm).toFixed(1)}`;
-                                  }).join(" ")}
-                                  stroke="currentColor"
-                                  strokeWidth="1.2"
-                                  strokeLinecap="round"
-                                />
-                              </svg>
-                            </div>
-                          )}
+                          {(() => {
+                            const wf = getClipWaveform(item, index);
+                            return wf && wf.length > 0 ? (
+                              <div className="clip-waveform-container" aria-hidden="true">
+                                <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
+                                  <path
+                                    d={wf.map((peak, i) => {
+                                      const norm = Math.max(1, (peak / 255) * 14);
+                                      const x = (i / wf.length) * 100;
+                                      return `M ${x.toFixed(1)} ${(16 - norm).toFixed(1)} L ${x.toFixed(1)} ${(16 + norm).toFixed(1)}`;
+                                    }).join(" ")}
+                                    stroke="currentColor"
+                                    strokeWidth="1.2"
+                                    strokeLinecap="round"
+                                  />
+                                </svg>
+                              </div>
+                            ) : null;
+                          })()}
                           <span className="clip-kind-icon">{track.kind === "audio" ? "♪" : "▶"}</span>
                           <strong>{item?.name ?? "Clip"}</strong>
                         </div>
@@ -6420,2026 +6352,139 @@ function App() {
   }
 
   function renderFusionWorkspace() {
-    const graph = project?.sequence?.node_graph ?? { nodes: [], connections: [], masks: [] };
-    const nodes: CompositingNode[] = graph.nodes;
-    const connections: NodeConnection[] = graph.connections;
-    const masks: RotoSplineMask[] = graph.masks ?? [];
-    const selectedNode = nodes.find((n: CompositingNode) => n.id === selectedNodeId);
-
-    const handleCanvasMouseDown = (e: MouseEvent<HTMLDivElement>) => {
-      if ((e.target as HTMLElement).closest(".fusion-node-card") || (e.target as HTMLElement).closest(".socket-port")) {
-        return;
-      }
-      setSelectedNodeId(null);
-      setConnectingSocket(null);
-    };
-
-    const handleNodeDragStart = (e: MouseEvent, node: CompositingNode) => {
-      e.stopPropagation();
-      setSelectedNodeId(node.id);
-      setDraggingNodeId(node.id);
-      setNodeDragOffset({
-        x: e.clientX - node.pos_x,
-        y: e.clientY - node.pos_y,
-      });
-    };
-
-    const handleCanvasMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-      if (draggingNodeId == null) return;
-      const newX = Math.max(20, Math.round(e.clientX - nodeDragOffset.x));
-      const newY = Math.max(20, Math.round(e.clientY - nodeDragOffset.y));
-      void updateFusionNodePos(draggingNodeId, newX, newY);
-    };
-
-    const handleCanvasMouseUp = () => {
-      setDraggingNodeId(null);
-    };
-
-    const handleSocketClick = (e: MouseEvent, nodeId: number, socket: string, isOutput: boolean) => {
-      e.stopPropagation();
-      if (!connectingSocket) {
-        setConnectingSocket({ nodeId, socket, isOutput });
-        setNotice(`Connecting from ${socket}... click a target socket`);
-      } else {
-        if (connectingSocket.nodeId === nodeId) {
-          setConnectingSocket(null);
-          return;
-        }
-        // One must be output and the other input
-        if (connectingSocket.isOutput !== isOutput) {
-          const fromNode = connectingSocket.isOutput ? connectingSocket.nodeId : nodeId;
-          const fromSock = connectingSocket.isOutput ? connectingSocket.socket : socket;
-          const toNode = connectingSocket.isOutput ? nodeId : connectingSocket.nodeId;
-          const toSock = connectingSocket.isOutput ? socket : connectingSocket.socket;
-          void connectFusionSockets(fromNode, fromSock, toNode, toSock);
-          setNotice("Connected sockets");
-        } else {
-          setNotice("⚠️ Connect an output socket to an input socket");
-        }
-        setConnectingSocket(null);
-      }
-    };
-
-    const initStarterTree = async () => {
-      await addFusionNode("media_source", "MediaIn1", 60, 160, { media_id: media[0]?.id ?? 1 });
-      await addFusionNode("keyer", "ChromaKey1", 280, 160, { color: "#00ff00", tolerance: 40.0 });
-      await addFusionNode("transform", "Transform1", 500, 160, { scale: 1.0, x: 0, y: 0 });
-      await addFusionNode("merge", "Merge1", 720, 160, { blend_mode: "normal", opacity: 1.0 });
-      await addFusionNode("output_sink", "MediaOut1", 940, 160);
-      setNotice("Initialized Fusion Starter Node Tree");
-    };
-
     return (
-      <main className="workspace-page fusion-workspace-page">
-        <header className="workspace-sub-header fusion-workspace-header">
-          <div className="workspace-header-title">
-            <span className="workspace-eyebrow">FUSION · COMPOSITING SUITE</span>
-            <h1>Fusion Node-Based Compositor</h1>
-            <p>Visual procedural node graph ({nodes.length} nodes, {connections.length} links, {masks.length} masks), multi-layer alpha blending, ChromaKey, and particles.</p>
-          </div>
-
-          <div className="fusion-header-actions">
-            <div className="fusion-add-buttons">
-              <span className="fusion-add-label">+ Add Node:</span>
-              <button className="fusion-tool-btn" onClick={() => void addFusionNode("merge")}>Merge</button>
-              <button className="fusion-tool-btn" onClick={() => void addFusionNode("transform")}>Transform</button>
-              <button className="fusion-tool-btn" onClick={() => void addFusionNode("keyer")}>ChromaKey</button>
-              <button className="fusion-tool-btn" onClick={() => void addFusionNode("mask")}>RotoMask</button>
-              <button className="fusion-tool-btn" onClick={() => void addFusionNode("particles")}>Particles</button>
-              <button className="fusion-tool-btn" onClick={() => void addFusionNode("media_source")}>MediaIn</button>
-              <button className="fusion-tool-btn" onClick={() => void addFusionNode("output_sink")}>MediaOut</button>
-            </div>
-            {nodes.length === 0 && (
-              <button className="primary-action-btn" onClick={() => void initStarterTree()}>
-                ✨ Initialize Starter Node Tree
-              </button>
-            )}
-          </div>
-        </header>
-
-        <div className="fusion-body">
-          {/* Main Node Graph Canvas */}
-          <div
-            className="fusion-canvas-container"
-            onMouseDown={handleCanvasMouseDown}
-            onMouseMove={handleCanvasMouseMove}
-            onMouseUp={handleCanvasMouseUp}
-          >
-            <svg className="fusion-wires-layer">
-              <defs>
-                <linearGradient id="wireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#38bdf8" />
-                  <stop offset="100%" stopColor="#818cf8" />
-                </linearGradient>
-                <linearGradient id="maskWireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#f59e0b" />
-                  <stop offset="100%" stopColor="#ec4899" />
-                </linearGradient>
-              </defs>
-
-              {/* Render SVG Bezier Connections */}
-              {connections.map((c: NodeConnection, i: number) => {
-                const fromNode = nodes.find((n: CompositingNode) => n.id === c.from_node);
-                const toNode = nodes.find((n: CompositingNode) => n.id === c.to_node);
-                if (!fromNode || !toNode) return null;
-
-                const x1 = fromNode.pos_x + 150;
-                const y1 = fromNode.pos_y + 40;
-                const x2 = toNode.pos_x;
-                const y2 = toNode.pos_y + 40;
-                const dx = Math.max(50, Math.abs(x2 - x1) * 0.5);
-                const pathData = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
-                const isMaskWire = c.to_socket === "mask" || c.from_socket === "mask";
-
-                return (
-                  <g key={`${c.from_node}-${c.to_node}-${i}`} className="fusion-wire-group">
-                    <path
-                      d={pathData}
-                      className="fusion-wire-hitbox"
-                      onClick={() => void disconnectFusionSockets(c.from_node, c.from_socket, c.to_node, c.to_socket)}
-                    />
-                    <path
-                      d={pathData}
-                      className="fusion-wire"
-                      stroke={isMaskWire ? "url(#maskWireGrad)" : "url(#wireGrad)"}
-                      strokeWidth="2.5"
-                      fill="none"
-                    />
-                  </g>
-                );
-              })}
-            </svg>
-
-            {/* Render Node Cards */}
-            {nodes.map((node: CompositingNode) => {
-              const isSelected = selectedNodeId === node.id;
-              const nodeIcons: Record<CompositingNodeKind, string> = {
-                merge: "🔀",
-                transform: "📐",
-                keyer: "🟩",
-                mask: "✂️",
-                particles: "✨",
-                media_source: "🎬",
-                output_sink: "🖥️",
-              };
-
-              return (
-                <div
-                  key={node.id}
-                  className={`fusion-node-card ${isSelected ? "selected" : ""} kind-${node.kind}`}
-                  style={{ left: `${node.pos_x}px`, top: `${node.pos_y}px` }}
-                  onClick={(e) => { e.stopPropagation(); setSelectedNodeId(node.id); }}
-                >
-                  <div
-                    className="fusion-node-header"
-                    onMouseDown={(e) => handleNodeDragStart(e, node)}
-                  >
-                    <span className="node-icon">{nodeIcons[node.kind as CompositingNodeKind] || "🔷"}</span>
-                    <strong className="node-title">{node.title}</strong>
-                    <button
-                      type="button"
-                      className="node-delete-btn"
-                      onClick={(e) => { e.stopPropagation(); void removeFusionNode(node.id); }}
-                      title="Delete Node"
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <div className="fusion-node-body">
-                    {/* Left In sockets */}
-                    <div className="node-sockets-left">
-                      {node.kind === "merge" ? (
-                        <>
-                          <div
-                            className={`socket-port in ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "fg" ? "active" : ""}`}
-                            onClick={(e) => handleSocketClick(e, node.id, "fg", false)}
-                            title="Foreground Input"
-                          >
-                            <span className="socket-dot fg" />
-                            <small>FG</small>
-                          </div>
-                          <div
-                            className={`socket-port in ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "bg" ? "active" : ""}`}
-                            onClick={(e) => handleSocketClick(e, node.id, "bg", false)}
-                            title="Background Input"
-                          >
-                            <span className="socket-dot bg" />
-                            <small>BG</small>
-                          </div>
-                          <div
-                            className={`socket-port in mask ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "mask" ? "active" : ""}`}
-                            onClick={(e) => handleSocketClick(e, node.id, "mask", false)}
-                            title="Mask Input"
-                          >
-                            <span className="socket-dot mask" />
-                            <small>Mask</small>
-                          </div>
-                        </>
-                      ) : node.kind !== "media_source" && node.kind !== "particles" ? (
-                        <>
-                          <div
-                            className={`socket-port in ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "input" ? "active" : ""}`}
-                            onClick={(e) => handleSocketClick(e, node.id, "input", false)}
-                            title="Image Input"
-                          >
-                            <span className="socket-dot in" />
-                            <small>In</small>
-                          </div>
-                          <div
-                            className={`socket-port in mask ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "mask" ? "active" : ""}`}
-                            onClick={(e) => handleSocketClick(e, node.id, "mask", false)}
-                            title="Mask Input"
-                          >
-                            <span className="socket-dot mask" />
-                            <small>Mask</small>
-                          </div>
-                        </>
-                      ) : null}
-                    </div>
-
-                    {/* Right Out sockets */}
-                    <div className="node-sockets-right">
-                      {node.kind !== "output_sink" ? (
-                        <div
-                          className={`socket-port out ${connectingSocket?.nodeId === node.id && connectingSocket?.socket === "output" ? "active" : ""}`}
-                          onClick={(e) => handleSocketClick(e, node.id, "output", true)}
-                          title="Image Output"
-                        >
-                          <small>Out</small>
-                          <span className="socket-dot out" />
-                        </div>
-                      ) : (
-                        <span className="sink-label">Master Out</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Right Inspector Sidebar for Selected Node */}
-          <aside className="fusion-inspector-panel">
-            {selectedNode ? (
-              <div className="fusion-node-inspector">
-                <div className="inspector-title-row">
-                  <h3>{selectedNode.title}</h3>
-                  <span className="node-kind-badge">{selectedNode.kind.toUpperCase()}</span>
-                </div>
-
-                <div className="inspector-controls">
-                  {selectedNode.kind === "keyer" && (
-                    <div className="node-param-group">
-                      <h4>Chroma Key Settings</h4>
-                      <label className="param-field">
-                        <span>Key Color:</span>
-                        <input
-                          type="color"
-                          value={(selectedNode.params?.color as string) || "#00ff00"}
-                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, color: e.target.value })}
-                        />
-                      </label>
-                      <label className="param-field">
-                        <span>Tolerance: {((selectedNode.params?.tolerance as number) ?? 40).toFixed(0)}</span>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={(selectedNode.params?.tolerance as number) ?? 40}
-                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, tolerance: Number(e.target.value) })}
-                        />
-                      </label>
-                      <label className="param-field">
-                        <span>Spill Suppression: {(((selectedNode.params?.spill_suppression as number) ?? 0.75) * 100).toFixed(0)}%</span>
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.05"
-                          value={(selectedNode.params?.spill_suppression as number) ?? 0.75}
-                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, spill_suppression: Number(e.target.value) })}
-                        />
-                      </label>
-                    </div>
-                  )}
-
-                  {selectedNode.kind === "transform" && (
-                    <div className="node-param-group">
-                      <h4>Spatial Transform</h4>
-                      <label className="param-field">
-                        <span>Scale: {((selectedNode.params?.scale as number) ?? 1.0).toFixed(2)}x</span>
-                        <input
-                          type="range"
-                          min="0.1"
-                          max="3"
-                          step="0.05"
-                          value={(selectedNode.params?.scale as number) ?? 1.0}
-                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, scale: Number(e.target.value) })}
-                        />
-                      </label>
-                      <label className="param-field">
-                        <span>X Offset: {((selectedNode.params?.x as number) ?? 0).toFixed(0)}px</span>
-                        <input
-                          type="range"
-                          min="-500"
-                          max="500"
-                          value={(selectedNode.params?.x as number) ?? 0}
-                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, x: Number(e.target.value) })}
-                        />
-                      </label>
-                      <label className="param-field">
-                        <span>Rotation: {((selectedNode.params?.rotation as number) ?? 0).toFixed(0)}°</span>
-                        <input
-                          type="range"
-                          min="-180"
-                          max="180"
-                          value={(selectedNode.params?.rotation as number) ?? 0}
-                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, rotation: Number(e.target.value) })}
-                        />
-                      </label>
-                    </div>
-                  )}
-
-                  {selectedNode.kind === "merge" && (
-                    <div className="node-param-group">
-                      <h4>Multi-Layer Compositing</h4>
-                      <label className="param-field">
-                        <span>Blend Mode:</span>
-                        <select
-                          value={(selectedNode.params?.blend_mode as string) || "normal"}
-                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, blend_mode: e.target.value })}
-                        >
-                          <option value="normal">Normal (Source Over)</option>
-                          <option value="multiply">Multiply</option>
-                          <option value="screen">Screen</option>
-                          <option value="add">Add</option>
-                          <option value="overlay">Overlay</option>
-                        </select>
-                      </label>
-                      <label className="param-field">
-                        <span>Foreground Opacity: {(((selectedNode.params?.opacity as number) ?? 1.0) * 100).toFixed(0)}%</span>
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.05"
-                          value={(selectedNode.params?.opacity as number) ?? 1.0}
-                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, opacity: Number(e.target.value) })}
-                        />
-                      </label>
-                    </div>
-                  )}
-
-                  {selectedNode.kind === "mask" && (
-                    <div className="node-param-group">
-                      <h4>Roto-Spline Masking</h4>
-                      <label className="param-field">
-                        <span>Edge Feather: {fusionMaskFeather.toFixed(1)}px</span>
-                        <input
-                          type="range"
-                          min="0"
-                          max="30"
-                          step="0.5"
-                          value={fusionMaskFeather}
-                          onChange={(e) => {
-                            setFusionMaskFeather(Number(e.target.value));
-                            void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, feather: Number(e.target.value) });
-                          }}
-                        />
-                      </label>
-                      <label className="checkbox-field">
-                        <input
-                          type="checkbox"
-                          checked={fusionMaskInverted}
-                          onChange={(e) => {
-                            setFusionMaskInverted(e.target.checked);
-                            void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, inverted: e.target.checked });
-                          }}
-                        />
-                        <span>Invert Mask Matte</span>
-                      </label>
-                      <button
-                        className="secondary-btn"
-                        style={{ marginTop: "8px" }}
-                        onClick={() => void addRotoSplineMask(fusionMaskPoints, fusionMaskFeather, true, fusionMaskInverted)}
-                      >
-                        + Create Spline Polygon
-                      </button>
-                    </div>
-                  )}
-
-                  {selectedNode.kind === "particles" && (
-                    <div className="node-param-group">
-                      <h4>Particle Emitter Simulator</h4>
-                      <label className="param-field">
-                        <span>Emission Speed: {((selectedNode.params?.speed as number) ?? 120).toFixed(0)} px/s</span>
-                        <input
-                          type="range"
-                          min="20"
-                          max="300"
-                          value={(selectedNode.params?.speed as number) ?? 120}
-                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, speed: Number(e.target.value) })}
-                        />
-                      </label>
-                      <label className="param-field">
-                        <span>Gravity Y: {((selectedNode.params?.gravity as number) ?? 50).toFixed(0)}</span>
-                        <input
-                          type="range"
-                          min="-100"
-                          max="200"
-                          value={(selectedNode.params?.gravity as number) ?? 50}
-                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, gravity: Number(e.target.value) })}
-                        />
-                      </label>
-                    </div>
-                  )}
-
-                  {selectedNode.kind === "media_source" && (
-                    <div className="node-param-group">
-                      <h4>Source Media Feed</h4>
-                      <label className="param-field">
-                        <span>Media Asset:</span>
-                        <select
-                          value={(selectedNode.params?.media_id as number) || (media[0]?.id ?? 1)}
-                          onChange={(e) => void updateFusionNodeParams(selectedNode.id, { ...selectedNode.params, media_id: Number(e.target.value) })}
-                        >
-                          {media.map((m) => (
-                            <option key={m.id} value={m.id}>{m.name}</option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-                  )}
-
-                  <button
-                    className="danger-button"
-                    style={{ marginTop: "16px" }}
-                    onClick={() => void removeFusionNode(selectedNode.id)}
-                  >
-                    Remove Node
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="fusion-empty-inspector">
-                <span className="empty-icon">🔲</span>
-                <p>Select any node on the graph canvas to inspect parameters and routing sockets.</p>
-              </div>
-            )}
-          </aside>
-        </div>
-      </main>
+      <FusionWorkspace
+        project={project}
+        media={media}
+        selectedNodeId={selectedNodeId}
+        setSelectedNodeId={setSelectedNodeId}
+        connectingSocket={connectingSocket}
+        setConnectingSocket={setConnectingSocket}
+        draggingNodeId={draggingNodeId}
+        setDraggingNodeId={setDraggingNodeId}
+        nodeDragOffset={nodeDragOffset}
+        setNodeDragOffset={setNodeDragOffset}
+        updateFusionNodePos={updateFusionNodePos}
+        connectFusionSockets={connectFusionSockets}
+        disconnectFusionSockets={disconnectFusionSockets}
+        addFusionNode={addFusionNode}
+        removeFusionNode={removeFusionNode}
+        updateFusionNodeParams={updateFusionNodeParams}
+        fusionMaskFeather={fusionMaskFeather}
+        setFusionMaskFeather={setFusionMaskFeather}
+        fusionMaskInverted={fusionMaskInverted}
+        setFusionMaskInverted={setFusionMaskInverted}
+        fusionMaskPoints={fusionMaskPoints}
+        addRotoSplineMask={addRotoSplineMask}
+        setNotice={setNotice}
+      />
     );
   }
 
   function renderColorWorkspace() {
-    const allClips = (project?.sequence.tracks ?? []).flatMap((track) =>
-      track.clips.map((clip, index) => ({ track, clip, index, mediaItem: media.find((m) => m.id === clip.media_id) }))
-    );
-    const updateColorField = (field: keyof ColorAdjustments, value: number) => {
-      const next = { ...colorDraft, [field]: value };
-      setColorDraft(next);
-      void saveColor(next);
-    };
-    const resetColorGrading = () => {
-      const resetWheels = {
-        lift: { red: 0, green: 0, blue: 0, luma: 0 },
-        gamma: { red: 0, green: 0, blue: 0, luma: 0 },
-        gain: { red: 0, green: 0, blue: 0, luma: 0 },
-        offset: { red: 0, green: 0, blue: 0, luma: 0 },
-      };
-      const reset = { exposure: 0, contrast: 1.0, saturation: 1.0, hue: 0.0, wheels: resetWheels };
-      setColorDraft(reset);
-      setColorWheelsDraft(DEFAULT_COLOR_WHEELS);
-      void saveColor(reset);
-      if (selectedClip) {
-        void runCommand("clip.set_color_wheels", {
-          track_id: selectedClip.track_id,
-          clip_index: selectedClip.clip_index,
-          wheels: resetWheels,
-        }).catch(() => {});
-      }
-    };
-
     return (
-      <main className="workspace-page color-workspace-page">
-        <header className="workspace-sub-header color-workspace-header">
-          <div className="workspace-header-title">
-            <span className="workspace-eyebrow">COLOR · PRIMARY GRADING &amp; SCOPES</span>
-            <h1>Color Grading Studio</h1>
-            <p>Real-time GPU video scopes (Waveform, Vectorscope, Parade, Histogram), 3-way color balance wheels &amp; cinematic presets.</p>
-          </div>
-          <div className="color-header-actions">
-            <span className="color-target-info">
-              {selectedTimelineClip ? (
-                <>Target: <strong>{media.find((m) => m.id === selectedTimelineClip.media_id)?.name ?? "Selected Clip"}</strong></>
-              ) : (
-                <span className="color-hint-text">Select a clip in the reel below to grade</span>
-              )}
-            </span>
-            <button
-              className="btn-secondary"
-              onClick={resetColorGrading}
-              disabled={!selectedClip}
-              title="Reset exposure, contrast, saturation, and color wheels to neutral"
-            >
-              Reset All
-            </button>
-            <button
-              className="btn-primary-subtle"
-              onClick={() => selectDavinciWorkspace("edit")}
-            >
-              ← Back to Edit
-            </button>
-          </div>
-        </header>
-
-        <div className="color-studio-body">
-          {/* Top Half: Side-by-Side Program Monitor + Video Scopes */}
-          <div className="color-top-row">
-            <section className="color-monitor-stage">
-              <div className="color-viewer-container">
-                <div className="color-viewer-header">
-                  <span className="viewer-title">PROGRAM MONITOR</span>
-                  <code>{formatTime(playhead)}</code>
-                </div>
-                <div className="color-monitor-wrapper">
-                  {renderProgramMonitor()}
-                </div>
-                <div className="color-transport-bar">
-                  <button aria-label="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</button>
-                  <button
-                    className={programPlaying ? "active-toggle" : ""}
-                    aria-label={programPlaying ? "Pause playback" : "Play clip"}
-                    onClick={() => toggleProgramPlayback()}
-                  >
-                    {programPlaying ? "⏸ Pause" : "▶ Play"}
-                  </button>
-                  <button aria-label="Next frame" onClick={() => stepProgramFrame(1)}>▶|</button>
-                  <code>{formatTime(playhead)}</code>
-                </div>
-              </div>
-            </section>
-
-            {/* Video Scopes Stage: Real-Time Waveform / Vectorscope / Parade / Histogram */}
-            <section className="color-scopes-stage">
-              <VideoScopes
-                getActiveVideo={() => {
-                  if (deckSnapshot?.deckB.visible && deckBRef.current) return deckBRef.current;
-                  return deckARef.current;
-                }}
-                activeFilter={
-                  deckSnapshot?.deckB.visible
-                    ? (deckSnapshot.deckB.style.filter as string | undefined)
-                    : (deckSnapshot?.deckA.style.filter as string | undefined)
-                }
-              />
-            </section>
-          </div>
-
-          {/* Bottom Half: 4 Primary Color Wheels Dock + Sliders & Presets */}
-          <div className="color-bottom-row">
-            <div className="color-wheels-dock-wrapper">
-              <div
-                className="color-studio-tabs"
-                style={{
-                  display: "flex",
-                  gap: "8px",
-                  marginBottom: "12px",
-                  borderBottom: "1px solid #2d3748",
-                  paddingBottom: "8px",
-                }}
-              >
-                <button
-                  type="button"
-                  className={`btn-secondary ${colorStudioTab === "wheels" ? "active" : ""}`}
-                  style={{
-                    background: colorStudioTab === "wheels" ? "#3182ce" : "#1a202c",
-                    color: colorStudioTab === "wheels" ? "#ffffff" : "#a0aec0",
-                    fontWeight: 600,
-                    fontSize: "12px",
-                    padding: "6px 12px",
-                    borderRadius: "4px",
-                    border: "1px solid #2d3748",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setColorStudioTab("wheels")}
-                >
-                  🎡 3-Way Color Wheels
-                </button>
-                <button
-                  type="button"
-                  className={`btn-secondary ${colorStudioTab === "curves" ? "active" : ""}`}
-                  style={{
-                    background: colorStudioTab === "curves" ? "#3182ce" : "#1a202c",
-                    color: colorStudioTab === "curves" ? "#ffffff" : "#a0aec0",
-                    fontWeight: 600,
-                    fontSize: "12px",
-                    padding: "6px 12px",
-                    borderRadius: "4px",
-                    border: "1px solid #2d3748",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setColorStudioTab("curves")}
-                >
-                  📈 RGB Curves
-                </button>
-                <button
-                  type="button"
-                  className={`btn-secondary ${colorStudioTab === "qualifier" ? "active" : ""}`}
-                  style={{
-                    background: colorStudioTab === "qualifier" ? "#3182ce" : "#1a202c",
-                    color: colorStudioTab === "qualifier" ? "#ffffff" : "#a0aec0",
-                    fontWeight: 600,
-                    fontSize: "12px",
-                    padding: "6px 12px",
-                    borderRadius: "4px",
-                    border: "1px solid #2d3748",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setColorStudioTab("qualifier")}
-                >
-                  🎯 HSL Secondary Qualifier
-                </button>
-              </div>
-
-              {colorStudioTab === "wheels" && (
-                <ColorWheels
-                  value={colorWheelsDraft}
-                  onChange={updateColorWheels}
-                  disabled={!selectedClip}
-                />
-              )}
-              {colorStudioTab === "curves" && (
-                <RgbCurvesEditor
-                  curves={rgbCurvesDraft}
-                  onChange={updateRgbCurves}
-                />
-              )}
-              {colorStudioTab === "qualifier" && (
-                <HslQualifierEditor
-                  qualifier={hslQualifierDraft}
-                  onChange={updateHslQualifier}
-                  showMatte={showMatteDraft}
-                  onToggleShowMatte={setShowMatteDraft}
-                />
-              )}
-            </div>
-
-            <aside className="color-sidebar-dock">
-              <div className="color-grading-box">
-                <div className="color-section-header">
-                  <h3>Primary Sliders</h3>
-                  <small>Exposure / Contrast / Sat</small>
-                </div>
-
-                <div className="color-sliders-group">
-                  <label className="color-slider-item">
-                    <div className="slider-label-row">
-                      <span>Exposure</span>
-                      <b>{colorDraft.exposure > 0 ? `+${colorDraft.exposure.toFixed(1)}` : colorDraft.exposure.toFixed(1)}</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="-5"
-                      max="5"
-                      step="0.1"
-                      disabled={!selectedClip}
-                      value={colorDraft.exposure}
-                      onChange={(e) => setColorDraft((v) => ({ ...v, exposure: Number(e.target.value) }))}
-                      onPointerUp={(e) => updateColorField("exposure", Number(e.currentTarget.value))}
-                      onKeyUp={(e) => updateColorField("exposure", Number(e.currentTarget.value))}
-                    />
-                  </label>
-
-                  <label className="color-slider-item">
-                    <div className="slider-label-row">
-                      <span>Contrast</span>
-                      <b>{colorDraft.contrast.toFixed(2)}</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="2"
-                      step="0.01"
-                      disabled={!selectedClip}
-                      value={colorDraft.contrast}
-                      onChange={(e) => setColorDraft((v) => ({ ...v, contrast: Number(e.target.value) }))}
-                      onPointerUp={(e) => updateColorField("contrast", Number(e.currentTarget.value))}
-                      onKeyUp={(e) => updateColorField("contrast", Number(e.currentTarget.value))}
-                    />
-                  </label>
-
-                  <label className="color-slider-item">
-                    <div className="slider-label-row">
-                      <span>Saturation</span>
-                      <b>{colorDraft.saturation.toFixed(2)}</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="2"
-                      step="0.01"
-                      disabled={!selectedClip}
-                      value={colorDraft.saturation}
-                      onChange={(e) => setColorDraft((v) => ({ ...v, saturation: Number(e.target.value) }))}
-                      onPointerUp={(e) => updateColorField("saturation", Number(e.currentTarget.value))}
-                      onKeyUp={(e) => updateColorField("saturation", Number(e.currentTarget.value))}
-                    />
-                  </label>
-
-                  <label className="color-slider-item">
-                    <div className="slider-label-row">
-                      <span>Hue Tint</span>
-                      <b>{((colorDraft.hue ?? 0) * 180).toFixed(0)}°</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="-1"
-                      max="1"
-                      step="0.01"
-                      disabled={!selectedClip}
-                      value={colorDraft.hue ?? 0}
-                      onChange={(e) => setColorDraft((v) => ({ ...v, hue: Number(e.target.value) }))}
-                      onPointerUp={(e) => updateColorField("hue", Number(e.currentTarget.value))}
-                      onKeyUp={(e) => updateColorField("hue", Number(e.currentTarget.value))}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div className="color-presets-box">
-                <div className="color-section-header">
-                  <h3>Look Presets</h3>
-                  <small>1-Click</small>
-                </div>
-                <div className="color-presets-grid compact">
-                  {COLOR_PRESETS.map((preset) => (
-                    <button
-                      key={preset.id}
-                      className="color-preset-card compact"
-                      disabled={!selectedClip}
-                      onClick={() => void applyColorPreset(preset)}
-                      title={`Apply ${preset.label} grade`}
-                    >
-                      <span className="preset-card-icon">{preset.icon}</span>
-                      <strong className="preset-card-title">{preset.label}</strong>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="color-presets-box lut-presets-box">
-                <div className="color-section-header">
-                  <h3>3D Film Looks (.cube)</h3>
-                  <small>Trilinear 3D Tables</small>
-                </div>
-                <div className="color-presets-grid compact">
-                  {LUT_PRESETS.map((lut) => (
-                    <button
-                      key={lut.id}
-                      className="color-preset-card compact"
-                      disabled={!selectedClip}
-                      onClick={() => void applyLutPreset(lut)}
-                      title={`Apply ${lut.name}: ${lut.description}`}
-                    >
-                      <span className="preset-card-icon">{lut.icon}</span>
-                      <strong className="preset-card-title">{lut.name}</strong>
-                    </button>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  className="btn-secondary lut-open-btn"
-                  disabled={!selectedClip}
-                  onClick={() => void loadLutCubeDialog()}
-                  style={{ marginTop: "8px", width: "100%", fontSize: "11px", padding: "6px" }}
-                >
-                  📂 Load Custom .cube File…
-                </button>
-              </div>
-            </aside>
-          </div>
-        </div>
-
-        {/* Bottom Clips Reel Tray */}
-        <section className="clips-reel-tray">
-          <div className="reel-tray-header">
-            <strong>SEQUENCE CLIPS REEL</strong>
-            <small>{allClips.length} clips on timeline · Click any clip to grade</small>
-          </div>
-          <div className="reel-clips-strip">
-            {allClips.map(({ track, clip, index, mediaItem }) => {
-              const isSelected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
-              return (
-                <button
-                  key={`reel-${track.id}-${clip.media_id}-${index}`}
-                  className={`reel-clip-card ${isSelected ? "selected" : ""}`}
-                  onClick={() => {
-                    setSelectedClip({ track_id: track.id, clip_index: index });
-                    setSelectedClips([{ track_id: track.id, clip_index: index }]);
-                    seekProgramTo(clip.timeline_start);
-                  }}
-                >
-                  <div className="reel-clip-badge">
-                    <span className={`reel-track-kind ${track.kind}`}>{track.name}</span>
-                    <code>{formatTime(clip.timeline_start)}</code>
-                  </div>
-                  <strong className="reel-clip-name">{mediaItem?.name ?? "Clip"}</strong>
-                  <span className="reel-clip-dur">{formatTime(clip.duration)}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      </main>
+      <ColorWorkspace
+        project={project}
+        media={media}
+        selectedClip={selectedClip}
+        selectedTimelineClip={selectedTimelineClip}
+        setSelectedClip={setSelectedClip}
+        setSelectedClips={setSelectedClips}
+        colorDraft={colorDraft}
+        setColorDraft={setColorDraft}
+        colorWheelsDraft={colorWheelsDraft}
+        setColorWheelsDraft={setColorWheelsDraft}
+        rgbCurvesDraft={rgbCurvesDraft}
+        hslQualifierDraft={hslQualifierDraft}
+        showMatteDraft={showMatteDraft}
+        setShowMatteDraft={setShowMatteDraft}
+        colorStudioTab={colorStudioTab}
+        setColorStudioTab={setColorStudioTab}
+        updateColorWheels={updateColorWheels}
+        updateRgbCurves={updateRgbCurves}
+        updateHslQualifier={updateHslQualifier}
+        applyColorPreset={applyColorPreset}
+        applyLutPreset={applyLutPreset}
+        loadLutCubeDialog={loadLutCubeDialog}
+        saveColor={saveColor}
+        runCommand={runCommand}
+        selectDavinciWorkspace={selectDavinciWorkspace}
+        playhead={playhead}
+        renderProgramMonitor={renderProgramMonitor}
+        programPlaying={programPlaying}
+        toggleProgramPlayback={toggleProgramPlayback}
+        stepProgramFrame={stepProgramFrame}
+        seekProgramTo={seekProgramTo}
+        deckSnapshot={deckSnapshot}
+        deckARef={deckARef}
+        deckBRef={deckBRef}
+      />
     );
   }
 
   function renderEffectsWorkspace() {
-    const allClips = (project?.sequence.tracks ?? []).flatMap((track) =>
-      track.clips.map((clip, index) => ({ track, clip, index, mediaItem: media.find((m) => m.id === clip.media_id) }))
-    );
-    const effects: EffectInstance[] = selectedTimelineClip?.effects ?? [];
-
     return (
-      <main className="workspace-page effects-workspace-page">
-        <header className="workspace-sub-header effects-workspace-header">
-          <div className="workspace-header-title">
-            <span className="workspace-eyebrow">EFFECTS · VISUAL FX &amp; COMPOSITING</span>
-            <h1>Visual Effects Lab</h1>
-            <p>Compound visual effects stack, blur, crop, vignette, chroma keying, and motion transforms.</p>
-          </div>
-          <div className="effects-header-actions">
-            {selectedClip && (
-              <div className="add-effect-control">
-                <select
-                  className="add-effect-select"
-                  defaultValue=""
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      void addEffect(e.target.value as EffectKind);
-                      e.target.value = "";
-                    }
-                  }}
-                >
-                  <option value="" disabled>＋ Add Effect to Clip…</option>
-                  <option value="gaussian_blur">💧 Gaussian Blur</option>
-                  <option value="crop">✂️ Crop</option>
-                  <option value="vignette">🔘 Vignette</option>
-                  <option value="chroma_key">🟩 Chroma Key</option>
-                  <option value="color_correction">🎨 Color Correction</option>
-                  <option value="lut">🎬 3D LUT (.cube)</option>
-                  <option value="custom_shader">✨ Custom GLSL Shader</option>
-                </select>
-              </div>
-            )}
-            <button
-              className="btn-primary-subtle"
-              onClick={() => selectDavinciWorkspace("edit")}
-            >
-              ← Back to Edit
-            </button>
-          </div>
-        </header>
-
-        <div className="effects-studio-body">
-          {/* Main Stage: Large Program Monitor Viewer + Transport Controls */}
-          <section className="effects-monitor-stage">
-            <div className="effects-viewer-container">
-              <div className="effects-viewer-header">
-                <span className="viewer-title">PROGRAM MONITOR &amp; FX COMPOSITE</span>
-                <code>{formatTime(playhead)}</code>
-              </div>
-              <div className="effects-monitor-wrapper">
-                {renderProgramMonitor()}
-              </div>
-              <div className="effects-transport-bar">
-                <button aria-label="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</button>
-                <button
-                  className={programPlaying ? "active-toggle" : ""}
-                  aria-label={programPlaying ? "Pause playback" : "Play clip"}
-                  onClick={() => toggleProgramPlayback()}
-                >
-                  {programPlaying ? "⏸ Pause" : "▶ Play"}
-                </button>
-                <button aria-label="Next frame" onClick={() => stepProgramFrame(1)}>▶|</button>
-                <code>{formatTime(playhead)}</code>
-              </div>
-            </div>
-          </section>
-
-          {/* Right Sidebar: Effects Stack */}
-          <aside className="effects-stack-sidebar">
-            <div className="effects-stack-box">
-              <div className="effects-section-header">
-                <h3>Active Effect Stack</h3>
-                <small>{effects.length} effect{effects.length !== 1 ? "s" : ""} on clip</small>
-              </div>
-
-              {!selectedTimelineClip ? (
-                <div className="effect-empty-card">
-                  <p>Select a clip in the sequence reel below to inspect and configure its effects.</p>
-                </div>
-              ) : effects.length === 0 ? (
-                <div className="effect-empty-card">
-                  <p>No effects applied to this clip yet.</p>
-                  <small>Choose an effect from the "＋ Add Effect" dropdown above to begin compounding visual effects.</small>
-                </div>
-              ) : (
-                <div className="effects-stack-list">
-                  {effects.map((eff, idx) => (
-                    <article key={eff.id} className={`effect-stack-card ${eff.enabled ? "is-active" : "is-bypassed"}`}>
-                      <header className="effect-card-header">
-                        <button
-                          type="button"
-                          className={`effect-toggle-btn ${eff.enabled ? "enabled" : "bypassed"}`}
-                          title={eff.enabled ? "Bypass Effect" : "Enable Effect"}
-                          onClick={() => void toggleEffect(eff.id, !eff.enabled)}
-                        >
-                          {eff.enabled ? "👁" : "👁‍🗨"}
-                        </button>
-                        <div className="effect-card-title">
-                          <strong>{eff.name}</strong>
-                          <span className="effect-kind-badge">{eff.kind.replace("_", " ")}</span>
-                        </div>
-                        <div className="effect-card-actions">
-                          <button
-                            type="button"
-                            className="effect-action-btn"
-                            disabled={idx === 0}
-                            title="Move Up"
-                            onClick={() => void reorderEffect(idx, idx - 1)}
-                          >
-                            ▲
-                          </button>
-                          <button
-                            type="button"
-                            className="effect-action-btn"
-                            disabled={idx === effects.length - 1}
-                            title="Move Down"
-                            onClick={() => void reorderEffect(idx, idx + 1)}
-                          >
-                            ▼
-                          </button>
-                          <button
-                            type="button"
-                            className="effect-action-btn delete"
-                            title="Remove Effect"
-                            onClick={() => void removeEffect(eff.id)}
-                          >
-                            ×
-                          </button>
-                        </div>
-                      </header>
-
-                      {eff.enabled && (
-                        <div className="effect-card-body">
-                          {eff.kind === "color_correction" && (() => {
-                            const p = eff.params as ColorCorrectionParams;
-                            return (
-                              <>
-                                <label>
-                                  <span>Exposure ({p.exposure > 0 ? `+${p.exposure.toFixed(1)}` : p.exposure.toFixed(1)})</span>
-                                  <input
-                                    type="range"
-                                    min="-5"
-                                    max="5"
-                                    step="0.1"
-                                    value={p.exposure ?? 0}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "color_correction",
-                                      params: { ...p, exposure: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                                <label>
-                                  <span>Contrast ({p.contrast.toFixed(2)})</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="2"
-                                    step="0.01"
-                                    value={p.contrast ?? 1}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "color_correction",
-                                      params: { ...p, contrast: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                                <label>
-                                  <span>Saturation ({p.saturation.toFixed(2)})</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="2"
-                                    step="0.01"
-                                    value={p.saturation ?? 1}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "color_correction",
-                                      params: { ...p, saturation: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                                <label>
-                                  <span>Hue Shift ({Math.round((p.hue ?? 0) * 180)}°)</span>
-                                  <input
-                                    type="range"
-                                    min="-1"
-                                    max="1"
-                                    step="0.01"
-                                    value={p.hue ?? 0}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "color_correction",
-                                      params: { ...p, hue: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                              </>
-                            );
-                          })()}
-
-                          {eff.kind === "gaussian_blur" && (() => {
-                            const p = eff.params as GaussianBlurParams;
-                            return (
-                              <label>
-                                <span>Blur Radius ({p.sigma.toFixed(1)} px)</span>
-                                <input
-                                  type="range"
-                                  min="0"
-                                  max="20"
-                                  step="0.1"
-                                  value={p.sigma ?? 2}
-                                  onChange={(e) => void updateEffectPayload(eff.id, {
-                                    kind: "gaussian_blur",
-                                    params: { sigma: Number(e.target.value) },
-                                  })}
-                                />
-                              </label>
-                            );
-                          })()}
-
-                          {eff.kind === "crop" && (() => {
-                            const p = eff.params as CropParams;
-                            return (
-                              <div className="crop-controls-grid">
-                                <label>
-                                  <span>Top ({p.top ?? 0}%)</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    step="0.5"
-                                    value={p.top ?? 0}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "crop",
-                                      params: { ...p, top: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                                <label>
-                                  <span>Bottom ({p.bottom ?? 0}%)</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    step="0.5"
-                                    value={p.bottom ?? 0}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "crop",
-                                      params: { ...p, bottom: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                                <label>
-                                  <span>Left ({p.left ?? 0}%)</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    step="0.5"
-                                    value={p.left ?? 0}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "crop",
-                                      params: { ...p, left: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                                <label>
-                                  <span>Right ({p.right ?? 0}%)</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    step="0.5"
-                                    value={p.right ?? 0}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "crop",
-                                      params: { ...p, right: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                              </div>
-                            );
-                          })()}
-
-                          {eff.kind === "vignette" && (() => {
-                            const p = eff.params as VignetteParams;
-                            return (
-                              <>
-                                <label>
-                                  <span>Intensity ({Math.round((p.intensity ?? 0.5) * 100)}%)</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value={p.intensity ?? 0.5}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "vignette",
-                                      params: { ...p, intensity: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                                <label>
-                                  <span>Radius ({p.radius?.toFixed(2) ?? "0.80"})</span>
-                                  <input
-                                    type="range"
-                                    min="0.1"
-                                    max="2"
-                                    step="0.01"
-                                    value={p.radius ?? 0.8}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "vignette",
-                                      params: { ...p, radius: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                                <label>
-                                  <span>Softness ({Math.round((p.softness ?? 0.5) * 100)}%)</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value={p.softness ?? 0.5}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "vignette",
-                                      params: { ...p, softness: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                              </>
-                            );
-                          })()}
-
-                          {eff.kind === "chroma_key" && (() => {
-                            const p = eff.params as ChromaKeyParams;
-                            return (
-                              <>
-                                <div className="chroma-color-picker-row">
-                                  <span>Key Color</span>
-                                  <div className="chroma-inputs">
-                                    <input
-                                      type="color"
-                                      value={p.color ?? "#00ff00"}
-                                      onChange={(e) => void updateEffectPayload(eff.id, {
-                                        kind: "chroma_key",
-                                        params: { ...p, color: e.target.value },
-                                      })}
-                                    />
-                                    <code>{p.color ?? "#00ff00"}</code>
-                                  </div>
-                                </div>
-                                <label>
-                                  <span>Tolerance ({Math.round(p.tolerance ?? 25)}%)</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    step="1"
-                                    value={p.tolerance ?? 25}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "chroma_key",
-                                      params: { ...p, tolerance: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                                <label>
-                                  <span>Edge Softness ({Math.round(p.softness ?? 10)}%)</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="50"
-                                    step="1"
-                                    value={p.softness ?? 10}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "chroma_key",
-                                      params: { ...p, softness: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                                <label>
-                                  <span>Spill Suppression ({Math.round((p.spill_suppression ?? 0.5) * 100)}%)</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value={p.spill_suppression ?? 0.5}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "chroma_key",
-                                      params: { ...p, spill_suppression: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                              </>
-                            );
-                          })()}
-
-                          {eff.kind === "lut" && (() => {
-                            const p = eff.params as LutParams;
-                            return (
-                              <div className="lut-effect-body">
-                                <div className="lut-preset-selector">
-                                  <span>Cinematic Look</span>
-                                  <select
-                                    value={p.preset_id || (p.path ? "custom" : "rec709")}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      if (val === "custom") {
-                                        void loadLutCubeDialog(eff.id);
-                                      } else {
-                                        const preset = LUT_PRESETS.find((pr) => pr.id === val);
-                                        if (preset) {
-                                          void updateEffectPayload(eff.id, {
-                                            kind: "lut",
-                                            params: {
-                                              name: preset.name,
-                                              preset_id: preset.id,
-                                              intensity: p.intensity ?? 1.0,
-                                              path: null,
-                                            },
-                                          });
-                                        }
-                                      }
-                                    }}
-                                  >
-                                    {LUT_PRESETS.map((pr) => (
-                                      <option key={pr.id} value={pr.id}>{pr.icon} {pr.name}</option>
-                                    ))}
-                                    <option value="custom">📁 Custom .cube File…</option>
-                                  </select>
-                                </div>
-
-                                {p.path && (
-                                  <div className="lut-file-info">
-                                    <small title={p.path}>File: {p.path.split("/").pop()}</small>
-                                  </div>
-                                )}
-
-                                <button
-                                  type="button"
-                                  className="btn-secondary lut-browse-btn"
-                                  onClick={() => void loadLutCubeDialog(eff.id)}
-                                >
-                                  📂 Browse .cube File…
-                                </button>
-
-                                <label>
-                                  <span>LUT Intensity ({Math.round((p.intensity ?? 1.0) * 100)}%)</span>
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.01"
-                                    value={p.intensity ?? 1.0}
-                                    onChange={(e) => void updateEffectPayload(eff.id, {
-                                      kind: "lut",
-                                      params: { ...p, intensity: Number(e.target.value) },
-                                    })}
-                                  />
-                                </label>
-                              </div>
-                            );
-                          })()}
-
-                          {eff.kind === "custom_shader" && (() => {
-                            const p = (eff.params as CustomShaderParams) || {
-                              name: "Custom GLSL Shader",
-                              shader_code: "",
-                              uniforms: {},
-                            };
-                            return (
-                              <CustomShaderEditor
-                                shaderParams={p}
-                                onApply={(updatedShader) => {
-                                  void updateEffectPayload(eff.id, {
-                                    kind: "custom_shader",
-                                    params: updatedShader,
-                                  });
-                                }}
-                              />
-                            );
-                          })()}
-                        </div>
-                      )}
-                    </article>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* AI Background Matting Card */}
-            <div style={{ marginTop: "16px" }}>
-              <BackgroundMattingCard clipId={selectedTimelineClip?.media_id} />
-            </div>
-          </aside>
-        </div>
-
-        {/* Bottom Clips Reel Tray */}
-        <section className="clips-reel-tray">
-          <div className="reel-tray-header">
-            <strong>SEQUENCE CLIPS REEL</strong>
-            <small>{allClips.length} clips on timeline · Click any clip to apply or edit effects</small>
-          </div>
-          <div className="reel-clips-strip">
-            {allClips.map(({ track, clip, index, mediaItem }) => {
-              const isSelected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
-              const clipFxCount = clip.effects?.length ?? 0;
-              return (
-                <button
-                  key={`reel-fx-${track.id}-${clip.media_id}-${index}`}
-                  className={`reel-clip-card ${isSelected ? "selected" : ""}`}
-                  onClick={() => {
-                    setSelectedClip({ track_id: track.id, clip_index: index });
-                    setSelectedClips([{ track_id: track.id, clip_index: index }]);
-                    seekProgramTo(clip.timeline_start);
-                  }}
-                >
-                  <div className="reel-clip-badge">
-                    <span className={`reel-track-kind ${track.kind}`}>{track.name}</span>
-                    {clipFxCount > 0 && <span className="reel-fx-count-pill">{clipFxCount} FX</span>}
-                  </div>
-                  <strong className="reel-clip-name">{mediaItem?.name ?? "Clip"}</strong>
-                  <span className="reel-clip-dur">{formatTime(clip.duration)}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      </main>
+      <EffectsWorkspace
+        project={project}
+        media={media}
+        selectedClip={selectedClip}
+        selectedTimelineClip={selectedTimelineClip}
+        setSelectedClip={setSelectedClip}
+        setSelectedClips={setSelectedClips}
+        addEffect={addEffect}
+        removeEffect={removeEffect}
+        toggleEffect={toggleEffect}
+        reorderEffect={reorderEffect}
+        updateEffectPayload={updateEffectPayload}
+        loadLutCubeDialog={loadLutCubeDialog}
+        selectDavinciWorkspace={selectDavinciWorkspace}
+        playhead={playhead}
+        renderProgramMonitor={renderProgramMonitor}
+        programPlaying={programPlaying}
+        toggleProgramPlayback={toggleProgramPlayback}
+        stepProgramFrame={stepProgramFrame}
+        seekProgramTo={seekProgramTo}
+      />
     );
   }
+
 
   function renderKeyframesWorkspace() {
-    const allClips = (project?.sequence.tracks ?? []).flatMap((track) =>
-      track.clips.map((clip, index) => ({ track, clip, index, mediaItem: media.find((m) => m.id === clip.media_id) }))
-    );
-
-    const option = keyframeOptions.find((item) => item.value === keyframeProperty)!;
-    const clipKeyframes = selectedTimelineClip?.keyframes ?? [];
-    const propKeyframes = clipKeyframes.filter((k) => k.property === keyframeProperty).sort((a, b) => a.time - b.time);
-    const activeKf = propKeyframes.find((k) => k.time === selectedKeyframeTime) ?? propKeyframes[0] ?? null;
-
-    // Viewport coordinates for the graph
-    const svgW = 860;
-    const svgH = 340;
-    const padL = 70;
-    const padR = 40;
-    const padT = 30;
-    const padB = 40;
-    const plotW = svgW - padL - padR;
-    const plotH = svgH - padT - padB;
-
-    const clipDuration = Math.max(TICKS_PER_SECOND, selectedTimelineClip?.duration ?? (5 * TICKS_PER_SECOND));
-    const minVal = option.min;
-    const maxVal = option.max;
-    const valRange = maxVal - minVal || 1;
-
-    const timeToX = (t: number) => padL + (Math.max(0, Math.min(clipDuration, t)) / clipDuration) * plotW;
-    const valToY = (v: number) => padT + plotH - ((Math.max(minVal, Math.min(maxVal, v)) - minVal) / valRange) * plotH;
-
-    const relPlayhead = selectedTimelineClip
-      ? Math.max(0, Math.min(selectedTimelineClip.duration, playhead - selectedTimelineClip.timeline_start))
-      : 0;
-
-    // Build the SVG bezier curve path
-    let curvePath = "";
-    let areaPath = "";
-
-    if (propKeyframes.length === 0) {
-      const yDef = valToY(option.defaultValue);
-      curvePath = `M ${timeToX(0)} ${yDef} L ${timeToX(clipDuration)} ${yDef}`;
-      areaPath = `${curvePath} L ${timeToX(clipDuration)} ${padT + plotH} L ${timeToX(0)} ${padT + plotH} Z`;
-    } else if (propKeyframes.length === 1) {
-      const yVal = valToY(propKeyframes[0].value);
-      curvePath = `M ${timeToX(0)} ${yVal} L ${timeToX(clipDuration)} ${yVal}`;
-      areaPath = `${curvePath} L ${timeToX(clipDuration)} ${padT + plotH} L ${timeToX(0)} ${padT + plotH} Z`;
-    } else {
-      const k0 = propKeyframes[0];
-      const y0 = valToY(k0.value);
-      curvePath = `M ${timeToX(0)} ${y0} L ${timeToX(k0.time)} ${y0}`;
-
-      for (let i = 0; i < propKeyframes.length - 1; i++) {
-        const k1 = propKeyframes[i];
-        const k2 = propKeyframes[i + 1];
-        const x1 = timeToX(k1.time);
-        const y1 = valToY(k1.value);
-        const x2 = timeToX(k2.time);
-        const y2 = valToY(k2.value);
-
-        const interp = k1.interpolation ?? "linear";
-        if (interp === "linear") {
-          curvePath += ` L ${x2.toFixed(1)} ${y2.toFixed(1)}`;
-        } else {
-          const hOutX = interp === "ease_in" ? 0.42 : interp === "ease_out" ? 0.0 : interp === "ease_in_out" ? 0.42 : (k1.handle_out_x ?? 0.33);
-          const hOutY = interp === "ease_in" ? 0.0 : interp === "ease_out" ? 0.58 : interp === "ease_in_out" ? 0.0 : (k1.handle_out_y ?? 0.33);
-          const hInX = interp === "ease_in" ? 1.0 : interp === "ease_out" ? 0.58 : interp === "ease_in_out" ? 0.58 : (k2.handle_in_x ?? 0.67);
-          const hInY = interp === "ease_in" ? 0.42 : interp === "ease_out" ? 1.0 : interp === "ease_in_out" ? 1.0 : (k2.handle_in_y ?? 0.67);
-
-          const cx1 = x1 + hOutX * (x2 - x1);
-          const cy1 = y1 + hOutY * (y2 - y1);
-          const cx2 = x1 + hInX * (x2 - x1);
-          const cy2 = y1 + hInY * (y2 - y1);
-          curvePath += ` C ${cx1.toFixed(1)} ${cy1.toFixed(1)}, ${cx2.toFixed(1)} ${cy2.toFixed(1)}, ${x2.toFixed(1)} ${y2.toFixed(1)}`;
-        }
-      }
-
-      const kLast = propKeyframes[propKeyframes.length - 1];
-      const yLast = valToY(kLast.value);
-      curvePath += ` L ${timeToX(clipDuration)} ${yLast.toFixed(1)}`;
-      areaPath = `${curvePath} L ${timeToX(clipDuration)} ${padT + plotH} L ${timeToX(0)} ${padT + plotH} Z`;
-    }
-
-    // Tangent handles for active keyframe
-    const activeTangents: {
-      outLine?: { x1: number; y1: number; x2: number; y2: number };
-      inLine?: { x1: number; y1: number; x2: number; y2: number };
-    } = {};
-
-    if (activeKf) {
-      const idx = propKeyframes.findIndex((k) => k.time === activeKf.time);
-      const kfX = timeToX(activeKf.time);
-      const kfY = valToY(activeKf.value);
-
-      if (idx < propKeyframes.length - 1) {
-        const nextKf = propKeyframes[idx + 1];
-        const nextX = timeToX(nextKf.time);
-        const nextY = valToY(nextKf.value);
-        const interp = activeKf.interpolation ?? "linear";
-        if (interp !== "linear") {
-          const hOutX = interp === "ease_in" ? 0.42 : interp === "ease_out" ? 0.0 : interp === "ease_in_out" ? 0.42 : (activeKf.handle_out_x ?? 0.33);
-          const hOutY = interp === "ease_in" ? 0.0 : interp === "ease_out" ? 0.58 : interp === "ease_in_out" ? 0.0 : (activeKf.handle_out_y ?? 0.33);
-          const cx1 = kfX + hOutX * (nextX - kfX);
-          const cy1 = kfY + hOutY * (nextY - kfY);
-          activeTangents.outLine = { x1: kfX, y1: kfY, x2: cx1, y2: cy1 };
-        }
-      }
-
-      if (idx > 0) {
-        const prevKf = propKeyframes[idx - 1];
-        const prevX = timeToX(prevKf.time);
-        const prevY = valToY(prevKf.value);
-        const interp = prevKf.interpolation ?? "linear";
-        if (interp !== "linear") {
-          const hInX = interp === "ease_in" ? 1.0 : interp === "ease_out" ? 0.58 : interp === "ease_in_out" ? 0.58 : (activeKf.handle_in_x ?? 0.67);
-          const hInY = interp === "ease_in" ? 0.42 : interp === "ease_out" ? 1.0 : interp === "ease_in_out" ? 1.0 : (activeKf.handle_in_y ?? 0.67);
-          const cx2 = prevX + hInX * (kfX - prevX);
-          const cy2 = prevY + hInY * (kfY - prevY);
-          activeTangents.inLine = { x1: kfX, y1: kfY, x2: cx2, y2: cy2 };
-        }
-      }
-    }
-
-    // Grid ticks
-    const vSteps = 5;
-    const vTicks = Array.from({ length: vSteps + 1 }, (_, i) => {
-      const val = minVal + (valRange / vSteps) * (vSteps - i);
-      const y = padT + (plotH / vSteps) * i;
-      return { val, y };
-    });
-
-    const durSec = clipDuration / TICKS_PER_SECOND;
-    const tSteps = Math.min(8, Math.max(3, Math.round(durSec)));
-    const tTicks = Array.from({ length: tSteps + 1 }, (_, i) => {
-      const frac = i / tSteps;
-      const t = frac * clipDuration;
-      const x = padL + frac * plotW;
-      return { t, x };
-    });
-
-    const jumpPrevKeyframe = () => {
-      if (!selectedTimelineClip) return;
-      const current = relPlayhead;
-      const prev = [...propKeyframes].reverse().find((k) => k.time < current - 1000);
-      if (prev) {
-        seekProgramTo(selectedTimelineClip.timeline_start + prev.time);
-        setSelectedKeyframeTime(prev.time);
-        setKeyframeValue(String(prev.value));
-        setKeyframeInterpDraft(prev.interpolation ?? "linear");
-      }
-    };
-
-    const jumpNextKeyframe = () => {
-      if (!selectedTimelineClip) return;
-      const current = relPlayhead;
-      const next = propKeyframes.find((k) => k.time > current + 1000);
-      if (next) {
-        seekProgramTo(selectedTimelineClip.timeline_start + next.time);
-        setSelectedKeyframeTime(next.time);
-        setKeyframeValue(String(next.value));
-        setKeyframeInterpDraft(next.interpolation ?? "linear");
-      }
-    };
-
-    const handleCanvasClick = (event: MouseEvent<SVGSVGElement>) => {
-      if (!selectedTimelineClip) return;
-      const rect = event.currentTarget.getBoundingClientRect();
-      const clickX = ((event.clientX - rect.left) / rect.width) * svgW;
-      if (clickX >= padL && clickX <= padL + plotW) {
-        const clickedFrac = (clickX - padL) / plotW;
-        const newTime = Math.round(clickedFrac * clipDuration);
-        seekProgramTo(selectedTimelineClip.timeline_start + newTime);
-      }
-    };
-
     return (
-      <main className="workspace-page keyframes-workspace-page">
-        <header className="workspace-sub-header keyframes-workspace-header">
-          <div className="workspace-header-title">
-            <span className="workspace-eyebrow">CURVES &amp; SPLINES · KEYFRAME GRAPH EDITOR</span>
-            <h1>Keyframe Bezier Curve Editor</h1>
-            <p>Sculpt property curves with interactive cubic bezier tangents, smooth ease-in/out transitions, and live preview sync.</p>
-          </div>
-          <div className="keyframes-header-actions">
-            <span className="keyframes-target-info">
-              {selectedTimelineClip ? (
-                <>Target: <strong>{media.find((m) => m.id === selectedTimelineClip.media_id)?.name ?? "Clip"}</strong></>
-              ) : (
-                <span className="keyframes-hint-text">Select a clip in the reel below to edit curves</span>
-              )}
-            </span>
-            <button
-              className="btn-primary-subtle"
-              onClick={() => selectDavinciWorkspace("edit")}
-            >
-              ← Back to Edit
-            </button>
-          </div>
-        </header>
-
-        <div className="keyframes-studio-body">
-          {/* Main Visual Curve Editor Area */}
-          <section className="curve-editor-stage">
-            <div className="curve-editor-container">
-              <div className="curve-editor-toolbar">
-                <div className="property-pills-selector">
-                  {keyframeOptions.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      className={`property-pill-btn ${keyframeProperty === opt.value ? "active" : ""}`}
-                      onClick={() => {
-                        setKeyframeProperty(opt.value);
-                        setKeyframeValue(String(opt.defaultValue));
-                        setSelectedKeyframeTime(null);
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="curve-header-readouts">
-                  <span className="curve-tc-tag">PLAYHEAD: <b>{formatTime(playhead)}</b></span>
-                  <span className="curve-val-tag">CLIP OFFSET: <b>{formatTime(relPlayhead)}</b></span>
-                </div>
-              </div>
-
-              {/* The Interactive SVG Graph Canvas */}
-              <div className="curve-canvas-wrapper">
-                <svg
-                  className="curve-canvas-svg"
-                  viewBox={`0 0 ${svgW} ${svgH}`}
-                  preserveAspectRatio="none"
-                  onClick={handleCanvasClick}
-                >
-                  <defs>
-                    <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.02" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Horizontal Grid lines */}
-                  {vTicks.map((tick, i) => (
-                    <g key={`vtick-${i}`}>
-                      <line
-                        x1={padL}
-                        y1={tick.y}
-                        x2={padL + plotW}
-                        y2={tick.y}
-                        stroke="rgba(255, 255, 255, 0.07)"
-                        strokeDasharray="4 4"
-                      />
-                      <text
-                        x={padL - 10}
-                        y={tick.y + 4}
-                        textAnchor="end"
-                        className="curve-grid-text"
-                      >
-                        {tick.val.toFixed(option.step < 0.1 ? 2 : 1)}
-                      </text>
-                    </g>
-                  ))}
-
-                  {/* Vertical Time Grid lines */}
-                  {tTicks.map((tick, i) => (
-                    <g key={`ttick-${i}`}>
-                      <line
-                        x1={tick.x}
-                        y1={padT}
-                        x2={tick.x}
-                        y2={padT + plotH}
-                        stroke="rgba(255, 255, 255, 0.05)"
-                      />
-                      <text
-                        x={tick.x}
-                        y={padT + plotH + 20}
-                        textAnchor="middle"
-                        className="curve-grid-text"
-                      >
-                        {(tick.t / TICKS_PER_SECOND).toFixed(1)}s
-                      </text>
-                    </g>
-                  ))}
-
-                  {/* Bezier Curve Filled Area */}
-                  {areaPath && (
-                    <path d={areaPath} fill="url(#curveGradient)" pointerEvents="none" />
-                  )}
-
-                  {/* Bezier Spline Stroke */}
-                  {curvePath && (
-                    <path
-                      d={curvePath}
-                      fill="none"
-                      stroke="#06b6d4"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      pointerEvents="none"
-                    />
-                  )}
-
-                  {/* Active Keyframe Tangent Handles */}
-                  {activeTangents.outLine && (
-                    <g className="tangent-handle-group">
-                      <line
-                        x1={activeTangents.outLine.x1}
-                        y1={activeTangents.outLine.y1}
-                        x2={activeTangents.outLine.x2}
-                        y2={activeTangents.outLine.y2}
-                        stroke="#f59e0b"
-                        strokeWidth="1.5"
-                        strokeDasharray="3 3"
-                      />
-                      <circle
-                        cx={activeTangents.outLine.x2}
-                        cy={activeTangents.outLine.y2}
-                        r="5"
-                        fill="#f59e0b"
-                        stroke="#ffffff"
-                        strokeWidth="1.5"
-                        className="tangent-circle-handle"
-                      />
-                    </g>
-                  )}
-
-                  {activeTangents.inLine && (
-                    <g className="tangent-handle-group">
-                      <line
-                        x1={activeTangents.inLine.x1}
-                        y1={activeTangents.inLine.y1}
-                        x2={activeTangents.inLine.x2}
-                        y2={activeTangents.inLine.y2}
-                        stroke="#f59e0b"
-                        strokeWidth="1.5"
-                        strokeDasharray="3 3"
-                      />
-                      <circle
-                        cx={activeTangents.inLine.x2}
-                        cy={activeTangents.inLine.y2}
-                        r="5"
-                        fill="#f59e0b"
-                        stroke="#ffffff"
-                        strokeWidth="1.5"
-                        className="tangent-circle-handle"
-                      />
-                    </g>
-                  )}
-
-                  {/* Playhead vertical line */}
-                  <line
-                    x1={timeToX(relPlayhead)}
-                    y1={padT - 6}
-                    x2={timeToX(relPlayhead)}
-                    y2={padT + plotH + 8}
-                    stroke="#ef4444"
-                    strokeWidth="2"
-                    pointerEvents="none"
-                  />
-                  <polygon
-                    points={`${timeToX(relPlayhead) - 6},${padT - 6} ${timeToX(relPlayhead) + 6},${padT - 6} ${timeToX(relPlayhead)},${padT + 4}`}
-                    fill="#ef4444"
-                    pointerEvents="none"
-                  />
-
-                  {/* Keyframe Diamond Markers */}
-                  {propKeyframes.map((kf) => {
-                    const kfX = timeToX(kf.time);
-                    const kfY = valToY(kf.value);
-                    const isSelected = activeKf?.time === kf.time;
-                    return (
-                      <g
-                        key={`kf-${kf.property}-${kf.time}`}
-                        transform={`translate(${kfX}, ${kfY})`}
-                        className={`keyframe-marker-node ${isSelected ? "is-selected" : ""}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedKeyframeTime(kf.time);
-                          setKeyframeValue(String(kf.value));
-                          setKeyframeInterpDraft(kf.interpolation ?? "linear");
-                          if (kf.handle_in_x != null) setKeyframeHandleInX(kf.handle_in_x);
-                          if (kf.handle_in_y != null) setKeyframeHandleInY(kf.handle_in_y);
-                          if (kf.handle_out_x != null) setKeyframeHandleOutX(kf.handle_out_x);
-                          if (kf.handle_out_y != null) setKeyframeHandleOutY(kf.handle_out_y);
-                          if (selectedTimelineClip) {
-                            seekProgramTo(selectedTimelineClip.timeline_start + kf.time);
-                          }
-                        }}
-                      >
-                        <rect
-                          x="-7"
-                          y="-7"
-                          width="14"
-                          height="14"
-                          transform="rotate(45)"
-                          className={`kf-diamond ${isSelected ? "selected" : ""}`}
-                        />
-                      </g>
-                    );
-                  })}
-                </svg>
-              </div>
-
-              {/* Curve Transport Bar */}
-              <div className="curve-transport-bar">
-                <button
-                  type="button"
-                  className="transport-btn"
-                  onClick={jumpPrevKeyframe}
-                  title="Jump to Previous Keyframe"
-                >
-                  ⏮
-                </button>
-                <button
-                  type="button"
-                  className={`transport-btn ${programPlaying ? "active-toggle" : ""}`}
-                  onClick={() => toggleProgramPlayback()}
-                  title={programPlaying ? "Pause Playback" : "Play Clip"}
-                >
-                  {programPlaying ? "⏸ Pause" : "▶ Play"}
-                </button>
-                <button
-                  type="button"
-                  className="transport-btn"
-                  onClick={jumpNextKeyframe}
-                  title="Jump to Next Keyframe"
-                >
-                  ⏭
-                </button>
-
-                <div className="curve-transport-divider" />
-
-                <button
-                  type="button"
-                  className="btn-primary-subtle"
-                  disabled={!selectedClip}
-                  onClick={() => {
-                    const hInX = keyframeInterpDraft === "ease_in" ? 1.0 : keyframeInterpDraft === "ease_out" ? 0.58 : keyframeInterpDraft === "ease_in_out" ? 0.58 : keyframeHandleInX;
-                    const hInY = keyframeInterpDraft === "ease_in" ? 0.42 : keyframeInterpDraft === "ease_out" ? 1.0 : keyframeInterpDraft === "ease_in_out" ? 1.0 : keyframeHandleInY;
-                    const hOutX = keyframeInterpDraft === "ease_in" ? 0.42 : keyframeInterpDraft === "ease_out" ? 0.0 : keyframeInterpDraft === "ease_in_out" ? 0.42 : keyframeHandleOutX;
-                    const hOutY = keyframeInterpDraft === "ease_in" ? 0.0 : keyframeInterpDraft === "ease_out" ? 0.58 : keyframeInterpDraft === "ease_in_out" ? 0.0 : keyframeHandleOutY;
-                    void saveKeyframe(keyframeProperty, Number(keyframeValue), undefined, keyframeInterpDraft, hInX, hInY, hOutX, hOutY);
-                  }}
-                  title="Add Keyframe at Current Playhead"
-                >
-                  ＋ Add Keyframe at Playhead
-                </button>
-
-                {activeKf && (
-                  <button
-                    type="button"
-                    className="danger-button"
-                    onClick={() => void deleteKeyframe(activeKf.property, activeKf.time)}
-                    title="Delete Selected Keyframe"
-                  >
-                    🗑 Delete Keyframe
-                  </button>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* Right Sidebar: Tangents & Interpolation Controls */}
-          <aside className="curve-sidebar-dock">
-            <div className="curve-controls-box">
-              <div className="curve-section-header">
-                <h3>Interpolation Style</h3>
-                <small>{(activeKf?.interpolation ?? keyframeInterpDraft).toUpperCase().replace("_", " ")}</small>
-              </div>
-
-              <div className="ease-presets-grid">
-                {(["linear", "ease_in", "ease_out", "ease_in_out", "bezier"] as InterpolationKind[]).map((kind) => {
-                  const isCurrent = (activeKf?.interpolation ?? keyframeInterpDraft) === kind;
-                  return (
-                    <button
-                      key={kind}
-                      type="button"
-                      className={`ease-preset-card ${isCurrent ? "active" : ""}`}
-                      disabled={!selectedClip}
-                      onClick={() => {
-                        setKeyframeInterpDraft(kind);
-                        if (activeKf) {
-                          const hInX = kind === "ease_in" ? 1.0 : kind === "ease_out" ? 0.58 : kind === "ease_in_out" ? 0.58 : keyframeHandleInX;
-                          const hInY = kind === "ease_in" ? 0.42 : kind === "ease_out" ? 1.0 : kind === "ease_in_out" ? 1.0 : keyframeHandleInY;
-                          const hOutX = kind === "ease_in" ? 0.42 : kind === "ease_out" ? 0.0 : kind === "ease_in_out" ? 0.42 : keyframeHandleOutX;
-                          const hOutY = kind === "ease_in" ? 0.0 : kind === "ease_out" ? 0.58 : kind === "ease_in_out" ? 0.0 : keyframeHandleOutY;
-                          void saveKeyframe(keyframeProperty, activeKf.value, activeKf.time, kind, hInX, hInY, hOutX, hOutY);
-                        }
-                      }}
-                    >
-                      <strong className="ease-card-title">
-                        {kind === "linear" ? "Linear (Straight)" : kind === "ease_in" ? "Ease In (Smooth Entry)" : kind === "ease_out" ? "Ease Out (Smooth Exit)" : kind === "ease_in_out" ? "Ease In-Out (S-Curve)" : "Custom Bezier"}
-                      </strong>
-                      <span className="ease-card-desc">
-                        {kind === "linear" ? "Constant rate of change without smoothing" : kind === "ease_in" ? "Starts slow and accelerates toward end" : kind === "ease_out" ? "Starts fast and decelerates into destination" : kind === "ease_in_out" ? "Natural organic ease on both endpoints" : "Sculpt custom tangents with precision handles"}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Tangent Handle Precision Sliders */}
-              <div className="tangent-sliders-section">
-                <div className="curve-section-header">
-                  <h3>Tangent Handles</h3>
-                  <small>Cubic Coordinates</small>
-                </div>
-
-                <div className="tangent-sliders-grid">
-                  <label className="tangent-slider-item">
-                    <span>In Handle X: {keyframeHandleInX.toFixed(2)}</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={keyframeHandleInX}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setKeyframeHandleInX(val);
-                        if (activeKf) {
-                          void saveKeyframe(keyframeProperty, activeKf.value, activeKf.time, "bezier", val, keyframeHandleInY, keyframeHandleOutX, keyframeHandleOutY);
-                        }
-                      }}
-                    />
-                  </label>
-
-                  <label className="tangent-slider-item">
-                    <span>In Handle Y: {keyframeHandleInY.toFixed(2)}</span>
-                    <input
-                      type="range"
-                      min="-1"
-                      max="2"
-                      step="0.01"
-                      value={keyframeHandleInY}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setKeyframeHandleInY(val);
-                        if (activeKf) {
-                          void saveKeyframe(keyframeProperty, activeKf.value, activeKf.time, "bezier", keyframeHandleInX, val, keyframeHandleOutX, keyframeHandleOutY);
-                        }
-                      }}
-                    />
-                  </label>
-
-                  <label className="tangent-slider-item">
-                    <span>Out Handle X: {keyframeHandleOutX.toFixed(2)}</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={keyframeHandleOutX}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setKeyframeHandleOutX(val);
-                        if (activeKf) {
-                          void saveKeyframe(keyframeProperty, activeKf.value, activeKf.time, "bezier", keyframeHandleInX, keyframeHandleInY, val, keyframeHandleOutY);
-                        }
-                      }}
-                    />
-                  </label>
-
-                  <label className="tangent-slider-item">
-                    <span>Out Handle Y: {keyframeHandleOutY.toFixed(2)}</span>
-                    <input
-                      type="range"
-                      min="-1"
-                      max="2"
-                      step="0.01"
-                      value={keyframeHandleOutY}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setKeyframeHandleOutY(val);
-                        if (activeKf) {
-                          void saveKeyframe(keyframeProperty, activeKf.value, activeKf.time, "bezier", keyframeHandleInX, keyframeHandleInY, keyframeHandleOutX, val);
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              {/* Value and Time Direct Tuning */}
-              <div className="keyframe-direct-edit">
-                <div className="curve-section-header">
-                  <h3>Keyframe Numerical Value</h3>
-                  <small>{option.label}</small>
-                </div>
-
-                <div className="direct-edit-row">
-                  <label>
-                    <span>Value</span>
-                    <input
-                      type="number"
-                      min={option.min}
-                      max={option.max}
-                      step={option.step}
-                      disabled={!selectedClip}
-                      value={keyframeValue}
-                      onChange={(e) => setKeyframeValue(e.target.value)}
-                      onBlur={() => {
-                        if (activeKf) {
-                          void saveKeyframe(keyframeProperty, Number(keyframeValue), activeKf.time);
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
-            </div>
-          </aside>
-        </div>
-
-        {/* Bottom Clips Reel Tray */}
-        <section className="clips-reel-tray">
-          <div className="reel-tray-header">
-            <strong>SEQUENCE CLIPS REEL</strong>
-            <small>{allClips.length} clips on timeline · Click any clip to view its curves</small>
-          </div>
-          <div className="reel-clips-strip">
-            {allClips.map(({ track, clip, index, mediaItem }) => {
-              const isSelected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
-              const clipKfCount = clip.keyframes?.length ?? 0;
-              return (
-                <button
-                  key={`reel-curves-${track.id}-${clip.media_id}-${index}`}
-                  className={`reel-clip-card ${isSelected ? "selected" : ""}`}
-                  onClick={() => {
-                    setSelectedClip({ track_id: track.id, clip_index: index });
-                    setSelectedClips([{ track_id: track.id, clip_index: index }]);
-                    seekProgramTo(clip.timeline_start);
-                    setSelectedKeyframeTime(null);
-                  }}
-                >
-                  <div className="reel-clip-badge">
-                    <span className={`reel-track-kind ${track.kind}`}>{track.name}</span>
-                    <span className="reel-clip-name">{mediaItem?.name ?? "Clip"}</span>
-                  </div>
-                  <span className="reel-fx-count">{clipKfCount} keyframe{clipKfCount !== 1 ? "s" : ""}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      </main>
+      <KeyframesWorkspace
+        project={project}
+        media={media}
+        selectedClip={selectedClip}
+        selectedTimelineClip={selectedTimelineClip}
+        setSelectedClip={setSelectedClip}
+        setSelectedClips={setSelectedClips}
+        keyframeProperty={keyframeProperty}
+        setKeyframeProperty={setKeyframeProperty}
+        keyframeValue={keyframeValue}
+        setKeyframeValue={setKeyframeValue}
+        keyframeInterpDraft={keyframeInterpDraft}
+        setKeyframeInterpDraft={setKeyframeInterpDraft}
+        keyframeHandleInX={keyframeHandleInX}
+        setKeyframeHandleInX={setKeyframeHandleInX}
+        keyframeHandleInY={keyframeHandleInY}
+        setKeyframeHandleInY={setKeyframeHandleInY}
+        keyframeHandleOutX={keyframeHandleOutX}
+        setKeyframeHandleOutX={setKeyframeHandleOutX}
+        keyframeHandleOutY={keyframeHandleOutY}
+        setKeyframeHandleOutY={setKeyframeHandleOutY}
+        selectedKeyframeTime={selectedKeyframeTime}
+        setSelectedKeyframeTime={setSelectedKeyframeTime}
+        playhead={playhead}
+        seekProgramTo={seekProgramTo}
+        programPlaying={programPlaying}
+        toggleProgramPlayback={toggleProgramPlayback}
+        saveKeyframe={saveKeyframe}
+        deleteKeyframe={deleteKeyframe}
+        selectDavinciWorkspace={selectDavinciWorkspace}
+      />
     );
   }
+
 
   function renderImportWorkspace() {
     return <main className="workspace-page import-workspace">
@@ -8452,302 +6497,50 @@ function App() {
   }
 
   function renderExportWorkspace() {
-    const outputResolution = exportResolution === "source"
-      ? { width: project?.settings.width ?? 1920, height: project?.settings.height ?? 1080 }
-      : resolutionPresets.find((item) => item.value === exportResolution) ?? { width: project?.settings.width ?? 1920, height: project?.settings.height ?? 1080 };
-    const outputFrameRate = exportFrameRate === "source"
-      ? project?.settings.frame_rate ?? { numerator: 30, denominator: 1 }
-      : (() => { const [numerator, denominator] = exportFrameRate.split("/").map(Number); return { numerator, denominator }; })();
-    const sequenceEnd = Math.max(0, ...((project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => clip.timeline_start + clip.duration))));
-    const markStart = project?.sequence.mark_in ?? 0;
-    const markEnd = project?.sequence.mark_out ?? sequenceEnd;
-    const rangeDuration = exportMarkedRange ? Math.max(0, markEnd - markStart) : sequenceEnd;
-    const hasClips = Boolean(project?.sequence.tracks.some((track) => track.clips.length > 0));
-    const outputFolder = exportOutputPath ? exportOutputPath.slice(0, Math.max(exportOutputPath.lastIndexOf("/"), exportOutputPath.lastIndexOf("\\"))) : "Choose a destination folder";
-    return <main className="export-workspace">
-      <aside className="export-destinations">
-        <h2>Destinations</h2>
-        <button
-          className={`export-destination ${deliverDestination === "render" ? "selected" : ""}`}
-          onClick={() => setDeliverDestination("render")}
-        >
-          <Icon name="export" />
-          <span><strong>Media File</strong><small>Render a video file</small></span>
-        </button>
-        <button
-          className={`export-destination ${deliverDestination === "interop" ? "selected" : ""}`}
-          onClick={() => setDeliverDestination("interop")}
-        >
-          <Icon name="deliver" />
-          <span><strong>Timeline Interchange</strong><small>FCPXML · Premiere · EDL</small></span>
-        </button>
-        <div className="batch-queue-container">
-          <div className="batch-queue-header">
-            <strong>Batch Render Queue ({batchQueue.length})</strong>
-            <div className="batch-queue-btn-group">
-              <button
-                type="button"
-                className={`batch-queue-btn ${queuePaused ? "paused" : ""}`}
-                onClick={() => void toggleQueuePause()}
-                title={queuePaused ? "Resume paused queue" : "Pause render queue"}
-              >
-                {queuePaused ? "▶ Resume" : "⏸ Pause"}
-              </button>
-              <button
-                type="button"
-                className="batch-queue-btn"
-                onClick={() => setBatchQueue([])}
-                title="Clear queue list"
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-          <div className="batch-queue-list">
-            {batchQueue.length === 0 ? (
-              <div style={{ fontSize: "11px", color: "var(--text-muted)", padding: "10px 0", textAlign: "center" }}>
-                Queue is empty. Click "+ Add to Queue" to batch multiple render jobs.
-              </div>
-            ) : (
-              batchQueue.map((item) => (
-                <div key={item.id} className="batch-queue-card">
-                  <div className="batch-queue-card-top">
-                    <strong title={item.name}>{item.name}</strong>
-                    <span className={`batch-status-pill ${item.status}`}>{item.status}</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "var(--text-muted)" }}>
-                    <span>{item.format} · {item.resolution}</span>
-                    <span>{item.status === "completed" ? "Done" : `${Math.round(item.progress * 100)}%`}</span>
-                  </div>
-                  <div className="batch-queue-progress-bar">
-                    <div className="batch-queue-progress-fill" style={{ width: `${Math.round(item.progress * 100)}%` }} />
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </aside>
-      {deliverDestination === "interop" ? (
-        <section className="export-settings-panel interop-settings-panel" style={{ flex: 1, padding: "24px 28px", overflowY: "auto" }}>
-          <header>
-            <span className="workspace-eyebrow">TIMELINE INTERCHANGE &amp; ROUNDTRIP</span>
-            <h1>Interchange Delivery</h1>
-            <p>Exchange non-destructive project timelines with Final Cut Pro, Premiere Pro, and DaVinci Resolve using the exact integer tick timebase.</p>
-          </header>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px", marginTop: "16px" }}>
-            {/* Apple FCPXML Card */}
-            <div className="interop-card" style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: "8px", padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "14px", color: "#38bdf8" }}>Apple Final Cut Pro</strong>
-                <span style={{ fontSize: "10px", background: "#0284c7", color: "#fff", padding: "2px 8px", borderRadius: "10px", fontWeight: 700 }}>FCPXML v1.9</span>
-              </div>
-              <p style={{ margin: 0, fontSize: "11.5px", color: "#94a3b8", lineHeight: 1.5 }}>
-                Exports multi-track clips, audio/video layers, cut coordinates, and asset paths into standard FCPXML.
-              </p>
-              <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
-                <button
-                  type="button"
-                  className="primary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
-                  onClick={() => void handleExportTimelineInterop("fcpxml")}
-                  disabled={isInteropBusy}
-                >
-                  📤 Export FCPXML
-                </button>
-                <button
-                  type="button"
-                  className="secondary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
-                  onClick={() => void handleImportTimelineInterop()}
-                  disabled={isInteropBusy}
-                >
-                  📥 Import FCPXML
-                </button>
-              </div>
-            </div>
-
-            {/* Adobe Premiere XML Card */}
-            <div className="interop-card" style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: "8px", padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "14px", color: "#a855f7" }}>Adobe Premiere Pro</strong>
-                <span style={{ fontSize: "10px", background: "#7e22ce", color: "#fff", padding: "2px 8px", borderRadius: "10px", fontWeight: 700 }}>xmeml v5</span>
-              </div>
-              <p style={{ margin: 0, fontSize: "11.5px", color: "#94a3b8", lineHeight: 1.5 }}>
-                Standard Premiere Pro sequence exchange format preserving track layouts, in/out ticks, and frame rates.
-              </p>
-              <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
-                <button
-                  type="button"
-                  className="primary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
-                  onClick={() => void handleExportTimelineInterop("premiere_xml")}
-                  disabled={isInteropBusy}
-                >
-                  📤 Export Premiere
-                </button>
-                <button
-                  type="button"
-                  className="secondary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
-                  onClick={() => void handleImportTimelineInterop()}
-                  disabled={isInteropBusy}
-                >
-                  📥 Import Premiere
-                </button>
-              </div>
-            </div>
-
-            {/* CMX 3600 EDL Card */}
-            <div className="interop-card" style={{ background: "#0f172a", border: "1px solid #334155", borderRadius: "8px", padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "14px", color: "#10b981" }}>Broadcast EDL</strong>
-                <span style={{ fontSize: "10px", background: "#059669", color: "#fff", padding: "2px 8px", borderRadius: "10px", fontWeight: 700 }}>CMX 3600</span>
-              </div>
-              <p style={{ margin: 0, fontSize: "11.5px", color: "#94a3b8", lineHeight: 1.5 }}>
-                SMPTE standard non-drop frame edit decision list for conform in DaVinci Resolve color suites.
-              </p>
-              <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
-                <button
-                  type="button"
-                  className="primary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
-                  onClick={() => void handleExportTimelineInterop("edl")}
-                  disabled={isInteropBusy}
-                >
-                  📤 Export EDL
-                </button>
-                <button
-                  type="button"
-                  className="secondary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
-                  onClick={() => void handleImportTimelineInterop()}
-                  disabled={isInteropBusy}
-                >
-                  📥 Import EDL
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: "24px", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <strong>Interchange Payload Viewer</strong>
-              <button
-                type="button"
-                className="secondary"
-                style={{ fontSize: "11px", padding: "4px 10px" }}
-                disabled={!interopContent}
-                onClick={async () => {
-                  if (interopContent) {
-                    await navigator.clipboard.writeText(interopContent);
-                    setNotice("Interchange code copied to clipboard");
-                  }
-                }}
-              >
-                📋 Copy Code
-              </button>
-            </div>
-            <textarea
-              readOnly
-              style={{
-                width: "100%",
-                background: "#090d14",
-                border: "1px solid #334155",
-                borderRadius: "6px",
-                color: "#e2e8f0",
-                fontFamily: "monospace",
-                fontSize: "11px",
-                padding: "10px",
-                resize: "vertical",
-              }}
-              rows={12}
-              placeholder="Exported XML or EDL string will be displayed here for instant inspection..."
-              value={interopContent}
-            />
-          </div>
-        </section>
-      ) : (
-        <>
-          <section className="export-settings-panel"><header><span className="workspace-eyebrow">DELIVERY</span><h1>Media File</h1><p>Set a format and size that match where you’ll share this edit.</p></header>
-        {/* Live Hardware Acceleration Badge */}
-        <div className="export-hw-status-card">
-          <div className="hw-status-indicator">
-            <span className={`hw-dot ${encoderInfo?.hasHardwareEncoder ? "active" : "fallback"}`} />
-            <div className="hw-status-details">
-              <strong>
-                {encoderInfo?.hasHardwareEncoder
-                  ? `Hardware Encoder: ${encoderInfo.preferredEncoder.toUpperCase()}`
-                  : `CPU Software Encoding Fallback (${encoderInfo?.preferredEncoder || "x264enc"})`}
-              </strong>
-              <small>{encoderInfo?.description || "Probing GStreamer hardware acceleration..."}</small>
-            </div>
-          </div>
-          <div className="hw-codecs-list">
-            {(encoderInfo?.availableEncoders ?? ["x264enc"]).map((enc) => (
-              <span
-                key={enc}
-                className={`hw-codec-tag ${enc === encoderInfo?.preferredEncoder ? "preferred" : ""}`}
-                title={`Detected GStreamer codec: ${enc}`}
-              >
-                {enc}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* 1-Click Target Delivery Presets */}
-        <div className="export-presets-shelf">
-          <div className="export-presets-shelf-header">
-            <strong>1-CLICK DELIVERY PRESETS</strong>
-            <small>YouTube, TikTok/Reels 9:16, Instagram 1:1, Cinema 4K</small>
-          </div>
-          <div className="export-presets-cards-grid">
-            {exportPresets.map((preset) => {
-              const isSelected = selectedExportPreset === preset.id;
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  className={`export-preset-card ${isSelected ? "selected" : ""}`}
-                  onClick={() => {
-                    setSelectedExportPreset(preset.id);
-                    setExportResolution(preset.resolution);
-                    setExportFrameRate(preset.frameRate);
-                    setExportFormat(preset.format);
-                  }}
-                  title={`Configure for ${preset.name}`}
-                >
-                  <span className="preset-card-icon">{preset.icon}</span>
-                  <div className="preset-card-text">
-                    <strong>{preset.name}</strong>
-                    <small>{preset.subtitle}</small>
-                  </div>
-                  <span className="preset-badge">{preset.format.toUpperCase()}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="export-form-scroll">
-          <label className="export-field">File name<input value={exportFileName} disabled={rendering} onChange={(event) => { setExportFileName(event.target.value); setExportOutputPath(""); }} placeholder="Main Edit" /></label>
-          <div className="export-field"><span>Location</span><div className="export-location"><small title={outputFolder}>{outputFolder}</small><button onClick={() => void chooseExportDestination()} disabled={!hasClips || rendering}>Choose…</button></div></div>
-          <label className="export-field">Preset<select disabled={rendering} value={exportResolution} onChange={(event) => { setExportResolution(event.target.value); setSelectedExportPreset("custom"); }}><option value="source">Match sequence · {project?.settings.width ?? 1920} × {project?.settings.height ?? 1080}</option>{resolutionPresets.filter((item) => item.value !== "custom").map((item) => <option value={item.value} key={item.value}>{item.label}</option>)}</select></label>
-          <label className="export-field">Format<select disabled={rendering} value={exportFormat} onChange={(event) => { setExportFormat(event.target.value as "mp4" | "webm"); setExportOutputPath(""); }}><option value="mp4">H.264 · MP4</option><option value="webm">VP8 · WebM</option></select></label>
-          <details className="export-settings-group" open><summary>Video</summary><div className="export-fields-grid"><label className="export-field">Frame size<select disabled={rendering} value={exportResolution} onChange={(event) => { setExportResolution(event.target.value); setSelectedExportPreset("custom"); }}><option value="source">Match sequence</option>{resolutionPresets.filter((item) => item.value !== "custom").map((item) => <option value={item.value} key={item.value}>{item.width} × {item.height}</option>)}</select></label><label className="export-field">Frame rate<select disabled={rendering} value={exportFrameRate} onChange={(event) => { setExportFrameRate(event.target.value); setSelectedExportPreset("custom"); }}>{exportFrameRateOptions.map((item) => <option value={item.value} key={item.value}>{item.value === "source" ? `${item.label} · ${project?.settings.frame_rate.numerator ?? 30}/${project?.settings.frame_rate.denominator ?? 1} fps` : item.label}</option>)}</select></label></div>
-            <label className={`export-check ${exportFormat !== "mp4" ? "disabled" : ""}`}><input type="checkbox" checked={useHardwareEncoding} disabled={rendering || exportFormat !== "mp4"} onChange={(event) => setUseHardwareEncoding(event.target.checked)} /><span><strong>Use hardware encoder when available</strong><small>{exportFormat === "mp4" ? "Try your GPU first; software encoding is used if it is unavailable." : "Hardware H.264 applies to MP4 exports."}</small></span></label>
-          </details>
-          <details className="export-settings-group" open><summary>Audio</summary><div className="export-audio-summary"><span>Audio format</span><strong>{exportFormat === "mp4" ? "AAC" : "Vorbis"}</strong><span>Sample rate</span><strong>{project?.settings.audio_sample_rate ?? 48_000} Hz · source mix</strong></div></details>
-          <details className="export-settings-group"><summary>More settings</summary><label className="range-export export-check"><input type="checkbox" checked={exportMarkedRange} disabled={project?.sequence.mark_in == null || project?.sequence.mark_out == null || rendering} onChange={(event) => setExportMarkedRange(event.target.checked)} /><span><strong>Export marked In/Out range</strong><small>Use the sequence markers instead of the full timeline.</small></span></label><div className="export-mark-row"><span>In <b>{project?.sequence.mark_in == null ? "Not set" : formatTime(project.sequence.mark_in)}</b></span><span>Out <b>{project?.sequence.mark_out == null ? "Not set" : formatTime(project.sequence.mark_out)}</b></span><button disabled={project?.sequence.mark_in == null && project?.sequence.mark_out == null} onClick={() => void invokeMenuCommand("timeline.clear_marks")}>Clear marks</button></div></details>
-        </div>
-      </section>
-      <aside className="export-preview-panel"><div className="export-preview-heading"><span>Preview</span><span>{exportFormat === "mp4" ? "H.264" : "VP8"}</span></div><div className="export-preview-stage">{renderPreview(activeClip?.media ?? selectedMedia, true)}</div><div className="export-range-select">Range <strong>{exportMarkedRange ? "Marked In / Out" : "Entire sequence"}</strong></div><div className="export-summary"><h2>Summary</h2><dl><dt>Output</dt><dd>{exportOutputPath || `${exportFileName || project?.name || "Main Edit"}.${exportFormat}`}</dd><dt>Video</dt><dd>{outputResolution.width} × {outputResolution.height} · {outputFrameRate.numerator}/{outputFrameRate.denominator} fps</dd><dt>Engine</dt><dd>{encoderInfo?.hasHardwareEncoder && useHardwareEncoding && exportFormat === "mp4" ? `Hardware Accelerated (${encoderInfo.preferredEncoder})` : "CPU Software (x264enc)"}</dd><dt>Container</dt><dd>{exportFormat === "mp4" ? "H.264 (MP4)" : "VP8 (WebM)"}</dd><dt>Audio</dt><dd>{exportFormat === "mp4" ? "AAC" : "Vorbis"} · {project?.settings.audio_sample_rate ?? 48_000} Hz</dd><dt>Range</dt><dd>{formatTime(rangeDuration)}</dd></dl></div>{renderProgress && <div className="render-progress"><progress max={100} value={renderProgress.fractionPercent} /><small>{renderProgress.phase} · {renderProgress.fractionPercent}%</small></div>}<div style={{ display: "flex", gap: "8px", marginTop: "10px" }}><button className="secondary" style={{ flex: 1, padding: "8px 12px", fontWeight: 700 }} disabled={!hasClips || rendering} onClick={() => void addExportToQueue()}>+ Add to Queue</button><button className="primary export-submit" style={{ flex: 1 }} disabled={!hasClips || rendering} onClick={() => void exportProject()}>{rendering ? "Rendering…" : "Export video"}</button></div><small className="export-footer-note">Color controls and track gain are included. Animated keyframes are preview-only.</small></aside>
-        </>
-      )}
-    </main>;
+    return (
+      <ExportWorkspace
+        project={project}
+        batchQueue={batchQueue}
+        setBatchQueue={setBatchQueue}
+        queuePaused={queuePaused}
+        toggleQueuePause={toggleQueuePause}
+        deliverDestination={deliverDestination}
+        setDeliverDestination={setDeliverDestination}
+        handleExportTimelineInterop={handleExportTimelineInterop}
+        handleImportTimelineInterop={handleImportTimelineInterop}
+        isInteropBusy={isInteropBusy}
+        interopContent={interopContent}
+        setNotice={setNotice}
+        encoderInfo={encoderInfo}
+        selectedExportPreset={selectedExportPreset}
+        setSelectedExportPreset={setSelectedExportPreset}
+        exportResolution={exportResolution}
+        setExportResolution={setExportResolution}
+        exportFrameRate={exportFrameRate}
+        setExportFrameRate={setExportFrameRate}
+        exportFormat={exportFormat}
+        setExportFormat={setExportFormat}
+        exportFileName={exportFileName}
+        setExportFileName={setExportFileName}
+        exportOutputPath={exportOutputPath}
+        setExportOutputPath={setExportOutputPath}
+        chooseExportDestination={chooseExportDestination}
+        useHardwareEncoding={useHardwareEncoding}
+        setUseHardwareEncoding={setUseHardwareEncoding}
+        exportMarkedRange={exportMarkedRange}
+        setExportMarkedRange={setExportMarkedRange}
+        invokeMenuCommand={invokeMenuCommand}
+        activeClip={activeClip}
+        selectedMedia={selectedMedia}
+        renderPreview={renderPreview}
+        rendering={rendering}
+        renderProgress={renderProgress}
+        addExportToQueue={addExportToQueue}
+        exportProject={exportProject}
+      />
+    );
   }
+
 
   return (
     appStage !== "editor" ? renderProjectWelcome() :
@@ -10470,22 +8263,25 @@ function App() {
                             if (targetSeqId) void switchSequence(targetSeqId);
                           }
                         }} title={`${item?.name ?? (isCompound ? "Compound Sequence" : "Clip")} · ${timelineTools.find((tool) => tool.id === timelineTool)?.label}`}>
-                          {track.kind === "audio" && item?.waveform && item.waveform.length > 0 && (
-                            <div className="clip-waveform-container" aria-hidden="true">
-                              <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
-                                <path
-                                  d={item.waveform.map((peak, i) => {
-                                    const norm = Math.max(1, (peak / 255) * 14);
-                                    const x = (i / item.waveform!.length) * 100;
-                                    return `M ${x.toFixed(1)} ${(16 - norm).toFixed(1)} L ${x.toFixed(1)} ${(16 + norm).toFixed(1)}`;
-                                  }).join(" ")}
-                                  stroke="currentColor"
-                                  strokeWidth="1.2"
-                                  strokeLinecap="round"
-                                />
-                              </svg>
-                            </div>
-                          )}
+                          {(() => {
+                            const wf = getClipWaveform(item, index);
+                            return (track.kind === "audio" || item?.kind === "audio") && wf && wf.length > 0 ? (
+                              <div className="clip-waveform-container" aria-hidden="true">
+                                <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
+                                  <path
+                                    d={wf.map((peak, i) => {
+                                      const norm = Math.max(1, (peak / 255) * 14);
+                                      const x = (i / wf.length) * 100;
+                                      return `M ${x.toFixed(1)} ${(16 - norm).toFixed(1)} L ${x.toFixed(1)} ${(16 + norm).toFixed(1)}`;
+                                    }).join(" ")}
+                                    stroke="currentColor"
+                                    strokeWidth="1.2"
+                                    strokeLinecap="round"
+                                  />
+                                </svg>
+                              </div>
+                            ) : null;
+                          })()}
                           <span className="clip-kind-icon">{isCompound ? "⧉" : isTitle ? "T" : track.kind === "audio" ? "♪" : "▶"}</span>
                           <strong>{item?.name ?? (isCompound ? "Compound Sequence" : "Missing media")}</strong>
                           {isCompound && (

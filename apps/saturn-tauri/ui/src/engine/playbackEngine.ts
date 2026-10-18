@@ -1437,7 +1437,8 @@ export function evaluateTimelinePlayback(
                 if (localPlayhead >= nClip.timeline_start && localPlayhead < nClip.timeline_start + nClip.duration) {
                   const nItem = mediaList.find((m) => m.id === nClip.media_id);
                   if (nItem && (nItem.kind === "audio" || (nItem.kind === "video" && nTrack.kind === "video"))) {
-                    const src = resolveMediaStreamUrl(nItem, preparedPreviews, mediaServerPort, mediaServerToken);
+                    // Always stream audio from the original media path, not the video-only transcode proxy
+                    const src = resolveMediaStreamUrl(nItem, {}, mediaServerPort, mediaServerToken);
                     if (src) {
                       const currentTime = Math.max(0, (nClip.source_in + (localPlayhead - nClip.timeline_start) * (nClip.speed ?? 1.0)) / TICKS_PER_SECOND);
                       activeAudioClips.push({
@@ -1455,7 +1456,8 @@ export function evaluateTimelinePlayback(
             }
           }
         } else if (item && (item.kind === "audio" || (item.kind === "video" && track.kind === "video"))) {
-          const src = resolveMediaStreamUrl(item, preparedPreviews, mediaServerPort, mediaServerToken);
+          // Always stream audio from the original media path, not the video-only transcode proxy
+          const src = resolveMediaStreamUrl(item, {}, mediaServerPort, mediaServerToken);
           if (src) {
             const speed = clip.speed ?? 1.0;
             const currentTime = Math.max(0, (clip.source_in + (playhead - clip.timeline_start) * speed) / TICKS_PER_SECOND);

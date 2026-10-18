@@ -70,3 +70,28 @@ export function snapToNearest(val: number, interval: number): number {
   if (interval <= 0) return val;
   return Math.round(val / interval) * interval;
 }
+
+/**
+ * Returns the audio waveform peak data for a clip, generating a naturalistic
+ * deterministic fallback if the media asset does not yet have probed peak samples.
+ */
+export function getClipWaveform(
+  item: { waveform?: number[] | null; name?: string; id?: number } | null | undefined,
+  seedOffset = 0
+): number[] {
+  if (item?.waveform && Array.isArray(item.waveform) && item.waveform.length > 0) {
+    return item.waveform;
+  }
+  const count = 72;
+  const peaks: number[] = [];
+  const baseSeed = (item?.id ?? 1) * 31 + seedOffset * 17 + (item?.name?.length ?? 5);
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 6;
+    const wave = Math.abs(Math.sin(angle)) * 0.7 + Math.abs(Math.sin(angle * 2.3)) * 0.3;
+    const noise = (((baseSeed * (i + 11)) % 100) / 100) * 0.35;
+    const amp = Math.min(255, Math.max(35, Math.round((wave * 0.75 + noise) * 230)));
+    peaks.push(amp);
+  }
+  return peaks;
+}
+
