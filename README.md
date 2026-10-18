@@ -24,16 +24,6 @@
 Easy Edits Pro is a high-performance, non-linear desktop video editor engineered in Rust and Tauri 2 for Linux. Designed to combine the workspace fluidity of DaVinci Resolve, the rich asset shelf ergonomics of Wondershare Filmora, and the cutting precision of Adobe Premiere Pro—all inside an obsidian-dark interface crafted specifically for modern Linux desktop rices (Hyprland, Niri, Sway, GNOME, and KDE).
 
 
-
-[![GitHub](https://img.shields.io/badge/GitHub-zvirox-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/zvirox)
-[![YouTube: @zvirox_in](https://img.shields.io/badge/YouTube-@zvirox__in-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@zvirox_in)
-[![YouTube: @climin_in](https://img.shields.io/badge/YouTube-@climin__in-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@climin_in)
-[![Instagram](https://img.shields.io/badge/Instagram-@plg.sevala-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/plg.sevala)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-plgsevala-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/plgsevala/)
-[![Facebook](https://img.shields.io/badge/Facebook-plg.sevala-1877F2?style=for-the-badge&logo=facebook&logoColor=white)](https://www.facebook.com/plg.sevala)
-
-<br />
-
 <kbd>[Overview](#about)</kbd> &middot; <kbd>[Workspaces](#workspaces-suite)</kbd> &middot; <kbd>[Key Capabilities](#key-capabilities)</kbd> &middot; <kbd>[Architecture](#core-architecture)</kbd> &middot; <kbd>[Quick Start](#quick-start)</kbd> &middot; <kbd>[Roadmap](#development-roadmap)</kbd> &middot; <kbd>[Connect](#connect--follow)</kbd>
 
 </div>
