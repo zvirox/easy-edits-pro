@@ -2,7 +2,15 @@ import type {
   AudioBus, AudioPluginInstance, BusTarget, CollaborationState, EffectInstance,
   HslQualifier, Keyframe, MotionBlurParams, MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves,
   SpeedRamp, SubtitleItem, TrackAudioProcessing, TrackAutomation, TrackGroup,
+  SilenceInterval,
 } from "../engine/playbackEngine";
+
+export type {
+  AudioBus, AudioPluginInstance, BusTarget, CollaborationState, EffectInstance,
+  HslQualifier, Keyframe, MotionBlurParams, MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves,
+  SpeedRamp, SubtitleItem, TrackAudioProcessing, TrackAutomation, TrackGroup,
+  SilenceInterval,
+};
 
 export type MediaKind = "video" | "audio" | "image" | "title" | "compound_sequence" | "unknown";
 export type TitleProperties = {
@@ -59,6 +67,7 @@ export type MediaAsset = {
   codec?: string | null;
   bin_id?: number | null;
   color_label?: string | null;
+  color_tag?: string | null;
   tags?: string[] | null;
   is_missing?: boolean;
   title?: TitleProperties | null;
@@ -110,6 +119,8 @@ export type Track = {
   locked?: boolean;
   audio_processing?: TrackAudioProcessing;
   bus?: BusTarget;
+  audio_bus?: string;
+  linked_group_id?: number | null;
   automation?: TrackAutomation;
   plugins?: AudioPluginInstance[];
   clips: Clip[];

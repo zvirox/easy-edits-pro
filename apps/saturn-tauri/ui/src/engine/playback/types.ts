@@ -199,6 +199,7 @@ export interface VignetteParams {
 
 export interface ChromaKeyParams {
   color: string;
+  key_color?: string;
   tolerance: number;
   softness: number;
   spill_suppression: number;
@@ -374,6 +375,8 @@ export interface Track {
   locked?: boolean;
   audio_processing?: TrackAudioProcessing;
   bus?: BusTarget;
+  audio_bus?: string;
+  linked_group_id?: number | null;
   automation?: TrackAutomation;
   plugins?: AudioPluginInstance[];
   clips: Clip[];

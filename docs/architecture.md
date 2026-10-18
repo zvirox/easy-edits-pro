@@ -2,24 +2,63 @@
 
 ## Runtime data flow
 
-```mermaid
-flowchart LR
-  subgraph UI[React 19 UI]
-    APP[App shell]
-    PROVIDER[ProjectProvider / app hooks]
-    FEATURES[Feature boundaries]
-    PLAYBACK[Playback engine modules]
-    APP --> PROVIDER
-    APP --> FEATURES
-    FEATURES --> PLAYBACK
-  end
-  FEATURES -->|Tauri invoke commands| CMD[Tauri command domains]
-  CMD --> CORE[saturn-core\nproject schema, migrations, engine domains, history]
-  CORE --> RENDER[saturn-render\nGStreamer and export]
-  CMD --> MEDIA[Validated local media server]
-  FEATURES -->|token-authenticated range requests| MEDIA
-  CMD --> RECOVERY[Autosave / recovery]
-  RECOVERY --> CORE
+```text
++----------------------------------------------------------------------------------------------------+
+|                                         React 19 Frontend Shell                                    |
+|                                                                                                    |
+|  [App.tsx] (Thin Shell: < 300 lines)                                                               |
+|     |                                                                                              |
+|     +---> [app/] Providers & Hooks (ProjectProvider, usePlayback, useJobs, useProjectOperations)  |
+|     |                                                                                              |
+|     +---> [features/] Modular UI Components                                                        |
+|     |        |-- menubar/     (AppHeader, 2-tier NLE top bar, window controls)                     |
+|     |        |-- media-pool/  (MediaPanel, asset bins, Openverse stock, AI)                        |
+|     |        |-- preview/     (PreviewSection, Program/Source monitors, multicam)                  |
+|     |        |-- timeline/    (TimelineSection, tracks, tools, playhead, scrubbing)                |
+|     |        |-- inspector/   (InspectorPanel, effects, keyframes, subtitles, audio mixer)         |
+|     |        `-- dialogs/     (EditorModals, new project, interop, AI transcribe)                 |
+|     |                                                                                              |
+|     `---> [engine/playback/] Frontend playback scheduling, audio clock, visual effects            |
++----------------------------------------------------------------------------------------------------+
+                                      |
+                                      |  Tauri invoke("...")
+                                      v
++----------------------------------------------------------------------------------------------------+
+|                                         Tauri Backend Bridge                                       |
+|                                                                                                    |
+|  [apps/saturn-tauri/src/main.rs] + [commands/*]                                                    |
+|     |-- project.rs    (project document CRUD, mutations, autosave)                                |
+|     |-- timeline.rs   (track management, clip operations, ripple edits)                            |
+|     |-- media.rs      (import validation, binning, local streaming)                                |
+|     |-- playback.rs   (render preview control, transport sync)                                     |
+|     |-- export.rs     (render job dispatch, hardware encoder detection)                            |
+|     `-- interop.rs    (EDL, FCPXML, Premiere XML import/export)                                    |
+|                                                                                                    |
+|  [media_server.rs]    Token-authenticated local HTTP streaming server                              |
+|  [net.rs]             DNS pinning, SSRF prevention, IP validation                                  |
+|  [recovery.rs]        Crash recovery and periodic autosave storage                                 |
++----------------------------------------------------------------------------------------------------+
+                                      |
+                                      |  Internal Rust API
+                                      v
++----------------------------------------------------------------------------------------------------+
+|                                         saturn-core Engine                                         |
+|                                                                                                    |
+|  - Rational tick timebase (TICKS_PER_SECOND = 254,016,000,000)                                     |
+|  - Transactional project mutations & bidirectional undo/redo history stacks                        |
+|  - Schema migrations (v1 -> v10) & atomic disk persistence                                         |
+|  - Subtitles, silence detection, speech analysis, and timeline math                                |
++----------------------------------------------------------------------------------------------------+
+                                      |
+                                      |  Pipeline graph & render jobs
+                                      v
++----------------------------------------------------------------------------------------------------+
+|                                         saturn-render Engine                                       |
+|                                                                                                    |
+|  - GStreamer pipeline construction & hardware-accelerated video decoding/encoding                  |
+|  - wgpu preview presentation, color wheels, 3D LUT sampling, RGB curve splines                     |
+|  - EBU R128 loudness metering, optical flow speed ramping, and motion tracking                     |
++----------------------------------------------------------------------------------------------------+
 ```
 
 A project mutation flows from a UI feature through the stable Tauri invoke
@@ -33,9 +72,10 @@ playback engine. Export work is sent to `saturn-render` through Tauri commands.
 
 - `apps/saturn-tauri/src/main.rs` owns the Tauri builder, invoke registration,
   setup, and shared app-level helpers.
-- `apps/saturn-tauri/src/commands/` groups Tauri commands by domain. `mod.rs`
-  re-exports the commands registered with `generate_handler!`.
-- `apps/saturn-tauri/src/state.rs` owns shared application state.
+- `apps/saturn-tauri/src/commands/` groups Tauri commands by domain (`project.rs`,
+  `timeline.rs`, `media.rs`, `playback.rs`, `export.rs`, `interop.rs`, `ai.rs`).
+  `mod.rs` re-exports the commands registered with `generate_handler!`.
+- `apps/saturn-tauri/src/state.rs` owns shared application state (`AppState`).
 - `apps/saturn-tauri/src/net.rs` resolves public network targets, rejects
   non-public addresses, pins DNS results, and re-validates manual redirects.
 - `apps/saturn-tauri/src/media_server.rs` streams only canonical, allow-listed
@@ -48,11 +88,18 @@ playback engine. Export work is sent to `saturn-render` through Tauri commands.
   helpers, parameter types, history, and tests. Keep project serialization and
   public command names stable when extending these modules.
 - `crates/saturn-render/` owns media processing and rendering.
-- `apps/saturn-tauri/ui/src/app/` owns project context and focused hooks such as
-  recovery, jobs, and playback. `features/` provides UI-facing boundaries for
-  menubar, welcome, media pool, inspector, preview, timeline, and export.
-  Established screen implementations remain in `workspaces/` while extraction
-  continues; import them through feature entry points.
+- `apps/saturn-tauri/ui/src/app/` owns project context and focused hooks:
+  `ProjectProvider.tsx`, `useProject.ts`, `usePlayback.ts`, `useJobs.ts`,
+  `useRecovery.ts`, `useShortcuts.ts`, `useTimelineOperations.ts`,
+  `useMediaOperations.ts`, `useInspectorOperations.ts`, and `useProjectOperations.ts`.
+- `apps/saturn-tauri/ui/src/features/` provides modular UI components:
+  - `menubar/`: 2-tier NLE top bar (`AppHeader.tsx`), menus, and workspace switcher.
+  - `media-pool/`: Asset management bin (`MediaPanel.tsx`), stock search, and AI assistant.
+  - `preview/`: Program/Source monitors (`PreviewSection.tsx`), multicam switcher, audio visualizer.
+  - `timeline/`: Multi-track timeline (`TimelineSection.tsx`, `TimelineToolbar.tsx`, `TimelineTrackRow.tsx`).
+  - `inspector/`: Property inspection (`InspectorPanel.tsx`, `ClipInspector.tsx`, `EffectsInspector.tsx`, `KeyframesInspector.tsx`, `SubtitleInspector.tsx`) and docked `AudioMonitorMixer`.
+  - `dialogs/`: Modal dialogs (`EditorModals.tsx`, `NewProjectModal.tsx`, `TranscriptionModal.tsx`, `SilenceRemovalModal.tsx`, etc.).
+- `apps/saturn-tauri/ui/src/workspaces/` routes stage/workspace views (`WorkspaceRouter.tsx`, `EditWorkspace.tsx`, `MediaWorkspace.tsx`, `ColorWorkspace.tsx`, `FairlightWorkspace.tsx`, etc.).
 - `apps/saturn-tauri/ui/src/engine/playback/` owns the audio clock, media URL
   resolution, scheduling, interpolation, effects, and playback types. The
   legacy `playbackEngine.ts` path re-exports this public API.
@@ -61,23 +108,18 @@ playback engine. Export work is sent to `saturn-render` through Tauri commands.
 
 ## App extraction status
 
-`ProjectProvider`/`useProject`, `useJobs`, `useRecovery`, `usePlayback`, and
-`useShortcuts` are extracted into `app/`. Feature entry points are wired into
-`App.tsx`, and prior workspace implementations remain in place. Phase B is
-still in progress: the shell, inspector JSX, preview monitors, media-pool
-composition, and timeline rendering have not yet been decomposed into
-independent feature components. `App.tsx` remains oversized and is intentionally
-listed as extraction debt rather than described as complete.
+Phase B is complete. `App.tsx` is reduced from over 7,200 lines to a clean shell under 270 lines
+handling only providers, shell layout, keyboard shortcuts, and top-level stage/workspace routing.
+All feature components and operational logic have been decomposed into modular units under
+`features/` and `app/`.
 
 ## Source size guardrails
 
-New `.rs`, `.ts`, `.tsx`, and `.css` source files must stay at or below 800
-lines; target under 500 where the domain allows it. Run
-`pnpm --dir apps/saturn-tauri check:source-size` before submitting. The script
-fails for newly oversized files and reports a small explicit legacy extraction
-backlog. `ui/src/App.tsx`, Fairlight and Keyframes workspace files, and
-`saturn-core/src/interop.rs` remain on that backlog; reduce it as those domains
-are extracted.
+All new `.rs`, `.ts`, `.tsx`, and `.css` source files must stay strictly at or below 800 lines
+(target < 500 lines where practical). Run `pnpm --dir apps/saturn-tauri check:source-size` before
+submitting. `App.tsx` has been extracted and removed from the backlog. Only legacy monolithic
+screens (`FairlightWorkspace.tsx`, `KeyframesWorkspace.tsx`, `saturn-core/src/interop.rs`) remain
+on the temporary backlog.
 
 ## Adding a Tauri feature
 

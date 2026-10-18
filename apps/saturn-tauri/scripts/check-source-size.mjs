@@ -5,7 +5,6 @@ const sourceRoots = ["src", "ui/src", "../../crates/saturn-core/src"];
 const extensions = new Set([".rs", ".ts", ".tsx", ".css"]);
 // Explicitly tracked pre-existing files. New source must stay at or below the limit.
 const extractionBacklog = new Set([
-  "ui/src/App.tsx",
   "ui/src/workspaces/FairlightWorkspace.tsx",
   "ui/src/workspaces/KeyframesWorkspace.tsx",
   "../../crates/saturn-core/src/interop.rs",
