@@ -18,6 +18,10 @@ Easy Edits Pro is a high-performance, non-linear desktop video editor engineered
 
 <br />
 
+<iframe src="https://github.com/sponsors/zvirox/button" title="Sponsor zvirox" height="32" width="114" style="border: 0; border-radius: 6px;"></iframe>
+
+<br />
+
 [![GitHub](https://img.shields.io/badge/GitHub-zvirox-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/zvirox)
 [![YouTube: @zvirox_in](https://img.shields.io/badge/YouTube-@zvirox__in-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@zvirox_in)
 [![YouTube: @climin_in](https://img.shields.io/badge/YouTube-@climin__in-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@climin_in)
@@ -324,3 +328,11 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 ```
+
+---
+
+<div align="center">
+
+<iframe src="https://github.com/sponsors/zvirox/card" title="Sponsor zvirox" height="225" width="600" style="border: 0;"></iframe>
+
+</div>
