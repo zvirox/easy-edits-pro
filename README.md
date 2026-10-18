@@ -19,6 +19,7 @@ Easy Edits Pro is a high-performance, non-linear desktop video editor engineered
 <br />
 
 [![Sponsor zvirox](https://img.shields.io/badge/Sponsor-zvirox-ea4aaa?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/zvirox)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-zvirox-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/zvirox)
 
 <br />
 
@@ -335,10 +336,12 @@ the Free Software Foundation, either version 3 of the License, or
 
 ### 💖 Support Easy Edits Pro
 
-If you find Easy Edits Pro valuable, consider sponsoring **[@zvirox](https://github.com/sponsors/zvirox)** on GitHub Sponsors to fuel ongoing open-source Linux video editing development!
+If you find Easy Edits Pro valuable, consider sponsoring **[@zvirox](https://github.com/sponsors/zvirox)** on GitHub Sponsors or supporting on Ko-fi to fuel ongoing open-source Linux video editing development!
 
 <br />
 
 [![Sponsor zvirox](https://img.shields.io/badge/Sponsor_on_GitHub-zvirox-ea4aaa?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/zvirox)
+&nbsp;
+[![Support on Ko-fi](https://img.shields.io/badge/Support_on_Ko--fi-zvirox-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/zvirox)
 
 </div>
