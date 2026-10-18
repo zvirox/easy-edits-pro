@@ -1,5 +1,14 @@
 import { LoadingButton } from "../components/interior/loading-button";
 import {
+  Plus,
+  FolderOpen,
+  ArrowRight,
+  ArrowLeft,
+  RotateCcw,
+  Film,
+  Clock,
+} from "lucide-react";
+import {
   type AppStage,
   type RecentProject,
   type RecoveryStatus,
@@ -81,6 +90,8 @@ export function ProjectWelcomeScreen({
 
   return (
     <main className="welcome-shell">
+      <div className="welcome-ambient-glow" aria-hidden="true" />
+      <div className="welcome-grid-pattern" aria-hidden="true" />
       <header className="welcome-topbar">
         <div className="welcome-brand">
           <img src="/saturn-camera.png" alt="" />
@@ -164,12 +175,14 @@ export function ProjectWelcomeScreen({
                     setWelcomeMode("new-project");
                   }}
                 >
-                  <span className="welcome-action-icon">＋</span>
+                  <span className="welcome-action-icon">
+                    <Plus className="size-4" />
+                  </span>
                   <span>
                     <strong>Create a new project</strong>
                     <small>Choose a format and start editing</small>
                   </span>
-                  <b aria-hidden="true">↗</b>
+                  <ArrowRight className="welcome-action-arrow" aria-hidden="true" />
                 </button>
                 <LoadingButton
                   className="welcome-action-card open"
@@ -179,20 +192,25 @@ export function ProjectWelcomeScreen({
                   successLabel="Project ready"
                   errorLabel="Could not open project"
                 >
-                  <span className="welcome-action-icon folder">↗</span>
+                  <span className="welcome-action-icon folder">
+                    <FolderOpen className="size-4" />
+                  </span>
                   <span>
                     <strong>Open an existing project</strong>
                     <small>Browse for a .saturn project file</small>
                   </span>
-                  <b aria-hidden="true">→</b>
+                  <ArrowRight className="welcome-action-arrow" aria-hidden="true" />
                 </LoadingButton>
               </div>
               {recoveryStatus.available && (
                 <div className="welcome-recovery">
-                  <span>
-                    <strong>Recovered session available</strong>
-                    <small>{recoveryStatus.projectName ?? "Autosaved project"} · autosave found</small>
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <RotateCcw className="size-4 text-amber-400 shrink-0" />
+                    <span>
+                      <strong>Recovered session available</strong>
+                      <small>{recoveryStatus.projectName ?? "Autosaved project"} · autosave found</small>
+                    </span>
+                  </div>
                   <LoadingButton
                     className="welcome-recover-button"
                     onAction={recoverProjectFromWelcome}
@@ -221,18 +239,20 @@ export function ProjectWelcomeScreen({
                       successLabel="Opened"
                       errorLabel="Could not open"
                     >
-                      <span className="recent-project-icon">S</span>
+                      <span className="recent-project-icon">
+                        <Film className="size-3.5" />
+                      </span>
                       <span className="recent-project-name">
                         <strong>{item.name}</strong>
                         <small title={item.path}>{item.path}</small>
                       </span>
-                      <b aria-hidden="true">→</b>
+                      <ArrowRight className="recent-arrow" aria-hidden="true" />
                     </LoadingButton>
                   ))}
                 </div>
               ) : (
                 <div className="welcome-recent-empty">
-                  <span>⌁</span>
+                  <span><Clock className="size-4" /></span>
                   <p>Your recent projects will appear here.</p>
                 </div>
               )}
@@ -240,7 +260,7 @@ export function ProjectWelcomeScreen({
           ) : (
             <>
               <button className="welcome-back" onClick={() => setWelcomeMode("home")}>
-                ← <span>Back to projects</span>
+                <ArrowLeft className="size-3.5" /> <span>Back to projects</span>
               </button>
               <div className="welcome-panel-heading setup-heading">
                 <p className="welcome-kicker">NEW PROJECT</p>

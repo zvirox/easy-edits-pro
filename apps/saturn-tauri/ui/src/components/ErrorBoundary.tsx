@@ -43,29 +43,53 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <div
           role="alert"
           style={{
+            position: "relative",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             width: "100%",
             height: "100%",
-            minHeight: "240px",
+            minHeight: "280px",
             padding: "24px",
-            background: "var(--bg-app, #0b0d10)",
-            color: "var(--text-primary, #f3f4f6)",
-            fontFamily: "system-ui, -apple-system, sans-serif",
+            background: "var(--color-bg-base, #09090b)",
+            color: "var(--color-text-primary, #f8fafc)",
+            fontFamily: "Inter Variable, Inter, system-ui, -apple-system, sans-serif",
             textAlign: "center",
             boxSizing: "border-box",
+            overflow: "hidden",
           }}
         >
+          {/* Ambient Top Glow */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              top: "-80px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: "600px",
+              height: "360px",
+              background: "radial-gradient(circle, var(--color-accent-glow, rgba(99, 102, 241, 0.18)) 0%, transparent 70%)",
+              pointerEvents: "none",
+              filter: "blur(50px)",
+              zIndex: 0,
+            }}
+          />
+
           <div
             style={{
+              position: "relative",
+              zIndex: 1,
               maxWidth: "520px",
-              padding: "28px",
-              borderRadius: "12px",
-              background: "var(--bg-panel, #13161b)",
-              border: "1px solid var(--border-panel, #262b34)",
-              boxShadow: "0 16px 36px rgba(0, 0, 0, 0.4)",
+              width: "100%",
+              padding: "32px 28px",
+              borderRadius: "18px",
+              background: "var(--color-bg-surface, #121216)",
+              border: "1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08))",
+              boxShadow: "0 24px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
             }}
           >
             <div
@@ -73,33 +97,50 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 width: "48px",
                 height: "48px",
                 margin: "0 auto 16px",
-                borderRadius: "50%",
-                background: "rgba(239, 68, 68, 0.15)",
-                color: "#ef4444",
+                borderRadius: "12px",
+                background: "rgba(239, 68, 68, 0.12)",
+                border: "1px solid rgba(239, 68, 68, 0.25)",
+                color: "#f87171",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "24px",
+                fontSize: "22px",
               }}
             >
               ⚠
             </div>
-            <h2 style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 600 }}>
+            <h2
+              style={{
+                margin: "0 0 8px",
+                fontSize: "19px",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                color: "var(--color-text-primary, #f8fafc)",
+              }}
+            >
               {this.props.fallbackTitle ?? "Workspace Rendering Issue"}
             </h2>
-            <p style={{ margin: "0 0 16px", fontSize: "13px", color: "var(--text-secondary, #9ca3af)", lineHeight: 1.5 }}>
+            <p
+              style={{
+                margin: "0 0 18px",
+                fontSize: "13px",
+                color: "var(--color-text-secondary, #94a3b8)",
+                lineHeight: 1.6,
+              }}
+            >
               The studio encountered an unexpected error while rendering this workspace. Your project document remains safe in memory.
             </p>
             {this.state.error && (
               <pre
                 style={{
-                  margin: "0 0 20px",
-                  padding: "10px 14px",
-                  borderRadius: "6px",
-                  background: "var(--bg-elevated, #1c2027)",
-                  border: "1px solid var(--border-panel, #262b34)",
-                  color: "#f87171",
+                  margin: "0 0 22px",
+                  padding: "12px 14px",
+                  borderRadius: "8px",
+                  background: "var(--color-bg-base, #09090b)",
+                  border: "1px solid rgba(239, 68, 68, 0.2)",
+                  color: "#fca5a5",
                   fontSize: "12px",
+                  fontFamily: "ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
                   textAlign: "left",
                   overflowX: "auto",
                   maxHeight: "120px",
@@ -115,14 +156,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 type="button"
                 onClick={this.handleReset}
                 style={{
-                  padding: "8px 18px",
-                  borderRadius: "6px",
-                  background: "var(--accent-primary, #0ea5e9)",
+                  padding: "9px 20px",
+                  borderRadius: "8px",
+                  background: "var(--color-accent-primary, #6366f1)",
                   color: "#ffffff",
-                  border: "none",
+                  border: "1px solid rgba(255, 255, 255, 0.14)",
+                  boxShadow: "0 0 20px var(--color-accent-glow, rgba(99, 102, 241, 0.35))",
                   fontWeight: 600,
                   fontSize: "13px",
                   cursor: "pointer",
+                  transition: "all 0.15s ease",
                 }}
               >
                 Try Again
@@ -131,13 +174,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 type="button"
                 onClick={this.handleReload}
                 style={{
-                  padding: "8px 18px",
-                  borderRadius: "6px",
-                  background: "var(--bg-elevated, #1c2027)",
-                  color: "var(--text-primary, #f3f4f6)",
-                  border: "1px solid var(--border-panel, #262b34)",
+                  padding: "9px 20px",
+                  borderRadius: "8px",
+                  background: "var(--color-bg-elevated, #18181c)",
+                  color: "var(--color-text-primary, #f8fafc)",
+                  border: "1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08))",
                   fontSize: "13px",
+                  fontWeight: 500,
                   cursor: "pointer",
+                  transition: "all 0.15s ease",
                 }}
               >
                 Reload Studio

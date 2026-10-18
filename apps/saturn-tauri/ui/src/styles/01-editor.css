@@ -1,58 +1,76 @@
 :root, [data-theme="dark"], .dark {
   color-scheme: dark;
-  --bg-app: #0b0d10;
-  --bg-panel: #13161b;
-  --bg-elevated: #1c2027;
-  --bg-input: #0f1216;
-  --border-panel: #262b34;
-  --text-primary: #f3f4f6;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --accent-primary: #0ea5e9;
+
+  /* VoiceStudio Dark Theme Palette */
+  --color-bg-base: #09090b;        /* Deep matte obsidian base */
+  --color-bg-surface: #121216;     /* Layered card/panel background */
+  --color-bg-elevated: #18181c;    /* Hover or modal states */
+  
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-active: rgba(255, 255, 255, 0.16);
+
+  --color-text-primary: #f8fafc;   /* Crisp white headings */
+  --color-text-secondary: #94a3b8; /* Muted slate gray body text */
+  --color-text-muted: #64748b;     /* Subdued metadata / captions */
+
+  --color-accent-primary: #6366f1; /* Electric Indigo / Violet glow */
+  --color-accent-glow: rgba(99, 102, 241, 0.15);
+  --color-accent-success: #10b981; /* Local/Active status green */
+
+  /* Application Token Mappings */
+  --bg-app: var(--color-bg-base);
+  --bg-panel: var(--color-bg-surface);
+  --bg-elevated: var(--color-bg-elevated);
+  --bg-input: #0e0e12;
+  --border-panel: var(--color-border-subtle);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-muted: var(--color-text-muted);
+  --accent-primary: var(--color-accent-primary);
 
   /* Semantic Aliases & Compatibility Tokens */
-  --bg-subpanel: var(--bg-elevated);
-  --bg-header: var(--bg-panel);
-  --bg-toolbar: var(--bg-panel);
-  --bg-button: var(--bg-elevated);
-  --bg-hover: rgba(255, 255, 255, 0.07);
-  --bg-active: rgba(255, 255, 255, 0.12);
-  --bg-selected: rgba(14, 165, 233, 0.15);
-  --border-color: var(--border-panel);
-  --border-strong: var(--border-panel);
-  --border-glow: rgba(14, 165, 233, 0.35);
-  --text-main: var(--text-primary);
-  --text-sub: var(--text-secondary);
-  --accent-cyan: #0ea5e9;
-  --accent-violet: #a855f7;
-  --accent-primary-hover: #0284c7;
-  --accent-orange: #ff7700;
-  --accent-green: #10b981;
-  --bg-tooltip: #0c1018f2;
-  --border-tooltip: #263345;
-  --text-tooltip: #ffffff;
-  --shadow-popup: 0 10px 30px rgba(0, 0, 0, 0.7);
+  --bg-subpanel: var(--color-bg-elevated);
+  --bg-header: var(--color-bg-surface);
+  --bg-toolbar: var(--color-bg-surface);
+  --bg-button: var(--color-bg-elevated);
+  --bg-hover: rgba(255, 255, 255, 0.05);
+  --bg-active: rgba(255, 255, 255, 0.09);
+  --bg-selected: rgba(99, 102, 241, 0.16);
+  --border-color: var(--color-border-subtle);
+  --border-strong: var(--color-border-active);
+  --border-glow: var(--color-accent-glow);
+  --text-main: var(--color-text-primary);
+  --text-sub: var(--color-text-secondary);
+  --accent-cyan: #38bdf8;
+  --accent-violet: #818cf8;
+  --accent-primary-hover: #4f46e5;
+  --accent-orange: #f97316;
+  --accent-green: var(--color-accent-success);
+  --bg-tooltip: rgba(18, 18, 22, 0.96);
+  --border-tooltip: var(--color-border-active);
+  --text-tooltip: var(--color-text-primary);
+  --shadow-popup: 0 16px 36px rgba(0, 0, 0, 0.6);
 
   /* Tailwind CSS Semantic Variable Aliases */
-  --background: var(--bg-app);
-  --foreground: var(--text-primary);
-  --card: var(--bg-panel);
-  --card-foreground: var(--text-primary);
-  --popover: var(--bg-panel);
-  --popover-foreground: var(--text-primary);
-  --primary: var(--accent-primary);
+  --background: var(--color-bg-base);
+  --foreground: var(--color-text-primary);
+  --card: var(--color-bg-surface);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-bg-elevated);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-accent-primary);
   --primary-foreground: #ffffff;
-  --secondary: var(--bg-elevated);
-  --secondary-foreground: var(--text-secondary);
-  --muted: var(--bg-elevated);
-  --muted-foreground: var(--text-muted);
+  --secondary: var(--color-bg-elevated);
+  --secondary-foreground: var(--color-text-secondary);
+  --muted: var(--color-bg-elevated);
+  --muted-foreground: var(--color-text-muted);
   --accent: var(--bg-selected);
-  --accent-foreground: var(--accent-primary);
+  --accent-foreground: var(--color-accent-primary);
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: var(--border-panel);
-  --input: var(--border-panel);
-  --ring: var(--accent-primary);
+  --border: var(--color-border-subtle);
+  --input: var(--color-border-subtle);
+  --ring: var(--color-accent-primary);
 }
 
 [data-theme="light"], .light {
@@ -177,9 +195,9 @@
 * { box-sizing: border-box; }
 @font-face { font-family: "Inter Variable"; src: url("/fonts/InterVariable.woff2") format("woff2"); font-style: normal; font-weight: 100 900; font-display: swap; }
 html, body, #root { height: 100%; margin: 0; min-width: 900px; min-height: 620px; overflow: hidden; }
-body { font-family: "Inter Variable", Inter, sans-serif; background: var(--bg-app); color: var(--text-main); }
+body { font-family: "Inter Variable", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: var(--color-bg-base, var(--bg-app)); color: var(--color-text-primary, var(--text-main)); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 button, input { font: inherit; }
-button { color: var(--text-main); background: var(--bg-button); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 9px; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+button { color: var(--color-text-primary, var(--text-main)); background: var(--color-bg-elevated, var(--bg-button)); border: 1px solid var(--color-border-subtle, var(--border-color)); border-radius: 6px; padding: 5px 10px; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; }
 button:disabled { opacity: .48; cursor: not-allowed; }
 .app-shell {
   height: 100vh;
@@ -190,8 +208,8 @@ button:disabled { opacity: .48; cursor: not-allowed; }
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: var(--bg-app);
-  color: var(--text-main);
+  background: var(--color-bg-base, var(--bg-app));
+  color: var(--color-text-primary, var(--text-main));
 }
 /* ==========================================================================
    2-Tier NLE Top Bar
