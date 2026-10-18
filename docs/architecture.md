@@ -59,6 +59,16 @@ playback engine. Export work is sent to `saturn-render` through Tauri commands.
 - `apps/saturn-tauri/ui/src/style.css` imports the ordered stylesheet sections
   through `styles/index.css`. Preserve that order to keep the existing cascade.
 
+## App extraction status
+
+`ProjectProvider`/`useProject`, `useJobs`, `useRecovery`, `usePlayback`, and
+`useShortcuts` are extracted into `app/`. Feature entry points are wired into
+`App.tsx`, and prior workspace implementations remain in place. Phase B is
+still in progress: the shell, inspector JSX, preview monitors, media-pool
+composition, and timeline rendering have not yet been decomposed into
+independent feature components. `App.tsx` remains oversized and is intentionally
+listed as extraction debt rather than described as complete.
+
 ## Source size guardrails
 
 New `.rs`, `.ts`, `.tsx`, and `.css` source files must stay at or below 800
