@@ -14,6 +14,7 @@ import { LiveMulticamSwitcher } from "./components/LiveMulticamSwitcher";
 import { NetworkImportModal } from "./components/NetworkImportModal";
 import { BatchQueueDrawer } from "./components/BatchQueueDrawer";
 import { OllamaChatDrawer } from "./components/OllamaChatDrawer";
+import { formatTime, formatPan, formatDb } from "./utils/formatters";
 import {
   audioClockMaster,
   evaluateTimelinePlayback,
@@ -333,10 +334,10 @@ const workspaces: { id: Workspace; label: string }[] = [
   { id: "ai", label: "AI assistant" },
 ];
 
-const davinciWorkspaces: { id: DavinciWorkspace; label: string; shortcut: string; icon: IconName }[] = [
+const davinciWorkspaces: { id: DavinciWorkspace; label: string; shortcut: string; icon: IconName; isExperimental?: boolean }[] = [
   { id: "media", label: "Media", shortcut: "Shift+1", icon: "media" },
   { id: "edit", label: "Edit", shortcut: "Shift+2", icon: "edit" },
-  { id: "fusion", label: "Fusion", shortcut: "Shift+3", icon: "effects" },
+  { id: "fusion", label: "Fusion", shortcut: "Shift+3", icon: "effects", isExperimental: true },
   { id: "color", label: "Color", shortcut: "Shift+4", icon: "color" },
   { id: "audio", label: "Fairlight", shortcut: "Shift+5", icon: "audio" },
   { id: "effects", label: "Effects", shortcut: "Shift+6", icon: "effects" },
@@ -502,24 +503,6 @@ function Icon({ name }: { name: IconName }) {
     subtitle: <><rect x="3" y="4" width="14" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M6 8h8M6 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><path d="M7 15l-2 3v-3" fill="none" stroke="currentColor" strokeWidth="1.5" /></>,
   };
   return <svg viewBox="0 0 20 20" aria-hidden="true">{paths[name]}</svg>;
-}
-
-function formatTime(ticks: number) {
-  const seconds = Math.max(0, Math.floor(ticks / TICKS_PER_SECOND));
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  return `${String(hours).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-}
-
-function formatPan(pan: number): string {
-  if (Math.abs(pan) < 0.05) return "C";
-  if (pan < 0) return `L ${Math.round(Math.abs(pan) * 100)}%`;
-  return `R ${Math.round(pan * 100)}%`;
-}
-
-function formatDb(db: number): string {
-  if (!Number.isFinite(db) || db <= -59.5) return "-∞ dB";
-  return `${db > 0 ? "+" : ""}${db.toFixed(1)} dB`;
 }
 
 const COLOR_PRESETS: { id: string; label: string; icon: string; exposure: number; contrast: number; saturation: number }[] = [
@@ -8914,12 +8897,13 @@ function App() {
                   key={item.id}
                   className={`davinci-workspace-btn ${isActive ? "active" : ""}`}
                   onClick={() => selectDavinciWorkspace(item.id)}
-                  data-tooltip={`${item.label} Page (${item.shortcut})`}
+                  data-tooltip={`${item.label} Page (${item.shortcut})${item.isExperimental ? " • Experimental" : ""}`}
                   data-tooltip-pos="bottom"
                   aria-current={isActive ? "page" : undefined}
                 >
                   <Icon name={item.icon} />
                   <span>{item.label}</span>
+                  {item.isExperimental && <span className="exp-badge">EXP</span>}
                 </button>
               );
             })}
@@ -9078,11 +9062,12 @@ function App() {
                 fontWeight: 600,
               }}
               onClick={() => setAiChatDrawerOpen(true)}
-              data-tooltip="Open Saturn AI Assistant (Ollama)"
+              data-tooltip="Open Local AI Assistant (Ollama) • Experimental"
               data-tooltip-pos="bottom"
             >
               <span>🧠</span>
               <span>AI Assistant</span>
+              <span className="exp-badge">EXP</span>
             </button>
 
             <button

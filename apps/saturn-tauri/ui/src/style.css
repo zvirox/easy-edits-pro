@@ -6416,3 +6416,20 @@ button:active:not(:disabled) { transform: scale(0.96); transition: transform 0.0
   display: block;
 }
 
+.exp-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  color: #c084fc;
+  margin-left: 4px;
+  line-height: 1;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+

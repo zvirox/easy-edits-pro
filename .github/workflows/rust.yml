@@ -56,6 +56,10 @@ jobs:
         working-directory: apps/saturn-tauri
         run: pnpm build
 
+      - name: Run UI unit tests
+        working-directory: apps/saturn-tauri
+        run: pnpm test
+
       - name: Check Tauri desktop backend
         working-directory: apps/saturn-tauri
         run: cargo check --verbose
