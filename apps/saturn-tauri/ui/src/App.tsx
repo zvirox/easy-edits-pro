@@ -9,6 +9,7 @@ import { BatchQueueDrawer } from "./components/BatchQueueDrawer";
 import { OllamaChatDrawer } from "./components/OllamaChatDrawer";
 import { formatTime, formatPan, formatDb, getClipWaveform } from "./utils/formatters";
 import { ProjectProvider, runCommand, type CommandStatus, type MediaAvailability } from "./app/ProjectProvider";
+import { useShortcuts } from "./app/useShortcuts";
 import { useProject } from "./app/useProject";
 import { useJobs, type JobInfo } from "./app/useJobs";
 import { ProjectWelcomeScreen, useRecovery } from "./features/welcome";
@@ -4975,135 +4976,41 @@ function EditorApp() {
   }
 
 
+  const handleEditorKeyDown = useShortcuts({
+    commands,
+    timelineTools,
+    project,
+    multicamMode,
+    selectedTransition,
+    selectedClip,
+    timelineZoom,
+    toggleProgramPlayback,
+    switchMulticamAngle,
+    handleShuttleKey,
+    stepProgramFrame,
+    seekProgramTo,
+    removeSelectedTransition,
+    removeSelectedClip,
+    addTitleToTimeline,
+    addTransitionToTimeline,
+    unlinkSelectedClips,
+    linkSelectedClips,
+    decomposeSelectedCompoundClip,
+    setCompoundClipNameDraft,
+    setCompoundClipModalOpen,
+    toggleTheme,
+    selectDavinciWorkspace,
+    setTimelineTool,
+    setSnapEnabled,
+    zoomTimeline,
+    invokeMenuCommand,
+    setNotice,
+  });
+
+
   return (
     appStage !== "editor" ? renderProjectWelcome() :
-    <div className="app-shell" tabIndex={-1} onKeyDown={(event) => {
-      const target = event.target;
-      if (target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
-      if (event.key === " " || event.code === "Space") {
-        event.preventDefault();
-        toggleProgramPlayback();
-        return;
-      }
-      if (multicamMode && ["1", "2", "3", "4"].includes(event.key) && !(event.ctrlKey || event.metaKey || event.altKey)) {
-        event.preventDefault();
-        void switchMulticamAngle(Number(event.key));
-        return;
-      }
-      if (event.key.toLowerCase() === "j" && !(event.ctrlKey || event.metaKey || event.altKey)) {
-        event.preventDefault();
-        handleShuttleKey("j");
-        return;
-      }
-      if (event.key.toLowerCase() === "k" && !(event.ctrlKey || event.metaKey || event.altKey)) {
-        event.preventDefault();
-        handleShuttleKey("k");
-        return;
-      }
-      if (event.key.toLowerCase() === "l" && !(event.ctrlKey || event.metaKey || event.altKey)) {
-        event.preventDefault();
-        handleShuttleKey("l");
-        return;
-      }
-      if (event.key === "ArrowLeft" && !(event.ctrlKey || event.metaKey || event.altKey)) {
-        event.preventDefault();
-        stepProgramFrame(-1);
-        return;
-      }
-      if (event.key === "ArrowRight" && !(event.ctrlKey || event.metaKey || event.altKey)) {
-        event.preventDefault();
-        stepProgramFrame(1);
-        return;
-      }
-      if (event.key === "Home") {
-        event.preventDefault();
-        seekProgramTo(0);
-        return;
-      }
-      if (event.key === "End") {
-        event.preventDefault();
-        const curDuration = Math.max(0, ...(project?.sequence.tracks ?? []).flatMap((t) => t.clips.map((c) => c.timeline_start + c.duration)));
-        seekProgramTo(curDuration);
-        return;
-      }
-      if (event.key === "Delete" || event.key === "Backspace") {
-        if (selectedTransition) {
-          event.preventDefault();
-          void removeSelectedTransition();
-          return;
-        }
-        if (selectedClip) {
-          event.preventDefault();
-          void removeSelectedClip();
-          return;
-        }
-      }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "t") {
-        event.preventDefault();
-        void addTitleToTimeline();
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
-        event.preventDefault();
-        void addTransitionToTimeline();
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "l") {
-        event.preventDefault();
-        void unlinkSelectedClips();
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "l") {
-        event.preventDefault();
-        void linkSelectedClips();
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "g") {
-        event.preventDefault();
-        void decomposeSelectedCompoundClip();
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "g") {
-        event.preventDefault();
-        setCompoundClipNameDraft(`Compound Clip ${(project?.sequences?.length ?? 1) + 1}`);
-        setCompoundClipModalOpen(true);
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && event.altKey && event.key.toLowerCase() === "t") {
-        event.preventDefault();
-        toggleTheme();
-        return;
-      }
-      if (event.shiftKey && ["1", "2", "3", "4", "5", "6"].includes(event.key)) {
-        event.preventDefault();
-        const map: Record<string, DavinciWorkspace> = {
-          "1": "media",
-          "2": "edit",
-          "3": "color",
-          "4": "audio",
-          "5": "effects",
-          "6": "keyframes",
-          "7": "deliver",
-        };
-        const ws = map[event.key];
-        if (ws) selectDavinciWorkspace(ws);
-        return;
-      }
-      if (!(event.ctrlKey || event.metaKey || event.altKey)) {
-        const tool = timelineTools.find((item) => item.shortcut.toLowerCase() === event.key.toLowerCase());
-        if (tool) { event.preventDefault(); setTimelineTool(tool.id); return; }
-        if (event.key.toLowerCase() === "s") { event.preventDefault(); setSnapEnabled((enabled) => !enabled); return; }
-      }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "q") { event.preventDefault(); void getCurrentWindow().close(); return; }
-      if ((event.ctrlKey || event.metaKey) && event.key === "+") { event.preventDefault(); zoomTimeline(1.2); return; }
-      if ((event.ctrlKey || event.metaKey) && event.key === "-") { event.preventDefault(); zoomTimeline(1 / 1.2); return; }
-      if ((event.ctrlKey || event.metaKey) && event.key === "0") { event.preventDefault(); zoomTimeline(72 / timelineZoom); return; }
-      const pressed = `${event.ctrlKey || event.metaKey ? "Ctrl+" : ""}${event.shiftKey ? "Shift+" : ""}${event.key.length === 1 ? event.key.toUpperCase() : event.key}`;
-      const command = commands.find((item) => item.shortcut?.toLowerCase() === pressed.toLowerCase());
-      if (!command) return;
-      event.preventDefault();
-      void invokeMenuCommand(command.id).catch((error: unknown) => setNotice(String(error)));
-    }}>
+    <div className="app-shell" tabIndex={-1} onKeyDown={handleEditorKeyDown}>
       <header className="app-header">
         {/* Tier 1 (32px System Menu & Global Utilities) */}
         <div className="system-bar-tier1">
