@@ -11,6 +11,10 @@ import { NetworkImportModal } from "./components/NetworkImportModal";
 import { BatchQueueDrawer } from "./components/BatchQueueDrawer";
 import { OllamaChatDrawer } from "./components/OllamaChatDrawer";
 import { formatTime, formatPan, formatDb, getClipWaveform } from "./utils/formatters";
+import { Icon, type IconName } from "./components/Icon";
+import { SegmentedControl } from "./components/interior/segmented-control";
+import { MediaWorkspace } from "./workspaces/MediaWorkspace";
+import { FairlightWorkspace } from "./workspaces/FairlightWorkspace";
 import { ProjectWelcomeScreen } from "./workspaces/ProjectWelcomeScreen";
 import { ExportWorkspace } from "./workspaces/ExportWorkspace";
 import { FusionWorkspace } from "./workspaces/FusionWorkspace";
@@ -389,59 +393,6 @@ async function runCommand<T = unknown>(id: string, params: unknown = null): Prom
   return invoke<T>("execute_command", { request: { id, params } });
 }
 
-type IconName = "fullscreen" | "restore" | "close" | "media" | "add" | "undo" | "redo" | "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "link" | "unlink" | "pen" | "hand" | "snap" | "split" | "remove" | "markIn" | "markOut" | "zoomIn" | "zoomOut" | "clearMarks" | "export" | "fileNew" | "fileOpen" | "fileSave" | "import" | "help" | "window" | "title" | "transition" | "sun" | "moon" | "color" | "audio" | "effects" | "deliver" | "edit" | "check" | "keyframe" | "subtitle";
-
-function Icon({ name }: { name: IconName }) {
-  const paths = {
-    check: <path d="m4 10 4 4 8-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
-    fullscreen: <path d="M7 3H3v4m10-4h4v4M3 13v4h4m10-4v4h-4" />,
-    restore: <path d="M7 3h10v10M13 7H3v10h10V7Z" />,
-    close: <path d="m5 5 10 10M15 5 5 15" />,
-    media: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="m9 4 2 16m5-16 2 16M3 9h18M3 15h18" /></>,
-    add: <path d="M12 5v14m-7-7h14" />,
-    undo: <path d="M9 14 4 9l5-5M4 9h9a6 6 0 0 1 0 12h-2" />,
-    redo: <path d="m15 14 5-5-5-5m5 5h-9a6 6 0 0 0 0 12h2" />,
-    select: <path d="m5 3 10 9-5 .7L8 18z" />,
-    trackForward: <><path d="M3 4h8v4H3zM3 10h8v4H3zM3 16h8v2H3z" /><path d="M13 10h5m-2-2 2 2-2 2" /></>,
-    ripple: <><path d="m8 5-4 5 4 5M16 5l4 5-4 5M10 10h4" /><path d="M3 18h14" /></>,
-    rolling: <><path d="M7 4v12m6-12v12M4 8l3 3-3 3m12-6-3 3 3 3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>,
-    razor: <><circle cx="6" cy="6" r="2" /><circle cx="6" cy="14" r="2" /><path d="m8 7 9 9M8 13l9-9" /></>,
-    slip: <><path d="M3 4h14v12H3zM6 2v2m8-2v2m-8 12v2m8-2v2" /><path d="M8 10h6m-2-2 2 2-2 2" /></>,
-    slide: <><rect x="6" y="5" width="8" height="10" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M3 10H1m0 0 1.5-1.5M1 10l1.5 1.5m16.5-1.5h-2m0 0-1.5-1.5m1.5 1.5 1.5 1.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>,
-    rateStretch: <><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M10 6v4l2.5 1.5M2 10h1.5m13 0h1.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>,
-    link: <path d="M8 11a3.5 3.5 0 0 0 5 .5l2-2a3.5 3.5 0 0 0-5-5l-1 1M12 9a3.5 3.5 0 0 0-5-.5l-2 2a3.5 3.5 0 0 0 5 5l1-1" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />,
-    unlink: <><path d="M13.5 8.5l1.5-1.5a3.5 3.5 0 0 0-5-5l-1 1M6.5 11.5l-1.5 1.5a3.5 3.5 0 0 0 5 5l1-1M3 3l14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>,
-    pen: <><path d="m4 14 9-9 3 3-9 9H4zM12 6l3 3M4 17h12" /></>,
-    hand: <path d="M6 11V5a1.5 1.5 0 0 1 3 0v5-7a1.5 1.5 0 0 1 3 0v7-5a1.5 1.5 0 0 1 3 0v6-3a1.5 1.5 0 0 1 3 0v5c0 4-2 7-6 7h-1c-2 0-3.5-1-4.5-2.5L3 13a1.8 1.8 0 0 1 3-2z" />,
-    snap: <path d="M4 3v5a6 6 0 0 0 12 0V3M4 8h12M10 14v3m-3 0h6" />,
-    split: <><path d="M4 4h12v12H4zM10 4v12" /><path d="m7 8 3 2-3 2m6-4-3 2 3 2" /></>,
-    remove: <><path d="M4 6h12m-10 0 1 11h6l1-11M8 6V4h4v2m-3 3v5m2-5v5" /></>,
-    markIn: <path d="M6 3H4v14h2m10-14h-2m-2 0h-2" />,
-    markOut: <path d="M14 3h2v14h-2M4 3h2m2 0h2" />,
-    zoomIn: <><circle cx="8.5" cy="8.5" r="5.5" /><path d="m13 13 4 4M8.5 6v5m-2.5-2.5h5" /></>,
-    zoomOut: <><circle cx="8.5" cy="8.5" r="5.5" /><path d="m13 13 4 4M6 8.5h5" /></>,
-    clearMarks: <><circle cx="10" cy="10" r="7" /><path d="m8 8 4 4m0-4-4 4" /></>,
-    export: <><path d="M10 13V3m-4 4 4-4 4 4M4 12v5h12v-5" /></>,
-    fileNew: <><path d="M5 2h7l4 4v12H5zM12 2v5h4" /><path d="M10 10v6m-3-3h6" /></>,
-    fileOpen: <path d="M2 5h6l2 2h8v10H2zM2 8h16" />,
-    fileSave: <><path d="M3 3h12l2 2v12H3zM6 3v5h8V3M6 17v-6h8v6" /><path d="M10 12v4m-2-2h4" /></>,
-    import: <><path d="M10 3v10m-4-4 4 4 4-4M3 15v3h14v-3" /></>,
-    help: <><circle cx="10" cy="10" r="8" /><path d="M7.8 7.5A2.3 2.3 0 1 1 11 9.7c-.8.5-1 1-1 2m0 2.5v.1" /></>,
-    window: <><rect x="2" y="3" width="16" height="14" rx="1" /><path d="M2 7h16M7 7v10" /></>,
-    title: <path d="M4 5h12M10 5v11m-3 0h6" />,
-    transition: <path d="M3 5h4l6 10h4M3 15h4l6-10h4" />,
-    sun: <><circle cx="10" cy="10" r="4" /><path d="M10 2v2m0 12v2M2 10h2m12 0h2m-3.5-4.5 1.4-1.4M4.9 15.1l1.4-1.4m0-7.4L4.9 4.9m10.2 10.2-1.4-1.4" /></>,
-    moon: <path d="M16 11.5A6.5 6.5 0 0 1 8.5 4a6.5 6.5 0 1 0 7.5 7.5z" />,
-    color: <path d="M10 2a8 8 0 1 0 8 8 3 3 0 0 0-3-3h-1.5a1.5 1.5 0 0 1-1.5-1.5V5a3 3 0 0 0-3-3z" />,
-    audio: <path d="M3 8v4h3l4 4V4L6 8H3zm10-2a4 4 0 0 1 0 8m2-10a7 7 0 0 1 0 12" />,
-    effects: <><path d="m10 2 2 4.5L16.5 8l-4.5 1.5L10 14l-2-4.5L3.5 8l4.5-1.5z" /><path d="m4 14 1 2 2 1-2 1-1 2-1-2-2-1 2-1z" /></>,
-    deliver: <><path d="M10 3v10m-4-4 4 4 4-4M3 15v3h14v-3" /></>,
-    edit: <><circle cx="6" cy="6" r="2" /><circle cx="6" cy="14" r="2" /><path d="m8 7 9 9M8 13l9-9" /></>,
-    keyframe: <><path d="M10 3l6 7-6 7-6-7z" fill="none" stroke="currentColor" strokeWidth="1.5" /><circle cx="10" cy="10" r="2" fill="currentColor" /></>,
-    subtitle: <><rect x="3" y="4" width="14" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M6 8h8M6 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><path d="M7 15l-2 3v-3" fill="none" stroke="currentColor" strokeWidth="1.5" /></>,
-  };
-  return <svg viewBox="0 0 20 20" aria-hidden="true">{paths[name]}</svg>;
-}
 
 const COLOR_PRESETS: { id: string; label: string; icon: string; exposure: number; contrast: number; saturation: number }[] = [
   { id: "neutral", label: "Neutral Rec.709", icon: "⚪", exposure: 0, contrast: 1.0, saturation: 1.0 },
@@ -517,6 +468,7 @@ function App() {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     document.documentElement.classList.toggle("dark", theme === "dark");
+    document.documentElement.classList.toggle("light", theme === "light");
     try {
       localStorage.setItem("eep-theme", theme);
     } catch {}
@@ -1026,7 +978,7 @@ function App() {
         if (deckA.src !== snapshot.deckA.src) {
           deckA.src = snapshot.deckA.src;
           try { deckA.currentTime = snapshot.deckA.currentTime; } catch {}
-        } else if (Math.abs(deckA.currentTime - snapshot.deckA.currentTime) > 0.08) {
+        } else if (Math.abs(deckA.currentTime - snapshot.deckA.currentTime) > 0.25) {
           try { deckA.currentTime = snapshot.deckA.currentTime; } catch {}
         }
 
@@ -1045,7 +997,7 @@ function App() {
         if (deckB.src !== snapshot.deckB.src) {
           deckB.src = snapshot.deckB.src;
           try { deckB.currentTime = snapshot.deckB.currentTime; } catch {}
-        } else if (Math.abs(deckB.currentTime - snapshot.deckB.currentTime) > 0.08) {
+        } else if (Math.abs(deckB.currentTime - snapshot.deckB.currentTime) > 0.25) {
           try { deckB.currentTime = snapshot.deckB.currentTime; } catch {}
         }
 
@@ -1069,7 +1021,7 @@ function App() {
           el.muted = false;
           const targetVol = Math.max(0, Math.min(1, 10 ** (audioItem.gainDb / 20)));
           if (Math.abs(el.volume - targetVol) > 0.02) el.volume = targetVol;
-          if (Math.abs(el.currentTime - audioItem.currentTime) > 0.08) {
+          if (Math.abs(el.currentTime - audioItem.currentTime) > 0.25) {
             try { el.currentTime = audioItem.currentTime; } catch {}
           }
           if (isPlaying) {
@@ -5070,7 +5022,7 @@ function App() {
                       audioPlayersRef.current.set(audioKey, el);
                       audioClockMaster.connectMediaElement(audioItem.track.id, el);
                       el.volume = Math.max(0, Math.min(1, 10 ** (audioItem.gainDb / 20)));
-                      if (Math.abs(el.currentTime - audioItem.currentTime) > 0.08) {
+                      if (Math.abs(el.currentTime - audioItem.currentTime) > 0.25) {
                         try { el.currentTime = audioItem.currentTime; } catch {}
                       }
                       if (programPlaying && el.paused) void el.play().catch(() => {});
@@ -5270,1148 +5222,61 @@ function App() {
   }
 
   function renderAudioWorkspace() {
-    const tracks = project?.sequence.tracks ?? [];
-    const sequenceEnd = Math.max(0, ...tracks.flatMap((t) => t.clips.map((c) => c.timeline_start + c.duration)));
-    const audioTracks = tracks.filter((t) => t.kind === "audio");
-    const videoTracks = tracks.filter((t) => t.kind === "video");
-
-    const activeTrackId = selectedFairlightTrackId ?? audioTracks[0]?.id ?? tracks[0]?.id ?? 1;
-    const activeTrack = tracks.find((t) => t.id === activeTrackId) ?? tracks[0];
-    const activeDsp: TrackAudioProcessing = audioProcessingDrafts[activeTrackId] ?? activeTrack?.audio_processing ?? {};
-
-    const lowGain = activeDsp.eq_low_gain ?? 0;
-    const midGain = activeDsp.eq_mid_gain ?? 0;
-    const highGain = activeDsp.eq_high_gain ?? 0;
-    const dyLow = (lowGain / 15) * 22;
-    const dyMid = (midGain / 15) * 22;
-    const dyHigh = (highGain / 15) * 22;
-    const eqCurvePath = `M 0 ${(35 - dyLow).toFixed(1)} C 40 ${(35 - dyLow).toFixed(1)}, 70 ${(35 - dyMid).toFixed(1)}, 120 ${(35 - dyMid).toFixed(1)} C 170 ${(35 - dyMid).toFixed(1)}, 200 ${(35 - dyHigh).toFixed(1)}, 240 ${(35 - dyHigh).toFixed(1)}`;
-    const eqFillPath = `${eqCurvePath} L 240 70 L 0 70 Z`;
-
-    const activeTrackGr = trackGr[activeTrackId] || 0;
-
     return (
-      <main className="workspace-page audio-workspace-page">
-        <header className="workspace-sub-header audio-workspace-header">
-          <div className="workspace-header-title">
-            <h1>Fairlight Sound Suite</h1>
-            <p>Multi-track mixing console, dual stereo peak VU meters, track panning, and transport sync.</p>
-          </div>
-          <div className="audio-header-actions">
-            <div className="audio-transport-readout">
-              <span className="transport-tc-label">TIMECODE</span>
-              <code className="transport-tc-val">{formatTime(playhead)}</code>
-            </div>
-            <div className="audio-transport-buttons">
-              <button
-                className="transport-btn"
-                onClick={() => handleShuttleKey("j")}
-                title="Shuttle Reverse (J)"
-              >
-                ◀◀
-              </button>
-              <button
-                className="transport-btn"
-                onClick={() => stepProgramFrame(-1)}
-                title="Previous Frame (Left Arrow)"
-              >
-                ◀|
-              </button>
-              <button
-                className={`transport-btn play-btn ${programPlaying ? "active-toggle" : ""}`}
-                onClick={() => toggleProgramPlayback()}
-                title="Play / Pause (Space / K)"
-              >
-                {programPlaying ? "⏸ Pause" : "▶ Play"}
-              </button>
-              <button
-                className="transport-btn"
-                onClick={() => stepProgramFrame(1)}
-                title="Next Frame (Right Arrow)"
-              >
-                |▶
-              </button>
-              <button
-                className="transport-btn"
-                onClick={() => handleShuttleKey("l")}
-                title="Shuttle Forward (L)"
-              >
-                ▶▶
-              </button>
-            </div>
-            <div className="audio-matrix-global-actions">
-              <button
-                className="btn-secondary"
-                onClick={() => void clearAllSolos()}
-                title="Clear all soloed tracks"
-              >
-                Clear Solos
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={() => void muteAllTracks()}
-                title="Toggle mute for all tracks"
-              >
-                Mute All
-              </button>
-              <button
-                className="btn-primary-subtle"
-                onClick={() => selectDavinciWorkspace("edit")}
-              >
-                ← Back to Edit
-              </button>
-            </div>
-          </div>
-        </header>
-
-        <div className="audio-studio-body">
-          {/* Left Monitor Column: Picture Sync + Master Bus Card */}
-          <section className="audio-monitor-column">
-            <div className="audio-video-sync-box">
-              <div className="audio-box-title">
-                <span>PICTURE SYNC MONITOR</span>
-                <code>{formatTime(playhead)} / {formatTime(sequenceEnd)}</code>
-              </div>
-              <div className="audio-sync-preview-stage">
-                {renderProgramMonitor()}
-              </div>
-            </div>
-
-            <div className="audio-master-bus-card">
-              <div className="master-bus-header">
-                <div className="master-bus-title">
-                  <strong>MASTER OUTPUT BUS</strong>
-                  <span className="bus-badge">Stereo Main · 48 kHz</span>
-                </div>
-                <span className={`mixer-live-badge ${programPlaying ? "playing" : "stopped"}`}>
-                  {programPlaying ? "LIVE" : "STANDBY"}
-                </span>
-              </div>
-
-              <div className="master-bus-controls">
-                {/* Dual Stereo Master VU Meter */}
-                <div className="master-vu-column">
-                  <div className="vu-meter-pair master-vu-pair">
-                    <div className="vu-bar-slot">
-                      <div
-                        className="vu-bar-fill left"
-                        style={{ height: `${Math.min(100, (masterVu.left || 0) * 100)}%` }}
-                      />
-                    </div>
-                    <div className="vu-bar-slot">
-                      <div
-                        className="vu-bar-fill right"
-                        style={{ height: `${Math.min(100, (masterVu.right || 0) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-                  <div className="vu-db-readout">{formatDb(masterVu.peakDb)}</div>
-                </div>
-
-                {/* Master Vertical Fader */}
-                <div className="master-fader-column">
-                  <div className="fader-scale-ticks">
-                    <span>+6</span>
-                    <span className="unity">0</span>
-                    <span>-6</span>
-                    <span>-12</span>
-                    <span>-24</span>
-                    <span>-48</span>
-                    <span>-∞</span>
-                  </div>
-                  <div className="fader-track-container">
-                    <input
-                      type="range"
-                      className="vertical-fader master-fader"
-                      min="-60"
-                      max="6"
-                      step="0.5"
-                      value={masterGainDraft}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setMasterGainDraft(val);
-                        audioClockMaster.setMasterGain(val);
-                      }}
-                    />
-                  </div>
-                  <div className="strip-fader-footer">
-                    <button
-                      type="button"
-                      className="strip-unity-btn master-unity"
-                      title="Reset master gain to unity 0 dB"
-                      onClick={() => {
-                        setMasterGainDraft(0);
-                        audioClockMaster.setMasterGain(0);
-                      }}
-                    >
-                      0 dB
-                    </button>
-                    <span className="strip-gain-text master-gain-text">{formatDb(masterGainDraft)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Master True Peak Limiter Module */}
-            <div className="audio-master-limiter-card">
-              <div className="limiter-card-header">
-                <div className="limiter-title">
-                  <strong>TRUE PEAK LIMITER</strong>
-                  <span className="limiter-badge">-0.5 dBFS CEILING</span>
-                </div>
-                <span className="limiter-active-pill">BRICKWALL</span>
-              </div>
-              <div className="limiter-card-body">
-                <div className="limiter-specs">
-                  <span>Ceiling: <b>-0.5 dB</b></span>
-                  <span>Ratio: <b>20:1</b></span>
-                  <span>Attack: <b>1.0 ms</b></span>
-                </div>
-                <div className="limiter-gr-container">
-                  <div className="gr-label-row">
-                    <span>Master GR</span>
-                    <b className={masterGr < -0.1 ? "gr-active" : ""}>
-                      {masterGr < -0.05 ? `${masterGr.toFixed(1)} dB` : "0.0 dB"}
-                    </b>
-                  </div>
-                  <div className="gr-meter-bar-slot">
-                    <div
-                      className="gr-meter-bar-fill master"
-                      style={{ width: `${Math.min(100, Math.max(0, -masterGr * 5))}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* EBU R128 Broadcast Loudness Meter & Auto-Trim (Option C) */}
-            <div className="audio-master-loudness-card">
-              <div className="loudness-card-header">
-                <div className="loudness-title">
-                  <strong>EBU R128 LOUDNESS METER</strong>
-                  <span className="loudness-badge">ITU-R BS.1770-4</span>
-                </div>
-                <div className="loudness-standard-tabs">
-                  <button
-                    type="button"
-                    className={`loudness-tab-btn ${loudnessStandard === "ebu_r128" ? "active" : ""}`}
-                    onClick={() => {
-                      setLoudnessStandard("ebu_r128");
-                      audioClockMaster.setLoudnessStandard("ebu_r128");
-                    }}
-                    title="EBU R128: -23.0 LUFS, Max TP -1.0 dBTP"
-                  >
-                    EBU R128
-                  </button>
-                  <button
-                    type="button"
-                    className={`loudness-tab-btn ${loudnessStandard === "streaming" ? "active" : ""}`}
-                    onClick={() => {
-                      setLoudnessStandard("streaming");
-                      audioClockMaster.setLoudnessStandard("streaming");
-                    }}
-                    title="Streaming: -14.0 LUFS (YouTube, Spotify, Apple)"
-                  >
-                    Streaming (-14)
-                  </button>
-                  <button
-                    type="button"
-                    className={`loudness-tab-btn ${loudnessStandard === "atsc_a85" ? "active" : ""}`}
-                    onClick={() => {
-                      setLoudnessStandard("atsc_a85");
-                      audioClockMaster.setLoudnessStandard("atsc_a85");
-                    }}
-                    title="ATSC A/85: -24.0 LUFS, Max TP -2.0 dBTP"
-                  >
-                    ATSC A/85
-                  </button>
-                </div>
-              </div>
-
-              <div className="loudness-card-body">
-                {/* Big Integrated LUFS Readout + Compliance Badge */}
-                <div className="loudness-main-readout-row">
-                  <div className="integrated-display">
-                    <span className="lufs-value">
-                      {loudnessReport.integratedLufs <= -69 ? "-∞" : loudnessReport.integratedLufs.toFixed(1)}
-                    </span>
-                    <span className="lufs-unit">LUFS (Int)</span>
-                  </div>
-                  <div className="compliance-column">
-                    <span className={`compliance-badge ${loudnessReport.isCompliant ? "compliant" : loudnessReport.integratedLufs > -60 ? "non-compliant" : "standby"}`}>
-                      {loudnessReport.isCompliant ? "✓ COMPLIANT" : loudnessReport.integratedLufs > -60 ? "✕ OUT OF SPEC" : "WAITING"}
-                    </span>
-                    <span className="target-label">
-                      Target: <b>{loudnessReport.targetLufs.toFixed(1)} LUFS</b>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Momentary & Short-term Visual Bars */}
-                <div className="loudness-meters-section">
-                  <div className="loudness-meter-row">
-                    <span className="meter-label">M (400ms)</span>
-                    <div className="loudness-bar-track">
-                      <div
-                        className="loudness-bar-fill momentary"
-                        style={{ width: `${Math.max(0, Math.min(100, (loudnessReport.momentaryLufs + 60) * 2))}%` }}
-                      />
-                      <div
-                        className="loudness-target-marker"
-                        style={{ left: `${Math.max(0, Math.min(100, (loudnessReport.targetLufs + 60) * 2))}%` }}
-                        title={`Target: ${loudnessReport.targetLufs} LUFS`}
-                      />
-                    </div>
-                    <span className="meter-readout">
-                      {loudnessReport.momentaryLufs <= -69 ? "-∞" : `${loudnessReport.momentaryLufs.toFixed(1)}`}
-                    </span>
-                  </div>
-
-                  <div className="loudness-meter-row">
-                    <span className="meter-label">S (3.0s)</span>
-                    <div className="loudness-bar-track">
-                      <div
-                        className="loudness-bar-fill short-term"
-                        style={{ width: `${Math.max(0, Math.min(100, (loudnessReport.shortTermLufs + 60) * 2))}%` }}
-                      />
-                      <div
-                        className="loudness-target-marker"
-                        style={{ left: `${Math.max(0, Math.min(100, (loudnessReport.targetLufs + 60) * 2))}%` }}
-                        title={`Target: ${loudnessReport.targetLufs} LUFS`}
-                      />
-                    </div>
-                    <span className="meter-readout">
-                      {loudnessReport.shortTermLufs <= -69 ? "-∞" : `${loudnessReport.shortTermLufs.toFixed(1)}`}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Secondary Metrics: LRA & True Peak & Trim */}
-                <div className="loudness-metrics-grid">
-                  <div className="metric-box">
-                    <span className="metric-title">LRA (Range)</span>
-                    <b className="metric-val">{loudnessReport.loudnessRangeLu.toFixed(1)} LU</b>
-                  </div>
-                  <div className="metric-box">
-                    <span className="metric-title">True Peak</span>
-                    <b className={`metric-val ${loudnessReport.truePeakDbtp > (loudnessStandard === "atsc_a85" ? -2.0 : -1.0) ? "tp-warn" : ""}`}>
-                      {loudnessReport.truePeakDbtp <= -59 ? "-∞" : `${loudnessReport.truePeakDbtp.toFixed(1)} dBTP`}
-                    </b>
-                  </div>
-                  <div className="metric-box">
-                    <span className="metric-title">Trim Rec</span>
-                    <b className="metric-val trim-val">
-                      {loudnessReport.gainRecommendationDb > 0 ? "+" : ""}
-                      {loudnessReport.gainRecommendationDb.toFixed(1)} dB
-                    </b>
-                  </div>
-                </div>
-
-                {/* Actions: 1-Click Auto Trim & Reset */}
-                <div className="loudness-actions-row">
-                  <button
-                    type="button"
-                    className="loudness-autotrim-btn primary"
-                    onClick={autoTrimLoudness}
-                    disabled={loudnessReport.integratedLufs <= -60 || loudnessReport.isCompliant}
-                    title="Automatically adjust Master Fader to meet compliance target"
-                  >
-                    ⚡ Auto-Trim ({loudnessReport.gainRecommendationDb > 0 ? "+" : ""}{loudnessReport.gainRecommendationDb.toFixed(1)} dB)
-                  </button>
-                  <button
-                    type="button"
-                    className="loudness-reset-btn"
-                    onClick={resetLoudness}
-                    title="Reset accumulated loudness history & gates"
-                  >
-                    ↺ Reset
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Submix 1 / 2 and Aux FX Buses (Phase 10.2) */}
-            <div className="audio-submix-buses-row" style={{ display: "flex", gap: "8px", marginTop: "10px", justifyContent: "center" }}>
-              {[
-                { target: "submix1" as const, name: "SUB 1 (DX)" },
-                { target: "submix2" as const, name: "SUB 2 (MX)" },
-                { target: "aux_fx" as const, name: "AUX (FX)" },
-              ].map((b) => (
-                <div key={b.target} className="audio-bus-channel-card">
-                  <div className="bus-strip-header">
-                    <strong>{b.name}</strong>
-                    <span className="bus-target-tag">{b.target.toUpperCase()}</span>
-                  </div>
-                  <div className="fader-track-container" style={{ height: "100px", display: "flex", alignItems: "center" }}>
-                    <input
-                      type="range"
-                      className="vertical-fader"
-                      min="-60"
-                      max="6"
-                      step="0.5"
-                      value={busGainDrafts[b.target] ?? 0}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setBusGainDrafts((prev) => ({ ...prev, [b.target]: val }));
-                      }}
-                      onPointerUp={(e) => void perform("bus.set_gain_db", { target: b.target, gain_db: Number(e.currentTarget.value) })}
-                    />
-                  </div>
-                  <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-main)" }}>
-                    {formatDb(busGainDrafts[b.target] ?? 0)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Center Column: Dedicated Fairlight Track Audio DSP Rack */}
-          <section className="audio-dsp-rack-column">
-            <div className="dsp-rack-header">
-              <div className="dsp-header-left">
-                <span className="dsp-eyebrow">TRACK DSP PROCESSOR</span>
-                <h2>{activeTrack?.name ?? "Track"} Audio Rack</h2>
-              </div>
-              <div className="dsp-track-picker">
-                <span className="picker-label">Target:</span>
-                <select
-                  value={activeTrackId}
-                  onChange={(e) => setSelectedFairlightTrackId(Number(e.target.value))}
-                >
-                  {tracks.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.kind === "audio" ? "♪ " : "▶ "} {t.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="dsp-modules-scroll">
-              {/* Module 1: 4-Band Parametric Equalizer */}
-              <div className={`dsp-module-card eq-module ${activeDsp.eq_enabled ? "module-enabled" : "module-bypassed"}`}>
-                <div className="dsp-module-top">
-                  <div className="module-title-box">
-                    <span className="module-badge eq">EQ</span>
-                    <strong>4-Band Parametric Equalizer</strong>
-                    <small>Low Shelf · Mid Peak · High Shelf</small>
-                  </div>
-                  <button
-                    type="button"
-                    className={`dsp-power-btn ${activeDsp.eq_enabled ? "active" : ""}`}
-                    onClick={() => void saveTrackAudioProcessing(activeTrackId, { eq_enabled: !activeDsp.eq_enabled })}
-                  >
-                    {activeDsp.eq_enabled ? "ACTIVE" : "BYPASS"}
-                  </button>
-                </div>
-
-                {/* Live EQ Curve Graph */}
-                <div className="eq-curve-display">
-                  <svg viewBox="0 0 240 70" preserveAspectRatio="none" className="eq-curve-svg">
-                    <defs>
-                      <linearGradient id="eqGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.35" />
-                        <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0" />
-                      </linearGradient>
-                    </defs>
-                    <line x1="0" y1="35" x2="240" y2="35" stroke="#334155" strokeDasharray="3 3" strokeWidth="1" />
-                    <path d={eqFillPath} fill="url(#eqGrad)" />
-                    <path d={eqCurvePath} fill="none" stroke={activeDsp.eq_enabled ? "#22d3ee" : "#64748b"} strokeWidth="2.2" strokeLinecap="round" />
-                    <circle cx="20" cy={35 - dyLow} r="3.5" fill="#38bdf8" />
-                    <circle cx="120" cy={35 - dyMid} r="3.5" fill="#a78bfa" />
-                    <circle cx="220" cy={35 - dyHigh} r="3.5" fill="#34d399" />
-                  </svg>
-                  <div className="eq-freq-labels">
-                    <span>80 Hz (Low)</span>
-                    <span>1.0 kHz (Mid)</span>
-                    <span>8.0 kHz (High)</span>
-                  </div>
-                </div>
-
-                <div className="eq-bands-controls">
-                  <div className="eq-band-item">
-                    <div className="band-header">
-                      <span>Low Shelf (80 Hz)</span>
-                      <b>{lowGain > 0 ? `+${lowGain.toFixed(1)}` : lowGain.toFixed(1)} dB</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="-15"
-                      max="15"
-                      step="0.5"
-                      value={lowGain}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_low_gain: val } }));
-                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, eq_low_gain: val });
-                      }}
-                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_low_gain: Number(e.currentTarget.value) })}
-                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_low_gain: Number(e.currentTarget.value) })}
-                    />
-                  </div>
-
-                  <div className="eq-band-item">
-                    <div className="band-header">
-                      <span>Mid Bell (1 kHz)</span>
-                      <b>{midGain > 0 ? `+${midGain.toFixed(1)}` : midGain.toFixed(1)} dB</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="-15"
-                      max="15"
-                      step="0.5"
-                      value={midGain}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_mid_gain: val } }));
-                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, eq_mid_gain: val });
-                      }}
-                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_mid_gain: Number(e.currentTarget.value) })}
-                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_mid_gain: Number(e.currentTarget.value) })}
-                    />
-                  </div>
-
-                  <div className="eq-band-item">
-                    <div className="band-header">
-                      <span>High Shelf (8 kHz)</span>
-                      <b>{highGain > 0 ? `+${highGain.toFixed(1)}` : highGain.toFixed(1)} dB</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="-15"
-                      max="15"
-                      step="0.5"
-                      value={highGain}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_high_gain: val } }));
-                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, eq_high_gain: val });
-                      }}
-                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_high_gain: Number(e.currentTarget.value) })}
-                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_high_gain: Number(e.currentTarget.value) })}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Module 2: Dynamics Compressor */}
-              <div className={`dsp-module-card comp-module ${activeDsp.comp_enabled ? "module-enabled" : "module-bypassed"}`}>
-                <div className="dsp-module-top">
-                  <div className="module-title-box">
-                    <span className="module-badge comp">DYN</span>
-                    <strong>Dynamics Compressor</strong>
-                    <small>Threshold · Ratio · Attack · Release</small>
-                  </div>
-                  <button
-                    type="button"
-                    className={`dsp-power-btn comp ${activeDsp.comp_enabled ? "active" : ""}`}
-                    onClick={() => void saveTrackAudioProcessing(activeTrackId, { comp_enabled: !activeDsp.comp_enabled })}
-                  >
-                    {activeDsp.comp_enabled ? "ACTIVE" : "BYPASS"}
-                  </button>
-                </div>
-
-                {/* Real-Time Gain Reduction (GR) Meter */}
-                <div className="comp-gr-meter-row">
-                  <div className="gr-meta">
-                    <span className="gr-title">GAIN REDUCTION (GR)</span>
-                    <b className={activeTrackGr < -0.1 ? "gr-active" : ""}>
-                      {activeTrackGr < -0.05 ? `${activeTrackGr.toFixed(1)} dB` : "0.0 dB"}
-                    </b>
-                  </div>
-                  <div className="gr-meter-bar-slot">
-                    <div
-                      className="gr-meter-bar-fill"
-                      style={{ width: `${Math.min(100, Math.max(0, -activeTrackGr * 4.16))}%` }}
-                    />
-                  </div>
-                  <div className="gr-scale-marks">
-                    <span>0</span>
-                    <span>-6</span>
-                    <span>-12</span>
-                    <span>-18</span>
-                    <span>-24 dB</span>
-                  </div>
-                </div>
-
-                <div className="comp-params-grid">
-                  <div className="comp-param-item">
-                    <div className="param-label-row">
-                      <span>Threshold</span>
-                      <b>{(activeDsp.comp_threshold ?? -24).toFixed(0)} dB</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="-60"
-                      max="0"
-                      step="1"
-                      value={activeDsp.comp_threshold ?? -24}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_threshold: val } }));
-                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_threshold: val });
-                      }}
-                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_threshold: Number(e.currentTarget.value) })}
-                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_threshold: Number(e.currentTarget.value) })}
-                    />
-                  </div>
-
-                  <div className="comp-param-item">
-                    <div className="param-label-row">
-                      <span>Ratio</span>
-                      <b>{(activeDsp.comp_ratio ?? 4).toFixed(1)}:1</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="20"
-                      step="0.5"
-                      value={activeDsp.comp_ratio ?? 4}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_ratio: val } }));
-                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_ratio: val });
-                      }}
-                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_ratio: Number(e.currentTarget.value) })}
-                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_ratio: Number(e.currentTarget.value) })}
-                    />
-                  </div>
-
-                  <div className="comp-param-item">
-                    <div className="param-label-row">
-                      <span>Attack</span>
-                      <b>{Math.round((activeDsp.comp_attack ?? 0.02) * 1000)} ms</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="200"
-                      step="1"
-                      value={Math.round((activeDsp.comp_attack ?? 0.02) * 1000)}
-                      onChange={(e) => {
-                        const val = Number(e.target.value) / 1000;
-                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_attack: val } }));
-                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_attack: val });
-                      }}
-                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_attack: Number(e.currentTarget.value) / 1000 })}
-                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_attack: Number(e.currentTarget.value) / 1000 })}
-                    />
-                  </div>
-
-                  <div className="comp-param-item">
-                    <div className="param-label-row">
-                      <span>Release</span>
-                      <b>{Math.round((activeDsp.comp_release ?? 0.25) * 1000)} ms</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="20"
-                      max="1000"
-                      step="10"
-                      value={Math.round((activeDsp.comp_release ?? 0.25) * 1000)}
-                      onChange={(e) => {
-                        const val = Number(e.target.value) / 1000;
-                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_release: val } }));
-                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_release: val });
-                      }}
-                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_release: Number(e.currentTarget.value) / 1000 })}
-                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_release: Number(e.currentTarget.value) / 1000 })}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Module 3: Vocal De-Noise & Clean-Up */}
-              <div className={`dsp-module-card denoise-module ${activeDsp.denoise_enabled ? "module-enabled" : "module-bypassed"}`}>
-                <div className="dsp-module-top">
-                  <div className="module-title-box">
-                    <span className="module-badge denoise">NR</span>
-                    <strong>Vocal De-Noise &amp; Dialogue Isolation</strong>
-                    <small>80 Hz High-Pass Sub Cut · Real-Time Spectral Clean</small>
-                  </div>
-                  <button
-                    type="button"
-                    className={`dsp-power-btn denoise ${activeDsp.denoise_enabled ? "active" : ""}`}
-                    onClick={() => void saveTrackAudioProcessing(activeTrackId, { denoise_enabled: !activeDsp.denoise_enabled })}
-                  >
-                    {activeDsp.denoise_enabled ? "ACTIVE" : "BYPASS"}
-                  </button>
-                </div>
-
-                <div className="denoise-controls-row">
-                  <div className="denoise-rumble-badge">
-                    <span className="rumble-icon">⚡</span>
-                    <div className="rumble-text">
-                      <strong>80 Hz High-Pass Rumble Filter</strong>
-                      <small>Removes low-end mic bumps &amp; sub-bass rumble</small>
-                    </div>
-                    <span className={`rumble-status ${activeDsp.denoise_enabled ? "engaged" : "off"}`}>
-                      {activeDsp.denoise_enabled ? "ENGAGED" : "OFF"}
-                    </span>
-                  </div>
-
-                  <div className="denoise-amount-slider-item">
-                    <div className="slider-header-row">
-                      <span>Noise Suppression Intensity</span>
-                      <b>{Math.round((activeDsp.denoise_amount ?? 0.5) * 100)}%</b>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.05"
-                      disabled={!activeDsp.denoise_enabled}
-                      value={activeDsp.denoise_amount ?? 0.5}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, denoise_amount: val } }));
-                        audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, denoise_amount: val });
-                      }}
-                      onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { denoise_amount: Number(e.currentTarget.value) })}
-                      onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { denoise_amount: Number(e.currentTarget.value) })}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Right Column: Full-Height Channel Strip Mixer Rack */}
-          <section className="audio-mixer-rack-column">
-            <div className="mixer-rack-toolbar">
-              <div className="mixer-rack-info">
-                <strong>CHANNEL STRIP RACK</strong>
-                <small>{tracks.length} Tracks ({audioTracks.length} Audio, {videoTracks.length} Video)</small>
-              </div>
-            </div>
-
-            <div className="mixer-strips-scroll-area">
-              <div className="fairlight-strips-grid">
-                {tracks.map((track) => {
-                  const trackVu = vuLevels[track.id] ?? { left: 0, right: 0, peakDb: -60 };
-                  const currentGain = gainDrafts[track.id] ?? track.gain_db;
-                  const currentPan = panDrafts[track.id] ?? track.pan ?? 0;
-                  return (
-                    <article
-                      className={`fairlight-channel-strip ${track.id === activeTrackId ? "is-selected" : ""} ${track.muted ? "is-muted" : ""} ${track.solo ? "is-solo" : ""} ${track.locked ? "is-locked" : ""}`}
-                      key={track.id}
-                      onClick={() => setSelectedFairlightTrackId(track.id)}
-                    >
-                      <div className="strip-top">
-                        <div className="strip-track-badge">
-                          <span className={`strip-kind-pill ${track.kind}`}>
-                            {track.kind === "audio" ? "A" : "V"}
-                          </span>
-                          <strong className="strip-track-name" title={track.name}>
-                            {track.name}
-                          </strong>
-                        </div>
-                        <div className="strip-meta">
-                          <span className="strip-clip-count">
-                            {track.clips.length} clip{track.clips.length !== 1 ? "s" : ""}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Quick DSP Badges Row */}
-                      <div className="strip-dsp-badges">
-                        <button
-                          type="button"
-                          className={`strip-dsp-btn ${track.audio_processing?.eq_enabled ? "active" : ""}`}
-                          title={`EQ: ${track.audio_processing?.eq_enabled ? "ON" : "OFF"}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void saveTrackAudioProcessing(track.id, { eq_enabled: !track.audio_processing?.eq_enabled });
-                          }}
-                        >
-                          EQ
-                        </button>
-                        <button
-                          type="button"
-                          className={`strip-dsp-btn comp ${track.audio_processing?.comp_enabled ? "active" : ""}`}
-                          title={`Dynamics: ${track.audio_processing?.comp_enabled ? "ON" : "OFF"}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void saveTrackAudioProcessing(track.id, { comp_enabled: !track.audio_processing?.comp_enabled });
-                          }}
-                        >
-                          DYN
-                        </button>
-                        <button
-                          type="button"
-                          className={`strip-dsp-btn denoise ${track.audio_processing?.denoise_enabled ? "active" : ""}`}
-                          title={`Noise Reduction: ${track.audio_processing?.denoise_enabled ? "ON" : "OFF"}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void saveTrackAudioProcessing(track.id, { denoise_enabled: !track.audio_processing?.denoise_enabled });
-                          }}
-                        >
-                          NR
-                        </button>
-                      </div>
-
-                      {/* Track Bus Routing (Phase 10.2) */}
-                      <div className="strip-bus-routing" onClick={(e) => e.stopPropagation()}>
-                        <span className="strip-bus-label">BUS ASSIGN</span>
-                        <select
-                          className="strip-bus-select"
-                          value={track.bus ?? "master"}
-                          onChange={(e) => void setTrackBusRoute(track.id, e.target.value as BusTarget)}
-                        >
-                          <option value="master">MASTER (Stereo Main)</option>
-                          <option value="submix1">SUBMIX 1 (DX Dialogue)</option>
-                          <option value="submix2">SUBMIX 2 (MX Music)</option>
-                          <option value="aux_fx">AUX FX (Reverb / Echo)</option>
-                        </select>
-                      </div>
-
-                      {/* Track Automation Mode Selector (Phase 10.2) */}
-                      <div className="strip-automation-section" onClick={(e) => e.stopPropagation()}>
-                        <div className="strip-automation-pills">
-                          {(["off", "read", "touch", "latch", "write"] as AutomationMode[]).map((mode) => (
-                            <button
-                              key={mode}
-                              type="button"
-                              className={`auto-pill ${(track.automation?.mode ?? "off") === mode ? "active" : ""}`}
-                              title={`Automation mode: ${mode.toUpperCase()}`}
-                              onClick={() => void setTrackAutomationMode(track.id, mode)}
-                            >
-                              {mode.slice(0, 3).toUpperCase()}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Audio Plugins VST3 Slot (Phase 10.2) */}
-                      <div className="strip-plugins-rack" onClick={(e) => e.stopPropagation()}>
-                        <div className="strip-plugins-header">
-                          <span>PLUGINS</span>
-                          <select
-                            className="strip-add-plugin-select"
-                            value=""
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                void addTrackPlugin(track.id, e.target.value);
-                                e.target.value = "";
-                              }
-                            }}
-                          >
-                            <option value="" disabled>+ VST3…</option>
-                            <option value="Saturn Dynamics">VST3: Saturn Dynamics</option>
-                            <option value="Saturn Reverb">VST3: Studio Reverb</option>
-                            <option value="Saturn De-Esser">VST3: De-Esser Pro</option>
-                            <option value="Saturn Chorus">VST3: Chorus &amp; Widener</option>
-                          </select>
-                        </div>
-                        {(track.plugins ?? []).map((plugin) => (
-                          <div key={plugin.id} className={`plugin-rack-item ${plugin.enabled ? "enabled" : "bypassed"}`}>
-                            <button
-                              type="button"
-                              className={`plugin-power-dot ${plugin.enabled ? "active" : ""}`}
-                              title={plugin.enabled ? "Bypass Plugin" : "Enable Plugin"}
-                              onClick={() => void toggleTrackPlugin(track.id, plugin.id, !plugin.enabled)}
-                            />
-                            <span className="plugin-name-label" title={plugin.name}>{plugin.name}</span>
-                            <span className="plugin-format-badge">VST3</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Pan Section */}
-                      <div className="strip-pan-section">
-                        <div className="strip-pan-header">
-                          <span className="strip-section-label">PAN</span>
-                          <span className="strip-pan-val">{formatPan(currentPan)}</span>
-                          <button
-                            type="button"
-                            className="strip-pan-center-btn"
-                            title="Reset pan to center"
-                            onClick={() => void saveTrackPan(track.id, 0)}
-                          >
-                            C
-                          </button>
-                        </div>
-                        <input
-                          type="range"
-                          className="strip-pan-slider"
-                          min="-1"
-                          max="1"
-                          step="0.02"
-                          value={currentPan}
-                          onChange={(e) => {
-                            const val = Number(e.target.value);
-                            setPanDrafts((prev) => ({ ...prev, [track.id]: val }));
-                            audioClockMaster.updateTrackPan(track.id, val);
-                          }}
-                          onPointerUp={(e) => void saveTrackPan(track.id, Number(e.currentTarget.value))}
-                          onKeyUp={(e) => void saveTrackPan(track.id, Number(e.currentTarget.value))}
-                        />
-                      </div>
-
-                      {/* Matrix M / S / L Buttons */}
-                      <div className="strip-matrix-buttons">
-                        <button
-                          type="button"
-                          className={`strip-btn btn-mute ${track.muted ? "active" : ""}`}
-                          title={track.muted ? "Unmute track" : "Mute track"}
-                          onClick={() => void toggleTrackMute(track)}
-                        >
-                          M
-                        </button>
-                        <button
-                          type="button"
-                          className={`strip-btn btn-solo ${track.solo ? "active" : ""}`}
-                          title={track.solo ? "Solo track" : "Solo track"}
-                          onClick={() => void toggleTrackSolo(track)}
-                        >
-                          S
-                        </button>
-                        <button
-                          type="button"
-                          className={`strip-btn btn-lock ${track.locked ? "active" : ""}`}
-                          title={track.locked ? "Unlock track" : "Lock track"}
-                          onClick={() => void toggleTrackLock(track)}
-                        >
-                          {track.locked ? "🔒" : "🔓"}
-                        </button>
-                      </div>
-
-                      {/* Meter + Vertical Fader Section */}
-                      <div className="strip-meter-fader-row">
-                        <div className="strip-vu-meter-column" title={`Peak: ${formatDb(trackVu.peakDb)}`}>
-                          <div className="vu-meter-pair">
-                            <div className="vu-bar-slot">
-                              <div
-                                className="vu-bar-fill left"
-                                style={{ height: `${Math.min(100, (trackVu.left || 0) * 100)}%` }}
-                              />
-                            </div>
-                            <div className="vu-bar-slot">
-                              <div
-                                className="vu-bar-fill right"
-                                style={{ height: `${Math.min(100, (trackVu.right || 0) * 100)}%` }}
-                              />
-                            </div>
-                            {track.audio_processing?.comp_enabled && (
-                              <div className="strip-mini-gr-slot" title={`Gain Reduction: ${(trackGr[track.id] || 0).toFixed(1)} dB`}>
-                                <div
-                                  className="strip-mini-gr-fill"
-                                  style={{ height: `${Math.min(100, Math.max(0, -(trackGr[track.id] || 0) * 4.16))}%` }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                          <div className="vu-db-readout">{formatDb(trackVu.peakDb)}</div>
-                        </div>
-
-                        <div className="strip-fader-column">
-                          <div className="fader-scale-ticks">
-                            <span>+6</span>
-                            <span className="unity">0</span>
-                            <span>-6</span>
-                            <span>-12</span>
-                            <span>-24</span>
-                            <span>-48</span>
-                            <span>-∞</span>
-                          </div>
-                          <div className="fader-track-container">
-                            <input
-                              type="range"
-                              className="vertical-fader"
-                              min="-60"
-                              max="6"
-                              step="0.5"
-                              value={currentGain}
-                              onChange={(e) => {
-                                const val = Number(e.target.value);
-                                setGainDrafts((prev) => ({ ...prev, [track.id]: val }));
-                                audioClockMaster.updateTrackGain(track.id, val);
-                              }}
-                              onPointerUp={(e) => void saveTrackGain(track.id, Number(e.currentTarget.value))}
-                              onKeyUp={(e) => void saveTrackGain(track.id, Number(e.currentTarget.value))}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="strip-fader-footer">
-                        <button
-                          type="button"
-                          className="strip-unity-btn"
-                          title="Reset track gain to 0.0 dB unity"
-                          onClick={() => void saveTrackGain(track.id, 0)}
-                        >
-                          0 dB
-                        </button>
-                        <span className="strip-gain-text">
-                          {currentGain > 0 ? "+" : ""}{currentGain.toFixed(1)} dB
-                        </span>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        </div>
-
-        {/* Bottom Tray: Audio Waveforms & Timeline Ruler */}
-        <section className="audio-timeline-tray">
-          <div className="audio-tray-header">
-            <div className="audio-tray-title">
-              <strong>AUDIO SEQUENCE TIMELINE &amp; WAVEFORMS</strong>
-              <code>{formatTime(playhead)}</code>
-            </div>
-            <div className="audio-tray-tools">
-              <button className="timeline-icon-button" onClick={() => zoomTimeline(1 / 1.2)} title="Zoom Out Timeline">
-                <Icon name="zoomOut" />
-              </button>
-              <button className="timeline-icon-button" onClick={() => zoomTimeline(1.2)} title="Zoom In Timeline">
-                <Icon name="zoomIn" />
-              </button>
-            </div>
-          </div>
-          <div className="audio-tray-scroller">
-            <div className="timeline-content" style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
-              <div className="timeline-ruler">
-                <span className="track-spacer">Time</span>
-                <div
-                  className="ruler-lane"
-                  onPointerDown={beginTimelineScrub}
-                  onPointerMove={moveTimelineScrub}
-                  onPointerUp={finishTimelineScrub}
-                  onPointerCancel={finishTimelineScrub}
-                >
-                  {Array.from({ length: Math.ceil(timelineWidth / (timelineZoom * 5)) + 1 }, (_, index) => (
-                    <span key={index} style={{ left: `${index * timelineZoom * 5}px` }}>
-                      {formatTime(index * TICKS_PER_SECOND * 5)}
-                    </span>
-                  ))}
-                  <div
-                    className="playhead-grip ruler-playhead-grip"
-                    style={{ left: `${(playhead / TICKS_PER_SECOND) * timelineZoom}px` }}
-                    role="slider"
-                    aria-label="Audio timeline playhead"
-                  >
-                    <i className="playhead" />
-                  </div>
-                </div>
-              </div>
-              {tracks.map((track) => (
-                <div
-                  className={`track-row ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""}`}
-                  key={`audio-tray-track-${track.id}`}
-                >
-                  <div className="track-label">
-                    <div className="track-label-top">
-                      <b>{track.name}</b>
-                      <span>{track.kind}</span>
-                    </div>
-                    <div className="track-label-btns">
-                      <button
-                        type="button"
-                        className={`track-mini-btn mute-btn ${track.muted ? "active" : ""}`}
-                        onClick={() => void toggleTrackMute(track)}
-                      >
-                        M
-                      </button>
-                      <button
-                        type="button"
-                        className={`track-mini-btn solo-btn ${track.solo ? "active" : ""}`}
-                        onClick={() => void toggleTrackSolo(track)}
-                      >
-                        S
-                      </button>
-                    </div>
-                  </div>
-                  <div className="track-lane">
-                    {track.clips.map((clip, index) => {
-                      const item = media.find((entry) => entry.id === clip.media_id);
-                      const selected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
-                      return (
-                        <div
-                          className={`timeline-clip ${selected ? "selected" : ""} ${track.kind}`}
-                          key={`audio-tray-clip-${track.id}-${clip.media_id}-${index}`}
-                          style={{
-                            left: `${(clip.timeline_start / TICKS_PER_SECOND) * timelineZoom}px`,
-                            width: `${Math.max(34, (clip.duration / TICKS_PER_SECOND) * timelineZoom)}px`,
-                          }}
-                          onClick={() => {
-                            setSelectedClip({ track_id: track.id, clip_index: index });
-                            setSelectedClips([{ track_id: track.id, clip_index: index }]);
-                          }}
-                        >
-                          {(() => {
-                            const wf = getClipWaveform(item, index);
-                            if (!wf || wf.length === 0) return null;
-                            const clipStart = clip.timeline_start;
-                            const clipDuration = Math.max(1, clip.duration);
-                            const isCurrentClip = playhead >= clipStart && playhead < clipStart + clipDuration;
-                            const progressRatio = isCurrentClip
-                              ? Math.max(0, Math.min(1, (playhead - clipStart) / clipDuration))
-                              : playhead >= clipStart + clipDuration
-                              ? 1
-                              : 0;
-                            const progressPct = (progressRatio * 100).toFixed(1);
-                            const gradId = `wf-grad-tray-${track.id}-${clip.media_id}-${index}`;
-                            const isAudio = track.kind === "audio" || item?.kind === "audio";
-                            const activeColor = isAudio ? "#34d399" : "#38bdf8";
-                            const inactiveColor = isAudio ? "rgba(52, 211, 153, 0.42)" : "rgba(56, 189, 248, 0.42)";
-
-                            return (
-                              <div className="clip-waveform-container" aria-hidden="true">
-                                <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
-                                  <defs>
-                                    <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
-                                      <stop offset="0%" stopColor={activeColor} />
-                                      <stop offset={`${progressPct}%`} stopColor={activeColor} />
-                                      <stop offset={`${progressPct}%`} stopColor={inactiveColor} />
-                                      <stop offset="100%" stopColor={inactiveColor} />
-                                    </linearGradient>
-                                  </defs>
-                                  <path
-                                    d={wf.map((peak, i) => {
-                                      const norm = Math.max(1, (peak / 255) * 14);
-                                      const x = (i / wf.length) * 100;
-                                      return `M ${x.toFixed(1)} ${(16 - norm).toFixed(1)} L ${x.toFixed(1)} ${(16 + norm).toFixed(1)}`;
-                                    }).join(" ")}
-                                    stroke={`url(#${gradId})`}
-                                    strokeWidth="1.2"
-                                    strokeLinecap="round"
-                                  />
-                                  {isCurrentClip && (
-                                    <line
-                                      x1={`${progressPct}%`}
-                                      y1="0"
-                                      x2={`${progressPct}%`}
-                                      y2="32"
-                                      stroke="#ffffff"
-                                      strokeWidth="1.5"
-                                      opacity="0.95"
-                                    />
-                                  )}
-                                </svg>
-                              </div>
-                            );
-                          })()}
-                          <span className="clip-kind-icon">{track.kind === "audio" ? "♪" : "▶"}</span>
-                          <strong>{item?.name ?? "Clip"}</strong>
-                        </div>
-                      );
-                    })}
-                    <div
-                      className="playhead-grip"
-                      style={{ left: `${(playhead / TICKS_PER_SECOND) * timelineZoom}px` }}
-                    >
-                      <i className="playhead" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </main>
+      <FairlightWorkspace
+        project={project}
+        media={media}
+        playhead={playhead}
+        timelineZoom={timelineZoom}
+        timelineWidth={timelineWidth}
+        selectedClip={selectedClip}
+        setSelectedClip={setSelectedClip}
+        setSelectedClips={setSelectedClips}
+        selectedFairlightTrackId={selectedFairlightTrackId}
+        setSelectedFairlightTrackId={setSelectedFairlightTrackId}
+        audioProcessingDrafts={audioProcessingDrafts}
+        setAudioProcessingDrafts={setAudioProcessingDrafts}
+        saveTrackAudioProcessing={saveTrackAudioProcessing}
+        trackGr={trackGr}
+        masterGr={masterGr}
+        vuLevels={vuLevels}
+        masterVu={masterVu}
+        gainDrafts={gainDrafts}
+        setGainDrafts={setGainDrafts}
+        saveTrackGain={saveTrackGain}
+        panDrafts={panDrafts}
+        setPanDrafts={setPanDrafts}
+        saveTrackPan={saveTrackPan}
+        masterGainDraft={masterGainDraft}
+        setMasterGainDraft={setMasterGainDraft}
+        busGainDrafts={busGainDrafts}
+        setBusGainDrafts={setBusGainDrafts}
+        loudnessStandard={loudnessStandard}
+        setLoudnessStandard={setLoudnessStandard}
+        loudnessReport={loudnessReport}
+        autoTrimLoudness={autoTrimLoudness}
+        resetLoudness={resetLoudness}
+        programPlaying={programPlaying}
+        toggleProgramPlayback={toggleProgramPlayback}
+        stepProgramFrame={stepProgramFrame}
+        handleShuttleKey={handleShuttleKey}
+        clearAllSolos={clearAllSolos}
+        muteAllTracks={muteAllTracks}
+        toggleTrackMute={toggleTrackMute}
+        toggleTrackSolo={toggleTrackSolo}
+        toggleTrackLock={toggleTrackLock}
+        setTrackBusRoute={setTrackBusRoute}
+        setTrackAutomationMode={setTrackAutomationMode}
+        addTrackPlugin={addTrackPlugin}
+        toggleTrackPlugin={toggleTrackPlugin}
+        zoomTimeline={zoomTimeline}
+        beginTimelineScrub={beginTimelineScrub}
+        moveTimelineScrub={moveTimelineScrub}
+        finishTimelineScrub={finishTimelineScrub}
+        renderProgramMonitor={renderProgramMonitor}
+        audioClockMaster={audioClockMaster}
+        perform={perform}
+      />
     );
   }
 
@@ -6551,13 +5416,24 @@ function App() {
 
 
   function renderImportWorkspace() {
-    return <main className="workspace-page import-workspace">
-      <header className="workspace-page-heading"><div><h1>Media Pool</h1><p>Import and organize footage, audio, and graphics for your project.</p></div><button className="primary workspace-heading-action" onClick={() => void importMedia()} disabled={busy}><Icon name="import" /> Browse files…</button></header>
-      <section className="import-drop-panel"><div className="import-drop-icon"><Icon name="media" /></div><div><h2>Add media to your project</h2><p>Choose video, audio, or still images from your computer or cloud URL. Imported files stay in their original location.</p></div><div style={{ display: "flex", gap: "8px" }}><button className="primary" onClick={() => void importMedia()} disabled={busy}>＋ Import Local Media</button><button className="btn-secondary" onClick={() => setNetworkImportModalOpen(true)} disabled={busy} style={{ background: "#2563eb", color: "#fff" }}>🌐 Import from URL / S3</button></div></section>
-      <section className="import-library-section"><header><div><h2>Project media</h2><p>{media.length} item{media.length === 1 ? "" : "s"} in {project?.name ?? "this project"}</p></div><input className="search" type="search" placeholder="Search project media" aria-label="Search project media" value={search} onChange={(event) => setSearch(event.target.value)} /></header>
-        {visibleMedia.length ? <div className="import-media-grid">{visibleMedia.map((item) => <button className={`import-media-card ${selectedMediaId === item.id ? "selected" : ""}`} key={item.id} onClick={() => { setSelectedMediaId(item.id); setSelectedClip(null); setSelectedClips([]); selectDavinciWorkspace("edit"); }} title="Select this media and open the Edit workspace"><span className="import-media-icon"><Icon name="media" /></span><strong>{item.name}</strong><small>{item.kind.toUpperCase()} {item.width && item.height ? `· ${item.width} × ${item.height}` : ""}</small><small>{item.duration ? formatTime(item.duration) : missingMediaIds.has(item.id) ? "Missing · relink required" : "Ready to edit"}</small></button>)}</div> : <div className="import-empty"><Icon name="media" /><strong>{search ? "No matching media" : "Your project is ready for media"}</strong><span>{search ? "Try another search." : "Import a clip to begin building your timeline."}</span><button onClick={() => void importMedia()} disabled={busy}>Browse files…</button></div>}
-      </section>
-    </main>;
+    return (
+      <MediaWorkspace
+        project={project}
+        media={media}
+        visibleMedia={visibleMedia}
+        selectedMediaId={selectedMediaId}
+        setSelectedMediaId={setSelectedMediaId}
+        setSelectedClip={setSelectedClip}
+        setSelectedClips={setSelectedClips}
+        selectDavinciWorkspace={selectDavinciWorkspace}
+        importMedia={importMedia}
+        setNetworkImportModalOpen={setNetworkImportModalOpen}
+        search={search}
+        setSearch={setSearch}
+        busy={busy}
+        missingMediaIds={missingMediaIds}
+      />
+    );
   }
 
   function renderExportWorkspace() {
@@ -6735,10 +5611,9 @@ function App() {
       event.preventDefault();
       void invokeMenuCommand(command.id).catch((error: unknown) => setNotice(String(error)));
     }}>
-      <header className="app-header">
-        {/* Tier 1: System Bar (32px height) */}
-        <div className="system-bar">
-          <div className="system-bar-left">
+      <header className="app-header" style={{ height: "40px", minHeight: "40px", maxHeight: "40px" }}>
+        <div className="desktop-studio-bar">
+          <div className="desktop-bar-left">
             <div className="brand">
               <img className="brand-mark" src="/saturn-camera.png" alt="Easy Edits Pro camera logo" />
               <span className="brand-title">Easy Edits Pro</span>
@@ -6750,9 +5625,70 @@ function App() {
             <nav className="menu-bar" aria-label="Application menus">
               {["File", "Edit", "Clip", "Sequence", "Markers", "View", "Window", "Help"].map(renderMenu)}
             </nav>
+            <nav className="file-actions" aria-label="Project actions" style={{ display: "flex", gap: "2px" }}>
+              <button
+                className="icon-button"
+                onClick={() => { void ensureDiscardIsOkay().then((ok) => { if (ok) { setNewProjectName("Untitled project"); setNewProjectOpen(true); } }); }}
+                data-tooltip="New Project (Ctrl+N)"
+                data-tooltip-pos="bottom"
+                style={{ width: "26px", height: "26px", padding: "4px" }}
+              >
+                <Icon name="fileNew" />
+              </button>
+              <button
+                className="icon-button"
+                onClick={() => void openProject().catch((error: unknown) => setNotice(String(error)))}
+                data-tooltip="Open Project (Ctrl+O)"
+                data-tooltip-pos="bottom"
+                style={{ width: "26px", height: "26px", padding: "4px" }}
+              >
+                <Icon name="fileOpen" />
+              </button>
+              <button
+                className="icon-button"
+                onClick={() => void saveProject()}
+                data-tooltip="Save Project (Ctrl+S)"
+                data-tooltip-pos="bottom"
+                style={{ width: "26px", height: "26px", padding: "4px" }}
+              >
+                <Icon name="fileSave" />
+              </button>
+              <button
+                className="icon-button"
+                onClick={() => void importMedia()}
+                disabled={busy}
+                data-tooltip="Import Media Files (Ctrl+I)"
+                data-tooltip-pos="bottom"
+                style={{ width: "26px", height: "26px", padding: "4px" }}
+              >
+                <Icon name="import" />
+              </button>
+              <span className="action-divider" />
+              <button
+                className="collab-pill-btn"
+                onClick={() => setCollabModalOpen(true)}
+                data-tooltip="Collaborative Multi-User Project Locking (Phase 12.1)"
+                data-tooltip-pos="bottom"
+              >
+                <span className="collab-indicator-dot" style={{ backgroundColor: collabUser.color }} />
+                <span className="collab-name">{collabUser.name}</span>
+                <span className="collab-badge">
+                  🔒 {project?.collaboration?.locks?.length ?? 0}
+                </span>
+              </button>
+            </nav>
           </div>
 
-          <div className="system-bar-right">
+          <div className="desktop-bar-center">
+            <SegmentedControl
+              label="Workspaces"
+              options={davinciWorkspaces.map((w) => ({ value: w.id, label: w.label }))}
+              value={davinciWorkspace}
+              onValueChange={(val) => selectDavinciWorkspace(val as DavinciWorkspace)}
+            />
+          </div>
+
+          <div className="desktop-bar-right">
             {/* Background Job Queue Status Pill */}
             <div className="job-queue-wrapper" ref={jobDrawerRef}>
               <button
@@ -6907,85 +5843,6 @@ function App() {
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Tier 2: Workspace Switcher & Quick Actions (40px height) */}
-        <div className="workspace-switcher-bar">
-          <div className="switcher-bar-left">
-            <nav className="file-actions" aria-label="Project actions">
-              <button
-                className="quick-action-btn"
-                onClick={() => { void ensureDiscardIsOkay().then((ok) => { if (ok) { setNewProjectName("Untitled project"); setNewProjectOpen(true); } }); }}
-                data-tooltip="New Project (Ctrl+N)"
-                data-tooltip-pos="bottom"
-              >
-                New
-              </button>
-              <button
-                className="quick-action-btn"
-                onClick={() => void openProject().catch((error: unknown) => setNotice(String(error)))}
-                data-tooltip="Open Project (Ctrl+O)"
-                data-tooltip-pos="bottom"
-              >
-                Open
-              </button>
-              <button
-                className="quick-action-btn"
-                onClick={() => void saveProject()}
-                data-tooltip="Save Project (Ctrl+S)"
-                data-tooltip-pos="bottom"
-              >
-                Save
-              </button>
-              <button
-                className="quick-action-btn"
-                onClick={() => void importMedia()}
-                disabled={busy}
-                data-tooltip="Import Media Files (Ctrl+I)"
-                data-tooltip-pos="bottom"
-              >
-                Import
-              </button>
-              <span className="action-divider" />
-              <button
-                className="collab-pill-btn"
-                onClick={() => setCollabModalOpen(true)}
-                data-tooltip="Collaborative Multi-User Project Locking (Phase 12.1)"
-                data-tooltip-pos="bottom"
-              >
-                <span className="collab-indicator-dot" style={{ backgroundColor: collabUser.color }} />
-                <span className="collab-name">{collabUser.name}</span>
-                <span className="collab-badge">
-                  🔒 {project?.collaboration?.locks?.length ?? 0}
-                </span>
-              </button>
-            </nav>
-          </div>
-
-          <div className="switcher-bar-center">
-            {/* Centered DaVinci Resolve Workspaces Tab Pills */}
-            <nav className="davinci-workspace-bar" aria-label="DaVinci Resolve Workspaces">
-              {davinciWorkspaces.map((item) => {
-                const isActive = davinciWorkspace === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    className={`davinci-workspace-btn ${isActive ? "active" : ""}`}
-                    onClick={() => selectDavinciWorkspace(item.id)}
-                    data-tooltip={`${item.label} Page (${item.shortcut})${item.isExperimental ? " • Experimental" : ""}`}
-                    data-tooltip-pos="bottom"
-                    aria-current={isActive ? "page" : undefined}
-                  >
-                    <Icon name={item.icon} />
-                    <span>{item.label}</span>
-                    {item.isExperimental && <span className="exp-badge">EXP</span>}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-
-          <div className="switcher-bar-right" />
         </div>
       </header>
 

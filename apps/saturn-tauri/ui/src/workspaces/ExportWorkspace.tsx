@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction, ReactNode } from "react";
 import { Icon } from "../components/Icon";
+import { StudioPanel } from "../components/StudioPanel";
 import {
   type ProjectDocument,
   type MediaAsset,
@@ -125,8 +126,7 @@ export function ExportWorkspace({
 
   return (
     <main className="export-workspace">
-      <aside className="export-destinations">
-        <h2>Destinations</h2>
+      <StudioPanel title="Destinations" className="export-destinations" scrollable>
         <button
           className={`export-destination ${deliverDestination === "render" ? "selected" : ""}`}
           onClick={() => setDeliverDestination("render")}
@@ -212,18 +212,13 @@ export function ExportWorkspace({
             )}
           </div>
         </div>
-      </aside>
+      </StudioPanel>
       {deliverDestination === "interop" ? (
-        <section
+        <StudioPanel
+          title="Timeline Interchange"
           className="export-settings-panel interop-settings-panel"
-          style={{ flex: 1, padding: "24px 28px", overflowY: "auto" }}
+          scrollable
         >
-          <header>
-            <h1>Timeline Interchange</h1>
-            <p>
-              Exchange non-destructive project timelines with Final Cut Pro, Premiere Pro, and DaVinci Resolve using the exact integer tick timebase.
-            </p>
-          </header>
 
           <div
             style={{
@@ -429,14 +424,14 @@ export function ExportWorkspace({
               value={interopContent}
             />
           </div>
-        </section>
+        </StudioPanel>
       ) : (
         <>
-          <section className="export-settings-panel">
-            <header>
-              <h1>Export Settings</h1>
-              <p>Configure target format, resolution, and codecs for distribution.</p>
-            </header>
+          <StudioPanel
+            title="Export Settings"
+            className="export-settings-panel"
+            scrollable
+          >
             {/* Live Hardware Acceleration Badge */}
             <div className="export-hw-status-card">
               <div className="hw-status-indicator">
@@ -656,12 +651,17 @@ export function ExportWorkspace({
                 </div>
               </details>
             </div>
-          </section>
-          <aside className="export-preview-panel">
-            <div className="export-preview-heading">
-              <span>Preview</span>
-              <span>{exportFormat === "mp4" ? "H.264" : "VP8"}</span>
-            </div>
+          </StudioPanel>
+          <StudioPanel
+            title={
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                <span>PREVIEW &amp; RENDER</span>
+                <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "var(--bg-subpanel)", border: "1px solid var(--border-panel)", color: "var(--accent-cyan)", textTransform: "none" }}>{exportFormat === "mp4" ? "H.264" : "VP8"}</span>
+              </div>
+            }
+            className="export-preview-panel"
+            scrollable
+          >
             <div className="export-preview-stage">{renderPreview(activeClip?.media ?? selectedMedia, true)}</div>
             <div className="export-range-select">
               Range <strong>{exportMarkedRange ? "Marked In / Out" : "Entire sequence"}</strong>
@@ -721,7 +721,7 @@ export function ExportWorkspace({
             <small className="export-footer-note">
               Color controls and track gain are included. Animated keyframes are preview-only.
             </small>
-          </aside>
+          </StudioPanel>
         </>
       )}
     </main>

@@ -1,4 +1,4 @@
-import React from "react";
+import type { ReactNode } from "react";
 
 export type IconName =
   | "fullscreen"
@@ -49,7 +49,7 @@ export type IconName =
   | "subtitle";
 
 export function Icon({ name }: { name: IconName }) {
-  const paths: Record<IconName, React.ReactNode> = {
+  const paths: Record<IconName, ReactNode> = {
     check: <path d="m4 10 4 4 8-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
     fullscreen: <path d="M7 3H3v4m10-4h4v4M3 13v4h4m10-4v4h-4" />,
     restore: <path d="M7 3h10v10M13 7H3v10h10V7Z" />,

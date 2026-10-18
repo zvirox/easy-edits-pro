@@ -713,7 +713,7 @@ export class EbuR128WebMeter {
  * mute/solo matrix routing, real-time peak VU metering, and ITU-R BS.1770-4
  * / EBU R128 loudness compliance metering.
  */
-class AudioClockMaster {
+export class AudioClockMaster {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private masterLimiter: DynamicsCompressorNode | null = null;
@@ -789,10 +789,6 @@ class AudioClockMaster {
   }
 
   getCurrentTime(): number {
-    const ctx = this.getContext();
-    if (ctx && ctx.state === "running") {
-      return ctx.currentTime;
-    }
     return performance.now() / 1000;
   }
 

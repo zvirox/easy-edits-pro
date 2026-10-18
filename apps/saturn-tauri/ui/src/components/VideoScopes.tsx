@@ -46,12 +46,12 @@ export const VideoScopes: React.FC<VideoScopesProps> = ({
     const height = canvas.height;
 
     // Clear background to obsidian
-    ctx.fillStyle = "#07090e";
+    ctx.fillStyle = "#050505";
     ctx.fillRect(0, 0, width, height);
 
     // If no video or video not ready, draw clean standby graticule
     let sampleData: Uint8ClampedArray | null = null;
-    if (video && video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
+    if (video && video.readyState >= 1 && video.videoWidth > 0 && video.videoHeight > 0) {
       try {
         offCtx.filter = activeFilter && activeFilter !== "none" ? activeFilter : "none";
         offCtx.drawImage(video, 0, 0, offscreen.width, offscreen.height);

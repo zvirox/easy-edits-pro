@@ -5,7 +5,6 @@ import {
   type CompositingNode,
   type CompositingNodeKind,
   type NodeConnection,
-  type RotoSplineMask,
   type RotoSplinePoint,
 } from "../types";
 
@@ -69,7 +68,6 @@ export function FusionWorkspace({
   const graph = project?.sequence?.node_graph ?? { nodes: [], connections: [], masks: [] };
   const nodes: CompositingNode[] = graph.nodes;
   const connections: NodeConnection[] = graph.connections;
-  const masks: RotoSplineMask[] = graph.masks ?? [];
   const selectedNode = nodes.find((n: CompositingNode) => n.id === selectedNodeId);
 
   const handleCanvasMouseDown = (e: MouseEvent<HTMLDivElement>) => {
@@ -137,16 +135,15 @@ export function FusionWorkspace({
 
   return (
     <main className="workspace-page fusion-workspace-page">
-      <header className="workspace-sub-header fusion-workspace-header">
-        <div className="workspace-header-title">
-          <h1>Fusion Node-Based Compositor</h1>
-          <p>
-            Visual procedural node graph ({nodes.length} nodes, {connections.length} links, {masks.length} masks),
-            multi-layer alpha blending, ChromaKey, and particles.
-          </p>
+      <header className="workspace-sub-header fusion-workspace-header" style={{ height: "36px", minHeight: "36px", padding: "0 12px" }}>
+        <div className="scopes-title-group" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <strong style={{ fontSize: "11px", letterSpacing: "0.06em", color: "var(--text-secondary)" }}>FUSION NODE COMPOSITING</strong>
+          <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
+            ({nodes.length} nodes · {connections.length} links)
+          </span>
         </div>
 
-        <div className="fusion-header-actions">
+        <div className="fusion-header-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <div className="fusion-add-buttons">
             <span className="fusion-add-label">+ Add Node:</span>
             <button className="fusion-tool-btn" onClick={() => void addFusionNode("merge")}>Merge</button>
@@ -158,8 +155,8 @@ export function FusionWorkspace({
             <button className="fusion-tool-btn" onClick={() => void addFusionNode("output_sink")}>MediaOut</button>
           </div>
           {nodes.length === 0 && (
-            <button className="primary-action-btn" onClick={() => void initStarterTree()}>
-              ✨ Initialize Starter Node Tree
+            <button className="primary-action-btn" onClick={() => void initStarterTree()} style={{ padding: "3px 10px", fontSize: "11px" }}>
+              ✨ Init Tree
             </button>
           )}
         </div>

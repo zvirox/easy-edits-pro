@@ -115,7 +115,6 @@ export function ColorWorkspace({
   loadLutCubeDialog,
   saveColor,
   runCommand,
-  selectDavinciWorkspace,
   playhead,
   renderProgramMonitor,
   programPlaying,
@@ -158,36 +157,28 @@ export function ColorWorkspace({
 
   return (
     <main className="workspace-page color-workspace-page">
-      <header className="workspace-sub-header color-workspace-header">
-        <div className="workspace-header-title">
-          <h1>Color Grading Studio</h1>
-          <p>
-            Real-time GPU video scopes (Waveform, Vectorscope, Parade, Histogram), 3-way color balance wheels &amp; cinematic presets.
-          </p>
-        </div>
-        <div className="color-header-actions">
-          <span className="color-target-info">
+      <header className="workspace-sub-header color-workspace-header" style={{ height: "32px", minHeight: "32px", padding: "0 12px" }}>
+        <div className="scopes-title-group">
+          <strong style={{ fontSize: "11px", letterSpacing: "0.06em", color: "var(--text-secondary)" }}>COLOR GRADING</strong>
+          <span className="color-target-info" style={{ marginLeft: "12px", fontSize: "11px", color: "var(--text-secondary)" }}>
             {selectedTimelineClip ? (
               <>
-                Target: <strong>{media.find((m) => m.id === selectedTimelineClip.media_id)?.name ?? "Selected Clip"}</strong>
+                Target: <strong style={{ color: "var(--accent-cyan)" }}>{media.find((m) => m.id === selectedTimelineClip.media_id)?.name ?? "Selected Clip"}</strong>
               </>
             ) : (
               <span className="color-hint-text">Select a clip in the reel below to grade</span>
             )}
           </span>
+        </div>
+        <div className="color-header-actions">
           <button
             className="btn-secondary"
+            style={{ padding: "3px 10px", fontSize: "11px" }}
             onClick={resetColorGrading}
             disabled={!selectedClip}
             title="Reset exposure, contrast, saturation, and color wheels to neutral"
           >
             Reset All
-          </button>
-          <button
-            className="btn-primary-subtle"
-            onClick={() => selectDavinciWorkspace("edit")}
-          >
-            ← Back to Edit
           </button>
         </div>
       </header>
