@@ -13,6 +13,9 @@ import { OllamaChatDrawer } from "./components/OllamaChatDrawer";
 import { formatTime, formatPan, formatDb, getClipWaveform } from "./utils/formatters";
 import { Icon, type IconName } from "./components/Icon";
 import { SegmentedControl } from "./components/interior/segmented-control";
+import { StudioPanel } from "./components/StudioPanel";
+import { AudioMonitorMixer } from "./components/AudioMonitorMixer";
+import { SourceAudioVisualizer } from "./components/SourceAudioVisualizer";
 import { MediaWorkspace } from "./workspaces/MediaWorkspace";
 import { FairlightWorkspace } from "./workspaces/FairlightWorkspace";
 import { ProjectWelcomeScreen } from "./workspaces/ProjectWelcomeScreen";
@@ -5113,6 +5116,14 @@ function App() {
     const currentError = sourcePreviewError;
     const setCurrentError = setSourcePreviewError;
     const visualStyle: CSSProperties = { width: "100%", height: "100%", objectFit: "contain" };
+    const isAudioFile = item.kind === "audio" || /\.(mp3|wav|m4a|flac|aac|ogg|wma)$/i.test(item.path || item.name);
+    if (isAudioFile) {
+      return (
+        <div className="preview-stage audio-preview" style={{ width: "100%", height: "100%", background: "#050505" }}>
+          <SourceAudioVisualizer item={item} src={source} />
+        </div>
+      );
+    }
     if (item.kind === "video") return <div className="preview-stage">
       <video
         key={`source-${item.id}-${sourcePath}`}
@@ -5140,19 +5151,6 @@ function App() {
         </div>
       )}
       {currentError && !isPreparing && <div className="preview-error" role="alert"><strong>Preview notice</strong><span>{currentError}</span></div>}
-    </div>;
-    if (item.kind === "audio") return <div className="preview-stage audio-preview">
-      <audio
-        key={`source-${item.id}-${sourcePath}`}
-        src={mediaServerPort > 0 ? source : undefined}
-        controls
-        playsInline
-        preload="auto"
-        crossOrigin="anonymous"
-        onCanPlay={() => setCurrentError(null)}
-        onError={() => setCurrentError("This audio could not be loaded. Check that the file exists and uses a supported codec.")}
-      />
-      {currentError && <div className="preview-error" role="alert"><strong>Preview unavailable</strong><span>{currentError}</span></div>}
     </div>;
     if (item.kind === "image") return <div className="preview-stage">
       <img src={source} alt={item.name} style={visualStyle} />
@@ -5611,9 +5609,10 @@ function App() {
       event.preventDefault();
       void invokeMenuCommand(command.id).catch((error: unknown) => setNotice(String(error)));
     }}>
-      <header className="app-header" style={{ height: "40px", minHeight: "40px", maxHeight: "40px" }}>
-        <div className="desktop-studio-bar">
-          <div className="desktop-bar-left">
+      <header className="app-header">
+        {/* Tier 1 (32px System Menu & Global Utilities) */}
+        <div className="system-bar-tier1">
+          <div className="system-bar-left">
             <div className="brand">
               <img className="brand-mark" src="/saturn-camera.png" alt="Easy Edits Pro camera logo" />
               <span className="brand-title">Easy Edits Pro</span>
@@ -5631,7 +5630,7 @@ function App() {
                 onClick={() => { void ensureDiscardIsOkay().then((ok) => { if (ok) { setNewProjectName("Untitled project"); setNewProjectOpen(true); } }); }}
                 data-tooltip="New Project (Ctrl+N)"
                 data-tooltip-pos="bottom"
-                style={{ width: "26px", height: "26px", padding: "4px" }}
+                style={{ width: "24px", height: "24px", padding: "3px" }}
               >
                 <Icon name="fileNew" />
               </button>
@@ -5640,7 +5639,7 @@ function App() {
                 onClick={() => void openProject().catch((error: unknown) => setNotice(String(error)))}
                 data-tooltip="Open Project (Ctrl+O)"
                 data-tooltip-pos="bottom"
-                style={{ width: "26px", height: "26px", padding: "4px" }}
+                style={{ width: "24px", height: "24px", padding: "3px" }}
               >
                 <Icon name="fileOpen" />
               </button>
@@ -5649,7 +5648,7 @@ function App() {
                 onClick={() => void saveProject()}
                 data-tooltip="Save Project (Ctrl+S)"
                 data-tooltip-pos="bottom"
-                style={{ width: "26px", height: "26px", padding: "4px" }}
+                style={{ width: "24px", height: "24px", padding: "3px" }}
               >
                 <Icon name="fileSave" />
               </button>
@@ -5659,36 +5658,27 @@ function App() {
                 disabled={busy}
                 data-tooltip="Import Media Files (Ctrl+I)"
                 data-tooltip-pos="bottom"
-                style={{ width: "26px", height: "26px", padding: "4px" }}
+                style={{ width: "24px", height: "24px", padding: "3px" }}
               >
                 <Icon name="import" />
-              </button>
-              <span className="action-divider" />
-              <button
-                className="collab-pill-btn"
-                onClick={() => setCollabModalOpen(true)}
-                data-tooltip="Collaborative Multi-User Project Locking (Phase 12.1)"
-                data-tooltip-pos="bottom"
-              >
-                <span className="collab-indicator-dot" style={{ backgroundColor: collabUser.color }} />
-                <span className="collab-name">{collabUser.name}</span>
-                <span className="collab-badge">
-                  🔒 {project?.collaboration?.locks?.length ?? 0}
-                </span>
               </button>
             </nav>
           </div>
 
-          <div className="desktop-bar-center">
-            <SegmentedControl
-              label="Workspaces"
-              options={davinciWorkspaces.map((w) => ({ value: w.id, label: w.label }))}
-              value={davinciWorkspace}
-              onValueChange={(val) => selectDavinciWorkspace(val as DavinciWorkspace)}
-            />
-          </div>
+          <div className="system-bar-right">
+            <button
+              className="collab-pill-btn"
+              onClick={() => setCollabModalOpen(true)}
+              data-tooltip="Collaborative Multi-User Project Locking (Phase 12.1)"
+              data-tooltip-pos="bottom"
+            >
+              <span className="collab-indicator-dot" style={{ backgroundColor: collabUser.color }} />
+              <span className="collab-name">{collabUser.name}</span>
+              <span className="collab-badge">
+                🔒 {project?.collaboration?.locks?.length ?? 0}
+              </span>
+            </button>
 
-          <div className="desktop-bar-right">
             {/* Background Job Queue Status Pill */}
             <div className="job-queue-wrapper" ref={jobDrawerRef}>
               <button
@@ -5843,6 +5833,16 @@ function App() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Tier 2 (36px Dedicated Workspace Bar) */}
+        <div className="workspace-bar-tier2">
+          <SegmentedControl
+            label="Workspaces"
+            options={davinciWorkspaces.map((w) => ({ value: w.id, label: w.label }))}
+            value={davinciWorkspace}
+            onValueChange={(val) => selectDavinciWorkspace(val as DavinciWorkspace)}
+          />
         </div>
       </header>
 
@@ -6054,6 +6054,16 @@ function App() {
                 <span>{tab.label}</span>
               </button>
             ))}
+            <button
+              type="button"
+              className="filmora-tab-btn add-tab-btn"
+              onClick={() => void importMedia()}
+              data-tooltip="Import Media or Add Assets"
+              data-tooltip-pos="bottom"
+              title="Import Media or Add Assets"
+            >
+              ＋
+            </button>
           </div>
 
           <div className="filmora-panel-content">
@@ -7255,7 +7265,30 @@ function App() {
           </section>
         </section>
 
-        <aside className="tool-panel" aria-live="polite">{renderInspector()}</aside>
+        <aside className="editor-right-column">
+          <StudioPanel title="Inspector" scrollable className="inspector-dock-panel">
+            {renderInspector()}
+          </StudioPanel>
+          <StudioPanel title="Audio Monitor & Mixer" scrollable className="audio-monitor-mixer-panel">
+            <AudioMonitorMixer
+              project={project}
+              masterVu={masterVu}
+              vuLevels={vuLevels}
+              loudnessReport={loudnessReport}
+              masterGainDraft={masterGainDraft}
+              setMasterGainDraft={setMasterGainDraft}
+              gainDrafts={gainDrafts}
+              setGainDrafts={setGainDrafts}
+              saveTrackGain={saveTrackGain}
+              toggleTrackMute={toggleTrackMute}
+              toggleTrackSolo={toggleTrackSolo}
+              audioClockMaster={audioClockMaster}
+              activeClip={activeClip}
+              media={media}
+              playhead={playhead}
+            />
+          </StudioPanel>
+        </aside>
       </main>}
       <footer className="status-bar">
         <span>{busy ? "Working…" : notice || "Autosave recovery enabled · saves every 30 seconds"}</span>
