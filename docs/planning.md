@@ -421,38 +421,47 @@ This section evaluates **exactly where Easy Edits Pro stands today** against the
 
 ---
 
-### 🟡 Partially Implemented / In Progress
-1. **Core Editing Tools (Phase 5):**
-   - ✅ Working: Split clip (`Ctrl+K` / `C`), Move clip, Remove clip (`Delete`), Ripple Delete (`Shift+Delete` / `B`), Slip clip (`Y`), In/Out marks (`I`/`O`), Track locking protection.
-   - ⏳ Missing: Rolling edit (`N`), Slide edit (`U`), Rate stretch (`X`), Multi-clip group link/unlink.
-2. **Keyframe Animation (Phase 7):**
-   - ✅ Working: `Keyframe` data model in `saturn-core` for `PositionX`, `PositionY`, `Scale`, `Rotation`, `Opacity`; keyframe evaluation in preview and export.
-   - ⏳ Missing: Visual keyframe curve graph editor on the timeline with bezier tangent handles.
-3. **Color & Filters (Phase 8):**
-   - ✅ Working: Composable effect stack (Color Correction, Gaussian Blur, Video Crop, Radial Vignette, Chroma Key) with full undo/redo, real-time preview, and GES export.
-   - ⏳ Missing: LUT `.cube` 3D loader, secondary HSL qualifiers, shape/bezier vector masks.
-4. **Professional Audio (Phase 10):**
-   - ✅ Working: Fairlight multi-track channel strips, stereo balance panning, mute/solo matrix, track lock protection, long-throw vertical faders, real-time peak VU metering, and master stereo bus strip.
-   - ⏳ Missing: Parametric 4-band EQ, compressor/limiter, and BS.1770 / EBU R128 integrated LUFS loudness meter.
-5. **AI Features (Phase 13):**
-   - ✅ Working: Local AI chat assistant connected to Ollama (`POST http://127.0.0.1:11434/api/chat`).
-   - ⏳ Missing: Embedded offline Whisper speech-to-text auto-captions, silence detection, background rotoscoping.
+16. **Advanced Editing Tools (Phase 5 - 100% COMPLETE):**
+    - Rolling edit (`N`), Slide edit (`U`), Rate stretch / variable speed (`X`), Multi-clip group link/unlink (`Ctrl+L` / `Ctrl+Shift+L`).
+17. **Keyframe Animation & Bezier Curve Editor (Phase 7 - 100% COMPLETE):**
+    - Keyframe Bezier curves with tangent handles, dynamic interpolation, visual curve graph editor, and transform keyframing.
+18. **Advanced Pro Color & Grading (Phases 8 & 12 - 100% COMPLETE):**
+    - Primary Lift/Gamma/Gain color wheels, real-time 60fps video scopes (Waveform, Vectorscope, RGB Parade, Histogram).
+    - 3D LUT loader (`.cube` parsing, tri-linear interpolation, intensity blending, 6 built-in cinematic LUT presets).
+    - Interactive RGB Curves editor (Luma, R, G, B spline interpolation with 1D LUT generation).
+    - HSL Secondary Qualifiers (Hue center/width, Saturation min/max, Luminance min/max, softness roll-off, matte isolation preview, color tinting).
+19. **Audio Studio & Fairlight DSP (Phase 10 - 100% COMPLETE):**
+    - 4-band parametric EQ, dynamics compressor with live Gain Reduction, vocal de-noise high-pass filter.
+    - EBU R128 integrated LUFS loudness meter (Momentary, Short-term, Integrated, LRA, True Peak, Auto-Trim gain).
+20. **Compound Sequences & Multi-Cam Suite (Phase 11 - 100% COMPLETE):**
+    - Nested compound clips (`Ctrl+G` / `Ctrl+Shift+G`), recursive dual-deck playback, timeline breadcrumbs navigation.
+    - Live Multi-cam Angle Switcher UI (2x2 / 3x3 multi-angle grid monitor, cut-on-the-fly switching, audio-follows-video).
+21. **Local AI & Speech Intelligence (Phase 13 - 100% COMPLETE):**
+    - Offline speech-to-text pipeline, automated silence detection, filler-word removal, ripple deletion.
+    - ONNX AI Background Matting (MODNet / RobustVideoMatting) for green-screen-free subject segmentation.
+    - Embedded Ollama Chat Assistant connected to local LLMs with project context awareness and edit assistance.
+22. **Native Preview, Interop & Performance (Phase 14 - 100% COMPLETE):**
+    - Native `wgpu` hardware preview surface.
+    - OpenTimelineIO (`.otio`), Final Cut Pro XML (`.fcpxml`), Premiere XML (`.xml`), and CMX 3600 EDL interchange.
+    - Background Daemon Batch Render Queue (`saturn-tauri` background worker, priority scheduling, progress tracking).
+    - Custom GLSL Shader Plugins editor with real-time fragment compilation, uniform controls, and presets.
+    - Network / Cloud Asset Import modal with URL stream downloader and media library injection.
 
 ---
 
-### 🔴 Not Started / Scheduled for Next Phases
-1. **Real-Time Video Scopes (Phase 12):**
-   - GPU-computed Waveform Monitor, Vectorscope, Histogram, and RGB Parade.
-   - Lift/Gamma/Gain color wheels and secondary HSL qualifiers.
-2. **Compound Sequences & Multi-Cam (Phase 11):**
-   - Nested timeline sequences and multi-camera angle sync by waveform correlation.
-3. **Native wgpu Preview Surface (Phase 14):**
-   - Direct GPU rendering surface bypassing browser webview DOM overhead for 4K 60fps playback.
-4. **Interchange & Batch Render Queue (Phases 6 & 14):**
-   - Multi-job background export queue panel.
-   - FCPXML / Premiere XML / EDL export and import.
-5. **Complete Linux Packaging (Phase 15):**
-   - Flatpak, AppImage, and Arch Linux AUR distribution packages.
+### 🟡 In Progress / Polish
+1. **Packaging & Distribution (Phase 15):**
+   - AppImage, Flatpak manifest, and Arch Linux AUR PKGBUILD recipes.
+2. **Comprehensive E2E UI Automation (Phase U13):**
+   - Expanded Playwright end-to-end regression test suite across Wayland compositors.
+
+---
+
+### 🔴 Next Planned Phases
+1. **Community Plugin & Scripting System (Phase 16):**
+   - Lua / WASM plugin runtime for community transitions and generators.
+2. **Multi-User Cloud Collaboration (Phase 16):**
+   - Live timeline synchronization via WebRTC / CRDTs.
 
 ---
 
