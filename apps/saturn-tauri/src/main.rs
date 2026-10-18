@@ -24,7 +24,7 @@ mod recovery;
 
 pub use media_server::{
     get_media_server_port, get_media_server_token, is_allowed_media_path,
-    register_allowed_media_path, set_app_data_dir, start_media_server,
+    register_allowed_media_path, set_app_cache_dir, set_app_data_dir, start_media_server,
 };
 pub use recovery::{
     autosave_once, discard_autosave, recovery_status, restore_autosave, start_autosave,
@@ -113,10 +113,11 @@ fn execute_command(
             recovery::remove_recovery_files(&app);
         }
     }
-    if matches!(command_id.as_str(), "file.open" | "project.add_media" | "project.relink_media") {
+    if matches!(command_id.as_str(), "file.open" | "project.new" | "project.add_media" | "project.relink_media" | "project.import_media") {
         let state = state.0.lock().map_err(|_| "Editor state is unavailable")?;
         for media in &state.document().project.media {
             let _ = app.asset_protocol_scope().allow_file(&media.path);
+            register_allowed_media_path(&media.path);
         }
     }
     Ok(result)
@@ -162,6 +163,7 @@ async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path:
             return Err(format!("Source video is missing: {}", source.display()));
         }
         let _ = app_clone.asset_protocol_scope().allow_file(&source);
+        register_allowed_media_path(&source);
 
         let ext = source.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
         if ext == "webm" {
@@ -181,6 +183,7 @@ async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path:
         let output = cache_dir.join(format!("{:016x}.webm", key.finish()));
         if output.is_file() && std::fs::metadata(&output).is_ok_and(|info| info.len() > 0) {
             let _ = app_clone.asset_protocol_scope().allow_file(&output);
+            register_allowed_media_path(&output);
             return Ok(Some(output.to_string_lossy().into_owned()));
         }
         let temporary = output.with_extension("webm.part");
@@ -248,6 +251,7 @@ async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path:
         }
         std::fs::rename(&temporary, &output).map_err(|error| format!("Could not save video preview: {error}"))?;
         let _ = app_clone.asset_protocol_scope().allow_file(&output);
+        register_allowed_media_path(&output);
         Ok(Some(output.to_string_lossy().into_owned()))
     });
 
@@ -1600,6 +1604,9 @@ fn main() {
                 setup_crash_logging(&app.handle());
                 if let Ok(data_dir) = app.path().app_data_dir() {
                     set_app_data_dir(data_dir);
+                }
+                if let Ok(cache_dir) = app.path().app_cache_dir() {
+                    set_app_cache_dir(cache_dir);
                 }
                 if let Ok(guard) = state.0.lock() {
                     for media in &guard.document().project.media {

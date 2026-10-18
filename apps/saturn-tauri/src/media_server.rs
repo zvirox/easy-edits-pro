@@ -9,6 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 static MEDIA_SERVER_PORT: AtomicU16 = AtomicU16::new(0);
 static MEDIA_SERVER_TOKEN: OnceLock<String> = OnceLock::new();
 static APP_DATA_DIR: OnceLock<PathBuf> = OnceLock::new();
+static APP_CACHE_DIR: OnceLock<PathBuf> = OnceLock::new();
 static ALLOWED_MEDIA_PATHS: LazyLock<RwLock<HashSet<PathBuf>>> =
     LazyLock::new(|| RwLock::new(HashSet::new()));
 
@@ -20,28 +21,51 @@ pub fn set_app_data_dir(dir: PathBuf) {
     }
 }
 
+pub fn set_app_cache_dir(dir: PathBuf) {
+    if let Ok(canon) = dir.canonicalize() {
+        let _ = APP_CACHE_DIR.set(canon);
+    } else {
+        let _ = APP_CACHE_DIR.set(dir);
+    }
+}
+
 pub fn register_allowed_media_path<P: AsRef<Path>>(path: P) {
     let p = path.as_ref();
-    if let Ok(canon) = p.canonicalize() {
-        if let Ok(mut set) = ALLOWED_MEDIA_PATHS.write() {
+    if let Ok(mut set) = ALLOWED_MEDIA_PATHS.write() {
+        set.insert(p.to_path_buf());
+        if let Ok(canon) = p.canonicalize() {
             set.insert(canon);
         }
-    } else if let Ok(mut set) = ALLOWED_MEDIA_PATHS.write() {
-        set.insert(p.to_path_buf());
     }
 }
 
 pub fn is_allowed_media_path<P: AsRef<Path>>(path: P) -> bool {
-    let Ok(canon) = path.as_ref().canonicalize() else {
-        return false;
-    };
+    let p = path.as_ref();
     if let Ok(set) = ALLOWED_MEDIA_PATHS.read() {
-        if set.contains(&canon) {
+        if set.contains(p) {
             return true;
+        }
+        if let Ok(canon) = p.canonicalize() {
+            if set.contains(&canon) {
+                return true;
+            }
         }
     }
     if let Some(app_dir) = APP_DATA_DIR.get() {
-        if canon.starts_with(app_dir) {
+        if let Ok(canon) = p.canonicalize() {
+            if canon.starts_with(app_dir) {
+                return true;
+            }
+        } else if p.starts_with(app_dir) {
+            return true;
+        }
+    }
+    if let Some(cache_dir) = APP_CACHE_DIR.get() {
+        if let Ok(canon) = p.canonicalize() {
+            if canon.starts_with(cache_dir) {
+                return true;
+            }
+        } else if p.starts_with(cache_dir) {
             return true;
         }
     }

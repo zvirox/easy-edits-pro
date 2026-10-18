@@ -734,6 +734,7 @@ class AudioClockMaster {
   private trackRawGains = new Map<number, number>();
   private trackMutes = new Map<number, boolean>();
   private trackSolos = new Map<number, boolean>();
+  private connectedMediaElements = new WeakSet<HTMLMediaElement>();
 
   getContext(): AudioContext | null {
     if (typeof window === "undefined") return null;
@@ -789,7 +790,10 @@ class AudioClockMaster {
 
   getCurrentTime(): number {
     const ctx = this.getContext();
-    return ctx ? ctx.currentTime : performance.now() / 1000;
+    if (ctx && ctx.state === "running") {
+      return ctx.currentTime;
+    }
+    return performance.now() / 1000;
   }
 
   getTrackGainNode(trackId: number, gainDb = 0): GainNode | null {
@@ -874,6 +878,21 @@ class AudioClockMaster {
       gainNode.gain.setValueAtTime(linearGain, ctx.currentTime);
     }
     return inputNode;
+  }
+
+  connectMediaElement(trackId: number, el: HTMLMediaElement): void {
+    const ctx = this.getContext();
+    if (!ctx || this.connectedMediaElements.has(el)) return;
+    try {
+      const source = ctx.createMediaElementSource(el);
+      const trackInput = this.getTrackGainNode(trackId);
+      if (trackInput) {
+        source.connect(trackInput);
+        this.connectedMediaElements.add(el);
+      }
+    } catch {
+      // Element might already be attached or host environment restricted
+    }
   }
 
   updateTrackGain(trackId: number, gainDb: number): void {
@@ -1455,7 +1474,7 @@ export function evaluateTimelinePlayback(
               }
             }
           }
-        } else if (item && (item.kind === "audio" || (item.kind === "video" && track.kind === "video"))) {
+        } else if (item && (item.kind === "audio" || item.kind === "video")) {
           // Always stream audio from the original media path, not the video-only transcode proxy
           const src = resolveMediaStreamUrl(item, {}, mediaServerPort, mediaServerToken);
           if (src) {

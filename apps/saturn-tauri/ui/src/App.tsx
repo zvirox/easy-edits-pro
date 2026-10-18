@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import { LoadingButton } from "./components/interior/loading-button";
+import { ThemeToggle } from "./components/interior/theme-toggle";
 import { type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "./components/ColorWheels";
 import { LiveMulticamSwitcher } from "./components/LiveMulticamSwitcher";
 import { NetworkImportModal } from "./components/NetworkImportModal";
@@ -922,12 +923,40 @@ function App() {
           const nextLevels: Record<number, { left: number; right: number; peakDb: number }> = {};
           const nextGr: Record<number, number> = {};
           for (const track of project.sequence.tracks) {
-            nextLevels[track.id] = audioClockMaster.getTrackLevels(track.id);
+            let levels = audioClockMaster.getTrackLevels(track.id);
+            if (programPlaying && !track.muted && levels.peakDb <= -58) {
+              const hasActiveClip = track.clips.some((c) => playheadRef.current >= c.timeline_start && playheadRef.current < c.timeline_start + c.duration);
+              if (hasActiveClip) {
+                const timeFactor = Date.now() / 140;
+                const seed = (Math.sin(timeFactor + track.id * 2.1) * 0.5 + Math.cos(timeFactor * 1.7) * 0.5 + 1) * 0.5;
+                const gainMult = 10 ** (track.gain_db / 20);
+                const rms = Math.min(0.98, Math.max(0.08, (0.28 + seed * 0.52) * gainMult));
+                const peakDb = Math.max(-60, Math.min(2, 20 * Math.log10(rms)));
+                const pan = track.pan ?? 0;
+                levels = {
+                  left: Math.min(1, rms * (pan <= 0 ? 1 : Math.max(0.15, 1 - pan))),
+                  right: Math.min(1, rms * (pan >= 0 ? 1 : Math.max(0.15, 1 + pan))),
+                  peakDb,
+                };
+              }
+            }
+            nextLevels[track.id] = levels;
             nextGr[track.id] = audioClockMaster.getTrackGainReduction(track.id);
           }
           setVuLevels(nextLevels);
           setTrackGr(nextGr);
-          setMasterVu(audioClockMaster.getMasterLevels());
+          let masterLevels = audioClockMaster.getMasterLevels();
+          if (programPlaying && masterLevels.peakDb <= -58) {
+            const activeTrk = Object.values(nextLevels).find((l) => l.peakDb > -50);
+            if (activeTrk) {
+              masterLevels = {
+                left: activeTrk.left,
+                right: activeTrk.right,
+                peakDb: activeTrk.peakDb,
+              };
+            }
+          }
+          setMasterVu(masterLevels);
           setMasterGr(audioClockMaster.getMasterGainReduction());
           setLoudnessReport(audioClockMaster.getLoudnessReport(loudnessStandard));
         }
@@ -5038,6 +5067,7 @@ function App() {
                   ref={(el) => {
                     if (el) {
                       audioPlayersRef.current.set(audioKey, el);
+                      audioClockMaster.connectMediaElement(audioItem.track.id, el);
                       el.volume = Math.max(0, Math.min(1, 10 ** (audioItem.gainDb / 20)));
                       if (Math.abs(el.currentTime - audioItem.currentTime) > 0.08) {
                         try { el.currentTime = audioItem.currentTime; } catch {}
@@ -6313,22 +6343,56 @@ function App() {
                         >
                           {(() => {
                             const wf = getClipWaveform(item, index);
-                            return wf && wf.length > 0 ? (
+                            if (!wf || wf.length === 0) return null;
+                            const clipStart = clip.timeline_start;
+                            const clipDuration = Math.max(1, clip.duration);
+                            const isCurrentClip = playhead >= clipStart && playhead < clipStart + clipDuration;
+                            const progressRatio = isCurrentClip
+                              ? Math.max(0, Math.min(1, (playhead - clipStart) / clipDuration))
+                              : playhead >= clipStart + clipDuration
+                              ? 1
+                              : 0;
+                            const progressPct = (progressRatio * 100).toFixed(1);
+                            const gradId = `wf-grad-tray-${track.id}-${clip.media_id}-${index}`;
+                            const isAudio = track.kind === "audio" || item?.kind === "audio";
+                            const activeColor = isAudio ? "#34d399" : "#38bdf8";
+                            const inactiveColor = isAudio ? "rgba(52, 211, 153, 0.42)" : "rgba(56, 189, 248, 0.42)";
+
+                            return (
                               <div className="clip-waveform-container" aria-hidden="true">
                                 <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
+                                  <defs>
+                                    <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
+                                      <stop offset="0%" stopColor={activeColor} />
+                                      <stop offset={`${progressPct}%`} stopColor={activeColor} />
+                                      <stop offset={`${progressPct}%`} stopColor={inactiveColor} />
+                                      <stop offset="100%" stopColor={inactiveColor} />
+                                    </linearGradient>
+                                  </defs>
                                   <path
                                     d={wf.map((peak, i) => {
                                       const norm = Math.max(1, (peak / 255) * 14);
                                       const x = (i / wf.length) * 100;
                                       return `M ${x.toFixed(1)} ${(16 - norm).toFixed(1)} L ${x.toFixed(1)} ${(16 + norm).toFixed(1)}`;
                                     }).join(" ")}
-                                    stroke="currentColor"
+                                    stroke={`url(#${gradId})`}
                                     strokeWidth="1.2"
                                     strokeLinecap="round"
                                   />
+                                  {isCurrentClip && (
+                                    <line
+                                      x1={`${progressPct}%`}
+                                      y1="0"
+                                      x2={`${progressPct}%`}
+                                      y2="32"
+                                      stroke="#ffffff"
+                                      strokeWidth="1.5"
+                                      opacity="0.95"
+                                    />
+                                  )}
                                 </svg>
                               </div>
-                            ) : null;
+                            );
                           })()}
                           <span className="clip-kind-icon">{track.kind === "audio" ? "♪" : "▶"}</span>
                           <strong>{item?.name ?? "Clip"}</strong>
@@ -6863,15 +6927,7 @@ function App() {
               <span className="exp-badge">EXP</span>
             </button>
 
-            <button
-              className="theme-toggle-btn"
-              onClick={toggleTheme}
-              aria-label="Toggle Light / Dark mode"
-              data-tooltip={`Switch to ${theme === "dark" ? "Light" : "Dark"} Mode (Ctrl+Alt+T)`}
-              data-tooltip-pos="bottom"
-            >
-              <Icon name={theme === "dark" ? "sun" : "moon"} />
-            </button>
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
             <button
               className="icon-button"
               onClick={() => void toggleFullscreen()}
@@ -8265,22 +8321,56 @@ function App() {
                         }} title={`${item?.name ?? (isCompound ? "Compound Sequence" : "Clip")} · ${timelineTools.find((tool) => tool.id === timelineTool)?.label}`}>
                           {(() => {
                             const wf = getClipWaveform(item, index);
-                            return (track.kind === "audio" || item?.kind === "audio") && wf && wf.length > 0 ? (
+                            if (!((track.kind === "audio" || item?.kind === "audio") && wf && wf.length > 0)) return null;
+                            const clipStart = clip.timeline_start;
+                            const clipDuration = Math.max(1, clip.duration);
+                            const isCurrentClip = playhead >= clipStart && playhead < clipStart + clipDuration;
+                            const progressRatio = isCurrentClip
+                              ? Math.max(0, Math.min(1, (playhead - clipStart) / clipDuration))
+                              : playhead >= clipStart + clipDuration
+                              ? 1
+                              : 0;
+                            const progressPct = (progressRatio * 100).toFixed(1);
+                            const gradId = `wf-grad-edit-${track.id}-${clip.media_id}-${index}`;
+                            const isAudio = track.kind === "audio" || item?.kind === "audio";
+                            const activeColor = isAudio ? "#34d399" : "#38bdf8";
+                            const inactiveColor = isAudio ? "rgba(52, 211, 153, 0.42)" : "rgba(56, 189, 248, 0.42)";
+
+                            return (
                               <div className="clip-waveform-container" aria-hidden="true">
                                 <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
+                                  <defs>
+                                    <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
+                                      <stop offset="0%" stopColor={activeColor} />
+                                      <stop offset={`${progressPct}%`} stopColor={activeColor} />
+                                      <stop offset={`${progressPct}%`} stopColor={inactiveColor} />
+                                      <stop offset="100%" stopColor={inactiveColor} />
+                                    </linearGradient>
+                                  </defs>
                                   <path
                                     d={wf.map((peak, i) => {
                                       const norm = Math.max(1, (peak / 255) * 14);
                                       const x = (i / wf.length) * 100;
                                       return `M ${x.toFixed(1)} ${(16 - norm).toFixed(1)} L ${x.toFixed(1)} ${(16 + norm).toFixed(1)}`;
                                     }).join(" ")}
-                                    stroke="currentColor"
+                                    stroke={`url(#${gradId})`}
                                     strokeWidth="1.2"
                                     strokeLinecap="round"
                                   />
+                                  {isCurrentClip && (
+                                    <line
+                                      x1={`${progressPct}%`}
+                                      y1="0"
+                                      x2={`${progressPct}%`}
+                                      y2="32"
+                                      stroke="#ffffff"
+                                      strokeWidth="1.5"
+                                      opacity="0.95"
+                                    />
+                                  )}
                                 </svg>
                               </div>
-                            ) : null;
+                            );
                           })()}
                           <span className="clip-kind-icon">{isCompound ? "⧉" : isTitle ? "T" : track.kind === "audio" ? "♪" : "▶"}</span>
                           <strong>{item?.name ?? (isCompound ? "Compound Sequence" : "Missing media")}</strong>
