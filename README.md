@@ -127,6 +127,8 @@ Easy Edits Pro mirrors the streamlined, task-oriented workflow of industry-stand
 
 ## Core Architecture
 
+For the current module map and runtime data flow, see the [architecture guide](docs/architecture.md).
+
 Easy Edits Pro enforces a strict separation between domain state, native rendering, and UI presentation:
 
 ```mermaid

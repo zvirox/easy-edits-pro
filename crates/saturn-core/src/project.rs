@@ -1,14 +1,15 @@
 use crate::time::{FrameRate, Tick};
 use serde::{Deserialize, Serialize};
-use std::fs::{self, File, OpenOptions};
-use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::path::PathBuf;
 
 pub const PROJECT_FORMAT: &str = "easy-edits-pro.project";
 pub const LEGACY_PROJECT_FORMAT: &str = "project-saturn.project";
 pub const PROJECT_SCHEMA_VERSION: u32 = 10;
-static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
+#[path = "project/io.rs"]
+mod io;
+#[path = "project/migrate.rs"]
+mod migrate;
+pub(crate) use migrate::migrate_project;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ProjectDocument {
@@ -1469,104 +1470,6 @@ impl ProjectDocument {
             }
         }
         Ok(())
-    }
-
-    pub fn save_atomic(&self, path: &Path) -> Result<(), String> {
-        self.validate()?;
-        let parent = path
-            .parent()
-            .filter(|p| !p.as_os_str().is_empty())
-            .unwrap_or(Path::new("."));
-        fs::create_dir_all(parent).map_err(|e| format!("Could not create project folder: {e}"))?;
-        let file_name = path
-            .file_name()
-            .ok_or_else(|| "Project path has no file name".to_string())?;
-        let suffix = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
-        let temporary_path = parent.join(format!(
-            ".{}.{}.{}.tmp",
-            file_name.to_string_lossy(),
-            std::process::id(),
-            suffix
-        ));
-        let serialized = serde_json::to_vec_pretty(self)
-            .map_err(|e| format!("Could not serialize project: {e}"))?;
-
-        let result = (|| {
-            let mut file = OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(&temporary_path)
-                .map_err(|e| format!("Could not create temporary project file: {e}"))?;
-            file.write_all(&serialized)
-                .map_err(|e| format!("Could not write project file: {e}"))?;
-            file.write_all(b"\n")
-                .map_err(|e| format!("Could not finish project file: {e}"))?;
-            file.sync_all()
-                .map_err(|e| format!("Could not flush project file: {e}"))?;
-            drop(file);
-            fs::rename(&temporary_path, path)
-                .map_err(|e| format!("Could not replace project file: {e}"))?;
-            if let Ok(directory) = File::open(parent) {
-                let _ = directory.sync_all();
-            }
-            Ok(())
-        })();
-        if result.is_err() {
-            let _ = fs::remove_file(&temporary_path);
-        }
-        result
-    }
-
-    pub fn load(path: &Path) -> Result<Self, String> {
-        let mut file = File::open(path).map_err(|e| format!("Could not open project: {e}"))?;
-        let mut bytes = Vec::new();
-        file.read_to_end(&mut bytes)
-            .map_err(|e| format!("Could not read project: {e}"))?;
-        let mut value: serde_json::Value = serde_json::from_slice(&bytes)
-            .map_err(|e| format!("Project file is not valid JSON: {e}"))?;
-        migrate_project(&mut value)?;
-        let document: Self = serde_json::from_value(value)
-            .map_err(|e| format!("Project file has an invalid structure: {e}"))?;
-        document.validate()?;
-        Ok(document)
-    }
-}
-
-fn migrate_project(value: &mut serde_json::Value) -> Result<(), String> {
-    let version = value
-        .get("schema_version")
-        .and_then(serde_json::Value::as_u64)
-        .ok_or_else(|| "Project file has no schema_version".to_string())? as u32;
-    let fmt = value.get("format").and_then(serde_json::Value::as_str);
-    if fmt != Some(PROJECT_FORMAT) && fmt != Some(LEGACY_PROJECT_FORMAT) {
-        return Err("This is not a recognized Easy Edits Pro project file".into());
-    }
-    match version {
-        PROJECT_SCHEMA_VERSION => Ok(()),
-        1 => {
-            let object = value
-                .as_object_mut()
-                .ok_or_else(|| "Project root must be an object".to_string())?;
-            object.insert("schema_version".into(), 2.into());
-            object.entry("view").or_insert_with(|| {
-                serde_json::json!({
-                    "active_sequence": "Sequence 1",
-                    "timeline_zoom": 1.0,
-                    "timeline_scroll": 0.0
-                })
-            });
-            migrate_project(value)
-        }
-        2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 => {
-            value
-                .as_object_mut()
-                .ok_or_else(|| "Project root must be an object".to_string())?
-                .insert("schema_version".into(), PROJECT_SCHEMA_VERSION.into());
-            Ok(())
-        }
-        unsupported => Err(format!(
-            "Project schema version {unsupported} is not supported"
-        )),
     }
 }
 

@@ -60,6 +60,10 @@ jobs:
         working-directory: apps/saturn-tauri
         run: pnpm test
 
+      - name: Check source file size limits
+        working-directory: apps/saturn-tauri
+        run: pnpm check:source-size
+
       - name: Check Tauri desktop backend
         working-directory: apps/saturn-tauri
         run: cargo check --verbose

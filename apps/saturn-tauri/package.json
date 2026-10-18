@@ -7,6 +7,7 @@
     "dev": "vite --config ui/vite.config.ts",
     "build": "tsc --noEmit -p ui/tsconfig.json && vite build --config ui/vite.config.ts",
     "test": "node --experimental-strip-types --test 'ui/src/**/*.test.ts'",
+    "check:source-size": "node scripts/check-source-size.mjs",
     "test:e2e": "node scripts/editor-smoke.mjs",
     "tauri": "tauri"
   },

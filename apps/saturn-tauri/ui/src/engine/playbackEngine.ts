@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { buildMediaStreamUrl } from "../utils/mediaUrl.ts";
 
 export const TICKS_PER_SECOND = 254_016_000_000;
 
@@ -1386,10 +1387,8 @@ export function resolveMediaStreamUrl(
   mediaServerToken?: string
 ): string {
   if (!mediaAsset || mediaServerPort <= 0) return "";
-  const proxyPath = preparedPreviews[mediaAsset.id];
-  const targetPath = proxyPath || mediaAsset.path;
-  const tokenPart = mediaServerToken ? `&token=${encodeURIComponent(mediaServerToken)}` : "";
-  return `http://127.0.0.1:${mediaServerPort}/media?path=${encodeURIComponent(targetPath)}${tokenPart}`;
+  const targetPath = preparedPreviews[mediaAsset.id] || mediaAsset.path;
+  return buildMediaStreamUrl(targetPath, mediaServerPort, mediaServerToken);
 }
 
 /**

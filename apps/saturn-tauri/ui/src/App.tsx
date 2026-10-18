@@ -1,5 +1,5 @@
 import { type CSSProperties, type MouseEvent, type PointerEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Channel, convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { Channel, invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
@@ -11,6 +11,7 @@ import { NetworkImportModal } from "./components/NetworkImportModal";
 import { BatchQueueDrawer } from "./components/BatchQueueDrawer";
 import { OllamaChatDrawer } from "./components/OllamaChatDrawer";
 import { formatTime, formatPan, formatDb, getClipWaveform } from "./utils/formatters";
+import { useMediaServer } from "./app/useMediaServer";
 import { Icon, type IconName } from "./components/Icon";
 import { SegmentedControl } from "./components/interior/segmented-control";
 import { StudioPanel } from "./components/StudioPanel";
@@ -514,30 +515,7 @@ function App() {
   const [preparedPreviews, setPreparedPreviews] = useState<Record<number, string>>({});
   const [preparingPreviews, setPreparingPreviews] = useState<Set<number>>(new Set());
   const [previewPreparationErrors, setPreviewPreparationErrors] = useState<Record<number, string>>({});
-  const [mediaServerPort, setMediaServerPort] = useState<number>(0);
-  const [mediaServerToken, setMediaServerToken] = useState<string>("");
-
-  useEffect(() => {
-    invoke<number>("get_media_server_port")
-      .then((port) => {
-        if (port > 0) setMediaServerPort(port);
-      })
-      .catch((err) => console.warn("Could not get media server port:", err));
-
-    invoke<string>("get_media_server_token")
-      .then((token) => {
-        if (token) setMediaServerToken(token);
-      })
-      .catch((err) => console.warn("Could not get media server token:", err));
-  }, []);
-
-  const getMediaUrl = useCallback((filePath: string) => {
-    if (mediaServerPort > 0) {
-      const tokenParam = mediaServerToken ? `&token=${encodeURIComponent(mediaServerToken)}` : "";
-      return `http://127.0.0.1:${mediaServerPort}/media?path=${encodeURIComponent(filePath)}${tokenParam}`;
-    }
-    return convertFileSrc(filePath);
-  }, [mediaServerPort, mediaServerToken]);
+  const { mediaServerPort, mediaServerToken, getMediaUrl } = useMediaServer();
 
   const [jobs, setJobs] = useState<JobInfo[]>([]);
   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);

@@ -1,0 +1,523 @@
+/* Master Info Section */
+.master-info-section {
+  text-align: center;
+  padding: 6px 2px;
+}
+
+.master-rate-badge {
+  font-size: 8.5px;
+  font-family: monospace;
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.master-routing-text {
+  font-size: 8px;
+  color: var(--text-muted);
+}
+
+/* Matrix M / S / L Buttons */
+.strip-matrix-buttons {
+  display: flex;
+  gap: 3px;
+}
+
+.strip-btn {
+  flex: 1;
+  padding: 3px 0;
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-button);
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.12s ease;
+}
+
+.strip-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.strip-btn.btn-mute.active {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #b91c1c;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+.strip-btn.btn-solo.active {
+  background: #f59e0b;
+  color: #000000;
+  border-color: #d97706;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.strip-btn.btn-lock.active {
+  background: #06b6d4;
+  color: #000000;
+  border-color: #0891b2;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+}
+
+.master-bus-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.master-bus-label {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #fbbf24;
+}
+
+/* Meter + Fader Area */
+.strip-meter-fader-row {
+  display: flex;
+  flex: 1;
+  min-height: 220px;
+  gap: 6px;
+  align-items: stretch;
+  padding: 4px 0;
+}
+
+/* Dual Stereo VU Meter Column */
+.strip-vu-meter-column {
+  display: flex;
+  flex-direction: column;
+  width: 22px;
+  min-width: 22px;
+  align-items: center;
+  gap: 3px;
+}
+
+.vu-meter-pair {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  gap: 2px;
+  padding: 2px;
+  background: #06080d;
+  border: 1px solid #1a2230;
+  border-radius: 3px;
+  position: relative;
+}
+
+.vu-bar-slot {
+  flex: 1;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 1px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.vu-bar-fill {
+  width: 100%;
+  min-height: 0;
+  background: linear-gradient(0deg, #10b981 0%, #10b981 65%, #f59e0b 82%, #ef4444 100%);
+  border-radius: 1px;
+  transition: height 0.05s linear;
+}
+
+.vu-bar-fill.master {
+  background: linear-gradient(0deg, #059669 0%, #10b981 60%, #fbbf24 82%, #ef4444 100%);
+}
+
+.vu-db-readout {
+  font-size: 7.5px;
+  font-family: monospace;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Long-throw Vertical Fader Column */
+.strip-fader-column {
+  display: flex;
+  flex: 1;
+  align-items: stretch;
+  gap: 3px;
+  position: relative;
+}
+
+.fader-scale-ticks {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 7px;
+  font-family: monospace;
+  color: var(--text-muted);
+  line-height: 1;
+  user-select: none;
+  padding: 4px 0;
+}
+
+.fader-scale-ticks span.unity {
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+
+.fader-track-container {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.vertical-fader {
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 24px;
+  height: 100%;
+  cursor: ns-resize;
+  accent-color: var(--accent-cyan);
+  background: transparent;
+}
+
+.vertical-fader.master-fader {
+  accent-color: #fbbf24;
+}
+
+/* Fader Footer */
+.strip-fader-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-color);
+}
+
+.strip-unity-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 7.5px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.strip-unity-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+  border-color: var(--accent-cyan);
+}
+
+.strip-unity-btn.master-unity:hover {
+  border-color: #fbbf24;
+  color: #fbbf24;
+}
+
+.strip-gain-text {
+  font-family: monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.strip-gain-text.master-gain-text {
+  color: #fbbf24;
+}
+
+/* ==========================================================================
+   Full-Page Dedicated Workspaces: Audio, Color, Effects
+   ========================================================================== */
+
+.workspace-page.audio-workspace-page,
+.workspace-page.color-workspace-page,
+.workspace-page.effects-workspace-page {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Workspace Sub-Header */
+.workspace-sub-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.workspace-header-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workspace-header-title h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-main);
+}
+
+.workspace-header-title p {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* Common Workspace Button Utilities */
+.btn-secondary {
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary-subtle {
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  color: var(--accent-cyan);
+  padding: 5px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-primary-subtle:hover {
+  background: rgba(6, 182, 212, 0.22);
+  border-color: var(--accent-cyan);
+}
+
+/* Audio Workspace Header Actions */
+.audio-header-actions,
+.color-header-actions,
+.effects-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.audio-transport-readout {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.transport-tc-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.transport-tc-val {
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.audio-transport-buttons {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.transport-btn {
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 5px 9px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.transport-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.transport-btn.play-btn {
+  min-width: 72px;
+  font-weight: 700;
+}
+
+.transport-btn.play-btn.active-toggle {
+  background: var(--accent-cyan);
+  color: #041017;
+  border-color: var(--accent-cyan);
+}
+
+.audio-matrix-global-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-left: 1px solid var(--border-color);
+  padding-left: 12px;
+}
+
+/* ==========================================================================
+   Fairlight Audio Studio Layout
+   ========================================================================== */
+
+.audio-studio-body {
+  display: grid;
+  grid-template-columns: minmax(280px, 320px) minmax(330px, 420px) 1fr;
+  gap: 12px;
+  padding: 10px 14px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.audio-monitor-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.audio-video-sync-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.audio-box-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.audio-box-title code {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--text-main);
+}
+
+.audio-sync-preview-stage {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  background: #000;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.audio-master-bus-card {
+  background: var(--bg-panel);
+  border: 1px solid #d97706;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 0 16px rgba(217, 119, 6, 0.08);
+}
+
+.master-bus-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.master-bus-title strong {
+  display: block;
+  font-size: 12px;
+  color: #fbbf24;
+}
+
+.bus-badge {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.master-bus-controls {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  height: 220px;
+}
+
+.master-vu-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.master-vu-pair {
+  height: 190px !important;
+}
+
+.master-fader-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.master-fader-column .fader-track-container {
+  height: 180px;
+}
+
+.master-vertical-fader {
+  height: 175px !important;
+}
+
+.master-fader-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+

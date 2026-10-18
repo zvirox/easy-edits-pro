@@ -3155,6 +3155,7 @@ dependencies = [
 name = "saturn-tauri"
 version = "0.1.0"
 dependencies = [
+ "getrandom 0.3.4",
  "gstreamer",
  "gstreamer-pbutils",
  "reqwest 0.12.28",

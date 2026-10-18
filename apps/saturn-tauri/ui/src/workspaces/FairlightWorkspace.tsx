@@ -1,11 +1,7 @@
 import type { Dispatch, SetStateAction, ReactNode, PointerEvent } from "react";
-import { Icon } from "../components/Icon";
 import {
   formatTime,
-  formatPan,
   formatDb,
-  getClipWaveform,
-  TICKS_PER_SECOND,
 } from "../utils/formatters";
 import type {
   ProjectDocument,
@@ -17,6 +13,8 @@ import type {
   AutomationMode,
 } from "../types";
 import type { AudioClockMaster } from "../engine/playbackEngine";
+import { FairlightMixerRack } from "./FairlightMixerRack";
+import { FairlightTimelineTray } from "./FairlightTimelineTray";
 
 export interface LoudnessReport {
   integratedLufs: number;
@@ -141,7 +139,6 @@ export function FairlightWorkspace({
   const tracks = project?.sequence.tracks ?? [];
   const sequenceEnd = Math.max(0, ...tracks.flatMap((t) => t.clips.map((c) => c.timeline_start + c.duration)));
   const audioTracks = tracks.filter((t) => t.kind === "audio");
-  const videoTracks = tracks.filter((t) => t.kind === "video");
 
   const activeTrackId = selectedFairlightTrackId ?? audioTracks[0]?.id ?? tracks[0]?.id ?? 1;
   const activeTrack = tracks.find((t) => t.id === activeTrackId) ?? tracks[0];
@@ -849,440 +846,47 @@ export function FairlightWorkspace({
         </section>
 
         {/* Right Column: Full-Height Channel Strip Mixer Rack */}
-        <section className="audio-mixer-rack-column">
-          <div className="mixer-rack-toolbar">
-            <div className="mixer-rack-info">
-              <strong>CHANNEL STRIP RACK</strong>
-              <small>{tracks.length} Tracks ({audioTracks.length} Audio, {videoTracks.length} Video)</small>
-            </div>
-          </div>
-
-          <div className="mixer-strips-scroll-area">
-            <div className="fairlight-strips-grid">
-              {tracks.map((track) => {
-                const trackVu = vuLevels[track.id] ?? { left: 0, right: 0, peakDb: -60 };
-                const currentGain = gainDrafts[track.id] ?? track.gain_db;
-                const currentPan = panDrafts[track.id] ?? track.pan ?? 0;
-                return (
-                  <article
-                    className={`fairlight-channel-strip ${track.id === activeTrackId ? "is-selected" : ""} ${track.muted ? "is-muted" : ""} ${track.solo ? "is-solo" : ""} ${track.locked ? "is-locked" : ""}`}
-                    key={track.id}
-                    onClick={() => setSelectedFairlightTrackId(track.id)}
-                  >
-                    <div className="strip-top">
-                      <div className="strip-track-badge">
-                        <span className={`strip-kind-pill ${track.kind}`}>
-                          {track.kind === "audio" ? "A" : "V"}
-                        </span>
-                        <strong className="strip-track-name" title={track.name}>
-                          {track.name}
-                        </strong>
-                      </div>
-                      <div className="strip-meta">
-                        <span className="strip-clip-count">
-                          {track.clips.length} clip{track.clips.length !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Quick DSP Badges Row */}
-                    <div className="strip-dsp-badges">
-                      <button
-                        type="button"
-                        className={`strip-dsp-btn ${track.audio_processing?.eq_enabled ? "active" : ""}`}
-                        title={`EQ: ${track.audio_processing?.eq_enabled ? "ON" : "OFF"}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void saveTrackAudioProcessing(track.id, { eq_enabled: !track.audio_processing?.eq_enabled });
-                        }}
-                      >
-                        EQ
-                      </button>
-                      <button
-                        type="button"
-                        className={`strip-dsp-btn comp ${track.audio_processing?.comp_enabled ? "active" : ""}`}
-                        title={`Dynamics: ${track.audio_processing?.comp_enabled ? "ON" : "OFF"}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void saveTrackAudioProcessing(track.id, { comp_enabled: !track.audio_processing?.comp_enabled });
-                        }}
-                      >
-                        DYN
-                      </button>
-                      <button
-                        type="button"
-                        className={`strip-dsp-btn denoise ${track.audio_processing?.denoise_enabled ? "active" : ""}`}
-                        title={`Noise Reduction: ${track.audio_processing?.denoise_enabled ? "ON" : "OFF"}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void saveTrackAudioProcessing(track.id, { denoise_enabled: !track.audio_processing?.denoise_enabled });
-                        }}
-                      >
-                        NR
-                      </button>
-                    </div>
-
-                    {/* Track Bus Routing */}
-                    <div className="strip-bus-routing" onClick={(e) => e.stopPropagation()}>
-                      <span className="strip-bus-label">BUS ASSIGN</span>
-                      <select
-                        className="strip-bus-select"
-                        value={track.bus ?? "master"}
-                        onChange={(e) => void setTrackBusRoute(track.id, e.target.value as BusTarget)}
-                      >
-                        <option value="master">MASTER (Stereo Main)</option>
-                        <option value="submix1">SUBMIX 1 (DX Dialogue)</option>
-                        <option value="submix2">SUBMIX 2 (MX Music)</option>
-                        <option value="aux_fx">AUX FX (Reverb / Echo)</option>
-                      </select>
-                    </div>
-
-                    {/* Track Automation Mode Selector */}
-                    <div className="strip-automation-section" onClick={(e) => e.stopPropagation()}>
-                      <div className="strip-automation-pills">
-                        {(["off", "read", "touch", "latch", "write"] as AutomationMode[]).map((mode) => (
-                          <button
-                            key={mode}
-                            type="button"
-                            className={`auto-pill ${(track.automation?.mode ?? "off") === mode ? "active" : ""}`}
-                            title={`Automation mode: ${mode.toUpperCase()}`}
-                            onClick={() => void setTrackAutomationMode(track.id, mode)}
-                          >
-                            {mode.slice(0, 3).toUpperCase()}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Audio Plugins VST3 Slot with Stacked Header to Prevent Clipping */}
-                    <div className="strip-plugins-rack" onClick={(e) => e.stopPropagation()}>
-                      <div className="strip-plugins-header">
-                        <span>PLUGINS</span>
-                        <select
-                          className="strip-add-plugin-select"
-                          value=""
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              void addTrackPlugin(track.id, e.target.value);
-                              e.target.value = "";
-                            }
-                          }}
-                        >
-                          <option value="" disabled>+ VST3…</option>
-                          <option value="Saturn Dynamics">VST3: Saturn Dynamics</option>
-                          <option value="Saturn Reverb">VST3: Studio Reverb</option>
-                          <option value="Saturn De-Esser">VST3: De-Esser Pro</option>
-                          <option value="Saturn Chorus">VST3: Chorus &amp; Widener</option>
-                        </select>
-                      </div>
-                      {(track.plugins ?? []).map((plugin) => (
-                        <div key={plugin.id} className={`plugin-rack-item ${plugin.enabled ? "enabled" : "bypassed"}`}>
-                          <button
-                            type="button"
-                            className={`plugin-power-dot ${plugin.enabled ? "active" : ""}`}
-                            title={plugin.enabled ? "Bypass Plugin" : "Enable Plugin"}
-                            onClick={() => void toggleTrackPlugin(track.id, plugin.id, !plugin.enabled)}
-                          />
-                          <span className="plugin-name-label" title={plugin.name}>{plugin.name}</span>
-                          <span className="plugin-format-badge">VST3</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Pan Section */}
-                    <div className="strip-pan-section">
-                      <div className="strip-pan-header">
-                        <span className="strip-section-label">PAN</span>
-                        <span className="strip-pan-val">{formatPan(currentPan)}</span>
-                        <button
-                          type="button"
-                          className="strip-pan-center-btn"
-                          title="Reset pan to center"
-                          onClick={() => void saveTrackPan(track.id, 0)}
-                        >
-                          C
-                        </button>
-                      </div>
-                      <input
-                        type="range"
-                        className="strip-pan-slider"
-                        min="-1"
-                        max="1"
-                        step="0.02"
-                        value={currentPan}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setPanDrafts((prev) => ({ ...prev, [track.id]: val }));
-                          audioClockMaster.updateTrackPan(track.id, val);
-                        }}
-                        onPointerUp={(e) => void saveTrackPan(track.id, Number(e.currentTarget.value))}
-                        onKeyUp={(e) => void saveTrackPan(track.id, Number(e.currentTarget.value))}
-                      />
-                    </div>
-
-                    {/* Matrix M / S / L Buttons */}
-                    <div className="strip-matrix-buttons">
-                      <button
-                        type="button"
-                        className={`strip-btn btn-mute ${track.muted ? "active" : ""}`}
-                        title={track.muted ? "Unmute track" : "Mute track"}
-                        onClick={() => void toggleTrackMute(track)}
-                      >
-                        M
-                      </button>
-                      <button
-                        type="button"
-                        className={`strip-btn btn-solo ${track.solo ? "active" : ""}`}
-                        title={track.solo ? "Solo track" : "Solo track"}
-                        onClick={() => void toggleTrackSolo(track)}
-                      >
-                        S
-                      </button>
-                      <button
-                        type="button"
-                        className={`strip-btn btn-lock ${track.locked ? "active" : ""}`}
-                        title={track.locked ? "Unlock track" : "Lock track"}
-                        onClick={() => void toggleTrackLock(track)}
-                      >
-                        {track.locked ? "🔒" : "🔓"}
-                      </button>
-                    </div>
-
-                    {/* Meter + Vertical Fader Section */}
-                    <div className="strip-meter-fader-row">
-                      <div className="strip-vu-meter-column" title={`Peak: ${formatDb(trackVu.peakDb)}`}>
-                        <div className="vu-meter-pair">
-                          <div className="vu-bar-slot">
-                            <div
-                              className="vu-bar-fill left"
-                              style={{ height: `${Math.min(100, (trackVu.left || 0) * 100)}%` }}
-                            />
-                          </div>
-                          <div className="vu-bar-slot">
-                            <div
-                              className="vu-bar-fill right"
-                              style={{ height: `${Math.min(100, (trackVu.right || 0) * 100)}%` }}
-                            />
-                          </div>
-                          {track.audio_processing?.comp_enabled && (
-                            <div className="strip-mini-gr-slot" title={`Gain Reduction: ${(trackGr[track.id] || 0).toFixed(1)} dB`}>
-                              <div
-                                className="strip-mini-gr-fill"
-                                style={{ height: `${Math.min(100, Math.max(0, -(trackGr[track.id] || 0) * 4.16))}%` }}
-                              />
-                            </div>
-                          )}
-                        </div>
-                        <div className="vu-db-readout">{formatDb(trackVu.peakDb)}</div>
-                      </div>
-
-                      <div className="strip-fader-column">
-                        <div className="fader-scale-ticks">
-                          <span>+6</span>
-                          <span className="unity">0</span>
-                          <span>-6</span>
-                          <span>-12</span>
-                          <span>-24</span>
-                          <span>-48</span>
-                          <span>-∞</span>
-                        </div>
-                        <div className="fader-track-container">
-                          <input
-                            type="range"
-                            className="vertical-fader"
-                            min="-60"
-                            max="6"
-                            step="0.5"
-                            value={currentGain}
-                            onChange={(e) => {
-                              const val = Number(e.target.value);
-                              setGainDrafts((prev) => ({ ...prev, [track.id]: val }));
-                              audioClockMaster.updateTrackGain(track.id, val);
-                            }}
-                            onPointerUp={(e) => void saveTrackGain(track.id, Number(e.currentTarget.value))}
-                            onKeyUp={(e) => void saveTrackGain(track.id, Number(e.currentTarget.value))}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="strip-fader-footer">
-                      <button
-                        type="button"
-                        className="strip-unity-btn"
-                        title="Reset track gain to 0.0 dB unity"
-                        onClick={() => void saveTrackGain(track.id, 0)}
-                      >
-                        0 dB
-                      </button>
-                      <span className="strip-gain-text">
-                        {currentGain > 0 ? "+" : ""}{currentGain.toFixed(1)} dB
-                      </span>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+        <FairlightMixerRack
+          tracks={tracks}
+          activeTrackId={activeTrackId}
+          setSelectedFairlightTrackId={setSelectedFairlightTrackId}
+          trackGr={trackGr}
+          vuLevels={vuLevels}
+          gainDrafts={gainDrafts}
+          setGainDrafts={setGainDrafts}
+          saveTrackGain={saveTrackGain}
+          panDrafts={panDrafts}
+          setPanDrafts={setPanDrafts}
+          saveTrackPan={saveTrackPan}
+          saveTrackAudioProcessing={saveTrackAudioProcessing}
+          setTrackBusRoute={setTrackBusRoute}
+          setTrackAutomationMode={setTrackAutomationMode}
+          addTrackPlugin={addTrackPlugin}
+          toggleTrackPlugin={toggleTrackPlugin}
+          toggleTrackMute={toggleTrackMute}
+          toggleTrackSolo={toggleTrackSolo}
+          toggleTrackLock={toggleTrackLock}
+          audioClockMaster={audioClockMaster}
+        />
       </div>
 
       {/* Bottom Row (220px): Audio Sequence Timeline & Waveforms */}
-      <section className="audio-timeline-tray" style={{ height: "220px", minHeight: "220px" }}>
-        <div className="audio-tray-header">
-          <div className="audio-tray-title">
-            <strong>AUDIO SEQUENCE TIMELINE &amp; WAVEFORMS</strong>
-            <code>{formatTime(playhead)}</code>
-          </div>
-          <div className="audio-tray-tools">
-            <button className="timeline-icon-button" onClick={() => zoomTimeline(1 / 1.2)} title="Zoom Out Timeline">
-              <Icon name="zoomOut" />
-            </button>
-            <button className="timeline-icon-button" onClick={() => zoomTimeline(1.2)} title="Zoom In Timeline">
-              <Icon name="zoomIn" />
-            </button>
-          </div>
-        </div>
-        <div className="audio-tray-scroller">
-          <div className="timeline-content" style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
-            <div className="timeline-ruler">
-              <span className="track-spacer">Time</span>
-              <div
-                className="ruler-lane"
-                onPointerDown={beginTimelineScrub}
-                onPointerMove={moveTimelineScrub}
-                onPointerUp={finishTimelineScrub}
-                onPointerCancel={finishTimelineScrub}
-              >
-                {Array.from({ length: Math.ceil(timelineWidth / (timelineZoom * 5)) + 1 }, (_, index) => (
-                  <span key={index} style={{ left: `${index * timelineZoom * 5}px` }}>
-                    {formatTime(index * TICKS_PER_SECOND * 5)}
-                  </span>
-                ))}
-                <div
-                  className="playhead-grip ruler-playhead-grip"
-                  style={{ left: `${(playhead / TICKS_PER_SECOND) * timelineZoom}px` }}
-                  role="slider"
-                  aria-label="Audio timeline playhead"
-                >
-                  <i className="playhead" />
-                </div>
-              </div>
-            </div>
-            {tracks.map((track) => (
-              <div
-                className={`track-row ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""}`}
-                key={`audio-tray-track-${track.id}`}
-              >
-                <div className="track-label">
-                  <div className="track-label-top">
-                    <b>{track.name}</b>
-                    <span>{track.kind}</span>
-                  </div>
-                  <div className="track-label-btns">
-                    <button
-                      type="button"
-                      className={`track-mini-btn mute-btn ${track.muted ? "active" : ""}`}
-                      onClick={() => void toggleTrackMute(track)}
-                    >
-                      M
-                    </button>
-                    <button
-                      type="button"
-                      className={`track-mini-btn solo-btn ${track.solo ? "active" : ""}`}
-                      onClick={() => void toggleTrackSolo(track)}
-                    >
-                      S
-                    </button>
-                  </div>
-                </div>
-                <div className="track-lane">
-                  {track.clips.map((clip, index) => {
-                    const item = media.find((entry) => entry.id === clip.media_id);
-                    const selected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
-                    return (
-                      <div
-                        className={`timeline-clip ${selected ? "selected" : ""} ${track.kind}`}
-                        key={`audio-tray-clip-${track.id}-${clip.media_id}-${index}`}
-                        style={{
-                          left: `${(clip.timeline_start / TICKS_PER_SECOND) * timelineZoom}px`,
-                          width: `${Math.max(34, (clip.duration / TICKS_PER_SECOND) * timelineZoom)}px`,
-                        }}
-                        onClick={() => {
-                          setSelectedClip({ track_id: track.id, clip_index: index });
-                          setSelectedClips([{ track_id: track.id, clip_index: index }]);
-                        }}
-                      >
-                        {(() => {
-                          const wf = getClipWaveform(item, index);
-                          if (!wf || wf.length === 0) return null;
-                          const clipStart = clip.timeline_start;
-                          const clipDuration = Math.max(1, clip.duration);
-                          const isCurrentClip = playhead >= clipStart && playhead < clipStart + clipDuration;
-                          const progressRatio = isCurrentClip
-                            ? Math.max(0, Math.min(1, (playhead - clipStart) / clipDuration))
-                            : playhead >= clipStart + clipDuration
-                            ? 1
-                            : 0;
-                          const progressPct = (progressRatio * 100).toFixed(1);
-                          const gradId = `wf-grad-tray-${track.id}-${clip.media_id}-${index}`;
-                          const isAudio = track.kind === "audio" || item?.kind === "audio";
-                          const activeColor = isAudio ? "#34d399" : "#38bdf8";
-                          const inactiveColor = isAudio ? "rgba(52, 211, 153, 0.42)" : "rgba(56, 189, 248, 0.42)";
-
-                          return (
-                            <div className="clip-waveform-container" aria-hidden="true">
-                              <svg className="clip-waveform-svg" viewBox="0 0 100 32" preserveAspectRatio="none">
-                                <defs>
-                                  <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stopColor={activeColor} />
-                                    <stop offset={`${progressPct}%`} stopColor={activeColor} />
-                                    <stop offset={`${progressPct}%`} stopColor={inactiveColor} />
-                                    <stop offset="100%" stopColor={inactiveColor} />
-                                  </linearGradient>
-                                </defs>
-                                <path
-                                  d={wf.map((peak, i) => {
-                                    const norm = Math.max(1, (peak / 255) * 14);
-                                    const x = (i / wf.length) * 100;
-                                    return `M ${x.toFixed(1)} ${(16 - norm).toFixed(1)} L ${x.toFixed(1)} ${(16 + norm).toFixed(1)}`;
-                                  }).join(" ")}
-                                  stroke={`url(#${gradId})`}
-                                  strokeWidth="1.2"
-                                  strokeLinecap="round"
-                                />
-                                {isCurrentClip && (
-                                  <line
-                                    x1={`${progressPct}%`}
-                                    y1="0"
-                                    x2={`${progressPct}%`}
-                                    y2="32"
-                                    stroke="#ffffff"
-                                    strokeWidth="1.5"
-                                    opacity="0.95"
-                                  />
-                                )}
-                              </svg>
-                            </div>
-                          );
-                        })()}
-                        <span className="clip-kind-icon">{track.kind === "audio" ? "♪" : "▶"}</span>
-                        <strong>{item?.name ?? "Clip"}</strong>
-                      </div>
-                    );
-                  })}
-                  <div
-                    className="playhead-grip"
-                    style={{ left: `${(playhead / TICKS_PER_SECOND) * timelineZoom}px` }}
-                  >
-                    <i className="playhead" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FairlightTimelineTray
+        tracks={tracks}
+        media={media}
+        playhead={playhead}
+        timelineZoom={timelineZoom}
+        timelineWidth={timelineWidth}
+        selectedClip={selectedClip}
+        setSelectedClip={setSelectedClip}
+        setSelectedClips={setSelectedClips}
+        zoomTimeline={zoomTimeline}
+        beginTimelineScrub={beginTimelineScrub}
+        moveTimelineScrub={moveTimelineScrub}
+        finishTimelineScrub={finishTimelineScrub}
+        toggleTrackMute={toggleTrackMute}
+        toggleTrackSolo={toggleTrackSolo}
+      />
     </main>
   );
 }

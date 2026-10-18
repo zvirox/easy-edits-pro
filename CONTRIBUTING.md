@@ -95,6 +95,25 @@ pnpm build
 - [`crates/saturn-cli`](crates/saturn-cli): Headless command-line runner and project verification tool.
 - [`apps/saturn-tauri`](apps/saturn-tauri): Tauri 2 backend bridge, secure media streaming server, panic crash logger, and React 19 UI suite.
 
+## Architecture and file boundaries
+
+The Tauri bridge lives in `apps/saturn-tauri/src`. Keep `main.rs` focused on
+application setup and shared helpers; add new Tauri commands to the closest
+module under `src/commands/` and re-export them from `commands/mod.rs` so the
+invoke registration stays explicit. Keep network URL validation in `src/net.rs`
+and project media allow-list registration in `register_project_media`.
+
+The React UI lives in `apps/saturn-tauri/ui/src`. Put reusable UI in
+`components/`, domain screens in `workspaces/`, app state hooks in `app/`, and
+pure logic in `utils/` or the relevant engine module. Keep CSS imports in
+`style.css` → `styles/index.css` in their listed order because order determines
+the cascade. Avoid adding new source files over 1,000 lines; run
+`pnpm check:source-size` before submitting. The existing large-file backlog is
+listed by that check and should shrink as areas are extracted.
+
+See [`docs/architecture.md`](docs/architecture.md) for the current module map
+and data flow.
+
 ---
 
 ## Pull Request Checklist

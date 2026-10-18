@@ -1,0 +1,431 @@
+/* Fairlight Bus Routing & Audio Plugins */
+.strip-bus-routing {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 4px 0;
+}
+
+.strip-bus-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.strip-bus-select {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 3px;
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.strip-automation-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 4px 0;
+}
+
+.strip-automation-pills {
+  display: flex;
+  gap: 2px;
+}
+
+.auto-pill {
+  flex: 1;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 0;
+  border-radius: 2px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-subpanel);
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.12s ease;
+}
+
+.auto-pill:hover {
+  color: var(--text-main);
+  border-color: var(--border-strong);
+}
+
+.auto-pill.active {
+  background: #10b981;
+  color: #fff;
+  border-color: #059669;
+}
+
+.strip-plugins-rack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 6px 0;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.strip-plugins-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.strip-add-plugin-select {
+  font-size: 9px;
+  padding: 3px 5px;
+  border-radius: 3px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-panel);
+  color: var(--text-primary);
+  cursor: pointer;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  z-index: 20;
+}
+
+.plugin-rack-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  background: var(--bg-panel);
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  font-size: 10px;
+}
+
+.plugin-rack-item.bypassed {
+  opacity: 0.5;
+}
+
+.plugin-power-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #64748b;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.plugin-power-dot.active {
+  background: #22c55e;
+  box-shadow: 0 0 5px #22c55e;
+}
+
+.plugin-name-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.plugin-format-badge {
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+}
+
+.audio-bus-channel-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 70px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 4px;
+  gap: 6px;
+}
+
+.bus-strip-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.bus-strip-header strong {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.bus-target-tag {
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: rgba(2, 132, 199, 0.2);
+  color: #38bdf8;
+}
+
+/* ==========================================================================
+   Phase 11.1 — Fusion Node-Based Compositing Workspace
+   ========================================================================== */
+
+.fusion-workspace-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #090d14;
+}
+
+.fusion-workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.fusion-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fusion-add-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.fusion-add-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-right: 2px;
+}
+
+.fusion-tool-btn {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fusion-tool-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-cyan);
+  color: #38bdf8;
+}
+
+.fusion-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Fusion Canvas */
+.fusion-canvas-container {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  overflow: auto;
+  background-color: #06090e;
+  background-image: 
+    radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 24px 24px, 120px 120px, 120px 120px;
+  user-select: none;
+}
+
+.fusion-wires-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2500px;
+  height: 2500px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.fusion-wire-group {
+  pointer-events: stroke;
+}
+
+.fusion-wire-hitbox {
+  stroke: transparent;
+  stroke-width: 14px;
+  fill: none;
+  cursor: pointer;
+}
+
+.fusion-wire {
+  pointer-events: none;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.4));
+  transition: stroke 0.2s ease;
+}
+
+.fusion-wire-hitbox:hover + .fusion-wire {
+  stroke: #ef4444 !important;
+  stroke-width: 3.5px;
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.7));
+}
+
+/* Fusion Node Cards */
+.fusion-node-card {
+  position: absolute;
+  width: 160px;
+  min-height: 80px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+  cursor: default;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.fusion-node-card:hover {
+  border-color: #64748b;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+.fusion-node-card.selected {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35), 0 8px 24px rgba(0, 0, 0, 0.7);
+  z-index: 3;
+}
+
+/* Node Kind Variants */
+.fusion-node-card.kind-merge {
+  border-top: 3px solid #8b5cf6;
+}
+.fusion-node-card.kind-transform {
+  border-top: 3px solid #38bdf8;
+}
+.fusion-node-card.kind-keyer {
+  border-top: 3px solid #22c55e;
+}
+.fusion-node-card.kind-mask {
+  border-top: 3px solid #ec4899;
+}
+.fusion-node-card.kind-particles {
+  border-top: 3px solid #f59e0b;
+}
+.fusion-node-card.kind-media_source {
+  border-top: 3px solid #06b6d4;
+}
+.fusion-node-card.kind-output_sink {
+  border-top: 3px solid #e11d48;
+}
+
+.fusion-node-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid #1e293b;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  cursor: grab;
+}
+
+.fusion-node-header:active {
+  cursor: grabbing;
+}
+
+.node-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.node-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #e2e8f0;
+  flex: 1;
+  margin-left: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.node-delete-btn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 4px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+.node-delete-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.fusion-node-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 6px;
+  flex: 1;
+  min-height: 48px;
+}
+
+.node-sockets-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.node-sockets-right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+

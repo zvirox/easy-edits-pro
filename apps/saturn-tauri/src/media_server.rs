@@ -4,7 +4,6 @@ use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::{LazyLock, OnceLock, RwLock};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 static MEDIA_SERVER_PORT: AtomicU16 = AtomicU16::new(0);
 static MEDIA_SERVER_TOKEN: OnceLock<String> = OnceLock::new();
@@ -51,21 +50,19 @@ pub fn is_allowed_media_path<P: AsRef<Path>>(path: P) -> bool {
             }
         }
     }
+    let Ok(canon) = p.canonicalize() else {
+        return false;
+    };
     if let Some(app_dir) = APP_DATA_DIR.get() {
-        if let Ok(canon) = p.canonicalize() {
-            if canon.starts_with(app_dir) {
-                return true;
-            }
-        } else if p.starts_with(app_dir) {
+        if ["network_imports", "assets"]
+            .iter()
+            .any(|sub| canon.starts_with(app_dir.join(sub)))
+        {
             return true;
         }
     }
     if let Some(cache_dir) = APP_CACHE_DIR.get() {
-        if let Ok(canon) = p.canonicalize() {
-            if canon.starts_with(cache_dir) {
-                return true;
-            }
-        } else if p.starts_with(cache_dir) {
+        if canon.starts_with(cache_dir.join("video-previews")) {
             return true;
         }
     }
@@ -73,25 +70,34 @@ pub fn is_allowed_media_path<P: AsRef<Path>>(path: P) -> bool {
 }
 
 fn generate_session_token() -> String {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_nanos();
-    let pid = std::process::id();
-    let mut state = (now ^ ((pid as u128) << 32)) ^ 0x9e3779b97f4a7c15;
+    let mut raw = [0u8; 16];
+    getrandom::fill(&mut raw).expect("OS random number generator unavailable");
+    raw.iter().map(|byte| format!("{byte:02x}")).collect()
+}
 
-    let mut token = String::with_capacity(32);
-    for _ in 0..32 {
-        state ^= state << 13;
-        state ^= state >> 7;
-        state ^= state << 17;
-        let hex_char = match (state & 0xF) as u8 {
-            v @ 0..=9 => (b'0' + v) as char,
-            v => (b'a' + (v - 10)) as char,
-        };
-        token.push(hex_char);
+fn token_matches(provided: Option<&str>, expected: &str) -> bool {
+    let Some(provided) = provided else {
+        return false;
+    };
+    if expected.is_empty() || provided.len() != expected.len() {
+        return false;
     }
-    token
+    provided
+        .bytes()
+        .zip(expected.bytes())
+        .fold(0u8, |diff, (a, b)| diff | (a ^ b))
+        == 0
+}
+
+fn origin_allowed(origin: &str) -> bool {
+    const FIXED: [&str; 3] = [
+        "tauri://localhost",
+        "http://tauri.localhost",
+        "https://tauri.localhost",
+    ];
+    FIXED.contains(&origin)
+        || (cfg!(debug_assertions)
+            && (origin == "http://localhost:1420" || origin == "http://127.0.0.1:1420"))
 }
 
 fn url_decode(input: &str) -> String {
@@ -122,12 +128,29 @@ fn handle_media_stream_client(mut stream: TcpStream) {
     let _ = stream.set_read_timeout(Some(std::time::Duration::from_secs(5)));
     let _ = stream.set_write_timeout(Some(std::time::Duration::from_secs(15)));
 
-    let mut buffer = [0u8; 4096];
-    let bytes_read = match stream.read(&mut buffer) {
-        Ok(n) if n > 0 => n,
-        _ => return,
-    };
-    let request_str = String::from_utf8_lossy(&buffer[..bytes_read]);
+    const MAX_HEADER_BYTES: usize = 16 * 1024;
+    let mut buffer = Vec::with_capacity(2048);
+    let mut chunk = [0u8; 2048];
+    loop {
+        match stream.read(&mut chunk) {
+            Ok(0) => break,
+            Ok(n) => buffer.extend_from_slice(&chunk[..n]),
+            Err(_) => return,
+        }
+        if buffer.windows(4).any(|window| window == b"\r\n\r\n") {
+            break;
+        }
+        if buffer.len() > MAX_HEADER_BYTES {
+            let _ = stream.write_all(
+                b"HTTP/1.1 431 Request Header Fields Too Large\r\nConnection: close\r\n\r\n",
+            );
+            return;
+        }
+    }
+    if buffer.is_empty() {
+        return;
+    }
+    let request_str = String::from_utf8_lossy(&buffer);
     let mut lines = request_str.lines();
     let request_line = match lines.next() {
         Some(l) => l,
@@ -169,25 +192,20 @@ fn handle_media_stream_client(mut stream: TcpStream) {
         valid_hosts.iter().any(|v| h.trim().eq_ignore_ascii_case(v))
     });
     if !is_valid_host {
-        let _ = stream.write_all(b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nForbidden Host");
+        let _ =
+            stream.write_all(b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nForbidden Host");
         return;
     }
 
     // 2. CORS origin validation
-    let is_origin_allowed = origin_header.as_ref().map_or(true, |orig| {
-        let o = orig.trim();
-        o == "tauri://localhost"
-            || o == "http://tauri.localhost"
-            || o == "https://tauri.localhost"
-            || o.starts_with("http://localhost:")
-            || o.starts_with("http://127.0.0.1:")
-            || o.starts_with("https://localhost:")
-            || o.starts_with("https://127.0.0.1:")
-    });
-    let cors_origin = if is_origin_allowed {
-        origin_header.as_deref().unwrap_or("tauri://localhost")
-    } else {
-        "tauri://localhost"
+    let cors_origin = match origin_header.as_deref().map(str::trim) {
+        None => "tauri://localhost",
+        Some(origin) if origin_allowed(origin) => origin,
+        Some(_) => {
+            let _ = stream
+                .write_all(b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nForbidden Origin");
+            return;
+        }
     };
 
     if parts[0] == "OPTIONS" {
@@ -241,22 +259,24 @@ Connection: close\r\n\r\n"
 
     // 3. Token check
     let expected_token = MEDIA_SERVER_TOKEN.get().map(|s| s.as_str()).unwrap_or("");
-    if req_token.as_deref() != Some(expected_token) {
-        let _ = stream.write_all(b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nInvalid or missing session token");
+    if !token_matches(req_token.as_deref(), expected_token) {
+        let _ = stream.write_all(
+            b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nInvalid or missing session token",
+        );
         return;
     }
 
     // 4. Path traversal & file check
     let Some(file_path_str) = req_path else {
-        let _ = stream.write_all(b"HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\nMissing path parameter");
+        let _ = stream.write_all(
+            b"HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\nMissing path parameter",
+        );
         return;
     };
-    if file_path_str.contains("..") {
-        let _ = stream.write_all(b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nDirectory traversal detected");
+    let Ok(path) = PathBuf::from(&file_path_str).canonicalize() else {
+        let _ = stream.write_all(b"HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
         return;
-    }
-
-    let path = PathBuf::from(&file_path_str);
+    };
     if !path.is_file() {
         let _ = stream.write_all(b"HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
         return;
@@ -264,7 +284,9 @@ Connection: close\r\n\r\n"
 
     // 5. Allow-list verification
     if !is_allowed_media_path(&path) {
-        let _ = stream.write_all(b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nPath not in project allow-list");
+        let _ = stream.write_all(
+            b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nPath not in project allow-list",
+        );
         return;
     }
 
@@ -285,11 +307,18 @@ Connection: close\r\n\r\n"
         if let Some(bytes_spec) = range_val.strip_prefix("bytes=") {
             let spec_parts: Vec<&str> = bytes_spec.split('-').collect();
             if spec_parts.len() == 2 {
-                if let Ok(start) = spec_parts[0].parse::<u64>() {
+                if spec_parts[0].is_empty() {
+                    if let Ok(suffix) = spec_parts[1].parse::<u64>() {
+                        if suffix > 0 {
+                            range_start = total_size.saturating_sub(suffix);
+                            is_range = true;
+                        }
+                    }
+                } else if let Ok(start) = spec_parts[0].parse::<u64>() {
                     range_start = start;
                     is_range = true;
                 }
-                if !spec_parts[1].is_empty() {
+                if !spec_parts[0].is_empty() && !spec_parts[1].is_empty() {
                     if let Ok(end) = spec_parts[1].parse::<u64>() {
                         if end < total_size {
                             range_end = end;
@@ -302,13 +331,21 @@ Connection: close\r\n\r\n"
 
     if range_start > range_end || range_start >= total_size {
         let _ = stream.write_all(
-            format!("HTTP/1.1 416 Range Not Satisfiable\r\nContent-Range: bytes */{}\r\n\r\n", total_size).as_bytes()
+            format!(
+                "HTTP/1.1 416 Range Not Satisfiable\r\nContent-Range: bytes */{}\r\n\r\n",
+                total_size
+            )
+            .as_bytes(),
         );
         return;
     }
 
     let content_len = range_end - range_start + 1;
-    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
+    let ext = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_lowercase();
     let content_type = match ext.as_str() {
         "webm" => "video/webm",
         "mp4" | "m4v" => "video/mp4",
@@ -339,6 +376,7 @@ Content-Range: bytes {}-{}/{}\r\n\
 Accept-Ranges: bytes\r\n\
 Access-Control-Allow-Origin: {}\r\n\
 Vary: Origin\r\n\
+X-Content-Type-Options: nosniff\r\n\
 Access-Control-Allow-Headers: Range, Content-Type, Accept\r\n\
 Access-Control-Expose-Headers: Content-Range, Content-Length, Accept-Ranges\r\n\
 Connection: close\r\n\r\n",
@@ -352,6 +390,7 @@ Content-Length: {}\r\n\
 Accept-Ranges: bytes\r\n\
 Access-Control-Allow-Origin: {}\r\n\
 Vary: Origin\r\n\
+X-Content-Type-Options: nosniff\r\n\
 Access-Control-Allow-Headers: Range, Content-Type, Accept\r\n\
 Access-Control-Expose-Headers: Content-Range, Content-Length, Accept-Ranges\r\n\
 Connection: close\r\n\r\n",
@@ -426,4 +465,37 @@ pub fn get_media_server_port() -> u16 {
 #[tauri::command]
 pub fn get_media_server_token() -> String {
     MEDIA_SERVER_TOKEN.get().cloned().unwrap_or_default()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn token_is_random_hex_and_unique() {
+        let first = generate_session_token();
+        let second = generate_session_token();
+        assert_eq!(first.len(), 32);
+        assert!(first.bytes().all(|byte| byte.is_ascii_hexdigit()));
+        assert_ne!(first, second);
+    }
+
+    #[test]
+    fn token_comparison_requires_equal_nonempty_values() {
+        assert!(token_matches(Some("abc"), "abc"));
+        assert!(!token_matches(Some("abd"), "abc"));
+        assert!(!token_matches(Some("ab"), "abc"));
+        assert!(!token_matches(None, "abc"));
+        assert!(!token_matches(Some(""), ""));
+    }
+
+    #[test]
+    fn origin_allowlist_is_exact() {
+        assert!(origin_allowed("tauri://localhost"));
+        assert!(origin_allowed("http://tauri.localhost"));
+        assert!(!origin_allowed("http://localhost:8080"));
+        assert!(!origin_allowed("http://127.0.0.1:9999"));
+        assert!(!origin_allowed("http://localhost:1420.evil.com"));
+        assert!(!origin_allowed("tauri://localhost.evil.com"));
+    }
 }

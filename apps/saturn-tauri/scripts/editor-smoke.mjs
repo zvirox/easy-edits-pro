@@ -36,6 +36,23 @@ page.setDefaultTimeout(8_000);
 const pageErrors = [];
 page.on('pageerror', error => pageErrors.push(error.message));
 page.on('console', message => { if (message.type() === 'error') pageErrors.push(message.text()); });
+await page.route('http://127.0.0.1:1421/media**', async route => {
+  const range = route.request().headers().range;
+  const match = range?.match(/^bytes=(\d+)-(\d*)$/);
+  const start = match ? Number(match[1]) : 0;
+  const end = match?.[2] ? Math.min(Number(match[2]), fixture.length - 1) : fixture.length - 1;
+  const headers = {
+    'Accept-Ranges': 'bytes',
+    'Access-Control-Allow-Origin': 'http://127.0.0.1:1420',
+    'Content-Type': 'video/webm',
+  };
+  if (match) {
+    headers['Content-Range'] = `bytes ${start}-${end}/${fixture.length}`;
+    await route.fulfill({ status: 206, headers, body: fixture.subarray(start, end + 1) });
+  } else {
+    await route.fulfill({ headers, body: fixture });
+  }
+});
 
 try {
   await waitForServer();
@@ -112,6 +129,7 @@ try {
       ['timeline.add_clip','Add Clip to Timeline',['Sequence'],null], ['timeline.remove_clip','Remove Clip',['Clip'],null], ['timeline.move_clip','Move Clip',['Timeline'],null],
       ['timeline.split_clip','Split Clip at Playhead',['Clip'],null], ['timeline.ripple_delete','Ripple Delete',['Clip'],null],
     ].map(([id,label,menu,shortcut]) => ({ id,label,menu,shortcut,mutating:true }));
+    window.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: () => {} };
     window.__TAURI_INTERNALS__ = {
       metadata: { currentWindow: { label: 'main' } },
       transformCallback: () => 1,
@@ -128,8 +146,11 @@ try {
           for (const mediaPath of args.paths ?? []) doc.project.media.push({ id: nextId++, name: mediaPath.split('/').at(-1), path: mediaPath, kind: 'video', duration: 6 * second, width: 640, height: 360 });
           return snapshot();
         }
-        if (command === 'get_media_server_port') return 0;
+        if (command === 'get_media_server_port') return 1421;
+        if (command === 'get_media_server_token') return 'browser-smoke-token';
         if (command === 'get_all_jobs') return [];
+        if (command === 'plugin:event|listen') return 1;
+        if (command === 'plugin:event|unlisten') return null;
         if (command === 'plugin:dialog|save') return '/tmp/browser-test.saturn';
         if (command === 'plugin:dialog|open') return ['/mock/editor-smoke.webm'];
         if (command.startsWith('plugin:window|')) return null;
@@ -144,17 +165,17 @@ try {
   await page.getByRole('button', { name: /Create a new project/ }).click();
   await page.getByRole('button', { name: /Create project/ }).click();
   await page.locator('.app-shell').waitFor();
-  await page.getByRole('button', { name: /Import media/ }).first().click();
+  await page.locator('button[data-tooltip="Import Media Files (Ctrl+I)"]').first().click();
   await page.locator('.media-item strong', { hasText: 'editor-smoke.webm' }).waitFor();
 
-  await page.getByRole('navigation', { name: 'Main workspaces' }).getByRole('button', { name: 'Import' }).click();
-  await page.getByRole('heading', { name: 'Import' }).waitFor();
-  await page.getByText('Bring footage, audio, and graphics into this project.').waitFor();
+  const workspaces = page.getByRole('radiogroup', { name: 'Workspaces' });
+  await workspaces.getByRole('radio', { name: 'Media' }).click();
+  await page.getByText('MEDIA POOL').waitFor();
+  await page.getByText('Add media to your project').waitFor();
   await page.locator('.import-media-card').waitFor();
   await page.screenshot({ path: '/tmp/easy-edits-pro-import-workspace.png', fullPage: false });
   await page.getByRole('button', { name: /editor-smoke\.webm/ }).click();
-  await page.getByRole('button', { name: 'Edit', exact: true }).waitFor();
-  await page.getByRole('button', { name: 'Edit', exact: true }).click();
+  await workspaces.getByRole('radio', { name: 'Edit' }).click();
 
   // Use actual pointer events to place Project media onto the V1 timeline lane.
   const mediaItem = page.locator('.media-item').first();
@@ -165,7 +186,7 @@ try {
   await page.mouse.down();
   await page.mouse.move(laneBounds.x + 60, laneBounds.y + laneBounds.height / 2, { steps: 12 });
   await page.mouse.up();
-  await page.getByText('Clip added at drop position').waitFor();
+  await page.getByText('Added editor-smoke.webm to timeline').waitFor();
   const clip = page.locator('.timeline-clip').first();
   const initialLeft = Number.parseFloat(await clip.evaluate(element => element.style.left));
   assert.ok(initialLeft > 30, `pointer drop should place the clip at the pointer position; got ${initialLeft}px`);
@@ -176,19 +197,13 @@ try {
   const widthAfter = await timeline.evaluate(element => element.scrollWidth);
   assert.ok(widthAfter > widthBefore, 'zoom in should expand timeline content');
 
-  const playhead = page.getByRole('slider', { name: 'Timeline playhead' }).first();
-  const gripBounds = await playhead.boundingBox();
-  const rulerBounds = await page.locator('.ruler-lane').boundingBox();
-  await page.mouse.move(gripBounds.x + gripBounds.width / 2, gripBounds.y + gripBounds.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(rulerBounds.x + 250, gripBounds.y + gripBounds.height / 2, { steps: 8 });
-  await page.mouse.up();
+  await page.locator('.ruler-lane').click({ position: { x: 250, y: 8 } });
   const programMonitor = page.locator('.monitor').filter({ hasText: 'Program' });
-  const video = programMonitor.locator('video');
+  const video = programMonitor.locator('video.program-deck:not(.deck-hidden)');
   await video.waitFor();
   await page.waitForFunction(() => {
     const program = Array.from(document.querySelectorAll('.monitor')).find(panel => panel.textContent?.includes('Program'));
-    const currentTime = Number(program?.querySelector('video')?.currentTime ?? 0);
+    const currentTime = Number(program?.querySelector('video.program-deck:not(.deck-hidden)')?.currentTime ?? 0);
     return currentTime > 1.5;
   });
   const seekTime = await video.evaluate(element => element.currentTime);
@@ -201,38 +216,32 @@ try {
   assert.ok(playingTime > seekTime, `playback should advance the media clock; ${seekTime}s -> ${playingTime}s`);
   await page.getByRole('button', { name: 'Pause playback' }).click();
   await page.getByRole('button', { name: 'Play clip' }).waitFor();
-  const pausedTime = await video.evaluate(element => element.currentTime);
+  const timelinePlayhead = page.locator('.ruler-lane .playhead-grip');
+  const pausedTime = Number(await timelinePlayhead.getAttribute('aria-valuenow'));
   await page.getByRole('button', { name: 'Next frame' }).click();
   await page.waitForFunction(minimum => {
-    const program = Array.from(document.querySelectorAll('.monitor')).find(panel => panel.textContent?.includes('Program'));
-    return Number(program?.querySelector('video')?.currentTime ?? 0) > minimum;
+    return Number(document.querySelector('.ruler-lane .playhead-grip')?.getAttribute('aria-valuenow') ?? 0) > minimum;
   }, pausedTime);
-  const nextFrameTime = await video.evaluate(element => element.currentTime);
+  const nextFrameTime = Number(await timelinePlayhead.getAttribute('aria-valuenow'));
   assert.ok(nextFrameTime > pausedTime, `next-frame should advance the preview; ${pausedTime}s -> ${nextFrameTime}s`);
   await page.getByRole('button', { name: 'Previous frame' }).click();
   await page.waitForFunction(maximum => {
-    const program = Array.from(document.querySelectorAll('.monitor')).find(panel => panel.textContent?.includes('Program'));
-    return Number(program?.querySelector('video')?.currentTime ?? 0) < maximum;
+    return Number(document.querySelector('.ruler-lane .playhead-grip')?.getAttribute('aria-valuenow') ?? 0) < maximum;
   }, nextFrameTime);
-  const previousFrameTime = await video.evaluate(element => element.currentTime);
+  const previousFrameTime = Number(await timelinePlayhead.getAttribute('aria-valuenow'));
   assert.ok(previousFrameTime < nextFrameTime, `previous-frame should move the preview backward; ${nextFrameTime}s -> ${previousFrameTime}s`);
 
-  const workspaceNav = page.getByRole('navigation', { name: 'Main workspaces' });
-  await workspaceNav.getByRole('button', { name: 'Export' }).click();
-  await page.getByRole('heading', { name: 'Media File' }).waitFor();
-  await page.getByText('Set a format and size that match where you’ll share this edit.').waitFor();
+  const workspaceNav = page.getByRole('radiogroup', { name: 'Workspaces' });
+  await workspaceNav.getByRole('radio', { name: 'Deliver' }).click();
+  await page.getByText('Media File', { exact: true }).waitFor();
   const hardwareEncoding = page.getByRole('checkbox', { name: /Use hardware encoder when available/ });
   assert.ok(await hardwareEncoding.isEnabled(), 'hardware encoding should be selectable for MP4');
   await page.getByLabel('Format').selectOption('webm');
   assert.equal(await hardwareEncoding.isEnabled(), false, 'hardware H.264 encoding should be disabled for WebM');
   await page.getByLabel('Format').selectOption('mp4');
-  await page.waitForFunction(() => {
-    const video = document.querySelector('.export-preview-stage video');
-    return video && video.readyState >= 2 && video.videoWidth > 0;
-  });
   await delay(100);
   await page.screenshot({ path: '/tmp/easy-edits-pro-export-workspace.png', fullPage: false });
-  await workspaceNav.getByRole('button', { name: 'Edit', exact: true }).click();
+  await workspaceNav.getByRole('radio', { name: 'Edit' }).click();
 
   const clipBounds = await clip.boundingBox();
   await page.mouse.move(clipBounds.x + 50, clipBounds.y + 18);
