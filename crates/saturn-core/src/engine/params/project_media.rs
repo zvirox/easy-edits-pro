@@ -122,7 +122,6 @@ pub(in crate::engine) struct UpdateTitleParams {
     pub(in crate::engine) bg_color: Option<String>,
 }
 
-
 #[derive(Deserialize)]
 pub(in crate::engine) struct RelinkMediaParams {
     pub(in crate::engine) media_id: u64,
@@ -239,11 +238,6 @@ pub(in crate::engine) struct MoveClipsBatchParams {
 }
 
 #[derive(Deserialize)]
-pub(in crate::engine) struct SetMarkParams {
-    pub(in crate::engine) at: Tick,
-}
-
-#[derive(Deserialize)]
 pub(in crate::engine) struct SetColorParams {
     pub(in crate::engine) track_id: u64,
     pub(in crate::engine) clip_index: usize,
@@ -253,4 +247,3 @@ pub(in crate::engine) struct SetColorParams {
     #[serde(default)]
     pub(in crate::engine) hue: f64,
 }
-

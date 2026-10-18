@@ -4,7 +4,10 @@ pub(super) fn parse_params<T: for<'de> Deserialize<'de>>(value: Value) -> Result
     serde_json::from_value(value).map_err(|e| DispatchError::InvalidParameters(e.to_string()))
 }
 
-pub(super) fn find_track_index(document: &ProjectDocument, track_id: u64) -> Result<usize, DispatchError> {
+pub(super) fn find_track_index(
+    document: &ProjectDocument,
+    track_id: u64,
+) -> Result<usize, DispatchError> {
     document
         .project
         .sequence
@@ -38,20 +41,30 @@ pub(super) fn valid_keyframe_value(property: &KeyframeProperty, value: f64) -> b
     }
 }
 
-pub(super) fn keyframe_value_at(keyframes: &[Keyframe], property: &KeyframeProperty, time: i64) -> Option<f64> {
-    let mut keys: Vec<_> = keyframes.iter().filter(|key| &key.property == property).collect();
+pub(super) fn keyframe_value_at(
+    keyframes: &[Keyframe],
+    property: &KeyframeProperty,
+    time: i64,
+) -> Option<f64> {
+    let mut keys: Vec<_> = keyframes
+        .iter()
+        .filter(|key| &key.property == property)
+        .collect();
     keys.sort_by_key(|key| key.time);
     let first = *keys.first()?;
-    if time <= first.time.0 { return Some(first.value); }
+    if time <= first.time.0 {
+        return Some(first.value);
+    }
     let last = *keys.last()?;
-    if time >= last.time.0 { return Some(last.value); }
+    if time >= last.time.0 {
+        return Some(last.value);
+    }
     let next_index = keys.iter().position(|key| key.time.0 >= time)?;
     let previous = keys[next_index - 1];
     let next = keys[next_index];
     let fraction = (time - previous.time.0) as f64 / (next.time.0 - previous.time.0) as f64;
     Some(previous.value + (next.value - previous.value) * fraction)
 }
-
 
 pub(super) fn get_or_create_node_graph<'a>(
     doc: &'a mut ProjectDocument,
@@ -73,4 +86,3 @@ pub(super) fn get_or_create_node_graph<'a>(
         Ok(doc.project.sequence.node_graph.as_mut().unwrap())
     }
 }
-

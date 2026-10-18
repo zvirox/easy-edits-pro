@@ -27,11 +27,21 @@ pub(in crate::engine) struct SetTrackAudioProcessingParams {
     pub(in crate::engine) denoise_amount: f64,
 }
 
-pub(in crate::engine) fn default_threshold() -> f64 { -24.0 }
-pub(in crate::engine) fn default_ratio() -> f64 { 4.0 }
-pub(in crate::engine) fn default_attack() -> f64 { 0.005 }
-pub(in crate::engine) fn default_release() -> f64 { 0.1 }
-pub(in crate::engine) fn default_denoise_amount() -> f64 { 0.5 }
+pub(in crate::engine) fn default_threshold() -> f64 {
+    -24.0
+}
+pub(in crate::engine) fn default_ratio() -> f64 {
+    4.0
+}
+pub(in crate::engine) fn default_attack() -> f64 {
+    0.005
+}
+pub(in crate::engine) fn default_release() -> f64 {
+    0.1
+}
+pub(in crate::engine) fn default_denoise_amount() -> f64 {
+    0.5
+}
 
 #[derive(Deserialize)]
 pub(in crate::engine) struct SetTrackGainParams {
@@ -244,7 +254,9 @@ pub(in crate::engine) struct AddNodeParams {
     pub(in crate::engine) params: Value,
 }
 
-pub(in crate::engine) fn default_node_title() -> String { "New Node".into() }
+pub(in crate::engine) fn default_node_title() -> String {
+    "New Node".into()
+}
 
 #[derive(Deserialize)]
 pub(in crate::engine) struct RemoveNodeParams {
@@ -525,4 +537,3 @@ pub(in crate::engine) struct ImportOtioParams {
     #[serde(default)]
     pub(in crate::engine) project_name: Option<String>,
 }
-
