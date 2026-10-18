@@ -15,6 +15,7 @@ import { ProjectProvider, runCommand, type CommandStatus, type MediaAvailability
 import { useProject } from "./app/useProject";
 import { useJobs, type JobInfo } from "./app/useJobs";
 import { useRecovery } from "./app/useRecovery";
+import { usePlayback } from "./app/usePlayback";
 import { Icon, type IconName } from "./components/Icon";
 import { SegmentedControl } from "./components/interior/segmented-control";
 import { StudioPanel } from "./components/StudioPanel";
@@ -30,8 +31,6 @@ import { KeyframesWorkspace } from "./workspaces/KeyframesWorkspace";
 import { EffectsWorkspace } from "./workspaces/EffectsWorkspace";
 import {
   audioClockMaster,
-  evaluateTimelinePlayback,
-  type TimelinePlaybackSnapshot,
   type EffectKind,
   type EffectPayload,
   type EffectInstance,
@@ -68,7 +67,7 @@ import {
   type RgbCurves,
   type HslQualifier,
 } from "./engine/playbackEngine";
-import type { MediaAsset, ProjectDocument, ProjectStatus, Track, Clip, Transition, TransitionKind, TitleProperties, ColorAdjustments, HardwareEncoderInfo, LoudnessStandard, LoudnessReport } from "./app/projectTypes";
+import type { MediaAsset, ProjectStatus, Track, Clip, Transition, TransitionKind, TitleProperties, ColorAdjustments, HardwareEncoderInfo, LoudnessStandard, LoudnessReport } from "./app/projectTypes";
 
 type Workspace = "edit" | "color" | "effects" | "audio" | "keyframes" | "export" | "library" | "ai";
 type TimelineTool = "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "pen" | "hand" | "zoom";
@@ -324,31 +323,21 @@ function EditorApp() {
     else if (ws === "keyframes") setWorkspace("keyframes");
   }, []);
   const { projectState, setProjectState, undoStatus, redoStatus, setUndoStatus, setRedoStatus, missingMediaIds, setMissingMediaIds, connection, refreshProject } = useProject();
+  const project = projectState?.document.project ?? null;
+  const media = project?.media ?? [];
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
   const [selectedClip, setSelectedClip] = useState<SelectedClip | null>(null);
   const [selectedClips, setSelectedClips] = useState<SelectedClip[]>([]);
   const [selectedTransition, setSelectedTransition] = useState<{ track_id: number; transition: Transition } | null>(null);
   const [titleDraft, setTitleDraft] = useState<TitleProperties | null>(null);
-  const [playhead, setPlayhead] = useState(0);
-  const [programPlaying, setProgramPlaying] = useState(false);
-  const [shuttleSpeed, setShuttleSpeed] = useState(1);
-  const shuttleSpeedRef = useRef(1);
-  const isPlayingRef = useRef(false);
-  const clockStartAudioTimeRef = useRef(0);
-  const clockStartPlayheadRef = useRef(0);
-  const animFrameIdRef = useRef<number | null>(null);
-  const playheadRef = useRef(0);
-  const deckARef = useRef<HTMLVideoElement>(null);
-  const deckBRef = useRef<HTMLVideoElement>(null);
-  const audioPlayersRef = useRef<Map<string, HTMLAudioElement>>(new Map());
-  const [deckSnapshot, setDeckSnapshot] = useState<TimelinePlaybackSnapshot | null>(null);
-  const projectRef = useRef<ProjectDocument | null>(null);
   const [sourcePreviewError, setSourcePreviewError] = useState<string | null>(null);
   const [programPreviewError, setProgramPreviewError] = useState<string | null>(null);
   const [preparedPreviews, setPreparedPreviews] = useState<Record<number, string>>({});
   const [preparingPreviews, setPreparingPreviews] = useState<Set<number>>(new Set());
   const [previewPreparationErrors, setPreviewPreparationErrors] = useState<Record<number, string>>({});
   const { mediaServerPort, mediaServerToken, getMediaUrl } = useMediaServer();
+  const playback = usePlayback({ projectState, project, media, preparedPreviews, mediaServerPort, mediaServerToken, clearProgramPreviewError: () => setProgramPreviewError(null) });
+  const { playhead, setPlayhead, programPlaying, shuttleSpeed, deckSnapshot, deckARef, deckBRef, audioPlayersRef, playheadRef, toggleProgramPlayback, seekProgramTo, stepProgramFrame, handleShuttleKey } = playback;
 
   const { jobs, setJobs, jobDrawerOpen, setJobDrawerOpen, jobDrawerRef, activeJobs, cancelJob, cancelAllJobs, clearJobHistory } = useJobs();
   const [search, setSearch] = useState("");
@@ -584,8 +573,6 @@ function EditorApp() {
     return () => { active = false; };
   }, [refreshProject]);
 
-  const project = projectState?.document.project ?? null;
-
   useEffect(() => {
     if (!project) return;
     audioClockMaster.updateTracksState(project.sequence.tracks);
@@ -649,7 +636,6 @@ function EditorApp() {
       cancelAnimationFrame(animId);
     };
   }, [workspace, davinciWorkspace, programPlaying, project, loudnessStandard]);
-  const media = project?.media ?? [];
   const visibleMedia = useMemo(() => {
     const query = search.trim().toLowerCase();
     return media.filter((item) => {
@@ -680,92 +666,6 @@ function EditorApp() {
   }, [media, playhead, project]);
   const timelineEndSeconds = Math.max(14, ...(project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => (clip.timeline_start + clip.duration) / TICKS_PER_SECOND + 2)));
   const timelineWidth = timelineEndSeconds * timelineZoom + 120;
-
-  useEffect(() => {
-    projectRef.current = projectState?.document ?? null;
-  }, [projectState]);
-
-  useEffect(() => {
-    playheadRef.current = playhead;
-  }, [playhead]);
-
-  // Synchronize Dual Decks and Audio Tracks with Playhead
-  const syncDecks = useCallback((currentPlayhead: number, isPlaying: boolean) => {
-    const doc = projectRef.current;
-    if (!doc) return;
-    const snapshot = evaluateTimelinePlayback(doc, currentPlayhead, media, preparedPreviews, mediaServerPort, mediaServerToken);
-    setDeckSnapshot(snapshot);
-
-    const deckA = deckARef.current;
-    const deckB = deckBRef.current;
-
-    if (deckA) {
-      if (snapshot.deckA.src) {
-        if (deckA.src !== snapshot.deckA.src) {
-          deckA.src = snapshot.deckA.src;
-          try { deckA.currentTime = snapshot.deckA.currentTime; } catch {}
-        } else if (Math.abs(deckA.currentTime - snapshot.deckA.currentTime) > 0.25) {
-          try { deckA.currentTime = snapshot.deckA.currentTime; } catch {}
-        }
-
-        if (isPlaying && snapshot.deckA.visible) {
-          if (deckA.paused) void deckA.play().catch(() => {});
-        } else {
-          if (!deckA.paused) deckA.pause();
-        }
-      } else {
-        if (!deckA.paused) deckA.pause();
-      }
-    }
-
-    if (deckB) {
-      if (snapshot.deckB.src) {
-        if (deckB.src !== snapshot.deckB.src) {
-          deckB.src = snapshot.deckB.src;
-          try { deckB.currentTime = snapshot.deckB.currentTime; } catch {}
-        } else if (Math.abs(deckB.currentTime - snapshot.deckB.currentTime) > 0.25) {
-          try { deckB.currentTime = snapshot.deckB.currentTime; } catch {}
-        }
-
-        if (isPlaying && snapshot.deckB.visible) {
-          if (deckB.paused) void deckB.play().catch(() => {});
-        } else {
-          if (!deckB.paused) deckB.pause();
-        }
-      } else {
-        if (!deckB.paused) deckB.pause();
-      }
-    }
-
-    // Synchronize all active audio tracks directly
-    if (snapshot.activeAudioClips) {
-      for (const audioItem of snapshot.activeAudioClips) {
-        if (audioItem.track.muted) continue;
-        const key = `audio-track-${audioItem.track.id}-${audioItem.clip.media_id}`;
-        const el = audioPlayersRef.current.get(key);
-        if (el) {
-          el.muted = false;
-          const targetVol = Math.max(0, Math.min(1, 10 ** (audioItem.gainDb / 20)));
-          if (Math.abs(el.volume - targetVol) > 0.02) el.volume = targetVol;
-          if (Math.abs(el.currentTime - audioItem.currentTime) > 0.25) {
-            try { el.currentTime = audioItem.currentTime; } catch {}
-          }
-          if (isPlaying) {
-            if (el.paused) void el.play().catch(() => {});
-          } else {
-            if (!el.paused) el.pause();
-          }
-        }
-      }
-    }
-  }, [media, preparedPreviews, mediaServerPort, mediaServerToken]);
-
-  // Keep decks updated whenever playhead, preparedPreviews, or project changes when paused
-  useEffect(() => {
-    if (!isPlayingRef.current) {
-      syncDecks(playhead, false);
-    }
-  }, [playhead, syncDecks]);
 
   // Proactively generate preview proxies for all video clips placed on the timeline
   useEffect(() => {
@@ -877,128 +777,6 @@ function EditorApp() {
   useEffect(() => {
     setSourcePreviewError(null);
   }, [selectedMedia?.id, selectedMedia?.path]);
-
-  function stopPlayback(finalTicks?: number) {
-    if (animFrameIdRef.current) {
-      cancelAnimationFrame(animFrameIdRef.current);
-      animFrameIdRef.current = null;
-    }
-    isPlayingRef.current = false;
-    setProgramPlaying(false);
-    shuttleSpeedRef.current = 1;
-    setShuttleSpeed(1);
-    if (finalTicks !== undefined) {
-      playheadRef.current = finalTicks;
-      setPlayhead(finalTicks);
-    }
-    if (deckARef.current && !deckARef.current.paused) deckARef.current.pause();
-    if (deckBRef.current && !deckBRef.current.paused) deckBRef.current.pause();
-    audioPlayersRef.current.forEach((el) => {
-      if (!el.paused) el.pause();
-    });
-    syncDecks(playheadRef.current, false);
-  }
-
-  function startPlayback(speed = 1) {
-    const ctx = audioClockMaster.getContext();
-    if (ctx && ctx.state === "suspended") void ctx.resume();
-
-    const seqDuration = Math.max(0, ...(project?.sequence.tracks ?? []).flatMap((t) => t.clips.map((c) => c.timeline_start + c.duration)));
-    if (playheadRef.current >= seqDuration && speed > 0) {
-      playheadRef.current = project?.sequence.mark_in ?? 0;
-      setPlayhead(playheadRef.current);
-    }
-
-    shuttleSpeedRef.current = speed;
-    setShuttleSpeed(speed);
-    isPlayingRef.current = true;
-    setProgramPlaying(true);
-    setProgramPreviewError(null);
-    clockStartAudioTimeRef.current = audioClockMaster.getCurrentTime();
-    clockStartPlayheadRef.current = playheadRef.current;
-
-    syncDecks(playheadRef.current, true);
-
-    const tick = () => {
-      if (!isPlayingRef.current) return;
-      const now = audioClockMaster.getCurrentTime();
-      const elapsedSec = (now - clockStartAudioTimeRef.current) * shuttleSpeedRef.current;
-      const nextTicks = clockStartPlayheadRef.current + Math.round(elapsedSec * TICKS_PER_SECOND);
-
-      const curDuration = Math.max(0, ...(projectRef.current?.project.sequence.tracks ?? []).flatMap((t) => t.clips.map((c) => c.timeline_start + c.duration)));
-
-      if (shuttleSpeedRef.current > 0 && nextTicks >= curDuration) {
-        stopPlayback(curDuration);
-        return;
-      } else if (shuttleSpeedRef.current < 0 && nextTicks <= 0) {
-        stopPlayback(0);
-        return;
-      }
-
-      playheadRef.current = nextTicks;
-      setPlayhead(nextTicks);
-      syncDecks(nextTicks, true);
-
-      animFrameIdRef.current = requestAnimationFrame(tick);
-    };
-
-    if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
-    animFrameIdRef.current = requestAnimationFrame(tick);
-  }
-
-  function toggleProgramPlayback() {
-    if (isPlayingRef.current) stopPlayback();
-    else startPlayback(1);
-  }
-
-  function seekProgramTo(time: number) {
-    const target = Math.max(0, time);
-    playheadRef.current = target;
-    setPlayhead(target);
-    if (isPlayingRef.current) {
-      clockStartAudioTimeRef.current = audioClockMaster.getCurrentTime();
-      clockStartPlayheadRef.current = target;
-    }
-    syncDecks(target, isPlayingRef.current);
-  }
-
-  function stepProgramFrame(direction: -1 | 1) {
-    if (isPlayingRef.current) stopPlayback();
-    const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
-    const frameTicks = Math.round(TICKS_PER_SECOND * frameRate.denominator / frameRate.numerator);
-    seekProgramTo(playheadRef.current + direction * frameTicks);
-  }
-
-  function handleShuttleKey(key: "j" | "k" | "l") {
-    if (key === "k") {
-      stopPlayback();
-      return;
-    }
-    if (key === "l") {
-      if (!isPlayingRef.current) {
-        startPlayback(1);
-      } else if (shuttleSpeedRef.current === 1) {
-        startPlayback(2);
-      } else if (shuttleSpeedRef.current === 2) {
-        startPlayback(4);
-      } else {
-        startPlayback(1);
-      }
-      return;
-    }
-    if (key === "j") {
-      if (!isPlayingRef.current) {
-        startPlayback(-1);
-      } else if (shuttleSpeedRef.current === -1) {
-        startPlayback(-2);
-      } else if (shuttleSpeedRef.current === -2) {
-        startPlayback(-4);
-      } else {
-        startPlayback(-1);
-      }
-      return;
-    }
-  }
 
   async function perform(id: string, params: unknown = null, success?: string): Promise<boolean> {
     setBusy(true);
