@@ -24,6 +24,7 @@
 Easy Edits Pro is a high-performance, non-linear desktop video editor engineered in Rust and Tauri 2 for Linux. Designed to combine the workspace fluidity of DaVinci Resolve, the rich asset shelf ergonomics of Wondershare Filmora, and the cutting precision of Adobe Premiere Pro—all inside an obsidian-dark interface crafted specifically for modern Linux desktop rices (Hyprland, Niri, Sway, GNOME, and KDE).
 
 
+
 [![GitHub](https://img.shields.io/badge/GitHub-zvirox-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/zvirox)
 [![YouTube: @zvirox_in](https://img.shields.io/badge/YouTube-@zvirox__in-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@zvirox_in)
 [![YouTube: @climin_in](https://img.shields.io/badge/YouTube-@climin__in-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@climin_in)
