@@ -5,7 +5,8 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-pub const PROJECT_FORMAT: &str = "project-saturn.project";
+pub const PROJECT_FORMAT: &str = "easy-edits-pro.project";
+pub const LEGACY_PROJECT_FORMAT: &str = "project-saturn.project";
 pub const PROJECT_SCHEMA_VERSION: u32 = 10;
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -1536,8 +1537,9 @@ fn migrate_project(value: &mut serde_json::Value) -> Result<(), String> {
         .get("schema_version")
         .and_then(serde_json::Value::as_u64)
         .ok_or_else(|| "Project file has no schema_version".to_string())? as u32;
-    if value.get("format").and_then(serde_json::Value::as_str) != Some(PROJECT_FORMAT) {
-        return Err("This is not a Project Saturn project file".into());
+    let fmt = value.get("format").and_then(serde_json::Value::as_str);
+    if fmt != Some(PROJECT_FORMAT) && fmt != Some(LEGACY_PROJECT_FORMAT) {
+        return Err("This is not a recognized Easy Edits Pro project file".into());
     }
     match version {
         PROJECT_SCHEMA_VERSION => Ok(()),

@@ -1367,12 +1367,14 @@ export interface TimelinePlaybackSnapshot {
 export function resolveMediaStreamUrl(
   mediaAsset: MediaAsset | null | undefined,
   preparedPreviews: Record<number, string>,
-  mediaServerPort: number
+  mediaServerPort: number,
+  mediaServerToken?: string
 ): string {
   if (!mediaAsset || mediaServerPort <= 0) return "";
   const proxyPath = preparedPreviews[mediaAsset.id];
   const targetPath = proxyPath || mediaAsset.path;
-  return `http://127.0.0.1:${mediaServerPort}/media?path=${encodeURIComponent(targetPath)}`;
+  const tokenPart = mediaServerToken ? `&token=${encodeURIComponent(mediaServerToken)}` : "";
+  return `http://127.0.0.1:${mediaServerPort}/media?path=${encodeURIComponent(targetPath)}${tokenPart}`;
 }
 
 /**
@@ -1384,7 +1386,8 @@ export function evaluateTimelinePlayback(
   playhead: number,
   mediaList: MediaAsset[],
   preparedPreviews: Record<number, string>,
-  mediaServerPort: number
+  mediaServerPort: number,
+  mediaServerToken?: string
 ): TimelinePlaybackSnapshot {
   const emptyResult: TimelinePlaybackSnapshot = {
     playhead,
@@ -1434,7 +1437,7 @@ export function evaluateTimelinePlayback(
                 if (localPlayhead >= nClip.timeline_start && localPlayhead < nClip.timeline_start + nClip.duration) {
                   const nItem = mediaList.find((m) => m.id === nClip.media_id);
                   if (nItem && (nItem.kind === "audio" || (nItem.kind === "video" && nTrack.kind === "video"))) {
-                    const src = resolveMediaStreamUrl(nItem, preparedPreviews, mediaServerPort);
+                    const src = resolveMediaStreamUrl(nItem, preparedPreviews, mediaServerPort, mediaServerToken);
                     if (src) {
                       const currentTime = Math.max(0, (nClip.source_in + (localPlayhead - nClip.timeline_start) * (nClip.speed ?? 1.0)) / TICKS_PER_SECOND);
                       activeAudioClips.push({
@@ -1452,7 +1455,7 @@ export function evaluateTimelinePlayback(
             }
           }
         } else if (item && (item.kind === "audio" || (item.kind === "video" && track.kind === "video"))) {
-          const src = resolveMediaStreamUrl(item, preparedPreviews, mediaServerPort);
+          const src = resolveMediaStreamUrl(item, preparedPreviews, mediaServerPort, mediaServerToken);
           if (src) {
             const speed = clip.speed ?? 1.0;
             const currentTime = Math.max(0, (clip.source_in + (playhead - clip.timeline_start) * speed) / TICKS_PER_SECOND);
@@ -1743,8 +1746,8 @@ export function evaluateTimelinePlayback(
     const outMedia = outgoing ? mediaList.find((m) => m.id === outgoing.media_id) : null;
     const inMedia = incoming ? mediaList.find((m) => m.id === incoming.media_id) : null;
 
-    const outSrc = resolveMediaStreamUrl(outMedia, preparedPreviews, mediaServerPort);
-    const inSrc = resolveMediaStreamUrl(inMedia, preparedPreviews, mediaServerPort);
+    const outSrc = resolveMediaStreamUrl(outMedia, preparedPreviews, mediaServerPort, mediaServerToken);
+    const inSrc = resolveMediaStreamUrl(inMedia, preparedPreviews, mediaServerPort, mediaServerToken);
 
     const outSpeed = outgoing?.speed ?? 1.0;
     const inSpeed = incoming?.speed ?? 1.0;
@@ -1794,7 +1797,7 @@ export function evaluateTimelinePlayback(
 
   // Case B: Standard Single Active Clip with Next Clip Preloaded on Staging Deck
   if (activeClip && activeMedia && activeTrack) {
-    const activeSrc = resolveMediaStreamUrl(activeMedia, preparedPreviews, mediaServerPort);
+    const activeSrc = resolveMediaStreamUrl(activeMedia, preparedPreviews, mediaServerPort, mediaServerToken);
     const clipSpeed = activeClip.speed ?? 1.0;
     const activeTime = Math.max(0, (activeClip.source_in + (playhead - activeClip.timeline_start) * clipSpeed) / TICKS_PER_SECOND);
     const activeStyle = computeVisualStyles(activeClip);
@@ -1802,7 +1805,7 @@ export function evaluateTimelinePlayback(
     // Look ahead for the next clip on the same video track
     const nextClip = activeTrack.clips.find((c) => c.timeline_start >= activeClip!.timeline_start + activeClip!.duration);
     const nextMedia = nextClip ? mediaList.find((m) => m.id === nextClip.media_id) : null;
-    const nextSrc = resolveMediaStreamUrl(nextMedia, preparedPreviews, mediaServerPort);
+    const nextSrc = resolveMediaStreamUrl(nextMedia, preparedPreviews, mediaServerPort, mediaServerToken);
     const nextTime = nextClip ? Math.max(0, nextClip.source_in / TICKS_PER_SECOND) : 0;
 
     // Deck A is active with current clip, Deck B stages next clip for seamless cut handoff
@@ -1860,7 +1863,7 @@ export function evaluateTimelinePlayback(
   }
 
   const upcomingMedia = upcomingClip ? mediaList.find((m) => m.id === upcomingClip.media_id) : null;
-  const upcomingSrc = resolveMediaStreamUrl(upcomingMedia, preparedPreviews, mediaServerPort);
+  const upcomingSrc = resolveMediaStreamUrl(upcomingMedia, preparedPreviews, mediaServerPort, mediaServerToken);
   const upcomingTime = upcomingClip ? Math.max(0, upcomingClip.source_in / TICKS_PER_SECOND) : 0;
 
   return {

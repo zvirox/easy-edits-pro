@@ -12,14 +12,64 @@ use saturn_render::{
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::{Value, json};
+use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU16, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, LazyLock, Mutex, OnceLock, RwLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, Manager, State, ipc::Channel};
+
+static MEDIA_SERVER_PORT: AtomicU16 = AtomicU16::new(0);
+static MEDIA_SERVER_TOKEN: OnceLock<String> = OnceLock::new();
+static APP_DATA_DIR: OnceLock<PathBuf> = OnceLock::new();
+static ALLOWED_MEDIA_PATHS: LazyLock<RwLock<HashSet<PathBuf>>> =
+    LazyLock::new(|| RwLock::new(HashSet::new()));
+
+pub fn register_allowed_media_path<P: AsRef<Path>>(path: P) {
+    let p = path.as_ref();
+    if let Ok(canon) = p.canonicalize() {
+        if let Ok(mut set) = ALLOWED_MEDIA_PATHS.write() {
+            set.insert(canon);
+        }
+    } else if let Ok(mut set) = ALLOWED_MEDIA_PATHS.write() {
+        set.insert(p.to_path_buf());
+    }
+}
+
+pub fn is_allowed_media_path<P: AsRef<Path>>(path: P) -> bool {
+    let Ok(canon) = path.as_ref().canonicalize() else {
+        return false;
+    };
+    if let Ok(set) = ALLOWED_MEDIA_PATHS.read() {
+        if set.contains(&canon) {
+            return true;
+        }
+    }
+    if let Some(app_dir) = APP_DATA_DIR.get() {
+        if canon.starts_with(app_dir) {
+            return true;
+        }
+    }
+    false
+}
+
+fn generate_session_token() -> String {
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    let pid = std::process::id();
+    let mut state = (now ^ ((pid as u128) << 32)) ^ 0x9e3779b97f4a7c15;
+    let mut token = String::with_capacity(32);
+    for _ in 0..4 {
+        state = state.wrapping_mul(0x5851f42d4c957f2d).wrapping_add(0x14057b7ef767814f);
+        token.push_str(&format!("{:08x}", (state >> 32) as u32));
+    }
+    token
+}
 
 #[derive(Clone)]
 struct AppState(
@@ -340,8 +390,6 @@ async fn prepare_video_preview(app: AppHandle, state: State<'_, AppState>, path:
     res?.ok_or_else(|| "No preview proxy generated".into())
 }
 
-static MEDIA_SERVER_PORT: AtomicU16 = AtomicU16::new(0);
-
 fn url_decode(input: &str) -> String {
     let mut result = Vec::new();
     let bytes = input.as_bytes();
@@ -383,49 +431,142 @@ fn handle_media_stream_client(mut stream: TcpStream) {
     };
 
     let parts: Vec<&str> = request_line.split_whitespace().collect();
-    if parts.is_empty() {
+    if parts.len() < 2 {
         return;
     }
 
+    let mut range_header: Option<String> = None;
+    let mut host_header: Option<String> = None;
+    let mut origin_header: Option<String> = None;
+
+    for line in lines {
+        if line.is_empty() {
+            break;
+        }
+        let lower = line.to_ascii_lowercase();
+        if lower.starts_with("range:") {
+            range_header = Some(line["range:".len()..].trim().to_string());
+        } else if lower.starts_with("host:") {
+            host_header = Some(line["host:".len()..].trim().to_string());
+        } else if lower.starts_with("origin:") {
+            origin_header = Some(line["origin:".len()..].trim().to_string());
+        }
+    }
+
+    // 1. Host header validation (blocks DNS rebinding)
+    let port = MEDIA_SERVER_PORT.load(Ordering::SeqCst);
+    let valid_hosts = [
+        format!("127.0.0.1:{port}"),
+        format!("localhost:{port}"),
+        "127.0.0.1".to_string(),
+        "localhost".to_string(),
+    ];
+    let is_valid_host = host_header.as_ref().map_or(false, |h| {
+        valid_hosts.iter().any(|v| h.trim().eq_ignore_ascii_case(v))
+    });
+    if !is_valid_host {
+        let _ = stream.write_all(b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nForbidden Host");
+        return;
+    }
+
+    // 2. CORS origin validation
+    let allowed_origins = [
+        "tauri://localhost",
+        "http://localhost:1420",
+        "http://tauri.localhost",
+        "https://tauri.localhost",
+    ];
+    let cors_origin = origin_header.as_ref().and_then(|orig| {
+        let o = orig.trim();
+        if allowed_origins.iter().any(|&allowed| o == allowed) {
+            Some(o)
+        } else {
+            None
+        }
+    }).unwrap_or("tauri://localhost");
+
     if parts[0] == "OPTIONS" {
-        let preflight = "HTTP/1.1 204 No Content\r\n\
-Access-Control-Allow-Origin: *\r\n\
+        let preflight = format!(
+            "HTTP/1.1 204 No Content\r\n\
+Access-Control-Allow-Origin: {cors_origin}\r\n\
+Vary: Origin\r\n\
 Access-Control-Allow-Methods: GET, HEAD, OPTIONS\r\n\
 Access-Control-Allow-Headers: Range, Content-Type, Accept\r\n\
 Access-Control-Expose-Headers: Content-Range, Content-Length, Accept-Ranges\r\n\
 Access-Control-Max-Age: 86400\r\n\
-Connection: close\r\n\r\n";
+Connection: close\r\n\r\n"
+        );
         let _ = stream.write_all(preflight.as_bytes());
         return;
     }
 
-    if parts.len() < 2 || (parts[0] != "GET" && parts[0] != "HEAD") {
-        let _ = stream.write_all(b"HTTP/1.1 405 Method Not Allowed\r\n\r\n");
+    if parts[0] != "GET" && parts[0] != "HEAD" {
+        let _ = stream.write_all(b"HTTP/1.1 405 Method Not Allowed\r\nConnection: close\r\n\r\n");
         return;
     }
     let is_head = parts[0] == "HEAD";
 
     let target = parts[1];
-    let query_prefix = "/media?path=";
-    if !target.starts_with(query_prefix) {
-        let _ = stream.write_all(b"HTTP/1.1 404 Not Found\r\n\r\n");
+    let query_start = match target.find('?') {
+        Some(pos) => pos,
+        None => {
+            let _ = stream.write_all(b"HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
+            return;
+        }
+    };
+
+    let path_part = &target[..query_start];
+    if path_part != "/media" {
+        let _ = stream.write_all(b"HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
         return;
     }
 
-    let encoded_path = &target[query_prefix.len()..];
-    let clean_encoded = encoded_path.split('&').next().unwrap_or(encoded_path);
-    let file_path = url_decode(clean_encoded);
-    let path = PathBuf::from(&file_path);
+    let query_str = &target[query_start + 1..];
+    let mut req_path: Option<String> = None;
+    let mut req_token: Option<String> = None;
+    for pair in query_str.split('&') {
+        if let Some((k, v)) = pair.split_once('=') {
+            if k == "path" {
+                req_path = Some(url_decode(v));
+            } else if k == "token" {
+                req_token = Some(url_decode(v));
+            }
+        }
+    }
 
+    // 3. Token check
+    let expected_token = MEDIA_SERVER_TOKEN.get().map(|s| s.as_str()).unwrap_or("");
+    if req_token.as_deref() != Some(expected_token) {
+        let _ = stream.write_all(b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nInvalid or missing session token");
+        return;
+    }
+
+    // 4. Path traversal & file check
+    let Some(file_path_str) = req_path else {
+        let _ = stream.write_all(b"HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\nMissing path parameter");
+        return;
+    };
+    if file_path_str.contains("..") {
+        let _ = stream.write_all(b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nDirectory traversal detected");
+        return;
+    }
+
+    let path = PathBuf::from(&file_path_str);
     if !path.is_file() {
-        let _ = stream.write_all(b"HTTP/1.1 404 Not Found\r\n\r\n");
+        let _ = stream.write_all(b"HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
+        return;
+    }
+
+    // 5. Allow-list verification
+    if !is_allowed_media_path(&path) {
+        let _ = stream.write_all(b"HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\nPath not in project allow-list");
         return;
     }
 
     let metadata = match std::fs::metadata(&path) {
         Ok(m) => m,
         Err(_) => {
-            let _ = stream.write_all(b"HTTP/1.1 500 Internal Error\r\n\r\n");
+            let _ = stream.write_all(b"HTTP/1.1 500 Internal Error\r\nConnection: close\r\n\r\n");
             return;
         }
     };
@@ -435,32 +576,18 @@ Connection: close\r\n\r\n";
     let mut range_end: u64 = total_size.saturating_sub(1);
     let mut is_range = false;
 
-    for line in lines {
-        let line_lower = line.to_ascii_lowercase();
-        if line_lower.starts_with("range:") {
-            if let Some(eq_idx) = line.find('=') {
-                let range_spec = line[eq_idx + 1..].trim();
-                let first_spec = range_spec.split(',').next().unwrap_or(range_spec).trim();
-                if let Some(dash_idx) = first_spec.find('-') {
-                    let first = first_spec[..dash_idx].trim();
-                    let second = first_spec[dash_idx + 1..].trim();
-                    if first.is_empty() {
-                        if let Ok(suffix_len) = second.parse::<u64>() {
-                            if suffix_len > 0 {
-                                range_start = total_size.saturating_sub(suffix_len);
-                                range_end = total_size.saturating_sub(1);
-                                is_range = true;
-                            }
-                        }
-                    } else if let Ok(start) = first.parse::<u64>() {
-                        range_start = start;
-                        is_range = true;
-                        if !second.is_empty() {
-                            if let Ok(end) = second.parse::<u64>() {
-                                if end < total_size {
-                                    range_end = end;
-                                }
-                            }
+    if let Some(range_val) = range_header {
+        if let Some(bytes_spec) = range_val.strip_prefix("bytes=") {
+            let spec_parts: Vec<&str> = bytes_spec.split('-').collect();
+            if spec_parts.len() == 2 {
+                if let Ok(start) = spec_parts[0].parse::<u64>() {
+                    range_start = start;
+                    is_range = true;
+                }
+                if !spec_parts[1].is_empty() {
+                    if let Ok(end) = spec_parts[1].parse::<u64>() {
+                        if end < total_size {
+                            range_end = end;
                         }
                     }
                 }
@@ -505,11 +632,12 @@ Content-Type: {}\r\n\
 Content-Length: {}\r\n\
 Content-Range: bytes {}-{}/{}\r\n\
 Accept-Ranges: bytes\r\n\
-Access-Control-Allow-Origin: *\r\n\
+Access-Control-Allow-Origin: {}\r\n\
+Vary: Origin\r\n\
 Access-Control-Allow-Headers: Range, Content-Type, Accept\r\n\
 Access-Control-Expose-Headers: Content-Range, Content-Length, Accept-Ranges\r\n\
 Connection: close\r\n\r\n",
-            content_type, content_len, range_start, range_end, total_size
+            content_type, content_len, range_start, range_end, total_size, cors_origin
         )
     } else {
         format!(
@@ -517,11 +645,12 @@ Connection: close\r\n\r\n",
 Content-Type: {}\r\n\
 Content-Length: {}\r\n\
 Accept-Ranges: bytes\r\n\
-Access-Control-Allow-Origin: *\r\n\
+Access-Control-Allow-Origin: {}\r\n\
+Vary: Origin\r\n\
 Access-Control-Allow-Headers: Range, Content-Type, Accept\r\n\
 Access-Control-Expose-Headers: Content-Range, Content-Length, Accept-Ranges\r\n\
 Connection: close\r\n\r\n",
-            content_type, total_size
+            content_type, total_size, cors_origin
         )
     };
 
@@ -554,6 +683,9 @@ Connection: close\r\n\r\n",
 }
 
 fn start_media_server() -> u16 {
+    let token = generate_session_token();
+    let _ = MEDIA_SERVER_TOKEN.set(token);
+
     let listener = match TcpListener::bind("127.0.0.1:0") {
         Ok(l) => l,
         Err(e) => {
@@ -580,6 +712,11 @@ fn start_media_server() -> u16 {
 #[tauri::command]
 fn get_media_server_port() -> u16 {
     MEDIA_SERVER_PORT.load(Ordering::SeqCst)
+}
+
+#[tauri::command]
+fn get_media_server_token() -> String {
+    MEDIA_SERVER_TOKEN.get().cloned().unwrap_or_default()
 }
 
 #[tauri::command]
@@ -741,12 +878,37 @@ async fn import_network_media(
         return Err("Only http:// and https:// URLs are supported for network import".into());
     }
 
+    // SSRF Protection: Disallow loopback and private network targets
+    if let Some(host) = url_obj.host_str() {
+        let host_lower = host.to_ascii_lowercase();
+        if host_lower == "localhost"
+            || host_lower == "127.0.0.1"
+            || host_lower == "::1"
+            || host_lower == "0.0.0.0"
+        {
+            return Err("Requests to localhost/loopback are not permitted for security reasons".into());
+        }
+        if host_lower.starts_with("10.")
+            || host_lower.starts_with("192.168.")
+            || host_lower.starts_with("169.254.")
+        {
+            return Err("Requests to private network addresses are not permitted".into());
+        }
+        if host_lower.starts_with("172.") {
+            if let Some(second) = host_lower.split('.').nth(1).and_then(|s| s.parse::<u8>().ok()) {
+                if (16..=31).contains(&second) {
+                    return Err("Requests to private network addresses are not permitted".into());
+                }
+            }
+        }
+    }
+
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(300))
         .build()
         .map_err(|e| e.to_string())?;
 
-    let response = client
+    let mut response = client
         .get(url_obj.clone())
         .send()
         .await
@@ -754,10 +916,27 @@ async fn import_network_media(
         .error_for_status()
         .map_err(|e| format!("Network download HTTP error: {e}"))?;
 
-    let bytes = response
-        .bytes()
+    const MAX_NETWORK_IMPORT_SIZE: usize = 512 * 1024 * 1024; // 512 MiB limit
+    if let Some(len) = response.content_length() {
+        if len > MAX_NETWORK_IMPORT_SIZE as u64 {
+            return Err(format!(
+                "The network asset ({:.1} MiB) exceeds Easy Edits Pro's 512 MiB import limit",
+                len as f64 / (1024.0 * 1024.0)
+            ));
+        }
+    }
+
+    let mut bytes = Vec::new();
+    while let Some(chunk) = response
+        .chunk()
         .await
-        .map_err(|e| format!("Failed to read asset payload: {e}"))?;
+        .map_err(|e| format!("Failed to read asset payload: {e}"))?
+    {
+        if bytes.len().saturating_add(chunk.len()) > MAX_NETWORK_IMPORT_SIZE {
+            return Err("The network asset payload exceeded Easy Edits Pro's 512 MiB limit during download".into());
+        }
+        bytes.extend_from_slice(&chunk);
+    }
 
     let directory = app
         .path()
@@ -771,10 +950,21 @@ async fn import_network_media(
         .path_segments()
         .and_then(|mut s| s.next_back())
         .unwrap_or("network_asset");
-    let (base_name, extension) = file_name_from_url
+    let (base_name, raw_ext) = file_name_from_url
         .rsplit_once('.')
         .map(|(b, ext)| (b, ext))
         .unwrap_or((file_name_from_url, "mp4"));
+
+    const ALLOWED_EXTS: &[&str] = &[
+        "mp4", "m4v", "mov", "webm", "mkv", "avi", "wav", "mp3", "flac", "ogg", "aac", "m4a",
+        "png", "jpg", "jpeg", "webp", "svg",
+    ];
+    let clean_raw_ext = raw_ext.to_ascii_lowercase();
+    let extension = if ALLOWED_EXTS.contains(&clean_raw_ext.as_str()) {
+        clean_raw_ext.as_str()
+    } else {
+        "mp4"
+    };
 
     let target_name = custom_name.unwrap_or_else(|| base_name.to_string());
     let clean_title: String = target_name
@@ -793,6 +983,7 @@ async fn import_network_media(
         .map_err(|e| format!("Failed to write downloaded network media: {e}"))?;
 
     let _ = app.asset_protocol_scope().allow_file(&target_file);
+    register_allowed_media_path(&target_file);
 
     gstreamer::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
     let discoverer = Discoverer::new(gstreamer::ClockTime::from_seconds(30))
@@ -1752,6 +1943,105 @@ async fn measure_ebu_r128_loudness(
     Ok(report)
 }
 
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SystemDiagnostics {
+    app_version: String,
+    os_name: String,
+    gstreamer_version: String,
+    gstreamer_healthy: bool,
+    missing_elements: Vec<String>,
+    hardware_encoders: Vec<String>,
+    media_server_port: u16,
+    log_file_path: String,
+}
+
+#[tauri::command]
+fn get_system_diagnostics(app: AppHandle) -> SystemDiagnostics {
+    let gstreamer_version = gstreamer::version_string().to_string();
+    let required_elements = [
+        ("ges_timeline", "libges-1.0-0"),
+        ("videobalance", "gstreamer1.0-plugins-good"),
+        ("videocrop", "gstreamer1.0-plugins-good"),
+        ("gaussianblur", "gstreamer1.0-plugins-bad"),
+        ("alpha", "gstreamer1.0-plugins-good"),
+        ("audiocheblimit", "gstreamer1.0-plugins-good"),
+        ("equalizer-3bands", "gstreamer1.0-plugins-good"),
+        ("x264enc", "gstreamer1.0-plugins-ugly"),
+        ("vp8enc", "gstreamer1.0-plugins-good"),
+        ("webmmux", "gstreamer1.0-plugins-good"),
+        ("mp4mux", "gstreamer1.0-plugins-good"),
+    ];
+
+    let mut missing_elements = Vec::new();
+    for (elem, pkg) in required_elements {
+        if gstreamer::ElementFactory::find(elem).is_none() {
+            missing_elements.push(format!("{elem} (package: {pkg})"));
+        }
+    }
+
+    let hardware_encoders = saturn_render::detect_hardware_encoders()
+        .available_encoders
+        .iter()
+        .map(|enc| format!("{:?}", enc))
+        .collect();
+
+    let log_file_path = app
+        .path()
+        .app_data_dir()
+        .map(|p| p.join("logs").join("easy-edits-pro.log").to_string_lossy().into_owned())
+        .unwrap_or_default();
+
+    let os_name = if cfg!(target_os = "linux") {
+        std::fs::read_to_string("/etc/os-release")
+            .ok()
+            .and_then(|content| {
+                for line in content.lines() {
+                    if line.starts_with("PRETTY_NAME=") {
+                        return Some(line.trim_start_matches("PRETTY_NAME=").trim_matches('"').to_string());
+                    }
+                }
+                None
+            })
+            .unwrap_or_else(|| "Linux".into())
+    } else {
+        std::env::consts::OS.to_string()
+    };
+
+    SystemDiagnostics {
+        app_version: env!("CARGO_PKG_VERSION").to_string(),
+        os_name,
+        gstreamer_version,
+        gstreamer_healthy: missing_elements.is_empty(),
+        missing_elements,
+        hardware_encoders,
+        media_server_port: MEDIA_SERVER_PORT.load(Ordering::SeqCst),
+        log_file_path,
+    }
+}
+
+fn setup_crash_logging(app: &AppHandle) {
+    if let Ok(data_dir) = app.path().app_data_dir() {
+        let log_dir = data_dir.join("logs");
+        let _ = std::fs::create_dir_all(&log_dir);
+        let log_file = log_dir.join("easy-edits-pro.log");
+
+        let log_path_clone = log_file.clone();
+        let default_hook = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
+            let timestamp = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs();
+            let msg = format!("[{timestamp}] CRASH/PANIC: {info}\n");
+            if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(&log_path_clone) {
+                let _ = f.write_all(msg.as_bytes());
+            }
+            default_hook(info);
+        }));
+    }
+}
+
 fn main() {
     #[cfg(target_os = "linux")]
     if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
@@ -1767,6 +2057,20 @@ fn main() {
         .setup({
             let state = state.clone();
             move |app| {
+                setup_crash_logging(&app.handle());
+                if let Ok(data_dir) = app.path().app_data_dir() {
+                    if let Ok(canon) = data_dir.canonicalize() {
+                        let _ = APP_DATA_DIR.set(canon);
+                    } else {
+                        let _ = APP_DATA_DIR.set(data_dir);
+                    }
+                }
+                if let Ok(guard) = state.0.lock() {
+                    for media in &guard.document().project.media {
+                        let _ = app.asset_protocol_scope().allow_file(&media.path);
+                        register_allowed_media_path(&media.path);
+                    }
+                }
                 start_autosave(app.handle().clone(), state.clone());
                 let app_handle = app.handle().clone();
                 state.1.add_listener(move |info| {
@@ -1779,6 +2083,8 @@ fn main() {
             execute_command,
             prepare_video_preview,
             get_media_server_port,
+            get_media_server_token,
+            get_system_diagnostics,
             command_status,
             get_command_catalogue,
             recovery_status,

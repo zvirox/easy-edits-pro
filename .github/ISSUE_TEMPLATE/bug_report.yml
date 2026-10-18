@@ -1,0 +1,104 @@
+name: Bug Report
+description: Report an issue or unexpected behavior in Easy Edits Pro
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue! Please provide as much detail as possible to help us reproduce and resolve the problem.
+  - type: input
+    id: version
+    attributes:
+      label: Easy Edits Pro Version / Build
+      placeholder: e.g. v0.1.0-alpha.1
+    validations:
+      required: true
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: Installation Method
+      options:
+        - AppImage
+        - Debian Package (.deb)
+        - RPM Package (.rpm)
+        - Built from source (pnpm tauri build / dev)
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: os_distro
+    attributes:
+      label: Linux Distribution & Version
+      placeholder: e.g. Ubuntu 24.04, Arch Linux, Fedora 41
+    validations:
+      required: true
+  - type: dropdown
+    id: display_server
+    attributes:
+      label: Display Server & Compositor
+      options:
+        - Wayland (Hyprland)
+        - Wayland (GNOME / Mutter)
+        - Wayland (KDE Plasma / KWin)
+        - Wayland (Sway / Niri / Other)
+        - X11 (Xorg)
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: gpu_driver
+    attributes:
+      label: GPU & Driver
+      placeholder: e.g. NVIDIA RTX 3070 (driver 550.54), Intel Iris Xe (Mesa 24.0), AMD Radeon 6800XT (RADV)
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: System Diagnostics Output
+      description: In the app, click Help → Copy System Diagnostics and paste the JSON output here.
+      placeholder: |
+        {
+          "app_version": "0.1.0",
+          "os": "...",
+          "gstreamer_version": "...",
+          ...
+        }
+      render: json
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Bug
+      description: A clear and concise description of what happened.
+      placeholder: When I import an MP4 clip and drag it to the timeline, the program preview...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the issue.
+      placeholder: |
+        1. Open Easy Edits Pro
+        2. Create a new project
+        3. Import media file 'test.mp4'
+        4. Click 'Export video'
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Crash Logs or Terminal Output (if applicable)
+      description: Check `~/.local/share/com.zvirox.easyeditspro/logs/easy-edits-pro.log` or terminal output.
+      render: shell
+    validations:
+      required: false

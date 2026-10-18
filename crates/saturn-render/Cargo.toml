@@ -3,7 +3,7 @@ name = "saturn-render"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.92"
-license = "GPL-3.0-only"
+license = "GPL-3.0-or-later"
 description = "Native timeline rendering for Project Saturn using GStreamer Editing Services"
 
 [dependencies]

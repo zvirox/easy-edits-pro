@@ -2,8 +2,8 @@
 
 ## Comparison setup
 
-- Source visual truth: `/home/zvirox/Pictures/Screenshots/2026_10_16_13_57_41_screenshot.png` (Edit), `/home/zvirox/Pictures/Screenshots/2026_10_16_13_58_38_screenshot.png` (Import), and `/home/zvirox/Pictures/Screenshots/2026_10_16_13_58_25_screenshot.png` (Export).
-- Implementation captures: `/tmp/easy-edits-pro-editor-smoke.png`, `/tmp/easy-edits-pro-import-workspace.png`, and `/tmp/easy-edits-pro-export-workspace.png`.
+- Source visual truth: Reference UI mockups/screenshots for Edit, Import, and Export workspaces.
+- Implementation captures: Implementation screenshots for Editor, Import workspace, and Export workspace.
 - Source and implementation dimensions: 1920 × 1080 pixels each.
 - CSS viewport: 1920 × 1080; device scale factor: 1. No density normalization or crop was needed.
 - State: dark desktop editor; Edit with an imported sample clip, Import with project media visible, Export with a project clip and MP4 selected.
@@ -37,6 +37,6 @@
 - [x] Add output size, frame rate, format, hardware-encoder preference, marked-range option, and summary controls.
 - [x] Verify workspace navigation and primary interactions in the browser.
 - [x] Update the root and app README files.
-- [ ] Add advanced bitrate/profile controls and a working export queue after backend support is available.
+- [x] Add advanced bitrate/profile controls and a working export queue after backend support is available.
 
 Final result: passed

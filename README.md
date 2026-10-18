@@ -12,10 +12,10 @@
 <br />
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-E2342A?style=for-the-badge)](LICENSE)
-[![Rust](https://img.shields.io/badge/Rust-2021_Edition-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![Rust](https://img.shields.io/badge/Rust-2024_Edition-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![Tauri 2](https://img.shields.io/badge/Tauri-2.0-24C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://v2.tauri.app/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.0+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![GStreamer](https://img.shields.io/badge/GStreamer-GES_1.24+-E2342A?style=for-the-badge&logo=gstreamer&logoColor=white)](https://gstreamer.freedesktop.org/)
 [![Platform: Linux](https://img.shields.io/badge/Platform-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/zvirox/easy-edits-pro)
 
@@ -269,8 +269,8 @@ cargo run -p saturn-cli -- control
 - [x] **Phase 8:** 3D LUT (.cube) tetrahedral interpolation across preview &amp; export.
 - [x] **Phase 9:** Dedicated Subtitle Track with one-click `.srt` and `.vtt` Import/Export.
 - [x] **Phase 10:** Fairlight Multitrack Console, dB Fader Automation (Read/Touch/Latch/Write), Submix Routing.
-- [ ] **Phase 11:** Node-Based Compositing Workspace (Fusion-style node graph &amp; roto-splines).
-- [ ] **Phase 12:** Real-Time LAN &amp; Cloud Multi-Editor Collaborative Project Locking.
+- [x] **Phase 11:** Node-Based Compositing Workspace (Fusion-style node graph &amp; roto-splines) *(Experimental)*.
+- [x] **Phase 12:** Real-Time LAN Multi-Editor Collaborative Project Locking *(Experimental)*.
 
 ---
 

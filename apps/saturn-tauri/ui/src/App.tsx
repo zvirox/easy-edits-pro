@@ -637,6 +637,7 @@ function App() {
   const [preparingPreviews, setPreparingPreviews] = useState<Set<number>>(new Set());
   const [previewPreparationErrors, setPreviewPreparationErrors] = useState<Record<number, string>>({});
   const [mediaServerPort, setMediaServerPort] = useState<number>(0);
+  const [mediaServerToken, setMediaServerToken] = useState<string>("");
 
   useEffect(() => {
     invoke<number>("get_media_server_port")
@@ -644,14 +645,21 @@ function App() {
         if (port > 0) setMediaServerPort(port);
       })
       .catch((err) => console.warn("Could not get media server port:", err));
+
+    invoke<string>("get_media_server_token")
+      .then((token) => {
+        if (token) setMediaServerToken(token);
+      })
+      .catch((err) => console.warn("Could not get media server token:", err));
   }, []);
 
   const getMediaUrl = useCallback((filePath: string) => {
     if (mediaServerPort > 0) {
-      return `http://127.0.0.1:${mediaServerPort}/media?path=${encodeURIComponent(filePath)}`;
+      const tokenParam = mediaServerToken ? `&token=${encodeURIComponent(mediaServerToken)}` : "";
+      return `http://127.0.0.1:${mediaServerPort}/media?path=${encodeURIComponent(filePath)}${tokenParam}`;
     }
     return convertFileSrc(filePath);
-  }, [mediaServerPort]);
+  }, [mediaServerPort, mediaServerToken]);
 
   const [jobs, setJobs] = useState<JobInfo[]>([]);
   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
@@ -1056,7 +1064,7 @@ function App() {
   const syncDecks = useCallback((currentPlayhead: number, isPlaying: boolean) => {
     const doc = projectRef.current;
     if (!doc) return;
-    const snapshot = evaluateTimelinePlayback(doc, currentPlayhead, media, preparedPreviews, mediaServerPort);
+    const snapshot = evaluateTimelinePlayback(doc, currentPlayhead, media, preparedPreviews, mediaServerPort, mediaServerToken);
     setDeckSnapshot(snapshot);
 
     const deckA = deckARef.current;
@@ -1099,7 +1107,7 @@ function App() {
         if (!deckB.paused) deckB.pause();
       }
     }
-  }, [media, preparedPreviews, mediaServerPort]);
+  }, [media, preparedPreviews, mediaServerPort, mediaServerToken]);
 
   // Keep decks updated whenever playhead, preparedPreviews, or project changes when paused
   useEffect(() => {
@@ -3490,6 +3498,19 @@ function App() {
         await switchSequence(1);
         break;
       case "help.shortcuts": setNotice("Timeline tools: V Select · A Track Select Forward · C Razor · B Ripple · N Rolling · Y Slip · U Slide · X Rate Stretch · P Keyframe · H Hand · S Snap · Ctrl+L Link · Ctrl+Shift+L Unlink"); break;
+      case "help.diagnostics":
+        try {
+          const diag = await invoke<Record<string, unknown>>("get_system_diagnostics");
+          const diagStr = JSON.stringify(diag, null, 2);
+          await navigator.clipboard.writeText(diagStr);
+          setNotice("System diagnostics copied to clipboard!");
+        } catch (err) {
+          setNotice(`Failed to get system diagnostics: ${String(err)}`);
+        }
+        break;
+      case "help.support":
+        setNotice("Submit issues & crash reports at github.com/zvirox/easy-edits-pro/issues");
+        break;
       case "help.about": setNotice("Easy Edits Pro · Open source Linux video editor"); break;
       default:
         if (id.startsWith("workspace.")) {
@@ -5223,7 +5244,12 @@ function App() {
         : menu === "Window"
           ? workspaces.map((item) => ({ id: `workspace.${item.id}`, label: `${item.label}${workspace === item.id ? " ✓" : ""}`, shortcut: null }))
           : menu === "Help"
-            ? [{ id: "help.shortcuts", label: "Keyboard Shortcuts", shortcut: null }, { id: "help.about", label: "About Easy Edits Pro", shortcut: null }]
+            ? [
+                { id: "help.shortcuts", label: "Keyboard Shortcuts", shortcut: null },
+                { id: "help.diagnostics", label: "Copy System Diagnostics", shortcut: null },
+                { id: "help.support", label: "Report Issue / Support", shortcut: null },
+                { id: "help.about", label: "About Easy Edits Pro", shortcut: null }
+              ]
             : [];
     const items = [...commandItems, ...extraItems];
     return <details className="app-menu" key={menu}><summary>{menu}</summary><div className="menu-popover">{items.map((item) => <button key={item.id} onClick={(event) => { void invokeMenuCommand(item.id).catch((error: unknown) => setNotice(String(error))); event.currentTarget.closest("details")?.removeAttribute("open"); }} disabled={item.disabled}><span>{item.label}</span>{item.shortcut && <small>{item.shortcut.replace("Ctrl", "⌘/Ctrl")}</small>}</button>)}</div></details>;
