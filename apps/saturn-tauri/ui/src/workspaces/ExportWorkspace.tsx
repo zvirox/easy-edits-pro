@@ -219,8 +219,7 @@ export function ExportWorkspace({
           style={{ flex: 1, padding: "24px 28px", overflowY: "auto" }}
         >
           <header>
-            <span className="workspace-eyebrow">TIMELINE INTERCHANGE &amp; ROUNDTRIP</span>
-            <h1>Interchange Delivery</h1>
+            <h1>Timeline Interchange</h1>
             <p>
               Exchange non-destructive project timelines with Final Cut Pro, Premiere Pro, and DaVinci Resolve using the exact integer tick timebase.
             </p>
@@ -238,8 +237,8 @@ export function ExportWorkspace({
             <div
               className="interop-card"
               style={{
-                background: "#0f172a",
-                border: "1px solid #334155",
+                background: "var(--bg-subpanel)",
+                border: "1px solid var(--border-color)",
                 borderRadius: "8px",
                 padding: "16px",
                 display: "flex",
@@ -248,11 +247,11 @@ export function ExportWorkspace({
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "14px", color: "#38bdf8" }}>Apple Final Cut Pro</strong>
+                <strong style={{ fontSize: "14px", color: "var(--accent-primary)" }}>Apple Final Cut Pro</strong>
                 <span
                   style={{
                     fontSize: "10px",
-                    background: "#0284c7",
+                    background: "var(--accent-primary)",
                     color: "#fff",
                     padding: "2px 8px",
                     borderRadius: "10px",
@@ -262,7 +261,7 @@ export function ExportWorkspace({
                   FCPXML v1.9
                 </span>
               </div>
-              <p style={{ margin: 0, fontSize: "11.5px", color: "#94a3b8", lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: "11.5px", color: "var(--text-sub)", lineHeight: 1.5 }}>
                 Exports multi-track clips, audio/video layers, cut coordinates, and asset paths into standard FCPXML.
               </p>
               <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
@@ -291,8 +290,8 @@ export function ExportWorkspace({
             <div
               className="interop-card"
               style={{
-                background: "#0f172a",
-                border: "1px solid #334155",
+                background: "var(--bg-subpanel)",
+                border: "1px solid var(--border-color)",
                 borderRadius: "8px",
                 padding: "16px",
                 display: "flex",
@@ -301,11 +300,11 @@ export function ExportWorkspace({
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "14px", color: "#a855f7" }}>Adobe Premiere Pro</strong>
+                <strong style={{ fontSize: "14px", color: "var(--accent-violet)" }}>Adobe Premiere Pro</strong>
                 <span
                   style={{
                     fontSize: "10px",
-                    background: "#7e22ce",
+                    background: "var(--accent-violet)",
                     color: "#fff",
                     padding: "2px 8px",
                     borderRadius: "10px",
@@ -315,7 +314,7 @@ export function ExportWorkspace({
                   xmeml v5
                 </span>
               </div>
-              <p style={{ margin: 0, fontSize: "11.5px", color: "#94a3b8", lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: "11.5px", color: "var(--text-sub)", lineHeight: 1.5 }}>
                 Standard Premiere Pro sequence exchange format preserving track layouts, in/out ticks, and frame rates.
               </p>
               <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
@@ -344,8 +343,8 @@ export function ExportWorkspace({
             <div
               className="interop-card"
               style={{
-                background: "#0f172a",
-                border: "1px solid #334155",
+                background: "var(--bg-subpanel)",
+                border: "1px solid var(--border-color)",
                 borderRadius: "8px",
                 padding: "16px",
                 display: "flex",
@@ -354,11 +353,11 @@ export function ExportWorkspace({
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "14px", color: "#10b981" }}>Broadcast EDL</strong>
+                <strong style={{ fontSize: "14px", color: "var(--accent-green)" }}>Broadcast EDL</strong>
                 <span
                   style={{
                     fontSize: "10px",
-                    background: "#059669",
+                    background: "var(--accent-green)",
                     color: "#fff",
                     padding: "2px 8px",
                     borderRadius: "10px",
@@ -368,7 +367,7 @@ export function ExportWorkspace({
                   CMX 3600
                 </span>
               </div>
-              <p style={{ margin: 0, fontSize: "11.5px", color: "#94a3b8", lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: "11.5px", color: "var(--text-sub)", lineHeight: 1.5 }}>
                 SMPTE standard non-drop frame edit decision list for conform in DaVinci Resolve color suites.
               </p>
               <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
@@ -416,10 +415,10 @@ export function ExportWorkspace({
               readOnly
               style={{
                 width: "100%",
-                background: "#090d14",
-                border: "1px solid #334155",
+                background: "var(--bg-subpanel)",
+                border: "1px solid var(--border-color)",
                 borderRadius: "6px",
-                color: "#e2e8f0",
+                color: "var(--text-main)",
                 fontFamily: "monospace",
                 fontSize: "11px",
                 padding: "10px",
@@ -435,9 +434,8 @@ export function ExportWorkspace({
         <>
           <section className="export-settings-panel">
             <header>
-              <span className="workspace-eyebrow">DELIVERY</span>
-              <h1>Media File</h1>
-              <p>Set a format and size that match where you’ll share this edit.</p>
+              <h1>Export Settings</h1>
+              <p>Configure target format, resolution, and codecs for distribution.</p>
             </header>
             {/* Live Hardware Acceleration Badge */}
             <div className="export-hw-status-card">

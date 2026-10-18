@@ -1,4 +1,4 @@
-:root, [data-theme="dark"] {
+:root, [data-theme="dark"], .dark {
   color-scheme: dark;
   --bg-app: #080a0f;
   --bg-header: #0d1117;
@@ -26,6 +26,27 @@
   --border-tooltip: #263345;
   --text-tooltip: #ffffff;
   --shadow-popup: 0 10px 30px rgba(0, 0, 0, 0.7);
+
+  /* Tailwind CSS Token Aliases */
+  --background: var(--bg-app);
+  --foreground: var(--text-main);
+  --card: var(--bg-panel);
+  --card-foreground: var(--text-main);
+  --popover: var(--bg-panel);
+  --popover-foreground: var(--text-main);
+  --primary: var(--accent-primary);
+  --primary-foreground: #ffffff;
+  --secondary: var(--bg-subpanel);
+  --secondary-foreground: var(--text-sub);
+  --muted: var(--bg-subpanel);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--bg-selected);
+  --accent-foreground: var(--accent-cyan);
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: var(--border-color);
+  --input: var(--border-color);
+  --ring: var(--accent-cyan);
 }
 
 [data-theme="light"] {
@@ -56,6 +77,27 @@
   --border-tooltip: #334155;
   --text-tooltip: #ffffff;
   --shadow-popup: 0 10px 25px rgba(0, 0, 0, 0.15);
+
+  /* Tailwind CSS Token Aliases */
+  --background: var(--bg-app);
+  --foreground: var(--text-main);
+  --card: var(--bg-panel);
+  --card-foreground: var(--text-main);
+  --popover: var(--bg-panel);
+  --popover-foreground: var(--text-main);
+  --primary: var(--accent-primary);
+  --primary-foreground: #ffffff;
+  --secondary: var(--bg-subpanel);
+  --secondary-foreground: var(--text-sub);
+  --muted: var(--bg-subpanel);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--bg-selected);
+  --accent-foreground: var(--accent-primary);
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: var(--border-color);
+  --input: var(--border-color);
+  --ring: var(--accent-primary);
 }
 
 /* Universal Floating Tooltips */
@@ -128,29 +170,243 @@ button, input { font: inherit; }
 button { color: var(--text-main); background: var(--bg-button); border: 1px solid var(--border-color); border-radius: 4px; padding: 5px 9px; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
 button:disabled { opacity: .48; cursor: not-allowed; }
 .app-shell { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; display: flex; flex-direction: column; background: var(--bg-app); color: var(--text-main); }
-.app-header { display: flex; flex-direction: column; min-height: 80px; padding: 4px 12px 6px; background: var(--bg-header); border-bottom: 1px solid var(--border-color); }
-.header-menu-row, .app-toolbar { display: flex; align-items: center; min-width: 0; gap: 12px; }
-.header-menu-row { min-height: 38px; }
-.app-toolbar { min-height: 34px; padding-left: 43px; gap: 18px; }
-.brand { display: flex; align-items: center; gap: 9px; min-width: 185px; }
-.brand-mark { display: block; width: 34px; height: 34px; object-fit: contain; border-radius: 7px; }
-.brand strong, .brand small { display: block; }
+.app-header {
+  display: flex;
+  flex-direction: column;
+  height: 72px;
+  min-height: 72px;
+  max-height: 72px;
+  padding: 0 12px;
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  justify-content: center;
+}
+
+/* Custom Thin Scrollbar Utility */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Tier 1: System Bar (32px height) */
+.system-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  min-height: 32px;
+  max-height: 32px;
+  border-bottom: 1px solid var(--border-color);
+  min-width: 0;
+  gap: 12px;
+}
+.system-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.system-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.brand-mark {
+  display: block;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+.brand-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.project-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--bg-subpanel);
+  border: 1px solid var(--border-color);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-sub);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.project-badge .dirty-indicator {
+  color: #eab308;
+  font-size: 14px;
+  line-height: 1;
+}
+.system-util-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-subpanel);
+  color: var(--text-sub);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.system-util-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+  border-color: var(--border-strong);
+}
+.system-util-btn.ai-btn {
+  border-color: rgba(168, 85, 247, 0.35);
+}
+.system-util-btn.ai-btn:hover {
+  border-color: var(--accent-violet);
+  background: rgba(168, 85, 247, 0.12);
+  color: #fff;
+}
+.exp-badge {
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(168, 85, 247, 0.25);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  text-transform: uppercase;
+}
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Tier 2: Workspace Switcher & Quick Actions (40px height) */
+.workspace-switcher-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  min-width: 0;
+}
+.switcher-bar-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
+.switcher-bar-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.switcher-bar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.quick-action-btn {
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-sub);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.quick-action-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+.quick-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.collab-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-subpanel);
+  color: var(--text-sub);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.collab-pill-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+.collab-indicator-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.collab-name {
+  font-weight: 550;
+  color: var(--text-main);
+}
+.collab-badge {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
 /* DaVinci Resolve Inspired Workspace Bar */
 .davinci-workspace-bar {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   background: var(--bg-subpanel);
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  padding: 3px;
+  padding: 2px 4px;
   user-select: none;
 }
 .davinci-workspace-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 11px;
+  padding: 4px 10px;
   border: 0;
   border-radius: 4px;
   background: transparent;
@@ -4674,6 +4930,12 @@ button:active:not(:disabled) { transform: scale(0.96); transition: transform 0.0
   border: 1px solid var(--border-color);
   color: var(--text-sub);
   cursor: pointer;
+  max-width: 58px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  z-index: 20;
 }
 
 .plugin-rack-item {
@@ -6589,12 +6851,13 @@ button:active:not(:disabled) { transform: scale(0.96); transition: transform 0.0
   background: #f1f5f9;
 }
 
+/* Enforce Strict NLE Viewport Rule: Node graph canvas stays dark for accurate compositing */
 [data-theme="light"] .fusion-canvas-container {
-  background-color: #f8fafc;
+  background-color: #06090e;
   background-image: 
-    radial-gradient(circle, rgba(100, 116, 139, 0.15) 1px, transparent 1px),
-    linear-gradient(to right, rgba(100, 116, 139, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(100, 116, 139, 0.08) 1px, transparent 1px);
+    radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 }
 
 [data-theme="light"] .fusion-inspector-panel {
@@ -6781,8 +7044,112 @@ button:active:not(:disabled) { transform: scale(0.96); transition: transform 0.0
   border-color: #bae6fd;
 }
 
+/* Enforce Strict NLE Viewport Rule: Scopes stage stays dark obsidian in both themes */
+.scopes-canvas-stage,
 [data-theme="light"] .scopes-canvas-stage {
-  background: #0f172a;
+  background: #05070a;
+}
+
+/* Ensure Video Scopes & Color Monitor do not get clipped */
+.color-top-row {
+  min-height: 280px;
+}
+.color-scopes-stage {
+  min-height: 260px;
+}
+.scopes-canvas-stage {
+  min-height: 200px;
+}
+.scopes-header {
+  flex-shrink: 0;
+}
+.color-bottom-row {
+  min-height: 250px;
+}
+
+/* Scrollable Containers with Pro NLE Thin Scrollbars */
+.export-destinations,
+.batch-queue-list,
+.export-form-scroll,
+.export-preview-panel,
+.audio-dsp-rack-column,
+.dsp-modules-scroll,
+.mixer-strips-scroll-area,
+.audio-tray-scroller,
+.audio-monitor-column,
+.color-studio-body,
+.job-drawer-list,
+.filmora-panel-content {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.export-destinations::-webkit-scrollbar,
+.batch-queue-list::-webkit-scrollbar,
+.export-form-scroll::-webkit-scrollbar,
+.export-preview-panel::-webkit-scrollbar,
+.audio-dsp-rack-column::-webkit-scrollbar,
+.dsp-modules-scroll::-webkit-scrollbar,
+.mixer-strips-scroll-area::-webkit-scrollbar,
+.audio-tray-scroller::-webkit-scrollbar,
+.audio-monitor-column::-webkit-scrollbar,
+.color-studio-body::-webkit-scrollbar,
+.job-drawer-list::-webkit-scrollbar,
+.filmora-panel-content::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.export-destinations::-webkit-scrollbar-thumb,
+.batch-queue-list::-webkit-scrollbar-thumb,
+.export-form-scroll::-webkit-scrollbar-thumb,
+.export-preview-panel::-webkit-scrollbar-thumb,
+.audio-dsp-rack-column::-webkit-scrollbar-thumb,
+.dsp-modules-scroll::-webkit-scrollbar-thumb,
+.mixer-strips-scroll-area::-webkit-scrollbar-thumb,
+.audio-tray-scroller::-webkit-scrollbar-thumb,
+.audio-monitor-column::-webkit-scrollbar-thumb,
+.color-studio-body::-webkit-scrollbar-thumb,
+.job-drawer-list::-webkit-scrollbar-thumb,
+.filmora-panel-content::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+
+/* Responsive NLE Breakpoints */
+@media (max-width: 1200px) {
+  .system-bar-left .menu-bar {
+    overflow-x: auto;
+    flex-shrink: 1;
+    max-width: 380px;
+  }
+  .project-badge {
+    max-width: 120px;
+  }
+  .workspace-switcher-bar {
+    display: flex;
+    justify-content: space-between;
+    overflow-x: auto;
+    gap: 8px;
+  }
+  .switcher-bar-center {
+    flex: none;
+  }
+  .audio-studio-body {
+    grid-template-columns: minmax(260px, 300px) 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .color-top-row {
+    grid-template-columns: 1fr;
+  }
+  .color-bottom-row {
+    grid-template-columns: 1fr;
+  }
+  .export-workspace {
+    grid-template-columns: minmax(200px, 240px) 1fr;
+  }
 }
 
 

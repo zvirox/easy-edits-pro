@@ -160,7 +160,6 @@ export function ColorWorkspace({
     <main className="workspace-page color-workspace-page">
       <header className="workspace-sub-header color-workspace-header">
         <div className="workspace-header-title">
-          <span className="workspace-eyebrow">COLOR · PRIMARY GRADING &amp; SCOPES</span>
           <h1>Color Grading Studio</h1>
           <p>
             Real-time GPU video scopes (Waveform, Vectorscope, Parade, Histogram), 3-way color balance wheels &amp; cinematic presets.

@@ -174,20 +174,21 @@ fn handle_media_stream_client(mut stream: TcpStream) {
     }
 
     // 2. CORS origin validation
-    let allowed_origins = [
-        "tauri://localhost",
-        "http://localhost:1420",
-        "http://tauri.localhost",
-        "https://tauri.localhost",
-    ];
-    let cors_origin = origin_header.as_ref().and_then(|orig| {
+    let is_origin_allowed = origin_header.as_ref().map_or(true, |orig| {
         let o = orig.trim();
-        if allowed_origins.iter().any(|&allowed| o == allowed) {
-            Some(o)
-        } else {
-            None
-        }
-    }).unwrap_or("tauri://localhost");
+        o == "tauri://localhost"
+            || o == "http://tauri.localhost"
+            || o == "https://tauri.localhost"
+            || o.starts_with("http://localhost:")
+            || o.starts_with("http://127.0.0.1:")
+            || o.starts_with("https://localhost:")
+            || o.starts_with("https://127.0.0.1:")
+    });
+    let cors_origin = if is_origin_allowed {
+        origin_header.as_deref().unwrap_or("tauri://localhost")
+    } else {
+        "tauri://localhost"
+    };
 
     if parts[0] == "OPTIONS" {
         let preflight = format!(

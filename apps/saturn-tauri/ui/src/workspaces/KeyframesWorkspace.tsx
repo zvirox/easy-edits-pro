@@ -273,7 +273,6 @@ export function KeyframesWorkspace({
     <main className="workspace-page keyframes-workspace-page">
       <header className="workspace-sub-header keyframes-workspace-header">
         <div className="workspace-header-title">
-          <span className="workspace-eyebrow">CURVES &amp; SPLINES · KEYFRAME GRAPH EDITOR</span>
           <h1>Keyframe Bezier Curve Editor</h1>
           <p>
             Sculpt property curves with interactive cubic bezier tangents, smooth ease-in/out transitions, and live preview sync.

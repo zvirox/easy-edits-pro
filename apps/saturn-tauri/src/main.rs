@@ -393,6 +393,7 @@ async fn import_media(
             engine_guard
                 .execute(CommandRequest::new("project.add_media", params))
                 .map_err(|error| error.to_string())?;
+            register_allowed_media_path(&path);
             let _ = app.asset_protocol_scope().allow_file(&path);
         }
 

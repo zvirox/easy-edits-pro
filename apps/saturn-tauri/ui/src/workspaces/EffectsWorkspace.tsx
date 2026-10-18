@@ -75,7 +75,6 @@ export function EffectsWorkspace({
     <main className="workspace-page effects-workspace-page">
       <header className="workspace-sub-header effects-workspace-header">
         <div className="workspace-header-title">
-          <span className="workspace-eyebrow">EFFECTS · VISUAL FX &amp; COMPOSITING</span>
           <h1>Visual Effects Lab</h1>
           <p>Compound visual effects stack, blur, crop, vignette, chroma keying, and motion transforms.</p>
         </div>

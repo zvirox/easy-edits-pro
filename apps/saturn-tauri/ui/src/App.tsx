@@ -516,6 +516,7 @@ function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.classList.toggle("dark", theme === "dark");
     try {
       localStorage.setItem("eep-theme", theme);
     } catch {}
@@ -5293,7 +5294,6 @@ function App() {
       <main className="workspace-page audio-workspace-page">
         <header className="workspace-sub-header audio-workspace-header">
           <div className="workspace-header-title">
-            <span className="workspace-eyebrow">FAIRLIGHT · AUDIO STUDIO</span>
             <h1>Fairlight Sound Suite</h1>
             <p>Multi-track mixing console, dual stereo peak VU meters, track panning, and transport sync.</p>
           </div>
@@ -6552,7 +6552,7 @@ function App() {
 
   function renderImportWorkspace() {
     return <main className="workspace-page import-workspace">
-      <header className="workspace-page-heading"><div><span className="workspace-eyebrow">MEDIA · STEP 1</span><h1>Import</h1><p>Bring footage, audio, and graphics into this project.</p></div><button className="primary workspace-heading-action" onClick={() => void importMedia()} disabled={busy}><Icon name="import" /> Browse files…</button></header>
+      <header className="workspace-page-heading"><div><h1>Media Pool</h1><p>Import and organize footage, audio, and graphics for your project.</p></div><button className="primary workspace-heading-action" onClick={() => void importMedia()} disabled={busy}><Icon name="import" /> Browse files…</button></header>
       <section className="import-drop-panel"><div className="import-drop-icon"><Icon name="media" /></div><div><h2>Add media to your project</h2><p>Choose video, audio, or still images from your computer or cloud URL. Imported files stay in their original location.</p></div><div style={{ display: "flex", gap: "8px" }}><button className="primary" onClick={() => void importMedia()} disabled={busy}>＋ Import Local Media</button><button className="btn-secondary" onClick={() => setNetworkImportModalOpen(true)} disabled={busy} style={{ background: "#2563eb", color: "#fff" }}>🌐 Import from URL / S3</button></div></section>
       <section className="import-library-section"><header><div><h2>Project media</h2><p>{media.length} item{media.length === 1 ? "" : "s"} in {project?.name ?? "this project"}</p></div><input className="search" type="search" placeholder="Search project media" aria-label="Search project media" value={search} onChange={(event) => setSearch(event.target.value)} /></header>
         {visibleMedia.length ? <div className="import-media-grid">{visibleMedia.map((item) => <button className={`import-media-card ${selectedMediaId === item.id ? "selected" : ""}`} key={item.id} onClick={() => { setSelectedMediaId(item.id); setSelectedClip(null); setSelectedClips([]); selectDavinciWorkspace("edit"); }} title="Select this media and open the Edit workspace"><span className="import-media-icon"><Icon name="media" /></span><strong>{item.name}</strong><small>{item.kind.toUpperCase()} {item.width && item.height ? `· ${item.width} × ${item.height}` : ""}</small><small>{item.duration ? formatTime(item.duration) : missingMediaIds.has(item.id) ? "Missing · relink required" : "Ready to edit"}</small></button>)}</div> : <div className="import-empty"><Icon name="media" /><strong>{search ? "No matching media" : "Your project is ready for media"}</strong><span>{search ? "Try another search." : "Import a clip to begin building your timeline."}</span><button onClick={() => void importMedia()} disabled={busy}>Browse files…</button></div>}
@@ -6736,41 +6736,23 @@ function App() {
       void invokeMenuCommand(command.id).catch((error: unknown) => setNotice(String(error)));
     }}>
       <header className="app-header">
-        <div className="header-menu-row">
-          <div className="brand">
-            <img className="brand-mark" src="/saturn-camera.png" alt="Easy Edits Pro camera logo" />
-            <div>
-              <strong>Easy Edits Pro</strong>
-              <small>{project?.name ?? "Loading project…"}{projectState?.is_dirty ? " •" : ""}</small>
+        {/* Tier 1: System Bar (32px height) */}
+        <div className="system-bar">
+          <div className="system-bar-left">
+            <div className="brand">
+              <img className="brand-mark" src="/saturn-camera.png" alt="Easy Edits Pro camera logo" />
+              <span className="brand-title">Easy Edits Pro</span>
             </div>
+            <div className="project-badge" title="Active Project">
+              <span>{project?.name ?? "Untitled project"}</span>
+              {projectState?.is_dirty && <span className="dirty-indicator" title="Unsaved changes">•</span>}
+            </div>
+            <nav className="menu-bar" aria-label="Application menus">
+              {["File", "Edit", "Clip", "Sequence", "Markers", "View", "Window", "Help"].map(renderMenu)}
+            </nav>
           </div>
 
-          {/* DaVinci Resolve Inspired Workspace Bar */}
-          <nav className="davinci-workspace-bar" aria-label="DaVinci Resolve Workspaces">
-            {davinciWorkspaces.map((item) => {
-              const isActive = davinciWorkspace === item.id;
-              return (
-                <button
-                  key={item.id}
-                  className={`davinci-workspace-btn ${isActive ? "active" : ""}`}
-                  onClick={() => selectDavinciWorkspace(item.id)}
-                  data-tooltip={`${item.label} Page (${item.shortcut})${item.isExperimental ? " • Experimental" : ""}`}
-                  data-tooltip-pos="bottom"
-                  aria-current={isActive ? "page" : undefined}
-                >
-                  <Icon name={item.icon} />
-                  <span>{item.label}</span>
-                  {item.isExperimental && <span className="exp-badge">EXP</span>}
-                </button>
-              );
-            })}
-          </nav>
-
-          <nav className="menu-bar" aria-label="Application menus">
-            {["File", "Edit", "Clip", "Sequence", "Markers", "View", "Window", "Help"].map(renderMenu)}
-          </nav>
-
-          <div className="header-actions">
+          <div className="system-bar-right">
             {/* Background Job Queue Status Pill */}
             <div className="job-queue-wrapper" ref={jobDrawerRef}>
               <button
@@ -6831,7 +6813,7 @@ function App() {
                     </div>
                   </header>
 
-                  <div className="job-drawer-list">
+                  <div className="job-drawer-list scrollbar-thin">
                     {jobs.length === 0 ? (
                       <div className="job-drawer-empty">No background tasks</div>
                     ) : (
@@ -6881,19 +6863,7 @@ function App() {
 
             <button
               type="button"
-              className="btn-secondary"
-              style={{
-                padding: "4px 8px",
-                fontSize: "11px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                cursor: "pointer",
-                borderRadius: "4px",
-                border: "1px solid #334155",
-                background: "#1e293b",
-                color: "#f1f5f9",
-              }}
+              className="system-util-btn"
               onClick={() => setBatchQueueDrawerOpen(true)}
               data-tooltip="Open Background Batch Render Queue"
               data-tooltip-pos="bottom"
@@ -6904,20 +6874,7 @@ function App() {
 
             <button
               type="button"
-              className="btn-secondary"
-              style={{
-                padding: "4px 8px",
-                fontSize: "11px",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                cursor: "pointer",
-                borderRadius: "4px",
-                border: "1px solid #3b82f6",
-                background: "#1e3a8a",
-                color: "#93c5fd",
-                fontWeight: 600,
-              }}
+              className="system-util-btn ai-btn"
               onClick={() => setAiChatDrawerOpen(true)}
               data-tooltip="Open Local AI Assistant (Ollama) • Experimental"
               data-tooltip-pos="bottom"
@@ -6928,72 +6885,107 @@ function App() {
             </button>
 
             <ThemeToggle theme={theme} onToggle={toggleTheme} />
-            <button
-              className="icon-button"
-              onClick={() => void toggleFullscreen()}
-              aria-label={fullscreen ? "Leave fullscreen" : "Enter fullscreen"}
-              data-tooltip={fullscreen ? "Leave Fullscreen (F11)" : "Enter Fullscreen (F11)"}
-              data-tooltip-pos="bottom"
-            >
-              <Icon name={fullscreen ? "restore" : "fullscreen"} />
-            </button>
-            <button
-              className="icon-button close"
-              onClick={() => void getCurrentWindow().close()}
-              aria-label="Close Easy Edits Pro"
-              data-tooltip="Close Easy Edits Pro (Ctrl+Q)"
-              data-tooltip-pos="bottom"
-            >
-              <Icon name="close" />
-            </button>
+
+            <div className="window-controls">
+              <button
+                className="icon-button"
+                onClick={() => void toggleFullscreen()}
+                aria-label={fullscreen ? "Leave fullscreen" : "Enter fullscreen"}
+                data-tooltip={fullscreen ? "Leave Fullscreen (F11)" : "Enter Fullscreen (F11)"}
+                data-tooltip-pos="bottom"
+              >
+                <Icon name={fullscreen ? "restore" : "fullscreen"} />
+              </button>
+              <button
+                className="icon-button close"
+                onClick={() => void getCurrentWindow().close()}
+                aria-label="Close Easy Edits Pro"
+                data-tooltip="Close Easy Edits Pro (Ctrl+Q)"
+                data-tooltip-pos="bottom"
+              >
+                <Icon name="close" />
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="app-toolbar">
-          <nav className="file-actions" aria-label="Project actions">
-            <button
-              onClick={() => { void ensureDiscardIsOkay().then((ok) => { if (ok) { setNewProjectName("Untitled project"); setNewProjectOpen(true); } }); }}
-              data-tooltip="New Project (Ctrl+N)"
-              data-tooltip-pos="bottom"
-            >
-              New
-            </button>
-            <button
-              onClick={() => void openProject().catch((error: unknown) => setNotice(String(error)))}
-              data-tooltip="Open Project (Ctrl+O)"
-              data-tooltip-pos="bottom"
-            >
-              Open
-            </button>
-            <button
-              onClick={() => void saveProject()}
-              data-tooltip="Save Project (Ctrl+S)"
-              data-tooltip-pos="bottom"
-            >
-              Save
-            </button>
-            <button
-              onClick={() => void importMedia()}
-              disabled={busy}
-              data-tooltip="Import Media Files (Ctrl+I)"
-              data-tooltip-pos="bottom"
-            >
-              Import
-            </button>
-            <span className="action-divider" />
-            <button
-              className="collab-pill-btn"
-              onClick={() => setCollabModalOpen(true)}
-              data-tooltip="Collaborative Multi-User Project Locking (Phase 12.1)"
-              data-tooltip-pos="bottom"
-            >
-              <span className="collab-indicator-dot" style={{ backgroundColor: collabUser.color }} />
-              <span className="collab-name">{collabUser.name}</span>
-              <span className="collab-badge">
-                🔒 {project?.collaboration?.locks?.length ?? 0}
-              </span>
-            </button>
-          </nav>
+        {/* Tier 2: Workspace Switcher & Quick Actions (40px height) */}
+        <div className="workspace-switcher-bar">
+          <div className="switcher-bar-left">
+            <nav className="file-actions" aria-label="Project actions">
+              <button
+                className="quick-action-btn"
+                onClick={() => { void ensureDiscardIsOkay().then((ok) => { if (ok) { setNewProjectName("Untitled project"); setNewProjectOpen(true); } }); }}
+                data-tooltip="New Project (Ctrl+N)"
+                data-tooltip-pos="bottom"
+              >
+                New
+              </button>
+              <button
+                className="quick-action-btn"
+                onClick={() => void openProject().catch((error: unknown) => setNotice(String(error)))}
+                data-tooltip="Open Project (Ctrl+O)"
+                data-tooltip-pos="bottom"
+              >
+                Open
+              </button>
+              <button
+                className="quick-action-btn"
+                onClick={() => void saveProject()}
+                data-tooltip="Save Project (Ctrl+S)"
+                data-tooltip-pos="bottom"
+              >
+                Save
+              </button>
+              <button
+                className="quick-action-btn"
+                onClick={() => void importMedia()}
+                disabled={busy}
+                data-tooltip="Import Media Files (Ctrl+I)"
+                data-tooltip-pos="bottom"
+              >
+                Import
+              </button>
+              <span className="action-divider" />
+              <button
+                className="collab-pill-btn"
+                onClick={() => setCollabModalOpen(true)}
+                data-tooltip="Collaborative Multi-User Project Locking (Phase 12.1)"
+                data-tooltip-pos="bottom"
+              >
+                <span className="collab-indicator-dot" style={{ backgroundColor: collabUser.color }} />
+                <span className="collab-name">{collabUser.name}</span>
+                <span className="collab-badge">
+                  🔒 {project?.collaboration?.locks?.length ?? 0}
+                </span>
+              </button>
+            </nav>
+          </div>
+
+          <div className="switcher-bar-center">
+            {/* Centered DaVinci Resolve Workspaces Tab Pills */}
+            <nav className="davinci-workspace-bar" aria-label="DaVinci Resolve Workspaces">
+              {davinciWorkspaces.map((item) => {
+                const isActive = davinciWorkspace === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    className={`davinci-workspace-btn ${isActive ? "active" : ""}`}
+                    onClick={() => selectDavinciWorkspace(item.id)}
+                    data-tooltip={`${item.label} Page (${item.shortcut})${item.isExperimental ? " • Experimental" : ""}`}
+                    data-tooltip-pos="bottom"
+                    aria-current={isActive ? "page" : undefined}
+                  >
+                    <Icon name={item.icon} />
+                    <span>{item.label}</span>
+                    {item.isExperimental && <span className="exp-badge">EXP</span>}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+
+          <div className="switcher-bar-right" />
         </div>
       </header>
 

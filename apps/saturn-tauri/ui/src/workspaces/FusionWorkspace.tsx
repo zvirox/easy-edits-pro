@@ -139,7 +139,6 @@ export function FusionWorkspace({
     <main className="workspace-page fusion-workspace-page">
       <header className="workspace-sub-header fusion-workspace-header">
         <div className="workspace-header-title">
-          <span className="workspace-eyebrow">FUSION · COMPOSITING SUITE</span>
           <h1>Fusion Node-Based Compositor</h1>
           <p>
             Visual procedural node graph ({nodes.length} nodes, {connections.length} links, {masks.length} masks),
