@@ -6,6 +6,11 @@
 
 **力と美のために** &middot; *Precision, Performance & Power for Modern Linux Video Editing.*
 
+[![Sponsor zvirox](https://img.shields.io/badge/Sponsor-zvirox-ea4aaa?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/zvirox)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-zvirox-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/zvirox)
+
+<br />
+
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-E2342A?style=for-the-badge)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-2021_Edition-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![Tauri 2](https://img.shields.io/badge/Tauri-2.0-24C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://v2.tauri.app/)
@@ -13,11 +18,6 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![GStreamer](https://img.shields.io/badge/GStreamer-GES_1.24+-E2342A?style=for-the-badge&logo=gstreamer&logoColor=white)](https://gstreamer.freedesktop.org/)
 [![Platform: Linux](https://img.shields.io/badge/Platform-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://github.com/zvirox/easy-edits-pro)
-
-<br />
-
-[![Sponsor zvirox](https://img.shields.io/badge/Sponsor-zvirox-ea4aaa?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/zvirox)
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-zvirox-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/zvirox)
 
 <br />
 
