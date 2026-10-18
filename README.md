@@ -6,8 +6,6 @@
 
 **力と美のために** &middot; *Precision, Performance & Power for Modern Linux Video Editing.*
 
-Easy Edits Pro is a high-performance, non-linear desktop video editor engineered in Rust and Tauri 2 for Linux. Designed to combine the workspace fluidity of DaVinci Resolve, the rich asset shelf ergonomics of Wondershare Filmora, and the cutting precision of Adobe Premiere Pro—all inside an obsidian-dark interface crafted specifically for modern Linux desktop rices (Hyprland, Niri, Sway, GNOME, and KDE).
-
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-E2342A?style=for-the-badge)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-2021_Edition-DEA584?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![Tauri 2](https://img.shields.io/badge/Tauri-2.0-24C8DB?style=for-the-badge&logo=tauri&logoColor=white)](https://v2.tauri.app/)
@@ -22,6 +20,9 @@ Easy Edits Pro is a high-performance, non-linear desktop video editor engineered
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-zvirox-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white)](https://ko-fi.com/zvirox)
 
 <br />
+
+Easy Edits Pro is a high-performance, non-linear desktop video editor engineered in Rust and Tauri 2 for Linux. Designed to combine the workspace fluidity of DaVinci Resolve, the rich asset shelf ergonomics of Wondershare Filmora, and the cutting precision of Adobe Premiere Pro—all inside an obsidian-dark interface crafted specifically for modern Linux desktop rices (Hyprland, Niri, Sway, GNOME, and KDE).
+
 
 [![GitHub](https://img.shields.io/badge/GitHub-zvirox-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/zvirox)
 [![YouTube: @zvirox_in](https://img.shields.io/badge/YouTube-@zvirox__in-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@zvirox_in)
