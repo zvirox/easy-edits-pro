@@ -8,14 +8,12 @@ import type {
   Clip,
   MediaAsset,
   ProjectDocument,
+  SelectedClip,
+  TimelineTool,
   Track,
   Transition,
 } from "./projectTypes";
-import type { SelectedClip } from "../features/menubar";
-import {
-  type TimelineTool,
-  TICKS_PER_SECOND,
-} from "../features/timeline/types";
+import { TICKS_PER_SECOND } from "../engine/playback/constants";
 import type { KeyframeProperty } from "../engine/playback/types";
 
 type ClipPointerDrag = {

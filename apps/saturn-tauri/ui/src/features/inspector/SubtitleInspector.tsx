@@ -1,6 +1,6 @@
 import { formatTime } from "../../utils/formatters";
 import type { SubtitleItem } from "../../app/projectTypes";
-import { TICKS_PER_SECOND } from "../timeline";
+import { TICKS_PER_SECOND } from "../../engine/playback/constants";
 
 export interface SubtitleInspectorProps {
   selectedSubtitle: SubtitleItem;

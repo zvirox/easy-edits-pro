@@ -10,7 +10,7 @@ import type {
   VignetteParams,
   ChromaKeyParams,
 } from "../../engine/playbackEngine";
-import type { SelectedClip } from "../menubar";
+import type { SelectedClip } from "../../app/projectTypes";
 
 export interface LutPresetItem {
   id: string;

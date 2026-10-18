@@ -5,9 +5,9 @@ import type {
   Clip,
   ColorAdjustments,
   ProjectDocument,
+  SelectedClip,
   SubtitleItem,
 } from "./projectTypes";
-import type { SelectedClip } from "../features/menubar";
 import type {
   EffectKind,
   EffectPayload,
@@ -18,7 +18,7 @@ import type {
   TrackingMode,
 } from "../engine/playbackEngine";
 import { type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "../components/ColorWheels";
-import { TICKS_PER_SECOND } from "../features/timeline/types";
+import { TICKS_PER_SECOND } from "../engine/playback/constants";
 
 export interface UseInspectorOperationsOptions {
   selectedClip: SelectedClip | null;

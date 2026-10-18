@@ -1,10 +1,13 @@
 import { useCallback, type KeyboardEvent } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import type { ProjectStatus } from "./projectTypes";
+import type {
+  DavinciWorkspace,
+  ProjectStatus,
+  SelectedClip,
+  TimelineTool,
+} from "./projectTypes";
 
-export type DavinciWorkspace = "media" | "edit" | "fusion" | "color" | "audio" | "effects" | "keyframes" | "deliver";
-export type TimelineTool = "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "pen" | "hand" | "zoom";
-export type SelectedClip = { track_id: number; clip_index: number };
+export type { DavinciWorkspace, TimelineTool, SelectedClip };
 export type SelectedTransition = { track_id: number; transition: { id: number; kind: string; cut_at: number; duration: number } };
 export type ShortcutCommand = { id: string; shortcut: string | null };
 export type ShortcutTimelineTool = { id: TimelineTool; shortcut: string };

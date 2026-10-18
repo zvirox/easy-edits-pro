@@ -5,11 +5,16 @@ import { ThemeToggle } from "../../components/interior/theme-toggle";
 import { SegmentedControl } from "../../components/interior/segmented-control";
 import type { JobInfo } from "../../app/useJobs";
 import type { CommandStatus } from "../../app/ProjectProvider";
-import type { MediaAsset, ProjectDocument, ProjectStatus } from "../../app/projectTypes";
+import type {
+  DavinciWorkspace,
+  MediaAsset,
+  ProjectDocument,
+  ProjectStatus,
+  SelectedClip,
+} from "../../app/projectTypes";
 
-export type DavinciWorkspace = "media" | "edit" | "fusion" | "color" | "audio" | "effects" | "keyframes" | "deliver";
+export type { DavinciWorkspace, SelectedClip };
 export type Workspace = "edit" | "color" | "effects" | "audio" | "keyframes" | "export" | "library" | "ai";
-export type SelectedClip = { track_id: number; clip_index: number };
 export type CommandSpec = { id: string; label: string; menu: string[]; shortcut: string | null; mutating: boolean };
 
 export const davinciWorkspaces: { id: DavinciWorkspace; label: string; shortcut: string; icon: string; isExperimental?: boolean }[] = [

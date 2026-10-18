@@ -2,9 +2,15 @@ import type { PointerEvent } from "react";
 import { Icon, type IconName } from "../../components/Icon";
 import { LoadingButton } from "../../components/interior/loading-button";
 import { formatTime } from "../../utils/formatters";
-import type { MediaAsset, ProjectDocument, TransitionKind } from "../../app/projectTypes";
+import type {
+  FilmoraTab,
+  MediaAsset,
+  OpenverseAsset,
+  ProjectDocument,
+  TransitionKind,
+} from "../../app/projectTypes";
 
-export type FilmoraTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
+export type { FilmoraTab, OpenverseAsset };
 
 export const filmoraTabs: { id: FilmoraTab; label: string; icon: IconName; tooltip: string }[] = [
   { id: "media", label: "Media", icon: "media", tooltip: "Project Media Bin" },
@@ -88,22 +94,11 @@ export const transitionPresets: { id: TransitionKind; name: string; desc: string
   { id: "slide_right", name: "Slide Right", desc: "Push slide moving right", iconSymbol: "⇢" },
 ];
 
-export type OpenverseAsset = {
-  id: string;
-  title: string;
-  mediaUrl: string;
-  sourceUrl: string;
-  thumbnailUrl: string | null;
-  creator: string | null;
-  license: string | null;
-  licenseUrl: string | null;
-};
-
 export interface MediaPanelProps {
   filmoraTab: FilmoraTab;
   setFilmoraTab: (tab: FilmoraTab) => void;
   media: MediaAsset[];
-  visibleMedia: MediaAsset[];
+  visibleMedia?: MediaAsset[];
   selectedMediaId: number | null;
   setSelectedMediaId: (id: number) => void;
   busy: boolean;
@@ -124,6 +119,7 @@ export interface MediaPanelProps {
   beginMediaPointer: (event: PointerEvent<HTMLButtonElement>, mediaId: number) => void;
   moveMediaPointer: (event: PointerEvent<HTMLButtonElement>) => void;
   cancelMediaPointer: (event: PointerEvent<HTMLButtonElement>) => void;
+  finishMediaPointer?: (event: PointerEvent<HTMLButtonElement>) => void;
   addPresetTitle: (preset: (typeof titlePresets)[0]) => Promise<void>;
   addPresetTransition: (kind: TransitionKind) => Promise<void>;
   playhead: number;
@@ -170,6 +166,7 @@ export function MediaPanel({
   beginMediaPointer,
   moveMediaPointer,
   cancelMediaPointer,
+  finishMediaPointer,
   addPresetTitle,
   addPresetTransition,
   playhead,
@@ -190,6 +187,8 @@ export function MediaPanel({
   askAi,
   aiReply,
 }: MediaPanelProps) {
+  const mediaItems = visibleMedia ?? [];
+  const allMedia = media ?? [];
   return (
     <aside className="media-panel">
       <div className="filmora-tabs" role="tablist" aria-label="Filmora Asset Categories">
@@ -307,10 +306,10 @@ export function MediaPanel({
                 className={`media-bin-pill ${activeBinId === null ? "active" : ""}`}
                 onClick={() => setActiveBinId(null)}
               >
-                📁 All ({media.length})
+                📁 All ({allMedia.length})
               </button>
               {(project?.bins ?? []).map((bin) => {
-                const binCount = media.filter((m) => m.bin_id === bin.id).length;
+                const binCount = allMedia.filter((m) => m.bin_id === bin.id).length;
                 return (
                   <button
                     key={bin.id}
@@ -338,7 +337,7 @@ export function MediaPanel({
 
             {mediaViewMode === "grid" ? (
               <div className="media-list">
-                {visibleMedia.map((item) => {
+                {mediaItems.map((item) => {
                   const isMissing = missingMediaIds.has(item.id) || item.is_missing;
                   const isSelected = selectedMediaId === item.id;
                   const binName = project?.bins?.find((b) => b.id === item.bin_id)?.name;
@@ -354,7 +353,7 @@ export function MediaPanel({
                         onClick={() => setSelectedMediaId(item.id)}
                         onPointerDown={(event) => beginMediaPointer(event, item.id)}
                         onPointerMove={moveMediaPointer}
-                        onPointerUp={cancelMediaPointer}
+                        onPointerUp={(event) => (finishMediaPointer ? void finishMediaPointer(event) : cancelMediaPointer(event))}
                         onPointerCancel={cancelMediaPointer}
                         data-tooltip={
                           isMissing
@@ -409,7 +408,7 @@ export function MediaPanel({
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleMedia.map((item) => {
+                    {mediaItems.map((item) => {
                       const isMissing = missingMediaIds.has(item.id) || item.is_missing;
                       const isSelected = selectedMediaId === item.id;
                       const binName = project?.bins?.find((b) => b.id === item.bin_id)?.name;
@@ -459,7 +458,7 @@ export function MediaPanel({
               </div>
             )}
 
-            {visibleMedia.length === 0 && (
+            {mediaItems.length === 0 && (
               <div className="empty-media">
                 <span className="media-icon">
                   <Icon name="media" />

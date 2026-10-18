@@ -15,6 +15,7 @@ import { AppHeader } from "./features/menubar";
 import { WorkspaceRouter } from "./workspaces/WorkspaceRouter";
 import { StatusBar } from "./components/StatusBar";
 import { EditorModals } from "./features/dialogs";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { TICKS_PER_SECOND } from "./features/timeline/types";
 import { audioClockMaster } from "./engine/playbackEngine";
 
@@ -117,6 +118,9 @@ function EditorApp() {
     setSelectedClips: timelineOps.setSelectedClips, selectedTransition: timelineOps.selectedTransition,
     setSelectedTransition: timelineOps.setSelectedTransition, selectedTimelineClip,
     setWorkspace: projectOps.setWorkspace,
+    setMediaDropTargetTrackId: timelineOps.setMediaDropTargetTrackId,
+    timelineZoom: timelineOps.timelineZoom,
+    snapEnabled: timelineOps.snapEnabled,
   });
 
   const inspectorOps = useInspectorOperations({
@@ -225,19 +229,21 @@ function EditorApp() {
         toggleFullscreen={projectOps.toggleFullscreen}
       />
 
-      <WorkspaceRouter
-        davinciWorkspace={projectOps.davinciWorkspace}
-        project={project} media={media}
-        selectedTimelineClip={selectedTimelineClip}
-        selectedMedia={selectedMedia}
-        missingMediaIds={missingMediaIds} busy={busy}
-        timelineWidth={timelineWidth} timelineEndSeconds={timelineEndSeconds}
-        selectDavinciWorkspace={selectDavinciWorkspace} playback={playback}
-        mediaOps={mediaOps} timelineOps={timelineOps}
-        inspectorOps={inspectorOps} projectOps={projectOps}
-        perform={perform} undoStatus={undoStatus} redoStatus={redoStatus}
-        programPreviewError={programPreviewError} audioClockMaster={audioClockMaster}
-      />
+      <ErrorBoundary fallbackTitle="Workspace Rendering Issue" onReset={() => projectOps.setDavinciWorkspace("edit")}>
+        <WorkspaceRouter
+          davinciWorkspace={projectOps.davinciWorkspace}
+          project={project} media={media}
+          selectedTimelineClip={selectedTimelineClip}
+          selectedMedia={selectedMedia}
+          missingMediaIds={missingMediaIds} busy={busy}
+          timelineWidth={timelineWidth} timelineEndSeconds={timelineEndSeconds}
+          selectDavinciWorkspace={selectDavinciWorkspace} playback={playback}
+          mediaOps={mediaOps} timelineOps={timelineOps}
+          inspectorOps={inspectorOps} projectOps={projectOps}
+          perform={perform} undoStatus={undoStatus} redoStatus={redoStatus}
+          programPreviewError={programPreviewError} audioClockMaster={audioClockMaster}
+        />
+      </ErrorBoundary>
 
       <StatusBar
         busy={busy} notice={notice} connection={connection}

@@ -1,7 +1,10 @@
 import {
   type Dispatch,
+  type PointerEvent,
   type SetStateAction,
   useCallback,
+  useMemo,
+  useRef,
   useState,
 } from "react";
 import { invoke } from "@tauri-apps/api/core";
@@ -9,16 +12,18 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { formatTime } from "../utils/formatters";
 import type {
   Clip,
+  FilmoraTab,
+  OpenverseAsset,
   ProjectDocument,
   ProjectStatus,
+  SelectedClip,
   TitleProperties,
   Transition,
   TransitionKind,
 } from "./projectTypes";
 import type { CommandStatus, MediaAvailability } from "./ProjectProvider";
-import type { SelectedClip } from "../features/menubar";
-import type { FilmoraTab, OpenverseAsset } from "../features/media-pool";
-import { TICKS_PER_SECOND } from "../features/timeline/types";
+import { TICKS_PER_SECOND } from "../engine/playback/constants";
+import { filterMediaItems } from "./mediaFilter";
 
 const mediaFilters = [
   {
@@ -51,6 +56,9 @@ export interface UseMediaOperationsOptions {
   setSelectedTransition: Dispatch<SetStateAction<{ track_id: number; transition: Transition } | null>>;
   selectedTimelineClip: Clip | null;
   setWorkspace: (ws: any) => void;
+  setMediaDropTargetTrackId?: (id: number | null) => void;
+  timelineZoom?: number;
+  snapEnabled?: boolean;
 }
 
 export function useMediaOperations({
@@ -74,10 +82,15 @@ export function useMediaOperations({
   setSelectedTransition,
   selectedTimelineClip,
   setWorkspace,
+  setMediaDropTargetTrackId,
+  timelineZoom = 60,
+  snapEnabled = true,
 }: UseMediaOperationsOptions) {
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
   const [filmoraTab, setFilmoraTab] = useState<FilmoraTab>("media");
   const [search, setSearch] = useState("");
+  const [activeBinId, setActiveBinId] = useState<number | null>(null);
+  const [mediaViewMode, setMediaViewMode] = useState<"grid" | "list">("grid");
 
   const [mediaEditPropsId, setMediaEditPropsId] = useState<number | null>(null);
   const [mediaEditPropsName, setMediaEditPropsName] = useState("");
@@ -101,6 +114,122 @@ export function useMediaOperations({
   const [aiReply, setAiReply] = useState("");
 
   const [titleDraft, setTitleDraft] = useState<TitleProperties | null>(null);
+
+  const visibleMedia = useMemo(() => {
+    return filterMediaItems(project?.media, search, activeBinId);
+  }, [project?.media, search, activeBinId]);
+
+  const checkMissingMedia = useCallback(async () => {
+    await perform("media.check_missing", {}, "Checked missing media");
+  }, [perform]);
+
+  const mediaPointerDrag = useRef<{
+    pointerId: number;
+    mediaId: number;
+    startX: number;
+    startY: number;
+    dragging: boolean;
+  } | null>(null);
+  const suppressMediaClick = useRef(false);
+  const [draggedMediaId, setDraggedMediaId] = useState<number | null>(null);
+
+  const beginMediaPointer = useCallback((event: PointerEvent<HTMLButtonElement>, mediaId: number) => {
+    if (event.button !== 0) return;
+    mediaPointerDrag.current = { pointerId: event.pointerId, mediaId, startX: event.clientX, startY: event.clientY, dragging: false };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }, []);
+
+  const moveMediaPointer = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      const drag = mediaPointerDrag.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      if (!drag.dragging && Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) >= 5) {
+        drag.dragging = true;
+        setDraggedMediaId(drag.mediaId);
+      }
+      if (!drag.dragging) return;
+      event.preventDefault();
+      const lane = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>(".track-lane");
+      setMediaDropTargetTrackId?.(lane?.dataset.trackId ? Number(lane.dataset.trackId) : null);
+    },
+    [setMediaDropTargetTrackId]
+  );
+
+  const cancelMediaPointer = useCallback(
+    (event: PointerEvent<HTMLButtonElement>) => {
+      if (mediaPointerDrag.current?.pointerId !== event.pointerId) return;
+      mediaPointerDrag.current = null;
+      setDraggedMediaId(null);
+      setMediaDropTargetTrackId?.(null);
+    },
+    [setMediaDropTargetTrackId]
+  );
+
+  const finishMediaPointer = useCallback(
+    async (event: PointerEvent<HTMLButtonElement>) => {
+      const drag = mediaPointerDrag.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      mediaPointerDrag.current = null;
+      setDraggedMediaId(null);
+      setMediaDropTargetTrackId?.(null);
+      if (!drag.dragging) return;
+      event.preventDefault();
+      suppressMediaClick.current = true;
+      window.setTimeout(() => {
+        suppressMediaClick.current = false;
+      }, 0);
+      const lane = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>(".track-lane");
+      const trackId = lane?.dataset.trackId ? Number(lane.dataset.trackId) : null;
+      const mediaItem = project?.media.find((item) => item.id === drag.mediaId);
+      const track = project?.sequence.tracks.find((item) => item.id === trackId);
+      if (!lane || !track || !mediaItem) return;
+      if (track.locked) {
+        setNotice(`Track "${track.name}" is locked against edits`);
+        return;
+      }
+      const expectedKind = mediaItem.kind === "audio" ? "audio" : "video";
+      if (track.kind !== expectedKind) {
+        setNotice(`Drop ${expectedKind} media on a ${expectedKind} track`);
+        return;
+      }
+      const laneBounds = lane.getBoundingClientRect();
+      const seconds = Math.max(0, (event.clientX - laneBounds.left) / timelineZoom);
+      const frameRate = project?.settings.frame_rate ?? { numerator: 30, denominator: 1 };
+      const frameTicks = Math.round((TICKS_PER_SECOND * frameRate.denominator) / frameRate.numerator);
+      const rawStart = seconds * TICKS_PER_SECOND;
+      const timelineStart = snapEnabled ? Math.round(rawStart / frameTicks) * frameTicks : Math.round(rawStart);
+      setBusy(true);
+      setNotice("");
+      try {
+        const result = await runCommand<SelectedClip>("timeline.add_clip", {
+          media_id: drag.mediaId,
+          track_id: track.id,
+          timeline_start: timelineStart,
+        });
+        setSelectedMediaId(drag.mediaId);
+        setSelectedClip(result);
+        setSelectedClips([]);
+        await refreshProject();
+        setNotice("Clip added at drop position");
+      } catch (error) {
+        setNotice(String(error));
+      } finally {
+        setBusy(false);
+      }
+    },
+    [
+      project,
+      timelineZoom,
+      snapEnabled,
+      runCommand,
+      refreshProject,
+      setBusy,
+      setNotice,
+      setSelectedClip,
+      setSelectedClips,
+      setMediaDropTargetTrackId,
+    ]
+  );
 
   const importMedia = useCallback(async () => {
     const choice = await open({ title: "Import media into Easy Edits Pro", multiple: true, filters: mediaFilters });
@@ -160,8 +289,9 @@ export function useMediaOperations({
   const deleteMediaBin = useCallback(
     async (binId: number) => {
       await perform("bin.delete", { bin_id: binId }, "Media bin deleted");
+      if (activeBinId === binId) setActiveBinId(null);
     },
-    [perform]
+    [perform, activeBinId]
   );
 
   const moveMediaToBin = useCallback(
@@ -457,6 +587,17 @@ export function useMediaOperations({
     setFilmoraTab,
     search,
     setSearch,
+    activeBinId,
+    setActiveBinId,
+    mediaViewMode,
+    setMediaViewMode,
+    visibleMedia,
+    checkMissingMedia,
+    beginMediaPointer,
+    moveMediaPointer,
+    cancelMediaPointer,
+    finishMediaPointer,
+    draggedMediaId,
     mediaEditPropsId,
     setMediaEditPropsId,
     mediaEditPropsName,

@@ -6,7 +6,7 @@ import { CompoundClipModal } from "./CompoundClipModal";
 import { GpuTelemetryModal } from "./GpuTelemetryModal";
 import { MediaBinModal } from "./MediaBinModal";
 import { MediaPropsModal } from "./MediaPropsModal";
-import { NetworkImportModal } from "../media-pool";
+import { NetworkImportModal } from "../../components/NetworkImportModal";
 import { BatchQueueDrawer } from "../../components/BatchQueueDrawer";
 import { OllamaChatDrawer } from "../../components/OllamaChatDrawer";
 import type { MediaAsset, ProjectDocument } from "../../app/projectTypes";

@@ -1,18 +1,8 @@
-import type { Clip } from "../../app/projectTypes";
 import type { IconName } from "../../components/Icon";
+import type { TimelineTool } from "../../app/projectTypes";
 
-export type TimelineTool =
-  | "select"
-  | "trackForward"
-  | "ripple"
-  | "rolling"
-  | "razor"
-  | "slip"
-  | "slide"
-  | "rateStretch"
-  | "pen"
-  | "hand"
-  | "zoom";
+export type { TimelineTool };
+export { TRACK_LABEL_WIDTH, TICKS_PER_SECOND, getTrackGaps } from "../../app/projectTypes";
 
 export const timelineTools: {
   id: TimelineTool;
@@ -33,20 +23,3 @@ export const timelineTools: {
   { id: "hand", icon: "hand", label: "Hand Pan Tool", shortLabel: "Hand", shortcut: "H" },
   { id: "zoom", icon: "zoomIn", label: "Zoom Tool", shortLabel: "Zoom", shortcut: "Z" },
 ];
-
-export const TRACK_LABEL_WIDTH = 114;
-export const TICKS_PER_SECOND = 254_016_000_000;
-
-export function getTrackGaps(clips: Clip[]): Array<{ start: number; end: number }> {
-  if (clips.length === 0) return [];
-  const sorted = [...clips].sort((a, b) => a.timeline_start - b.timeline_start);
-  const gaps: Array<{ start: number; end: number }> = [];
-  let currentEnd = 0;
-  for (const clip of sorted) {
-    if (clip.timeline_start > currentEnd) {
-      gaps.push({ start: currentEnd, end: clip.timeline_start });
-    }
-    currentEnd = Math.max(currentEnd, clip.timeline_start + clip.duration);
-  }
-  return gaps;
-}

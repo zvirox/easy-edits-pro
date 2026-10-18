@@ -19,6 +19,7 @@ import type {
   Transition,
   TransitionKind,
   Track,
+  SelectedClip,
 } from "../../app/projectTypes";
 import type {
   AudioClockMaster,
@@ -30,7 +31,6 @@ import type {
   SpeedRamp,
   TrackingMode,
 } from "../../engine/playbackEngine";
-import type { SelectedClip } from "../menubar";
 
 export interface InspectorPanelProps {
   workspace: string;

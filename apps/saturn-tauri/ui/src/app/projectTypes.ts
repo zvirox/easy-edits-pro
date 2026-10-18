@@ -158,3 +158,69 @@ export type ProjectDocument = {
 export type ProjectStatus = { document: ProjectDocument; path: string | null; is_dirty: boolean };
 
 export type RecoveryStatus = { available: boolean; projectName?: string; savedAt?: number };
+
+export type SelectedClip = {
+  track_id: number;
+  clip_index: number;
+};
+
+export type DavinciWorkspace =
+  | "media"
+  | "edit"
+  | "fusion"
+  | "color"
+  | "fairlight"
+  | "audio"
+  | "effects"
+  | "curves"
+  | "keyframes"
+  | "deliver";
+
+export interface GpuMetrics {
+  fpsMeasured: number;
+  surfaceWidth: number;
+  surfaceHeight: number;
+}
+
+export type FilmoraTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
+
+export type OpenverseAsset = {
+  id: string;
+  title: string;
+  mediaUrl: string;
+  sourceUrl: string;
+  thumbnailUrl: string | null;
+  creator: string | null;
+  license: string | null;
+  licenseUrl: string | null;
+};
+
+export type TimelineTool =
+  | "select"
+  | "trackForward"
+  | "ripple"
+  | "rolling"
+  | "razor"
+  | "slip"
+  | "slide"
+  | "rateStretch"
+  | "pen"
+  | "hand"
+  | "zoom";
+
+export const TRACK_LABEL_WIDTH = 114;
+export const TICKS_PER_SECOND = 254_016_000_000;
+
+export function getTrackGaps(clips: Clip[]): Array<{ start: number; end: number }> {
+  if (clips.length === 0) return [];
+  const sorted = [...clips].sort((a, b) => a.timeline_start - b.timeline_start);
+  const gaps: Array<{ start: number; end: number }> = [];
+  let currentEnd = 0;
+  for (const clip of sorted) {
+    if (clip.timeline_start > currentEnd) {
+      gaps.push({ start: currentEnd, end: clip.timeline_start });
+    }
+    currentEnd = Math.max(currentEnd, clip.timeline_start + clip.duration);
+  }
+  return gaps;
+}

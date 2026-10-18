@@ -1,8 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { formatTime } from "../../utils/formatters";
-import type { Clip, MediaAsset, ProjectDocument } from "../../app/projectTypes";
+import type { Clip, MediaAsset, ProjectDocument, SelectedClip } from "../../app/projectTypes";
 import type { MotionBlurParams, SpeedRamp, TrackingMode } from "../../engine/playbackEngine";
-import type { SelectedClip } from "../menubar";
 
 export interface ClipInspectorProps {
   selectedTimelineClip: Clip | null;

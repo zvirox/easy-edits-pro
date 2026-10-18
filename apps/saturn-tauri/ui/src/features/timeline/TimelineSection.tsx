@@ -9,9 +9,9 @@ import type {
   SubtitleItem,
   Track,
   Transition,
+  SelectedClip,
 } from "../../app/projectTypes";
 import type { CommandStatus } from "../../app/ProjectProvider";
-import type { SelectedClip } from "../menubar";
 import {
   type TimelineTool,
   timelineTools,

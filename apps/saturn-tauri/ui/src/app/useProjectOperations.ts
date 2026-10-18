@@ -8,13 +8,13 @@ import { Channel, invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import type {
+  DavinciWorkspace,
+  GpuMetrics,
   ProjectStatus,
+  SelectedClip,
   SilenceInterval,
   Transition,
 } from "./projectTypes";
-import type { SelectedClip } from "../features/menubar";
-import type { DavinciWorkspace } from "../features/menubar";
-import type { GpuMetrics } from "../features/dialogs";
 
 const recentProjectsKey = "easy-edits-pro.recent-projects.v1";
 const projectFilters = [{ name: "Easy Edits Pro project", extensions: ["saturn"] }];

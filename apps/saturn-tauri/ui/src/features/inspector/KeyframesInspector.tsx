@@ -1,8 +1,7 @@
 import { keyframeOptions } from "../../workspaces/KeyframesWorkspace";
 import { formatTime } from "../../utils/formatters";
 import type { KeyframeProperty, InterpolationKind } from "../../engine/playback/types";
-import type { Clip } from "../../app/projectTypes";
-import type { SelectedClip } from "../menubar";
+import type { Clip, SelectedClip } from "../../app/projectTypes";
 
 export interface KeyframesInspectorProps {
   selectedTimelineClip: Clip | null;

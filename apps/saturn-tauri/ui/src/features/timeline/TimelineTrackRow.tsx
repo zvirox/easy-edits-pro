@@ -1,8 +1,7 @@
 import type { Dispatch, SetStateAction, PointerEvent } from "react";
 import { formatTime, formatPan, formatDb, getClipWaveform } from "../../utils/formatters";
 import type { AudioClockMaster } from "../../engine/playbackEngine";
-import type { Clip, MediaAsset, Track, Transition } from "../../app/projectTypes";
-import type { SelectedClip } from "../menubar";
+import type { Clip, MediaAsset, Track, Transition, SelectedClip } from "../../app/projectTypes";
 import { TICKS_PER_SECOND, getTrackGaps } from "./types";
 
 export interface TimelineTrackRowProps {

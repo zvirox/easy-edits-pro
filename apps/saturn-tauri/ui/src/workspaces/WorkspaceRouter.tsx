@@ -383,6 +383,7 @@ export function WorkspaceRouter({
         beginMediaPointer: mediaOps.beginMediaPointer,
         moveMediaPointer: mediaOps.moveMediaPointer,
         cancelMediaPointer: mediaOps.cancelMediaPointer,
+        finishMediaPointer: mediaOps.finishMediaPointer,
         playhead: playback.playhead,
       }}
       previewSectionProps={{
