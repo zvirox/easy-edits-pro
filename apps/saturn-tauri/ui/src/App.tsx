@@ -1,6 +1,5 @@
 import { type CSSProperties, type MouseEvent, type PointerEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Channel, invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import { LoadingButton } from "./components/interior/loading-button";
@@ -12,6 +11,10 @@ import { BatchQueueDrawer } from "./components/BatchQueueDrawer";
 import { OllamaChatDrawer } from "./components/OllamaChatDrawer";
 import { formatTime, formatPan, formatDb, getClipWaveform } from "./utils/formatters";
 import { useMediaServer } from "./app/useMediaServer";
+import { ProjectProvider, runCommand, type CommandStatus, type MediaAvailability } from "./app/ProjectProvider";
+import { useProject } from "./app/useProject";
+import { useJobs, type JobInfo } from "./app/useJobs";
+import { useRecovery } from "./app/useRecovery";
 import { Icon, type IconName } from "./components/Icon";
 import { SegmentedControl } from "./components/interior/segmented-control";
 import { StudioPanel } from "./components/StudioPanel";
@@ -41,7 +44,6 @@ import {
   type LutParams,
   type InterpolationKind,
   type SubtitleItem,
-  type Keyframe,
   type KeyframeProperty,
   type MultiCamClip,
   type TrackingMode,
@@ -51,192 +53,28 @@ import {
   type AutomationMode,
   type TrackAutomation,
   type AudioPluginInstance,
-  type AudioBus,
   type CompositingNodeKind,
   type RotoSplinePoint,
-  type NodeGraph,
   type SpeedRamp,
   type MotionBlurParams,
   type LockTargetKind,
   type UserLock,
   type TimelineChangeEntry,
-  type CollaborationState,
   type SpeechSegment,
   type SilenceInterval,
   type RippleDeleteReport,
   type PresentationMetrics,
   type InteropFormat,
-  type TrackGroup,
   type RgbCurves,
   type HslQualifier,
 } from "./engine/playbackEngine";
-
-type JobState =
-  | { status: "queued" }
-  | { status: "running"; progress: number; phase: string }
-  | { status: "completed"; output?: string | null }
-  | { status: "failed"; error: string }
-  | { status: "cancelled" };
-
-interface JobInfo {
-  id: number;
-  label: string;
-  kind: { type: string; [key: string]: unknown };
-  priority: "background" | "normal" | "high" | "immediate";
-  state: JobState;
-  created_at: number;
-  started_at?: number | null;
-  completed_at?: number | null;
-}
+import type { MediaAsset, ProjectDocument, ProjectStatus, Track, Clip, Transition, TransitionKind, TitleProperties, ColorAdjustments, HardwareEncoderInfo, LoudnessStandard, LoudnessReport } from "./app/projectTypes";
 
 type Workspace = "edit" | "color" | "effects" | "audio" | "keyframes" | "export" | "library" | "ai";
 type TimelineTool = "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "pen" | "hand" | "zoom";
 type DavinciWorkspace = "media" | "edit" | "fusion" | "color" | "audio" | "effects" | "keyframes" | "deliver";
 type FilmoraTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
-type MediaKind = "video" | "audio" | "image" | "title" | "compound_sequence" | "unknown";
-type TitleProperties = {
-  text: string;
-  subtitle?: string | null;
-  style: string;
-  font_family: string;
-  font_size: number;
-  color: string;
-  bg_color?: string | null;
-};
-type TransitionKind =
-  | "crossfade"
-  | "dip_to_black"
-  | "dip_to_white"
-  | "wipe_left"
-  | "wipe_right"
-  | "slide_left"
-  | "slide_right";
-type Transition = {
-  id: number;
-  kind: TransitionKind;
-  cut_at: number;
-  duration: number;
-};
-type Sequence = {
-  id?: number;
-  name: string;
-  tracks: Track[];
-  track_groups?: TrackGroup[];
-  mark_in: number | null;
-  mark_out: number | null;
-  subtitles?: SubtitleItem[];
-  multicam_clips?: MultiCamClip[];
-  buses?: AudioBus[];
-  node_graph?: NodeGraph | null;
-};
-type MediaBin = {
-  id: number;
-  name: string;
-  parent_id?: number | null;
-  color?: string | null;
-};
-type MediaAsset = {
-  id: number;
-  name: string;
-  path: string;
-  kind: MediaKind;
-  duration: number | null;
-  width: number | null;
-  height: number | null;
-  fps?: number | null;
-  audio_channels?: number | null;
-  codec?: string | null;
-  bin_id?: number | null;
-  color_label?: string | null;
-  tags?: string[] | null;
-  is_missing?: boolean;
-  title?: TitleProperties | null;
-  waveform?: number[] | null;
-  nested_sequence?: Sequence | null;
-};
-type BackendColorWheels = {
-  lift: { red: number; green: number; blue: number; luma: number };
-  gamma: { red: number; green: number; blue: number; luma: number };
-  gain: { red: number; green: number; blue: number; luma: number };
-  offset: { red: number; green: number; blue: number; luma: number };
-};
-type ColorAdjustments = {
-  exposure: number;
-  contrast: number;
-  saturation: number;
-  hue?: number;
-  wheels?: BackendColorWheels;
-  curves?: RgbCurves;
-  qualifier?: HslQualifier;
-};
-type Clip = {
-  media_id: number;
-  timeline_start: number;
-  source_in: number;
-  duration: number;
-  speed?: number;
-  group_id?: number | null;
-  color: ColorAdjustments;
-  effects?: EffectInstance[];
-  keyframes: Keyframe[];
-  multicam_id?: number | null;
-  multicam_angle_id?: number | null;
-  tracking?: MotionTrackingData | null;
-  speed_ramp?: SpeedRamp | null;
-  motion_blur?: MotionBlurParams | null;
-  node_graph?: NodeGraph | null;
-  compound_sequence_id?: number | null;
-};
-type Track = {
-  id: number;
-  group_id?: number | null;
-  kind: "video" | "audio";
-  name: string;
-  gain_db: number;
-  pan?: number;
-  muted?: boolean;
-  solo?: boolean;
-  locked?: boolean;
-  audio_processing?: TrackAudioProcessing;
-  bus?: BusTarget;
-  automation?: TrackAutomation;
-  plugins?: AudioPluginInstance[];
-  clips: Clip[];
-  transitions?: Transition[];
-};
-interface HardwareEncoderInfo {
-  hasHardwareEncoder: boolean;
-  preferredEncoder: string;
-  encoderType: string;
-  description: string;
-  availableEncoders: string[];
-}
-type LoudnessStandard = "ebu_r128" | "streaming" | "atsc_a85";
-type LoudnessReport = {
-  momentaryLufs: number;
-  shortTermLufs: number;
-  integratedLufs: number;
-  loudnessRangeLu: number;
-  truePeakDbtp: number;
-  targetLufs: number;
-  isCompliant: boolean;
-  gainRecommendationDb: number;
-};
-type ProjectDocument = {
-  project: {
-    name: string;
-    bins?: MediaBin[];
-    media: MediaAsset[];
-    sequence: Sequence;
-    sequences?: Sequence[];
-    collaboration?: CollaborationState;
-    settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
-  };
-};
-type ProjectStatus = { document: ProjectDocument; path: string | null; is_dirty: boolean };
-type CommandStatus = { enabled: boolean; reason: string | null };
-type RecoveryStatus = { available: boolean; projectName?: string; savedAt?: number };
-type MediaAvailability = { mediaId: number; missing: boolean };
+
 type CommandSpec = { id: string; label: string; menu: string[]; shortcut: string | null; mutating: boolean };
 type SelectedClip = { track_id: number; clip_index: number };
 type ClipPointerDrag = { pointerId: number; trackId: number; clipIndex: number; startX: number; startY: number; startTime: number; duration: number };
@@ -393,11 +231,6 @@ const keyframeOptions: { value: KeyframeProperty; label: string; defaultValue: n
   { value: "opacity", label: "Opacity", defaultValue: 1, min: 0, max: 1, step: 0.01 },
 ];
 
-async function runCommand<T = unknown>(id: string, params: unknown = null): Promise<T> {
-  return invoke<T>("execute_command", { request: { id, params } });
-}
-
-
 const COLOR_PRESETS: { id: string; label: string; icon: string; exposure: number; contrast: number; saturation: number }[] = [
   { id: "neutral", label: "Neutral Rec.709", icon: "⚪", exposure: 0, contrast: 1.0, saturation: 1.0 },
   { id: "teal_orange", label: "Teal & Orange", icon: "🎬", exposure: 0.2, contrast: 1.25, saturation: 1.35 },
@@ -441,7 +274,7 @@ const LUT_PRESETS: LutPresetItem[] = [
   },
 ];
 
-function App() {
+function EditorApp() {
   const [appStage, setAppStage] = useState<AppStage>("welcome");
   const [loadingMessage, setLoadingMessage] = useState("Preparing your editing workspace");
   const [welcomeMode, setWelcomeMode] = useState<"home" | "new-project">("home");
@@ -451,7 +284,7 @@ function App() {
       return Array.isArray(recent) ? recent.filter((item) => typeof item?.name === "string" && typeof item?.path === "string").slice(0, 6) : [];
     } catch { return []; }
   });
-  const [recoveryStatus, setRecoveryStatus] = useState<RecoveryStatus>({ available: false });
+  const recoveryStatus = useRecovery();
   const [setupProjectName, setSetupProjectName] = useState("Untitled project");
   const [setupSequenceName, setSetupSequenceName] = useState("Sequence 1");
   const [setupResolution, setSetupResolution] = useState("1920x1080");
@@ -490,7 +323,7 @@ function App() {
     else if (ws === "audio") setWorkspace("audio");
     else if (ws === "keyframes") setWorkspace("keyframes");
   }, []);
-  const [projectState, setProjectState] = useState<ProjectStatus | null>(null);
+  const { projectState, setProjectState, undoStatus, redoStatus, setUndoStatus, setRedoStatus, missingMediaIds, setMissingMediaIds, connection, refreshProject } = useProject();
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
   const [selectedClip, setSelectedClip] = useState<SelectedClip | null>(null);
   const [selectedClips, setSelectedClips] = useState<SelectedClip[]>([]);
@@ -517,85 +350,13 @@ function App() {
   const [previewPreparationErrors, setPreviewPreparationErrors] = useState<Record<number, string>>({});
   const { mediaServerPort, mediaServerToken, getMediaUrl } = useMediaServer();
 
-  const [jobs, setJobs] = useState<JobInfo[]>([]);
-  const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
-  const jobDrawerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    invoke<JobInfo[]>("get_all_jobs")
-      .then((data) => {
-        if (Array.isArray(data)) setJobs(data);
-      })
-      .catch((err) => console.warn("Could not fetch jobs:", err));
-
-    const unlisten = listen<JobInfo>("job_queue_updated", (event) => {
-      const updated = event.payload;
-      setJobs((prev) => {
-        const index = prev.findIndex((j) => j.id === updated.id);
-        if (index >= 0) {
-          const next = [...prev];
-          next[index] = updated;
-          return next;
-        }
-        return [updated, ...prev];
-      });
-    });
-
-    return () => {
-      void unlisten.then((fn) => fn());
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!jobDrawerOpen) return;
-    function handleClickOutside(event: globalThis.MouseEvent) {
-      if (jobDrawerRef.current && !jobDrawerRef.current.contains(event.target as Node)) {
-        setJobDrawerOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [jobDrawerOpen]);
-
-  const activeJobs = useMemo(
-    () => jobs.filter((j) => j.state.status === "queued" || j.state.status === "running"),
-    [jobs]
-  );
-
-  const cancelJob = useCallback(async (jobId: number) => {
-    try {
-      await invoke("cancel_job", { id: jobId });
-    } catch (err) {
-      console.warn("Failed to cancel job:", err);
-    }
-  }, []);
-
-  const cancelAllJobs = useCallback(async () => {
-    try {
-      await invoke("cancel_all_jobs");
-    } catch (err) {
-      console.warn("Failed to cancel all jobs:", err);
-    }
-  }, []);
-
-  const clearJobHistory = useCallback(async () => {
-    try {
-      await invoke("clear_job_history");
-      setJobs((prev) => prev.filter((j) => j.state.status === "queued" || j.state.status === "running"));
-    } catch (err) {
-      console.warn("Failed to clear job history:", err);
-    }
-  }, []);
+  const { jobs, setJobs, jobDrawerOpen, setJobDrawerOpen, jobDrawerRef, activeJobs, cancelJob, cancelAllJobs, clearJobHistory } = useJobs();
   const [search, setSearch] = useState("");
-  const [connection, setConnection] = useState("Connecting to Rust core…");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("Untitled project");
   const [newProjectOpen, setNewProjectOpen] = useState(false);
-  const [undoStatus, setUndoStatus] = useState<CommandStatus>({ enabled: false, reason: "Nothing to undo" });
-  const [redoStatus, setRedoStatus] = useState<CommandStatus>({ enabled: false, reason: "Nothing to redo" });
-  const [missingMediaIds, setMissingMediaIds] = useState<Set<number>>(new Set());
   const [commands, setCommands] = useState<CommandSpec[]>([]);
   const [snapEnabled, setSnapEnabled] = useState(true);
   const [timelineTool, setTimelineTool] = useState<TimelineTool>("select");
@@ -814,27 +575,11 @@ function App() {
   const [mediaEditPropsTags, setMediaEditPropsTags] = useState("");
   const [timelineTrackHeight, setTimelineTrackHeight] = useState<"compact" | "normal" | "expanded">("normal");
 
-  const refreshProject = useCallback(async () => {
-    const [status, undo, redo, mediaAvailability] = await Promise.all([
-      runCommand<ProjectStatus>("project.status"),
-      invoke<CommandStatus>("command_status", { id: "edit.undo" }),
-      invoke<CommandStatus>("command_status", { id: "edit.redo" }),
-      invoke<MediaAvailability[]>("check_media_availability"),
-    ]);
-    setProjectState(status);
-    setUndoStatus(undo);
-    setRedoStatus(redo);
-    setMissingMediaIds(new Set(mediaAvailability.filter((item) => item.missing).map((item) => item.mediaId)));
-    setConnection("Rust core connected");
-    setSelectedMediaId((current) => current ?? status.document.project.media[0]?.id ?? null);
-    return status;
-  }, []);
+
 
   useEffect(() => {
     let active = true;
     invoke<CommandSpec[]>("get_command_catalogue").then((catalogue) => { if (active) setCommands(catalogue); }).catch(() => {});
-    invoke<RecoveryStatus>("recovery_status").then((recovery) => { if (active) { setRecoveryStatus(recovery); setConnection("Rust core connected"); } })
-      .catch((error: unknown) => { if (active) setConnection(`Rust core error: ${String(error)}`); });
     invoke<HardwareEncoderInfo>("detect_encoder_capabilities").then((info) => { if (active) setEncoderInfo(info); }).catch(() => {});
     return () => { active = false; };
   }, [refreshProject]);
@@ -7845,6 +7590,10 @@ function App() {
       />
     </div>
   );
+}
+
+export function App() {
+  return <ProjectProvider><EditorApp /></ProjectProvider>;
 }
 
 export default App;
