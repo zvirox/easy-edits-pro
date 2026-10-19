@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 export interface CompoundClipModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -28,7 +29,7 @@ export function CompoundClipModal({
       >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>⧉ New Compound Clip</h2>
-          <button type="button" className="close-btn" onClick={onClose}>✕</button>
+          <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
         <p className="modal-desc" style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px" }}>
           Combine selected clips across tracks into a single nested compound sequence. You can double-click it at any time to open and edit inside.
@@ -45,8 +46,8 @@ export function CompoundClipModal({
           />
         </label>
         <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-          <button type="button" onClick={onClose}>Cancel</button>
-          <button className="primary" type="submit" disabled={!compoundClipNameDraft.trim()}>Create Compound Clip</button>
+          <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
+          <InteriorButton className="primary" type="submit" disabled={!compoundClipNameDraft.trim()}>Create Compound Clip</InteriorButton>
         </div>
       </form>
     </div>

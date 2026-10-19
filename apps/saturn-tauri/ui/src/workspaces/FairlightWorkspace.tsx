@@ -1,3 +1,4 @@
+import { InteriorButton } from "../components/interior/interior-button";
 import type { Dispatch, SetStateAction, ReactNode, PointerEvent } from "react";
 import {
   formatTime,
@@ -169,65 +170,65 @@ export function FairlightWorkspace({
 
         <div className="audio-header-actions" style={{ gap: "6px" }}>
           <div className="audio-transport-buttons">
-            <button
+            <InteriorButton
               className="transport-btn"
               onClick={() => handleShuttleKey("j")}
               title="Shuttle Reverse (J)"
               style={{ padding: "3px 7px", fontSize: "10px" }}
             >
               ◀◀
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               className="transport-btn"
               onClick={() => stepProgramFrame(-1)}
               title="Previous Frame (Left Arrow)"
               style={{ padding: "3px 7px", fontSize: "10px" }}
             >
               ◀|
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               className={`transport-btn play-btn ${programPlaying ? "active-toggle" : ""}`}
               onClick={() => toggleProgramPlayback()}
               title="Play / Pause (Space / K)"
               style={{ padding: "3px 10px", fontSize: "10px" }}
             >
               {programPlaying ? "⏸ Pause" : "▶ Play"}
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               className="transport-btn"
               onClick={() => stepProgramFrame(1)}
               title="Next Frame (Right Arrow)"
               style={{ padding: "3px 7px", fontSize: "10px" }}
             >
               |▶
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               className="transport-btn"
               onClick={() => handleShuttleKey("l")}
               title="Shuttle Forward (L)"
               style={{ padding: "3px 7px", fontSize: "10px" }}
             >
               ▶▶
-            </button>
+            </InteriorButton>
           </div>
 
           <div className="audio-matrix-global-actions" style={{ gap: "4px", paddingLeft: "8px" }}>
-            <button
+            <InteriorButton
               className="btn-secondary"
               onClick={() => void clearAllSolos()}
               title="Clear all soloed tracks"
               style={{ padding: "3px 8px", fontSize: "10px" }}
             >
               Clear Solos
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               className="btn-secondary"
               onClick={() => void muteAllTracks()}
               title="Toggle mute for all tracks"
               style={{ padding: "3px 8px", fontSize: "10px" }}
             >
               Mute All
-            </button>
+            </InteriorButton>
           </div>
         </div>
       </header>
@@ -304,7 +305,7 @@ export function FairlightWorkspace({
                   />
                 </div>
                 <div className="strip-fader-footer">
-                  <button
+                  <InteriorButton
                     type="button"
                     className="strip-unity-btn master-unity"
                     title="Reset master gain to unity 0 dB"
@@ -314,7 +315,7 @@ export function FairlightWorkspace({
                     }}
                   >
                     0 dB
-                  </button>
+                  </InteriorButton>
                   <span className="strip-gain-text master-gain-text">{formatDb(masterGainDraft)}</span>
                 </div>
               </div>
@@ -361,7 +362,7 @@ export function FairlightWorkspace({
                 <span className="loudness-badge">ITU-R BS.1770-4</span>
               </div>
               <div className="loudness-standard-tabs">
-                <button
+                <InteriorButton
                   type="button"
                   className={`loudness-tab-btn ${loudnessStandard === "ebu_r128" ? "active" : ""}`}
                   onClick={() => {
@@ -371,8 +372,8 @@ export function FairlightWorkspace({
                   title="EBU R128: -23.0 LUFS, Max TP -1.0 dBTP"
                 >
                   EBU R128
-                </button>
-                <button
+                </InteriorButton>
+                <InteriorButton
                   type="button"
                   className={`loudness-tab-btn ${loudnessStandard === "streaming" ? "active" : ""}`}
                   onClick={() => {
@@ -382,8 +383,8 @@ export function FairlightWorkspace({
                   title="Streaming: -14.0 LUFS (YouTube, Spotify, Apple)"
                 >
                   Streaming (-14)
-                </button>
-                <button
+                </InteriorButton>
+                <InteriorButton
                   type="button"
                   className={`loudness-tab-btn ${loudnessStandard === "atsc_a85" ? "active" : ""}`}
                   onClick={() => {
@@ -393,7 +394,7 @@ export function FairlightWorkspace({
                   title="ATSC A/85: -24.0 LUFS, Max TP -2.0 dBTP"
                 >
                   ATSC A/85
-                </button>
+                </InteriorButton>
               </div>
             </div>
 
@@ -478,7 +479,7 @@ export function FairlightWorkspace({
 
               {/* Actions: 1-Click Auto Trim & Reset */}
               <div className="loudness-actions-row">
-                <button
+                <InteriorButton
                   type="button"
                   className="loudness-autotrim-btn primary"
                   onClick={autoTrimLoudness}
@@ -486,15 +487,15 @@ export function FairlightWorkspace({
                   title="Automatically adjust Master Fader to meet compliance target"
                 >
                   ⚡ Auto-Trim ({loudnessReport.gainRecommendationDb > 0 ? "+" : ""}{loudnessReport.gainRecommendationDb.toFixed(1)} dB)
-                </button>
-                <button
+                </InteriorButton>
+                <InteriorButton
                   type="button"
                   className="loudness-reset-btn"
                   onClick={resetLoudness}
                   title="Reset accumulated loudness history & gates"
                 >
                   ↺ Reset
-                </button>
+                </InteriorButton>
               </div>
             </div>
           </div>
@@ -565,13 +566,13 @@ export function FairlightWorkspace({
                   <strong>4-Band Parametric Equalizer</strong>
                   <small>Low Shelf · Mid Peak · High Shelf</small>
                 </div>
-                <button
+                <InteriorButton
                   type="button"
                   className={`dsp-power-btn ${activeDsp.eq_enabled ? "active" : ""}`}
                   onClick={() => void saveTrackAudioProcessing(activeTrackId, { eq_enabled: !activeDsp.eq_enabled })}
                 >
                   {activeDsp.eq_enabled ? "ACTIVE" : "BYPASS"}
-                </button>
+                </InteriorButton>
               </div>
 
               {/* Live EQ Curve Graph */}
@@ -579,14 +580,14 @@ export function FairlightWorkspace({
                 <svg viewBox="0 0 240 70" preserveAspectRatio="none" className="eq-curve-svg">
                   <defs>
                     <linearGradient id="eqGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.0" />
+                      <stop offset="0%" stopColor="#6b21a8" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="#6b21a8" stopOpacity="0.0" />
                     </linearGradient>
                   </defs>
-                  <line x1="0" y1="35" x2="240" y2="35" stroke="#334155" strokeDasharray="3 3" strokeWidth="1" />
+                  <line x1="0" y1="35" x2="240" y2="35" stroke="#462d40" strokeDasharray="3 3" strokeWidth="1" />
                   <path d={eqFillPath} fill="url(#eqGrad)" />
-                  <path d={eqCurvePath} fill="none" stroke={activeDsp.eq_enabled ? "#22d3ee" : "#64748b"} strokeWidth="2.2" strokeLinecap="round" />
-                  <circle cx="20" cy={35 - dyLow} r="3.5" fill="#38bdf8" />
+                  <path d={eqCurvePath} fill="none" stroke={activeDsp.eq_enabled ? "#d9468f" : "#7d6377"} strokeWidth="2.2" strokeLinecap="round" />
+                  <circle cx="20" cy={35 - dyLow} r="3.5" fill="#be185d" />
                   <circle cx="120" cy={35 - dyMid} r="3.5" fill="#a78bfa" />
                   <circle cx="220" cy={35 - dyHigh} r="3.5" fill="#34d399" />
                 </svg>
@@ -671,13 +672,13 @@ export function FairlightWorkspace({
                   <strong>Dynamics Compressor</strong>
                   <small>Threshold · Ratio · Attack · Release</small>
                 </div>
-                <button
+                <InteriorButton
                   type="button"
                   className={`dsp-power-btn comp ${activeDsp.comp_enabled ? "active" : ""}`}
                   onClick={() => void saveTrackAudioProcessing(activeTrackId, { comp_enabled: !activeDsp.comp_enabled })}
                 >
                   {activeDsp.comp_enabled ? "ACTIVE" : "BYPASS"}
-                </button>
+                </InteriorButton>
               </div>
 
               {/* Real-Time Gain Reduction (GR) Meter */}
@@ -798,13 +799,13 @@ export function FairlightWorkspace({
                   <strong>Vocal De-Noise &amp; Dialogue Isolation</strong>
                   <small>80 Hz High-Pass Sub Cut · Real-Time Spectral Clean</small>
                 </div>
-                <button
+                <InteriorButton
                   type="button"
                   className={`dsp-power-btn denoise ${activeDsp.denoise_enabled ? "active" : ""}`}
                   onClick={() => void saveTrackAudioProcessing(activeTrackId, { denoise_enabled: !activeDsp.denoise_enabled })}
                 >
                   {activeDsp.denoise_enabled ? "ACTIVE" : "BYPASS"}
-                </button>
+                </InteriorButton>
               </div>
 
               <div className="denoise-controls-row">

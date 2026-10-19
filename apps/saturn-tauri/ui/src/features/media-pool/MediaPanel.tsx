@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import type { PointerEvent } from "react";
 import { Icon, type IconName } from "../../components/Icon";
 import { LoadingButton } from "../../components/interior/loading-button";
@@ -193,7 +194,7 @@ export function MediaPanel({
     <aside className="media-panel">
       <div className="filmora-tabs" role="tablist" aria-label="Filmora Asset Categories">
         {filmoraTabs.map((tab) => (
-          <button
+          <InteriorButton
             key={tab.id}
             className={`filmora-tab-btn ${filmoraTab === tab.id ? "active" : ""}`}
             onClick={() => setFilmoraTab(tab.id)}
@@ -204,9 +205,9 @@ export function MediaPanel({
           >
             <Icon name={tab.icon} />
             <span>{tab.label}</span>
-          </button>
+          </InteriorButton>
         ))}
-        <button
+        <InteriorButton
           type="button"
           className="filmora-tab-btn add-tab-btn"
           onClick={() => void importMedia()}
@@ -215,7 +216,7 @@ export function MediaPanel({
           title="Import Media or Add Assets"
         >
           ＋
-        </button>
+        </InteriorButton>
       </div>
 
       <div className="filmora-panel-content">
@@ -227,7 +228,7 @@ export function MediaPanel({
                 <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>({media.length})</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                <button
+                <InteriorButton
                   type="button"
                   className="btn-secondary"
                   style={{ padding: "4px 7px", fontSize: "11px" }}
@@ -237,8 +238,8 @@ export function MediaPanel({
                   data-tooltip-pos="bottom"
                 >
                   🔍 Scan
-                </button>
-                <button
+                </InteriorButton>
+                <InteriorButton
                   type="button"
                   className="btn-secondary"
                   style={{ padding: "4px 7px", fontSize: "11px" }}
@@ -248,8 +249,8 @@ export function MediaPanel({
                   data-tooltip-pos="bottom"
                 >
                   ＋ Bin
-                </button>
-                <button
+                </InteriorButton>
+                <InteriorButton
                   type="button"
                   className="btn-secondary"
                   style={{ padding: "4px 8px", fontSize: "11px" }}
@@ -259,8 +260,8 @@ export function MediaPanel({
                   data-tooltip-pos="bottom"
                 >
                   🌐 URL
-                </button>
-                <button
+                </InteriorButton>
+                <InteriorButton
                   className="primary"
                   style={{ padding: "4px 8px", fontSize: "11px" }}
                   onClick={() => void importMedia()}
@@ -269,7 +270,7 @@ export function MediaPanel({
                   data-tooltip-pos="bottom"
                 >
                   Import
-                </button>
+                </InteriorButton>
               </div>
             </div>
 
@@ -281,37 +282,37 @@ export function MediaPanel({
                 onChange={(event) => setSearch(event.target.value)}
               />
               <div className="media-view-toggle">
-                <button
+                <InteriorButton
                   type="button"
                   className={`view-mode-btn ${mediaViewMode === "grid" ? "active" : ""}`}
                   onClick={() => setMediaViewMode("grid")}
                   title="Thumbnail Grid View"
                 >
                   ▦
-                </button>
-                <button
+                </InteriorButton>
+                <InteriorButton
                   type="button"
                   className={`view-mode-btn ${mediaViewMode === "list" ? "active" : ""}`}
                   onClick={() => setMediaViewMode("list")}
                   title="Detailed List Table View"
                 >
                   ☰
-                </button>
+                </InteriorButton>
               </div>
             </div>
 
             <div className="media-bins-strip scrollbar-thin">
-              <button
+              <InteriorButton
                 type="button"
                 className={`media-bin-pill ${activeBinId === null ? "active" : ""}`}
                 onClick={() => setActiveBinId(null)}
               >
                 📁 All ({allMedia.length})
-              </button>
+              </InteriorButton>
               {(project?.bins ?? []).map((bin) => {
                 const binCount = allMedia.filter((m) => m.bin_id === bin.id).length;
                 return (
-                  <button
+                  <InteriorButton
                     key={bin.id}
                     type="button"
                     className={`media-bin-pill ${activeBinId === bin.id ? "active" : ""}`}
@@ -330,7 +331,7 @@ export function MediaPanel({
                     >
                       ×
                     </span>
-                  </button>
+                  </InteriorButton>
                 );
               })}
             </div>
@@ -343,12 +344,7 @@ export function MediaPanel({
                   const binName = project?.bins?.find((b) => b.id === item.bin_id)?.name;
                   return (
                     <div className="media-row" key={item.id} style={{ position: "relative" }}>
-                      <button
-                        draggable={true}
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData("application/json", JSON.stringify({ media_id: item.id }));
-                          e.dataTransfer.effectAllowed = "copy";
-                        }}
+                      <InteriorButton
                         className={`media-item ${isSelected ? "selected" : ""} ${isMissing ? "is-missing" : ""}`}
                         onClick={() => setSelectedMediaId(item.id)}
                         onPointerDown={(event) => beginMediaPointer(event, item.id)}
@@ -378,8 +374,8 @@ export function MediaPanel({
                             )}
                           </small>
                         </span>
-                      </button>
-                      <button
+                      </InteriorButton>
+                      <InteriorButton
                         type="button"
                         className="media-edit-meta-btn"
                         onClick={(e) => {
@@ -389,7 +385,7 @@ export function MediaPanel({
                         title="Edit metadata, color tag & comments"
                       >
                         ✎
-                      </button>
+                      </InteriorButton>
                     </div>
                   );
                 })}
@@ -438,7 +434,7 @@ export function MediaPanel({
                           </td>
                           <td className="cell-bin">{binName || "—"}</td>
                           <td className="cell-actions">
-                            <button
+                            <InteriorButton
                               type="button"
                               className="btn-tiny"
                               onClick={(e) => {
@@ -448,7 +444,7 @@ export function MediaPanel({
                               title="Edit Tags"
                             >
                               ✎
-                            </button>
+                            </InteriorButton>
                           </td>
                         </tr>
                       );
@@ -473,9 +469,9 @@ export function MediaPanel({
                     ? "Move clips into this bin or import files."
                     : "Import video, audio, or images to begin editing."}
                 </small>
-                <button onClick={() => void importMedia()} disabled={busy}>
+                <InteriorButton onClick={() => void importMedia()} disabled={busy}>
                   Browse files…
-                </button>
+                </InteriorButton>
               </div>
             )}
           </>
@@ -489,7 +485,7 @@ export function MediaPanel({
             </div>
             <div className="filmora-preset-grid">
               {titlePresets.map((preset) => (
-                <button
+                <InteriorButton
                   key={preset.id}
                   className="filmora-preset-card"
                   onClick={() => void addPresetTitle(preset)}
@@ -501,7 +497,7 @@ export function MediaPanel({
                   </div>
                   <span className="filmora-preset-name">{preset.name}</span>
                   <span className="filmora-preset-desc">{preset.desc}</span>
-                </button>
+                </InteriorButton>
               ))}
             </div>
           </>
@@ -515,7 +511,7 @@ export function MediaPanel({
             </div>
             <div className="filmora-preset-grid">
               {transitionPresets.map((preset) => (
-                <button
+                <InteriorButton
                   key={preset.id}
                   className="filmora-preset-card"
                   onClick={() => void addPresetTransition(preset.id)}
@@ -527,7 +523,7 @@ export function MediaPanel({
                   </div>
                   <span className="filmora-preset-name">{preset.name}</span>
                   <span className="filmora-preset-desc">{preset.desc}</span>
-                </button>
+                </InteriorButton>
               ))}
             </div>
           </>
@@ -543,7 +539,7 @@ export function MediaPanel({
                 .filter((item) => item.kind === "audio")
                 .map((item) => (
                   <div className="media-row" key={item.id}>
-                    <button
+                    <InteriorButton
                       className={`media-item ${selectedMediaId === item.id ? "selected" : ""}`}
                       onClick={() => setSelectedMediaId(item.id)}
                       data-tooltip={`Audio track · ${item.duration ? formatTime(item.duration) : "Audio"}`}
@@ -554,7 +550,7 @@ export function MediaPanel({
                         <strong>{item.name}</strong>
                         <small>{item.duration ? formatTime(item.duration) : "Audio clip"}</small>
                       </span>
-                    </button>
+                    </InteriorButton>
                   </div>
                 ))}
               {media.filter((item) => item.kind === "audio").length === 0 && (
@@ -619,9 +615,9 @@ export function MediaPanel({
                     {asset.creator ? `By ${asset.creator}` : "Openverse"} · {asset.license ?? "FOSS"}
                   </small>
                   <div className="asset-actions">
-                    <button disabled={busy} onClick={() => void addLibraryAsset(asset)}>
+                    <InteriorButton disabled={busy} onClick={() => void addLibraryAsset(asset)}>
                       Add to Bin
-                    </button>
+                    </InteriorButton>
                   </div>
                 </article>
               ))}
@@ -635,8 +631,8 @@ export function MediaPanel({
             <div
               className="ai-speech-intelligence-card"
               style={{
-                background: "rgba(56, 189, 248, 0.05)",
-                border: "1px solid rgba(56, 189, 248, 0.22)",
+                background: "rgba(159, 18, 73, 0.05)",
+                border: "1px solid rgba(159, 18, 73, 0.22)",
                 borderRadius: "6px",
                 padding: "10px",
                 display: "flex",
@@ -649,7 +645,7 @@ export function MediaPanel({
                 <span
                   style={{
                     fontSize: "9px",
-                    background: "#0284c7",
+                    background: "#9f1249",
                     color: "#fff",
                     padding: "2px 6px",
                     borderRadius: "8px",
@@ -663,15 +659,15 @@ export function MediaPanel({
                 Automated speech-to-subtitles generation and atomic ripple removal of silence gaps &amp; filler words.
               </p>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
-                <button
+                <InteriorButton
                   type="button"
                   className="primary"
                   style={{ fontSize: "11px", padding: "6px 8px", whiteSpace: "nowrap" }}
                   onClick={() => setTranscribeModalOpen(true)}
                 >
                   Transcribe Speech
-                </button>
-                <button
+                </InteriorButton>
+                <InteriorButton
                   type="button"
                   className="btn-secondary"
                   style={{ fontSize: "11px", padding: "6px 8px", whiteSpace: "nowrap" }}
@@ -681,7 +677,7 @@ export function MediaPanel({
                   }}
                 >
                   Clean Silence/Fillers
-                </button>
+                </InteriorButton>
               </div>
             </div>
 
@@ -725,13 +721,13 @@ export function MediaPanel({
                 onChange={(event) => setAiPrompt(event.target.value)}
               />
             </label>
-            <button
+            <InteriorButton
               className="primary"
               disabled={busy || !aiPrompt.trim() || !aiModel.trim()}
               onClick={() => void askAi()}
             >
               Generate Suggestions
-            </button>
+            </InteriorButton>
             {aiReply && <pre className="ai-reply">{aiReply}</pre>}
           </div>
         )}

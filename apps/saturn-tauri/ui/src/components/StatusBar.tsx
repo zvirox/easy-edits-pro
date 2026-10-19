@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior/interior-button";
 export interface StatusBarProps {
   busy: boolean;
   notice: string | null;
@@ -17,7 +18,7 @@ export function StatusBar({
     <footer className="status-bar">
       <span>{busy ? "Working…" : notice || "Autosave recovery enabled · saves every 30 seconds"}</span>
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        <button
+        <InteriorButton
           type="button"
           className="gpu-status-pill"
           onClick={() => {
@@ -28,7 +29,7 @@ export function StatusBar({
         >
           <span className="gpu-status-dot" />
           <span>⚡ Native GPU Preview (60 FPS)</span>
-        </button>
+        </InteriorButton>
         <span>{connection}</span>
       </div>
     </footer>

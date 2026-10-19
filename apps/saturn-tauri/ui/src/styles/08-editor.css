@@ -94,7 +94,7 @@
 }
 
 .export-presets-shelf-header strong {
-  color: var(--accent-cyan);
+  color: var(--accent-primary);
   letter-spacing: 0.5px;
 }
 
@@ -123,9 +123,9 @@
 }
 
 .export-preset-card.selected {
-  border-color: #06b6d4;
-  background: rgba(6, 182, 212, 0.1);
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+  border-color: #6b21a8;
+  background: rgba(107, 33, 168, 0.1);
+  box-shadow: 0 0 10px rgba(107, 33, 168, 0.2);
 }
 
 .preset-card-icon {
@@ -214,8 +214,8 @@
   font-weight: 800;
   padding: 1px 5px;
   border-radius: 2px;
-  background: #334155;
-  color: #94a3b8;
+  background: #462d40;
+  color: #bfa5b8;
   letter-spacing: 0.5px;
 }
 
@@ -314,7 +314,7 @@
   font-size: 8.5px;
   font-weight: 800;
   letter-spacing: 0.6px;
-  color: var(--accent-cyan);
+  color: var(--accent-primary);
 }
 
 .dsp-header-left h2 {
@@ -391,9 +391,9 @@
 }
 
 .module-badge.eq {
-  background: rgba(6, 182, 212, 0.2);
-  color: #22d3ee;
-  border: 1px solid rgba(6, 182, 212, 0.3);
+  background: rgba(107, 33, 168, 0.2);
+  color: #d9468f;
+  border: 1px solid rgba(107, 33, 168, 0.3);
 }
 
 .module-badge.comp {
@@ -437,10 +437,10 @@
 }
 
 .dsp-power-btn.active {
-  background: rgba(6, 182, 212, 0.2);
-  border-color: #06b6d4;
-  color: #22d3ee;
-  box-shadow: 0 0 8px rgba(6, 182, 212, 0.2);
+  background: rgba(107, 33, 168, 0.2);
+  border-color: #6b21a8;
+  color: #d9468f;
+  box-shadow: 0 0 8px rgba(107, 33, 168, 0.2);
 }
 
 .dsp-power-btn.comp.active {

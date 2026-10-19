@@ -307,16 +307,19 @@ pub async fn import_media(
 
         for selected_path in paths {
             let path = PathBuf::from(&selected_path);
-            if !path.is_file() {
+            // Canonicalize to resolve any .. components and symlinks
+            let canonical_path = path.canonicalize()
+                .map_err(|e| format!("Invalid media path `{}'`: {}", selected_path, e))?;
+            if !canonical_path.is_file() {
                 continue;
             }
-            let name = path
+            let name = canonical_path
                 .file_name()
                 .map(|part| part.to_string_lossy().into_owned())
                 .unwrap_or_else(|| selected_path.clone());
 
-            let metadata = probe_media_file(&discoverer, &path);
-            discovered.push((name, path, metadata));
+            let metadata = probe_media_file(&discoverer, &canonical_path);
+            discovered.push((name, canonical_path, metadata));
         }
 
         let mut engine_guard = engine

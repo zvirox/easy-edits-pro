@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import type { CSSProperties, RefObject, MutableRefObject } from "react";
 import { formatTime } from "../../utils/formatters";
 import { audioClockMaster, type MultiCamClip } from "../../engine/playbackEngine";
@@ -253,18 +254,18 @@ export function PreviewSection({
             display: "flex",
             justifyContent: "flex-end",
             padding: "8px 12px",
-            background: "#0f172a",
-            borderTop: "1px solid #1e293b",
+            background: "#110910",
+            borderTop: "1px solid #221220",
           }}
         >
-          <button
+          <InteriorButton
             type="button"
             className="multicam-sync-btn"
             onClick={() => void syncMulticamWaveforms()}
             title="Auto-synchronize multi-angle media via audio waveform cross-correlation"
           >
             <span>⚡ Sync Waveforms</span>
-          </button>
+          </InteriorButton>
         </div>
       </div>
     );
@@ -373,15 +374,15 @@ export function PreviewSection({
         </div>
         {multicamMode ? renderMulticamMonitor() : renderProgramMonitor()}
         <div className="transport">
-          <button
+          <InteriorButton
             aria-label="Previous frame"
             data-tooltip="Previous Frame (Left Arrow)"
             data-tooltip-pos="top"
             onClick={() => stepProgramFrame(-1)}
           >
             ◀
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className={programPlaying ? "active-toggle" : ""}
             aria-label={programPlaying ? "Pause playback" : "Play clip"}
             data-tooltip={programPlaying ? "Pause Playback (Space / K)" : "Play Timeline (Space / L)"}
@@ -389,15 +390,15 @@ export function PreviewSection({
             onClick={() => toggleProgramPlayback()}
           >
             {programPlaying ? "Ⅱ" : "▶"}
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             aria-label="Next frame"
             data-tooltip="Next Frame (Right Arrow)"
             data-tooltip-pos="top"
             onClick={() => stepProgramFrame(1)}
           >
             ▶|
-          </button>
+          </InteriorButton>
           {shuttleSpeed !== 1 && programPlaying && (
             <span className="transport-shuttle" title="Shuttle speed">
               {shuttleSpeed}x

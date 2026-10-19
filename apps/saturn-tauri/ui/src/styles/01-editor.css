@@ -1,119 +1,148 @@
+/* Easy Edits Pro warm studio palette */
 :root, [data-theme="dark"], .dark {
   color-scheme: dark;
+  --bg-canvas: #0b060a;
+  --bg-base: #110910;
+  --bg-surface: #180d17;
+  --bg-elevated: #221220;
+  --bg-glass: rgba(24, 13, 23, 0.82);
+  --border-subtle: rgba(244, 215, 235, 0.07);
+  --border-default: rgba(244, 215, 235, 0.12);
+  --border-active: rgba(217, 70, 143, 0.45);
+  --border-focus: #c02669;
+  --text-primary: #faf2f7;
+  --text-secondary: #bfa5b8;
+  --text-muted: #7d6377;
+  --accent-primary: #9f1249;
+  --accent-primary-hover: #be185d;
+  --accent-secondary: #6b21a8;
+  --accent-gradient: linear-gradient(135deg, #9f1249 0%, #6b21a8 100%);
+  --accent-glow: rgba(159, 18, 73, 0.22);
+  --accent-purple-glow: rgba(107, 33, 168, 0.18);
+  --status-success: #10b981;
+  --status-warning: #f59e0b;
+  --status-danger: #e11d48;
 
-  /* VoiceStudio Dark Theme Palette */
-  --color-bg-base: #09090b;        /* Deep matte obsidian base */
-  --color-bg-surface: #121216;     /* Layered card/panel background */
-  --color-bg-elevated: #18181c;    /* Hover or modal states */
-  
-  --color-border-subtle: rgba(255, 255, 255, 0.08);
-  --color-border-active: rgba(255, 255, 255, 0.16);
-
-  --color-text-primary: #f8fafc;   /* Crisp white headings */
-  --color-text-secondary: #94a3b8; /* Muted slate gray body text */
-  --color-text-muted: #64748b;     /* Subdued metadata / captions */
-
-  --color-accent-primary: #6366f1; /* Electric Indigo / Violet glow */
-  --color-accent-glow: rgba(99, 102, 241, 0.15);
-  --color-accent-success: #10b981; /* Local/Active status green */
-
-  /* Application Token Mappings */
-  --bg-app: var(--color-bg-base);
-  --bg-panel: var(--color-bg-surface);
-  --bg-elevated: var(--color-bg-elevated);
-  --bg-input: #0e0e12;
-  --border-panel: var(--color-border-subtle);
-  --text-primary: var(--color-text-primary);
-  --text-secondary: var(--color-text-secondary);
-  --text-muted: var(--color-text-muted);
-  --accent-primary: var(--color-accent-primary);
-
-  /* Semantic Aliases & Compatibility Tokens */
-  --bg-subpanel: var(--color-bg-elevated);
-  --bg-header: var(--color-bg-surface);
-  --bg-toolbar: var(--color-bg-surface);
-  --bg-button: var(--color-bg-elevated);
-  --bg-hover: rgba(255, 255, 255, 0.05);
-  --bg-active: rgba(255, 255, 255, 0.09);
-  --bg-selected: rgba(99, 102, 241, 0.16);
-  --border-color: var(--color-border-subtle);
-  --border-strong: var(--color-border-active);
-  --border-glow: var(--color-accent-glow);
-  --text-main: var(--color-text-primary);
-  --text-sub: var(--color-text-secondary);
-  --accent-cyan: #38bdf8;
-  --accent-violet: #818cf8;
-  --accent-primary-hover: #4f46e5;
+  /* Existing compatibility names resolve to the new semantic tokens. */
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-active: var(--border-default);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-glow: var(--accent-glow);
+  --color-accent-success: var(--status-success);
+  --bg-app: var(--bg-canvas);
+  --bg-panel: var(--bg-surface);
+  --bg-input: #100810;
+  --border-panel: var(--border-subtle);
+  --accent-violet: var(--accent-secondary);
   --accent-orange: #f97316;
-  --accent-green: var(--color-accent-success);
-  --bg-tooltip: rgba(18, 18, 22, 0.96);
-  --border-tooltip: var(--color-border-active);
-  --text-tooltip: var(--color-text-primary);
-  --shadow-popup: 0 16px 36px rgba(0, 0, 0, 0.6);
-
-  /* Tailwind CSS Semantic Variable Aliases */
-  --background: var(--color-bg-base);
-  --foreground: var(--color-text-primary);
-  --card: var(--color-bg-surface);
-  --card-foreground: var(--color-text-primary);
-  --popover: var(--color-bg-elevated);
-  --popover-foreground: var(--color-text-primary);
-  --primary: var(--color-accent-primary);
+  --accent-green: var(--status-success);
+  --accent-primary-hover: #be185d;
+  --bg-subpanel: var(--bg-elevated);
+  --bg-header: var(--bg-surface);
+  --bg-toolbar: var(--bg-surface);
+  --bg-button: var(--bg-elevated);
+  --bg-hover: rgba(244, 215, 235, 0.05);
+  --bg-active: rgba(244, 215, 235, 0.09);
+  --bg-selected: rgba(159, 18, 73, 0.18);
+  --border-color: var(--border-subtle);
+  --border-strong: var(--border-active);
+  --border-glow: var(--accent-glow);
+  --text-main: var(--text-primary);
+  --text-sub: var(--text-secondary);
+  --bg-tooltip: rgba(34, 18, 32, 0.96);
+  --border-tooltip: var(--border-default);
+  --text-tooltip: var(--text-primary);
+  --shadow-popup: 0 16px 36px rgba(0, 0, 0, 0.55);
+  --background: var(--bg-canvas);
+  --foreground: var(--text-primary);
+  --card: var(--bg-surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-elevated);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent-primary);
   --primary-foreground: #ffffff;
-  --secondary: var(--color-bg-elevated);
-  --secondary-foreground: var(--color-text-secondary);
-  --muted: var(--color-bg-elevated);
-  --muted-foreground: var(--color-text-muted);
+  --secondary: var(--bg-elevated);
+  --secondary-foreground: var(--text-secondary);
+  --muted: var(--bg-elevated);
+  --muted-foreground: var(--text-muted);
   --accent: var(--bg-selected);
-  --accent-foreground: var(--color-accent-primary);
-  --destructive: #ef4444;
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--status-danger);
   --destructive-foreground: #ffffff;
-  --border: var(--color-border-subtle);
-  --input: var(--color-border-subtle);
-  --ring: var(--color-accent-primary);
+  --border: var(--border-subtle);
+  --input: var(--border-default);
+  --ring: var(--border-focus);
 }
 
 [data-theme="light"], .light {
   color-scheme: light;
-  --bg-app: #e2e8f0;
-  --bg-panel: #ffffff;
-  --bg-elevated: #f8fafc;
-  --bg-input: #f1f5f9;
-  --border-panel: #cbd5e1;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --accent-primary: #0ea5e9;
-
-  /* Semantic Aliases & Compatibility Tokens */
+  --bg-canvas: #f1e8ef;
+  --bg-base: #f8f1f6;
+  --bg-surface: #fffafd;
+  --bg-elevated: #ede1e9;
+  --bg-glass: rgba(255, 250, 253, 0.86);
+  --border-subtle: rgba(83, 41, 67, 0.10);
+  --border-default: rgba(83, 41, 67, 0.16);
+  --border-active: rgba(159, 18, 73, 0.4);
+  --border-focus: #9f1249;
+  --text-primary: #281622;
+  --text-secondary: #62475a;
+  --text-muted: #826d7d;
+  --accent-primary: #9f1249;
+  --accent-primary-hover: #be185d;
+  --accent-secondary: #6b21a8;
+  --accent-gradient: linear-gradient(135deg, #9f1249 0%, #6b21a8 100%);
+  --accent-glow: rgba(159, 18, 73, 0.12);
+  --accent-purple-glow: rgba(107, 33, 168, 0.10);
+  --status-success: #047857;
+  --status-warning: #b45309;
+  --status-danger: #be123c;
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-active: var(--border-default);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-glow: var(--accent-glow);
+  --color-accent-success: var(--status-success);
+  --bg-app: var(--bg-canvas);
+  --bg-panel: var(--bg-surface);
+  --bg-input: #fffafd;
+  --border-panel: var(--border-subtle);
   --bg-subpanel: var(--bg-elevated);
-  --bg-header: var(--bg-panel);
-  --bg-toolbar: var(--bg-elevated);
-  --bg-button: #e2e8f0;
-  --bg-hover: rgba(0, 0, 0, 0.05);
-  --bg-active: rgba(0, 0, 0, 0.09);
-  --bg-selected: rgba(14, 165, 233, 0.12);
-  --border-color: var(--border-panel);
-  --border-strong: var(--border-panel);
-  --border-glow: rgba(14, 165, 233, 0.4);
+  --bg-header: var(--bg-surface);
+  --bg-toolbar: var(--bg-surface);
+  --bg-button: var(--bg-elevated);
+  --bg-hover: rgba(83, 41, 67, 0.05);
+  --bg-active: rgba(83, 41, 67, 0.09);
+  --bg-selected: rgba(159, 18, 73, 0.12);
+  --border-color: var(--border-subtle);
+  --border-strong: var(--border-active);
+  --border-glow: var(--accent-glow);
   --text-main: var(--text-primary);
   --text-sub: var(--text-secondary);
-  --accent-cyan: #0ea5e9;
-  --accent-violet: #7c3aed;
-  --accent-primary-hover: #0284c7;
-  --accent-orange: #ea580c;
-  --accent-green: #059669;
-  --bg-tooltip: #1e293bf8;
-  --border-tooltip: #334155;
-  --text-tooltip: #ffffff;
-  --shadow-popup: 0 10px 25px rgba(0, 0, 0, 0.15);
-
-  /* Tailwind CSS Semantic Variable Aliases */
-  --background: var(--bg-app);
+  --accent-violet: var(--accent-secondary);
+  --accent-primary-hover: #be185d;
+  --accent-orange: #c2410c;
+  --accent-green: #047857;
+  --bg-tooltip: #221220;
+  --border-tooltip: #462d40;
+  --text-tooltip: #faf2f7;
+  --shadow-popup: 0 10px 25px rgba(40, 22, 34, 0.16);
+  --background: var(--bg-canvas);
   --foreground: var(--text-primary);
-  --card: var(--bg-panel);
+  --card: var(--bg-surface);
   --card-foreground: var(--text-primary);
-  --popover: var(--bg-panel);
+  --popover: var(--bg-elevated);
   --popover-foreground: var(--text-primary);
   --primary: var(--accent-primary);
   --primary-foreground: #ffffff;
@@ -123,11 +152,11 @@
   --muted-foreground: var(--text-muted);
   --accent: var(--bg-selected);
   --accent-foreground: var(--accent-primary);
-  --destructive: #dc2626;
+  --destructive: var(--status-danger);
   --destructive-foreground: #ffffff;
-  --border: var(--border-panel);
-  --input: var(--border-panel);
-  --ring: var(--accent-primary);
+  --border: var(--border-subtle);
+  --input: var(--border-default);
+  --ring: var(--border-focus);
 }
 
 /* Universal Floating Tooltips */

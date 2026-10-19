@@ -16,7 +16,7 @@ import { WorkspaceRouter } from "./workspaces/WorkspaceRouter";
 import { StatusBar } from "./components/StatusBar";
 import { EditorModals } from "./features/dialogs";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { TICKS_PER_SECOND } from "./features/timeline/types";
+import { TICKS_PER_SECOND, timelineTools } from "./features/timeline/types";
 import { audioClockMaster } from "./engine/playbackEngine";
 
 function EditorApp() {
@@ -51,7 +51,7 @@ function EditorApp() {
   const media = project?.media ?? [];
   const recoveryStatus = useRecovery();
   const jobsHook = useJobs();
-  const { mediaServerPort, mediaServerToken } = useMediaServer();
+  const { mediaServerPort, mediaServerToken, getMediaUrl } = useMediaServer();
 
   const [programPreviewError, setProgramPreviewError] = useState<string | null>(null);
   const [preparedPreviews] = useState<Record<number, string>>({});
@@ -141,19 +141,34 @@ function EditorApp() {
   }, [projectOps]);
 
   const shortcuts = useShortcuts({
-    commands: [], timelineTools: [], project, multicamMode: false,
-    selectedTransition: timelineOps.selectedTransition, selectedClip: timelineOps.selectedClip,
-    timelineZoom: timelineOps.timelineZoom, toggleProgramPlayback: playback.toggleProgramPlayback,
-    switchMulticamAngle: () => {}, handleShuttleKey: playback.handleShuttleKey,
-    stepProgramFrame: playback.stepProgramFrame, seekProgramTo: playback.seekProgramTo,
-    removeSelectedTransition: mediaOps.removeSelectedTransition, removeSelectedClip: timelineOps.removeSelectedClip,
-    addTitleToTimeline: mediaOps.addTitleToTimeline, addTransitionToTimeline: mediaOps.addTransitionToTimeline,
-    unlinkSelectedClips: timelineOps.unlinkSelectedClips, linkSelectedClips: timelineOps.linkSelectedClips,
+    commands: [],
+    timelineTools: timelineTools.map((t) => ({ id: t.id, shortcut: t.shortcut })),
+    project,
+    multicamMode: false,
+    selectedTransition: timelineOps.selectedTransition,
+    selectedClip: timelineOps.selectedClip,
+    timelineZoom: timelineOps.timelineZoom,
+    toggleProgramPlayback: playback.toggleProgramPlayback,
+    switchMulticamAngle: () => {},
+    handleShuttleKey: playback.handleShuttleKey,
+    stepProgramFrame: playback.stepProgramFrame,
+    seekProgramTo: playback.seekProgramTo,
+    removeSelectedTransition: mediaOps.removeSelectedTransition,
+    removeSelectedClip: timelineOps.removeSelectedClip,
+    addTitleToTimeline: mediaOps.addTitleToTimeline,
+    addTransitionToTimeline: mediaOps.addTransitionToTimeline,
+    unlinkSelectedClips: timelineOps.unlinkSelectedClips,
+    linkSelectedClips: timelineOps.linkSelectedClips,
     decomposeSelectedCompoundClip: timelineOps.decomposeSelectedCompoundClip,
-    setCompoundClipNameDraft: projectOps.setCompoundClipNameDraft, setCompoundClipModalOpen: projectOps.setCompoundClipModalOpen,
-    toggleTheme, selectDavinciWorkspace, setTimelineTool: timelineOps.setTimelineTool,
-    setSnapEnabled: timelineOps.setSnapEnabled, zoomTimeline: timelineOps.zoomTimeline,
-    invokeMenuCommand: projectOps.invokeMenuCommand, setNotice,
+    setCompoundClipNameDraft: projectOps.setCompoundClipNameDraft,
+    setCompoundClipModalOpen: projectOps.setCompoundClipModalOpen,
+    toggleTheme,
+    selectDavinciWorkspace,
+    setTimelineTool: timelineOps.setTimelineTool,
+    setSnapEnabled: timelineOps.setSnapEnabled,
+    zoomTimeline: timelineOps.zoomTimeline,
+    invokeMenuCommand: projectOps.invokeMenuCommand,
+    setNotice,
   });
 
   if (projectOps.appStage === "welcome") {
@@ -232,7 +247,7 @@ function EditorApp() {
       <ErrorBoundary fallbackTitle="Workspace Rendering Issue" onReset={() => projectOps.setDavinciWorkspace("edit")}>
         <WorkspaceRouter
           davinciWorkspace={projectOps.davinciWorkspace}
-          project={project} media={media}
+          project={project} media={media} getMediaUrl={getMediaUrl}
           selectedTimelineClip={selectedTimelineClip}
           selectedMedia={selectedMedia}
           missingMediaIds={missingMediaIds} busy={busy}

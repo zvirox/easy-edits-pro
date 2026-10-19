@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction, PointerEvent } from "react";
 import { formatTime, formatPan, formatDb, getClipWaveform } from "../../utils/formatters";
 import type { AudioClockMaster } from "../../engine/playbackEngine";
@@ -94,7 +95,7 @@ export function TimelineTrackRow({
   return (
     <div
       className={`track-row track-height-${timelineTrackHeight} ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""} ${parentGroup ? "is-grouped-track" : ""}`}
-      style={parentGroup ? { borderLeft: `3px solid ${parentGroup.color || "#3182ce"}` } : undefined}
+      style={parentGroup ? { borderLeft: `3px solid ${parentGroup.color || "#9f1249"}` } : undefined}
     >
       <div className="track-label">
         <div className="track-label-top">
@@ -113,30 +114,30 @@ export function TimelineTrackRow({
             )}
           </div>
           <div className="track-label-btns">
-            <button
+            <InteriorButton
               type="button"
               className={`track-mini-btn ${track.locked ? "active lock" : ""}`}
               onClick={() => void toggleTrackLock(track)}
               title={track.locked ? "Unlock track" : "Lock track"}
             >
               {track.locked ? "🔒" : "🔓"}
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               type="button"
               className={`track-mini-btn ${track.muted ? "active mute" : ""}`}
               onClick={() => void toggleTrackMute(track)}
               title={track.muted ? "Unmute track" : "Mute track"}
             >
               M
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               type="button"
               className={`track-mini-btn ${track.solo ? "active solo" : ""}`}
               onClick={() => void toggleTrackSolo(track)}
               title={track.solo ? "Solo active" : "Solo track"}
             >
               S
-            </button>
+            </InteriorButton>
           </div>
         </div>
         {/* Live dB Volume Fader Slider */}
@@ -186,18 +187,19 @@ export function TimelineTrackRow({
           />
         </div>
         <div className="track-bottom-row" style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button
+          <InteriorButton
             className="track-delete-btn"
             onClick={() => void removeTrackFromTimeline(track.id)}
             disabled={busy || tracksCount <= 1}
             title="Delete Track"
           >
             ×
-          </button>
+          </InteriorButton>
         </div>
       </div>
       <div
         className={`track-lane ${mediaDropTargetTrackId === track.id ? "media-drop-target" : ""}`}
+        data-track-id={track.id}
         onDragOver={(e) => {
           e.preventDefault();
           e.dataTransfer.dropEffect = "copy";
@@ -323,8 +325,8 @@ export function TimelineTrackRow({
               {(() => {
                 const gradId = `wf-grad-edit-${track.id}-${clip.media_id}-${index}`;
                 const isAudio = track.kind === "audio" || item?.kind === "audio";
-                const activeColor = isAudio ? "#34d399" : "#38bdf8";
-                const inactiveColor = isAudio ? "rgba(52, 211, 153, 0.42)" : "rgba(56, 189, 248, 0.42)";
+                const activeColor = isAudio ? "#34d399" : "#be185d";
+                const inactiveColor = isAudio ? "rgba(52, 211, 153, 0.42)" : "rgba(159, 18, 73, 0.42)";
 
                 return (
                   <div className="clip-waveform-container" aria-hidden="true">

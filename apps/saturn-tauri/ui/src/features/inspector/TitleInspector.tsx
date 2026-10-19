@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction } from "react";
 import { formatTime } from "../../utils/formatters";
 import type { Clip, MediaAsset, TitleProperties } from "../../app/projectTypes";
@@ -89,7 +90,7 @@ export function TitleInspector({
       </label>
       <div className="control">Start <span>{formatTime(selectedTimelineClip.timeline_start)}</span></div>
       <div className="control">Duration <span>{formatTime(selectedTimelineClip.duration)}</span></div>
-      <button className="danger-button" onClick={removeSelectedClip}>Remove title clip</button>
+      <InteriorButton className="danger-button" onClick={removeSelectedClip}>Remove title clip</InteriorButton>
     </>
   );
 }

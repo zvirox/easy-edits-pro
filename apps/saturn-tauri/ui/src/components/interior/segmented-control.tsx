@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior-button";
 // Adapted from Interior's MIT-licensed Segmented Control: https://www.interior.dev/docs/segmented-control
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
@@ -93,7 +94,7 @@ export function SegmentedControl({ options, label, value, defaultValue, onValueC
         </motion.div>
         <div className="interior-segment-buttons" style={{ gridTemplateColumns: columns }}>
           {options.map((option, index) => (
-            <button
+            <InteriorButton
               key={option.value}
               ref={(node) => { buttons.current[index] = node; }}
               type="button"
@@ -106,7 +107,7 @@ export function SegmentedControl({ options, label, value, defaultValue, onValueC
               className="interior-segment-hit-target"
             >
               <span className="sr-only">{option.label}</span>
-            </button>
+            </InteriorButton>
           ))}
         </div>
       </div>

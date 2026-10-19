@@ -1,4 +1,7 @@
+import { TimelineTrackLabel, TimelineTrackLane } from "./TimelineTrackLane";
+import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction, PointerEvent } from "react";
+import { useCallback } from "react";
 import { Icon } from "../../components/Icon";
 import { formatTime } from "../../utils/formatters";
 import type { AudioClockMaster } from "../../engine/playbackEngine";
@@ -10,6 +13,7 @@ import type {
   Track,
   Transition,
   SelectedClip,
+  Sequence,
 } from "../../app/projectTypes";
 import type { CommandStatus } from "../../app/ProjectProvider";
 import {
@@ -19,8 +23,7 @@ import {
   TICKS_PER_SECOND,
   getTrackGaps,
 } from "./types";
-import { TimelineToolbar } from "./TimelineToolbar";
-import { TimelineTrackRow } from "./TimelineTrackRow";
+import { TimelineToolbar, TimelineToolRail } from "./TimelineToolbar";
 
 export {
   type TimelineTool,
@@ -108,6 +111,13 @@ export interface TimelineSectionProps {
   beginTimelineClipTrim: (e: PointerEvent<HTMLSpanElement>, trackId: number, clipIdx: number, clip: Clip, handle: "start" | "end") => void;
   moveTimelineClipTrim: (e: PointerEvent<HTMLSpanElement>) => void;
   finishTimelineClipTrim: (e: PointerEvent<HTMLSpanElement>) => void;
+
+  // New props for enhanced timeline
+  sequences?: Sequence[];
+  currentSequenceId?: number;
+  addVideoTrack: () => Promise<void>;
+  addAudioTrack: () => Promise<void>;
+  onMediaDropToEmptySpace: (x: number, y: number, mediaId: number) => Promise<void>;
 }
 
 export function TimelineSection({
@@ -168,7 +178,6 @@ export function TimelineSection({
   gainDrafts,
   setGainDrafts,
   saveTrackGain,
-  audioClockMaster,
   panDrafts,
   setPanDrafts,
   saveTrackPan,
@@ -185,45 +194,282 @@ export function TimelineSection({
   beginTimelineClipTrim,
   moveTimelineClipTrim,
   finishTimelineClipTrim,
+  // New props
+  onMediaDropToEmptySpace,
 }: TimelineSectionProps) {
   const tracks = project?.sequence.tracks ?? [];
+  const videoTracks = tracks.filter((t) => t.kind === "video");
+  const audioTracks = tracks.filter((t) => t.kind === "audio");
+  const allSequences = project?.sequences ?? [];
+  const hasSequences = allSequences.length > 1;
+  const currentSequenceId = project?.sequence.id;
+
+  // Calculate playhead position in pixels
+  const playheadX = (playhead / TICKS_PER_SECOND) * timelineZoom;
+
+  // Handler for dropping media on empty space (below/above tracks)
+  const handleDropOnEmptySpace = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      const raw = e.dataTransfer.getData("application/json");
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.media_id) {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          void onMediaDropToEmptySpace?.(x, y, parsed.media_id);
+        }
+      } catch {}
+    },
+    [onMediaDropToEmptySpace]
+  );
+
+  // Handler for dragging over empty space
+  const handleDragOverEmptySpace = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  }, []);
 
   return (
     <section className="timeline">
-      <TimelineToolbar
-        timelineTool={timelineTool}
-        setTimelineTool={setTimelineTool}
-        project={project}
-        switchSequence={switchSequence}
-        playhead={playhead}
-        busy={busy}
-        addTrackToTimeline={addTrackToTimeline}
-        timelineTrackHeight={timelineTrackHeight}
-        setTimelineTrackHeight={setTimelineTrackHeight}
-        snapEnabled={snapEnabled}
-        setSnapEnabled={setSnapEnabled}
-        addSelectedToTimeline={addSelectedToTimeline}
-        selectedMedia={selectedMedia}
-        addTitleToTimeline={addTitleToTimeline}
-        addTransitionToTimeline={addTransitionToTimeline}
-        undoStatus={undoStatus}
-        redoStatus={redoStatus}
-        perform={perform}
-        selectedClip={selectedClip}
-        splitSelectedClip={splitSelectedClip}
-        rippleDeleteSelectedClip={rippleDeleteSelectedClip}
-        removeSelectedClip={removeSelectedClip}
-        selectedClips={selectedClips}
-        linkSelectedClips={linkSelectedClips}
-        unlinkSelectedClips={unlinkSelectedClips}
-        setCompoundClipNameDraft={setCompoundClipNameDraft}
-        setCompoundClipModalOpen={setCompoundClipModalOpen}
-        decomposeSelectedCompoundClip={decomposeSelectedCompoundClip}
-        invokeMenuCommand={invokeMenuCommand}
-        zoomTimeline={zoomTimeline}
-        handleCreateTrackGroup={handleCreateTrackGroup}
-      />
+      {/* Timeline Header with Sequence Switcher */}
+      <div className="timeline-header-bar">
+        <TimelineToolRail
+          timelineTool={timelineTool}
+          setTimelineTool={setTimelineTool}
+        />
+        {hasSequences && (
+          <div className="timeline-sequence-switcher">
+            <label htmlFor="sequence-select" className="visually-hidden">
+              Active Sequence
+            </label>
+            <select
+              id="sequence-select"
+              className="sequence-select"
+              value={currentSequenceId ?? ""}
+              onChange={(e) => void switchSequence(Number(e.target.value))}
+              disabled={busy}
+            >
+              {allSequences.map((seq) => (
+                <option key={seq.id ?? ""} value={seq.id ?? ""}>
+                  {(seq.id ?? 0) === 1 ? "🎬 " : "⧉ "} {seq.name || `Sequence ${seq.id}`}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
       <div className="timeline-workbench">
+        <TimelineToolbar
+          project={project}
+          switchSequence={switchSequence}
+          playhead={playhead}
+          busy={busy}
+          addTrackToTimeline={addTrackToTimeline}
+          timelineTrackHeight={timelineTrackHeight}
+          setTimelineTrackHeight={setTimelineTrackHeight}
+          snapEnabled={snapEnabled}
+          setSnapEnabled={setSnapEnabled}
+          addSelectedToTimeline={addSelectedToTimeline}
+          selectedMedia={selectedMedia}
+          addTitleToTimeline={addTitleToTimeline}
+          addTransitionToTimeline={addTransitionToTimeline}
+          undoStatus={undoStatus}
+          redoStatus={redoStatus}
+          perform={perform}
+          selectedClip={selectedClip}
+          splitSelectedClip={splitSelectedClip}
+          rippleDeleteSelectedClip={rippleDeleteSelectedClip}
+          removeSelectedClip={removeSelectedClip}
+          selectedClips={selectedClips}
+          linkSelectedClips={linkSelectedClips}
+          unlinkSelectedClips={unlinkSelectedClips}
+          setCompoundClipNameDraft={setCompoundClipNameDraft}
+          setCompoundClipModalOpen={setCompoundClipModalOpen}
+          decomposeSelectedCompoundClip={decomposeSelectedCompoundClip}
+          invokeMenuCommand={invokeMenuCommand}
+          zoomTimeline={zoomTimeline}
+          handleCreateTrackGroup={handleCreateTrackGroup}
+        />
+
+        {/* Timeline Body (Labels + Content side by side) */}
+        <div className="timeline-body">
+          {/* Track Labels Area (fixed horizontal scroll, vertical scroll sync) */}
+          <div className="timeline-labels-container">
+          <div className="track-labels-header">
+            <span className="track-spacer">Track</span>
+          </div>
+          <div
+            className="track-labels-scroller"
+            onPointerDown={handleTimelinePanStart}
+            onPointerMove={handleTimelinePanMove}
+            onPointerUp={handleTimelinePanEnd}
+            onPointerCancel={handleTimelinePanEnd}
+            onWheel={(e) => {
+              // Sync horizontal scroll with timeline content
+              if (e.deltaY !== 0) {
+                const scroller = e.currentTarget;
+                scroller.scrollLeft += e.deltaY;
+              }
+            }}
+          >
+            <div className="track-labels-content" style={{ minWidth: `${TRACK_LABEL_WIDTH}px` }}>
+              {/* Subtitle Track Label */}
+              <div className="track-label subtitle-track-label">
+                <div className="track-label-top">
+                  <b>Subtitles</b>
+                  <span className="subtitle-badge-pill">CC</span>
+                </div>
+                <div className="track-label-btns subtitle-track-btns">
+                  <InteriorButton
+                    type="button"
+                    className="track-mini-btn"
+                    title="Add Subtitle at Playhead"
+                    onClick={() => void addSubtitleAtPlayhead()}
+                  >
+                    ＋
+                  </InteriorButton>
+                  <InteriorButton
+                    type="button"
+                    className="track-mini-btn"
+                    title="Import SRT/VTT Subtitles"
+                    onClick={() => void importSubtitlesDialog()}
+                  >
+                    📥
+                  </InteriorButton>
+                  <InteriorButton
+                    type="button"
+                    className="track-mini-btn"
+                    title="Export SRT/VTT Subtitles"
+                    onClick={() => void exportSubtitlesDialog()}
+                  >
+                    📤
+                  </InteriorButton>
+                </div>
+              </div>
+
+              {/* Track Groups */}
+              {(project?.sequence.track_groups ?? []).map((group) => {
+                const memberTracks = tracks.filter((t) => t.group_id === group.id);
+                return (
+                  <div
+                    className={`track-label track-group-label ${group.collapsed ? "is-collapsed" : ""}`}
+                    key={`group-label-${group.id}`}
+                    style={{
+                      borderLeft: `4px solid ${group.color || "#9f1249"}`,
+                    }}
+                  >
+                    <div className="track-group-title-row">
+                      <InteriorButton
+                        type="button"
+                        className="track-group-collapse-btn"
+                        onClick={() => void handleToggleGroupCollapse(group.id)}
+                        title={group.collapsed ? "Expand Group" : "Collapse Group"}
+                      >
+                        {group.collapsed ? "▶" : "▼"}
+                      </InteriorButton>
+                      <span className="track-group-name" title={group.name}>
+                        {group.name}
+                      </span>
+                      <small className="track-group-count">({memberTracks.length})</small>
+                    </div>
+                    <div className="track-group-actions">
+                      <InteriorButton
+                        type="button"
+                        className="track-mini-btn"
+                        onClick={() => void handleEditTrackGroup(group.id)}
+                        title="Edit Folder Name / Color"
+                      >
+                        ✎
+                      </InteriorButton>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Video Tracks Labels */}
+              {videoTracks.map((track) => {
+                const parentGroup =
+                  track.group_id != null
+                    ? (project?.sequence.track_groups ?? []).find((g) => g.id === track.group_id)
+                    : null;
+                if (parentGroup?.collapsed) return null;
+                return (
+                  <TimelineTrackLabel
+                    key={track.id}
+                    track={track}
+                    parentGroup={parentGroup}
+                    toggleTrackLock={toggleTrackLock}
+                    toggleTrackMute={toggleTrackMute}
+                    toggleTrackSolo={toggleTrackSolo}
+                    gainDrafts={gainDrafts}
+                    setGainDrafts={setGainDrafts}
+                    saveTrackGain={saveTrackGain}
+                    panDrafts={panDrafts}
+                    setPanDrafts={setPanDrafts}
+                    saveTrackPan={saveTrackPan}
+                    removeTrackFromTimeline={removeTrackFromTimeline}
+                    busy={busy}
+                    tracksCount={tracks.length}
+                  />
+                );
+              })}
+
+              {/* Audio Tracks Labels */}
+              {audioTracks.map((track) => {
+                const parentGroup =
+                  track.group_id != null
+                    ? (project?.sequence.track_groups ?? []).find((g) => g.id === track.group_id)
+                    : null;
+                if (parentGroup?.collapsed) return null;
+                return (
+                  <TimelineTrackLabel
+                    key={track.id}
+                    track={track}
+                    parentGroup={parentGroup}
+                    toggleTrackLock={toggleTrackLock}
+                    toggleTrackMute={toggleTrackMute}
+                    toggleTrackSolo={toggleTrackSolo}
+                    gainDrafts={gainDrafts}
+                    setGainDrafts={setGainDrafts}
+                    saveTrackGain={saveTrackGain}
+                    panDrafts={panDrafts}
+                    setPanDrafts={setPanDrafts}
+                    saveTrackPan={saveTrackPan}
+                    removeTrackFromTimeline={removeTrackFromTimeline}
+                    busy={busy}
+                    tracksCount={tracks.length}
+                  />
+                );
+              })}
+
+              {/* Add Track Drop Zones */}
+              <div
+                className="track-label add-track-drop-zone video"
+                onDragOver={handleDragOverEmptySpace}
+                onDrop={handleDropOnEmptySpace}
+                title="Drop video clip here to create new video track"
+              >
+                <span className="add-track-icon">＋</span>
+                <span className="add-track-text">Add Video Track</span>
+              </div>
+              <div
+                className="track-label add-track-drop-zone audio"
+                onDragOver={handleDragOverEmptySpace}
+                onDrop={handleDropOnEmptySpace}
+                title="Drop audio clip here to create new audio track"
+              >
+                <span className="add-track-icon">＋</span>
+                <span className="add-track-text">Add Audio Track</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Timeline Content Area (horizontal scroll) */}
         <div
           ref={attachTimelineScroller}
           className={`timeline-scroller ${timelineTool === "hand" ? "hand-mode" : ""}`}
@@ -233,6 +479,7 @@ export function TimelineSection({
           onPointerCancel={handleTimelinePanEnd}
         >
           <div className="timeline-content" style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
+            {/* Unified Ruler with Playhead */}
             <div className="timeline-ruler">
               <span className="track-spacer">Time</span>
               <div
@@ -265,9 +512,10 @@ export function TimelineSection({
                     {formatTime(index * TICKS_PER_SECOND * 5)}
                   </span>
                 ))}
+                {/* Unified Playhead - spans all tracks */}
                 <div
-                  className="playhead-grip ruler-playhead-grip"
-                  style={{ left: `${(playhead / TICKS_PER_SECOND) * timelineZoom}px` }}
+                  className="playhead-grip ruler-playhead-grip unified-playhead"
+                  style={{ left: `${playheadX}px` }}
                   role="slider"
                   aria-label="Timeline playhead"
                   aria-valuenow={playhead / TICKS_PER_SECOND}
@@ -279,44 +527,13 @@ export function TimelineSection({
                   onPointerCancel={finishTimelineScrub}
                 >
                   <i className="playhead" />
+                  <div className="playhead-line" style={{ height: "100%" }} />
                 </div>
               </div>
             </div>
 
-            {/* Dedicated Subtitle Track Lane */}
+            {/* Subtitle Track Lane */}
             <div className="track-row subtitle-track-row">
-              <div className="track-label subtitle-track-label">
-                <div className="track-label-top">
-                  <b>Subtitles</b>
-                  <span className="subtitle-badge-pill">CC</span>
-                </div>
-                <div className="track-label-btns subtitle-track-btns">
-                  <button
-                    type="button"
-                    className="track-mini-btn"
-                    title="Add Subtitle at Playhead"
-                    onClick={() => void addSubtitleAtPlayhead()}
-                  >
-                    ＋
-                  </button>
-                  <button
-                    type="button"
-                    className="track-mini-btn"
-                    title="Import SRT/VTT Subtitles"
-                    onClick={() => void importSubtitlesDialog()}
-                  >
-                    📥
-                  </button>
-                  <button
-                    type="button"
-                    className="track-mini-btn"
-                    title="Export SRT/VTT Subtitles"
-                    onClick={() => void exportSubtitlesDialog()}
-                  >
-                    📤
-                  </button>
-                </div>
-              </div>
               <div
                 className="track-lane subtitle-track-lane"
                 onClick={() => {
@@ -324,6 +541,8 @@ export function TimelineSection({
                   setSelectedClipId(null);
                   setSelectedClip(null);
                 }}
+                onDragOver={handleDragOverEmptySpace}
+                onDrop={handleDropOnEmptySpace}
               >
                 {(project?.sequence.subtitles ?? []).map((sub) => {
                   const left = (sub.start_ticks / TICKS_PER_SECOND) * timelineZoom;
@@ -350,49 +569,18 @@ export function TimelineSection({
               </div>
             </div>
 
-            {/* Track Groups Visual Folder Headers */}
+            {/* Track Groups Visual Folder Headers (Lanes) */}
             {(project?.sequence.track_groups ?? []).map((group) => {
               const memberTracks = tracks.filter((t) => t.group_id === group.id);
               return (
                 <div
                   className={`track-row track-group-row ${group.collapsed ? "is-collapsed" : ""}`}
-                  key={`group-${group.id}`}
+                  key={`group-lane-${group.id}`}
                 >
-                  <div
-                    className="track-label track-group-label"
-                    style={{
-                      borderLeft: `4px solid ${group.color || "#3182ce"}`,
-                    }}
-                  >
-                    <div className="track-group-title-row">
-                      <button
-                        type="button"
-                        className="track-group-collapse-btn"
-                        onClick={() => void handleToggleGroupCollapse(group.id)}
-                        title={group.collapsed ? "Expand Group" : "Collapse Group"}
-                      >
-                        {group.collapsed ? "▶" : "▼"}
-                      </button>
-                      <span className="track-group-name" title={group.name}>
-                        {group.name}
-                      </span>
-                      <small className="track-group-count">({memberTracks.length})</small>
-                    </div>
-                    <div className="track-group-actions">
-                      <button
-                        type="button"
-                        className="track-mini-btn"
-                        onClick={() => void handleEditTrackGroup(group.id)}
-                        title="Edit Folder Name / Color"
-                      >
-                        ✎
-                      </button>
-                    </div>
-                  </div>
                   <div
                     className="track-lane track-group-lane"
                     style={{
-                      backgroundColor: `${group.color || "#3182ce"}0a`,
+                      backgroundColor: `${group.color || "#9f1249"}0a`,
                     }}
                   >
                     {group.collapsed && (
@@ -405,34 +593,19 @@ export function TimelineSection({
               );
             })}
 
-            {tracks.map((track) => {
+            {/* Video Tracks Lanes */}
+            {videoTracks.map((track) => {
               const parentGroup =
                 track.group_id != null
                   ? (project?.sequence.track_groups ?? []).find((g) => g.id === track.group_id)
                   : null;
-              if (parentGroup?.collapsed) {
-                return null;
-              }
+              if (parentGroup?.collapsed) return null;
               return (
-                <TimelineTrackRow
-                  key={track.id}
+                <TimelineTrackLane
+                  key={`video-${track.id}`}
                   track={track}
                   timelineTrackHeight={timelineTrackHeight}
                   parentGroup={parentGroup}
-                  toggleTrackLock={toggleTrackLock}
-                  toggleTrackMute={toggleTrackMute}
-                  toggleTrackSolo={toggleTrackSolo}
-                  gainDrafts={gainDrafts}
-                  setGainDrafts={setGainDrafts}
-                  audioClockMaster={audioClockMaster}
-                  saveTrackGain={saveTrackGain}
-                  panDrafts={panDrafts}
-                  setPanDrafts={setPanDrafts}
-                  saveTrackPan={saveTrackPan}
-                  removeTrackFromTimeline={removeTrackFromTimeline}
-                  busy={busy}
-                  tracksCount={tracks.length}
-                  mediaDropTargetTrackId={mediaDropTargetTrackId}
                   timelineZoom={timelineZoom}
                   perform={perform}
                   rippleCloseGap={rippleCloseGap}
@@ -451,18 +624,96 @@ export function TimelineSection({
                   beginTimelineClipTrim={beginTimelineClipTrim}
                   moveTimelineClipTrim={moveTimelineClipTrim}
                   finishTimelineClipTrim={finishTimelineClipTrim}
-                  switchSequence={switchSequence}
                   playhead={playhead}
                   timelineEndSeconds={timelineEndSeconds}
                   beginTimelineScrub={beginTimelineScrub}
                   moveTimelineScrub={moveTimelineScrub}
                   finishTimelineScrub={finishTimelineScrub}
+                  mediaDropTargetTrackId={mediaDropTargetTrackId}
+                  switchSequence={switchSequence}
                 />
               );
             })}
+
+            {/* Audio Tracks Lanes */}
+            {audioTracks.map((track) => {
+              const parentGroup =
+                track.group_id != null
+                  ? (project?.sequence.track_groups ?? []).find((g) => g.id === track.group_id)
+                  : null;
+              if (parentGroup?.collapsed) return null;
+              return (
+                <TimelineTrackLane
+                  key={`audio-${track.id}`}
+                  track={track}
+                  timelineTrackHeight={timelineTrackHeight}
+                  parentGroup={parentGroup}
+                  timelineZoom={timelineZoom}
+                  perform={perform}
+                  rippleCloseGap={rippleCloseGap}
+                  selectedTransition={selectedTransition}
+                  setSelectedTransition={setSelectedTransition}
+                  setSelectedClipId={setSelectedClipId}
+                  setSelectedClip={setSelectedClip}
+                  media={media}
+                  missingMediaIds={missingMediaIds}
+                  selectedClip={selectedClip}
+                  selectedClips={selectedClips}
+                  clipDragOffset={clipDragOffset}
+                  beginTimelineClipPointer={beginTimelineClipPointer}
+                  moveTimelineClipPointer={moveTimelineClipPointer}
+                  handleTimelineClipPointerCancel={handleTimelineClipPointerCancel}
+                  beginTimelineClipTrim={beginTimelineClipTrim}
+                  moveTimelineClipTrim={moveTimelineClipTrim}
+                  finishTimelineClipTrim={finishTimelineClipTrim}
+                  playhead={playhead}
+                  timelineEndSeconds={timelineEndSeconds}
+                  beginTimelineScrub={beginTimelineScrub}
+                  moveTimelineScrub={moveTimelineScrub}
+                  finishTimelineScrub={finishTimelineScrub}
+                  mediaDropTargetTrackId={mediaDropTargetTrackId}
+                  switchSequence={switchSequence}
+                />
+              );
+            })}
+
+            {/* Empty Space Drop Zones - for auto track creation */}
+            <div
+              className="track-row empty-drop-zone video"
+              onDragOver={handleDragOverEmptySpace}
+              onDrop={handleDropOnEmptySpace}
+            >
+              <div className="track-lane empty-drop-lane video">
+                <div className="empty-drop-hint">
+                  <svg className="empty-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <polygon points="23 7 16 12 23 17 23 7" />
+                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                  </svg>
+                  <span>Drop video clip here to create new video track</span>
+                </div>
+              </div>
+            </div>
+            <div
+              className="track-row empty-drop-zone audio"
+              onDragOver={handleDragOverEmptySpace}
+              onDrop={handleDropOnEmptySpace}
+            >
+              <div className="track-lane empty-drop-lane audio">
+                <div className="empty-drop-hint">
+                  <svg className="empty-drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
+                  </svg>
+                  <span>Drop audio clip here to create new audio track</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </section>
-  );
+    </div>
+  </section>
+);
 }
+
+export { TimelineTrackLabel, TimelineTrackLane } from "./TimelineTrackLane";

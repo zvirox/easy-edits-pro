@@ -1,3 +1,4 @@
+import { InteriorButton } from "../components/interior/interior-button";
 import type { ReactNode } from "react";
 import { CustomShaderEditor } from "../components/CustomShaderEditor";
 import { BackgroundMattingCard } from "../components/BackgroundMattingCard";
@@ -102,12 +103,12 @@ export function EffectsWorkspace({
               </select>
             </div>
           )}
-          <button
+          <InteriorButton
             className="btn-primary-subtle"
             onClick={() => selectDavinciWorkspace("edit")}
           >
             ← Back to Edit
-          </button>
+          </InteriorButton>
         </div>
       </header>
 
@@ -123,15 +124,15 @@ export function EffectsWorkspace({
               {renderProgramMonitor()}
             </div>
             <div className="effects-transport-bar">
-              <button aria-label="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</button>
-              <button
+              <InteriorButton aria-label="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</InteriorButton>
+              <InteriorButton
                 className={programPlaying ? "active-toggle" : ""}
                 aria-label={programPlaying ? "Pause playback" : "Play clip"}
                 onClick={() => toggleProgramPlayback()}
               >
                 {programPlaying ? "⏸ Pause" : "▶ Play"}
-              </button>
-              <button aria-label="Next frame" onClick={() => stepProgramFrame(1)}>▶|</button>
+              </InteriorButton>
+              <InteriorButton aria-label="Next frame" onClick={() => stepProgramFrame(1)}>▶|</InteriorButton>
               <code>{formatTime(playhead)}</code>
             </div>
           </div>
@@ -159,20 +160,20 @@ export function EffectsWorkspace({
                 {effects.map((eff, idx) => (
                   <article key={eff.id} className={`effect-stack-card ${eff.enabled ? "is-active" : "is-bypassed"}`}>
                     <header className="effect-card-header">
-                      <button
+                      <InteriorButton
                         type="button"
                         className={`effect-toggle-btn ${eff.enabled ? "enabled" : "bypassed"}`}
                         title={eff.enabled ? "Bypass Effect" : "Enable Effect"}
                         onClick={() => void toggleEffect(eff.id, !eff.enabled)}
                       >
                         {eff.enabled ? "👁" : "👁‍🗨"}
-                      </button>
+                      </InteriorButton>
                       <div className="effect-card-title">
                         <strong>{eff.name}</strong>
                         <span className="effect-kind-badge">{eff.kind.replace("_", " ")}</span>
                       </div>
                       <div className="effect-card-actions">
-                        <button
+                        <InteriorButton
                           type="button"
                           className="effect-action-btn"
                           disabled={idx === 0}
@@ -180,8 +181,8 @@ export function EffectsWorkspace({
                           onClick={() => void reorderEffect(idx, idx - 1)}
                         >
                           ▲
-                        </button>
-                        <button
+                        </InteriorButton>
+                        <InteriorButton
                           type="button"
                           className="effect-action-btn"
                           disabled={idx === effects.length - 1}
@@ -189,15 +190,15 @@ export function EffectsWorkspace({
                           onClick={() => void reorderEffect(idx, idx + 1)}
                         >
                           ▼
-                        </button>
-                        <button
+                        </InteriorButton>
+                        <InteriorButton
                           type="button"
                           className="effect-action-btn delete"
                           title="Remove Effect"
                           onClick={() => void removeEffect(eff.id)}
                         >
                           ×
-                        </button>
+                        </InteriorButton>
                       </div>
                     </header>
 
@@ -506,13 +507,13 @@ export function EffectsWorkspace({
                                 </div>
                               )}
 
-                              <button
+                              <InteriorButton
                                 type="button"
                                 className="btn-secondary lut-browse-btn"
                                 onClick={() => void loadLutCubeDialog(eff.id)}
                               >
                                 📂 Browse .cube File…
-                              </button>
+                              </InteriorButton>
 
                               <label>
                                 <span>LUT Intensity ({Math.round((p.intensity ?? 1.0) * 100)}%)</span>
@@ -576,7 +577,7 @@ export function EffectsWorkspace({
             const isSelected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
             const clipFxCount = clip.effects?.length ?? 0;
             return (
-              <button
+              <InteriorButton
                 key={`reel-fx-${track.id}-${clip.media_id}-${index}`}
                 className={`reel-clip-card ${isSelected ? "selected" : ""}`}
                 onClick={() => {
@@ -591,7 +592,7 @@ export function EffectsWorkspace({
                 </div>
                 <strong className="reel-clip-name">{mediaItem?.name ?? "Clip"}</strong>
                 <span className="reel-clip-dur">{formatTime(clip.duration)}</span>
-              </button>
+              </InteriorButton>
             );
           })}
         </div>

@@ -14,6 +14,7 @@ export interface WorkspaceRouterProps {
   davinciWorkspace: string;
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
+  getMediaUrl: (path: string) => string;
   selectedTimelineClip: Clip | null;
   selectedMedia: MediaAsset | null;
   missingMediaIds: Set<number>;
@@ -37,6 +38,7 @@ export function WorkspaceRouter({
   davinciWorkspace,
   project,
   media,
+  getMediaUrl,
   selectedTimelineClip,
   selectedMedia,
   missingMediaIds,
@@ -90,7 +92,7 @@ export function WorkspaceRouter({
         handleImportTimelineInterop={projectOps.handleImportTimelineInterop}
         isInteropBusy={projectOps.isInteropBusy}
         interopContent={projectOps.interopContent}
-        setNotice={() => {}}
+        setNotice={projectOps.setNotice}
         encoderInfo={null}
         selectedExportPreset="source"
         setSelectedExportPreset={() => {}}
@@ -104,7 +106,7 @@ export function WorkspaceRouter({
         setExportFileName={projectOps.setExportFileName}
         exportOutputPath={projectOps.exportOutputPath}
         setExportOutputPath={projectOps.setExportOutputPath}
-        chooseExportDestination={async () => {}}
+        chooseExportDestination={projectOps.chooseExportDestination}
         useHardwareEncoding={projectOps.useHardwareEncoding}
         setUseHardwareEncoding={projectOps.setUseHardwareEncoding}
         exportMarkedRange={projectOps.exportMarkedRange}
@@ -388,7 +390,7 @@ export function WorkspaceRouter({
       }}
       previewSectionProps={{
         selectedMedia,
-        getMediaUrl: playback.getMediaUrl,
+        getMediaUrl,
         sourcePreviewError: null,
         setSourcePreviewError: () => {},
         preparedPreviews: {},
@@ -491,6 +493,20 @@ export function WorkspaceRouter({
         beginTimelineClipTrim: timelineOps.beginTimelineClipTrim,
         moveTimelineClipTrim: timelineOps.moveTimelineClipTrim,
         finishTimelineClipTrim: timelineOps.finishTimelineClipTrim,
+        // New props for enhanced timeline
+        sequences: project?.sequences,
+        currentSequenceId: project?.sequence.id,
+        addVideoTrack: () => timelineOps.addTrackToTimeline("video"),
+        addAudioTrack: () => timelineOps.addTrackToTimeline("audio"),
+        onMediaDropToEmptySpace: async (_x: number, _y: number, mediaId: number) => {
+          // Determine track type from media
+          const mediaItem = project?.media.find((m) => m.id === mediaId);
+          if (!mediaItem) return;
+          const trackKind = mediaItem.kind === "audio" ? "audio" : "video";
+          await timelineOps.addTrackToTimeline(trackKind);
+          // After adding track, we need to refresh to get the new track ID
+          // The actual drop handling will be done by the track lane
+        },
       }}
       inspectorPanelProps={{
         workspace: projectOps.workspace,

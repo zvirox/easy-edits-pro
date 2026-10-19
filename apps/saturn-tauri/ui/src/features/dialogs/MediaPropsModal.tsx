@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import type { MediaAsset, ProjectDocument } from "../../app/projectTypes";
 
 export interface MediaPropsModalProps {
@@ -49,7 +50,7 @@ export function MediaPropsModal({
       >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>🏷️ Edit Asset Properties</h2>
-          <button type="button" className="close-btn" onClick={onClose}>✕</button>
+          <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
         <label style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
           Asset Name
@@ -63,8 +64,8 @@ export function MediaPropsModal({
         <div style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
           <span>Color Label</span>
           <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
-            {["", "#38bdf8", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#64748b"].map((c) => (
-              <button
+            {["", "#be185d", "#10b981", "#f59e0b", "#ef4444", "#6b21a8", "#ec4899", "#7d6377"].map((c) => (
+              <InteriorButton
                 key={c || "none"}
                 type="button"
                 onClick={() => setMediaEditPropsColor(c)}
@@ -73,18 +74,18 @@ export function MediaPropsModal({
                   height: "24px",
                   borderRadius: "50%",
                   background: c || "transparent",
-                  border: mediaEditPropsColor === c ? "2px solid #ffffff" : "1px solid #475569",
+                  border: mediaEditPropsColor === c ? "2px solid #ffffff" : "1px solid #7d6377",
                   cursor: "pointer",
                   outline: "none",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "10px",
-                  color: "#94a3b8",
+                  color: "#bfa5b8",
                 }}
               >
                 {!c && "✕"}
-              </button>
+              </InteriorButton>
             ))}
           </div>
         </div>
@@ -115,8 +116,8 @@ export function MediaPropsModal({
           </select>
         </label>
         <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-          <button type="button" onClick={onClose}>Cancel</button>
-          <button className="primary" type="submit">Save Properties</button>
+          <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
+          <InteriorButton className="primary" type="submit">Save Properties</InteriorButton>
         </div>
       </form>
     </div>

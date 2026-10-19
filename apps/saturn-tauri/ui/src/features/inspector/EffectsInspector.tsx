@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import type {
   Clip,
   ColorCorrectionParams,
@@ -114,20 +115,20 @@ export function EffectsInspector({
             return (
               <article key={eff.id} className={`effect-stack-card ${eff.enabled ? "is-active" : "is-bypassed"}`}>
                 <header className="effect-card-header">
-                  <button
+                  <InteriorButton
                     type="button"
                     className={`effect-toggle-btn ${eff.enabled ? "enabled" : "bypassed"}`}
                     title={eff.enabled ? "Bypass (Disable) Effect" : "Enable Effect"}
                     onClick={() => void toggleEffect(eff.id, !eff.enabled)}
                   >
                     {eff.enabled ? "👁" : "👁‍🗨"}
-                  </button>
+                  </InteriorButton>
                   <div className="effect-card-title">
                     <strong>{eff.name}</strong>
                     <span className="effect-kind-badge">{eff.kind.replace("_", " ")}</span>
                   </div>
                   <div className="effect-card-actions">
-                    <button
+                    <InteriorButton
                       type="button"
                       className="effect-action-btn"
                       disabled={idx === 0}
@@ -135,8 +136,8 @@ export function EffectsInspector({
                       onClick={() => void reorderEffect(idx, idx - 1)}
                     >
                       ▲
-                    </button>
-                    <button
+                    </InteriorButton>
+                    <InteriorButton
                       type="button"
                       className="effect-action-btn"
                       disabled={idx === effects.length - 1}
@@ -144,15 +145,15 @@ export function EffectsInspector({
                       onClick={() => void reorderEffect(idx, idx + 1)}
                     >
                       ▼
-                    </button>
-                    <button
+                    </InteriorButton>
+                    <InteriorButton
                       type="button"
                       className="effect-action-btn delete"
                       title="Remove Effect"
                       onClick={() => void removeEffect(eff.id)}
                     >
                       ×
-                    </button>
+                    </InteriorButton>
                   </div>
                 </header>
 
@@ -500,13 +501,13 @@ export function EffectsInspector({
                               </div>
                             )}
 
-                            <button
+                            <InteriorButton
                               type="button"
                               className="btn-secondary lut-browse-btn"
                               onClick={() => void loadLutCubeDialog(eff.id)}
                             >
                               📂 Browse .cube File…
-                            </button>
+                            </InteriorButton>
 
                             <label>
                               <span>LUT Intensity ({Math.round((p.intensity ?? 1.0) * 100)}%)</span>

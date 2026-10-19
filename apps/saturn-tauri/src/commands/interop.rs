@@ -2,6 +2,7 @@ use super::super::*;
 
 #[tauri::command]
 pub async fn export_timeline_interop(
+    app: AppHandle,
     state: State<'_, AppState>,
     format: String,
     path: Option<String>,
@@ -24,8 +25,10 @@ pub async fn export_timeline_interop(
     };
 
     if let Some(target_path) = path {
-        std::fs::write(&target_path, &content).map_err(|e| {
-            format!("Could not write timeline interchange export to `{target_path}`: {e}")
+        let validated_path = validate_write_path(&app, &target_path, Some(50 * 1024 * 1024)) // 50 MB limit
+            .map_err(|e| format!("Invalid export path: {e}"))?;
+        std::fs::write(&validated_path, &content).map_err(|e| {
+            format!("Could not write timeline interchange export: {e}")
         })?;
     }
 
@@ -34,6 +37,7 @@ pub async fn export_timeline_interop(
 
 #[tauri::command]
 pub async fn import_timeline_interop(
+    app: AppHandle,
     state: State<'_, AppState>,
     format: String,
     content: Option<String>,
@@ -43,8 +47,10 @@ pub async fn import_timeline_interop(
     let raw_str = if let Some(c) = content {
         c
     } else if let Some(p) = path {
-        std::fs::read_to_string(&p)
-            .map_err(|e| format!("Could not read interchange file `{p}`: {e}"))?
+        let validated_path = validate_read_path(&app, &p, Some(50 * 1024 * 1024)) // 50 MB limit
+            .map_err(|e| format!("Invalid import file path: {e}"))?;
+        std::fs::read_to_string(&validated_path)
+            .map_err(|e| format!("Could not read interchange file: {e}"))?
     } else {
         return Err("Either file path or content must be provided for timeline import".to_string());
     };

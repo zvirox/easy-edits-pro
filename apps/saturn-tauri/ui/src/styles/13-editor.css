@@ -14,14 +14,14 @@
 }
 
 .socket-port.active {
-  background: rgba(56, 189, 248, 0.2);
-  outline: 1px solid #38bdf8;
+  background: rgba(159, 18, 73, 0.2);
+  outline: 1px solid #be185d;
 }
 
 .socket-port small {
   font-size: 9px;
   font-weight: 600;
-  color: #94a3b8;
+  color: #bfa5b8;
   letter-spacing: 0.02em;
 }
 
@@ -35,7 +35,7 @@
 }
 
 .socket-dot.in {
-  background: #38bdf8;
+  background: #be185d;
 }
 
 .socket-dot.fg {
@@ -43,7 +43,7 @@
 }
 
 .socket-dot.bg {
-  background: #3b82f6;
+  background: #9f1249;
 }
 
 .socket-dot.mask {
@@ -124,8 +124,8 @@
   font-weight: 800;
   padding: 2px 6px;
   border-radius: 3px;
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
+  background: rgba(159, 18, 73, 0.15);
+  color: #be185d;
   letter-spacing: 0.06em;
 }
 
@@ -142,7 +142,7 @@
 .node-param-group h4 {
   font-size: 11px;
   font-weight: 700;
-  color: var(--accent-cyan);
+  color: var(--accent-primary);
   margin: 0 0 4px 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -184,8 +184,8 @@
   font-weight: 700;
   padding: 2px 5px;
   border-radius: 3px;
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
+  background: rgba(159, 18, 73, 0.15);
+  color: #be185d;
 }
 
 .speed-presets-row,
@@ -217,10 +217,10 @@
 
 .speed-preset-btn.active,
 .shutter-btn.active {
-  background: var(--accent-cyan);
-  color: #041017;
+  background: var(--accent-primary);
+  color: #0b060a;
   font-weight: 700;
-  border-color: var(--accent-cyan);
+  border-color: var(--accent-primary);
 }
 
 .motion-blur-controls {
@@ -238,7 +238,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: rgba(15, 23, 42, 0.8) !important;
+  background: rgba(17, 9, 16, 0.8) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: 16px !important;
   padding: 3px 10px !important;
@@ -247,8 +247,8 @@
 }
 
 .collab-pill-btn:hover {
-  border-color: #38bdf8 !important;
-  background: rgba(30, 41, 59, 0.9) !important;
+  border-color: #be185d !important;
+  background: rgba(34, 18, 32, 0.9) !important;
 }
 
 .collab-indicator-dot {
@@ -268,8 +268,8 @@
 .collab-badge {
   font-size: 10px;
   font-weight: 700;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.15);
+  color: #be185d;
+  background: rgba(159, 18, 73, 0.15);
   padding: 1px 5px;
   border-radius: 8px;
 }
@@ -278,8 +278,8 @@
 .collab-modal {
   max-width: 680px;
   width: 90vw;
-  background: #0f172a;
-  border: 1px solid #334155;
+  background: #110910;
+  border: 1px solid #462d40;
   border-radius: 10px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
 }
@@ -297,8 +297,8 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #221220;
+  border: 1px solid #462d40;
   border-radius: 8px;
   padding: 12px 16px;
 }
@@ -333,9 +333,9 @@
 }
 
 .collab-user-inputs input[type="text"] {
-  background: #090d14;
-  border: 1px solid #334155;
-  color: #e2e8f0;
+  background: #110910;
+  border: 1px solid #462d40;
+  color: #faf2f7;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
@@ -347,8 +347,8 @@
   width: 48px;
   padding: 1px 2px;
   border-radius: 4px;
-  border: 1px solid #334155;
-  background: #090d14;
+  border: 1px solid #462d40;
+  background: #110910;
   cursor: pointer;
 }
 
@@ -359,7 +359,7 @@
   background: rgba(0, 0, 0, 0.3);
   padding: 6px 10px;
   border-radius: 6px;
-  border: 1px solid #334155;
+  border: 1px solid #462d40;
 }
 
 .session-dot {
@@ -381,7 +381,7 @@
 .collab-session-badge code {
   font-family: monospace;
   font-size: 10.5px;
-  color: #38bdf8;
+  color: #be185d;
 }
 
 .collab-section {
@@ -405,8 +405,8 @@
 }
 
 .collab-lock-card {
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: #221220;
+  border: 1px solid #462d40;
   border-radius: 8px;
   padding: 12px;
   display: flex;
@@ -423,7 +423,7 @@
 .lock-card-header strong {
   font-size: 12px;
   font-weight: 700;
-  color: #f1f5f9;
+  color: #faf2f7;
 }
 
 .lock-status-badge {
@@ -448,7 +448,7 @@
 
 .collab-lock-card p {
   font-size: 11px;
-  color: #94a3b8;
+  color: #bfa5b8;
   line-height: 1.4;
   margin: 0;
   flex: 1;
@@ -459,12 +459,12 @@
   align-items: center;
   justify-content: space-between;
   font-size: 11px;
-  color: #cbd5e1;
+  color: #e5d4e0;
   padding-top: 4px;
-  border-top: 1px solid #334155;
+  border-top: 1px solid #462d40;
 }
 
 .lock-holder-info b {
-  color: #38bdf8;
+  color: #be185d;
 }
 

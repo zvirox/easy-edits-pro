@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import { formatTime } from "../../utils/formatters";
 import type { SubtitleItem } from "../../app/projectTypes";
 import { TICKS_PER_SECOND } from "../../engine/playback/constants";
@@ -39,14 +40,14 @@ export function SubtitleInspector({
     <div className="subtitle-inspector">
       <div className="subtitle-inspector-header">
         <h2>Subtitle Inspector</h2>
-        <button
+        <InteriorButton
           type="button"
           className="inspector-close-btn"
           onClick={() => setSelectedSubtitle(null)}
           title="Close Subtitle Inspector"
         >
           ×
-        </button>
+        </InteriorButton>
       </div>
       <p>Caption text and millisecond timecodes for card #{selectedSubtitle.id}.</p>
 
@@ -70,7 +71,7 @@ export function SubtitleInspector({
           <span className="subtitle-tc-title">START TIME</span>
           <code className="subtitle-tc-value">{formatTime(selectedSubtitle.start_ticks)}</code>
           <div className="subtitle-nudge-row">
-            <button
+            <InteriorButton
               type="button"
               className="btn-tiny"
               onClick={() => {
@@ -80,8 +81,8 @@ export function SubtitleInspector({
               title="Nudge 0.5s Earlier"
             >
               -0.5s
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               type="button"
               className="btn-tiny"
               onClick={() => {
@@ -94,7 +95,7 @@ export function SubtitleInspector({
               title="Nudge 0.5s Later"
             >
               +0.5s
-            </button>
+            </InteriorButton>
           </div>
         </div>
 
@@ -102,7 +103,7 @@ export function SubtitleInspector({
           <span className="subtitle-tc-title">END TIME</span>
           <code className="subtitle-tc-value">{formatTime(selectedSubtitle.end_ticks)}</code>
           <div className="subtitle-nudge-row">
-            <button
+            <InteriorButton
               type="button"
               className="btn-tiny"
               onClick={() => {
@@ -115,8 +116,8 @@ export function SubtitleInspector({
               title="Nudge 0.5s Earlier"
             >
               -0.5s
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               type="button"
               className="btn-tiny"
               onClick={() => {
@@ -126,7 +127,7 @@ export function SubtitleInspector({
               title="Nudge 0.5s Later"
             >
               +0.5s
-            </button>
+            </InteriorButton>
           </div>
         </div>
       </div>
@@ -139,7 +140,7 @@ export function SubtitleInspector({
       </div>
 
       <div className="subtitle-action-buttons">
-        <button
+        <InteriorButton
           type="button"
           className="btn-secondary"
           onClick={() => {
@@ -149,34 +150,34 @@ export function SubtitleInspector({
           }}
         >
           ＋ Add Subtitle Next
-        </button>
-        <button
+        </InteriorButton>
+        <InteriorButton
           type="button"
           className="danger-button"
           onClick={() => void removeSubtitle(selectedSubtitle.id)}
         >
           🗑 Delete Subtitle
-        </button>
+        </InteriorButton>
       </div>
 
       <div className="subtitle-io-buttons">
-        <button
+        <InteriorButton
           type="button"
           className="btn-secondary"
           onClick={() => void importSubtitlesDialog()}
         >
           📥 Import .SRT/.VTT
-        </button>
-        <button
+        </InteriorButton>
+        <InteriorButton
           type="button"
           className="btn-secondary"
           onClick={() => void exportSubtitlesDialog()}
         >
           📤 Export .SRT/.VTT
-        </button>
+        </InteriorButton>
       </div>
 
-      <button
+      <InteriorButton
         type="button"
         className="danger-button"
         style={{ marginTop: "4px" }}
@@ -184,7 +185,7 @@ export function SubtitleInspector({
         title="Delete all subtitles in the project"
       >
         🗑 Clear All Subtitles
-      </button>
+      </InteriorButton>
 
       <div
         className="subtitle-ai-buttons"
@@ -197,7 +198,7 @@ export function SubtitleInspector({
           borderTop: "1px solid var(--border-color)",
         }}
       >
-        <button
+        <InteriorButton
           type="button"
           className="primary"
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
@@ -205,8 +206,8 @@ export function SubtitleInspector({
           title="Transcribe speech with offline Whisper AI directly into Subtitle track"
         >
           <span>🎙️ Auto-Transcribe (Whisper AI)</span>
-        </button>
-        <button
+        </InteriorButton>
+        <InteriorButton
           type="button"
           className="btn-secondary"
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
@@ -217,7 +218,7 @@ export function SubtitleInspector({
           title="Detect and ripple-delete silence intervals and verbal hesitation fillers"
         >
           <span>✂️ Remove Silence &amp; Fillers</span>
-        </button>
+        </InteriorButton>
       </div>
     </div>
   );

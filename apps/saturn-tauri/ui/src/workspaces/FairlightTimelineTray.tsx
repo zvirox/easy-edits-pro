@@ -1,3 +1,4 @@
+import { InteriorButton } from "../components/interior/interior-button";
 import type { PointerEvent } from "react";
 import { Icon } from "../components/Icon";
 import { formatTime, getClipWaveform, TICKS_PER_SECOND } from "../utils/formatters";
@@ -34,12 +35,12 @@ export function FairlightTimelineTray(props: FairlightTimelineTrayProps) {
             <code>{formatTime(playhead)}</code>
           </div>
           <div className="audio-tray-tools">
-            <button className="timeline-icon-button" onClick={() => zoomTimeline(1 / 1.2)} title="Zoom Out Timeline">
+            <InteriorButton className="timeline-icon-button" onClick={() => zoomTimeline(1 / 1.2)} title="Zoom Out Timeline">
               <Icon name="zoomOut" />
-            </button>
-            <button className="timeline-icon-button" onClick={() => zoomTimeline(1.2)} title="Zoom In Timeline">
+            </InteriorButton>
+            <InteriorButton className="timeline-icon-button" onClick={() => zoomTimeline(1.2)} title="Zoom In Timeline">
               <Icon name="zoomIn" />
-            </button>
+            </InteriorButton>
           </div>
         </div>
         <div className="audio-tray-scroller">
@@ -79,20 +80,20 @@ export function FairlightTimelineTray(props: FairlightTimelineTrayProps) {
                     <span>{track.kind}</span>
                   </div>
                   <div className="track-label-btns">
-                    <button
+                    <InteriorButton
                       type="button"
                       className={`track-mini-btn mute-btn ${track.muted ? "active" : ""}`}
                       onClick={() => void toggleTrackMute(track)}
                     >
                       M
-                    </button>
-                    <button
+                    </InteriorButton>
+                    <InteriorButton
                       type="button"
                       className={`track-mini-btn solo-btn ${track.solo ? "active" : ""}`}
                       onClick={() => void toggleTrackSolo(track)}
                     >
                       S
-                    </button>
+                    </InteriorButton>
                   </div>
                 </div>
                 <div className="track-lane">
@@ -126,8 +127,8 @@ export function FairlightTimelineTray(props: FairlightTimelineTrayProps) {
                           const progressPct = (progressRatio * 100).toFixed(1);
                           const gradId = `wf-grad-tray-${track.id}-${clip.media_id}-${index}`;
                           const isAudio = track.kind === "audio" || item?.kind === "audio";
-                          const activeColor = isAudio ? "#34d399" : "#38bdf8";
-                          const inactiveColor = isAudio ? "rgba(52, 211, 153, 0.42)" : "rgba(56, 189, 248, 0.42)";
+                          const activeColor = isAudio ? "#34d399" : "#be185d";
+                          const inactiveColor = isAudio ? "rgba(52, 211, 153, 0.42)" : "rgba(159, 18, 73, 0.42)";
 
                           return (
                             <div className="clip-waveform-container" aria-hidden="true">

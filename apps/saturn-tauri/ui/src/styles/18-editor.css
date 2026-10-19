@@ -1,0 +1,614 @@
+/* ==========================================================================
+   Enhanced Timeline Styles
+   ========================================================================== */
+
+/* Timeline Header Bar with Sequence Switcher */
+.timeline-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-subpanel);
+}
+
+.timeline-sequence-switcher {
+  margin-left: auto;
+}
+
+.sequence-select {
+  padding: 4px 28px 4px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+}
+
+.sequence-select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+/* Timeline Labels Container - Fixed width, vertically scrollable */
+
+.timeline-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.timeline-labels-container {
+  display: flex;
+  flex-direction: column;
+  width: 114px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-color);
+  background: var(--bg-subpanel);
+  overflow: hidden;
+}
+
+.track-labels-header {
+  flex-shrink: 0;
+  padding: 4px 6px;
+  background: var(--bg-subpanel);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.track-labels-scroller {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.track-labels-scroller::-webkit-scrollbar {
+  width: 6px;
+}
+
+.track-labels-scroller::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+
+.track-labels-content {
+  min-width: 114px;
+}
+
+/* Unified Playhead - spans across ruler and all tracks */
+.unified-playhead {
+  z-index: 10;
+  pointer-events: none;
+}
+
+.unified-playhead .playhead-line {
+  position: absolute;
+  top: -30px;
+  bottom: 0;
+  left: 6px;
+  width: 1px;
+  background: #f29b45;
+  box-shadow: 0 0 8px rgba(242, 155, 69, 0.8);
+  pointer-events: none;
+}
+
+.unified-playhead .playhead {
+  position: absolute;
+  top: -30px;
+  bottom: 0;
+  left: 6px;
+  width: 1px;
+  background: #f29b45;
+  pointer-events: none;
+}
+
+/* Empty Drop Zones for Auto Track Creation */
+.empty-drop-zone {
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.empty-drop-zone:hover {
+  opacity: 1;
+}
+
+.empty-drop-zone .track-lane {
+  min-height: 60px;
+}
+
+.empty-drop-lane {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-drop-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+  border: 2px dashed var(--border-strong);
+  border-radius: 6px;
+  background: var(--bg-panel);
+  transition: all 0.2s ease;
+}
+
+.empty-drop-hint:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: var(--bg-subpanel);
+}
+
+.empty-drop-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.empty-drop-hint:hover .empty-drop-icon {
+  color: var(--accent-primary);
+}
+
+/* Track Group Label Styles */
+.track-group-label {
+  border-left-width: 4px !important;
+}
+
+.track-group-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.track-group-collapse-btn {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  border-radius: 3px;
+}
+
+.track-group-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.track-group-count {
+  font-size: 8.5px;
+  color: var(--text-muted);
+}
+
+.track-group-actions {
+  margin-top: 4px;
+}
+
+.track-group-collapsed-hint {
+  display: block;
+  padding: 12px;
+  color: var(--text-muted);
+  font-size: 10px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Subtitle Track Styles */
+.subtitle-track-row {
+  border-top: 1px solid var(--border-color);
+}
+
+.subtitle-track-label .track-label-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.subtitle-badge-pill {
+  padding: 1px 6px;
+  border-radius: 9999px;
+  background: rgba(159, 18, 73, 0.2);
+  color: #d9468f;
+  font-size: 7.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.subtitle-track-btns {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.subtitle-track-lane {
+  min-height: 40px;
+}
+
+.subtitle-clip {
+  background: linear-gradient(110deg, #581c87, #3b0764) !important;
+  border-color: #6b21a8 !important;
+  color: #f3e8ff !important;
+  min-height: 28px;
+  font-size: 9px;
+}
+
+.subtitle-clip-tag {
+  display: inline-block;
+  padding: 1px 4px;
+  margin-right: 4px;
+  border-radius: 2px;
+  background: rgba(217, 70, 143, 0.3);
+  color: #d9468f;
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.subtitle-clip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Add Track Drop Zones in Labels */
+.add-track-drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: 8px;
+  border-top: 1px solid var(--border-color);
+  cursor: copy;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.add-track-drop-zone:hover {
+  opacity: 1;
+  background: var(--bg-panel);
+}
+
+.add-track-icon {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent-primary);
+}
+
+.add-track-text {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.add-track-drop-zone.video .add-track-icon::before {
+  content: "▶";
+}
+
+.add-track-drop-zone.audio .add-track-icon::before {
+  content: "♪";
+}
+
+/* Sequence Switcher in Toolbar */
+.sequence-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.seq-crumb-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.1s ease;
+}
+
+.seq-crumb-btn:hover:not(:disabled) {
+  color: var(--text-main);
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.seq-crumb-btn.active {
+  color: var(--accent-primary);
+  background: var(--bg-selected);
+  border-color: var(--accent-primary);
+}
+
+.seq-crumb-arrow {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.compound-crumb {
+  background: rgba(168, 85, 247, 0.15) !important;
+  border-color: rgba(168, 85, 247, 0.4) !important;
+  color: #c084fc !important;
+}
+
+.seq-exit-compound-btn {
+  font-size: 9px !important;
+  padding: 2px 6px !important;
+}
+
+.seq-dropdown-select {
+  padding: 3px 24px 3px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 10.5px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+}
+
+.seq-dropdown-select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+/* Track Height Selector */
+.track-height-selector {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-input);
+  border-radius: 4px;
+}
+
+.timeline-mini-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  font-size: 12px;
+}
+
+.timeline-mini-toggle:hover:not(:disabled) {
+  color: var(--text-main);
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.timeline-mini-toggle.active {
+  color: var(--accent-primary);
+  background: var(--bg-selected);
+  border-color: var(--accent-primary);
+}
+
+/* Timeline Scroller enhancements */
+.timeline-scroller {
+  position: relative;
+}
+
+.timeline-content {
+  position: relative;
+}
+
+/* Playhead grip in ruler */
+.ruler-playhead-grip {
+  z-index: 5;
+}
+
+.ruler-playhead-grip .playhead {
+  position: absolute;
+  top: -6px;
+  bottom: 0;
+  left: 6px;
+  width: 1px;
+  background: #f29b45;
+  box-shadow: 0 0 6px rgba(242, 155, 69, 0.8);
+}
+
+/* Track row height variants */
+.track-row.track-height-compact {
+  min-height: 36px;
+}
+
+.track-row.track-height-compact .track-lane {
+  min-height: 36px;
+}
+
+.track-row.track-height-normal {
+  min-height: 56px;
+}
+
+.track-row.track-height-normal .track-lane {
+  min-height: 56px;
+}
+
+.track-row.track-height-expanded {
+  min-height: 80px;
+}
+
+.track-row.track-height-expanded .track-lane {
+  min-height: 80px;
+}
+
+/* Adjust clip heights for track height variants */
+.track-row.track-height-compact .timeline-clip {
+  top: 3px;
+  height: 24px;
+}
+
+.track-row.track-height-normal .timeline-clip {
+  top: 6px;
+  height: 33px;
+}
+
+.track-row.track-height-expanded .timeline-clip {
+  top: 8px;
+  height: 48px;
+}
+
+/* Clip trim handles */
+.clip-trim-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 2;
+}
+
+.clip-trim-handle:hover,
+.timeline-clip:hover .clip-trim-handle {
+  opacity: 1;
+}
+
+.clip-trim-left {
+  left: 0;
+  border-left: 2px solid #f29b45;
+  border-radius: 3px 0 0 3px;
+}
+
+.clip-trim-right {
+  right: 0;
+  border-right: 2px solid #f29b45;
+  border-radius: 0 3px 3px 0;
+}
+
+/* Gap segment */
+.timeline-gap-segment {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.03) 8px,
+    transparent 8px,
+    transparent 16px
+  );
+  border-left: 1px dashed var(--border-strong);
+  border-right: 1px dashed var(--border-strong);
+  cursor: pointer;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timeline-gap-segment:hover {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(242, 155, 69, 0.15),
+    rgba(242, 155, 69, 0.15) 8px,
+    transparent 8px,
+    transparent 16px
+  );
+  border-color: #f29b45;
+}
+
+.gap-close-icon {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f29b45;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Compound clip badge */
+.clip-compound-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  color: #c084fc;
+  font-size: 7.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Clip speed badge */
+.clip-speed-badge {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(234, 179, 8, 0.25);
+  border: 1px solid rgba(234, 179, 8, 0.6);
+  color: #fde047;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Clip group badge */
+.clip-group-badge {
+  position: relative;
+  z-index: 1;
+  margin-left: 4px;
+  font-size: 9px;
+  opacity: 0.85;
+}
+
+/* Audio clip waveform colors */
+.timeline-clip.audio .clip-waveform-svg path {
+  stroke: #34d399;
+}
+
+/* Video clip waveform colors */
+.timeline-clip:not(.audio) .clip-waveform-svg path {
+  stroke: #be185d;
+}
+
+/* Visually hidden utility */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+

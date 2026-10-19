@@ -25,6 +25,15 @@ import type { CommandStatus, MediaAvailability } from "./ProjectProvider";
 import { TICKS_PER_SECOND } from "../engine/playback/constants";
 import { filterMediaItems } from "./mediaFilter";
 
+function trackLaneAtPoint(x: number, y: number): HTMLElement | null {
+  const hitLane = document.elementFromPoint(x, y)?.closest<HTMLElement>(".track-lane");
+  if (hitLane) return hitLane;
+  return Array.from(document.querySelectorAll<HTMLElement>(".track-lane[data-track-id]")).find((lane) => {
+    const bounds = lane.getBoundingClientRect();
+    return x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom;
+  }) ?? null;
+}
+
 const mediaFilters = [
   {
     name: "Video, audio, and images",
@@ -98,7 +107,7 @@ export function useMediaOperations({
   const [mediaEditPropsTags, setMediaEditPropsTags] = useState("");
 
   const [newBinName, setNewBinName] = useState("");
-  const [newBinColor, setNewBinColor] = useState("#38bdf8");
+  const [newBinColor, setNewBinColor] = useState("#be185d");
   const [createBinModalOpen, setCreateBinModalOpen] = useState(false);
 
   const [networkImportModalOpen, setNetworkImportModalOpen] = useState(false);
@@ -149,7 +158,7 @@ export function useMediaOperations({
       }
       if (!drag.dragging) return;
       event.preventDefault();
-      const lane = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>(".track-lane");
+      const lane = trackLaneAtPoint(event.clientX, event.clientY);
       setMediaDropTargetTrackId?.(lane?.dataset.trackId ? Number(lane.dataset.trackId) : null);
     },
     [setMediaDropTargetTrackId]
@@ -178,7 +187,7 @@ export function useMediaOperations({
       window.setTimeout(() => {
         suppressMediaClick.current = false;
       }, 0);
-      const lane = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>(".track-lane");
+      const lane = trackLaneAtPoint(event.clientX, event.clientY);
       const trackId = lane?.dataset.trackId ? Number(lane.dataset.trackId) : null;
       const mediaItem = project?.media.find((item) => item.id === drag.mediaId);
       const track = project?.sequence.tracks.find((item) => item.id === trackId);
@@ -210,7 +219,7 @@ export function useMediaOperations({
         setSelectedClip(result);
         setSelectedClips([]);
         await refreshProject();
-        setNotice("Clip added at drop position");
+        setNotice(`Added ${mediaItem.name} to timeline`);
       } catch (error) {
         setNotice(String(error));
       } finally {
@@ -279,7 +288,7 @@ export function useMediaOperations({
   const createMediaBin = useCallback(
     async (name: string, color?: string) => {
       if (!name.trim()) return;
-      await perform("bin.create", { name: name.trim(), color: color || "#38bdf8" }, `Media bin "${name}" created`);
+      await perform("bin.create", { name: name.trim(), color: color || "#be185d" }, `Media bin "${name}" created`);
       setCreateBinModalOpen(false);
       setNewBinName("");
     },

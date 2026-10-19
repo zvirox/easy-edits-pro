@@ -12,8 +12,8 @@
 
 /* Track Lane Drop Target Indicator */
 .track-lane.media-drop-target {
-  background: rgba(56, 189, 248, 0.12) !important;
-  box-shadow: inset 0 0 0 2px #38bdf8;
+  background: rgba(159, 18, 73, 0.12) !important;
+  box-shadow: inset 0 0 0 2px #be185d;
 }
 
 /* Timeline Empty Gap Detection & 1-Click Ripple Deletion */
@@ -69,15 +69,15 @@
 .track-group-row {
   min-height: 28px !important;
   height: 28px !important;
-  background: #111827;
-  border-top: 1px solid #1f2937;
-  border-bottom: 1px solid #1f2937;
+  background: #180d17;
+  border-top: 1px solid #221220;
+  border-bottom: 1px solid #221220;
   font-size: 11px;
 }
 
 .track-group-label {
   padding: 3px 8px !important;
-  background: #131b2e !important;
+  background: #221220 !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
@@ -104,7 +104,7 @@
 }
 
 .is-grouped-track {
-  background: rgba(30, 41, 59, 0.3);
+  background: rgba(34, 18, 32, 0.3);
 }
 
 .track-group-select {
@@ -114,7 +114,7 @@
 }
 
 .track-group-select:hover {
-  border-color: #3b82f6 !important;
+  border-color: #9f1249 !important;
 }
 
 /* Color Studio Tabs */
@@ -131,7 +131,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #090d16;
+  background: #0b060a;
   border-radius: 6px;
   overflow: hidden;
 }
@@ -149,14 +149,14 @@
   font-weight: 800;
   letter-spacing: 0.5px;
   background: rgba(0, 0, 0, 0.7);
-  color: #f1f5f9;
+  color: #faf2f7;
   z-index: 5;
 }
 
 .multicam-tile {
   position: relative;
   cursor: pointer;
-  border: 2px solid #1e293b;
+  border: 2px solid #221220;
   border-radius: 4px;
   overflow: hidden;
   transition: all 0.15s ease;
@@ -200,24 +200,24 @@
    ========================================================================== */
 
 [data-theme="light"] .status-bar {
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-  color: #64748b;
+  background: #faf2f7;
+  border-top: 1px solid #faf2f7;
+  color: #7d6377;
 }
 
 [data-theme="light"] .status-bar span,
 [data-theme="light"] .status-bar strong {
-  color: #334155;
+  color: #462d40;
 }
 
 /* Fusion Compositor Light Mode */
 [data-theme="light"] .fusion-workspace-page {
-  background: #f1f5f9;
+  background: #faf2f7;
 }
 
 /* Enforce Strict NLE Viewport Rule: Node graph canvas stays dark for accurate compositing */
 [data-theme="light"] .fusion-canvas-container {
-  background-color: #06090e;
+  background-color: #0b060a;
   background-image: 
     radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
     linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
@@ -232,30 +232,30 @@
 
 [data-theme="light"] .fusion-add-buttons {
   background: #ffffff;
-  border-color: #e2e8f0;
+  border-color: #faf2f7;
 }
 
 [data-theme="light"] .fusion-tool-btn {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: #1e293b;
+  background: #faf2f7;
+  border-color: #e5d4e0;
+  color: #221220;
 }
 
 [data-theme="light"] .fusion-tool-btn:hover {
-  background: #e2e8f0;
-  border-color: #0284c7;
-  color: #0284c7;
+  background: #faf2f7;
+  border-color: #9f1249;
+  color: #9f1249;
 }
 
 [data-theme="light"] .fusion-node-card {
   background: #ffffff;
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e5d4e0;
+  box-shadow: 0 4px 14px rgba(17, 9, 16, 0.08);
 }
 
 [data-theme="light"] .fusion-node-body {
-  background: #f8fafc;
-  color: #1e293b;
+  background: #faf2f7;
+  color: #221220;
 }
 
 [data-theme="light"] .fusion-node-inspector {
@@ -263,12 +263,12 @@
 }
 
 [data-theme="light"] .fusion-empty-inspector {
-  color: #94a3b8;
+  color: #bfa5b8;
 }
 
 /* Export / Deliver Workspace Light Mode */
 [data-theme="light"] .export-workspace {
-  background: #e2e8f0;
+  background: #faf2f7;
 }
 
 [data-theme="light"] .export-destinations,
@@ -278,66 +278,66 @@
 }
 
 [data-theme="light"] .export-destination:hover {
-  background: #f8fafc;
+  background: #faf2f7;
 }
 
 [data-theme="light"] .export-destination.selected {
-  border-color: #cbd5e1;
-  background: #f1f5f9;
+  border-color: #e5d4e0;
+  background: #faf2f7;
 }
 
 [data-theme="light"] .export-hw-status-card {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  background: #faf2f7;
+  border-color: #faf2f7;
 }
 
 [data-theme="light"] .hw-codec-tag {
-  background: #f1f5f9;
-  border-color: #e2e8f0;
-  color: #475569;
+  background: #faf2f7;
+  border-color: #faf2f7;
+  color: #7d6377;
 }
 
 [data-theme="light"] .export-preset-card {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  background: #faf2f7;
+  border-color: #faf2f7;
 }
 
 [data-theme="light"] .export-preset-card:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  background: #faf2f7;
+  border-color: #e5d4e0;
 }
 
 [data-theme="light"] .export-preset-card.selected {
-  border-color: #0284c7;
-  background: #e0f2fe;
+  border-color: #9f1249;
+  background: #f5e8ef;
 }
 
 [data-theme="light"] .export-summary {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #faf2f7;
+  border: 1px solid #faf2f7;
 }
 
 [data-theme="light"] .export-field input,
 [data-theme="light"] .export-field select {
   background: #ffffff;
-  border-color: #cbd5e1;
-  color: #0f172a;
+  border-color: #e5d4e0;
+  color: #110910;
 }
 
 /* Fairlight Light Mode */
 [data-theme="light"] .fairlight-channel-strip {
   background: #ffffff;
-  border-color: #e2e8f0;
+  border-color: #faf2f7;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 [data-theme="light"] .fairlight-channel-strip:hover {
-  border-color: #cbd5e1;
+  border-color: #e5d4e0;
 }
 
 [data-theme="light"] .fairlight-channel-strip.is-selected {
-  border-color: #0284c7;
-  background: linear-gradient(180deg, rgba(2, 132, 199, 0.06) 0%, #ffffff 35%);
+  border-color: #9f1249;
+  background: linear-gradient(180deg, rgba(159, 18, 73, 0.06) 0%, #ffffff 35%);
 }
 
 [data-theme="light"] .master-channel-strip {
@@ -346,17 +346,17 @@
 }
 
 [data-theme="light"] .strip-pan-section {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  background: #faf2f7;
+  border-color: #faf2f7;
 }
 
 [data-theme="light"] .vu-meter-pair {
-  background: #f1f5f9;
-  border-color: #e2e8f0;
+  background: #faf2f7;
+  border-color: #faf2f7;
 }
 
 [data-theme="light"] .vu-bar-slot {
-  background: #e2e8f0;
+  background: #faf2f7;
 }
 
 [data-theme="light"] .audio-master-bus-card {
@@ -365,25 +365,25 @@
 }
 
 [data-theme="light"] .eq-band-item {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #faf2f7;
+  border: 1px solid #faf2f7;
 }
 
 [data-theme="light"] .strip-dsp-btn {
-  background: #f1f5f9;
-  border-color: #e2e8f0;
-  color: #64748b;
+  background: #faf2f7;
+  border-color: #faf2f7;
+  color: #7d6377;
 }
 
 [data-theme="light"] .strip-btn {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-  color: #64748b;
+  background: #faf2f7;
+  border-color: #faf2f7;
+  color: #7d6377;
 }
 
 /* Color Workspace Light Mode */
 [data-theme="light"] .color-studio-tabs {
-  border-bottom-color: #e2e8f0 !important;
+  border-bottom-color: #faf2f7 !important;
 }
 
 [data-theme="light"] .color-wheels-dock-wrapper {
@@ -391,21 +391,21 @@
 }
 
 [data-theme="light"] .video-scopes-container {
-  background: #f8fafc;
+  background: #faf2f7;
 }
 
 [data-theme="light"] .scopes-header {
   background: #ffffff;
-  border-bottom-color: #e2e8f0;
+  border-bottom-color: #faf2f7;
 }
 
 [data-theme="light"] .scopes-tab-btn {
-  color: #64748b;
+  color: #7d6377;
 }
 
 [data-theme="light"] .scopes-tab-btn.active {
-  background: #e0f2fe;
-  color: #0284c7;
-  border-color: #bae6fd;
+  background: #f5e8ef;
+  color: #9f1249;
+  border-color: #d9a7bd;
 }
 

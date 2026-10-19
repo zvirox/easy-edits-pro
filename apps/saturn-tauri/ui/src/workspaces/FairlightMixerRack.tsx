@@ -1,3 +1,4 @@
+import { InteriorButton } from "../components/interior/interior-button";
 import type { Dispatch, SetStateAction } from "react";
 import { formatDb, formatPan } from "../utils/formatters";
 import type { AutomationMode, BusTarget, Track, TrackAudioProcessing } from "../types";
@@ -74,7 +75,7 @@ export function FairlightMixerRack({
 
                     {/* Quick DSP Badges Row */}
                     <div className="strip-dsp-badges">
-                      <button
+                      <InteriorButton
                         type="button"
                         className={`strip-dsp-btn ${track.audio_processing?.eq_enabled ? "active" : ""}`}
                         title={`EQ: ${track.audio_processing?.eq_enabled ? "ON" : "OFF"}`}
@@ -84,8 +85,8 @@ export function FairlightMixerRack({
                         }}
                       >
                         EQ
-                      </button>
-                      <button
+                      </InteriorButton>
+                      <InteriorButton
                         type="button"
                         className={`strip-dsp-btn comp ${track.audio_processing?.comp_enabled ? "active" : ""}`}
                         title={`Dynamics: ${track.audio_processing?.comp_enabled ? "ON" : "OFF"}`}
@@ -95,8 +96,8 @@ export function FairlightMixerRack({
                         }}
                       >
                         DYN
-                      </button>
-                      <button
+                      </InteriorButton>
+                      <InteriorButton
                         type="button"
                         className={`strip-dsp-btn denoise ${track.audio_processing?.denoise_enabled ? "active" : ""}`}
                         title={`Noise Reduction: ${track.audio_processing?.denoise_enabled ? "ON" : "OFF"}`}
@@ -106,7 +107,7 @@ export function FairlightMixerRack({
                         }}
                       >
                         NR
-                      </button>
+                      </InteriorButton>
                     </div>
 
                     {/* Track Bus Routing */}
@@ -128,7 +129,7 @@ export function FairlightMixerRack({
                     <div className="strip-automation-section" onClick={(e) => e.stopPropagation()}>
                       <div className="strip-automation-pills">
                         {(["off", "read", "touch", "latch", "write"] as AutomationMode[]).map((mode) => (
-                          <button
+                          <InteriorButton
                             key={mode}
                             type="button"
                             className={`auto-pill ${(track.automation?.mode ?? "off") === mode ? "active" : ""}`}
@@ -136,7 +137,7 @@ export function FairlightMixerRack({
                             onClick={() => void setTrackAutomationMode(track.id, mode)}
                           >
                             {mode.slice(0, 3).toUpperCase()}
-                          </button>
+                          </InteriorButton>
                         ))}
                       </div>
                     </div>
@@ -164,7 +165,7 @@ export function FairlightMixerRack({
                       </div>
                       {(track.plugins ?? []).map((plugin) => (
                         <div key={plugin.id} className={`plugin-rack-item ${plugin.enabled ? "enabled" : "bypassed"}`}>
-                          <button
+                          <InteriorButton
                             type="button"
                             className={`plugin-power-dot ${plugin.enabled ? "active" : ""}`}
                             title={plugin.enabled ? "Bypass Plugin" : "Enable Plugin"}
@@ -181,14 +182,14 @@ export function FairlightMixerRack({
                       <div className="strip-pan-header">
                         <span className="strip-section-label">PAN</span>
                         <span className="strip-pan-val">{formatPan(currentPan)}</span>
-                        <button
+                        <InteriorButton
                           type="button"
                           className="strip-pan-center-btn"
                           title="Reset pan to center"
                           onClick={() => void saveTrackPan(track.id, 0)}
                         >
                           C
-                        </button>
+                        </InteriorButton>
                       </div>
                       <input
                         type="range"
@@ -209,30 +210,30 @@ export function FairlightMixerRack({
 
                     {/* Matrix M / S / L Buttons */}
                     <div className="strip-matrix-buttons">
-                      <button
+                      <InteriorButton
                         type="button"
                         className={`strip-btn btn-mute ${track.muted ? "active" : ""}`}
                         title={track.muted ? "Unmute track" : "Mute track"}
                         onClick={() => void toggleTrackMute(track)}
                       >
                         M
-                      </button>
-                      <button
+                      </InteriorButton>
+                      <InteriorButton
                         type="button"
                         className={`strip-btn btn-solo ${track.solo ? "active" : ""}`}
                         title={track.solo ? "Solo track" : "Solo track"}
                         onClick={() => void toggleTrackSolo(track)}
                       >
                         S
-                      </button>
-                      <button
+                      </InteriorButton>
+                      <InteriorButton
                         type="button"
                         className={`strip-btn btn-lock ${track.locked ? "active" : ""}`}
                         title={track.locked ? "Unlock track" : "Lock track"}
                         onClick={() => void toggleTrackLock(track)}
                       >
                         {track.locked ? "🔒" : "🔓"}
-                      </button>
+                      </InteriorButton>
                     </div>
 
                     {/* Meter + Vertical Fader Section */}
@@ -294,14 +295,14 @@ export function FairlightMixerRack({
                     </div>
 
                     <div className="strip-fader-footer">
-                      <button
+                      <InteriorButton
                         type="button"
                         className="strip-unity-btn"
                         title="Reset track gain to 0.0 dB unity"
                         onClick={() => void saveTrackGain(track.id, 0)}
                       >
                         0 dB
-                      </button>
+                      </InteriorButton>
                       <span className="strip-gain-text">
                         {currentGain > 0 ? "+" : ""}{currentGain.toFixed(1)} dB
                       </span>

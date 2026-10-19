@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 export interface TranscriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,7 +35,7 @@ export function TranscriptionModal({
       <div className="modal-dialog-card speech-modal" style={{ maxWidth: "520px" }}>
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>🎙️ Auto-Speech Transcription (Whisper AI)</h2>
-          <button type="button" className="close-btn" onClick={onClose}>✕</button>
+          <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
         <p className="modal-desc" style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px" }}>
           Generate synchronized subtitle cues directly onto your timeline's Subtitle track using embedded offline speech intelligence.
@@ -86,15 +87,15 @@ export function TranscriptionModal({
           <span>Replace existing subtitles in current sequence</span>
         </label>
         <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-          <button type="button" onClick={onClose}>Cancel</button>
-          <button
+          <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
+          <InteriorButton
             type="button"
             className="primary"
             onClick={() => void handleAutoTranscribe()}
             disabled={isTranscribing}
           >
             {isTranscribing ? "Transcribing Audio…" : "🎙️ Generate Subtitles"}
-          </button>
+          </InteriorButton>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 export interface SilenceRemovalModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -38,7 +39,7 @@ export function SilenceRemovalModal({
       <div className="modal-dialog-card speech-modal" style={{ maxWidth: "540px" }}>
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>✂️ Automated Silence &amp; Filler Word Removal</h2>
-          <button type="button" className="close-btn" onClick={onClose}>✕</button>
+          <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
         <p className="modal-desc" style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px" }}>
           Detects low-amplitude silence gaps and verbal hesitation fillers across timeline tracks, performing multi-track ripple deletion with automatic gap closing.
@@ -81,10 +82,10 @@ export function SilenceRemovalModal({
 
         <div style={{ background: "rgba(255, 255, 255, 0.04)", border: "1px solid var(--border-color)", borderRadius: "6px", padding: "10px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <div>
-            <strong style={{ fontSize: "14px", color: "#38bdf8" }}>{silenceIntervalsLength} Pauses</strong>
+            <strong style={{ fontSize: "14px", color: "#be185d" }}>{silenceIntervalsLength} Pauses</strong>
             <span style={{ fontSize: "11px", color: "var(--text-muted)", marginLeft: "8px" }}>· 2 Verbal Fillers (&quot;um&quot;, &quot;like&quot;)</span>
           </div>
-          <button
+          <InteriorButton
             type="button"
             className="btn-secondary"
             style={{ fontSize: "11px", padding: "4px 8px" }}
@@ -92,27 +93,27 @@ export function SilenceRemovalModal({
             disabled={isDetectingSilence}
           >
             {isDetectingSilence ? "Scanning…" : "🔄 Re-Analyze"}
-          </button>
+          </InteriorButton>
         </div>
 
         <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-          <button type="button" onClick={onClose}>Cancel</button>
-          <button
+          <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
+          <InteriorButton
             type="button"
             className="btn-secondary"
             onClick={() => void handleRippleDeleteFillers()}
             disabled={busy}
           >
             ✂️ Ripple Remove Fillers
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             type="button"
             className="primary"
             onClick={() => void handleRippleDeleteSilence()}
             disabled={busy}
           >
             ✂️ Ripple Delete Pauses ({silenceIntervalsLength})
-          </button>
+          </InteriorButton>
         </div>
       </div>
     </div>

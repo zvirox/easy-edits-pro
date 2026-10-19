@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 export interface NewProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -34,12 +35,12 @@ export function NewProjectModal({
           />
         </label>
         <div className="dialog-actions">
-          <button type="button" onClick={onClose}>
+          <InteriorButton type="button" onClick={onClose}>
             Cancel
-          </button>
-          <button className="primary" type="submit" disabled={!name.trim()}>
+          </InteriorButton>
+          <InteriorButton className="primary" type="submit" disabled={!name.trim()}>
             Create
-          </button>
+          </InteriorButton>
         </div>
       </form>
     </div>

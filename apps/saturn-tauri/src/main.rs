@@ -19,6 +19,7 @@ use tauri::{AppHandle, Emitter, Manager, State, ipc::Channel};
 mod commands;
 mod media_server;
 mod net;
+mod path_validation;
 mod recovery;
 mod state;
 
@@ -31,6 +32,9 @@ pub use media_server::{
 };
 pub use recovery::{
     autosave_once, discard_autosave, recovery_status, restore_autosave, start_autosave,
+};
+pub use path_validation::{
+    validate_dir_path, validate_read_path, validate_write_path, PathValidationError,
 };
 
 fn register_project_media(app: &AppHandle, document: &saturn_core::ProjectDocument) {

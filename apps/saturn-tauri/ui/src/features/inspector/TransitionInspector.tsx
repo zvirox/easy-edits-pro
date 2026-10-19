@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction } from "react";
 import { formatTime } from "../../utils/formatters";
 import { TICKS_PER_SECOND } from "../../engine/playback/constants";
@@ -61,7 +62,7 @@ export function TransitionInspector({
           }}
         />
       </label>
-      <button className="danger-button" onClick={() => void removeSelectedTransition()}>Remove transition</button>
+      <InteriorButton className="danger-button" onClick={() => void removeSelectedTransition()}>Remove transition</InteriorButton>
     </>
   );
 }

@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior-button";
 // Adapted from Interior's MIT-licensed Component System: https://www.interior.dev/
 import { useCallback, useEffect, useRef } from "react";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
@@ -43,7 +44,7 @@ export function ThemeToggle({ theme, onToggle, className = "" }: ThemeToggleProp
       data-tooltip={`Switch to ${isDark ? "Light" : "Dark"} Mode (Ctrl+Alt+T)`}
       data-tooltip-pos="bottom"
     >
-      <button
+      <InteriorButton
         ref={buttonRef}
         type="button"
         role="switch"
@@ -93,7 +94,7 @@ export function ThemeToggle({ theme, onToggle, className = "" }: ThemeToggleProp
           <span>☀️</span>
           <span>🌙</span>
         </span>
-      </button>
+      </InteriorButton>
     </div>
   );
 }

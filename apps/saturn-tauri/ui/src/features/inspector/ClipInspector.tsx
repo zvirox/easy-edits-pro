@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction } from "react";
 import { formatTime } from "../../utils/formatters";
 import type { Clip, MediaAsset, ProjectDocument, SelectedClip } from "../../app/projectTypes";
@@ -76,34 +77,34 @@ export function ClipInspector({
           </span>
         </div>
         {selectedTimelineClip.group_id != null ? (
-          <button className="secondary" onClick={() => void unlinkSelectedClips()} disabled={busy}>
+          <InteriorButton className="secondary" onClick={() => void unlinkSelectedClips()} disabled={busy}>
             Unlink from group
-          </button>
+          </InteriorButton>
         ) : null}
 
         {/* Motion Tracking & Camera Stabilization (Phase 7.3) */}
         <div className="tracking-inspector-card">
           <div className="tracking-header-row">
             <strong>🎯 Motion Tracking &amp; Stabilization</strong>
-            <button
+            <InteriorButton
               type="button"
               className="track-mini-btn"
               style={{ fontSize: "10px", padding: "2px 6px" }}
               onClick={() => setShowTrackingBox((v) => !v)}
             >
               {showTrackingBox ? "Hide Box" : "Show Box"}
-            </button>
+            </InteriorButton>
           </div>
           <div className="tracking-mode-pills">
             {(["stabilize", "transform", "pin"] as TrackingMode[]).map((mode) => (
-              <button
+              <InteriorButton
                 key={mode}
                 type="button"
                 className={`tracking-mode-btn ${trackingMode === mode ? "active" : ""}`}
                 onClick={() => setTrackingMode(mode)}
               >
                 {mode === "stabilize" ? "Stabilize" : mode === "transform" ? "Point Track" : "Pin Overlay"}
-              </button>
+              </InteriorButton>
             ))}
           </div>
           {trackingMode === "stabilize" && (
@@ -166,7 +167,7 @@ export function ClipInspector({
             </label>
           )}
           <div className="tracking-actions-row">
-            <button
+            <InteriorButton
               type="button"
               className="tracking-action-btn"
               disabled={isAnalyzingTracking}
@@ -174,8 +175,8 @@ export function ClipInspector({
               title="Track feature backwards"
             >
               ◀ Track Backward
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               type="button"
               className="tracking-action-btn"
               disabled={isAnalyzingTracking}
@@ -183,7 +184,7 @@ export function ClipInspector({
               title="Track feature forwards"
             >
               Track Forward ▶
-            </button>
+            </InteriorButton>
           </div>
           {isAnalyzingTracking && (
             <div className="tracking-progress-status">
@@ -203,7 +204,7 @@ export function ClipInspector({
           </div>
           <div className="speed-ramp-presets">
             {[0.25, 0.5, 1.0, 2.0, 4.0].map((factor) => (
-              <button
+              <InteriorButton
                 key={factor}
                 type="button"
                 className={`speed-preset-btn ${
@@ -220,7 +221,7 @@ export function ClipInspector({
                 }}
               >
                 {factor === 0.25 ? "0.25x (Smooth)" : factor === 0.5 ? "0.5x" : factor === 1.0 ? "1x (Normal)" : `${factor}x`}
-              </button>
+              </InteriorButton>
             ))}
           </div>
           <label className="checkbox-field" style={{ marginTop: "6px" }}>
@@ -283,7 +284,7 @@ export function ClipInspector({
               </label>
               <div className="shutter-presets">
                 {[90, 180, 270, 360].map((deg) => (
-                  <button
+                  <InteriorButton
                     key={deg}
                     type="button"
                     className={`shutter-btn ${
@@ -295,7 +296,7 @@ export function ClipInspector({
                     }}
                   >
                     {deg === 180 ? "180° (Cinema)" : `${deg}°`}
-                  </button>
+                  </InteriorButton>
                 ))}
               </div>
               <label className="param-field" style={{ marginTop: "6px" }}>
@@ -319,9 +320,9 @@ export function ClipInspector({
           )}
         </div>
 
-        <button className="danger-button" onClick={removeSelectedClip}>
+        <InteriorButton className="danger-button" onClick={removeSelectedClip}>
           Remove clip
-        </button>
+        </InteriorButton>
       </>
     );
   }

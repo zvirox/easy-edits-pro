@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior/interior-button";
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
 export interface ErrorBoundaryProps {
@@ -124,7 +125,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               style={{
                 margin: "0 0 18px",
                 fontSize: "13px",
-                color: "var(--color-text-secondary, #94a3b8)",
+                color: "var(--color-text-secondary, #bfa5b8)",
                 lineHeight: 1.6,
               }}
             >
@@ -152,13 +153,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               </pre>
             )}
             <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
-              <button
+              <InteriorButton
                 type="button"
                 onClick={this.handleReset}
                 style={{
                   padding: "9px 20px",
                   borderRadius: "8px",
-                  background: "var(--color-accent-primary, #6366f1)",
+                  background: "var(--color-accent-primary, #6b21a8)",
                   color: "#ffffff",
                   border: "1px solid rgba(255, 255, 255, 0.14)",
                   boxShadow: "0 0 20px var(--color-accent-glow, rgba(99, 102, 241, 0.35))",
@@ -169,8 +170,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 }}
               >
                 Try Again
-              </button>
-              <button
+              </InteriorButton>
+              <InteriorButton
                 type="button"
                 onClick={this.handleReload}
                 style={{
@@ -186,7 +187,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 }}
               >
                 Reload Studio
-              </button>
+              </InteriorButton>
             </div>
           </div>
         </div>

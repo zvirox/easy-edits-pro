@@ -68,7 +68,7 @@
 .audio-tray-title code {
   font-family: monospace;
   font-size: 11.5px;
-  color: var(--accent-cyan);
+  color: var(--accent-primary);
 }
 
 .audio-tray-tools {
@@ -104,7 +104,7 @@
 }
 
 .audio-timeline-tray .timeline-clip.video .clip-waveform-container {
-  color: #38bdf8 !important;
+  color: #be185d !important;
 }
 
 /* ==========================================================================
@@ -156,7 +156,7 @@
   height: 100%;
   width: 100%;
   min-height: 0;
-  background: #080a0f;
+  background: #0b060a;
 }
 
 .scopes-header {
@@ -218,10 +218,10 @@
 }
 
 .scope-tab-btn.active {
-  background: var(--accent-cyan);
-  color: #041017;
+  background: var(--accent-primary);
+  color: #0b060a;
   font-weight: 700;
-  border-color: var(--accent-cyan);
+  border-color: var(--accent-primary);
 }
 
 .scope-tab-btn.quad-btn.active {
@@ -266,9 +266,9 @@
 }
 
 .scope-toggle-btn.active {
-  background: rgba(56, 189, 248, 0.18);
-  color: #38bdf8;
-  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(159, 18, 73, 0.18);
+  color: #be185d;
+  border-color: rgba(159, 18, 73, 0.4);
 }
 
 .scopes-canvas-stage {
@@ -541,7 +541,7 @@
 .wheel-lum-label-row code {
   font-family: monospace;
   font-size: 9.5px;
-  color: #38bdf8;
+  color: #be185d;
 }
 
 .wheel-lum-slider {

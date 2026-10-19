@@ -84,15 +84,15 @@
 }
 
 .color-transport-bar button.active-toggle {
-  background: var(--accent-cyan);
-  color: #041017;
+  background: var(--accent-primary);
+  color: #0b060a;
   font-weight: 700;
 }
 
 .color-transport-bar code {
   font-family: monospace;
   font-size: 12px;
-  color: #38bdf8;
+  color: #be185d;
   margin-left: 8px;
 }
 
@@ -195,7 +195,7 @@
 }
 
 .color-preset-card:hover:not(:disabled) {
-  border-color: var(--accent-cyan);
+  border-color: var(--accent-primary);
   background: var(--bg-hover);
   transform: translateY(-1px);
 }
@@ -297,15 +297,15 @@
 }
 
 .effects-transport-bar button.active-toggle {
-  background: var(--accent-cyan);
-  color: #041017;
+  background: var(--accent-primary);
+  color: #0b060a;
   font-weight: 700;
 }
 
 .effects-transport-bar code {
   font-family: monospace;
   font-size: 12px;
-  color: #38bdf8;
+  color: #be185d;
   margin-left: 8px;
 }
 
@@ -412,9 +412,9 @@
 }
 
 .reel-clip-card.selected {
-  border-color: var(--accent-cyan);
-  background: rgba(6, 182, 212, 0.08);
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+  border-color: var(--accent-primary);
+  background: rgba(107, 33, 168, 0.08);
+  box-shadow: 0 0 10px rgba(107, 33, 168, 0.2);
 }
 
 .reel-clip-badge {
@@ -434,8 +434,8 @@
 }
 
 .reel-track-kind.video {
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.12);
+  color: #be185d;
+  background: rgba(159, 18, 73, 0.12);
 }
 
 .reel-track-kind.audio {

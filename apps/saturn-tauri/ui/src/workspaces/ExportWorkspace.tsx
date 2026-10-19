@@ -1,3 +1,4 @@
+import { InteriorButton } from "../components/interior/interior-button";
 import type { Dispatch, SetStateAction, ReactNode } from "react";
 import { Icon } from "../components/Icon";
 import { StudioPanel } from "../components/StudioPanel";
@@ -127,7 +128,7 @@ export function ExportWorkspace({
   return (
     <main className="export-workspace">
       <StudioPanel title="Destinations" className="export-destinations" scrollable>
-        <button
+        <InteriorButton
           className={`export-destination ${deliverDestination === "render" ? "selected" : ""}`}
           onClick={() => setDeliverDestination("render")}
         >
@@ -136,8 +137,8 @@ export function ExportWorkspace({
             <strong>Media File</strong>
             <small>Render a video file</small>
           </span>
-        </button>
-        <button
+        </InteriorButton>
+        <InteriorButton
           className={`export-destination ${deliverDestination === "interop" ? "selected" : ""}`}
           onClick={() => setDeliverDestination("interop")}
         >
@@ -146,27 +147,27 @@ export function ExportWorkspace({
             <strong>Timeline Interchange</strong>
             <small>FCPXML · Premiere · EDL</small>
           </span>
-        </button>
+        </InteriorButton>
         <div className="batch-queue-container">
           <div className="batch-queue-header">
             <strong>Batch Render Queue ({batchQueue.length})</strong>
             <div className="batch-queue-btn-group">
-              <button
+              <InteriorButton
                 type="button"
                 className={`batch-queue-btn ${queuePaused ? "paused" : ""}`}
                 onClick={() => void toggleQueuePause()}
                 title={queuePaused ? "Resume paused queue" : "Pause render queue"}
               >
                 {queuePaused ? "▶ Resume" : "⏸ Pause"}
-              </button>
-              <button
+              </InteriorButton>
+              <InteriorButton
                 type="button"
                 className="batch-queue-btn"
                 onClick={() => setBatchQueue([])}
                 title="Clear queue list"
               >
                 Clear
-              </button>
+              </InteriorButton>
             </div>
           </div>
           <div className="batch-queue-list">
@@ -260,7 +261,7 @@ export function ExportWorkspace({
                 Exports multi-track clips, audio/video layers, cut coordinates, and asset paths into standard FCPXML.
               </p>
               <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
-                <button
+                <InteriorButton
                   type="button"
                   className="primary"
                   style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
@@ -268,8 +269,8 @@ export function ExportWorkspace({
                   disabled={isInteropBusy}
                 >
                   📤 Export FCPXML
-                </button>
-                <button
+                </InteriorButton>
+                <InteriorButton
                   type="button"
                   className="secondary"
                   style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
@@ -277,7 +278,7 @@ export function ExportWorkspace({
                   disabled={isInteropBusy}
                 >
                   📥 Import FCPXML
-                </button>
+                </InteriorButton>
               </div>
             </div>
 
@@ -313,7 +314,7 @@ export function ExportWorkspace({
                 Standard Premiere Pro sequence exchange format preserving track layouts, in/out ticks, and frame rates.
               </p>
               <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
-                <button
+                <InteriorButton
                   type="button"
                   className="primary"
                   style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
@@ -321,8 +322,8 @@ export function ExportWorkspace({
                   disabled={isInteropBusy}
                 >
                   📤 Export Premiere
-                </button>
-                <button
+                </InteriorButton>
+                <InteriorButton
                   type="button"
                   className="secondary"
                   style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
@@ -330,7 +331,7 @@ export function ExportWorkspace({
                   disabled={isInteropBusy}
                 >
                   📥 Import Premiere
-                </button>
+                </InteriorButton>
               </div>
             </div>
 
@@ -366,7 +367,7 @@ export function ExportWorkspace({
                 SMPTE standard non-drop frame edit decision list for conform in DaVinci Resolve color suites.
               </p>
               <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
-                <button
+                <InteriorButton
                   type="button"
                   className="primary"
                   style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
@@ -374,8 +375,8 @@ export function ExportWorkspace({
                   disabled={isInteropBusy}
                 >
                   📤 Export EDL
-                </button>
-                <button
+                </InteriorButton>
+                <InteriorButton
                   type="button"
                   className="secondary"
                   style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
@@ -383,7 +384,7 @@ export function ExportWorkspace({
                   disabled={isInteropBusy}
                 >
                   📥 Import EDL
-                </button>
+                </InteriorButton>
               </div>
             </div>
           </div>
@@ -391,7 +392,7 @@ export function ExportWorkspace({
           <div style={{ marginTop: "24px", display: "flex", flexDirection: "column", gap: "8px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong>Interchange Payload Viewer</strong>
-              <button
+              <InteriorButton
                 type="button"
                 className="secondary"
                 style={{ fontSize: "11px", padding: "4px 10px" }}
@@ -404,7 +405,7 @@ export function ExportWorkspace({
                 }}
               >
                 📋 Copy Code
-              </button>
+              </InteriorButton>
             </div>
             <textarea
               readOnly
@@ -468,7 +469,7 @@ export function ExportWorkspace({
                 {exportPresets.map((preset) => {
                   const isSelected = selectedExportPreset === preset.id;
                   return (
-                    <button
+                    <InteriorButton
                       key={preset.id}
                       type="button"
                       className={`export-preset-card ${isSelected ? "selected" : ""}`}
@@ -486,7 +487,7 @@ export function ExportWorkspace({
                         <small>{preset.subtitle}</small>
                       </div>
                       <span className="preset-badge">{preset.format.toUpperCase()}</span>
-                    </button>
+                    </InteriorButton>
                   );
                 })}
               </div>
@@ -509,9 +510,9 @@ export function ExportWorkspace({
                 <span>Location</span>
                 <div className="export-location">
                   <small title={outputFolder}>{outputFolder}</small>
-                  <button onClick={() => void chooseExportDestination()} disabled={!hasClips || rendering}>
+                  <InteriorButton onClick={() => void chooseExportDestination()} disabled={!hasClips || rendering}>
                     Choose…
-                  </button>
+                  </InteriorButton>
                 </div>
               </div>
               <label className="export-field">
@@ -642,12 +643,12 @@ export function ExportWorkspace({
                   <span>
                     Out <b>{project?.sequence.mark_out == null ? "Not set" : formatTime(project.sequence.mark_out)}</b>
                   </span>
-                  <button
+                  <InteriorButton
                     disabled={project?.sequence.mark_in == null && project?.sequence.mark_out == null}
                     onClick={() => void invokeMenuCommand("timeline.clear_marks")}
                   >
                     Clear marks
-                  </button>
+                  </InteriorButton>
                 </div>
               </details>
             </div>
@@ -656,7 +657,7 @@ export function ExportWorkspace({
             title={
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
                 <span>PREVIEW &amp; RENDER</span>
-                <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "var(--bg-subpanel)", border: "1px solid var(--border-panel)", color: "var(--accent-cyan)", textTransform: "none" }}>{exportFormat === "mp4" ? "H.264" : "VP8"}</span>
+                <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "var(--bg-subpanel)", border: "1px solid var(--border-panel)", color: "var(--accent-primary)", textTransform: "none" }}>{exportFormat === "mp4" ? "H.264" : "VP8"}</span>
               </div>
             }
             className="export-preview-panel"
@@ -701,22 +702,22 @@ export function ExportWorkspace({
               </div>
             )}
             <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
-              <button
+              <InteriorButton
                 className="secondary"
                 style={{ flex: 1, padding: "8px 12px", fontWeight: 700 }}
                 disabled={!hasClips || rendering}
                 onClick={() => void addExportToQueue()}
               >
                 + Add to Queue
-              </button>
-              <button
+              </InteriorButton>
+              <InteriorButton
                 className="primary export-submit"
                 style={{ flex: 1 }}
                 disabled={!hasClips || rendering}
                 onClick={() => void exportProject()}
               >
                 {rendering ? "Rendering…" : "Export video"}
-              </button>
+              </InteriorButton>
             </div>
             <small className="export-footer-note">
               Color controls and track gain are included. Animated keyframes are preview-only.

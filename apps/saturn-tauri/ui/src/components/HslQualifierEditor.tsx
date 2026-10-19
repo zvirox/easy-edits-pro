@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior/interior-button";
 import React from "react";
 import type { HslQualifier } from "../engine/playbackEngine";
 
@@ -114,8 +115,8 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
     <div
       className="hsl-qualifier-editor"
       style={{
-        background: "#13171f",
-        border: "1px solid #2d3748",
+        background: "#180d17",
+        border: "1px solid #462d40",
         borderRadius: 8,
         padding: 16,
         color: "#e2e8f0",
@@ -131,12 +132,12 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
             />
             HSL Secondary Qualifier
           </label>
-          <span style={{ fontSize: 11, color: "#a0aec0", background: "#1a202c", padding: "2px 6px", borderRadius: 4 }}>
+          <span style={{ fontSize: 11, color: "#a0aec0", background: "#100810", padding: "2px 6px", borderRadius: 4 }}>
             Color Isolation &amp; Keying
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, cursor: "pointer", color: showMatte ? "#63b3ed" : "#cbd5e0" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, cursor: "pointer", color: showMatte ? "#d9468f" : "#cbd5e0" }}>
             <input
               type="checkbox"
               checked={showMatte}
@@ -157,41 +158,41 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
 
       {/* Target Presets */}
       <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
-        <span style={{ fontSize: 11, color: "#718096" }}>Key Presets:</span>
-        <button
+        <span style={{ fontSize: 11, color: "#8b7284" }}>Key Presets:</span>
+        <InteriorButton
           type="button"
           onClick={() => applyPreset("skin")}
-          style={{ background: "#2d3748", border: "none", color: "#ecc94b", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
+          style={{ background: "#462d40", border: "none", color: "#ecc94b", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
         >
           👤 Skin Tones (25°)
-        </button>
-        <button
+        </InteriorButton>
+        <InteriorButton
           type="button"
           onClick={() => applyPreset("sky")}
-          style={{ background: "#2d3748", border: "none", color: "#63b3ed", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
+          style={{ background: "#462d40", border: "none", color: "#d9468f", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
         >
           🌤️ Sky Blue (205°)
-        </button>
-        <button
+        </InteriorButton>
+        <InteriorButton
           type="button"
           onClick={() => applyPreset("foliage")}
-          style={{ background: "#2d3748", border: "none", color: "#68d391", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
+          style={{ background: "#462d40", border: "none", color: "#68d391", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
         >
           🌿 Foliage Green (115°)
-        </button>
-        <button
+        </InteriorButton>
+        <InteriorButton
           type="button"
           onClick={() => applyPreset("fire")}
-          style={{ background: "#2d3748", border: "none", color: "#fc8181", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
+          style={{ background: "#462d40", border: "none", color: "#fc8181", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
         >
           🔥 Fire Red (10°)
-        </button>
+        </InteriorButton>
       </div>
 
       {/* Sliders Grid */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
         {/* Hue Isolation */}
-        <div style={{ background: "#1a202c", padding: 12, borderRadius: 6, border: "1px solid #2d3748" }}>
+        <div style={{ background: "#100810", padding: 12, borderRadius: 6, border: "1px solid #462d40" }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, marginBottom: 8 }}>
             <span>🎨 Hue Isolation</span>
             <span style={{ color: "#cbd5e0" }}>{Math.round(current.hue_center)}° ± {Math.round(current.hue_width / 2)}°</span>
@@ -255,7 +256,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
         </div>
 
         {/* Saturation & Luma Isolation */}
-        <div style={{ background: "#1a202c", padding: 12, borderRadius: 6, border: "1px solid #2d3748" }}>
+        <div style={{ background: "#100810", padding: 12, borderRadius: 6, border: "1px solid #462d40" }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, marginBottom: 8 }}>
             <span>✨ Saturation &amp; Luma</span>
             <span style={{ color: "#a0aec0", fontSize: 11 }}>Range Gating</span>
@@ -296,8 +297,8 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
       </div>
 
       {/* Secondary Color Adjustment Controls */}
-      <div style={{ background: "#18202f", padding: 12, borderRadius: 6, border: "1px solid #2b384e" }}>
-        <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 10, color: "#63b3ed", display: "flex", alignItems: "center", gap: 6 }}>
+      <div style={{ background: "#342033", padding: 12, borderRadius: 6, border: "1px solid #462d40" }}>
+        <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 10, color: "#d9468f", display: "flex", alignItems: "center", gap: 6 }}>
           <span>🎯 Secondary Grade Adjustment (Applied inside Matte)</span>
         </div>
 

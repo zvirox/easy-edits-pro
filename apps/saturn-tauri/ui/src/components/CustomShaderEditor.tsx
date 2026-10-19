@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior/interior-button";
 import React, { useState, useEffect } from "react";
 import type { CustomShaderParams } from "../engine/playbackEngine";
 
@@ -161,8 +162,8 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
     <div
       className="custom-shader-editor"
       style={{
-        background: "#13171f",
-        border: "1px solid #2d3748",
+        background: "#180d17",
+        border: "1px solid #462d40",
         borderRadius: 8,
         padding: 16,
         color: "#e2e8f0",
@@ -178,12 +179,12 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
             </span>
           </div>
         </div>
-        <button
+        <InteriorButton
           type="button"
           onClick={handleSave}
           style={{
             padding: "6px 14px",
-            background: "#3182ce",
+            background: "#9f1249",
             color: "#ffffff",
             fontWeight: 600,
             fontSize: 12,
@@ -193,7 +194,7 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
           }}
         >
           ✓ Apply Shader
-        </button>
+        </InteriorButton>
       </div>
 
       {/* Preset Selector */}
@@ -203,8 +204,8 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
           value={selectedPreset}
           onChange={(e) => handlePresetSelect(e.target.value)}
           style={{
-            background: "#1a202c",
-            border: "1px solid #4a5568",
+            background: "#100810",
+            border: "1px solid #5a4053",
             borderRadius: 4,
             color: "#f7fafc",
             fontSize: 12,
@@ -227,8 +228,8 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
           placeholder="Plugin Display Name"
           style={{
             flex: 1,
-            background: "#0d1117",
-            border: "1px solid #4a5568",
+            background: "#100810",
+            border: "1px solid #5a4053",
             borderRadius: 4,
             color: "#e2e8f0",
             fontSize: 12,
@@ -241,14 +242,14 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
       {Object.keys(uniforms).length > 0 && (
         <div
           style={{
-            background: "#18202f",
-            border: "1px solid #2b384e",
+            background: "#342033",
+            border: "1px solid #462d40",
             borderRadius: 6,
             padding: "10px 14px",
             marginBottom: 12,
           }}
         >
-          <span style={{ fontSize: 11, fontWeight: 600, color: "#63b3ed", display: "block", marginBottom: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#d9468f", display: "block", marginBottom: 8 }}>
             🎛️ Active Uniform Parameters:
           </span>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -275,7 +276,7 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
 
       {/* Code Editor */}
       <div>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#718096", marginBottom: 4 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#8b7284", marginBottom: 4 }}>
           <span>GLSL Fragment Shader Code (OpenGL ES / WebGL compatible):</span>
           <span>sampler2D u_texture, vec2 u_resolution, float u_time</span>
         </div>
@@ -289,8 +290,8 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
           spellCheck={false}
           style={{
             width: "100%",
-            background: "#090d14",
-            border: "1px solid #2d3748",
+            background: "#110910",
+            border: "1px solid #462d40",
             borderRadius: 4,
             color: "#68d391",
             fontFamily: "monospace",

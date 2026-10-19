@@ -23,14 +23,14 @@
   height: calc(100% - 38px);
   padding: 4px;
   box-sizing: border-box;
-  background: #090c12;
+  background: #0b060a;
 }
 
 .multicam-tile {
   position: relative;
-  background: #05070a;
+  background: #0b060a;
   border-radius: 4px;
-  border: 2px solid #1e293b;
+  border: 2px solid #221220;
   overflow: hidden;
   cursor: pointer;
   display: flex;
@@ -64,8 +64,8 @@
   letter-spacing: 0.05em;
   padding: 2px 7px;
   border-radius: 3px;
-  background: rgba(15, 23, 42, 0.85);
-  color: #94a3b8;
+  background: rgba(17, 9, 16, 0.85);
+  color: #bfa5b8;
   border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
@@ -83,7 +83,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #64748b;
+  background: #7d6377;
 }
 
 .multicam-tile.active-angle .multicam-tally-dot {
@@ -97,7 +97,7 @@
   right: 8px;
   font-size: 10px;
   font-weight: 700;
-  color: #e2e8f0;
+  color: #faf2f7;
   background: rgba(0, 0, 0, 0.7);
   padding: 2px 6px;
   border-radius: 3px;
@@ -152,15 +152,15 @@
   gap: 5px;
   padding: 4px 10px;
   border-radius: 4px;
-  background: rgba(6, 182, 212, 0.15);
-  border: 1px solid #06b6d4;
-  color: #22d3ee;
+  background: rgba(107, 33, 168, 0.15);
+  border: 1px solid #6b21a8;
+  color: #d9468f;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .multicam-sync-btn:hover {
-  background: rgba(6, 182, 212, 0.25);
+  background: rgba(107, 33, 168, 0.25);
   color: #fff;
 }
 
@@ -252,13 +252,13 @@
   text-transform: uppercase;
   padding: 2px 5px;
   border-radius: 3px;
-  background: #334155;
-  color: #94a3b8;
+  background: #462d40;
+  color: #bfa5b8;
 }
 
 .batch-status-pill.running {
-  background: rgba(6, 182, 212, 0.2);
-  color: #22d3ee;
+  background: rgba(107, 33, 168, 0.2);
+  color: #d9468f;
 }
 
 .batch-status-pill.completed {
@@ -276,7 +276,7 @@
 
 .batch-queue-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #06b6d4, #3b82f6);
+  background: linear-gradient(90deg, #6b21a8, #9f1249);
   border-radius: 2px;
   transition: width 0.2s ease;
 }
@@ -325,9 +325,9 @@
 }
 
 .tracking-mode-btn.active {
-  background: rgba(6, 182, 212, 0.18);
-  border-color: #06b6d4;
-  color: #22d3ee;
+  background: rgba(107, 33, 168, 0.18);
+  border-color: #6b21a8;
+  color: #d9468f;
 }
 
 .tracking-actions-row {
@@ -353,8 +353,8 @@
 }
 
 .tracking-action-btn:hover:not(:disabled) {
-  border-color: #06b6d4;
-  color: #22d3ee;
+  border-color: #6b21a8;
+  color: #d9468f;
 }
 
 .tracking-action-btn:disabled {
@@ -369,8 +369,8 @@
   transform: translate(-50%, -50%);
   width: 90px;
   height: 90px;
-  border: 2px dashed #00f2fe;
-  box-shadow: 0 0 10px rgba(0, 242, 254, 0.4), inset 0 0 10px rgba(0, 242, 254, 0.2);
+  border: 2px dashed #d9468f;
+  box-shadow: 0 0 10px rgba(217, 70, 143, 0.4), inset 0 0 10px rgba(217, 70, 143, 0.2);
   border-radius: 4px;
   pointer-events: none;
   z-index: 10;
@@ -389,7 +389,7 @@
 .tracking-box-crosshair::after {
   content: "";
   position: absolute;
-  background: #00f2fe;
+  background: #d9468f;
 }
 
 .tracking-box-crosshair::before {

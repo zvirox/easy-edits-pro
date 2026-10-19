@@ -119,7 +119,7 @@
 
 /* Section 1: Live Waveform & Stereo VU Meter Strip */
 .audio-meter-waveform-strip {
-  background: #090d12;
+  background: #110910;
   border: 1px solid var(--border-panel);
   border-radius: 6px;
   padding: 8px 10px;
@@ -155,9 +155,9 @@
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;
-  background: rgba(6, 182, 212, 0.15);
-  color: #22d3ee;
-  border: 1px solid rgba(6, 182, 212, 0.3);
+  background: rgba(107, 33, 168, 0.15);
+  color: #d9468f;
+  border: 1px solid rgba(107, 33, 168, 0.3);
 }
 
 .meter-peak-badge {
@@ -189,7 +189,7 @@
   width: 100%;
   border-radius: 4px;
   overflow: hidden;
-  background: #05080c;
+  background: #0b060a;
   display: flex;
   align-items: center;
   position: relative;
@@ -292,8 +292,8 @@
 }
 
 .compact-ch-badge.video {
-  background: rgba(14, 165, 233, 0.15);
-  color: #38bdf8;
+  background: rgba(159, 18, 73, 0.15);
+  color: #be185d;
 }
 
 .compact-ch-badge.master {
@@ -338,7 +338,7 @@
 
 .compact-solo-btn.active {
   background: #f59e0b;
-  color: #0b0d10;
+  color: #0b060a;
   border-color: #d97706;
 }
 
@@ -402,7 +402,7 @@
   font-size: 12px;
   font-family: monospace;
   font-weight: 700;
-  color: #38bdf8;
+  color: #be185d;
 }
 
 .source-audio-waveform-wrapper {
@@ -413,7 +413,7 @@
   position: relative;
   cursor: pointer;
   margin: 10px 0;
-  background: #080c10;
+  background: #100810;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
@@ -429,8 +429,8 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background: #38bdf8;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+  background: #be185d;
+  box-shadow: 0 0 8px rgba(159, 18, 73, 0.8);
   pointer-events: none;
 }
 
@@ -468,13 +468,89 @@
 .source-transport-btn.play {
   min-width: 65px;
   font-weight: 700;
-  background: rgba(14, 165, 233, 0.2);
-  color: #38bdf8;
-  border-color: rgba(14, 165, 233, 0.4);
+  background: rgba(159, 18, 73, 0.2);
+  color: #be185d;
+  border-color: rgba(159, 18, 73, 0.4);
 }
 
 .source-transport-btn.active-toggle {
   background: rgba(16, 185, 129, 0.25);
   color: #34d399;
   border-color: rgba(16, 185, 129, 0.5);
+}
+
+
+/* Shared Interior motion-button system */
+button.interior-button {
+  transform-origin: center;
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+button.interior-button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+button.interior-button:disabled {
+  transform: none;
+}
+input[type="range"] {
+  accent-color: var(--accent-primary);
+}
+button.interior-button--primary {
+  color: var(--text-primary);
+  background: var(--accent-primary);
+  border-color: var(--border-active);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  font-weight: 650;
+}
+button.interior-button--primary:hover:not(:disabled) {
+  background: var(--accent-primary-hover);
+  border-color: var(--border-focus);
+}
+button.interior-button--secondary {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border-color: var(--border-default);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+button.interior-button--secondary:hover:not(:disabled) {
+  border-color: var(--border-active);
+  background: var(--bg-surface);
+}
+button.interior-button--ghost {
+  color: var(--text-secondary);
+  background: transparent;
+  border-color: transparent;
+}
+button.interior-button--ghost:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: rgba(244, 215, 235, 0.06);
+  border-color: var(--border-subtle);
+}
+button.interior-button--danger {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--status-danger) 22%, var(--bg-surface));
+  border-color: color-mix(in srgb, var(--status-danger) 55%, transparent);
+}
+button.interior-button--danger:hover:not(:disabled) {
+  background: var(--status-danger);
+  border-color: var(--status-danger);
+}
+.interior-button--xs { min-height: 24px; padding: 2px 7px; font-size: 11px; }
+.interior-button--sm { min-height: 30px; padding: 5px 10px; font-size: 12px; }
+.interior-button--md { min-height: 36px; padding: 7px 13px; font-size: 13px; }
+.interior-button--lg { min-height: 42px; padding: 9px 17px; font-size: 14px; }
+.interior-button--icon { width: 32px; height: 32px; padding: 0; }
+.interior-button__spinner {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: interior-button-spin 850ms linear infinite;
+}
+@keyframes interior-button-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  button.interior-button { transition-duration: 0ms; }
+  .interior-button__spinner { animation-duration: 1600ms; }
 }

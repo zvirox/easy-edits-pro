@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior/interior-button";
 import React, { useState, useRef, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -216,8 +217,8 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
           width: 520,
           maxWidth: "92vw",
           height: "100%",
-          background: "#10141d",
-          borderLeft: "1px solid #232d42",
+          background: "#180d17",
+          borderLeft: "1px solid #462d40",
           display: "flex",
           flexDirection: "column",
           boxShadow: "-8px 0 24px rgba(0, 0, 0, 0.6)",
@@ -229,8 +230,8 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
         <header
           style={{
             padding: "14px 18px",
-            borderBottom: "1px solid #1e2638",
-            background: "#141926",
+            borderBottom: "1px solid #342033",
+            background: "#180d17",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -247,27 +248,27 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                     fontWeight: 700,
                     padding: "2px 6px",
                     borderRadius: 4,
-                    background: "#2b3a55",
-                    color: "#90cdf4",
+                    background: "#462d40",
+                    color: "#e5c4d7",
                     letterSpacing: "0.5px",
                   }}
                 >
                   OLLAMA CHAT
                 </span>
               </div>
-              <span style={{ fontSize: 11, color: "#718096" }}>
+              <span style={{ fontSize: 11, color: "#8b7284" }}>
                 Multi-turn conversational assistant & timeline automation
               </span>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button
+            <InteriorButton
               type="button"
               onClick={handleClearChat}
               title="Clear Chat History"
               style={{
                 background: "transparent",
-                border: "1px solid #2d3748",
+                border: "1px solid #462d40",
                 color: "#a0aec0",
                 fontSize: 12,
                 borderRadius: 4,
@@ -276,8 +277,8 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
               }}
             >
               🧹 Clear
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               type="button"
               onClick={onClose}
               style={{
@@ -290,7 +291,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
               }}
             >
               ✕
-            </button>
+            </InteriorButton>
           </div>
         </header>
 
@@ -298,8 +299,8 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
         <div
           style={{
             padding: "10px 16px",
-            background: "#131824",
-            borderBottom: "1px solid #1e2638",
+            background: "#180d17",
+            borderBottom: "1px solid #342033",
             display: "flex",
             flexDirection: "column",
             gap: 8,
@@ -320,8 +321,8 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                   }}
                   style={{
                     flex: 1,
-                    background: "#1c2333",
-                    border: "1px solid #2d3748",
+                    background: "#221220",
+                    border: "1px solid #462d40",
                     color: "#f7fafc",
                     fontSize: 12,
                     borderRadius: 4,
@@ -344,19 +345,19 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                     placeholder="e.g. llama3:70b"
                     style={{
                       flex: 1,
-                      background: "#1c2333",
-                      border: "1px solid #3182ce",
+                      background: "#221220",
+                      border: "1px solid #9f1249",
                       color: "#f7fafc",
                       fontSize: 12,
                       borderRadius: 4,
                       padding: "4px 8px",
                     }}
                   />
-                  <button
+                  <InteriorButton
                     type="button"
                     onClick={() => setShowCustomModel(false)}
                     style={{
-                      background: "#2d3748",
+                      background: "#462d40",
                       border: "none",
                       color: "#e2e8f0",
                       fontSize: 11,
@@ -366,18 +367,18 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                     }}
                   >
                     Preset
-                  </button>
+                  </InteriorButton>
                 </div>
               )}
             </div>
 
-            <button
+            <InteriorButton
               type="button"
               onClick={() => setShowSystemPrompt(!showSystemPrompt)}
               style={{
-                background: showSystemPrompt ? "#2b3a55" : "transparent",
-                border: "1px solid #2d3748",
-                color: showSystemPrompt ? "#63b3ed" : "#a0aec0",
+                background: showSystemPrompt ? "#462d40" : "transparent",
+                border: "1px solid #462d40",
+                color: showSystemPrompt ? "#d9468f" : "#a0aec0",
                 fontSize: 11,
                 borderRadius: 4,
                 padding: "4px 8px",
@@ -385,7 +386,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
               }}
             >
               ⚙️ System Prompt
-            </button>
+            </InteriorButton>
           </div>
 
           {showSystemPrompt && (
@@ -396,8 +397,8 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                 rows={3}
                 style={{
                   width: "100%",
-                  background: "#0d1117",
-                  border: "1px solid #2b3a55",
+                  background: "#100810",
+                  border: "1px solid #462d40",
                   borderRadius: 4,
                   color: "#cbd5e0",
                   fontSize: 11,
@@ -408,20 +409,20 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                 }}
               />
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
-                <button
+                <InteriorButton
                   type="button"
                   onClick={() => setSystemPrompt(DEFAULT_SYSTEM_PROMPT)}
                   style={{
                     background: "transparent",
                     border: "none",
-                    color: "#718096",
+                    color: "#8b7284",
                     fontSize: 10,
                     cursor: "pointer",
                     textDecoration: "underline",
                   }}
                 >
                   Reset to Default
-                </button>
+                </InteriorButton>
               </div>
             </div>
           )}
@@ -431,8 +432,8 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
         <div
           style={{
             padding: "8px 14px",
-            background: "#0f131c",
-            borderBottom: "1px solid #1a2233",
+            background: "#180d17",
+            borderBottom: "1px solid #342033",
             overflowX: "auto",
             display: "flex",
             gap: 6,
@@ -440,14 +441,14 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
           }}
         >
           {QUICK_ACTIONS.map((action, idx) => (
-            <button
+            <InteriorButton
               key={idx}
               type="button"
               onClick={() => handleSendMessage(action.prompt, action.actionKey)}
               disabled={isSending}
               style={{
-                background: "#182030",
-                border: "1px solid #27354d",
+                background: "#221220",
+                border: "1px solid #462d40",
                 color: "#cbd5e0",
                 fontSize: 11,
                 padding: "4px 10px",
@@ -456,11 +457,11 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                 transition: "all 0.15s ease",
                 flexShrink: 0,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#4299e1")}
-              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#27354d")}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#be185d")}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#462d40")}
             >
               {action.label}
-            </button>
+            </InteriorButton>
           ))}
         </div>
 
@@ -495,7 +496,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                     gap: 6,
                     marginBottom: 4,
                     fontSize: 10,
-                    color: "#718096",
+                    color: "#8b7284",
                   }}
                 >
                   <span>{isUser ? "You" : `Saturn AI (${activeModelName})`}</span>
@@ -503,9 +504,9 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                 </div>
                 <div
                   style={{
-                    background: isUser ? "#2b4c7e" : "#1a2130",
+                    background: isUser ? "#462d40" : "#221220",
                     color: isUser ? "#ffffff" : "#e2e8f0",
-                    border: isUser ? "1px solid #3182ce" : "1px solid #28354d",
+                    border: isUser ? "1px solid #9f1249" : "1px solid #462d40",
                     borderRadius: isUser ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
                     padding: "10px 14px",
                     fontSize: 13,
@@ -517,14 +518,14 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                   {msg.content}
                 </div>
                 {msg.actionKey && !isUser && onExecuteAction && (
-                  <button
+                  <InteriorButton
                     type="button"
                     onClick={() => onExecuteAction(msg.actionKey!)}
                     style={{
                       marginTop: 6,
-                      background: "#234e52",
-                      border: "1px solid #319795",
-                      color: "#4fd1c5",
+                      background: "#064e3b",
+                      border: "1px solid #059669",
+                      color: "#34d399",
                       fontSize: 11,
                       fontWeight: 600,
                       padding: "4px 10px",
@@ -536,7 +537,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                     }}
                   >
                     ⚡ Apply Suggested Action
-                  </button>
+                  </InteriorButton>
                 )}
               </div>
             );
@@ -545,8 +546,8 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
             <div
               style={{
                 alignSelf: "flex-start",
-                background: "#1a2130",
-                border: "1px solid #28354d",
+                background: "#221220",
+                border: "1px solid #462d40",
                 borderRadius: "12px 12px 12px 2px",
                 padding: "10px 14px",
                 display: "flex",
@@ -561,7 +562,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                   width: 8,
                   height: 8,
                   borderRadius: "50%",
-                  background: "#4299e1",
+                  background: "#be185d",
                   animation: "pulse 1s infinite alternate",
                 }}
               />
@@ -575,8 +576,8 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
         <div
           style={{
             padding: "12px 16px",
-            background: "#141926",
-            borderTop: "1px solid #1e2638",
+            background: "#180d17",
+            borderTop: "1px solid #342033",
             display: "flex",
             flexDirection: "column",
             gap: 8,
@@ -593,8 +594,8 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
               rows={2}
               style={{
                 flex: 1,
-                background: "#0e121a",
-                border: "1px solid #2d3748",
+                background: "#100810",
+                border: "1px solid #462d40",
                 borderRadius: 6,
                 color: "#f7fafc",
                 fontSize: 13,
@@ -604,15 +605,15 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                 fontFamily: "inherit",
               }}
             />
-            <button
+            <InteriorButton
               type="button"
               onClick={() => handleSendMessage()}
               disabled={!inputPrompt.trim() || isSending}
               style={{
                 height: 48,
                 padding: "0 18px",
-                background: !inputPrompt.trim() || isSending ? "#1a202c" : "#3182ce",
-                color: !inputPrompt.trim() || isSending ? "#4a5568" : "#ffffff",
+                background: !inputPrompt.trim() || isSending ? "#100810" : "#9f1249",
+                color: !inputPrompt.trim() || isSending ? "#5a4053" : "#ffffff",
                 border: "none",
                 borderRadius: 6,
                 fontSize: 13,
@@ -625,10 +626,10 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
               }}
             >
               Send ✈️
-            </button>
+            </InteriorButton>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 10, color: "#718096" }}>
+            <span style={{ fontSize: 10, color: "#8b7284" }}>
               💡 Runs completely offline via local Ollama endpoint (http://127.0.0.1:11434).
             </span>
           </div>

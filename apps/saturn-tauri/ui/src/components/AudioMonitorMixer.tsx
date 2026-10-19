@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior/interior-button";
 import { type Dispatch, type SetStateAction, useMemo } from "react";
 import type { Track, ProjectDocument, Clip, MediaAsset } from "../types";
 import type { AudioClockMaster } from "../engine/playbackEngine";
@@ -97,9 +98,9 @@ export function AudioMonitorMixer({
           >
             <defs>
               <linearGradient id="meterWfGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
+                <stop offset="0%" stopColor="#be185d" stopOpacity="0.8" />
                 <stop offset="50%" stopColor="#10b981" stopOpacity="0.6" />
-                <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.1" />
+                <stop offset="100%" stopColor="#6b21a8" stopOpacity="0.1" />
               </linearGradient>
             </defs>
             {activeWaveform.map((val, idx) => {
@@ -195,22 +196,22 @@ export function AudioMonitorMixer({
                 </span>
 
                 <div className="compact-ch-btns">
-                  <button
+                  <InteriorButton
                     type="button"
                     className={`compact-mute-btn ${track.muted ? "active" : ""}`}
                     onClick={() => void toggleTrackMute(track)}
                     title={track.muted ? "Unmute track" : "Mute track"}
                   >
                     M
-                  </button>
-                  <button
+                  </InteriorButton>
+                  <InteriorButton
                     type="button"
                     className={`compact-solo-btn ${track.solo ? "active" : ""}`}
                     onClick={() => void toggleTrackSolo(track)}
                     title={track.solo ? "Solo active" : "Solo track"}
                   >
                     S
-                  </button>
+                  </InteriorButton>
                 </div>
 
                 <div className="compact-fader-container">

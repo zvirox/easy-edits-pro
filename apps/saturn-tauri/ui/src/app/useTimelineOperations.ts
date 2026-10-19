@@ -162,7 +162,7 @@ export function useTimelineOperations({
   const handleCreateTrackGroup = useCallback(async () => {
     const name = window.prompt("Enter new folder group name:", "Audio Stems");
     if (!name?.trim()) return;
-    const colors = ["#38bdf8", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4"];
+    const colors = ["#be185d", "#10b981", "#f59e0b", "#ec4899", "#6b21a8", "#6b21a8"];
     const color = colors[Math.floor(Math.random() * colors.length)];
     await perform("track_group.create", { name: name.trim(), color }, `Folder group "${name}" created`);
   }, [perform]);
@@ -360,10 +360,10 @@ export function useTimelineOperations({
           void perform(
             "timeline.move_clip",
             {
-              from_track: drag.trackId,
-              from_index: drag.clipIndex,
-              to_track: drag.trackId,
-              to_start: newStart,
+              track_id: drag.trackId,
+              clip_index: drag.clipIndex,
+              target_track_id: drag.trackId,
+              timeline_start: newStart,
             },
             "Moved clip"
           );

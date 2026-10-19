@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import { keyframeOptions } from "../../workspaces/KeyframesWorkspace";
 import { formatTime } from "../../utils/formatters";
 import type { KeyframeProperty, InterpolationKind } from "../../engine/playback/types";
@@ -62,14 +63,14 @@ export function KeyframesInspector({
     <div className="keyframes-inspector">
       <div className="keyframes-inspector-header">
         <h2>Keyframes &amp; Curves</h2>
-        <button
+        <InteriorButton
           type="button"
           className="btn-primary-subtle"
           onClick={() => selectDavinciWorkspace("keyframes")}
           title="Open Dedicated Full-Screen Curve Editor (Shift+6)"
         >
           📈 Full Curve Editor
-        </button>
+        </InteriorButton>
       </div>
       <p>{selectedTimelineClip ? "Edit animated properties and smooth bezier transitions." : "Select a timeline clip to edit its keyframes."}</p>
 
@@ -113,7 +114,7 @@ export function KeyframesInspector({
           {(["linear", "ease_in", "ease_out", "ease_in_out", "bezier"] as InterpolationKind[]).map((kind) => {
             const isCurrent = (selectedKf?.interpolation ?? keyframeInterpDraft) === kind;
             return (
-              <button
+              <InteriorButton
                 key={kind}
                 type="button"
                 className={`ease-pill-btn ${isCurrent ? "active" : ""}`}
@@ -130,13 +131,13 @@ export function KeyframesInspector({
                 }}
               >
                 {kind === "linear" ? "Linear" : kind === "ease_in" ? "Ease In" : kind === "ease_out" ? "Ease Out" : kind === "ease_in_out" ? "Ease In-Out" : "Bezier"}
-              </button>
+              </InteriorButton>
             );
           })}
         </div>
       </div>
 
-      <button
+      <InteriorButton
         className="primary"
         disabled={!selectedClip || !Number.isFinite(Number(keyframeValue))}
         onClick={() => {
@@ -148,7 +149,7 @@ export function KeyframesInspector({
         }}
       >
         Set keyframe at Playhead
-      </button>
+      </InteriorButton>
 
       <div className="keyframe-list">
         {propKeyframes.map((kf) => (
@@ -164,7 +165,7 @@ export function KeyframesInspector({
             <span>
               <b>{formatTime(kf.time)}</b> · {kf.value} · <i>{(kf.interpolation ?? "linear").replace("_", " ")}</i>
             </span>
-            <button
+            <InteriorButton
               aria-label="Remove keyframe"
               onClick={(e) => {
                 e.stopPropagation();
@@ -172,7 +173,7 @@ export function KeyframesInspector({
               }}
             >
               ×
-            </button>
+            </InteriorButton>
           </div>
         ))}
       </div>

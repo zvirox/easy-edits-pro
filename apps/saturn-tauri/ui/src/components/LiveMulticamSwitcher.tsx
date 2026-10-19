@@ -70,8 +70,8 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
     <div
       className="live-multicam-switcher"
       style={{
-        background: "#13171f",
-        border: "1px solid #2d3748",
+        background: "#180d17",
+        border: "1px solid #462d40",
         borderRadius: 8,
         padding: 14,
         color: "#e2e8f0",
@@ -127,9 +127,9 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
               onClick={() => handleAngleClick(angle.id)}
               style={{
                 position: "relative",
-                background: "#090d14",
+                background: "#110910",
                 border: "2px solid",
-                borderColor: isPgm ? "#e53e3e" : isPvw ? "#38a169" : "#2d3748",
+                borderColor: isPgm ? "#e53e3e" : isPvw ? "#38a169" : "#462d40",
                 borderRadius: 6,
                 padding: "10px 12px",
                 cursor: "pointer",
@@ -149,14 +149,14 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
                     fontWeight: 700,
                     padding: "2px 6px",
                     borderRadius: 3,
-                    background: isPgm ? "#e53e3e" : isPvw ? "#38a169" : "#1a202c",
+                    background: isPgm ? "#e53e3e" : isPvw ? "#38a169" : "#100810",
                     color: "#ffffff",
                     letterSpacing: 0.5,
                   }}
                 >
                   {isPgm ? "🔴 PGM" : isPvw ? "🟢 PVW" : `CAM ${idx + 1}`}
                 </span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#718096" }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#8b7284" }}>
                   Key [{idx + 1}]
                 </span>
               </div>
@@ -167,7 +167,7 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
               </div>
 
               {/* Status info */}
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#718096", marginTop: 4 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#8b7284", marginTop: 4 }}>
                 <span>{audioFollowVideo && isPgm ? "🔊 Audio Active" : "Locked Mic A"}</span>
                 <span>{isPgm && isPlaying ? "ON AIR" : "Standby"}</span>
               </div>
@@ -176,7 +176,7 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
         })}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: "#718096" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: "#8b7284" }}>
         <span>
           💡 Tip: During playback, press keys <strong>1-{angles.length}</strong> to perform live cuts on the beat.
         </span>

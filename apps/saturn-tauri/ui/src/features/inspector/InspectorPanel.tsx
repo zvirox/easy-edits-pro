@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction } from "react";
 import { StudioPanel } from "../../components/StudioPanel";
 import { AudioMonitorMixer } from "../../components/AudioMonitorMixer";
@@ -297,12 +298,12 @@ export function InspectorPanel(props: InspectorPanelProps) {
               />{" "}
               Export marked In/Out range
             </label>
-            <button
+            <InteriorButton
               disabled={props.project?.sequence.mark_in == null && props.project?.sequence.mark_out == null}
               onClick={() => void props.invokeMenuCommand("timeline.clear_marks")}
             >
               Clear marks
-            </button>
+            </InteriorButton>
             <label>
               Format
               <select
@@ -320,13 +321,13 @@ export function InspectorPanel(props: InspectorPanelProps) {
             <div className="control">
               Frame rate <span>{props.project ? `${props.project.settings.frame_rate.numerator}/${props.project.settings.frame_rate.denominator} fps` : "—"}</span>
             </div>
-            <button
+            <InteriorButton
               className="primary"
               disabled={!props.project || props.rendering || !props.project.sequence.tracks.some((track) => track.clips.length > 0)}
               onClick={() => void props.exportProject()}
             >
               {props.rendering ? "Rendering…" : "Render video"}
-            </button>
+            </InteriorButton>
             {props.renderProgress && (
               <div className="render-progress">
                 <progress max={100} value={props.renderProgress.fractionPercent} />
@@ -381,9 +382,9 @@ export function InspectorPanel(props: InspectorPanelProps) {
                     <a href={asset.sourceUrl} target="_blank" rel="noreferrer">
                       Source and license
                     </a>
-                    <button disabled={props.busy} onClick={() => void props.addLibraryAsset(asset)}>
+                    <InteriorButton disabled={props.busy} onClick={() => void props.addLibraryAsset(asset)}>
                       Add to media bin
-                    </button>
+                    </InteriorButton>
                   </div>
                 </article>
               ))}
@@ -408,9 +409,9 @@ export function InspectorPanel(props: InspectorPanelProps) {
                 onChange={(event) => props.setAiPrompt(event.target.value)}
               />
             </label>
-            <button className="primary" disabled={props.busy || !props.aiPrompt.trim() || !props.aiModel.trim()} onClick={() => void props.askAi()}>
+            <InteriorButton className="primary" disabled={props.busy || !props.aiPrompt.trim() || !props.aiModel.trim()} onClick={() => void props.askAi()}>
               Ask local model
-            </button>
+            </InteriorButton>
             {props.aiReply && <pre className="ai-reply">{props.aiReply}</pre>}
             <small>AI suggestions do not modify the timeline or project automatically.</small>
           </>

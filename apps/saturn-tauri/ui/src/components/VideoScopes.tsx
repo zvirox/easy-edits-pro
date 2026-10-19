@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior/interior-button";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 
 export type ScopeMode = "waveform" | "vectorscope" | "parade" | "histogram" | "quad";
@@ -101,41 +102,41 @@ export const VideoScopes: React.FC<VideoScopesProps> = ({
 
         {/* Scope Mode Selector Tabs */}
         <div className="scope-tabs-bar" role="tablist">
-          <button
+          <InteriorButton
             className={`scope-tab-btn ${scopeMode === "waveform" ? "active" : ""}`}
             onClick={() => setScopeMode("waveform")}
             title="Waveform (Luma Luminance 0-100 IRE)"
           >
             Waveform
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className={`scope-tab-btn ${scopeMode === "vectorscope" ? "active" : ""}`}
             onClick={() => setScopeMode("vectorscope")}
             title="Vectorscope (Chrominance Hue & Saturation + Skin-Tone Line)"
           >
             Vectorscope
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className={`scope-tab-btn ${scopeMode === "parade" ? "active" : ""}`}
             onClick={() => setScopeMode("parade")}
             title="RGB Parade (Red, Green, Blue Channels Side-by-Side)"
           >
             RGB Parade
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className={`scope-tab-btn ${scopeMode === "histogram" ? "active" : ""}`}
             onClick={() => setScopeMode("histogram")}
             title="Histogram (Color Tonal Frequency Distribution)"
           >
             Histogram
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className={`scope-tab-btn quad-btn ${scopeMode === "quad" ? "active" : ""}`}
             onClick={() => setScopeMode("quad")}
             title="Quad View (All 4 scopes simultaneously)"
           >
             Quad
-          </button>
+          </InteriorButton>
         </div>
 
         {/* Scope Controls */}
@@ -151,13 +152,13 @@ export const VideoScopes: React.FC<VideoScopesProps> = ({
               onChange={(e) => setGain(Number(e.target.value))}
             />
           </label>
-          <button
+          <InteriorButton
             className={`scope-toggle-btn ${showGraticule ? "active" : ""}`}
             onClick={() => setShowGraticule((prev) => !prev)}
             title="Toggle IRE and chromaticity reference graticule"
           >
             Graticule
-          </button>
+          </InteriorButton>
         </div>
       </header>
 
@@ -218,7 +219,7 @@ function drawWaveform(
       ctx.lineTo(xOffset + targetWidth - 6, y);
       ctx.stroke();
 
-      ctx.fillStyle = item.ire === 100 ? "#38bdf8" : item.ire === 0 ? "#94a3b8" : "rgba(148, 163, 184, 0.6)";
+      ctx.fillStyle = item.ire === 100 ? "#d9468f" : item.ire === 0 ? "#94a3b8" : "rgba(148, 163, 184, 0.6)";
       ctx.fillText(item.label, xOffset + 22, y + 3);
     }
     ctx.setLineDash([]);

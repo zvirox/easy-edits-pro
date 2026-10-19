@@ -1,3 +1,4 @@
+import { InteriorButton } from "../components/interior/interior-button";
 import type { SelectedClip, MediaAsset, ProjectDocument, DavinciWorkspace } from "../types";
 import { Icon } from "../components/Icon";
 import { formatTime } from "../utils/formatters";
@@ -57,22 +58,22 @@ export function MediaWorkspace({
           </span>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
-          <button
+          <InteriorButton
             className="primary workspace-heading-action"
             style={{ padding: "6px 12px", fontSize: "11px" }}
             onClick={() => void importMedia()}
             disabled={busy}
           >
             <Icon name="import" /> Browse Local Files…
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="btn-secondary"
             style={{ padding: "6px 12px", fontSize: "11px", background: "var(--bg-elevated)", color: "var(--accent-primary)" }}
             onClick={() => setNetworkImportModalOpen(true)}
             disabled={busy}
           >
             🌐 Import from URL / S3
-          </button>
+          </InteriorButton>
         </div>
       </header>
 
@@ -122,7 +123,7 @@ export function MediaWorkspace({
         {visibleMedia.length ? (
           <div className="import-media-grid" style={{ overflowY: "auto", paddingBottom: "20px" }}>
             {visibleMedia.map((item) => (
-              <button
+              <InteriorButton
                 className={`import-media-card ${selectedMediaId === item.id ? "selected" : ""}`}
                 key={item.id}
                 onClick={() => {
@@ -151,7 +152,7 @@ export function MediaWorkspace({
                     ? "Missing · relink required"
                     : "Ready to edit"}
                 </small>
-              </button>
+              </InteriorButton>
             ))}
           </div>
         ) : (
@@ -163,9 +164,9 @@ export function MediaWorkspace({
             <span style={{ color: "var(--text-secondary)" }}>
               {search ? "Try another search." : "Import a clip to begin building your timeline."}
             </span>
-            <button onClick={() => void importMedia()} disabled={busy}>
+            <InteriorButton onClick={() => void importMedia()} disabled={busy}>
               Browse files…
-            </button>
+            </InteriorButton>
           </div>
         )}
       </section>

@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior/interior-button";
 import { useState, useRef, useEffect, useCallback, type MouseEvent } from "react";
 import type { MediaAsset } from "../types";
 import { formatTime, getClipWaveform, TICKS_PER_SECOND } from "../utils/formatters";
@@ -99,10 +100,10 @@ export function SourceAudioVisualizer({ item, src }: SourceAudioVisualizerProps)
         >
           <defs>
             <linearGradient id="sourceAudioGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#38bdf8" />
-              <stop offset={`${progressPct.toFixed(1)}%`} stopColor="#38bdf8" />
-              <stop offset={`${progressPct.toFixed(1)}%`} stopColor="rgba(56, 189, 248, 0.35)" />
-              <stop offset="100%" stopColor="rgba(56, 189, 248, 0.35)" />
+              <stop offset="0%" stopColor="#be185d" />
+              <stop offset={`${progressPct.toFixed(1)}%`} stopColor="#be185d" />
+              <stop offset={`${progressPct.toFixed(1)}%`} stopColor="rgba(159, 18, 73, 0.35)" />
+              <stop offset="100%" stopColor="rgba(159, 18, 73, 0.35)" />
             </linearGradient>
           </defs>
           <path
@@ -127,59 +128,59 @@ export function SourceAudioVisualizer({ item, src }: SourceAudioVisualizerProps)
       {/* Integrated Audio Transport Controls */}
       <div className="source-audio-transport">
         <div className="source-audio-btns">
-          <button
+          <InteriorButton
             type="button"
             className="source-transport-btn"
             onClick={() => seekRelative(-5)}
             title="Rewind 5s (J)"
           >
             ◀◀ -5s
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             type="button"
             className="source-transport-btn"
             onClick={() => seekRelative(-1)}
             title="Step Back 1s"
           >
             ◀|
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             type="button"
             className="source-transport-btn play"
             onClick={togglePlay}
             title="Play / Pause (Space)"
           >
             {isPlaying ? "⏸ Pause" : "▶ Play"}
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             type="button"
             className="source-transport-btn"
             onClick={() => seekRelative(1)}
             title="Step Forward 1s"
           >
             |▶
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             type="button"
             className="source-transport-btn"
             onClick={() => seekRelative(5)}
             title="Fast Forward 5s (L)"
           >
             +5s ▶▶
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             type="button"
             className={`source-transport-btn ${isLooping ? "active-toggle" : ""}`}
             onClick={() => setIsLooping((v) => !v)}
             title="Toggle Loop Playback"
           >
             🔁 {isLooping ? "Loop On" : "Loop"}
-          </button>
+          </InteriorButton>
         </div>
 
         {/* Volume & Mute Controls */}
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <button
+          <InteriorButton
             type="button"
             className="source-transport-btn"
             onClick={() => {
@@ -191,7 +192,7 @@ export function SourceAudioVisualizer({ item, src }: SourceAudioVisualizerProps)
             title={isMuted ? "Unmute" : "Mute"}
           >
             {isMuted ? "🔇" : "🔊"}
-          </button>
+          </InteriorButton>
           <input
             type="range"
             min="0"

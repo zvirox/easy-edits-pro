@@ -1,3 +1,4 @@
+import { InteriorButton } from "../components/interior/interior-button";
 import { type MouseEvent } from "react";
 import {
   type ProjectDocument,
@@ -288,12 +289,12 @@ export function KeyframesWorkspace({
               <span className="keyframes-hint-text">Select a clip in the reel below to edit curves</span>
             )}
           </span>
-          <button
+          <InteriorButton
             className="btn-primary-subtle"
             onClick={() => selectDavinciWorkspace("edit")}
           >
             ← Back to Edit
-          </button>
+          </InteriorButton>
         </div>
       </header>
 
@@ -304,7 +305,7 @@ export function KeyframesWorkspace({
             <div className="curve-editor-toolbar">
               <div className="property-pills-selector">
                 {keyframeOptions.map((opt) => (
-                  <button
+                  <InteriorButton
                     key={opt.value}
                     type="button"
                     className={`property-pill-btn ${keyframeProperty === opt.value ? "active" : ""}`}
@@ -315,7 +316,7 @@ export function KeyframesWorkspace({
                     }}
                   >
                     {opt.label}
-                  </button>
+                  </InteriorButton>
                 ))}
               </div>
 
@@ -339,8 +340,8 @@ export function KeyframesWorkspace({
               >
                 <defs>
                   <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.02" />
+                    <stop offset="0%" stopColor="#6b21a8" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="#6b21a8" stopOpacity="0.02" />
                   </linearGradient>
                 </defs>
 
@@ -397,7 +398,7 @@ export function KeyframesWorkspace({
                   <path
                     d={curvePath}
                     fill="none"
-                    stroke="#06b6d4"
+                    stroke="#6b21a8"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -508,34 +509,34 @@ export function KeyframesWorkspace({
 
             {/* Curve Transport Bar */}
             <div className="curve-transport-bar">
-              <button
+              <InteriorButton
                 type="button"
                 className="transport-btn"
                 onClick={jumpPrevKeyframe}
                 title="Jump to Previous Keyframe"
               >
                 ⏮
-              </button>
-              <button
+              </InteriorButton>
+              <InteriorButton
                 type="button"
                 className={`transport-btn ${programPlaying ? "active-toggle" : ""}`}
                 onClick={() => toggleProgramPlayback()}
                 title={programPlaying ? "Pause Playback" : "Play Clip"}
               >
                 {programPlaying ? "⏸ Pause" : "▶ Play"}
-              </button>
-              <button
+              </InteriorButton>
+              <InteriorButton
                 type="button"
                 className="transport-btn"
                 onClick={jumpNextKeyframe}
                 title="Jump to Next Keyframe"
               >
                 ⏭
-              </button>
+              </InteriorButton>
 
               <div className="curve-transport-divider" />
 
-              <button
+              <InteriorButton
                 type="button"
                 className="btn-primary-subtle"
                 disabled={!selectedClip}
@@ -577,17 +578,17 @@ export function KeyframesWorkspace({
                 title="Add Keyframe at Current Playhead"
               >
                 ＋ Add Keyframe at Playhead
-              </button>
+              </InteriorButton>
 
               {activeKf && (
-                <button
+                <InteriorButton
                   type="button"
                   className="danger-button"
                   onClick={() => void deleteKeyframe(activeKf.property, activeKf.time)}
                   title="Delete Selected Keyframe"
                 >
                   🗑 Delete Keyframe
-                </button>
+                </InteriorButton>
               )}
             </div>
           </div>
@@ -605,7 +606,7 @@ export function KeyframesWorkspace({
               {(["linear", "ease_in", "ease_out", "ease_in_out", "bezier"] as InterpolationKind[]).map((kind) => {
                 const isCurrent = (activeKf?.interpolation ?? keyframeInterpDraft) === kind;
                 return (
-                  <button
+                  <InteriorButton
                     key={kind}
                     type="button"
                     className={`ease-preset-card ${isCurrent ? "active" : ""}`}
@@ -643,7 +644,7 @@ export function KeyframesWorkspace({
                         ? "Natural organic ease on both endpoints"
                         : "Sculpt custom tangents with precision handles"}
                     </span>
-                  </button>
+                  </InteriorButton>
                 );
               })}
             </div>
@@ -808,7 +809,7 @@ export function KeyframesWorkspace({
             const isSelected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
             const clipKfCount = clip.keyframes?.length ?? 0;
             return (
-              <button
+              <InteriorButton
                 key={`reel-curves-${track.id}-${clip.media_id}-${index}`}
                 className={`reel-clip-card ${isSelected ? "selected" : ""}`}
                 onClick={() => {
@@ -825,7 +826,7 @@ export function KeyframesWorkspace({
                 <span className="reel-fx-count">
                   {clipKfCount} keyframe{clipKfCount !== 1 ? "s" : ""}
                 </span>
-              </button>
+              </InteriorButton>
             );
           })}
         </div>

@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import { invoke } from "@tauri-apps/api/core";
 
 export interface InteropModalProps {
@@ -44,11 +45,11 @@ export function InteropModal({
           <h2 style={{ margin: 0, fontSize: "16px" }}>
             {interopMode === "export" ? "📤 Export Timeline Interchange" : "📥 Import Timeline Interchange"}
           </h2>
-          <button type="button" className="close-btn" onClick={onClose}>✕</button>
+          <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
         <div style={{ display: "flex", gap: "6px", marginBottom: "12px" }}>
           {(["fcpxml", "premiere_xml", "edl", "otio"] as const).map((fmt) => (
-            <button
+            <InteriorButton
               key={fmt}
               type="button"
               className={`interop-tab-btn ${interopFormat === fmt ? "active" : ""}`}
@@ -58,7 +59,7 @@ export function InteropModal({
               }}
             >
               {fmt === "fcpxml" ? "Apple FCPXML v1.9" : fmt === "premiere_xml" ? "Adobe Premiere XML" : fmt === "edl" ? "CMX 3600 EDL" : "OpenTimelineIO (.otio)"}
-            </button>
+            </InteriorButton>
           ))}
         </div>
 
@@ -72,8 +73,8 @@ export function InteropModal({
               rows={10}
               style={{
                 width: "100%",
-                background: "#090d14",
-                border: "1px solid #334155",
+                background: "#110910",
+                border: "1px solid #462d40",
                 borderRadius: "6px",
                 color: "#e2e8f0",
                 fontFamily: "monospace",
@@ -84,8 +85,8 @@ export function InteropModal({
               value={interopContent}
             />
             <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" }}>
-              <button type="button" onClick={onClose}>Close</button>
-              <button
+              <InteriorButton type="button" onClick={onClose}>Close</InteriorButton>
+              <InteriorButton
                 type="button"
                 className="btn-secondary"
                 onClick={async () => {
@@ -94,14 +95,14 @@ export function InteropModal({
                 }}
               >
                 📋 Copy Code
-              </button>
-              <button
+              </InteriorButton>
+              <InteriorButton
                 type="button"
                 className="primary"
                 onClick={() => void handleExportTimelineInterop(interopFormat)}
               >
                 💾 Save As File…
-              </button>
+              </InteriorButton>
             </div>
           </div>
         ) : (
@@ -124,8 +125,8 @@ export function InteropModal({
                 style={{
                   width: "100%",
                   padding: "6px",
-                  background: "#090d14",
-                  border: "1px solid #334155",
+                  background: "#110910",
+                  border: "1px solid #462d40",
                   borderRadius: "6px",
                   color: "#e2e8f0",
                   fontFamily: "monospace",
@@ -135,15 +136,15 @@ export function InteropModal({
               />
             </label>
             <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-              <button type="button" onClick={onClose}>Cancel</button>
-              <button
+              <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
+              <InteriorButton
                 type="button"
                 className="btn-secondary"
                 onClick={() => void handleImportTimelineInterop()}
               >
                 📂 Browse File…
-              </button>
-              <button
+              </InteriorButton>
+              <InteriorButton
                 type="button"
                 className="primary"
                 disabled={!interopContent.trim() || isInteropBusy}
@@ -167,7 +168,7 @@ export function InteropModal({
                 }}
               >
                 Import Timeline
-              </button>
+              </InteriorButton>
             </div>
           </div>
         )}

@@ -1,3 +1,4 @@
+import { InteriorButton } from "../components/interior/interior-button";
 import { type MouseEvent } from "react";
 import {
   type ProjectDocument,
@@ -146,18 +147,18 @@ export function FusionWorkspace({
         <div className="fusion-header-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <div className="fusion-add-buttons">
             <span className="fusion-add-label">+ Add Node:</span>
-            <button className="fusion-tool-btn" onClick={() => void addFusionNode("merge")}>Merge</button>
-            <button className="fusion-tool-btn" onClick={() => void addFusionNode("transform")}>Transform</button>
-            <button className="fusion-tool-btn" onClick={() => void addFusionNode("keyer")}>ChromaKey</button>
-            <button className="fusion-tool-btn" onClick={() => void addFusionNode("mask")}>RotoMask</button>
-            <button className="fusion-tool-btn" onClick={() => void addFusionNode("particles")}>Particles</button>
-            <button className="fusion-tool-btn" onClick={() => void addFusionNode("media_source")}>MediaIn</button>
-            <button className="fusion-tool-btn" onClick={() => void addFusionNode("output_sink")}>MediaOut</button>
+            <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("merge")}>Merge</InteriorButton>
+            <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("transform")}>Transform</InteriorButton>
+            <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("keyer")}>ChromaKey</InteriorButton>
+            <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("mask")}>RotoMask</InteriorButton>
+            <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("particles")}>Particles</InteriorButton>
+            <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("media_source")}>MediaIn</InteriorButton>
+            <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("output_sink")}>MediaOut</InteriorButton>
           </div>
           {nodes.length === 0 && (
-            <button className="primary-action-btn" onClick={() => void initStarterTree()} style={{ padding: "3px 10px", fontSize: "11px" }}>
+            <InteriorButton className="primary-action-btn" onClick={() => void initStarterTree()} style={{ padding: "3px 10px", fontSize: "11px" }}>
               ✨ Init Tree
-            </button>
+            </InteriorButton>
           )}
         </div>
       </header>
@@ -173,8 +174,8 @@ export function FusionWorkspace({
           <svg className="fusion-wires-layer">
             <defs>
               <linearGradient id="wireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#38bdf8" />
-                <stop offset="100%" stopColor="#818cf8" />
+                <stop offset="0%" stopColor="#be185d" />
+                <stop offset="100%" stopColor="#a855f7" />
               </linearGradient>
               <linearGradient id="maskWireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#f59e0b" />
@@ -244,7 +245,7 @@ export function FusionWorkspace({
                 >
                   <span className="node-icon">{nodeIcons[node.kind as CompositingNodeKind] || "🔷"}</span>
                   <strong className="node-title">{node.title}</strong>
-                  <button
+                  <InteriorButton
                     type="button"
                     className="node-delete-btn"
                     onClick={(e) => {
@@ -254,7 +255,7 @@ export function FusionWorkspace({
                     title="Delete Node"
                   >
                     ×
-                  </button>
+                  </InteriorButton>
                 </div>
 
                 <div className="fusion-node-body">
@@ -520,7 +521,7 @@ export function FusionWorkspace({
                       />
                       <span>Invert Mask Matte</span>
                     </label>
-                    <button
+                    <InteriorButton
                       className="secondary-btn"
                       style={{ marginTop: "8px" }}
                       onClick={() =>
@@ -528,7 +529,7 @@ export function FusionWorkspace({
                       }
                     >
                       + Create Spline Polygon
-                    </button>
+                    </InteriorButton>
                   </div>
                 )}
 
@@ -592,13 +593,13 @@ export function FusionWorkspace({
                   </div>
                 )}
 
-                <button
+                <InteriorButton
                   className="danger-button"
                   style={{ marginTop: "16px" }}
                   onClick={() => void removeFusionNode(selectedNode.id)}
                 >
                   Remove Node
-                </button>
+                </InteriorButton>
               </div>
             </div>
           ) : (

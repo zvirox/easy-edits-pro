@@ -155,7 +155,7 @@ export function useProjectOperations({
       const saved = localStorage.getItem("eep-collab-user");
       if (saved) return JSON.parse(saved);
     } catch {}
-    return { id: `user-${Math.floor(Math.random() * 9000 + 1000)}`, name: "Lead Editor", color: "#38bdf8" };
+    return { id: `user-${Math.floor(Math.random() * 9000 + 1000)}`, name: "Lead Editor", color: "#be185d" };
   });
 
   const rememberProject = useCallback((name: string, path: string) => {
@@ -316,14 +316,43 @@ export function useProjectOperations({
     await perform("file.save", { path }, "Project saved");
   }, [project, projectState?.path, perform]);
 
-  const exportProject = useCallback(async () => {
-    if (!project || rendering) return;
+  const chooseExportDestination = useCallback(async () => {
+    if (!project || rendering) return null;
+    const extension = exportFormat;
+    const safeName = (exportFileName.trim() || project.name).replace(/[\\/:*?"<>|]/g, "-");
     const path = await save({
       title: "Export video",
-      defaultPath: `${project.name.replace(/[\\/:*?"<>|]/g, "-")}.${exportFormat}`,
-      filters: [{ name: exportFormat === "mp4" ? "MP4 video" : "WebM video", extensions: [exportFormat] }],
+      defaultPath: exportOutputPath || `${safeName}.${extension}`,
+      filters: [{ name: extension === "mp4" ? "MP4 video" : "WebM video", extensions: [extension] }],
     });
+    if (path) {
+      setExportOutputPath(path);
+      const filename = path.split(/[\\/]/).at(-1) ?? "";
+      setExportFileName(filename.replace(/\.[^.]+$/, ""));
+    }
+    return path;
+  }, [project, rendering, exportFormat, exportFileName, exportOutputPath]);
+
+  const exportProject = useCallback(async () => {
+    if (!project || rendering) return;
+    const path = exportOutputPath || (await chooseExportDestination());
     if (!path) return;
+    setExportOutputPath(path);
+
+    const resolution =
+      exportResolution === "source"
+        ? { width: project.settings.width, height: project.settings.height }
+        : resolutionPresets.find((item) => item.value === exportResolution) ?? {
+            width: project.settings.width,
+            height: project.settings.height,
+          };
+    const frameRate =
+      exportFrameRate === "source"
+        ? project.settings.frame_rate
+        : (() => {
+            const [numerator, denominator] = exportFrameRate.split("/").map(Number);
+            return { numerator, denominator };
+          })();
 
     const channel = new Channel<{ fractionPercent: number; phase: string }>();
     channel.onmessage = (progress) => setRenderProgress(progress);
@@ -335,10 +364,10 @@ export function useProjectOperations({
         outputPath: path,
         useMarkRange: exportMarkedRange,
         settings: {
-          width: project.settings.width,
-          height: project.settings.height,
-          frameRateNumerator: project.settings.frame_rate.numerator,
-          frameRateDenominator: project.settings.frame_rate.denominator,
+          width: resolution.width,
+          height: resolution.height,
+          frameRateNumerator: frameRate.numerator,
+          frameRateDenominator: frameRate.denominator,
           useHardwareEncoding,
         },
         onProgress: channel,
@@ -350,7 +379,17 @@ export function useProjectOperations({
     } finally {
       setRendering(false);
     }
-  }, [project, rendering, exportFormat, exportMarkedRange, useHardwareEncoding, setNotice]);
+  }, [
+    project,
+    rendering,
+    exportOutputPath,
+    chooseExportDestination,
+    exportResolution,
+    exportFrameRate,
+    exportMarkedRange,
+    useHardwareEncoding,
+    setNotice,
+  ]);
 
   const handleAutoTranscribe = useCallback(async () => {
     setIsTranscribing(true);
@@ -604,6 +643,7 @@ export function useProjectOperations({
     recoverProjectFromWelcome,
     createProject,
     saveProject,
+    chooseExportDestination,
     exportProject,
     handleAutoTranscribe,
     handleDetectSilence,

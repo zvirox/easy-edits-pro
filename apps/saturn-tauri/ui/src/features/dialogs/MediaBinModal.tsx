@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 export interface MediaBinModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,7 +32,7 @@ export function MediaBinModal({
       >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>📁 Create New Media Bin</h2>
-          <button type="button" className="close-btn" onClick={onClose}>✕</button>
+          <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
         <p className="modal-desc" style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px" }}>
           Organize project clips, B-roll, music, and titles into color-coded media bins.
@@ -50,8 +51,8 @@ export function MediaBinModal({
         <div style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "16px" }}>
           <span>Color Label</span>
           <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
-            {["#38bdf8", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#64748b"].map((c) => (
-              <button
+            {["#be185d", "#10b981", "#f59e0b", "#ef4444", "#6b21a8", "#ec4899", "#7d6377"].map((c) => (
+              <InteriorButton
                 key={c}
                 type="button"
                 onClick={() => setNewBinColor(c)}
@@ -69,8 +70,8 @@ export function MediaBinModal({
           </div>
         </div>
         <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-          <button type="button" onClick={onClose}>Cancel</button>
-          <button className="primary" type="submit" disabled={!newBinName.trim()}>Create Bin</button>
+          <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
+          <InteriorButton className="primary" type="submit" disabled={!newBinName.trim()}>Create Bin</InteriorButton>
         </div>
       </form>
     </div>

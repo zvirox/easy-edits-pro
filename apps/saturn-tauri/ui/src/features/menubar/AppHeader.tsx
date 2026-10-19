@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import { useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Icon } from "../../components/Icon";
@@ -168,7 +169,7 @@ export function AppHeader({
         <summary>{menu}</summary>
         <div className="menu-popover">
           {items.map((item) => (
-            <button
+            <InteriorButton
               key={item.id}
               onClick={(event) => {
                 void invokeMenuCommand(item.id).catch((error: unknown) => setNotice(String(error)));
@@ -178,7 +179,7 @@ export function AppHeader({
             >
               <span>{item.label}</span>
               {item.shortcut && <small>{item.shortcut.replace("Ctrl", "⌘/Ctrl")}</small>}
-            </button>
+            </InteriorButton>
           ))}
         </div>
       </details>
@@ -202,7 +203,7 @@ export function AppHeader({
             {["File", "Edit", "Clip", "Sequence", "Markers", "View", "Window", "Help"].map(renderMenu)}
           </nav>
           <nav className="file-actions" aria-label="Project actions" style={{ display: "flex", gap: "2px" }}>
-            <button
+            <InteriorButton
               className="icon-button"
               onClick={() => {
                 void ensureDiscardIsOkay().then((ok) => {
@@ -217,8 +218,8 @@ export function AppHeader({
               style={{ width: "24px", height: "24px", padding: "3px" }}
             >
               <Icon name="fileNew" />
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               className="icon-button"
               onClick={() => void openProject().catch((error: unknown) => setNotice(String(error)))}
               data-tooltip="Open Project (Ctrl+O)"
@@ -226,8 +227,8 @@ export function AppHeader({
               style={{ width: "24px", height: "24px", padding: "3px" }}
             >
               <Icon name="fileOpen" />
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               className="icon-button"
               onClick={() => void saveProject()}
               data-tooltip="Save Project (Ctrl+S)"
@@ -235,8 +236,8 @@ export function AppHeader({
               style={{ width: "24px", height: "24px", padding: "3px" }}
             >
               <Icon name="fileSave" />
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               className="icon-button"
               onClick={() => void importMedia()}
               disabled={busy}
@@ -245,12 +246,12 @@ export function AppHeader({
               style={{ width: "24px", height: "24px", padding: "3px" }}
             >
               <Icon name="import" />
-            </button>
+            </InteriorButton>
           </nav>
         </div>
 
         <div className="system-bar-right">
-          <button
+          <InteriorButton
             className="collab-pill-btn"
             onClick={() => setCollabModalOpen(true)}
             data-tooltip="Collaborative Multi-User Project Locking (Phase 12.1)"
@@ -261,11 +262,11 @@ export function AppHeader({
             <span className="collab-badge">
               🔒 {project?.collaboration?.locks?.length ?? 0}
             </span>
-          </button>
+          </InteriorButton>
 
           {/* Background Job Queue Status Pill */}
           <div className="job-queue-wrapper" ref={jobDrawerRef}>
-            <button
+            <InteriorButton
               className={`job-status-pill ${activeJobs.length > 0 ? "has-active" : ""}`}
               onClick={() => setJobDrawerOpen((prev) => !prev)}
               aria-label="Background Task Queue"
@@ -292,7 +293,7 @@ export function AppHeader({
                   <span className="job-pill-idle">Tasks</span>
                 </>
               )}
-            </button>
+            </InteriorButton>
 
             {jobDrawerOpen && (
               <div className="job-drawer-popover">
@@ -305,21 +306,21 @@ export function AppHeader({
                   </div>
                   <div className="job-drawer-actions">
                     {activeJobs.length > 0 && (
-                      <button
+                      <InteriorButton
                         className="job-cancel-all-btn"
                         onClick={() => void cancelAllJobs()}
                         title="Cancel all running tasks"
                       >
                         Cancel All
-                      </button>
+                      </InteriorButton>
                     )}
-                    <button
+                    <InteriorButton
                       className="job-clear-btn"
                       onClick={() => void clearJobHistory()}
                       title="Clear completed history"
                     >
                       Clear History
-                    </button>
+                    </InteriorButton>
                   </div>
                 </header>
 
@@ -337,13 +338,13 @@ export function AppHeader({
                             {job.state.status}
                           </span>
                           {(job.state.status === "running" || job.state.status === "queued") && (
-                            <button
+                            <InteriorButton
                               className="job-item-cancel"
                               onClick={() => void cancelJob(job.id)}
                               title="Cancel this task"
                             >
                               ✕
-                            </button>
+                            </InteriorButton>
                           )}
                         </div>
 
@@ -371,7 +372,7 @@ export function AppHeader({
             )}
           </div>
 
-          <button
+          <InteriorButton
             type="button"
             className="system-util-btn"
             onClick={() => setBatchQueueDrawerOpen(true)}
@@ -380,9 +381,9 @@ export function AppHeader({
           >
             <span>📦</span>
             <span>Queue</span>
-          </button>
+          </InteriorButton>
 
-          <button
+          <InteriorButton
             type="button"
             className="system-util-btn ai-btn"
             onClick={() => setAiChatDrawerOpen(true)}
@@ -392,12 +393,12 @@ export function AppHeader({
             <span>🧠</span>
             <span>AI Assistant</span>
             <span className="exp-badge">EXP</span>
-          </button>
+          </InteriorButton>
 
           <ThemeToggle theme={theme} onToggle={toggleTheme} />
 
           <div className="window-controls">
-            <button
+            <InteriorButton
               className="icon-button"
               onClick={() => void toggleFullscreen()}
               aria-label={fullscreen ? "Leave fullscreen" : "Enter fullscreen"}
@@ -405,8 +406,8 @@ export function AppHeader({
               data-tooltip-pos="bottom"
             >
               <Icon name={fullscreen ? "restore" : "fullscreen"} />
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               className="icon-button close"
               onClick={() => void getCurrentWindow().close()}
               aria-label="Close Easy Edits Pro"
@@ -414,7 +415,7 @@ export function AppHeader({
               data-tooltip-pos="bottom"
             >
               <Icon name="close" />
-            </button>
+            </InteriorButton>
           </div>
         </div>
       </div>

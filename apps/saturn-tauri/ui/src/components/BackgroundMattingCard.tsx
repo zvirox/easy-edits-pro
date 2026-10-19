@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior/interior-button";
 import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -60,8 +61,8 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
     <div
       className="background-matting-card"
       style={{
-        background: "#13171f",
-        border: "1px solid #2d3748",
+        background: "#180d17",
+        border: "1px solid #462d40",
         borderRadius: 8,
         padding: 16,
         color: "#e2e8f0",
@@ -80,7 +81,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
         <span
           style={{
             fontSize: 10,
-            background: "#2b6cb0",
+            background: "#6b21a8",
             color: "#ffffff",
             padding: "2px 6px",
             borderRadius: 4,
@@ -97,7 +98,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
           AI Matting Model:
         </label>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          <button
+          <InteriorButton
             type="button"
             onClick={() => setModel("rvm")}
             style={{
@@ -105,17 +106,17 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
               fontSize: 11,
               borderRadius: 4,
               border: "1px solid",
-              borderColor: model === "rvm" ? "#3182ce" : "#2d3748",
-              background: model === "rvm" ? "rgba(49, 130, 206, 0.2)" : "#1a202c",
-              color: model === "rvm" ? "#63b3ed" : "#a0aec0",
+              borderColor: model === "rvm" ? "#9f1249" : "#462d40",
+              background: model === "rvm" ? "rgba(49, 130, 206, 0.2)" : "#100810",
+              color: model === "rvm" ? "#d9468f" : "#a0aec0",
               cursor: "pointer",
               textAlign: "left",
             }}
           >
             <strong>RobustVideoMatting</strong>
-            <span style={{ display: "block", fontSize: 10, color: "#718096" }}>Recurrent temporal video</span>
-          </button>
-          <button
+            <span style={{ display: "block", fontSize: 10, color: "#8b7284" }}>Recurrent temporal video</span>
+          </InteriorButton>
+          <InteriorButton
             type="button"
             onClick={() => setModel("modnet")}
             style={{
@@ -123,16 +124,16 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
               fontSize: 11,
               borderRadius: 4,
               border: "1px solid",
-              borderColor: model === "modnet" ? "#3182ce" : "#2d3748",
-              background: model === "modnet" ? "rgba(49, 130, 206, 0.2)" : "#1a202c",
-              color: model === "modnet" ? "#63b3ed" : "#a0aec0",
+              borderColor: model === "modnet" ? "#9f1249" : "#462d40",
+              background: model === "modnet" ? "rgba(49, 130, 206, 0.2)" : "#100810",
+              color: model === "modnet" ? "#d9468f" : "#a0aec0",
               cursor: "pointer",
               textAlign: "left",
             }}
           >
             <strong>MODNet Portrait</strong>
-            <span style={{ display: "block", fontSize: 10, color: "#718096" }}>Sharp fine boundary</span>
-          </button>
+            <span style={{ display: "block", fontSize: 10, color: "#8b7284" }}>Sharp fine boundary</span>
+          </InteriorButton>
         </div>
       </div>
 
@@ -148,7 +149,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
             { id: "black", label: "Cinema Black", icon: "⬛" },
             { id: "white", label: "Studio White", icon: "⬜" },
           ].map((mode) => (
-            <button
+            <InteriorButton
               key={mode.id}
               type="button"
               onClick={() => setBackgroundMode(mode.id as typeof backgroundMode)}
@@ -158,8 +159,8 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
                 fontSize: 11,
                 borderRadius: 4,
                 border: "1px solid",
-                borderColor: backgroundMode === mode.id ? "#4299e1" : "#2d3748",
-                background: backgroundMode === mode.id ? "#2b384e" : "#1a202c",
+                borderColor: backgroundMode === mode.id ? "#be185d" : "#462d40",
+                background: backgroundMode === mode.id ? "#462d40" : "#100810",
                 color: backgroundMode === mode.id ? "#ffffff" : "#cbd5e0",
                 cursor: "pointer",
                 display: "flex",
@@ -170,7 +171,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
             >
               <span>{mode.icon}</span>
               <span style={{ fontSize: 9 }}>{mode.label}</span>
-            </button>
+            </InteriorButton>
           ))}
         </div>
       </div>
@@ -227,14 +228,14 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
         </div>
       )}
 
-      <button
+      <InteriorButton
         type="button"
         onClick={handleApplyMatting}
         disabled={processing}
         style={{
           width: "100%",
           padding: "8px 14px",
-          background: processing ? "#4a5568" : "#805ad5",
+          background: processing ? "#5a4053" : "#6b21a8",
           border: "none",
           borderRadius: 4,
           color: "#ffffff",
@@ -248,7 +249,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
         }}
       >
         {processing ? "⏳ Processing Neural Matte…" : "🪄 1-Click Background Removal"}
-      </button>
+      </InteriorButton>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior-button";
 // Adapted from Interior's MIT-licensed Loading Button: https://www.interior.dev/docs/loading-button
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
@@ -51,12 +52,12 @@ export function LoadingButton({ children, onAction, pendingLabel, successLabel, 
 
   const label = status === "pending" ? pendingLabel : status === "success" ? successLabel : status === "error" ? errorLabel : children;
   return (
-    <button type="button" className={`interior-loading-button ${className}`} disabled={disabled || status === "pending"} aria-busy={status === "pending"} onClick={() => void run()}>
+    <InteriorButton type="button" className={`interior-loading-button ${className}`} disabled={disabled || status === "pending"} aria-busy={status === "pending"} onClick={() => void run()}>
       <span className="interior-loading-reserve" aria-hidden="true"><span>{children}</span><span>{pendingLabel}</span><span>{successLabel}</span><span>{errorLabel}</span></span>
       <span className="interior-loading-label" aria-live="polite">
         {status === "pending" && <motion.svg className="interior-loading-spinner" width="13" height="13" viewBox="0 0 12 12" fill="none" aria-hidden="true" animate={reducedMotion ? undefined : { rotate: 360 }} transition={reducedMotion ? undefined : { duration: 0.85, repeat: Infinity, ease: "linear" }}><circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" strokeOpacity=".25" /><path d="M6 1.5a4.5 4.5 0 0 1 4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></motion.svg>}
         {label}
       </span>
-    </button>
+    </InteriorButton>
   );
 }

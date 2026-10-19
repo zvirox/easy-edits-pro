@@ -1,3 +1,4 @@
+import { InteriorButton } from "../components/interior/interior-button";
 import { LoadingButton } from "../components/interior/loading-button";
 import {
   Plus,
@@ -167,7 +168,7 @@ export function ProjectWelcomeScreen({
                 <p>Start something new or continue a project.</p>
               </div>
               <div className="welcome-actions">
-                <button
+                <InteriorButton
                   className="welcome-action-card new"
                   onClick={() => {
                     setSetupProjectName("Untitled project");
@@ -183,7 +184,7 @@ export function ProjectWelcomeScreen({
                     <small>Choose a format and start editing</small>
                   </span>
                   <ArrowRight className="welcome-action-arrow" aria-hidden="true" />
-                </button>
+                </InteriorButton>
                 <LoadingButton
                   className="welcome-action-card open"
                   onAction={() => openProject()}
@@ -259,9 +260,9 @@ export function ProjectWelcomeScreen({
             </>
           ) : (
             <>
-              <button className="welcome-back" onClick={() => setWelcomeMode("home")}>
+              <InteriorButton className="welcome-back" onClick={() => setWelcomeMode("home")}>
                 <ArrowLeft className="size-3.5" /> <span>Back to projects</span>
-              </button>
+              </InteriorButton>
               <div className="welcome-panel-heading setup-heading">
                 <p className="welcome-kicker">NEW PROJECT</p>
                 <h2>Set your canvas.</h2>
@@ -373,13 +374,13 @@ export function ProjectWelcomeScreen({
                   </p>
                 )}
                 <div className="setup-actions">
-                  <button
+                  <InteriorButton
                     type="button"
                     className="welcome-secondary-button"
                     onClick={() => setWelcomeMode("home")}
                   >
                     Cancel
-                  </button>
+                  </InteriorButton>
                   <LoadingButton
                     className="welcome-create-button"
                     onAction={createProjectFromWelcome}

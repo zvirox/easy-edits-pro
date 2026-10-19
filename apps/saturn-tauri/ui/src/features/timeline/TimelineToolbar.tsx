@@ -1,3 +1,4 @@
+import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction } from "react";
 import { Icon } from "../../components/Icon";
 import { formatTime } from "../../utils/formatters";
@@ -7,9 +8,35 @@ import { timelineTools } from "./types";
 export type { TimelineTool };
 export { timelineTools };
 
-export interface TimelineToolbarProps {
+// Timeline Tool Rail (vertical strip on the left)
+export interface TimelineToolRailProps {
   timelineTool: TimelineTool;
   setTimelineTool: (tool: TimelineTool) => void;
+}
+
+export function TimelineToolRail({ timelineTool, setTimelineTool }: TimelineToolRailProps) {
+  return (
+    <aside className="timeline-tool-rail" aria-label="Timeline editing tools">
+      {timelineTools.map((tool) => (
+        <InteriorButton
+          key={tool.id}
+          className={`timeline-tool-button ${timelineTool === tool.id ? "active" : ""}`}
+          onClick={() => setTimelineTool(tool.id)}
+          aria-label={tool.label}
+          aria-pressed={timelineTool === tool.id}
+          data-tooltip={`${tool.label} (${tool.shortcut})`}
+          data-tooltip-pos="right"
+        >
+          <Icon name={tool.icon} />
+          <span>{tool.shortLabel}</span>
+        </InteriorButton>
+      ))}
+    </aside>
+  );
+}
+
+// Timeline Toolbar (horizontal bar at top of workbench)
+export interface TimelineToolbarProps {
   project: ProjectDocument["project"] | null;
   switchSequence: (seqId: number) => Promise<void>;
   playhead: number;
@@ -42,8 +69,6 @@ export interface TimelineToolbarProps {
 }
 
 export function TimelineToolbar({
-  timelineTool,
-  setTimelineTool,
   project,
   switchSequence,
   playhead,
@@ -75,50 +100,31 @@ export function TimelineToolbar({
   handleCreateTrackGroup,
 }: TimelineToolbarProps) {
   return (
-    <>
-      {/* Adobe Premiere Pro Style Tool Rail */}
-      <aside className="timeline-tool-rail" aria-label="Timeline editing tools">
-        {timelineTools.map((tool) => (
-          <button
-            key={tool.id}
-            className={`timeline-tool-button ${timelineTool === tool.id ? "active" : ""}`}
-            onClick={() => setTimelineTool(tool.id)}
-            aria-label={tool.label}
-            aria-pressed={timelineTool === tool.id}
-            data-tooltip={`${tool.label} (${tool.shortcut})`}
-            data-tooltip-pos="right"
-          >
-            <Icon name={tool.icon} />
-            <span>{tool.shortLabel}</span>
-          </button>
-        ))}
-      </aside>
-
-      <div className="timeline-toolbar">
+    <div className="timeline-toolbar">
         <div className="timeline-toolbar-start">
           <div className="sequence-breadcrumbs">
-            <button
+            <InteriorButton
               type="button"
               className={`seq-crumb-btn ${(project?.sequence.id ?? 1) === 1 ? "active" : ""}`}
               onClick={() => void switchSequence(1)}
               title="Switch to Master Sequence"
             >
               🎬 {project?.sequences?.find((s) => (s.id ?? 1) === 1)?.name || "Master Sequence"}
-            </button>
+            </InteriorButton>
             {(project?.sequence.id ?? 1) !== 1 && (
               <>
                 <span className="seq-crumb-arrow">›</span>
                 <span className="seq-crumb-btn active compound-crumb">
                   ⧉ {project?.sequence.name}
                 </span>
-                <button
+                <InteriorButton
                   type="button"
                   className="seq-exit-compound-btn"
                   onClick={() => void switchSequence(1)}
                   title="Return to Master Sequence"
                 >
                   ↶ Exit
-                </button>
+                </InteriorButton>
               </>
             )}
             {project?.sequences && project.sequences.length > 1 && (
@@ -149,7 +155,7 @@ export function TimelineToolbar({
           </code>
         </div>
         <div className="timeline-toolbar-tools" aria-label="Timeline actions">
-          <button
+          <InteriorButton
             className="timeline-icon-button"
             disabled={busy}
             onClick={() => void addTrackToTimeline("video")}
@@ -158,8 +164,8 @@ export function TimelineToolbar({
             aria-label="Add Video Track"
           >
             <span style={{ fontWeight: 700, fontSize: "11px" }}>+V</span>
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             disabled={busy}
             onClick={() => void addTrackToTimeline("audio")}
@@ -168,7 +174,7 @@ export function TimelineToolbar({
             aria-label="Add Audio Track"
           >
             <span style={{ fontWeight: 700, fontSize: "11px" }}>+A</span>
-          </button>
+          </InteriorButton>
           <span className="toolbar-divider" />
           <div
             className="track-height-selector"
@@ -180,7 +186,7 @@ export function TimelineToolbar({
               borderRadius: "4px",
             }}
           >
-            <button
+            <InteriorButton
               type="button"
               className={`timeline-mini-toggle ${timelineTrackHeight === "compact" ? "active" : ""}`}
               onClick={() => setTimelineTrackHeight("compact")}
@@ -188,8 +194,8 @@ export function TimelineToolbar({
               data-tooltip-pos="top"
             >
               ▫
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               type="button"
               className={`timeline-mini-toggle ${timelineTrackHeight === "normal" ? "active" : ""}`}
               onClick={() => setTimelineTrackHeight("normal")}
@@ -197,8 +203,8 @@ export function TimelineToolbar({
               data-tooltip-pos="top"
             >
               ◽
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               type="button"
               className={`timeline-mini-toggle ${timelineTrackHeight === "expanded" ? "active" : ""}`}
               onClick={() => setTimelineTrackHeight("expanded")}
@@ -206,10 +212,10 @@ export function TimelineToolbar({
               data-tooltip-pos="top"
             >
               ◻
-            </button>
+            </InteriorButton>
           </div>
           <span className="toolbar-divider" />
-          <button
+          <InteriorButton
             className={`timeline-icon-button ${snapEnabled ? "active-toggle" : ""}`}
             aria-pressed={snapEnabled}
             onClick={() => setSnapEnabled((enabled) => !enabled)}
@@ -218,8 +224,8 @@ export function TimelineToolbar({
             aria-label="Toggle snapping"
           >
             <Icon name="snap" />
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             disabled={!selectedMedia || busy}
             onClick={() => void addSelectedToTimeline()}
@@ -228,8 +234,8 @@ export function TimelineToolbar({
             aria-label="Add selected media"
           >
             <Icon name="add" />
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             disabled={busy}
             onClick={() => void addTitleToTimeline()}
@@ -238,8 +244,8 @@ export function TimelineToolbar({
             aria-label="Add Title"
           >
             <Icon name="title" />
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             disabled={busy}
             onClick={() => void addTransitionToTimeline()}
@@ -248,9 +254,9 @@ export function TimelineToolbar({
             aria-label="Add Transition"
           >
             <Icon name="transition" />
-          </button>
+          </InteriorButton>
           <span className="toolbar-divider" />
-          <button
+          <InteriorButton
             className="timeline-icon-button"
             disabled={!undoStatus.enabled || busy}
             onClick={() => void perform("edit.undo")}
@@ -259,8 +265,8 @@ export function TimelineToolbar({
             aria-label="Undo"
           >
             <Icon name="undo" />
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             disabled={!redoStatus.enabled || busy}
             onClick={() => void perform("edit.redo")}
@@ -269,9 +275,9 @@ export function TimelineToolbar({
             aria-label="Redo"
           >
             <Icon name="redo" />
-          </button>
+          </InteriorButton>
           <span className="toolbar-divider" />
-          <button
+          <InteriorButton
             className="timeline-icon-button"
             disabled={!selectedClip || busy}
             onClick={() => void splitSelectedClip()}
@@ -280,8 +286,8 @@ export function TimelineToolbar({
             aria-label="Split clip"
           >
             <Icon name="split" />
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             disabled={!selectedClip || busy}
             onClick={() => void rippleDeleteSelectedClip()}
@@ -290,8 +296,8 @@ export function TimelineToolbar({
             aria-label="Ripple delete"
           >
             <Icon name="ripple" />
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             disabled={!selectedClip || busy}
             onClick={() => void removeSelectedClip()}
@@ -300,9 +306,9 @@ export function TimelineToolbar({
             aria-label="Remove clip"
           >
             <Icon name="remove" />
-          </button>
+          </InteriorButton>
           <span className="toolbar-divider" />
-          <button
+          <InteriorButton
             className="timeline-icon-button"
             disabled={selectedClips.length < 2 || busy}
             onClick={() => void linkSelectedClips()}
@@ -311,8 +317,8 @@ export function TimelineToolbar({
             aria-label="Link clips"
           >
             <Icon name="link" />
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             disabled={(!selectedClip && selectedClips.length === 0) || busy}
             onClick={() => void unlinkSelectedClips()}
@@ -321,9 +327,9 @@ export function TimelineToolbar({
             aria-label="Unlink clips"
           >
             <Icon name="unlink" />
-          </button>
+          </InteriorButton>
           <span className="toolbar-divider" />
-          <button
+          <InteriorButton
             className="timeline-icon-button"
             disabled={(!selectedClip && selectedClips.length === 0) || busy}
             onClick={() => {
@@ -335,8 +341,8 @@ export function TimelineToolbar({
             aria-label="Create Compound Clip"
           >
             <span style={{ fontWeight: 800, fontSize: "14px" }}>⧉</span>
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             disabled={!selectedClip || busy}
             onClick={() => void decomposeSelectedCompoundClip()}
@@ -345,9 +351,9 @@ export function TimelineToolbar({
             aria-label="Decompose Compound Clip"
           >
             <span style={{ fontWeight: 800, fontSize: "14px" }}>⧈</span>
-          </button>
+          </InteriorButton>
           <span className="toolbar-divider" />
-          <button
+          <InteriorButton
             className="timeline-icon-button"
             disabled={busy}
             onClick={() => void invokeMenuCommand("timeline.set_mark_in")}
@@ -356,8 +362,8 @@ export function TimelineToolbar({
             aria-label="Set In point"
           >
             <Icon name="markIn" />
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             disabled={busy}
             onClick={() => void invokeMenuCommand("timeline.set_mark_out")}
@@ -366,8 +372,8 @@ export function TimelineToolbar({
             aria-label="Set Out point"
           >
             <Icon name="markOut" />
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             disabled={project?.sequence.mark_in == null && project?.sequence.mark_out == null}
             onClick={() => void invokeMenuCommand("timeline.clear_marks")}
@@ -376,9 +382,9 @@ export function TimelineToolbar({
             aria-label="Clear markers"
           >
             <Icon name="clearMarks" />
-          </button>
+          </InteriorButton>
           <span className="toolbar-divider" />
-          <button
+          <InteriorButton
             className="timeline-icon-button"
             onClick={() => zoomTimeline(1 / 1.2)}
             data-tooltip="Zoom Out Timeline (Ctrl+-)"
@@ -386,8 +392,8 @@ export function TimelineToolbar({
             aria-label="Zoom out"
           >
             <Icon name="zoomOut" />
-          </button>
-          <button
+          </InteriorButton>
+          <InteriorButton
             className="timeline-icon-button"
             onClick={() => zoomTimeline(1.2)}
             data-tooltip="Zoom In Timeline (Ctrl++)"
@@ -395,9 +401,9 @@ export function TimelineToolbar({
             aria-label="Zoom in"
           >
             <Icon name="zoomIn" />
-          </button>
+          </InteriorButton>
           <span className="toolbar-divider" />
-          <button
+          <InteriorButton
             type="button"
             className="timeline-icon-button"
             onClick={() => void handleCreateTrackGroup()}
@@ -405,10 +411,9 @@ export function TimelineToolbar({
             data-tooltip-pos="top"
             aria-label="Create Track Group"
           >
-            <span style={{ fontWeight: 700, fontSize: "13px" }}>📁＋</span>
-          </button>
+            <span style={{ fontWeight: 700, fontSize: "13px" }}>[+]</span>
+          </InteriorButton>
         </div>
-      </div>
-    </>
+    </div>
   );
 }

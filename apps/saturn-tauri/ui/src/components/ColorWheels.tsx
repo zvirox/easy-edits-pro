@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior/interior-button";
 import React, { useRef, useCallback } from "react";
 
 export interface ColorWheelValue {
@@ -120,7 +121,7 @@ const SingleWheel: React.FC<SingleWheelProps> = ({
           <strong>{title}</strong>
           <small>{subtitle}</small>
         </div>
-        <button
+        <InteriorButton
           type="button"
           className="wheel-reset-btn"
           title={`Reset ${title} wheel to neutral`}
@@ -128,7 +129,7 @@ const SingleWheel: React.FC<SingleWheelProps> = ({
           disabled={disabled}
         >
           ↺
-        </button>
+        </InteriorButton>
       </header>
 
       {/* 2D Circular Color Wheel Disc */}
@@ -159,7 +160,7 @@ const SingleWheel: React.FC<SingleWheelProps> = ({
       <div className="wheel-lum-section">
         <div className="wheel-lum-label-row">
           <span>Y LUM</span>
-          <button
+          <InteriorButton
             type="button"
             className="lum-reset-btn"
             title="Reset luminance to 0.00"
@@ -167,7 +168,7 @@ const SingleWheel: React.FC<SingleWheelProps> = ({
             disabled={disabled}
           >
             0
-          </button>
+          </InteriorButton>
           <code>{val.yLum > 0 ? `+${val.yLum.toFixed(2)}` : val.yLum.toFixed(2)}</code>
         </div>
         <input
@@ -215,7 +216,7 @@ export const ColorWheels: React.FC<ColorWheelsProps> = ({
           <strong>PRIMARY COLOR BALANCE WHEELS</strong>
           <small>3-Way Lift / Gamma / Gain &amp; Master Offset</small>
         </div>
-        <button
+        <InteriorButton
           type="button"
           className="btn-secondary btn-reset-wheels"
           title="Reset all color wheels to neutral"
@@ -223,7 +224,7 @@ export const ColorWheels: React.FC<ColorWheelsProps> = ({
           disabled={disabled}
         >
           Reset All Wheels
-        </button>
+        </InteriorButton>
       </header>
 
       <div className="color-wheels-grid">

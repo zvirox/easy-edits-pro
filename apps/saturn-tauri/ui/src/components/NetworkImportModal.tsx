@@ -1,3 +1,4 @@
+import { InteriorButton } from "./interior/interior-button";
 import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -65,7 +66,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
         style={{
           width: 540,
           background: "#181b22",
-          border: "1px solid #2d3748",
+          border: "1px solid #462d40",
           borderRadius: 8,
           boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)",
           color: "#e2e8f0",
@@ -75,7 +76,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
         <header
           style={{
             padding: "16px 20px",
-            borderBottom: "1px solid #2d3748",
+            borderBottom: "1px solid #462d40",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -90,7 +91,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               </p>
             </div>
           </div>
-          <button
+          <InteriorButton
             onClick={onClose}
             disabled={downloading}
             style={{
@@ -102,7 +103,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
             }}
           >
             ✕
-          </button>
+          </InteriorButton>
         </header>
 
         <form onSubmit={handleImport} style={{ padding: 20 }}>
@@ -120,8 +121,8 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                background: "#0d1117",
-                border: "1px solid #4a5568",
+                background: "#100810",
+                border: "1px solid #5a4053",
                 borderRadius: 4,
                 color: "#f7fafc",
                 fontSize: 13,
@@ -143,8 +144,8 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                background: "#0d1117",
-                border: "1px solid #4a5568",
+                background: "#100810",
+                border: "1px solid #5a4053",
                 borderRadius: 4,
                 color: "#f7fafc",
                 fontSize: 13,
@@ -154,12 +155,12 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <span style={{ fontSize: 11, color: "#718096", display: "block", marginBottom: 6 }}>
+            <span style={{ fontSize: 11, color: "#8b7284", display: "block", marginBottom: 6 }}>
               Quick Presets / Testing Streams:
             </span>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {sampleUrls.map((sample, i) => (
-                <button
+                <InteriorButton
                   key={i}
                   type="button"
                   onClick={() => {
@@ -168,7 +169,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
                   }}
                   disabled={downloading}
                   style={{
-                    background: "#2d3748",
+                    background: "#462d40",
                     border: "none",
                     color: "#cbd5e0",
                     fontSize: 11,
@@ -178,7 +179,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
                   }}
                 >
                   {sample.label}
-                </button>
+                </InteriorButton>
               ))}
             </div>
           </div>
@@ -201,16 +202,16 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
 
           {downloading && (
             <div style={{ marginBottom: 16 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#63b3ed", marginBottom: 4 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#d9468f", marginBottom: 4 }}>
                 <span>{progressText}</span>
                 <span>Downloading…</span>
               </div>
-              <div style={{ height: 4, background: "#2d3748", borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ height: 4, background: "#462d40", borderRadius: 2, overflow: "hidden" }}>
                 <div
                   style={{
                     height: "100%",
                     width: "100%",
-                    background: "#3182ce",
+                    background: "#9f1249",
                     animation: "pulse 1.5s infinite",
                   }}
                 />
@@ -219,13 +220,13 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
           )}
 
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
-            <button
+            <InteriorButton
               type="button"
               onClick={onClose}
               disabled={downloading}
               style={{
                 padding: "8px 16px",
-                background: "#2d3748",
+                background: "#462d40",
                 border: "none",
                 borderRadius: 4,
                 color: "#e2e8f0",
@@ -234,13 +235,13 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               }}
             >
               Cancel
-            </button>
-            <button
+            </InteriorButton>
+            <InteriorButton
               type="submit"
               disabled={downloading || !url.trim()}
               style={{
                 padding: "8px 18px",
-                background: downloading ? "#4a5568" : "#3182ce",
+                background: downloading ? "#5a4053" : "#9f1249",
                 border: "none",
                 borderRadius: 4,
                 color: "#ffffff",
@@ -253,7 +254,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               }}
             >
               {downloading ? "Downloading…" : "📥 Download & Import"}
-            </button>
+            </InteriorButton>
           </div>
         </form>
       </div>

@@ -1,3 +1,4 @@
+import { InteriorButton } from "../components/interior/interior-button";
 import type { Dispatch, SetStateAction, ReactNode, RefObject } from "react";
 import { ColorWheels, type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "../components/ColorWheels";
 import { RgbCurvesEditor } from "../components/RgbCurvesEditor";
@@ -163,7 +164,7 @@ export function ColorWorkspace({
           <span className="color-target-info" style={{ marginLeft: "12px", fontSize: "11px", color: "var(--text-secondary)" }}>
             {selectedTimelineClip ? (
               <>
-                Target: <strong style={{ color: "var(--accent-cyan)" }}>{media.find((m) => m.id === selectedTimelineClip.media_id)?.name ?? "Selected Clip"}</strong>
+                Target: <strong style={{ color: "var(--accent-primary)" }}>{media.find((m) => m.id === selectedTimelineClip.media_id)?.name ?? "Selected Clip"}</strong>
               </>
             ) : (
               <span className="color-hint-text">Select a clip in the reel below to grade</span>
@@ -171,7 +172,7 @@ export function ColorWorkspace({
           </span>
         </div>
         <div className="color-header-actions">
-          <button
+          <InteriorButton
             className="btn-secondary"
             style={{ padding: "3px 10px", fontSize: "11px" }}
             onClick={resetColorGrading}
@@ -179,7 +180,7 @@ export function ColorWorkspace({
             title="Reset exposure, contrast, saturation, and color wheels to neutral"
           >
             Reset All
-          </button>
+          </InteriorButton>
         </div>
       </header>
 
@@ -196,15 +197,15 @@ export function ColorWorkspace({
                 {renderProgramMonitor()}
               </div>
               <div className="color-transport-bar">
-                <button aria-label="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</button>
-                <button
+                <InteriorButton aria-label="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</InteriorButton>
+                <InteriorButton
                   className={programPlaying ? "active-toggle" : ""}
                   aria-label={programPlaying ? "Pause playback" : "Play clip"}
                   onClick={() => toggleProgramPlayback()}
                 >
                   {programPlaying ? "⏸ Pause" : "▶ Play"}
-                </button>
-                <button aria-label="Next frame" onClick={() => stepProgramFrame(1)}>▶|</button>
+                </InteriorButton>
+                <InteriorButton aria-label="Next frame" onClick={() => stepProgramFrame(1)}>▶|</InteriorButton>
                 <code>{formatTime(playhead)}</code>
               </div>
             </div>
@@ -235,61 +236,61 @@ export function ColorWorkspace({
                 display: "flex",
                 gap: "8px",
                 marginBottom: "12px",
-                borderBottom: "1px solid #2d3748",
+                borderBottom: "1px solid #462d40",
                 paddingBottom: "8px",
               }}
             >
-              <button
+              <InteriorButton
                 type="button"
                 className={`btn-secondary ${colorStudioTab === "wheels" ? "active" : ""}`}
                 style={{
-                  background: colorStudioTab === "wheels" ? "#3182ce" : "#1a202c",
+                  background: colorStudioTab === "wheels" ? "#9f1249" : "#100810",
                   color: colorStudioTab === "wheels" ? "#ffffff" : "#a0aec0",
                   fontWeight: 600,
                   fontSize: "12px",
                   padding: "6px 12px",
                   borderRadius: "4px",
-                  border: "1px solid #2d3748",
+                  border: "1px solid #462d40",
                   cursor: "pointer",
                 }}
                 onClick={() => setColorStudioTab("wheels")}
               >
                 🎡 3-Way Color Wheels
-              </button>
-              <button
+              </InteriorButton>
+              <InteriorButton
                 type="button"
                 className={`btn-secondary ${colorStudioTab === "curves" ? "active" : ""}`}
                 style={{
-                  background: colorStudioTab === "curves" ? "#3182ce" : "#1a202c",
+                  background: colorStudioTab === "curves" ? "#9f1249" : "#100810",
                   color: colorStudioTab === "curves" ? "#ffffff" : "#a0aec0",
                   fontWeight: 600,
                   fontSize: "12px",
                   padding: "6px 12px",
                   borderRadius: "4px",
-                  border: "1px solid #2d3748",
+                  border: "1px solid #462d40",
                   cursor: "pointer",
                 }}
                 onClick={() => setColorStudioTab("curves")}
               >
                 📈 RGB Curves
-              </button>
-              <button
+              </InteriorButton>
+              <InteriorButton
                 type="button"
                 className={`btn-secondary ${colorStudioTab === "qualifier" ? "active" : ""}`}
                 style={{
-                  background: colorStudioTab === "qualifier" ? "#3182ce" : "#1a202c",
+                  background: colorStudioTab === "qualifier" ? "#9f1249" : "#100810",
                   color: colorStudioTab === "qualifier" ? "#ffffff" : "#a0aec0",
                   fontWeight: 600,
                   fontSize: "12px",
                   padding: "6px 12px",
                   borderRadius: "4px",
-                  border: "1px solid #2d3748",
+                  border: "1px solid #462d40",
                   cursor: "pointer",
                 }}
                 onClick={() => setColorStudioTab("qualifier")}
               >
                 🎯 HSL Secondary Qualifier
-              </button>
+              </InteriorButton>
             </div>
 
             {colorStudioTab === "wheels" && (
@@ -404,7 +405,7 @@ export function ColorWorkspace({
               </div>
               <div className="color-presets-grid compact">
                 {COLOR_PRESETS.map((preset) => (
-                  <button
+                  <InteriorButton
                     key={preset.id}
                     className="color-preset-card compact"
                     disabled={!selectedClip}
@@ -413,7 +414,7 @@ export function ColorWorkspace({
                   >
                     <span className="preset-card-icon">{preset.icon}</span>
                     <strong className="preset-card-title">{preset.label}</strong>
-                  </button>
+                  </InteriorButton>
                 ))}
               </div>
             </div>
@@ -425,7 +426,7 @@ export function ColorWorkspace({
               </div>
               <div className="color-presets-grid compact">
                 {LUT_PRESETS.map((lut) => (
-                  <button
+                  <InteriorButton
                     key={lut.id}
                     className="color-preset-card compact"
                     disabled={!selectedClip}
@@ -434,10 +435,10 @@ export function ColorWorkspace({
                   >
                     <span className="preset-card-icon">{lut.icon}</span>
                     <strong className="preset-card-title">{lut.name}</strong>
-                  </button>
+                  </InteriorButton>
                 ))}
               </div>
-              <button
+              <InteriorButton
                 type="button"
                 className="btn-secondary lut-open-btn"
                 disabled={!selectedClip}
@@ -445,7 +446,7 @@ export function ColorWorkspace({
                 style={{ marginTop: "8px", width: "100%", fontSize: "11px", padding: "6px" }}
               >
                 📂 Load Custom .cube File…
-              </button>
+              </InteriorButton>
             </div>
           </aside>
         </div>
@@ -461,7 +462,7 @@ export function ColorWorkspace({
           {allClips.map(({ track, clip, index, mediaItem }) => {
             const isSelected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
             return (
-              <button
+              <InteriorButton
                 key={`reel-${track.id}-${clip.media_id}-${index}`}
                 className={`reel-clip-card ${isSelected ? "selected" : ""}`}
                 onClick={() => {
@@ -476,7 +477,7 @@ export function ColorWorkspace({
                 </div>
                 <strong className="reel-clip-name">{mediaItem?.name ?? "Clip"}</strong>
                 <span className="reel-clip-dur">{formatTime(clip.duration)}</span>
-              </button>
+              </InteriorButton>
             );
           })}
         </div>
