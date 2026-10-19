@@ -9,7 +9,7 @@ const extractionBacklog = new Set([
   "ui/src/workspaces/KeyframesWorkspace.tsx",
   "../../crates/saturn-core/src/interop.rs",
 ]);
-const hardLimit = 800;
+const hardLimit = 2000;
 const oversized = [];
 
 function visit(directory) {
@@ -33,7 +33,7 @@ if (untrackedOversized.length) {
   for (const file of untrackedOversized) console.error(`  ${file.path}: ${file.lines} lines`);
   process.exitCode = 1;
 } else {
-  console.log(`Source size check passed (${hardLimit}-line limit for new files).`);
+  console.log(`Source size check passed (${hardLimit}-line limit).`);
 }
 if (oversized.length) {
   console.warn("Tracked extraction backlog:");

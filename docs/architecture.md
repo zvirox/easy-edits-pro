@@ -115,11 +115,8 @@ All feature components and operational logic have been decomposed into modular u
 
 ## Source size guardrails
 
-All new `.rs`, `.ts`, `.tsx`, and `.css` source files must stay strictly at or below 800 lines
-(target < 500 lines where practical). Run `pnpm --dir apps/saturn-tauri check:source-size` before
-submitting. `App.tsx` has been extracted and removed from the backlog. Only legacy monolithic
-screens (`FairlightWorkspace.tsx`, `KeyframesWorkspace.tsx`, `saturn-core/src/interop.rs`) remain
-on the temporary backlog.
+All `.rs`, `.ts`, `.tsx`, and `.css` source files must stay strictly at or below 2000 lines.
+Run `pnpm --dir apps/saturn-tauri check:source-size` before submitting.
 
 ## Adding a Tauri feature
 

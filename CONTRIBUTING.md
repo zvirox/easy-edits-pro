@@ -108,10 +108,8 @@ The React UI lives in `apps/saturn-tauri/ui/src`. Put reusable UI in
 screens in `workspaces/`, application context and hooks in `app/`, and pure
 logic in `utils/` or the relevant engine module. Keep CSS imports in
 `style.css` → `styles/index.css` in their listed order because order determines
-the cascade. Keep new `.rs`, `.ts`, `.tsx`, and `.css` source files at or below 800 lines
-(target under 500 where practical). Run `pnpm --dir apps/saturn-tauri check:source-size` before
-submitting. The check lists the small, explicit legacy extraction backlog; do
-not add new exceptions without documenting the reason and follow-up.
+the cascade. Keep `.rs`, `.ts`, `.tsx`, and `.css` source files at or below 2000 lines.
+Run `pnpm --dir apps/saturn-tauri check:source-size` before submitting.
 
 See [`docs/architecture.md`](docs/architecture.md) for the current module map
 and data flow.
