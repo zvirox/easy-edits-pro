@@ -148,7 +148,7 @@
 
 .empty-drop-hint:hover {
   border-color: var(--accent-primary);
-  color: var(--accent-primary);
+  color: var(--accent-text);
   background: var(--bg-subpanel);
 }
 
@@ -160,7 +160,7 @@
 }
 
 .empty-drop-hint:hover .empty-drop-icon {
-  color: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 /* Track Group Label Styles */
@@ -228,7 +228,7 @@
   padding: 1px 6px;
   border-radius: 9999px;
   background: rgba(159, 18, 73, 0.2);
-  color: #d9468f;
+  color: var(--accent-text);
   font-size: 7.5px;
   font-weight: 700;
   text-transform: uppercase;
@@ -259,7 +259,7 @@
   margin-right: 4px;
   border-radius: 2px;
   background: rgba(217, 70, 143, 0.3);
-  color: #d9468f;
+  color: var(--accent-text);
   font-size: 7px;
   font-weight: 700;
 }
@@ -293,7 +293,7 @@
 .add-track-icon {
   font-size: 20px;
   font-weight: 700;
-  color: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 .add-track-text {
@@ -338,7 +338,7 @@
 }
 
 .seq-crumb-btn.active {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   background: var(--bg-selected);
   border-color: var(--accent-primary);
 }
@@ -351,7 +351,7 @@
 .compound-crumb {
   background: rgba(168, 85, 247, 0.15) !important;
   border-color: rgba(168, 85, 247, 0.4) !important;
-  color: #c084fc !important;
+  color: var(--accent-text-violet) !important;
 }
 
 .seq-exit-compound-btn {
@@ -410,7 +410,7 @@
 }
 
 .timeline-mini-toggle.active {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   background: var(--bg-selected);
   border-color: var(--accent-primary);
 }
@@ -558,7 +558,7 @@
   border-radius: 3px;
   background: rgba(168, 85, 247, 0.2);
   border: 1px solid rgba(168, 85, 247, 0.5);
-  color: #c084fc;
+  color: var(--accent-text-violet);
   font-size: 7.5px;
   font-weight: 700;
   cursor: pointer;

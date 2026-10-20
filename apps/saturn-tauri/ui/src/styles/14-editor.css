@@ -25,13 +25,13 @@
 .ledger-time {
   font-family: monospace;
   font-size: 10px;
-  color: #7d6377;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
 .ledger-user {
   font-weight: 700;
-  color: #be185d;
+  color: var(--accent-text);
   flex-shrink: 0;
 }
 
@@ -41,7 +41,7 @@
   background: #221220;
   padding: 1px 5px;
   border-radius: 3px;
-  color: #bfa5b8;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
@@ -56,7 +56,7 @@
 .ledger-empty {
   padding: 24px;
   text-align: center;
-  color: #7d6377;
+  color: var(--text-muted);
   font-size: 11.5px;
 }
 
@@ -116,7 +116,7 @@
 .close-btn {
   background: transparent;
   border: none;
-  color: #bfa5b8;
+  color: var(--text-muted);
   font-size: 16px;
   cursor: pointer;
   padding: 4px;
@@ -140,11 +140,11 @@
   border: 1px solid rgba(159, 18, 73, 0.35);
   border-radius: 12px;
   padding: 2px 9px;
-  color: #be185d;
+  color: var(--accent-text);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .gpu-status-pill:hover {
@@ -171,13 +171,13 @@
 .interop-tab-btn {
   background: #221220;
   border: 1px solid #462d40;
-  color: #bfa5b8;
+  color: var(--text-muted);
   border-radius: 5px;
   padding: 6px 12px;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .interop-tab-btn:hover {
@@ -203,13 +203,13 @@
 
 .interop-badge.apple {
   background: rgba(159, 18, 73, 0.2);
-  color: #be185d;
+  color: var(--accent-text);
   border: 1px solid rgba(159, 18, 73, 0.4);
 }
 
 .interop-badge.adobe {
   background: rgba(168, 85, 247, 0.2);
-  color: #c084fc;
+  color: var(--accent-text-violet);
   border: 1px solid rgba(168, 85, 247, 0.4);
 }
 
@@ -255,13 +255,13 @@
   gap: 4px;
   background: rgba(34, 18, 32, 0.7);
   border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #bfa5b8;
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 600;
   padding: 3px 8px;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .seq-crumb-btn:hover {
@@ -272,18 +272,18 @@
 
 .seq-crumb-btn.active {
   background: rgba(159, 18, 73, 0.15);
-  color: #be185d;
+  color: var(--accent-text);
   border-color: #be185d;
 }
 
 .seq-crumb-btn.compound-crumb {
   background: rgba(168, 85, 247, 0.15);
-  color: #c084fc;
+  color: var(--accent-text-violet);
   border-color: #a855f7;
 }
 
 .seq-crumb-arrow {
-  color: #7d6377;
+  color: var(--text-muted);
   font-size: 13px;
   font-weight: bold;
 }
@@ -297,7 +297,7 @@
   padding: 3px 7px;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .seq-exit-compound-btn:hover {
@@ -404,7 +404,7 @@
   font-weight: 700;
   padding: 1px 5px;
   background: rgba(159, 18, 73, 0.15);
-  color: #be185d;
+  color: var(--accent-text);
   border: 1px solid rgba(159, 18, 73, 0.3);
   border-radius: 3px;
 }
@@ -417,13 +417,13 @@
 .loudness-tab-btn {
   background: rgba(34, 18, 32, 0.5);
   border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #bfa5b8;
+  color: var(--text-muted);
   font-size: 9.5px;
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 3px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .loudness-tab-btn:hover {
@@ -433,7 +433,7 @@
 
 .loudness-tab-btn.active {
   background: rgba(159, 18, 73, 0.2);
-  color: #be185d;
+  color: var(--accent-text);
   border-color: #be185d;
   font-weight: 700;
 }

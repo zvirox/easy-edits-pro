@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
   z-index: 1;
 }
 
@@ -119,7 +119,7 @@
 
 /* Color Studio Tabs */
 .color-studio-tabs button {
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .color-studio-tabs button:hover {
@@ -159,7 +159,7 @@
   border: 2px solid #221220;
   border-radius: 4px;
   overflow: hidden;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .multicam-tile.active-angle {
@@ -188,7 +188,7 @@
   border-radius: 3px;
   background: rgba(168, 85, 247, 0.2);
   border: 1px solid rgba(168, 85, 247, 0.5);
-  color: #c084fc;
+  color: var(--accent-text-violet);
   margin-left: 4px;
   line-height: 1;
   display: inline-block;
@@ -200,19 +200,19 @@
    ========================================================================== */
 
 [data-theme="light"] .status-bar {
-  background: #faf2f7;
-  border-top: 1px solid #faf2f7;
-  color: #7d6377;
+  background: var(--bg-base);
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .status-bar span,
 [data-theme="light"] .status-bar strong {
-  color: #462d40;
+  color: var(--text-primary);
 }
 
 /* Fusion Compositor Light Mode */
 [data-theme="light"] .fusion-workspace-page {
-  background: #faf2f7;
+  background: var(--bg-base);
 }
 
 /* Enforce Strict NLE Viewport Rule: Node graph canvas stays dark for accurate compositing */
@@ -231,181 +231,181 @@
 }
 
 [data-theme="light"] .fusion-add-buttons {
-  background: #ffffff;
-  border-color: #faf2f7;
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
 }
 
 [data-theme="light"] .fusion-tool-btn {
-  background: #faf2f7;
-  border-color: #e5d4e0;
-  color: #221220;
+  background: var(--bg-base);
+  border-color: var(--border-default);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .fusion-tool-btn:hover {
-  background: #faf2f7;
-  border-color: #9f1249;
-  color: #9f1249;
+  background: var(--bg-base);
+  border-color: var(--border-focus);
+  color: var(--accent-text);
 }
 
 [data-theme="light"] .fusion-node-card {
-  background: #ffffff;
-  border: 1px solid #e5d4e0;
-  box-shadow: 0 4px 14px rgba(17, 9, 16, 0.08);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-soft-lg);
 }
 
 [data-theme="light"] .fusion-node-body {
-  background: #faf2f7;
-  color: #221220;
+  background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .fusion-node-inspector {
-  background: #ffffff;
+  background: var(--bg-surface);
 }
 
 [data-theme="light"] .fusion-empty-inspector {
-  color: #bfa5b8;
+  color: var(--text-muted);
 }
 
 /* Export / Deliver Workspace Light Mode */
 [data-theme="light"] .export-workspace {
-  background: #faf2f7;
+  background: var(--bg-base);
 }
 
 [data-theme="light"] .export-destinations,
 [data-theme="light"] .export-settings-panel,
 [data-theme="light"] .export-preview-panel {
-  background: #ffffff;
+  background: var(--bg-surface);
 }
 
 [data-theme="light"] .export-destination:hover {
-  background: #faf2f7;
+  background: var(--bg-base);
 }
 
 [data-theme="light"] .export-destination.selected {
-  border-color: #e5d4e0;
-  background: #faf2f7;
+  border-color: var(--border-default);
+  background: var(--bg-base);
 }
 
 [data-theme="light"] .export-hw-status-card {
-  background: #faf2f7;
-  border-color: #faf2f7;
+  background: var(--bg-base);
+  border-color: var(--border-subtle);
 }
 
 [data-theme="light"] .hw-codec-tag {
-  background: #faf2f7;
-  border-color: #faf2f7;
-  color: #7d6377;
+  background: var(--bg-base);
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .export-preset-card {
-  background: #faf2f7;
-  border-color: #faf2f7;
+  background: var(--bg-base);
+  border-color: var(--border-subtle);
 }
 
 [data-theme="light"] .export-preset-card:hover {
-  background: #faf2f7;
-  border-color: #e5d4e0;
+  background: var(--bg-base);
+  border-color: var(--border-default);
 }
 
 [data-theme="light"] .export-preset-card.selected {
-  border-color: #9f1249;
-  background: #f5e8ef;
+  border-color: var(--border-focus);
+  background: var(--bg-selected);
 }
 
 [data-theme="light"] .export-summary {
-  background: #faf2f7;
-  border: 1px solid #faf2f7;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
 }
 
 [data-theme="light"] .export-field input,
 [data-theme="light"] .export-field select {
-  background: #ffffff;
-  border-color: #e5d4e0;
-  color: #110910;
+  background: var(--bg-surface);
+  border-color: var(--border-default);
+  color: var(--text-primary);
 }
 
 /* Fairlight Light Mode */
 [data-theme="light"] .fairlight-channel-strip {
-  background: #ffffff;
-  border-color: #faf2f7;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-soft);
 }
 
 [data-theme="light"] .fairlight-channel-strip:hover {
-  border-color: #e5d4e0;
+  border-color: var(--border-default);
 }
 
 [data-theme="light"] .fairlight-channel-strip.is-selected {
-  border-color: #9f1249;
-  background: linear-gradient(180deg, rgba(159, 18, 73, 0.06) 0%, #ffffff 35%);
+  border-color: var(--border-focus);
+  background: linear-gradient(180deg, rgba(159, 18, 73, 0.06) 0%, var(--bg-surface) 35%);
 }
 
 [data-theme="light"] .master-channel-strip {
-  border-color: #d97706;
-  background: linear-gradient(180deg, rgba(217, 119, 6, 0.06) 0%, #ffffff 40%);
+  border-color: var(--accent-orange);
+  background: linear-gradient(180deg, rgba(217, 119, 6, 0.06) 0%, var(--bg-surface) 40%);
 }
 
 [data-theme="light"] .strip-pan-section {
-  background: #faf2f7;
-  border-color: #faf2f7;
+  background: var(--bg-base);
+  border-color: var(--border-subtle);
 }
 
 [data-theme="light"] .vu-meter-pair {
-  background: #faf2f7;
-  border-color: #faf2f7;
+  background: var(--bg-base);
+  border-color: var(--border-subtle);
 }
 
 [data-theme="light"] .vu-bar-slot {
-  background: #faf2f7;
+  background: var(--bg-base);
 }
 
 [data-theme="light"] .audio-master-bus-card {
-  background: #ffffff;
-  border-color: #d97706;
+  background: var(--bg-surface);
+  border-color: var(--accent-orange);
 }
 
 [data-theme="light"] .eq-band-item {
-  background: #faf2f7;
-  border: 1px solid #faf2f7;
+  background: var(--bg-base);
+  border: 1px solid var(--border-subtle);
 }
 
 [data-theme="light"] .strip-dsp-btn {
-  background: #faf2f7;
-  border-color: #faf2f7;
-  color: #7d6377;
+  background: var(--bg-base);
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .strip-btn {
-  background: #faf2f7;
-  border-color: #faf2f7;
-  color: #7d6377;
+  background: var(--bg-base);
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
 }
 
 /* Color Workspace Light Mode */
 [data-theme="light"] .color-studio-tabs {
-  border-bottom-color: #faf2f7 !important;
+  border-bottom-color: var(--border-subtle) !important;
 }
 
 [data-theme="light"] .color-wheels-dock-wrapper {
-  background: #ffffff;
+  background: var(--bg-surface);
 }
 
 [data-theme="light"] .video-scopes-container {
-  background: #faf2f7;
+  background: var(--bg-base);
 }
 
 [data-theme="light"] .scopes-header {
-  background: #ffffff;
-  border-bottom-color: #faf2f7;
+  background: var(--bg-surface);
+  border-bottom-color: var(--border-subtle);
 }
 
 [data-theme="light"] .scopes-tab-btn {
-  color: #7d6377;
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .scopes-tab-btn.active {
-  background: #f5e8ef;
-  color: #9f1249;
-  border-color: #d9a7bd;
+  background: var(--bg-selected);
+  color: var(--accent-text);
+  border-color: var(--border-active);
 }
 

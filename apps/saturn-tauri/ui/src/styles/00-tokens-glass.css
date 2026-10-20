@@ -1,0 +1,153 @@
+/* ==========================================================================
+   Glass design tokens (Phase 1)
+   Imported after 01-editor.css so it can extend the base palette.
+   Colour pairs are enforced by scripts/check-contrast.mjs.
+   ========================================================================== */
+
+:root,
+[data-theme="dark"],
+.dark {
+  /* Accent used as text. The base accent (#9f1249) is a surface colour, not a
+     legible body colour on dark backgrounds. */
+  --accent-text: #f472b6;
+  --accent-text-hover: #f9a8d4;
+  --accent-text-violet: #c084fc;
+
+  /* Glass surfaces, L1 (subtle) to L4 (modal). */
+  --glass-l1: rgba(24, 13, 23, 0.56);
+  --glass-l2: rgba(24, 13, 23, 0.68);
+  --glass-l3: rgba(24, 13, 23, 0.8);
+  --glass-l4: rgba(17, 9, 16, 0.9);
+  --glass-border: rgba(244, 215, 235, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --shadow-soft: 0 1px 4px rgba(0, 0, 0, 0.35);
+  --shadow-soft-lg: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --glass-saturate: 145%;
+
+  /* Backdrop blur radii, L1-L4. */
+  --blur-l1: 8px;
+  --blur-l2: 14px;
+  --blur-l3: 20px;
+  --blur-l4: 28px;
+
+  /* Stage background behind the glass. */
+  --bg-stage:
+    radial-gradient(48vw 42vh at 18% 22%, rgba(255, 92, 148, 0.2), transparent 62%),
+    radial-gradient(42vw 46vh at 82% 74%, rgba(88, 132, 255, 0.18), transparent 64%),
+    radial-gradient(36vw 32vh at 62% 18%, rgba(255, 184, 92, 0.1), transparent 60%),
+    linear-gradient(160deg, #170c16 0%, #0b060a 54%, #120a14 100%);
+
+  /* Motion. */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur-med: 220ms;
+  --dur-slow: 360ms;
+}
+
+[data-theme="light"],
+.light {
+  --accent-text: #9f1249;
+  --accent-text-hover: #be185d;
+  --accent-text-violet: #6b21a8;
+
+  --glass-l1: rgba(255, 250, 253, 0.66);
+  --glass-l2: rgba(255, 250, 253, 0.78);
+  --glass-l3: rgba(255, 250, 253, 0.88);
+  --glass-l4: rgba(255, 250, 253, 0.94);
+  --glass-border: rgba(83, 41, 67, 0.16);
+  --glass-highlight: rgba(255, 255, 255, 0.72);
+  --glass-shadow: 0 18px 40px rgba(40, 22, 34, 0.16);
+  --shadow-soft: 0 1px 4px rgba(0, 0, 0, 0.04);
+  --shadow-soft-lg: 0 4px 14px rgba(17, 9, 16, 0.08);
+  --glass-saturate: 135%;
+
+  --blur-l1: 8px;
+  --blur-l2: 14px;
+  --blur-l3: 20px;
+  --blur-l4: 28px;
+
+  --bg-stage:
+    radial-gradient(48vw 42vh at 18% 22%, rgba(255, 92, 148, 0.14), transparent 62%),
+    radial-gradient(42vw 46vh at 82% 74%, rgba(88, 132, 255, 0.12), transparent 64%),
+    radial-gradient(36vw 32vh at 62% 18%, rgba(255, 184, 92, 0.1), transparent 60%),
+    linear-gradient(160deg, #fff7fb 0%, #f1e8ef 54%, #f7eef4 100%);
+
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur-med: 220ms;
+  --dur-slow: 360ms;
+}
+
+/* --------------------------------------------------------------------------
+   Glass degradation modes
+   Phase 2's .glass rules consume these tokens; the fallbacks are defined here
+   so [data-glass] works from day one.
+   -------------------------------------------------------------------------- */
+
+[data-glass="lite"] {
+  --glass-l1: var(--bg-surface);
+  --glass-l2: var(--bg-surface);
+  --glass-l3: var(--bg-surface);
+  --glass-l4: var(--bg-surface);
+  --glass-border: var(--border-default);
+  --glass-highlight: transparent;
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  --glass-saturate: 100%;
+  --blur-l1: 0px;
+  --blur-l2: 0px;
+  --blur-l3: 0px;
+  --blur-l4: 0px;
+}
+
+[data-glass="off"] {
+  --glass-l1: var(--bg-surface);
+  --glass-l2: var(--bg-surface);
+  --glass-l3: var(--bg-surface);
+  --glass-l4: var(--bg-surface);
+  --glass-border: var(--border-default);
+  --glass-highlight: transparent;
+  --glass-shadow: none;
+  --glass-saturate: 100%;
+  --blur-l1: 0px;
+  --blur-l2: 0px;
+  --blur-l3: 0px;
+  --blur-l4: 0px;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  [data-theme="dark"],
+  .dark,
+  [data-theme="light"],
+  .light {
+    --glass-l1: var(--bg-surface);
+    --glass-l2: var(--bg-surface);
+    --glass-l3: var(--bg-surface);
+    --glass-l4: var(--bg-surface);
+    --glass-border: var(--border-default);
+    --glass-highlight: transparent;
+    --glass-shadow: none;
+    --glass-saturate: 100%;
+    --blur-l1: 0px;
+    --blur-l2: 0px;
+    --blur-l3: 0px;
+    --blur-l4: 0px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  [data-theme="dark"],
+  .dark,
+  [data-theme="light"],
+  .light {
+    --dur-fast: 0ms;
+    --dur-med: 0ms;
+    --dur-slow: 0ms;
+    --ease-spring: linear;
+    --ease-out: linear;
+  }
+}

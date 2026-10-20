@@ -7,6 +7,11 @@
     "dev": "vite --config ui/vite.config.ts",
     "build": "tsc --noEmit -p ui/tsconfig.json && vite build --config ui/vite.config.ts",
     "test": "node --experimental-strip-types --test 'ui/src/**/*.test.ts'",
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "check:styles": "node scripts/check-styles.mjs",
+    "check:tokens": "node scripts/build-token-docs.mjs --check",
+    "tokens:docs": "node scripts/build-token-docs.mjs",
+    "check:glass": "pnpm check:contrast && pnpm check:styles && pnpm check:tokens",
     "check:source-size": "node scripts/check-source-size.mjs",
     "test:e2e": "node scripts/editor-smoke.mjs",
     "tauri": "tauri"

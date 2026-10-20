@@ -65,7 +65,7 @@
   padding: 2px 7px;
   border-radius: 3px;
   background: rgba(17, 9, 16, 0.85);
-  color: #bfa5b8;
+  color: var(--text-muted);
   border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
@@ -130,7 +130,7 @@
   background: var(--bg-button);
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, transform 0.12s ease;
 }
 
 .multicam-angle-btn:hover {
@@ -154,9 +154,9 @@
   border-radius: 4px;
   background: rgba(107, 33, 168, 0.15);
   border: 1px solid #6b21a8;
-  color: #d9468f;
+  color: var(--accent-text);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .multicam-sync-btn:hover {
@@ -253,12 +253,12 @@
   padding: 2px 5px;
   border-radius: 3px;
   background: #462d40;
-  color: #bfa5b8;
+  color: var(--text-muted);
 }
 
 .batch-status-pill.running {
   background: rgba(107, 33, 168, 0.2);
-  color: #d9468f;
+  color: var(--accent-text);
 }
 
 .batch-status-pill.completed {
@@ -327,7 +327,7 @@
 .tracking-mode-btn.active {
   background: rgba(107, 33, 168, 0.18);
   border-color: #6b21a8;
-  color: #d9468f;
+  color: var(--accent-text);
 }
 
 .tracking-actions-row {
@@ -349,12 +349,12 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, transform 0.12s ease;
 }
 
 .tracking-action-btn:hover:not(:disabled) {
   border-color: #6b21a8;
-  color: #d9468f;
+  color: var(--accent-text);
 }
 
 .tracking-action-btn:disabled {

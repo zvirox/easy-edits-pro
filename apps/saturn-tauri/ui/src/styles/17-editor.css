@@ -156,7 +156,7 @@
   padding: 1px 5px;
   border-radius: 3px;
   background: rgba(107, 33, 168, 0.15);
-  color: #d9468f;
+  color: var(--accent-text);
   border: 1px solid rgba(107, 33, 168, 0.3);
 }
 
@@ -293,7 +293,7 @@
 
 .compact-ch-badge.video {
   background: rgba(159, 18, 73, 0.15);
-  color: #be185d;
+  color: var(--accent-text);
 }
 
 .compact-ch-badge.master {
@@ -402,7 +402,7 @@
   font-size: 12px;
   font-family: monospace;
   font-weight: 700;
-  color: #be185d;
+  color: var(--accent-text);
 }
 
 .source-audio-waveform-wrapper {
@@ -457,7 +457,7 @@
   border-radius: 4px;
   font-size: 11px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .source-transport-btn:hover {
@@ -469,7 +469,7 @@
   min-width: 65px;
   font-weight: 700;
   background: rgba(159, 18, 73, 0.2);
-  color: #be185d;
+  color: var(--accent-text);
   border-color: rgba(159, 18, 73, 0.4);
 }
 

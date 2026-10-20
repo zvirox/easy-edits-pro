@@ -31,7 +31,7 @@
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 10px;
-  color: #be185d;
+  color: var(--accent-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -79,7 +79,7 @@
 }
 
 .keyframes-target-info strong {
-  color: #6b21a8;
+  color: var(--accent-text-violet);
 }
 
 .keyframes-hint-text {
@@ -136,7 +136,7 @@
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .property-pill-btn:hover {
@@ -148,7 +148,7 @@
 .property-pill-btn.active {
   background: rgba(107, 33, 168, 0.18);
   border-color: #6b21a8;
-  color: #d9468f;
+  color: var(--accent-text);
 }
 
 .curve-header-readouts {
@@ -209,7 +209,7 @@
   fill: #6b21a8;
   stroke: #ffffff;
   stroke-width: 1.5;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .kf-diamond:hover {
@@ -272,7 +272,7 @@
 
 .curve-section-header small {
   font-size: 10px;
-  color: #6b21a8;
+  color: var(--accent-text-violet);
   font-weight: 700;
 }
 
@@ -293,7 +293,7 @@
   padding: 8px 10px;
   cursor: pointer;
   text-align: left;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .ease-preset-card:hover:not(:disabled) {
@@ -392,7 +392,7 @@
   background: var(--bg-subpanel);
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, transform 0.12s ease;
 }
 
 .ease-pill-btn:hover {
@@ -403,7 +403,7 @@
 .ease-pill-btn.active {
   background: rgba(107, 33, 168, 0.2);
   border-color: #6b21a8;
-  color: #d9468f;
+  color: var(--accent-text);
 }
 
 .keyframe-row.is-selected {

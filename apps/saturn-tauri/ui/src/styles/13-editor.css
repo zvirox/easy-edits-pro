@@ -21,7 +21,7 @@
 .socket-port small {
   font-size: 9px;
   font-weight: 600;
-  color: #bfa5b8;
+  color: var(--text-muted);
   letter-spacing: 0.02em;
 }
 
@@ -125,7 +125,7 @@
   padding: 2px 6px;
   border-radius: 3px;
   background: rgba(159, 18, 73, 0.15);
-  color: #be185d;
+  color: var(--accent-text);
   letter-spacing: 0.06em;
 }
 
@@ -142,7 +142,7 @@
 .node-param-group h4 {
   font-size: 11px;
   font-weight: 700;
-  color: var(--accent-primary);
+  color: var(--accent-text);
   margin: 0 0 4px 0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -185,7 +185,7 @@
   padding: 2px 5px;
   border-radius: 3px;
   background: rgba(159, 18, 73, 0.15);
-  color: #be185d;
+  color: var(--accent-text);
 }
 
 .speed-presets-row,
@@ -206,7 +206,7 @@
   font-weight: 600;
   cursor: pointer;
   text-align: center;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .speed-preset-btn:hover,
@@ -243,7 +243,7 @@
   border-radius: 16px !important;
   padding: 3px 10px !important;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .collab-pill-btn:hover {
@@ -268,7 +268,7 @@
 .collab-badge {
   font-size: 10px;
   font-weight: 700;
-  color: #be185d;
+  color: var(--accent-text);
   background: rgba(159, 18, 73, 0.15);
   padding: 1px 5px;
   border-radius: 8px;
@@ -381,7 +381,7 @@
 .collab-session-badge code {
   font-family: monospace;
   font-size: 10.5px;
-  color: #be185d;
+  color: var(--accent-text);
 }
 
 .collab-section {
@@ -448,7 +448,7 @@
 
 .collab-lock-card p {
   font-size: 11px;
-  color: #bfa5b8;
+  color: var(--text-muted);
   line-height: 1.4;
   margin: 0;
   flex: 1;
@@ -465,6 +465,6 @@
 }
 
 .lock-holder-info b {
-  color: #be185d;
+  color: var(--accent-text);
 }
 

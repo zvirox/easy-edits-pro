@@ -94,7 +94,7 @@
 }
 
 .export-presets-shelf-header strong {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   letter-spacing: 0.5px;
 }
 
@@ -114,7 +114,7 @@
   border-radius: 6px;
   cursor: pointer;
   text-align: left;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .export-preset-card:hover {
@@ -215,7 +215,7 @@
   padding: 1px 5px;
   border-radius: 2px;
   background: #462d40;
-  color: #bfa5b8;
+  color: var(--text-muted);
   letter-spacing: 0.5px;
 }
 
@@ -314,7 +314,7 @@
   font-size: 8.5px;
   font-weight: 800;
   letter-spacing: 0.6px;
-  color: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 .dsp-header-left h2 {
@@ -363,7 +363,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .dsp-module-card.module-bypassed {
@@ -392,7 +392,7 @@
 
 .module-badge.eq {
   background: rgba(107, 33, 168, 0.2);
-  color: #d9468f;
+  color: var(--accent-text);
   border: 1px solid rgba(107, 33, 168, 0.3);
 }
 
@@ -428,7 +428,7 @@
   color: var(--text-muted);
   cursor: pointer;
   letter-spacing: 0.5px;
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, transform 0.12s ease;
 }
 
 .dsp-power-btn:hover {
@@ -439,7 +439,7 @@
 .dsp-power-btn.active {
   background: rgba(107, 33, 168, 0.2);
   border-color: #6b21a8;
-  color: #d9468f;
+  color: var(--accent-text);
   box-shadow: 0 0 8px rgba(107, 33, 168, 0.2);
 }
 

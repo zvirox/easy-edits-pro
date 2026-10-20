@@ -84,6 +84,18 @@ jobs:
         working-directory: apps/saturn-tauri
         run: pnpm test
 
+      - name: Check contrast and text-colour tokens
+        working-directory: apps/saturn-tauri
+        run: pnpm check:contrast
+
+      - name: Check style gates and raw-colour ratchet
+        working-directory: apps/saturn-tauri
+        run: pnpm check:styles
+
+      - name: Check generated token documentation
+        working-directory: apps/saturn-tauri
+        run: pnpm check:tokens
+
       - name: Check source file size limits (800 lines)
         working-directory: apps/saturn-tauri
         run: pnpm check:source-size --max-lines=800

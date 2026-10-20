@@ -26,7 +26,7 @@
 .integrated-display .lufs-unit {
   font-size: 10px;
   font-weight: 600;
-  color: #7d6377;
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
@@ -60,13 +60,13 @@
 
 .compliance-badge.standby {
   background: rgba(125, 99, 119, 0.2);
-  color: #bfa5b8;
+  color: var(--text-muted);
   border: 1px solid #7d6377;
 }
 
 .target-label {
   font-size: 9.5px;
-  color: #7d6377;
+  color: var(--text-muted);
 }
 
 .target-label b {
@@ -90,7 +90,7 @@
 .loudness-meter-row .meter-label {
   font-size: 10px;
   font-weight: 600;
-  color: #bfa5b8;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
@@ -156,7 +156,7 @@
 .metric-title {
   font-size: 9px;
   font-weight: 600;
-  color: #7d6377;
+  color: var(--text-muted);
   text-transform: uppercase;
 }
 
@@ -172,7 +172,7 @@
 }
 
 .metric-val.trim-val {
-  color: #be185d;
+  color: var(--accent-text);
 }
 
 /* Actions Row */
@@ -191,7 +191,7 @@
   font-weight: 700;
   padding: 6px 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
   box-shadow: 0 2px 6px rgba(159, 18, 73, 0.3);
 }
 
@@ -209,13 +209,13 @@
 .loudness-reset-btn {
   background: rgba(34, 18, 32, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #bfa5b8;
+  color: var(--text-muted);
   border-radius: 4px;
   font-size: 11px;
   font-weight: 600;
   padding: 6px 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .loudness-reset-btn:hover {
@@ -250,7 +250,7 @@
   font-size: 11px;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, transform 0.12s ease;
 }
 
 .media-bin-pill:hover {
@@ -261,7 +261,7 @@
 
 .media-bin-pill.active {
   background: var(--bg-selected);
-  color: var(--accent-primary);
+  color: var(--accent-text);
   border-color: var(--accent-primary);
   font-weight: 600;
 }
@@ -353,7 +353,7 @@
 
 .media-table-row.selected {
   background: var(--bg-selected);
-  color: var(--accent-primary);
+  color: var(--accent-text);
 }
 
 .media-badge {
@@ -361,7 +361,7 @@
   padding: 1px 4px;
   border-radius: 3px;
   background: rgba(159, 18, 73, 0.12);
-  color: #be185d;
+  color: var(--accent-text);
   font-size: 9px;
   font-weight: 600;
   margin-right: 4px;
@@ -373,7 +373,7 @@
   padding: 1px 4px;
   border-radius: 3px;
   background: rgba(168, 85, 247, 0.12);
-  color: #c084fc;
+  color: var(--accent-text-violet);
   font-size: 9px;
   margin-right: 3px;
 }
@@ -396,7 +396,7 @@
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, transform 0.12s ease;
 }
 
 .timeline-mini-toggle:hover {

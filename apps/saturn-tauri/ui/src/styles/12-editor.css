@@ -47,7 +47,7 @@
   color: var(--text-muted);
   cursor: pointer;
   text-align: center;
-  transition: all 0.12s ease;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, transform 0.12s ease;
 }
 
 .auto-pill:hover {
@@ -145,7 +145,7 @@
   padding: 1px 4px;
   border-radius: 2px;
   background: rgba(168, 85, 247, 0.2);
-  color: #c084fc;
+  color: var(--accent-text-violet);
 }
 
 .audio-bus-channel-card {
@@ -181,7 +181,7 @@
   padding: 1px 4px;
   border-radius: 2px;
   background: rgba(159, 18, 73, 0.2);
-  color: #be185d;
+  color: var(--accent-text);
 }
 
 /* ==========================================================================
@@ -241,13 +241,13 @@
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .fusion-tool-btn:hover {
   background: var(--bg-hover);
   border-color: var(--accent-primary);
-  color: #be185d;
+  color: var(--accent-text);
 }
 
 .fusion-body {
@@ -393,13 +393,13 @@
 .node-delete-btn {
   background: transparent;
   border: none;
-  color: #7d6377;
+  color: var(--text-muted);
   font-size: 14px;
   line-height: 1;
   padding: 0 4px;
   cursor: pointer;
   border-radius: 3px;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .node-delete-btn:hover {

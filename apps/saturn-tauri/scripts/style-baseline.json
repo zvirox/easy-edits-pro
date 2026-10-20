@@ -1,0 +1,56 @@
+{
+  "$comment": "Raw-colour ratchet for Phase 1 G1d. Regenerate with `node scripts/check-styles.mjs --update-baseline` after reducing debt. Never raise a number for new code.",
+  "files": {
+    "styles/02-editor.css": {
+      "rawColours": 48
+    },
+    "styles/03-editor.css": {
+      "rawColours": 99
+    },
+    "styles/04-editor.css": {
+      "rawColours": 232
+    },
+    "styles/05-editor.css": {
+      "rawColours": 38
+    },
+    "styles/06-editor.css": {
+      "rawColours": 32
+    },
+    "styles/07-editor.css": {
+      "rawColours": 12
+    },
+    "styles/08-editor.css": {
+      "rawColours": 44
+    },
+    "styles/09-editor.css": {
+      "rawColours": 53
+    },
+    "styles/10-editor.css": {
+      "rawColours": 19
+    },
+    "styles/11-editor.css": {
+      "rawColours": 40
+    },
+    "styles/12-editor.css": {
+      "rawColours": 38
+    },
+    "styles/13-editor.css": {
+      "rawColours": 46
+    },
+    "styles/14-editor.css": {
+      "rawColours": 84
+    },
+    "styles/15-editor.css": {
+      "rawColours": 49
+    },
+    "styles/16-editor.css": {
+      "rawColours": 41
+    },
+    "styles/17-editor.css": {
+      "rawColours": 46
+    },
+    "styles/18-editor.css": {
+      "rawColours": 30
+    }
+  }
+}

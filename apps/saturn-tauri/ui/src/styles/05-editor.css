@@ -160,7 +160,7 @@
 }
 
 .fader-scale-ticks span.unity {
-  color: var(--accent-primary);
+  color: var(--accent-text);
   font-weight: 700;
 }
 
@@ -304,7 +304,7 @@
 .btn-primary-subtle {
   background: rgba(107, 33, 168, 0.12);
   border: 1px solid rgba(107, 33, 168, 0.35);
-  color: var(--accent-primary);
+  color: var(--accent-text);
   padding: 5px 14px;
   border-radius: 4px;
   font-size: 12px;
@@ -348,7 +348,7 @@
   font-family: monospace;
   font-size: 13px;
   font-weight: 700;
-  color: #be185d;
+  color: var(--accent-text);
 }
 
 .audio-transport-buttons {

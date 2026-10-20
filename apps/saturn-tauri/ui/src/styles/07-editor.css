@@ -92,7 +92,7 @@
 .color-transport-bar code {
   font-family: monospace;
   font-size: 12px;
-  color: #be185d;
+  color: var(--accent-text);
   margin-left: 8px;
 }
 
@@ -191,7 +191,7 @@
   padding: 8px;
   cursor: pointer;
   text-align: left;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .color-preset-card:hover:not(:disabled) {
@@ -305,7 +305,7 @@
 .effects-transport-bar code {
   font-family: monospace;
   font-size: 12px;
-  color: #be185d;
+  color: var(--accent-text);
   margin-left: 8px;
 }
 
@@ -402,7 +402,7 @@
   cursor: pointer;
   text-align: left;
   user-select: none;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .reel-clip-card:hover {
@@ -434,7 +434,7 @@
 }
 
 .reel-track-kind.video {
-  color: #be185d;
+  color: var(--accent-text);
   background: rgba(159, 18, 73, 0.12);
 }
 
@@ -453,7 +453,7 @@
   font-size: 8.5px;
   font-weight: 700;
   background: rgba(168, 85, 247, 0.2);
-  color: #c084fc;
+  color: var(--accent-text-violet);
   padding: 1px 4px;
   border-radius: 3px;
 }
