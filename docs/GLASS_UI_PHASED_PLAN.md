@@ -20,6 +20,26 @@
 
 **Total:** ~12–15 work days + 1–2 days buffer = **2.5–3 weeks**
 
+### Repository reality check (verified 2026-10-20)
+
+The plan predates the current tree. These corrections apply to the phases below:
+
+- **App location:** the Tauri shell is `apps/saturn-tauri` (its own Cargo
+  workspace), with the frontend in `apps/saturn-tauri/ui/src`. There is no
+  repository-root `src-tauri`.
+- **Muted text is already lifted:** `--text-muted` is `#a890a0` (~4.5:1 on
+  `#180d17`). The Phase 1 G1b reference to `#7d6377` and "~139 rules" is stale;
+  recount the current tree before batch-editing.
+- **Motion is already present:** `motion ^14.2.0` is installed and used by
+  `components/interior/*` (`motion/react`, `useReducedMotion`). Phase 3 needs no
+  dependency add.
+- **Existing glass debt:** `styles/` contains **11 ad-hoc `backdrop-filter`
+  rules** (15 declarations including `-webkit-`), **41 `transition: all`**, and
+  762 hex + 436 `rgb()/rgba()` literals across 19 CSS files (8,553 lines). There
+  are **no `.glass` selectors** outside the Phase 0 spike.
+- **AppImage:** not required to validate compositing. Dev and release share the
+  same WebKitGTK runtime; Phase 0 measured a real Tauri dev window.
+
 ---
 
 ## Phase 0 — Feasibility Spike (½–1 day) ⚡ **CRITICAL GATE**
@@ -96,7 +116,7 @@ Establish token-only color system with WCAG AA contrast; eliminate all raw liter
 
 #### G1b — Contrast Fixes
 - [ ] Switch ~29 rules using accent (`#9f1249`, `#6b21a8`) as **text** → `--accent-text`
-- [ ] Switch ~139 rules using `--text-muted` (`#7d6377`) → lifted `--text-muted`
+- [ ] Recount and update rules using `--text-muted` — the token is already `#a890a0`; the `#7d6377` / "~139 rules" figure is stale
 - [ ] Verify: no small text uses dark rose/violet
 
 #### G1c — Contrast CI Gate
@@ -171,7 +191,7 @@ Apply single `.glass` system; remove all ad-hoc glass; establish elevation scale
   - [ ] `features/dialogs/*` modals (L4)
   - [ ] Tooltips, toasts (L5)
   - [ ] Status bar (L1)
-- [ ] **Delete 11 ad-hoc `backdrop-filter` rules** (menus, banners, overlays, job drawer, welcome, scopes...)
+- [ ] **Delete 11 ad-hoc `backdrop-filter` rules** (measured: 15 declarations including `-webkit-`; menus, banners, overlays, job drawer, welcome, scopes...)
 
 #### G2c — Background & Gaps
 - [ ] Put `--bg-stage` on app root (`#root` or `body`)
@@ -220,7 +240,7 @@ Eliminate layout animation; use motion/react for all transitions; respect reduce
   ```
 
 #### G3b — Motion/React Integration
-- [ ] Use `motion/react` (already in `package.json`) for:
+- [ ] Use `motion/react` (already installed and used by `components/interior/*`) for:
   - Panel mount/unmount (scale + opacity)
   - Menu/dialog enter/exit
   - Toast notifications

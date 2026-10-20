@@ -177,14 +177,14 @@ The plan was written against a slightly different tree. Findings:
 | Plan assumption | Reality |
 |---|---|
 | `src-tauri/src/gpu_detect.rs` | The Tauri app is `apps/saturn-tauri`, an independent Cargo workspace. |
-| `styles/NN-editor.css` | Correct: 18 numbered files, 8,553 lines total. |
-| "0 ad-hoc backdrop-filter" | 18 `backdrop-filter` declarations (prefixed and unprefixed) already exist in `styles/`. |
+| `styles/NN-editor.css` | Correct: 18 numbered files plus `index.css`, 8,553 lines total. |
+| "0 ad-hoc backdrop-filter" | 11 ad-hoc rules (15 declarations including `-webkit-`) already exist in `styles/`, across 5 files. |
 | `--text-muted: #7d6377` (139 rules to lift) | The token is already `#a890a0` (4.5:1 on surface). Recount before doing that batch. |
-| `motion/react` to be added | `motion ^14.2.0` is already a dependency. |
+| `motion/react` to be added | `motion ^14.2.0` is installed and already used by `components/interior/*`. |
 | `pnpm check:contrast` in CI | No contrast or stylelint scripts exist yet; CI is `.github/workflows/ci.yml`. |
 | `transition: all` cleanup | 41 occurrences in `styles/`. |
 | Raw literal cleanup | 762 raw hex + 436 `rgb()/rgba()` occurrences in `styles/`. |
-| `styles/120-glass.css` | Does not exist; no `.glass` selectors yet. Greenfield. |
+| `styles/120-glass.css` | Does not exist; no `.glass` selectors outside the spike. Greenfield. |
 | Build an AppImage for the spike | Not required for this gate: the dev and release builds share the same WebKitGTK runtime. Skipped deliberately; the window used here is a real Tauri window. |
 
 The plan's Phase 1 "139 rules" figure should be recalculated from the current
