@@ -1,7 +1,7 @@
 # Easy Edits Pro — Glass UI Phased Implementation Plan v2.1
 
 > **Source:** `glass-ui-plan-v2.md` + skill analysis (glassmorphism, progressive-blur, baseline-ui, reverse-engineer-anything) + risk mitigation strategies
-> **Status:** Ready for execution
+> **Status:** Phase 0 complete — **conditional GO** (see [`glass-spike.md`](./glass-spike.md))
 > **Total estimated effort:** 2.5–3 weeks (13–18 work days)
 
 ---
@@ -10,7 +10,7 @@
 
 | Phase | Duration | Focus | Gate |
 |-------|----------|-------|------|
-| **0** | 0.5–1 day | Feasibility spike (WebKitGTK performance) | **Go/No-go** |
+| **0** | 0.5–1 day | Feasibility spike (WebKitGTK performance) | **GO (conditional: DMA-BUF)** |
 | **1** | 1–2 days | Token cleanup, contrast, CI gates | All contrast ≥4.5:1 |
 | **2** | 1–2 days | Glass surfaces, background, rename CSS | 0 ad-hoc backdrop-filter |
 | **3** | 1–2 days | Animation hygiene, motion/react | 0 `transition: all` |
@@ -20,6 +20,26 @@
 
 **Total:** ~12–15 work days + 1–2 days buffer = **2.5–3 weeks**
 
+### Repository reality check (verified 2026-10-20)
+
+The plan predates the current tree. These corrections apply to the phases below:
+
+- **App location:** the Tauri shell is `apps/saturn-tauri` (its own Cargo
+  workspace), with the frontend in `apps/saturn-tauri/ui/src`. There is no
+  repository-root `src-tauri`.
+- **Muted text is already lifted:** `--text-muted` is `#a890a0` (~4.5:1 on
+  `#180d17`). The Phase 1 G1b reference to `#7d6377` and "~139 rules" is stale;
+  recount the current tree before batch-editing.
+- **Motion is already present:** `motion ^14.2.0` is installed and used by
+  `components/interior/*` (`motion/react`, `useReducedMotion`). Phase 3 needs no
+  dependency add.
+- **Existing glass debt:** `styles/` contains **11 ad-hoc `backdrop-filter`
+  rules** (15 declarations including `-webkit-`), **41 `transition: all`**, and
+  762 hex + 436 `rgb()/rgba()` literals across 19 CSS files (8,553 lines). There
+  are **no `.glass` selectors** outside the Phase 0 spike.
+- **AppImage:** not required to validate compositing. Dev and release share the
+  same WebKitGTK runtime; Phase 0 measured a real Tauri dev window.
+
 ---
 
 ## Phase 0 — Feasibility Spike (½–1 day) ⚡ **CRITICAL GATE**
@@ -28,14 +48,31 @@
 Validate `backdrop-filter` performance in Tauri's WebKitGTK **before committing to glass**.
 
 ### Tasks
-- [ ] Create throwaway branch `feat/glass-spike`
-- [ ] Implement minimal test: `--bg-stage` background + 3 `.glass` panels (L1/L2/L3) + 1 draggable panel + playing `<video>`
-- [ ] Build AppImage: `pnpm tauri build`
-- [ ] Measure frame time while dragging + video playing on:
-  - [ ] Your machine (high-end)
-  - [ ] Low-end laptop (Intel UHD / AMD Vega / integrated graphics)
-- [ ] Test **inside Tauri window** (WebKitGTK), not Chrome
-- [ ] Document results in `docs/glass-spike.md`
+- [x] Create throwaway branch `feat/glass-spike`
+- [x] Implement minimal test: `--bg-stage` background + 3 `.glass` panels (L1/L2/L3) + 1 draggable panel + playing `<video>`
+- [x] Measure frame time while dragging + video playing on:
+  - [x] Integrated-graphics machine (Intel Iris Xe / i5-1155G7 — the plan's low-end class)
+  - [ ] Discrete / high-end GPU (not available; follow-up)
+- [x] Test **inside Tauri window** (WebKitGTK), not Chrome
+- [x] Document results in `docs/glass-spike.md`
+- [x] *Skipped:* AppImage build (`pnpm tauri build`). Dev and release share the same WebKitGTK runtime; the spike ran in a real Tauri window.
+
+### Result (2026-10-20)
+
+| Scenario (1600×900 @ DPR 2, 30 fps video) | DMA-BUF off (app default) | DMA-BUF on |
+|---|---:|---:|
+| Drag 1 full-glass panel | 2.4 fps | **58.9 fps** |
+| Drag 2 full-glass panels (stress) | 1.4 fps | **54.6 fps** |
+| Drag 1 panel, Lite | 3.3 fps | 60.0 fps |
+| Drag 1 panel, Off (no blur) | 3.5 fps | 60.0 fps |
+| Video-only baseline | 1.1 fps / 0 presented frames | 60.0 fps / 30 fps video |
+
+**Decision:** Full glass passes the ≥30 fps gate with ~2× headroom on
+integrated graphics — **but only when WebKit's DMA-BUF renderer is enabled**.
+With the current default (`WEBKIT_DISABLE_DMABUF_RENDERER=1`), the preview
+collapses to 1–3.5 fps even without any blur, so the blocker is the video
+compositing path, not glass. Phase 1 may proceed; Phase 2 starts only after the
+DMA-BUF default is fixed and re-verified in the real editor.
 
 ### Go/No-Go Criteria
 | Metric | Threshold | Decision |
@@ -49,9 +86,9 @@ Validate `backdrop-filter` performance in Tauri's WebKitGTK **before committing 
 - If **No-Go** → Skip Phases 2–3, implement shadow-only "Lite" mode in Phase 6
 
 ### Risk Mitigation (NEW)
-- [ ] Pre-build **shader fallback** (CSS gradient + shadow, zero `backdrop-filter`) for slow paths
-- [ ] Rust-side GPU detection (`src-tauri/src/gpu_detect.rs`) to inject `[data-webkit-gtk-slow]` class at startup
-- [ ] Feature flag `VITE_GLASS_ENABLED` for instant kill switch
+- [x] Pre-build **Lite fallback** (CSS gradient + shadow, zero `backdrop-filter`) for slow paths — `[data-glass="lite"]` / `[data-glass="off"]`
+- [x] Rust-side GPU detection (`apps/saturn-tauri/src/gpu_detect.rs`) — exposes GPU class/driver/DMA-BUF state to the UI, which sets `[data-webkit-gtk-slow]` at startup
+- [x] Feature flag `VITE_GLASS_ENABLED` for instant kill switch
 
 ---
 
@@ -79,7 +116,7 @@ Establish token-only color system with WCAG AA contrast; eliminate all raw liter
 
 #### G1b — Contrast Fixes
 - [ ] Switch ~29 rules using accent (`#9f1249`, `#6b21a8`) as **text** → `--accent-text`
-- [ ] Switch ~139 rules using `--text-muted` (`#7d6377`) → lifted `--text-muted`
+- [ ] Recount and update rules using `--text-muted` — the token is already `#a890a0`; the `#7d6377` / "~139 rules" figure is stale
 - [ ] Verify: no small text uses dark rose/violet
 
 #### G1c — Contrast CI Gate
@@ -154,7 +191,7 @@ Apply single `.glass` system; remove all ad-hoc glass; establish elevation scale
   - [ ] `features/dialogs/*` modals (L4)
   - [ ] Tooltips, toasts (L5)
   - [ ] Status bar (L1)
-- [ ] **Delete 11 ad-hoc `backdrop-filter` rules** (menus, banners, overlays, job drawer, welcome, scopes...)
+- [ ] **Delete 11 ad-hoc `backdrop-filter` rules** (measured: 15 declarations including `-webkit-`; menus, banners, overlays, job drawer, welcome, scopes...)
 
 #### G2c — Background & Gaps
 - [ ] Put `--bg-stage` on app root (`#root` or `body`)
@@ -203,7 +240,7 @@ Eliminate layout animation; use motion/react for all transitions; respect reduce
   ```
 
 #### G3b — Motion/React Integration
-- [ ] Use `motion/react` (already in `package.json`) for:
+- [ ] Use `motion/react` (already installed and used by `components/interior/*`) for:
   - Panel mount/unmount (scale + opacity)
   - Menu/dialog enter/exit
   - Toast notifications

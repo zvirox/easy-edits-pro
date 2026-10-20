@@ -1,0 +1,397 @@
+{
+  "label": "final-dmabuf-on",
+  "createdAt": "2026-10-20T14:24:47.130Z",
+  "environment": {
+    "appVersion": "0.1.0",
+    "osName": "Arch Linux",
+    "kernel": "7.2.11-arch1-1",
+    "sessionType": "wayland",
+    "cpuModel": "11th Gen Intel(R) Core(TM) i5-1155G7 @ 2.50GHz",
+    "ramMb": 11703,
+    "gpuVendor": "Intel",
+    "gpuModel": "Intel Corporation TigerLake-LP GT2 [Iris Xe Graphics] [8086:9a49] [0x9a49 (i915)]",
+    "gpuClass": "integrated",
+    "gpuDriver": "i915",
+    "dmabufRendererDisabled": false,
+    "webkitgtkVersion": "2.54.1"
+  },
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/60.5 Safari/605.1.15",
+  "viewport": {
+    "width": 1600,
+    "height": 900,
+    "devicePixelRatio": 2
+  },
+  "visibility": "visible",
+  "glassEnabled": true,
+  "video": {
+    "ready": true,
+    "source": "http://localhost:1420/glass-spike.mp4"
+  },
+  "config": {
+    "repeats": 3,
+    "measureMs": 3500,
+    "warmupMs": 800,
+    "staticMs": 2500,
+    "blur": {
+      "full": {
+        "l1": 8,
+        "l2": 14,
+        "l3": 20
+      },
+      "lite": 0,
+      "off": 0
+    },
+    "stressMovingPanels": 2
+  },
+  "scenarios": [
+    {
+      "name": "baseline-empty",
+      "scene": "empty",
+      "mode": "empty",
+      "drag": false,
+      "runs": [
+        {
+          "frames": 151,
+          "fps": 60.01589825119237,
+          "p50": 17,
+          "p95": 17,
+          "p99": 17,
+          "max": 17,
+          "longFrames": 0,
+          "videoFrames": 0,
+          "videoFps": 0
+        }
+      ],
+      "median": {
+        "frames": 151,
+        "fps": 60.01589825119237,
+        "p50": 17,
+        "p95": 17,
+        "p99": 17,
+        "max": 17,
+        "longFrames": 0
+      },
+      "videoFps": 0
+    },
+    {
+      "name": "baseline-video",
+      "scene": "video",
+      "mode": "video",
+      "drag": false,
+      "runs": [
+        {
+          "frames": 151,
+          "fps": 60.03976143141153,
+          "p50": 17,
+          "p95": 17,
+          "p99": 17,
+          "max": 17,
+          "longFrames": 0,
+          "videoFrames": 100,
+          "videoFps": 30.012004801920767
+        }
+      ],
+      "median": {
+        "frames": 151,
+        "fps": 60.03976143141153,
+        "p50": 17,
+        "p95": 17,
+        "p99": 17,
+        "max": 17,
+        "longFrames": 0
+      },
+      "videoFps": 30.012004801920767
+    },
+    {
+      "name": "drag-full",
+      "scene": "panels",
+      "mode": "full",
+      "drag": true,
+      "runs": [
+        {
+          "frames": 201,
+          "fps": 57.363013698630134,
+          "p50": 17,
+          "p95": 24,
+          "p99": 27,
+          "max": 31,
+          "longFrames": 5,
+          "videoFrames": 130,
+          "videoFps": 30.07866728366497
+        },
+        {
+          "frames": 211,
+          "fps": 60.02844950213371,
+          "p50": 17,
+          "p95": 17,
+          "p99": 17,
+          "max": 17,
+          "longFrames": 0,
+          "videoFrames": 131,
+          "videoFps": 30.121867095884113
+        },
+        {
+          "frames": 207,
+          "fps": 58.89046941678521,
+          "p50": 17,
+          "p95": 21,
+          "p99": 24,
+          "max": 26,
+          "longFrames": 1,
+          "videoFrames": 130,
+          "videoFps": 30.023094688221708
+        }
+      ],
+      "median": {
+        "frames": 207,
+        "fps": 58.89046941678521,
+        "p50": 17,
+        "p95": 21,
+        "p99": 24,
+        "max": 26,
+        "longFrames": 1
+      },
+      "videoFps": 30.07866728366497
+    },
+    {
+      "name": "drag-lite",
+      "scene": "panels",
+      "mode": "lite",
+      "drag": true,
+      "runs": [
+        {
+          "frames": 211,
+          "fps": 60.01137656427759,
+          "p50": 17,
+          "p95": 20,
+          "p99": 21,
+          "max": 22,
+          "longFrames": 0,
+          "videoFrames": 131,
+          "videoFps": 30.22611905860637
+        },
+        {
+          "frames": 211,
+          "fps": 60.02844950213371,
+          "p50": 17,
+          "p95": 17,
+          "p99": 17,
+          "max": 17,
+          "longFrames": 0,
+          "videoFrames": 131,
+          "videoFps": 30.24007386888273
+        },
+        {
+          "frames": 211,
+          "fps": 60.02844950213371,
+          "p50": 17,
+          "p95": 17,
+          "p99": 17,
+          "max": 18,
+          "longFrames": 0,
+          "videoFrames": 131,
+          "videoFps": 30.27501733302519
+        }
+      ],
+      "median": {
+        "frames": 211,
+        "fps": 60.02844950213371,
+        "p50": 17,
+        "p95": 17,
+        "p99": 17,
+        "max": 18,
+        "longFrames": 0
+      },
+      "videoFps": 30.24007386888273
+    },
+    {
+      "name": "drag-off",
+      "scene": "panels",
+      "mode": "off",
+      "drag": true,
+      "runs": [
+        {
+          "frames": 211,
+          "fps": 60.02844950213371,
+          "p50": 17,
+          "p95": 17,
+          "p99": 17,
+          "max": 17,
+          "longFrames": 0,
+          "videoFrames": 131,
+          "videoFps": 30.303030303030305
+        },
+        {
+          "frames": 211,
+          "fps": 60.02844950213371,
+          "p50": 17,
+          "p95": 17,
+          "p99": 17,
+          "max": 17,
+          "longFrames": 0,
+          "videoFrames": 130,
+          "videoFps": 30.009233610341642
+        },
+        {
+          "frames": 211,
+          "fps": 60.02844950213371,
+          "p50": 17,
+          "p95": 17,
+          "p99": 17,
+          "max": 17,
+          "longFrames": 0,
+          "videoFrames": 131,
+          "videoFps": 30.128794848206073
+        }
+      ],
+      "median": {
+        "frames": 211,
+        "fps": 60.02844950213371,
+        "p50": 17,
+        "p95": 17,
+        "p99": 17,
+        "max": 17,
+        "longFrames": 0
+      },
+      "videoFps": 30.128794848206073
+    },
+    {
+      "name": "drag-stress-full",
+      "scene": "stress",
+      "mode": "stress",
+      "drag": true,
+      "runs": [
+        {
+          "frames": 186,
+          "fps": 53.05191100969766,
+          "p50": 18,
+          "p95": 26,
+          "p99": 30,
+          "max": 32,
+          "longFrames": 11,
+          "videoFrames": 132,
+          "videoFps": 30.43578510491123
+        },
+        {
+          "frames": 192,
+          "fps": 54.638588503130336,
+          "p50": 17,
+          "p95": 26,
+          "p99": 32,
+          "max": 32,
+          "longFrames": 11,
+          "videoFrames": 131,
+          "videoFps": 30.19128831528002
+        },
+        {
+          "frames": 203,
+          "fps": 57.884231536926144,
+          "p50": 17,
+          "p95": 23,
+          "p99": 27,
+          "max": 29,
+          "longFrames": 6,
+          "videoFrames": 130,
+          "videoFps": 30.064754856614247
+        }
+      ],
+      "median": {
+        "frames": 192,
+        "fps": 54.638588503130336,
+        "p50": 17,
+        "p95": 26,
+        "p99": 30,
+        "max": 32,
+        "longFrames": 11
+      },
+      "videoFps": 30.19128831528002
+    },
+    {
+      "name": "static-full",
+      "scene": "panels",
+      "mode": "full",
+      "drag": false,
+      "runs": [
+        {
+          "frames": 151,
+          "fps": 60.01589825119237,
+          "p50": 17,
+          "p95": 17,
+          "p99": 17,
+          "max": 18,
+          "longFrames": 0,
+          "videoFrames": 102,
+          "videoFps": 30.502392344497608
+        }
+      ],
+      "median": {
+        "frames": 151,
+        "fps": 60.01589825119237,
+        "p50": 17,
+        "p95": 17,
+        "p99": 17,
+        "max": 18,
+        "longFrames": 0
+      },
+      "videoFps": 30.502392344497608
+    },
+    {
+      "name": "static-lite",
+      "scene": "panels",
+      "mode": "lite",
+      "drag": false,
+      "runs": [
+        {
+          "frames": 151,
+          "fps": 60.03976143141153,
+          "p50": 17,
+          "p95": 17,
+          "p99": 17,
+          "max": 18,
+          "longFrames": 0,
+          "videoFrames": 101,
+          "videoFps": 30.312124849939977
+        }
+      ],
+      "median": {
+        "frames": 151,
+        "fps": 60.03976143141153,
+        "p50": 17,
+        "p95": 17,
+        "p99": 17,
+        "max": 18,
+        "longFrames": 0
+      },
+      "videoFps": 30.312124849939977
+    },
+    {
+      "name": "static-off",
+      "scene": "panels",
+      "mode": "off",
+      "drag": false,
+      "runs": [
+        {
+          "frames": 151,
+          "fps": 60.01589825119237,
+          "p50": 17,
+          "p95": 17,
+          "p99": 18,
+          "max": 18,
+          "longFrames": 0,
+          "videoFrames": 101,
+          "videoFps": 30.303030303030305
+        }
+      ],
+      "median": {
+        "frames": 151,
+        "fps": 60.01589825119237,
+        "p50": 17,
+        "p95": 17,
+        "p99": 18,
+        "max": 18,
+        "longFrames": 0
+      },
+      "videoFps": 30.303030303030305
+    }
+  ]
+}
