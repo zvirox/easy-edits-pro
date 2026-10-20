@@ -145,11 +145,13 @@ graph LR
         Protocol["Custom Asset Streamer"]
     end
 
-    subgraph Core ["Rust Core (saturn-core)"]
-        Doc["Project Document (Schema v9)"]
-        Time["Exact Rational Tick Timebase"]
-        Jobs["JobManager (Background Daemon)"]
-        History["Undo / Redo Checkpoints"]
+    subgraph Core ["Rust Core Crates"]
+        Timeline["saturn-timeline: NLE Timeline"]
+        CommandsCore["saturn-commands: Command Registry"]
+        Control["saturn-control: Control Server"]
+        Graphics["saturn-graphics: Graphics Templates"]
+        Project["saturn-project: Project Templates"]
+        MCP["saturn-mcp: AI MCP Server"]
     end
 
     subgraph Render ["Native Engine (saturn-render)"]
@@ -165,7 +167,8 @@ graph LR
     Core -->|State Snapshot| UI
     Playback -->|Custom URI Streaming| Protocol
     Protocol -->|Proxy Decoder| Render
-    Jobs -->|Batch Export Task| Render
+    MCP -.->|AI Assistance| Core
+    Control -.->|External Automation| Core
     Render -->|Hardware Encoders: NVENC / VAAPI| Output["MP4 / WebM Video"]
 ```
 
@@ -177,6 +180,51 @@ $$\text{Ticks Per Second} = 254{,}016{,}000{,}000$$
 `TICKS_PER_SECOND = 254_016_000_000`
 
 This tick base is evenly divisible by all broadcast and digital frame rates: **23.976**, **24**, **25**, **29.97**, **30**, **48**, **50**, **59.94**, and **60 fps**, as well as pro audio sample rates (**44.1 kHz**, **48 kHz**, **96 kHz**, and **192 kHz**).
+
+---
+
+## Core Crates
+
+### saturn-timeline — Professional NLE Timeline
+FilmCraft-inspired timeline with 254B ticks/sec resolution:
+- **Nested sequences** with full composition support
+- **Atomic edits** with instant undo/redo via transactional history
+- **Track kinds**: Video, Audio, Subtitle, Submix with blend modes
+- **Clip timing**: Variable speed, reverse, frame blending, trim handles
+- **Effects stack**: Video/audio effects, color grade (Lift/Gamma/Gain/Offset), transforms
+- **Markers**: Chapter, web link, flash cue, comment, sync point
+
+### saturn-commands — Unified Command Registry
+Single source of truth for all automation interfaces:
+- **CommandSpec** with JSON Schema parameter validation
+- **CommandRegistry** with categories, priorities, execution modes
+- **ShortcutManager** for global keybindings (Ctrl/Cmd + key)
+- **UndoManager** with grouped transactions and checkpoints
+- Used by Tauri IPC, CLI, MCP server, and Control Server
+
+### saturn-control — Control Server
+External automation via TCP/Unix socket:
+- `--control PORT` starts JSON-RPC server
+- Execute commands, query state, subscribe to events
+- IDE integration, stream deck, OSC, MIDI controllers
+
+### saturn-graphics — Graphics Templates (.sgt)
+Motion graphics templates with keyframe animation:
+- **TemplateInstance** with parameter bindings
+- **Keyframe** cubic bezier interpolation (ease in/out)
+- **FCGT-like** format for cross-compatibility
+- Text, shape, image, video layers with transform stack
+
+### saturn-project — Project Templates & Search Bins
+- **Project templates** with predefined tracks, bins, settings
+- **Search bins** with live queries (rating, tags, media type, duration)
+- **Smart folders** auto-populate from metadata
+
+### saturn-mcp — MCP Server for AI Editing
+Model Context Protocol server for AI-assisted workflows:
+- **Tools**: analyzeTimeline, suggestEdit, batchOperation, searchMedia, createTemplate
+- **Resources**: timeline state, project metadata, media bins
+- **Prompts**: editing workflows, color grading, audio mixing guides
 
 ---
 
@@ -230,7 +278,7 @@ pnpm tauri build
 ```
 The compiled binaries, `.deb`, and `.rpm` packages will be placed in `apps/saturn-tauri/target/release/bundle/`.
 
-### 5. Headless CLI Control
+### 5. Headless CLI & Control Server
 ```bash
 # Query available engine commands
 cargo run -p saturn-cli -- commands
@@ -241,6 +289,12 @@ cargo run -p saturn-cli -- inspect ~/Videos/edit.saturn
 
 # Batch automated command runner
 cargo run -p saturn-cli -- control
+
+# Start MCP server for AI-assisted editing
+cargo run -p saturn-mcp
+
+# Start control server for external automation (port 9090)
+cargo run -p saturn-control -- --control 9090
 ```
 
 ---
@@ -254,6 +308,12 @@ cargo run -p saturn-cli -- control
 | [`crates/saturn-core/`](crates/saturn-core/) | Core schema, integer timebase, undo/redo transactions, job manager |
 | [`crates/saturn-render/`](crates/saturn-render/) | Color wheels, optical flow tracker, 3D LUT parser, GStreamer exporter |
 | [`crates/saturn-cli/`](crates/saturn-cli/) | Headless automation CLI, project inspector, and script runner |
+| [`crates/saturn-commands/`](crates/saturn-commands/) | Unified command registry (Tauri/CLI/MCP/Control server) |
+| [`crates/saturn-timeline/`](crates/saturn-timeline/) | Professional NLE timeline (254B ticks/sec, nested sequences, atomic edits) |
+| [`crates/saturn-control/`](crates/saturn-control/) | Control server (--control PORT) for external automation |
+| [`crates/saturn-graphics/`](crates/saturn-graphics/) | Graphics templates (.sgt format, FCGT-like) |
+| [`crates/saturn-project/`](crates/saturn-project/) | Project templates and search bins |
+| [`crates/saturn-mcp/`](crates/saturn-mcp/) | MCP server (saturn-mcp) for AI-assisted editing |
 | [`assets/`](assets/) | Brand marks, icons, fonts, and screenshot showcases |
 | [`docs/`](docs/) | Control protocol specifications and architectural documentation |
 
