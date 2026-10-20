@@ -1,17 +1,11 @@
 //! Command handler implementations and built-in commands
 
 use crate::{
-    CommandCategory, CommandId, CommandPriority, CommandResult, CommandSpec, ExecutionMode,
-    HandlerError, RegistryError, TrackKind, ValidationError,
-    context::{AppContext, AppEvent, ExecutionContext},
-    registry::CommandRegistry,
-    undo::{UndoEntry, UndoManager},
+    CommandCategory, CommandSpec,
+    context::{AppContext, ExecutionContext},
 };
 use async_trait::async_trait;
-use parking_lot::RwLock;
 use serde_json::Value;
-use std::sync::Arc;
-use uuid::Uuid;
 
 pub struct EchoCommand;
 
@@ -116,9 +110,9 @@ impl crate::CommandHandler for NewProjectCommand {
 
     async fn execute(&self, ctx: ExecutionContext<'_>) -> Result<Value, crate::HandlerError> {
         let name: String = ctx.get("name")?;
-        let width: i64 = ctx.get("width")?;
-        let height: i64 = ctx.get("height")?;
-        let frame_rate: f64 = ctx.get("frame_rate")?;
+        let _width: i64 = ctx.get("width")?;
+        let _height: i64 = ctx.get("height")?;
+        let _frame_rate: f64 = ctx.get("frame_rate")?;
 
         let project_id = uuid::Uuid::new_v4();
 
@@ -160,9 +154,9 @@ impl crate::CommandHandler for AddClipCommand {
 
     async fn execute(&self, ctx: ExecutionContext<'_>) -> Result<Value, crate::HandlerError> {
         let track_id: u64 = ctx.get("track_id")?;
-        let media_id: u64 = ctx.get("media_id")?;
+        let _media_id: u64 = ctx.get("media_id")?;
         let timeline_start: u64 = ctx.get_opt("timeline_start")?.unwrap_or(0);
-        let source_in: u64 = ctx.get_opt("source_in")?.unwrap_or(0);
+        let _source_in: u64 = ctx.get_opt("source_in")?.unwrap_or(0);
 
         let clip_id = uuid::Uuid::new_v4();
 
@@ -474,7 +468,10 @@ pub fn register_builtin_commands(
 mod tests {
     use super::*;
     use crate::context::AppContext;
-    use crate::registry::CommandRegistry;
+
+    use crate::CommandId;
+    use parking_lot::RwLock;
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn test_builtin_commands() {

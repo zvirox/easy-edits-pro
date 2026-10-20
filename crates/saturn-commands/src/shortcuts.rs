@@ -77,10 +77,10 @@ impl KeyBinding {
             let trimmed = part.trim();
             let lower = trimmed.to_lowercase();
             match lower.as_str() {
-                "ctrl" | "control" | "cmd" | "command" | "meta" => modifiers.push(Modifier::Ctrl),
+                "ctrl" | "control" => modifiers.push(Modifier::Ctrl),
                 "alt" | "option" => modifiers.push(Modifier::Alt),
                 "shift" => modifiers.push(Modifier::Shift),
-                "meta" | "super" | "win" => modifiers.push(Modifier::Meta),
+                "cmd" | "command" | "meta" | "super" | "win" => modifiers.push(Modifier::Meta),
                 _ => key = trimmed.to_string(),
             }
         }

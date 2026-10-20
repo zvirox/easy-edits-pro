@@ -1,6 +1,6 @@
 //! Parameter schema system with JSON Schema validation
 
-use crate::{ParamType, StringFormat, TrackKind, ValidationError};
+use crate::{StringFormat, TrackKind, ValidationError};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -426,7 +426,7 @@ impl ParamSchema {
                 Ok(())
             }
 
-            ParamSchema::Track { kind } => {
+            ParamSchema::Track { kind: _ } => {
                 if !value.is_u64() && !value.is_i64() {
                     return Err(ValidationError::TypeMismatch {
                         param: param_name.to_string(),

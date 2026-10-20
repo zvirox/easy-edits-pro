@@ -4,6 +4,7 @@ Media management commands for Easy Edits Pro.
 
 import click
 from pathlib import Path
+from cli_anything_eep.commands import _engine
 from cli_anything_eep.core import backend, errors
 from cli_anything_eep.output import format_output, format_success, report_unsupported
 
@@ -104,3 +105,76 @@ def media_info(ctx: click.Context, media_id: str):
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Engine-backed media verbs
+# ─────────────────────────────────────────────────────────────────────────────
+
+@media_group.command('bin-create')
+@click.option('--name', '-n', required=True, help='Bin name')
+@click.option('--parent-id', type=int, help='Parent bin id')
+@click.option('--color', help='Bin color')
+@click.pass_context
+def media_bin_create(ctx: click.Context, name: str, parent_id, color):
+    """Create a media bin."""
+    params = {"name": name}
+    if parent_id is not None:
+        params["parent_id"] = parent_id
+    if color is not None:
+        params["color"] = color
+    _engine.run_engine(ctx, "media.create_bin", params, success="Bin created")
+
+
+@media_group.command('bin-rename')
+@click.option('--bin', '-b', 'bin_id', type=int, required=True, help='Bin id')
+@click.option('--name', '-n', required=True, help='New bin name')
+@click.pass_context
+def media_bin_rename(ctx: click.Context, bin_id: int, name: str):
+    """Rename a media bin."""
+    _engine.run_engine(ctx, "media.rename_bin", {"bin_id": bin_id, "name": name}, success="Bin renamed")
+
+
+@media_group.command('bin-delete')
+@click.option('--bin', '-b', 'bin_id', type=int, required=True, help='Bin id')
+@click.pass_context
+def media_bin_delete(ctx: click.Context, bin_id: int):
+    """Delete a media bin."""
+    _engine.run_engine(ctx, "media.delete_bin", {"bin_id": bin_id}, success="Bin deleted")
+
+
+@media_group.command('bin-move')
+@click.option('--media', '-m', 'media_id', type=int, required=True, help='Media id')
+@click.option('--bin', '-b', 'bin_id', type=int, help='Target bin id (omit to move to the project root)')
+@click.pass_context
+def media_bin_move(ctx: click.Context, media_id: int, bin_id):
+    """Move a media item into a bin."""
+    params = {"media_id": media_id}
+    if bin_id is not None:
+        params["bin_id"] = bin_id
+    _engine.run_engine(ctx, "media.move_to_bin", params, success="Media moved")
+
+
+@media_group.command('update')
+@click.option('--media', '-m', 'media_id', type=int, required=True, help='Media id')
+@click.option('--name', '-n', help='New media name')
+@click.option('--color-label', help='Color label')
+@click.option('--tags', help='Comma-separated tags')
+@click.pass_context
+def media_update(ctx: click.Context, media_id: int, name, color_label, tags):
+    """Update media metadata."""
+    params = {"media_id": media_id}
+    if name is not None:
+        params["name"] = name
+    if color_label is not None:
+        params["color_label"] = color_label
+    if tags is not None:
+        params["tags"] = _engine.comma_list(tags)
+    _engine.run_engine(ctx, "media.update_properties", params, success="Media updated")
+
+
+@media_group.command('missing')
+@click.pass_context
+def media_missing(ctx: click.Context):
+    """List media whose source file is missing."""
+    _engine.run_engine(ctx, "media.check_missing", {})

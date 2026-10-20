@@ -1,11 +1,10 @@
 //! Sequence Module
 
-use crate::time::{TICKS_PER_SECOND, Ticks, TimelineError};
-use crate::{ClipId, ClipRef, FrameRate, Timecode, TimelineTime, Track, TrackId};
+use crate::time::{Ticks, TimelineError};
+use crate::{ClipId, FrameRate, Timecode, Track, TrackId};
 use chrono;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use uuid::Uuid;
 
 /// Sequence settings
 #[derive(Debug, Clone, Serialize, Deserialize)]

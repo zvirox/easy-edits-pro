@@ -18,10 +18,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Control server:** `saturn-control` now builds and exposes `GET /health`, `GET /commands`, `POST /commands/:id/execute`, and a `GET /ws` event stream backed by the shared command registry, with route-level tests.
 - **Graphics and project templates:** `saturn-graphics` and `saturn-project` are back in the Cargo workspace, with each type defined once in its owning module and library roots reduced to module declarations and re-exports.
 - **CLI command journal:** `cli-anything-eep history` lists the commands the harness executed, stored as JSON lines in the XDG state directory.
+- **Full CLI command surface:** Every command id in the engine registry now has a named CLI verb, including timeline split/ripple/slip/slide/roll/rate-stretch, transitions, marks and titles, clip effects/keyframes/motion blur/motion tracking/speed ramps/color wheels/curves/HSL/shader, media bins, project relink, subtitles, node graph, multicam, EDL/FCPXML/OTIO/Premiere import, collaboration locks, speech edits, and bus routing.
+- **Managed control daemon:** `daemon start` launches `saturn-control`, records pid/port/log in the XDG state directory, `daemon status` probes `/health`, and `daemon stop` terminates only the recorded process.
+- **Real MCP introspection:** `mcp tools`, `mcp resources`, and `mcp prompts` perform an MCP initialize handshake against `saturn-mcp` over stdin/stdout; `mcp start` runs the server in the foreground for a client.
+- **Graphics template CLI:** `saturn-cli template create|list|inspect|export` reads and writes the `.sgt` format through `saturn-graphics`, and the harness exposes the same operations as `cli-anything-eep template ...`.
+- **Sequence marks:** `timeline.set_mark_in` and `timeline.set_mark_out` are implemented in the engine as undoable sequence state, alongside `timeline.clear_marks`.
 
 ### Changed
 - **CLI undo/redo:** `cli-anything-eep undo` and `redo` now delegate straight to the engine's `edit.undo`/`edit.redo` commands; the duplicate in-process undo manager and its fake inverse replay are gone.
 - **Workspace membership:** `saturn-control`, `saturn-graphics`, and `saturn-project` are compiled and tested by `cargo test --workspace` again.
+- **Python packaging:** The CLI harness now uses one `pyproject.toml` with a `[project]` table and the correct GPL-3.0-or-later license; `setup.py` and `requirements.txt` are removed, and unused `httpx`/`pydantic` dependencies are dropped.
+- **CI workflow:** Renamed `.github/workflows/rust.yml` to `ci.yml`; its Python job now builds `saturn-cli`, `saturn-mcp`, and `saturn-control` before running the harness suite.
+- **Warning cleanup:** Removed unused imports and variables across the workspace, replaced deprecated `IndexMap::remove` calls with `shift_remove`, and fixed an unreachable modifier pattern in shortcut parsing. `cargo check --workspace --all-targets` is warning-free.
 - Expanded media/project IPC and path validation support, and updated editor smoke coverage for audio and export workspace interactions.
 - Formatted and aligned Rust command, timeline, render, and project schema modules with current workspace conventions.
 

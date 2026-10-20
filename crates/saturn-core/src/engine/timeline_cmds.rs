@@ -79,6 +79,18 @@ impl EditorEngine {
                 }
                 Ok(json!({"removed": removed, "ripple": params.ripple}))
             })()),
+            "timeline.set_mark_in" => Some((|| {
+                let params: SetMarkParams = parse_params(params)?;
+                self.checkpoint();
+                self.document.project.sequence.mark_in = Some(params.at);
+                Ok(json!({"mark_in": params.at}))
+            })()),
+            "timeline.set_mark_out" => Some((|| {
+                let params: SetMarkParams = parse_params(params)?;
+                self.checkpoint();
+                self.document.project.sequence.mark_out = Some(params.at);
+                Ok(json!({"mark_out": params.at}))
+            })()),
             "timeline.clear_marks" => Some((|| {
                 self.checkpoint();
                 self.document.project.sequence.mark_in = None;

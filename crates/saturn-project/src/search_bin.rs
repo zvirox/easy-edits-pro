@@ -4,7 +4,7 @@
 
 use chrono;
 use indexmap::IndexMap;
-use saturn_timeline::{FrameRate, TICKS_PER_SECOND, Ticks};
+use saturn_timeline::{FrameRate, Ticks};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::HashMap;
@@ -504,7 +504,6 @@ pub struct SearchBinMatch {
 pub struct SearchBinManager {
     bins: IndexMap<Uuid, SearchBin>,
     media_items: IndexMap<Uuid, MediaItem>,
-    update_interval: std::time::Duration,
 }
 
 impl SearchBinManager {
@@ -512,7 +511,6 @@ impl SearchBinManager {
         Self {
             bins: IndexMap::new(),
             media_items: IndexMap::new(),
-            update_interval: std::time::Duration::from_secs(5),
         }
     }
 
@@ -521,7 +519,7 @@ impl SearchBinManager {
     }
 
     pub fn remove_bin(&mut self, bin_id: Uuid) -> Option<SearchBin> {
-        self.bins.remove(&bin_id)
+        self.bins.shift_remove(&bin_id)
     }
 
     pub fn get_bin(&self, bin_id: Uuid) -> Option<&SearchBin> {
@@ -541,7 +539,7 @@ impl SearchBinManager {
     }
 
     pub fn remove_media_item(&mut self, item_id: Uuid) -> Option<MediaItem> {
-        self.media_items.remove(&item_id)
+        self.media_items.shift_remove(&item_id)
     }
 
     pub fn update_media_item(&mut self, item: MediaItem) {
@@ -598,7 +596,7 @@ impl SearchBinManager {
         }
 
         // Apply sorting
-        if let Some(sort_field) = query.sort_by {
+        if let Some(_sort_field) = query.sort_by {
             matches.sort_by(|a, b| {
                 let order = if query.sort_order == SortOrder::Ascending {
                     std::cmp::Ordering::Less
@@ -619,7 +617,7 @@ impl SearchBinManager {
     }
 
     fn evaluate_query(&self, query: &SearchBinQuery, item: &MediaItem) -> bool {
-        let mut bin = SearchBin::new("temp".to_string(), query.clone());
+        let bin = SearchBin::new("temp".to_string(), query.clone());
         bin.matches(item)
     }
 }
@@ -771,6 +769,7 @@ pub mod presets {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use saturn_timeline::TICKS_PER_SECOND;
 
     #[test]
     fn test_search_bin_creation() {

@@ -4,13 +4,11 @@
 //! for reusable motion graphics, lower thirds, transitions, etc.
 
 use indexmap::IndexMap;
-use parking_lot::RwLock;
 use saturn_timeline::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_json::json;
 use std::collections::HashMap;
-use std::sync::Arc;
 use uuid::Uuid;
 
 /// Graphics template format version
@@ -520,7 +518,7 @@ impl TemplateEngine {
         &self,
         instance_id: Uuid,
         time: Ticks,
-        frame_rate: FrameRate,
+        _frame_rate: FrameRate,
     ) -> Result<HashMap<String, Value>, TemplateError> {
         let instance = self
             .instances

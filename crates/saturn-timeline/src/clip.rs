@@ -4,7 +4,6 @@ use crate::time::{TICKS_PER_SECOND, Ticks};
 use crate::{BlendMode, FrameRate, SequenceId, TrackId};
 use chrono;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 /// Clip source
 #[derive(Debug, Clone, Serialize, Deserialize)]

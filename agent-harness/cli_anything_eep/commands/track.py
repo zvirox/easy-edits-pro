@@ -3,6 +3,7 @@ Track management commands for Easy Edits Pro.
 """
 
 import click
+from cli_anything_eep.commands import _engine
 from cli_anything_eep.core import backend, errors
 from cli_anything_eep.output import format_output, format_success, report_unsupported
 
@@ -99,3 +100,85 @@ def track_settings(ctx: click.Context, id: str, name: str, enabled: bool, locked
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Engine-backed track verbs
+# ─────────────────────────────────────────────────────────────────────────────
+
+@track_group.command('route')
+@click.option('--track', '-t', 'track_id', type=int, required=True, help='Track id')
+@click.option('--bus', '-b', required=True, type=click.Choice(['master', 'submix1', 'submix2', 'aux_fx']), help='Output bus')
+@click.pass_context
+def track_route(ctx: click.Context, track_id: int, bus: str):
+    """Route an audio track to a bus."""
+    _engine.run_engine(ctx, "track.set_bus_route", {"track_id": track_id, "bus": bus}, success="Bus route updated")
+
+
+@track_group.command('processing')
+@click.option('--track', '-t', 'track_id', type=int, required=True, help='Track id')
+@click.option('--eq/--no-eq', default=None, help='Enable the channel EQ')
+@click.option('--eq-low', type=float, help='Low band gain in dB')
+@click.option('--eq-mid', type=float, help='Mid band gain in dB')
+@click.option('--eq-high', type=float, help='High band gain in dB')
+@click.option('--compressor/--no-compressor', default=None, help='Enable the compressor')
+@click.option('--threshold', type=float, help='Compressor threshold in dB')
+@click.option('--ratio', type=float, help='Compressor ratio')
+@click.option('--denoise/--no-denoise', default=None, help='Enable denoise')
+@click.option('--denoise-amount', type=float, help='Denoise amount')
+@click.pass_context
+def track_processing(ctx: click.Context, track_id: int, eq, eq_low, eq_mid, eq_high, compressor, threshold, ratio, denoise, denoise_amount):
+    """Configure channel-strip processing for an audio track."""
+    params = {"track_id": track_id}
+    for key, value in (
+        ("eq_enabled", eq),
+        ("eq_low_gain", eq_low),
+        ("eq_mid_gain", eq_mid),
+        ("eq_high_gain", eq_high),
+        ("comp_enabled", compressor),
+        ("comp_threshold", threshold),
+        ("comp_ratio", ratio),
+        ("denoise_enabled", denoise),
+        ("denoise_amount", denoise_amount),
+    ):
+        if value is not None:
+            params[key] = value
+    _engine.run_engine(ctx, "track.set_audio_processing", params, success="Track processing updated")
+
+
+@track_group.command('plugin-add')
+@click.option('--track', '-t', 'track_id', type=int, required=True, help='Track id')
+@click.option('--plugin', '-p', required=True, help='AudioPluginInstance JSON')
+@click.pass_context
+def track_plugin_add(ctx: click.Context, track_id: int, plugin: str):
+    """Insert an audio plugin instance on a track."""
+    _engine.run_engine(
+        ctx,
+        "track.add_audio_plugin",
+        {"track_id": track_id, "plugin": _engine.parse_json_option(plugin, '--plugin')},
+        success="Audio plugin added",
+    )
+
+
+@track_group.command('plugin-toggle')
+@click.option('--track', '-t', 'track_id', type=int, required=True, help='Track id')
+@click.option('--plugin-id', type=int, required=True, help='Plugin instance id')
+@click.option('--enabled/--disabled', default=True, help='Enable or bypass the plugin')
+@click.pass_context
+def track_plugin_toggle(ctx: click.Context, track_id: int, plugin_id: int, enabled: bool):
+    """Enable or bypass an audio plugin."""
+    _engine.run_engine(
+        ctx,
+        "track.toggle_audio_plugin",
+        {"track_id": track_id, "plugin_id": plugin_id, "enabled": enabled},
+        success="Audio plugin state changed",
+    )
+
+
+@track_group.command('bus-gain')
+@click.option('--bus', '-b', required=True, type=click.Choice(['master', 'submix1', 'submix2', 'aux_fx']), help='Bus')
+@click.option('--gain-db', type=float, required=True, help='Gain in dB')
+@click.pass_context
+def track_bus_gain(ctx: click.Context, bus: str, gain_db: float):
+    """Set a bus output gain."""
+    _engine.run_engine(ctx, "bus.set_gain_db", {"target": bus, "gain_db": gain_db}, success="Bus gain updated")

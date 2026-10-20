@@ -782,7 +782,7 @@ impl ParamSchema {
                 Ok(())
             }
 
-            ParamSchema::Track { kind } => {
+            ParamSchema::Track { kind: _ } => {
                 if !value.is_u64() && !value.is_i64() {
                     return Err(ValidationError::TypeMismatch {
                         param: param_name.to_string(),

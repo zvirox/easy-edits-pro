@@ -2,20 +2,14 @@
 //!
 //! Defines project templates, their manifests, variables, and settings.
 
-use crate::search_bin::{SearchBinQuery, SearchBinRule, SearchField, SearchLogic, SearchOperator};
+use crate::search_bin::SearchBinQuery;
 use chrono;
-use indexmap::IndexMap;
-use parking_lot::RwLock;
-use saturn_graphics::*;
-use saturn_timeline::*;
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::Value;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 use uuid::Uuid;
-use walkdir::WalkDir;
 
 /// Project template categories
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -706,6 +700,7 @@ pub enum ProjectError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
     use tempfile::tempdir;
 
     #[test]

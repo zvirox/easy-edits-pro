@@ -1,9 +1,8 @@
 //! Command registry - central command management
 
 use crate::{
-    CommandCategory, CommandId, CommandSpec, HandlerError, RegistryError, ValidationError,
+    CommandCategory, CommandId, CommandSpec, RegistryError, ValidationError,
     context::{AppContext, ExecutionContext},
-    params::ParamSchema,
 };
 use indexmap::IndexMap;
 use parking_lot::RwLock;
@@ -276,7 +275,7 @@ fn validate_params(spec: &CommandSpec, params: &Value) -> Result<(), crate::Hand
 mod tests {
     use super::*;
     use crate::CommandHandler;
-    use crate::params::ParamSchema;
+
     use async_trait::async_trait;
     use serde_json::json;
 

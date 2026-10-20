@@ -2,7 +2,10 @@
 Project management commands for Easy Edits Pro.
 """
 
+from pathlib import Path
+
 import click
+from cli_anything_eep.commands import _engine
 from cli_anything_eep.core import backend, errors, state
 from cli_anything_eep.output import format_output, format_success
 
@@ -118,3 +121,69 @@ def project_templates(ctx: click.Context):
         {"name": "broadcast", "description": "Broadcast 1080i/59.94", "fps": 29.97, "resolution": "1920x1080"},
     ]
     format_output(templates, ctx.obj['output_format'])
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Engine-backed project verbs
+# ─────────────────────────────────────────────────────────────────────────────
+
+@project_group.command('relink')
+@click.option('--media', '-m', 'media_id', type=int, required=True, help='Media id')
+@click.option('--path', '-p', 'media_path', required=True, type=click.Path(exists=True, dir_okay=False), help='New source file')
+@click.pass_context
+def project_relink(ctx: click.Context, media_id: int, media_path: str):
+    """Point a media item at a new source file."""
+    _engine.run_engine(
+        ctx,
+        "project.relink_media",
+        {"media_id": media_id, "path": str(Path(media_path).expanduser().resolve())},
+        success="Media relinked",
+    )
+
+
+@project_group.command('add-media')
+@click.option('--path', '-p', 'media_path', required=True, type=click.Path(exists=True, dir_okay=False), help='Source file')
+@click.option('--name', '-n', help='Display name (defaults to the file name)')
+@click.option('--kind', type=click.Choice(['video', 'audio', 'image', 'title', 'compound_sequence', 'unknown']), help='Media kind')
+@click.pass_context
+def project_add_media(ctx: click.Context, media_path: str, name, kind):
+    """Add a media file to the project."""
+    path = Path(media_path).expanduser().resolve()
+    params = {"name": name or path.name, "path": str(path), "kind": kind or _media_kind(path)}
+    _engine.run_engine(ctx, "project.add_media", params, success="Media added")
+
+
+def _media_kind(path: Path) -> str:
+    extension = path.suffix.lower().lstrip('.')
+    if extension in {"png", "jpg", "jpeg", "webp", "bmp", "tif", "tiff"}:
+        return "image"
+    if extension in {"mp3", "wav", "flac", "ogg", "m4a", "aac"}:
+        return "audio"
+    if extension in {"mp4", "mkv", "mov", "webm", "avi", "m4v"}:
+        return "video"
+    return "unknown"
+
+
+@project_group.command('switch')
+@click.option('--sequence', '-s', 'sequence_id', type=int, required=True, help='Sequence id')
+@click.pass_context
+def project_switch(ctx: click.Context, sequence_id: int):
+    """Make another sequence the active one."""
+    _engine.run_engine(ctx, "project.switch_sequence", {"sequence_id": sequence_id}, success="Sequence switched")
+
+
+@project_group.command('update-media')
+@click.option('--path', '-p', 'media_path', required=True, type=click.Path(exists=True, dir_okay=False), help='Media path identifying the item')
+@click.option('--kind', type=click.Choice(['video', 'audio', 'image', 'title', 'compound_sequence', 'unknown']), help='Media kind')
+@click.option('--duration', type=int, help='Duration in ticks')
+@click.option('--width', type=int, help='Width in pixels')
+@click.option('--height', type=int, help='Height in pixels')
+@click.pass_context
+def project_update_media(ctx: click.Context, media_path: str, kind, duration, width, height):
+    """Replace metadata for a media item, matched by path."""
+    path = Path(media_path).expanduser().resolve()
+    params = {"path": str(path)}
+    for key, value in (("kind", kind), ("duration", duration), ("width", width), ("height", height)):
+        if value is not None:
+            params[key] = value
+    _engine.run_engine(ctx, "project.update_media", params, success="Media metadata replaced")

@@ -1,15 +1,11 @@
 //! Edit Operations Module
 
-use crate::time::{TICKS_PER_SECOND, Ticks};
+use crate::time::Ticks;
 use crate::{
-    AudioEffect, BlendMode, ClipEffects, ClipId, ClipMetadata, ClipRef, ClipSource, ClipTiming,
-    ColorGrade, FrameRate, Marker, MarkerType, SequenceId, SequenceRef, Track, TrackId, TrackKind,
-    Transform, VideoEffect,
+    BlendMode, ClipId, ClipRef, ClipTiming, Marker, SequenceId, SequenceRef, Track, TrackId,
+    TrackKind, Transform, VideoEffect,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::collections::HashMap;
-use uuid::Uuid;
 
 /// Edit operation types
 #[derive(Debug, Clone, Serialize, Deserialize)]

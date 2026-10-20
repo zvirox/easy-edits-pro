@@ -2,16 +2,11 @@
 //!
 //! High-level project management combining templates, search bins, and graphics.
 
-use crate::search_bin::{
-    MediaItem, SearchBin, SearchBinManager, SearchBinQuery, SearchBinRule, SearchField,
-    SearchLogic, SearchOperator,
-};
+use crate::search_bin::{MediaItem, SearchBin, SearchBinManager};
 use crate::template::{ProjectError, ProjectSettings, ProjectTemplate, TemplateCategory};
 use chrono;
 use indexmap::IndexMap;
-use parking_lot::RwLock;
 use saturn_graphics::TemplateId;
-use saturn_graphics::*;
 use saturn_timeline::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -68,7 +63,7 @@ impl Project {
     }
 
     pub fn remove_sequence(&mut self, seq_id: SequenceId) -> Option<Sequence> {
-        let seq = self.sequences.remove(&seq_id);
+        let seq = self.sequences.shift_remove(&seq_id);
         self.modified_at = chrono::Utc::now();
         seq
     }
@@ -87,7 +82,7 @@ impl Project {
     }
 
     pub fn remove_media(&mut self, media_id: Uuid) -> Option<MediaItem> {
-        let item = self.media.remove(&media_id);
+        let item = self.media.shift_remove(&media_id);
         self.modified_at = chrono::Utc::now();
         item
     }
@@ -98,7 +93,7 @@ impl Project {
     }
 
     pub fn remove_search_bin(&mut self, bin_id: Uuid) -> Option<SearchBin> {
-        let bin = self.search_bins.remove(&bin_id);
+        let bin = self.search_bins.shift_remove(&bin_id);
         self.modified_at = chrono::Utc::now();
         bin
     }
@@ -169,7 +164,7 @@ impl TemplateManager {
             .get(&template_id)
             .ok_or(ProjectError::TemplateNotFound)?;
 
-        let project = template.create_project(destination, variables)?;
+        let _project = template.create_project(destination, variables)?;
         // Would load the created project here
         Ok(Project::new(
             template.manifest.name.clone(),
@@ -222,7 +217,7 @@ impl ProjectManager {
         let data = fs::read_to_string(&project_file)?;
         let settings: ProjectSettings = serde_json::from_str(&data)?;
 
-        let mut project = Project::new(settings.name.clone(), path.to_path_buf(), settings);
+        let project = Project::new(settings.name.clone(), path.to_path_buf(), settings);
 
         // Load sequences, media, bins from project directory
         // This would be implemented based on project structure
@@ -284,7 +279,7 @@ mod tests {
     #[test]
     fn test_template_manager() {
         let dir = tempdir().unwrap();
-        let mut manager = TemplateManager::new(dir.path().to_path_buf());
+        let _manager = TemplateManager::new(dir.path().to_path_buf());
         // Would test template loading
     }
 }

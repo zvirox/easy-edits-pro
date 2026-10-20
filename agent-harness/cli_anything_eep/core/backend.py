@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from .errors import BackendNotFoundError, EepError, ErrorCode
+from .runtime import find_binary
 from .session import SessionLog
 
 # Commands that never change the project document, so they stay out of the journal.
@@ -39,17 +40,7 @@ _NO_AUTOSAVE_COMMANDS = {
 
 
 def _find_saturn_cli() -> Optional[str]:
-    configured = os.environ.get("SATURN_CLI")
-    if configured:
-        return configured if Path(configured).is_file() else None
-    installed = shutil.which("saturn-cli")
-    if installed:
-        return installed
-    repository = Path(__file__).resolve().parents[3]
-    for candidate in (repository / "target/release/saturn-cli", repository / "target/debug/saturn-cli"):
-        if candidate.is_file() and os.access(candidate, os.X_OK):
-            return str(candidate)
-    return None
+    return find_binary("saturn-cli", "SATURN_CLI")
 
 
 def detect_backends() -> dict[str, Any]:
@@ -58,8 +49,11 @@ def detect_backends() -> dict[str, Any]:
     binary = _find_saturn_cli()
     if binary:
         result["saturn-cli"] = {"path": binary, "type": "rust-control"}
-    for name, kind in (("saturn-mcp", "mcp"), ("saturn-control", "control")):
-        path = shutil.which(name)
+    for name, kind, variable in (
+        ("saturn-mcp", "mcp", "SATURN_MCP"),
+        ("saturn-control", "control", "SATURN_CONTROL"),
+    ):
+        path = find_binary(name, variable)
         if path:
             result[name] = {"path": path, "type": kind}
     cargo = shutil.which("cargo")
@@ -130,6 +124,32 @@ class SaturnCLI:
         if self.current_path and command_id not in _NO_AUTOSAVE_COMMANDS:
             self.execute("file.save", {"path": self.current_path}, record_history=False)
         return response.get("result")
+
+    def run_cli_json(self, args: list[str]) -> Any:
+        """Run a one-shot `saturn-cli` subcommand and parse its JSON output."""
+        with self._lock:
+            process = subprocess.run(
+                [self.cli_path, *args],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+        if process.returncode != 0:
+            message = (process.stderr or process.stdout).strip() or f"saturn-cli {args[0]} failed"
+            code = (
+                ErrorCode.COMMAND_NOT_FOUND
+                if "not supported" in message.lower()
+                else ErrorCode.COMMAND_EXECUTION_FAILED
+            )
+            raise EepError(code, message, details={"args": args}, recoverable=False)
+        try:
+            return json.loads(process.stdout)
+        except json.JSONDecodeError as error:
+            raise EepError(
+                ErrorCode.BACKEND_ERROR,
+                f"saturn-cli {args[0]} returned invalid JSON",
+                details={"stdout": process.stdout[:500]},
+            ) from error
 
     def close(self) -> None:
         process, self._process = self._process, None

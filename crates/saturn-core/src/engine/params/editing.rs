@@ -360,6 +360,11 @@ pub(in crate::engine) struct RippleDeleteFillersParams {
 }
 
 #[derive(Deserialize)]
+pub(in crate::engine) struct SetMarkParams {
+    pub(in crate::engine) at: Tick,
+}
+
+#[derive(Deserialize)]
 pub(in crate::engine) struct RippleDeleteRangesParams {
     pub(in crate::engine) ranges: Vec<(Tick, Tick)>,
 }

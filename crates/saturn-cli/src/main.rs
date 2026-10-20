@@ -1,5 +1,8 @@
 use saturn_core::{CommandRequest, EditorEngine, command_catalogue};
+use saturn_graphics::format::{load_template, save_template};
+use saturn_graphics::{GraphicsTemplate, TemplateCategory, TemplateMetadata};
 use serde_json::{Value, json};
+use std::collections::HashMap;
 use std::io::{self, BufRead};
 use std::path::PathBuf;
 
@@ -28,6 +31,7 @@ fn run() -> Result<(), String> {
             }
         }
         "control" => run_control()?,
+        "template" => run_template(args.collect())?,
         "new" => {
             let path = required(&mut args, "project path")?;
             let name = args.next().unwrap_or_else(|| "Untitled project".into());
@@ -129,6 +133,162 @@ fn media_kind(path: &std::path::Path) -> &'static str {
     }
 }
 
+/// Graphics template commands backed by the `.sgt` format in `saturn-graphics`.
+fn run_template(tokens: Vec<String>) -> Result<(), String> {
+    let (positional, flags) = parse_flags(tokens);
+    let action = positional.first().map(String::as_str).unwrap_or_default();
+    let path = positional.get(1).map(PathBuf::from);
+
+    match action {
+        "create" => {
+            let path = path.ok_or("missing template output path")?;
+            let name = flags
+                .get("name")
+                .cloned()
+                .ok_or("--name is required to create a template")?;
+            let category = flags
+                .get("category")
+                .map(|value| parse_category(value))
+                .transpose()?
+                .unwrap_or_default();
+
+            let mut metadata = TemplateMetadata {
+                name,
+                category,
+                description: flags.get("description").cloned().unwrap_or_default(),
+                author: flags.get("author").cloned().unwrap_or_default(),
+                license: flags
+                    .get("license")
+                    .cloned()
+                    .unwrap_or_else(|| "Proprietary".into()),
+                ..TemplateMetadata::default()
+            };
+            if let Some(tags) = flags.get("tags") {
+                metadata.tags = tags
+                    .split(',')
+                    .map(str::trim)
+                    .filter(|tag| !tag.is_empty())
+                    .map(str::to_string)
+                    .collect();
+            }
+
+            let template = GraphicsTemplate::new(metadata);
+            save_template(&template, &path)
+                .map_err(|error| format!("could not write {}: {error}", path.display()))?;
+            print_json(&json!({
+                "created": true,
+                "path": path,
+                "template": template.metadata,
+            }))
+        }
+        "inspect" => {
+            let path = path.ok_or("missing template path")?;
+            let template = load_template(&path)
+                .map_err(|error| format!("could not read {}: {error}", path.display()))?;
+            print_json(&serde_json::to_value(&template).map_err(|error| error.to_string())?)
+        }
+        "list" => {
+            let directory = path.unwrap_or_else(|| PathBuf::from("."));
+            let mut entries: Vec<PathBuf> = std::fs::read_dir(&directory)
+                .map_err(|error| format!("could not read {}: {error}", directory.display()))?
+                .filter_map(Result::ok)
+                .map(|entry| entry.path())
+                .filter(|path| {
+                    path.extension()
+                        .and_then(|extension| extension.to_str())
+                        .is_some_and(|extension| extension.eq_ignore_ascii_case("sgt"))
+                })
+                .collect();
+            entries.sort();
+
+            let mut templates = Vec::new();
+            for path in entries {
+                match load_template(&path) {
+                    Ok(template) => templates.push(json!({
+                        "file": path,
+                        "name": template.metadata.name,
+                        "category": template.metadata.category,
+                        "version": template.metadata.version,
+                        "description": template.metadata.description,
+                        "author": template.metadata.author,
+                        "tags": template.metadata.tags,
+                        "duration_ticks": template.timeline.duration,
+                        "parameters": template.parameters.len(),
+                        "layers": template.layers.len(),
+                    })),
+                    Err(error) => templates.push(json!({
+                        "file": path,
+                        "error": error.to_string(),
+                    })),
+                }
+            }
+            print_json(&Value::Array(templates))
+        }
+        "export" => {
+            let path = path.ok_or("missing template path")?;
+            let output = flags
+                .get("output")
+                .map(PathBuf::from)
+                .ok_or("--output is required to export a template")?;
+            let template = load_template(&path)
+                .map_err(|error| format!("could not read {}: {error}", path.display()))?;
+            save_template(&template, &output)
+                .map_err(|error| format!("could not write {}: {error}", output.display()))?;
+            print_json(&json!({
+                "exported": true,
+                "source": path,
+                "output": output,
+                "name": template.metadata.name,
+            }))
+        }
+        "apply" => Err(
+            "template apply is not supported: graphics templates cannot be applied to a sequence yet"
+                .into(),
+        ),
+        _ => Err("usage: saturn-cli template create <path> --name <name> | inspect <path> | list [dir] | export <path> --output <path>".into()),
+    }
+}
+
+fn parse_flags(tokens: Vec<String>) -> (Vec<String>, HashMap<String, String>) {
+    let mut positional = Vec::new();
+    let mut flags = HashMap::new();
+    let mut iter = tokens.into_iter();
+    while let Some(token) = iter.next() {
+        if let Some(name) = token.strip_prefix("--") {
+            if let Some((key, value)) = name.split_once('=') {
+                flags.insert(key.to_string(), value.to_string());
+            } else if let Some(value) = iter.next() {
+                flags.insert(name.to_string(), value);
+            }
+        } else {
+            positional.push(token);
+        }
+    }
+    (positional, flags)
+}
+
+fn parse_category(value: &str) -> Result<TemplateCategory, String> {
+    match value.to_ascii_lowercase().as_str() {
+        "lower-third" | "lowerthird" => Ok(TemplateCategory::LowerThird),
+        "title" => Ok(TemplateCategory::Title),
+        "transition" => Ok(TemplateCategory::Transition),
+        "background" => Ok(TemplateCategory::Background),
+        "overlay" => Ok(TemplateCategory::Overlay),
+        "bug" => Ok(TemplateCategory::Bug),
+        "full-screen" | "fullscreen" => Ok(TemplateCategory::FullScreen),
+        "custom" => Ok(TemplateCategory::Custom),
+        other => Err(format!("unknown template category: {other}")),
+    }
+}
+
+fn print_json(value: &Value) -> Result<(), String> {
+    println!(
+        "{}",
+        serde_json::to_string_pretty(value).map_err(|error| error.to_string())?
+    );
+    Ok(())
+}
+
 fn usage<T>() -> Result<T, String> {
-    Err("usage: saturn-cli commands | control | new <project.saturn> [name] | inspect <project.saturn> | list-media <project.saturn> | add-media <project.saturn> <media-path>".into())
+    Err("usage: saturn-cli commands | control | new <project.saturn> [name] | inspect <project.saturn> | list-media <project.saturn> | add-media <project.saturn> <media-path> | template create|inspect|list|export".into())
 }

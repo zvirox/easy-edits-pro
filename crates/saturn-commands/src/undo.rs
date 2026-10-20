@@ -1,6 +1,6 @@
 //! Undo/Redo management system
 
-use crate::{CommandId, CommandSpec};
+use crate::CommandId;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -217,7 +217,7 @@ impl<'a> Drop for Transaction<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::CommandId;
+
     use serde_json::json;
 
     #[test]

@@ -1,10 +1,8 @@
 //! Track Module
 
-use crate::time::{TICKS_PER_SECOND, Ticks};
+use crate::time::Ticks;
 use crate::{ClipId, ClipRef};
-use chrono;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 /// Track kind
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

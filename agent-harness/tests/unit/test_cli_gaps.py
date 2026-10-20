@@ -116,13 +116,26 @@ def test_history_reports_the_cli_journal(tmp_path, monkeypatch):
     assert "engine" in payload["note"]
 
 
-def test_unsupported_daemon_command_returns_error_instead_of_fake_running_status():
+def test_daemon_status_reports_stopped_when_nothing_was_started():
     result = CliRunner().invoke(cli, ["--json", "daemon", "status"])
 
-    assert result.exit_code != 0
+    assert result.exit_code == 0
     payload = json.loads(result.output)
-    assert payload["error"] == "COMMAND_NOT_FOUND"
-    assert "running" not in payload
+    assert payload["state"] == "stopped"
+
+
+def test_daemon_start_without_binary_is_a_structured_backend_error(monkeypatch):
+    from cli_anything_eep.commands import daemon
+
+    def missing(*_args, **_kwargs):
+        raise errors.BackendNotFoundError("saturn-control is not built")
+
+    monkeypatch.setattr(daemon, "require_binary", missing)
+
+    result = CliRunner().invoke(cli, ["--json", "daemon", "start"])
+
+    assert result.exit_code == 1
+    assert json.loads(result.output)["error"] == "BACKEND_NOT_FOUND"
 
 
 def test_project_state_loads_metadata_and_persists_current_project(tmp_path, monkeypatch):

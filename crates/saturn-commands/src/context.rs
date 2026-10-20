@@ -1,9 +1,6 @@
 //! Command execution context and handler system
 
-use crate::{
-    CommandCategory, CommandId, CommandPriority, CommandSpec, ExecutionMode, HandlerError,
-    RegistryError, ValidationError, params::ParamSchema,
-};
+use crate::{CommandId, CommandSpec, ValidationError};
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

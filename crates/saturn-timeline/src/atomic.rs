@@ -1,16 +1,7 @@
 //! Atomic Operations Module
 
-use crate::time::{Ticks, TimelineError};
-use crate::{
-    ClipId, ClipRef, ClipTiming, Edit, EditId, EditOperation, EditTransaction, Sequence, Track,
-    TrackId, VideoEffect,
-};
-use chrono;
-use parking_lot::RwLock;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use crate::{Edit, EditOperation, EditTransaction};
 use std::sync::Arc;
-use uuid::Uuid;
 
 /// Atomic edit engine for applying and reverting edits
 pub struct AtomicEditEngine {
@@ -250,7 +241,7 @@ impl AtomicEditEngine {
         let mut seq = self.sequence.write();
 
         match operation {
-            crate::edit::EditOperation::AddClip { track_id, .. } => {
+            crate::edit::EditOperation::AddClip { track_id: _, .. } => {
                 // Placeholder - would need to store clip_id for proper inverse
             }
             crate::edit::EditOperation::RemoveClip {

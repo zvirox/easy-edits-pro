@@ -1,6 +1,42 @@
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "cli-anything-eep"
+version = "0.1.0"
+description = "Agent-native CLI for Easy Edits Pro video editor"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+authors = [{ name = "Easy Edits Pro Team", email = "team@easy-edits-pro.org" }]
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.1.0",
+    "tabulate>=0.9.0",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/zvirox/easy-edits-pro"
+Repository = "https://github.com/zvirox/easy-edits-pro"
+
+[project.scripts]
+cli-anything-eep = "cli_anything_eep.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["cli_anything_eep", "cli_anything_eep.*"]
+
+[tool.setuptools.package-data]
+cli_anything_eep = ["skills/*.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

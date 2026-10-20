@@ -16,7 +16,10 @@ import click
 from typing import Optional, List, Dict, Any
 
 # Import command groups
-from cli_anything_eep.commands import project, timeline, clip, track, render, template, command, daemon, mcp, color, audio, media
+from cli_anything_eep.commands import (
+    audio, clip, collab, color, command, daemon, interop, mcp, media, multicam,
+    nodegraph, project, render, speech, subtitle, template, timeline, title, track,
+)
 
 # Import core
 from cli_anything_eep.core import state, backend, errors, session
@@ -227,6 +230,13 @@ cli.add_command(mcp.mcp_group)
 cli.add_command(color.color_group)
 cli.add_command(audio.audio_group)
 cli.add_command(media.media_group)
+cli.add_command(subtitle.subtitle_group)
+cli.add_command(title.title_group)
+cli.add_command(multicam.multicam_group)
+cli.add_command(nodegraph.nodegraph_group)
+cli.add_command(interop.interop_group)
+cli.add_command(collab.collab_group)
+cli.add_command(speech.speech_group)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
