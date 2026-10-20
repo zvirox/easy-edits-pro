@@ -60,9 +60,9 @@ def test_built_rust_engine_project_track_undo_redo_roundtrip(tmp_path):
         backend.project_create("Control Roundtrip", path=str(project_path))
         backend.track_add("video", "V-Test")
         assert any(track["name"] == "V-Test" for track in backend.track_list()["tracks"])
-        backend.execute("edit.undo", {}, record_undo=False)
+        backend.execute("edit.undo", {}, record_history=False)
         assert not any(track["name"] == "V-Test" for track in backend.track_list()["tracks"])
-        backend.execute("edit.redo", {}, record_undo=False)
+        backend.execute("edit.redo", {}, record_history=False)
         assert any(track["name"] == "V-Test" for track in backend.track_list()["tracks"])
         assert project_path.is_file()
     finally:

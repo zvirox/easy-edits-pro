@@ -12,6 +12,30 @@ from pathlib import Path
 from typing import Any, Optional
 
 from .errors import BackendNotFoundError, EepError, ErrorCode
+from .session import SessionLog
+
+# Commands that never change the project document, so they stay out of the journal.
+_UNJOURNALLED_COMMANDS = {
+    "clip.list",
+    "command.list",
+    "edit.undo",
+    "edit.redo",
+    "file.open",
+    "file.save",
+    "media.list",
+    "project.inspect",
+    "project.status",
+    "timeline.list",
+}
+
+# Commands that must not trigger the implicit save that follows a mutation.
+_NO_AUTOSAVE_COMMANDS = {
+    "file.open",
+    "file.save",
+    "media.list",
+    "project.inspect",
+    "project.status",
+}
 
 
 def _find_saturn_cli() -> Optional[str]:
@@ -67,7 +91,7 @@ class SaturnCLI:
             )
         return self._process
 
-    def execute(self, command_id: str, params: Optional[dict[str, Any]] = None, *, record_undo: bool = True) -> Any:
+    def execute(self, command_id: str, params: Optional[dict[str, Any]] = None, *, record_history: bool = True) -> Any:
         """Send one real ``CommandRequest`` over saturn-cli's JSON-lines control mode."""
         with self._lock:
             process = self._ensure_process()
@@ -97,15 +121,14 @@ class SaturnCLI:
             self.current_path = None
         elif command_id == "file.open":
             self.current_path = str((params or {}).get("path", "")) or None
-            from .undo import UndoManager
-            UndoManager.clear()
         elif command_id == "file.save":
             self.current_path = str((params or {}).get("path", self.current_path or "")) or None
-        elif record_undo and command_id not in {"project.inspect", "project.status", "media.list", "edit.undo", "edit.redo", "file.save"}:
-            from .undo import UndoManager
-            UndoManager.record(command_id, params or {}, command_id.replace(".", " "))
-        if self.current_path and command_id not in {"project.inspect", "project.status", "media.list", "file.open", "file.save"}:
-            self.execute("file.save", {"path": self.current_path}, record_undo=False)
+
+        if record_history and command_id not in _UNJOURNALLED_COMMANDS:
+            SessionLog().record(command_id, params or {}, project=self.current_path)
+
+        if self.current_path and command_id not in _NO_AUTOSAVE_COMMANDS:
+            self.execute("file.save", {"path": self.current_path}, record_history=False)
         return response.get("result")
 
     def close(self) -> None:
@@ -150,25 +173,25 @@ class SaturnCLI:
         target = path or self.current_path
         if not target:
             raise EepError(ErrorCode.PROJECT_NOT_OPEN, "Save requires a project path. Use --path or open a project first.")
-        return self.execute("file.save", {"path": target}, record_undo=False)
+        return self.execute("file.save", {"path": target}, record_history=False)
 
     def project_inspect(self, path: Optional[str] = None) -> dict[str, Any]:
         if path and path != self.current_path:
             self.project_open(path)
-        document = self.execute("project.inspect", {}, record_undo=False)
+        document = self.execute("project.inspect", {}, record_history=False)
         return {"project": document, "path": self.current_path}
 
     def timeline_create(self, name: str, fps: float = 30, width: int = 1920, height: int = 1080) -> Any:
         raise _unsupported("timeline.create", "The Rust engine currently creates its initial sequence with the project.")
 
     def timeline_list(self) -> dict[str, Any]:
-        document = self.execute("project.inspect", {}, record_undo=False)
+        document = self.execute("project.inspect", {}, record_history=False)
         project = document.get("project", {})
         sequences = project.get("sequences") or [project.get("sequence", {})]
         return {"timelines": sequences}
 
     def timeline_inspect(self, timeline_id: str) -> Any:
-        document = self.execute("project.inspect", {}, record_undo=False)
+        document = self.execute("project.inspect", {}, record_history=False)
         project = document.get("project", {})
         sequences = project.get("sequences") or [project.get("sequence", {})]
         sequence = next((item for item in sequences if str(item.get("id")) == timeline_id), None)
@@ -192,7 +215,7 @@ class SaturnCLI:
         return self.execute("timeline.remove_track", {"track_id": resolved})
 
     def track_list(self) -> dict[str, Any]:
-        document = self.execute("project.inspect", {}, record_undo=False)
+        document = self.execute("project.inspect", {}, record_history=False)
         return {"tracks": document.get("project", {}).get("sequence", {}).get("tracks", [])}
 
     def track_settings(self, track_id: str, *, muted: Optional[bool] = None, solo: Optional[bool] = None, locked: Optional[bool] = None, volume: Optional[float] = None, pan: Optional[float] = None) -> dict[str, Any]:
@@ -211,11 +234,11 @@ class SaturnCLI:
         return result
 
     def media_bins(self) -> Any:
-        document = self.execute("project.inspect", {}, record_undo=False)
+        document = self.execute("project.inspect", {}, record_history=False)
         return {"bins": document.get("project", {}).get("bins", [])}
 
     def media_info(self, media_id: str) -> Any:
-        document = self.execute("project.inspect", {}, record_undo=False)
+        document = self.execute("project.inspect", {}, record_history=False)
         media = document.get("project", {}).get("media", [])
         match = next((item for item in media if str(item.get("id")) == media_id), None)
         if match is None:
@@ -228,7 +251,7 @@ class SaturnCLI:
 
     def color_wheels(self, clip_id: str) -> Any:
         track_id, index = _clip_reference(clip_id)
-        document = self.execute("project.inspect", {}, record_undo=False)
+        document = self.execute("project.inspect", {}, record_history=False)
         tracks = document.get("project", {}).get("sequence", {}).get("tracks", [])
         track = next((item for item in tracks if item.get("id") == track_id), None)
         if track is None or index >= len(track.get("clips", [])):
@@ -251,7 +274,7 @@ class SaturnCLI:
         return self.execute("track.set_automation", {"track_id": track, "automation": automation})
 
     def clip_list(self, track: Optional[str] = None) -> dict[str, Any]:
-        document = self.execute("project.inspect", {}, record_undo=False)
+        document = self.execute("project.inspect", {}, record_history=False)
         tracks = document.get("project", {}).get("sequence", {}).get("tracks", [])
         selected = [item for item in tracks if track is None or str(item.get("id")) == track or item.get("name") == track]
         clips = [
@@ -267,7 +290,7 @@ class SaturnCLI:
             raise EepError(ErrorCode.MEDIA_NOT_FOUND, f"Media file does not exist: {source}", recoverable=False)
         kind = _media_kind(path)
         self.execute("project.add_media", {"name": path.name, "path": str(path), "kind": kind})
-        document = self.execute("project.inspect", {}, record_undo=False)
+        document = self.execute("project.inspect", {}, record_history=False)
         media = next((item for item in document.get("project", {}).get("media", []) if item.get("path") == str(path)), None)
         if media is None:
             raise EepError(ErrorCode.BACKEND_ERROR, "Imported media is missing from the project snapshot")
@@ -325,13 +348,13 @@ class SaturnCLI:
         return self.execute("project.add_media", {"name": source.name, "path": str(source), "kind": _media_kind(source)})
 
     def media_search(self, query: str) -> Any:
-        media = self.execute("media.list", {}, record_undo=False)
+        media = self.execute("media.list", {}, record_history=False)
         entries = media if isinstance(media, list) else media.get("media", [])
         needle = query.casefold()
         return {"media": [item for item in entries if needle in str(item.get("name", "")).casefold() or needle in str(item.get("path", "")).casefold()]}
 
     def media_list(self, bin_name: Optional[str] = None) -> Any:
-        return self.execute("media.list", {}, record_undo=False)
+        return self.execute("media.list", {}, record_history=False)
 
     def commands_list(self) -> list[dict[str, str]]:
         result = subprocess.run([self.cli_path, "commands"], capture_output=True, text=True, timeout=10, check=False)

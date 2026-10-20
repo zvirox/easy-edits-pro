@@ -6,7 +6,7 @@ from click.testing import CliRunner
 
 from cli_anything_eep.cli import cli
 from cli_anything_eep.commands import clip, project, render
-from cli_anything_eep.core import backend, state, undo
+from cli_anything_eep.core import backend, errors, session, state
 
 
 def test_repl_dispatches_click_commands_instead_of_echoing_them(tmp_path, monkeypatch):
@@ -53,43 +53,67 @@ def test_render_cancel_does_not_claim_success_when_job_is_missing(monkeypatch):
     assert json.loads(result.output)["error"] == "NOT_FOUND"
 
 
-def test_undo_and_redo_dispatch_to_rust_engine(monkeypatch):
+def test_undo_command_dispatches_to_rust_engine(monkeypatch):
     calls = []
 
     class FakeBackend:
-        def execute(self, command_id, params, **kwargs):
+        def execute(self, command_id, params=None, **kwargs):
             calls.append(command_id)
-            return {"undone": True} if command_id == "edit.undo" else {"redone": True}
+            return {"undone": True}
 
     monkeypatch.setattr(backend, "get_saturn_cli", lambda: FakeBackend())
-    undo.UndoManager.clear()
-    undo.UndoManager.record("timeline.add_track", {}, "Add track")
 
-    assert undo.UndoManager.undo()["undone"] == 1
-    assert undo.UndoManager.redo()["redone"] == 1
-    assert calls == ["edit.undo", "edit.redo"]
+    result = CliRunner().invoke(cli, ["--json", "undo"])
+
+    assert result.exit_code == 0
+    assert calls == ["edit.undo"]
+    assert json.loads(result.output)["success"] is True
 
 
-def test_grouped_undo_and_redo_apply_each_rust_checkpoint(monkeypatch):
+def test_redo_command_dispatches_to_rust_engine(monkeypatch):
     calls = []
 
     class FakeBackend:
-        def execute(self, command_id, params, **kwargs):
+        def execute(self, command_id, params=None, **kwargs):
             calls.append(command_id)
-            return {"ok": True}
+            return {"redone": True}
 
     monkeypatch.setattr(backend, "get_saturn_cli", lambda: FakeBackend())
-    undo.UndoManager.clear()
-    group_id = undo.UndoManager.begin_transaction("Batch edit")
-    undo.UndoManager.record("timeline.add_track", {}, "Add V1")
-    undo.UndoManager.record("timeline.add_track", {}, "Add V2")
-    undo.UndoManager.commit_transaction()
 
-    assert undo.UndoManager.undo()["undone"] == 2
-    assert calls == ["edit.undo", "edit.undo"]
-    assert undo.UndoManager.redo()["redone"] == 2
-    assert calls == ["edit.undo", "edit.undo", "edit.redo", "edit.redo"]
-    assert all(item.group_id == group_id for item in undo.UndoManager._history)
+    result = CliRunner().invoke(cli, ["--json", "redo"])
+
+    assert result.exit_code == 0
+    assert calls == ["edit.redo"]
+    assert json.loads(result.output)["success"] is True
+
+
+def test_undo_reports_engine_refusal_as_structured_error(monkeypatch):
+    def fail(command_id, params=None, **kwargs):
+        raise errors.EepError(errors.ErrorCode.NOTHING_TO_UNDO, "Nothing to undo.")
+
+    class FakeBackend:
+        execute = staticmethod(fail)
+
+    monkeypatch.setattr(backend, "get_saturn_cli", lambda: FakeBackend())
+
+    result = CliRunner().invoke(cli, ["--json", "undo"])
+
+    assert result.exit_code == 1
+    assert json.loads(result.output)["error"] == "NOTHING_TO_UNDO"
+
+
+def test_history_reports_the_cli_journal(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path))
+    log = session.SessionLog()
+    log.record("timeline.add_track", {"kind": "video"}, project="/tmp/demo.saturn")
+
+    result = CliRunner().invoke(cli, ["--json", "history", "--limit", "5"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload["entries"][0]["command"] == "timeline.add_track"
+    assert payload["entries"][0]["project"] == "/tmp/demo.saturn"
+    assert "engine" in payload["note"]
 
 
 def test_unsupported_daemon_command_returns_error_instead_of_fake_running_status():

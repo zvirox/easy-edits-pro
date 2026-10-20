@@ -127,5 +127,99 @@ class TestCLISubprocess:
             assert result.returncode == 0, f"{cmd} --help failed"
 
 
+class TestUndoRedoSubprocess:
+    """Undo/redo must reach the Rust engine, never crash on a shadowed module."""
+
+    @pytest.fixture(autouse=True)
+    def setup(self, tmp_path, monkeypatch):
+        import os
+
+        self.tmp_path = tmp_path
+        self.env = {**os.environ, "XDG_STATE_HOME": str(tmp_path / "state")}
+        self.cli_cmd = ["cli-anything-eep"]
+
+    def run_cli(self, args, stdin=None):
+        return subprocess.run(
+            self.cli_cmd + args,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            env=self.env,
+            input=stdin,
+            cwd=self.tmp_path,
+        )
+
+    @staticmethod
+    def payload(result):
+        import json
+
+        try:
+            return json.loads(result.stdout)
+        except json.JSONDecodeError:
+            pytest.fail(f"Expected JSON output, got: {result.stdout!r} / {result.stderr!r}")
+
+    def test_undo_without_history_is_a_structured_engine_error(self):
+        result = self.run_cli(["--json", "undo"])
+
+        assert result.returncode == 1
+        payload = self.payload(result)
+        assert payload["error"] in {"NOTHING_TO_UNDO", "BACKEND_NOT_FOUND"}
+        assert "INTERNAL_ERROR" not in result.stdout
+
+    def test_redo_without_history_is_a_structured_engine_error(self):
+        result = self.run_cli(["--json", "redo"])
+
+        assert result.returncode == 1
+        payload = self.payload(result)
+        assert payload["error"] in {"NOTHING_TO_REDO", "BACKEND_NOT_FOUND"}
+        assert "INTERNAL_ERROR" not in result.stdout
+
+    def test_history_returns_the_cli_journal(self):
+        result = self.run_cli(["--json", "history", "--limit", "5"])
+
+        assert result.returncode == 0
+        payload = self.payload(result)
+        assert isinstance(payload["entries"], list)
+        assert "engine" in payload["note"]
+        assert payload["journal"].startswith(str(self.tmp_path))
+
+    def test_repl_undo_and_redo_drive_the_real_engine(self):
+        binary = _saturn_cli_path()
+        if binary is None:
+            pytest.skip("saturn-cli binary not built")
+
+        result = self.run_cli(
+            ["repl"],
+            stdin="project create --name UndoRepro\ntrack add --kind video --name V1\nundo\nredo\nexit\n",
+        )
+
+        assert result.returncode == 0, result.stderr
+        assert "undone: True" in result.stdout
+        assert "redone: True" in result.stdout
+        assert "INTERNAL_ERROR" not in result.stdout
+
+
+def _saturn_cli_path():
+    """Locate the engine binary the harness would use, or None when unbuilt."""
+    import os
+    import shutil
+    from pathlib import Path
+
+    configured = os.environ.get("SATURN_CLI")
+    if configured and Path(configured).is_file():
+        return configured
+
+    found = shutil.which("saturn-cli")
+    if found:
+        return found
+
+    repository = Path(__file__).resolve().parents[2]
+    for profile in ("release", "debug"):
+        candidate = repository / "target" / profile / "saturn-cli"
+        if candidate.is_file():
+            return str(candidate)
+    return None
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

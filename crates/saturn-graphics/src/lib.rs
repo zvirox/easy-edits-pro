@@ -3,14 +3,15 @@
 //! Provides graphics template system similar to FilmCraft's .fcgt format
 //! for reusable motion graphics, lower thirds, transitions, etc.
 
+use indexmap::IndexMap;
+use parking_lot::RwLock;
 use saturn_timeline::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use uuid::Uuid;
+use serde_json::json;
 use std::collections::HashMap;
-use indexmap::IndexMap;
 use std::sync::Arc;
-use parking_lot::RwLock;
+use uuid::Uuid;
 
 /// Graphics template format version
 pub const GRAPHICS_TEMPLATE_VERSION: &str = "1.0";
@@ -250,13 +251,30 @@ impl Easing {
             Easing::EaseInSine => 1.0 - (std::f64::consts::PI / 2.0 * (1.0 - t)).sin(),
             Easing::EaseOutSine => (std::f64::consts::PI / 2.0 * t).sin(),
             Easing::EaseInOutSine => -(std::f64::consts::PI * (1.0 - 2.0 * t)).cos() / 2.0 + 0.5,
-            Easing::EaseInExpo => if t == 0.0 { 0.0 } else { 2.0_f64.powf(10.0 * (t - 1.0)) },
-            Easing::EaseOutExpo => if t == 1.0 { 1.0 } else { 1.0 - 2.0_f64.powf(-10.0 * t) },
+            Easing::EaseInExpo => {
+                if t == 0.0 {
+                    0.0
+                } else {
+                    2.0_f64.powf(10.0 * (t - 1.0))
+                }
+            }
+            Easing::EaseOutExpo => {
+                if t == 1.0 {
+                    1.0
+                } else {
+                    1.0 - 2.0_f64.powf(-10.0 * t)
+                }
+            }
             Easing::EaseInOutExpo => {
-                if t == 0.0 { 0.0 }
-                else if t == 1.0 { 1.0 }
-                else if t < 0.5 { 2.0_f64.powf(20.0 * t - 10.0) / 2.0 }
-                else { (2.0 - 2.0_f64.powf(-20.0 * t + 10.0)) / 2.0 }
+                if t == 0.0 {
+                    0.0
+                } else if t == 1.0 {
+                    1.0
+                } else if t < 0.5 {
+                    2.0_f64.powf(20.0 * t - 10.0) / 2.0
+                } else {
+                    (2.0 - 2.0_f64.powf(-20.0 * t + 10.0)) / 2.0
+                }
             }
             Easing::EaseInCirc => 1.0 - (1.0 - t * t).sqrt(),
             Easing::EaseOutCirc => (1.0 - (t - 1.0) * (t - 1.0)).sqrt(),
@@ -287,26 +305,39 @@ impl Easing {
                 }
             }
             Easing::EaseInElastic => {
-                if t == 0.0 { 0.0 }
-                else if t == 1.0 { 1.0 }
-                else {
-                    -2.0_f64.powf(10.0 * t - 10.0) * (std::f64::consts::PI * (t * 10.0 - 10.75) / 3.0).sin()
+                if t == 0.0 {
+                    0.0
+                } else if t == 1.0 {
+                    1.0
+                } else {
+                    -2.0_f64.powf(10.0 * t - 10.0)
+                        * (std::f64::consts::PI * (t * 10.0 - 10.75) / 3.0).sin()
                 }
             }
             Easing::EaseOutElastic => {
-                if t == 0.0 { 0.0 }
-                else if t == 1.0 { 1.0 }
-                else {
-                    2.0_f64.powf(-10.0 * t) * (std::f64::consts::PI * (t * 10.0 - 0.75) / 3.0).sin() + 1.0
+                if t == 0.0 {
+                    0.0
+                } else if t == 1.0 {
+                    1.0
+                } else {
+                    2.0_f64.powf(-10.0 * t) * (std::f64::consts::PI * (t * 10.0 - 0.75) / 3.0).sin()
+                        + 1.0
                 }
             }
             Easing::EaseInOutElastic => {
-                if t == 0.0 { 0.0 }
-                else if t == 1.0 { 1.0 }
-                else if t < 0.5 {
-                    -(2.0_f64.powf(20.0 * t - 10.0) * (std::f64::consts::PI * (20.0 * t - 11.125) / 3.0).sin()) / 2.0
+                if t == 0.0 {
+                    0.0
+                } else if t == 1.0 {
+                    1.0
+                } else if t < 0.5 {
+                    -(2.0_f64.powf(20.0 * t - 10.0)
+                        * (std::f64::consts::PI * (20.0 * t - 11.125) / 3.0).sin())
+                        / 2.0
                 } else {
-                    (2.0_f64.powf(-20.0 * t + 10.0) * (std::f64::consts::PI * (20.0 * t - 11.125) / 3.0).sin()) / 2.0 + 1.0
+                    (2.0_f64.powf(-20.0 * t + 10.0)
+                        * (std::f64::consts::PI * (20.0 * t - 11.125) / 3.0).sin())
+                        / 2.0
+                        + 1.0
                 }
             }
             Easing::EaseInBounce => 1.0 - Easing::EaseOutBounce.apply(1.0 - t),
@@ -348,7 +379,10 @@ impl TemplateEngine {
     }
 
     /// Register a new template
-    pub fn register_template(&mut self, template: GraphicsTemplate) -> Result<TemplateId, TemplateError> {
+    pub fn register_template(
+        &mut self,
+        template: GraphicsTemplate,
+    ) -> Result<TemplateId, TemplateError> {
         let id = template.metadata.id;
         if self.templates.contains_key(&id) {
             return Err(TemplateError::TemplateAlreadyExists);
@@ -374,14 +408,21 @@ impl TemplateEngine {
 
     /// List templates by category
     pub fn list_by_category(&self, category: TemplateCategory) -> Vec<&GraphicsTemplate> {
-        self.templates.values()
+        self.templates
+            .values()
             .filter(|t| t.metadata.category == category)
             .collect()
     }
 
     /// Create a new instance from a template
-    pub fn create_instance(&mut self, template_id: TemplateId, overrides: Option<HashMap<String, Value>>) -> Result<Uuid, TemplateError> {
-        let template = self.templates.get(&template_id)
+    pub fn create_instance(
+        &mut self,
+        template_id: TemplateId,
+        overrides: Option<HashMap<String, Value>>,
+    ) -> Result<Uuid, TemplateError> {
+        let template = self
+            .templates
+            .get(&template_id)
             .ok_or(TemplateError::TemplateNotFound)?;
 
         let instance_id = Uuid::new_v4();
@@ -422,12 +463,20 @@ impl TemplateEngine {
     }
 
     /// Update instance parameters
-    pub fn update_instance_parameters(&mut self, instance_id: Uuid, params: HashMap<String, Value>) -> Result<(), TemplateError> {
-        let instance = self.instances.get_mut(&instance_id)
+    pub fn update_instance_parameters(
+        &mut self,
+        instance_id: Uuid,
+        params: HashMap<String, Value>,
+    ) -> Result<(), TemplateError> {
+        let instance = self
+            .instances
+            .get_mut(&instance_id)
             .ok_or(TemplateError::InstanceNotFound)?;
 
         // Validate parameters against template
-        let template = self.templates.get(&instance.template_id)
+        let template = self
+            .templates
+            .get(&instance.template_id)
             .ok_or(TemplateError::TemplateNotFound)?;
 
         for (key, value) in params {
@@ -456,24 +505,39 @@ impl TemplateEngine {
             ParameterType::Video => value.is_string(),
             ParameterType::Audio => value.is_string(),
             ParameterType::Enum => value.is_string(),
-            ParameterType::Vector2 => value.is_array() && value.as_array().map_or(false, |a| a.len() == 2),
-            ParameterType::Vector3 => value.is_array() && value.as_array().map_or(false, |a| a.len() == 3),
+            ParameterType::Vector2 => {
+                value.is_array() && value.as_array().map_or(false, |a| a.len() == 2)
+            }
+            ParameterType::Vector3 => {
+                value.is_array() && value.as_array().map_or(false, |a| a.len() == 3)
+            }
             ParameterType::Transform => value.is_object(),
         }
     }
 
     /// Evaluate template at a specific time
-    pub fn evaluate_at_time(&self, instance_id: Uuid, time: Ticks, frame_rate: FrameRate) -> Result<HashMap<String, Value>, TemplateError> {
-        let instance = self.instances.get(&instance_id)
+    pub fn evaluate_at_time(
+        &self,
+        instance_id: Uuid,
+        time: Ticks,
+        frame_rate: FrameRate,
+    ) -> Result<HashMap<String, Value>, TemplateError> {
+        let instance = self
+            .instances
+            .get(&instance_id)
             .ok_or(TemplateError::InstanceNotFound)?;
 
-        let template = self.templates.get(&instance.template_id)
+        let template = self
+            .templates
+            .get(&instance.template_id)
             .ok_or(TemplateError::TemplateNotFound)?;
 
         let mut results = HashMap::new();
 
         for param in &template.parameters {
-            let mut value = instance.parameters.get(&param.id)
+            let mut value = instance
+                .parameters
+                .get(&param.id)
                 .cloned()
                 .unwrap_or(param.default_value.clone());
 
@@ -536,7 +600,9 @@ impl TemplateEngine {
                 json!(a_f + (b_f - a_f) * t)
             }
             (Value::Array(a), Value::Array(b)) if a.len() == b.len() => {
-                let result: Vec<Value> = a.iter().zip(b.iter())
+                let result: Vec<Value> = a
+                    .iter()
+                    .zip(b.iter())
                     .map(|(a, b)| Self::interpolate_values(a, b, t))
                     .collect();
                 json!(result)
@@ -552,7 +618,13 @@ impl TemplateEngine {
                 }
                 json!(result)
             }
-            _ => if t < 0.5 { a.clone() } else { b.clone() },
+            _ => {
+                if t < 0.5 {
+                    a.clone()
+                } else {
+                    b.clone()
+                }
+            }
         }
     }
 }
@@ -634,12 +706,27 @@ pub enum LayerType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LayerSource {
-    Text { content: String, font: FontProperties },
-    Shape { shape_type: ShapeType, fill: FillProperties, stroke: Option<StrokeProperties> },
-    Image { path: String },
-    Video { path: String },
-    Solid { color: String },
-    Composition { composition_id: Uuid },
+    Text {
+        content: String,
+        font: FontProperties,
+    },
+    Shape {
+        shape_type: ShapeType,
+        fill: FillProperties,
+        stroke: Option<StrokeProperties>,
+    },
+    Image {
+        path: String,
+    },
+    Video {
+        path: String,
+    },
+    Solid {
+        color: String,
+    },
+    Composition {
+        composition_id: Uuid,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -766,22 +853,6 @@ pub enum ScriptTrigger {
     Custom,
 }
 
-/// Template instance
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct TemplateInstance {
-    pub template_id: TemplateId,
-    pub parameters: HashMap<String, Value>,
-    pub keyframes: HashMap<String, Vec<Keyframe>>,
-}
-
-/// Keyframe for parameter animation
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Keyframe {
-    pub time: Ticks,
-    pub value: Value,
-    pub easing: Easing,
-}
-
 /// Template errors
 #[derive(Debug, thiserror::Error)]
 pub enum TemplateError {
@@ -807,7 +878,10 @@ pub mod format {
     use std::io::{Read, Write};
 
     /// Save template to file
-    pub fn save_template(template: &GraphicsTemplate, path: &std::path::Path) -> Result<(), TemplateError> {
+    pub fn save_template(
+        template: &GraphicsTemplate,
+        path: &std::path::Path,
+    ) -> Result<(), TemplateError> {
         let data = serialize_template(template)?;
         let mut file = std::fs::File::create(path)?;
         file.write_all(&data)?;
@@ -895,8 +969,16 @@ mod tests {
     #[test]
     fn test_keyframe_interpolation() {
         let keyframes = vec![
-            Keyframe { time: 0, value: json!(0.0), easing: Easing::Linear },
-            Keyframe { time: TICKS_PER_SECOND, value: json!(100.0), easing: Easing::Linear },
+            Keyframe {
+                time: 0,
+                value: json!(0.0),
+                easing: Easing::Linear,
+            },
+            Keyframe {
+                time: TICKS_PER_SECOND,
+                value: json!(100.0),
+                easing: Easing::Linear,
+            },
         ];
 
         let result = TemplateEngine::interpolate_keyframes(&keyframes, 0.5);

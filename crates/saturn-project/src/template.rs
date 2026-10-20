@@ -1,29 +1,21 @@
-//! Project Templates and Search Bins
+//! Project Templates
 //!
-//! Provides project template system and smart search bins for media organization
-//! similar to FilmCraft's project templates and search bins.
+//! Defines project templates, their manifests, variables, and settings.
 
-pub mod template;
-pub mod search_bin;
-pub mod manager;
-
-pub use template::{ProjectTemplate, TemplateCategory, TemplateManifest, TemplateVariable};
-pub use search_bin::{SearchBin, SearchBinQuery, SearchBinRule, SearchOperator, SearchField};
-pub use manager::{ProjectManager, TemplateManager, SearchBinManager};
-
-use saturn_timeline::*;
-use saturn_graphics::*;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use uuid::Uuid;
-use std::collections::HashMap;
-use indexmap::IndexMap;
-use std::sync::Arc;
-use parking_lot::RwLock;
-use walkdir::WalkDir;
+use crate::search_bin::{SearchBinQuery, SearchBinRule, SearchField, SearchLogic, SearchOperator};
 use chrono;
-use std::path::{Path, PathBuf};
+use indexmap::IndexMap;
+use parking_lot::RwLock;
+use saturn_graphics::*;
+use saturn_timeline::*;
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use std::collections::HashMap;
 use std::fs;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use uuid::Uuid;
+use walkdir::WalkDir;
 
 /// Project template categories
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -58,15 +50,36 @@ impl TemplateCategory {
                 audio_channels: 2,
                 color_space: ColorSpace::Rec709,
                 bins: vec![
-                    BinTemplate { name: "Footage".to_string(), path: "Footage".to_string(), color: Some("#FF6B6B".to_string()) },
-                    BinTemplate { name: "Audio".to_string(), path: "Audio".to_string(), color: Some("#4ECDC4".to_string()) },
-                    BinTemplate { name: "Music".to_string(), path: "Music".to_string(), color: Some("#45B7D1".to_string()) },
-                    BinTemplate { name: "Graphics".to_string(), path: "Graphics".to_string(), color: Some("#FFBE0B".to_string()) },
-                    BinTemplate { name: "Sequences".to_string(), path: "Sequences".to_string(), color: Some("#96CEB4".to_string()) },
+                    BinTemplate {
+                        name: "Footage".to_string(),
+                        path: "Footage".to_string(),
+                        color: Some("#FF6B6B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Audio".to_string(),
+                        path: "Audio".to_string(),
+                        color: Some("#4ECDC4".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Music".to_string(),
+                        path: "Music".to_string(),
+                        color: Some("#45B7D1".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Graphics".to_string(),
+                        path: "Graphics".to_string(),
+                        color: Some("#FFBE0B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Sequences".to_string(),
+                        path: "Sequences".to_string(),
+                        color: Some("#96CEB4".to_string()),
+                    },
                 ],
-                sequences: vec![
-                    SequenceTemplate { name: "Main".to_string(), preset: "Cinematic".to_string() },
-                ],
+                sequences: vec![SequenceTemplate {
+                    name: "Main".to_string(),
+                    preset: "Cinematic".to_string(),
+                }],
                 ..Default::default()
             },
             TemplateCategory::Documentary => ProjectSettings {
@@ -77,15 +90,36 @@ impl TemplateCategory {
                 audio_channels: 2,
                 color_space: ColorSpace::Rec709,
                 bins: vec![
-                    BinTemplate { name: "Interviews".to_string(), path: "Interviews".to_string(), color: Some("#FF6B6B".to_string()) },
-                    BinTemplate { name: "B-Roll".to_string(), path: "B-Roll".to_string(), color: Some("#4ECDC4".to_string()) },
-                    BinTemplate { name: "Archival".to_string(), path: "Archival".to_string(), color: Some("#45B7D1".to_string()) },
-                    BinTemplate { name: "Audio".to_string(), path: "Audio".to_string(), color: Some("#FFBE0B".to_string()) },
-                    BinTemplate { name: "Music".to_string(), path: "Music".to_string(), color: Some("#96CEB4".to_string()) },
+                    BinTemplate {
+                        name: "Interviews".to_string(),
+                        path: "Interviews".to_string(),
+                        color: Some("#FF6B6B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "B-Roll".to_string(),
+                        path: "B-Roll".to_string(),
+                        color: Some("#4ECDC4".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Archival".to_string(),
+                        path: "Archival".to_string(),
+                        color: Some("#45B7D1".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Audio".to_string(),
+                        path: "Audio".to_string(),
+                        color: Some("#FFBE0B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Music".to_string(),
+                        path: "Music".to_string(),
+                        color: Some("#96CEB4".to_string()),
+                    },
                 ],
-                sequences: vec![
-                    SequenceTemplate { name: "Main".to_string(), preset: "Documentary".to_string() },
-                ],
+                sequences: vec![SequenceTemplate {
+                    name: "Main".to_string(),
+                    preset: "Documentary".to_string(),
+                }],
                 ..Default::default()
             },
             TemplateCategory::YouTube => ProjectSettings {
@@ -96,15 +130,36 @@ impl TemplateCategory {
                 audio_channels: 2,
                 color_space: ColorSpace::Rec709,
                 bins: vec![
-                    BinTemplate { name: "A-Roll".to_string(), path: "A-Roll".to_string(), color: Some("#FF6B6B".to_string()) },
-                    BinTemplate { name: "B-Roll".to_string(), path: "B-Roll".to_string(), color: Some("#4ECDC4".to_string()) },
-                    BinTemplate { name: "Assets".to_string(), path: "Assets".to_string(), color: Some("#45B7D1".to_string()) },
-                    BinTemplate { name: "Audio".to_string(), path: "Audio".to_string(), color: Some("#FFBE0B".to_string()) },
-                    BinTemplate { name: "Thumbnails".to_string(), path: "Thumbnails".to_string(), color: Some("#96CEB4".to_string()) },
+                    BinTemplate {
+                        name: "A-Roll".to_string(),
+                        path: "A-Roll".to_string(),
+                        color: Some("#FF6B6B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "B-Roll".to_string(),
+                        path: "B-Roll".to_string(),
+                        color: Some("#4ECDC4".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Assets".to_string(),
+                        path: "Assets".to_string(),
+                        color: Some("#45B7D1".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Audio".to_string(),
+                        path: "Audio".to_string(),
+                        color: Some("#FFBE0B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Thumbnails".to_string(),
+                        path: "Thumbnails".to_string(),
+                        color: Some("#96CEB4".to_string()),
+                    },
                 ],
-                sequences: vec![
-                    SequenceTemplate { name: "Main".to_string(), preset: "YouTube".to_string() },
-                ],
+                sequences: vec![SequenceTemplate {
+                    name: "Main".to_string(),
+                    preset: "YouTube".to_string(),
+                }],
                 ..Default::default()
             },
             TemplateCategory::SocialMedia => ProjectSettings {
@@ -115,14 +170,35 @@ impl TemplateCategory {
                 audio_channels: 2,
                 color_space: ColorSpace::Rec709,
                 bins: vec![
-                    BinTemplate { name: "Clips".to_string(), path: "Clips".to_string(), color: Some("#FF6B6B".to_string()) },
-                    BinTemplate { name: "Audio".to_string(), path: "Audio".to_string(), color: Some("#4ECDC4".to_string()) },
-                    BinTemplate { name: "Overlays".to_string(), path: "Overlays".to_string(), color: Some("#45B7D1".to_string()) },
+                    BinTemplate {
+                        name: "Clips".to_string(),
+                        path: "Clips".to_string(),
+                        color: Some("#FF6B6B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Audio".to_string(),
+                        path: "Audio".to_string(),
+                        color: Some("#4ECDC4".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Overlays".to_string(),
+                        path: "Overlays".to_string(),
+                        color: Some("#45B7D1".to_string()),
+                    },
                 ],
                 sequences: vec![
-                    SequenceTemplate { name: "Reel".to_string(), preset: "Vertical".to_string() },
-                    SequenceTemplate { name: "Story".to_string(), preset: "Vertical".to_string() },
-                    SequenceTemplate { name: "TikTok".to_string(), preset: "Vertical".to_string() },
+                    SequenceTemplate {
+                        name: "Reel".to_string(),
+                        preset: "Vertical".to_string(),
+                    },
+                    SequenceTemplate {
+                        name: "Story".to_string(),
+                        preset: "Vertical".to_string(),
+                    },
+                    SequenceTemplate {
+                        name: "TikTok".to_string(),
+                        preset: "Vertical".to_string(),
+                    },
                 ],
                 ..Default::default()
             },
@@ -134,16 +210,45 @@ impl TemplateCategory {
                 audio_channels: 2,
                 color_space: ColorSpace::Rec709,
                 bins: vec![
-                    BinTemplate { name: "Hero Shots".to_string(), path: "Hero Shots".to_string(), color: Some("#FF6B6B".to_string()) },
-                    BinTemplate { name: "Product Shots".to_string(), path: "Product Shots".to_string(), color: Some("#4ECDC4".to_string()) },
-                    BinTemplate { name: "Lifestyle".to_string(), path: "Lifestyle".to_string(), color: Some("#45B7D1".to_string()) },
-                    BinTemplate { name: "Audio".to_string(), path: "Audio".to_string(), color: Some("#FFBE0B".to_string()) },
-                    BinTemplate { name: "Graphics".to_string(), path: "Graphics".to_string(), color: Some("#96CEB4".to_string()) },
+                    BinTemplate {
+                        name: "Hero Shots".to_string(),
+                        path: "Hero Shots".to_string(),
+                        color: Some("#FF6B6B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Product Shots".to_string(),
+                        path: "Product Shots".to_string(),
+                        color: Some("#4ECDC4".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Lifestyle".to_string(),
+                        path: "Lifestyle".to_string(),
+                        color: Some("#45B7D1".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Audio".to_string(),
+                        path: "Audio".to_string(),
+                        color: Some("#FFBE0B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Graphics".to_string(),
+                        path: "Graphics".to_string(),
+                        color: Some("#96CEB4".to_string()),
+                    },
                 ],
                 sequences: vec![
-                    SequenceTemplate { name: "Main :30".to_string(), preset: "Commercial".to_string() },
-                    SequenceTemplate { name: "Main :15".to_string(), preset: "Commercial".to_string() },
-                    SequenceTemplate { name: "Main :06".to_string(), preset: "Commercial".to_string() },
+                    SequenceTemplate {
+                        name: "Main :30".to_string(),
+                        preset: "Commercial".to_string(),
+                    },
+                    SequenceTemplate {
+                        name: "Main :15".to_string(),
+                        preset: "Commercial".to_string(),
+                    },
+                    SequenceTemplate {
+                        name: "Main :06".to_string(),
+                        preset: "Commercial".to_string(),
+                    },
                 ],
                 ..Default::default()
             },
@@ -155,14 +260,31 @@ impl TemplateCategory {
                 audio_channels: 2,
                 color_space: ColorSpace::Rec709,
                 bins: vec![
-                    BinTemplate { name: "Performance".to_string(), path: "Performance".to_string(), color: Some("#FF6B6B".to_string()) },
-                    BinTemplate { name: "B-Roll".to_string(), path: "B-Roll".to_string(), color: Some("#4ECDC4".to_string()) },
-                    BinTemplate { name: "Audio Stems".to_string(), path: "Audio Stems".to_string(), color: Some("#45B7D1".to_string()) },
-                    BinTemplate { name: "VFX".to_string(), path: "VFX".to_string(), color: Some("#FFBE0B".to_string()) },
+                    BinTemplate {
+                        name: "Performance".to_string(),
+                        path: "Performance".to_string(),
+                        color: Some("#FF6B6B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "B-Roll".to_string(),
+                        path: "B-Roll".to_string(),
+                        color: Some("#4ECDC4".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Audio Stems".to_string(),
+                        path: "Audio Stems".to_string(),
+                        color: Some("#45B7D1".to_string()),
+                    },
+                    BinTemplate {
+                        name: "VFX".to_string(),
+                        path: "VFX".to_string(),
+                        color: Some("#FFBE0B".to_string()),
+                    },
                 ],
-                sequences: vec![
-                    SequenceTemplate { name: "Main".to_string(), preset: "Music Video".to_string() },
-                ],
+                sequences: vec![SequenceTemplate {
+                    name: "Main".to_string(),
+                    preset: "Music Video".to_string(),
+                }],
                 ..Default::default()
             },
             TemplateCategory::Wedding => ProjectSettings {
@@ -173,14 +295,36 @@ impl TemplateCategory {
                 audio_channels: 2,
                 color_space: ColorSpace::Rec709,
                 bins: vec![
-                    BinTemplate { name: "Ceremony".to_string(), path: "Ceremony".to_string(), color: Some("#FF6B6B".to_string()) },
-                    BinTemplate { name: "Reception".to_string(), path: "Reception".to_string(), color: Some("#4ECDC4".to_string()) },
-                    BinTemplate { name: "Details".to_string(), path: "Details".to_string(), color: Some("#45B7D1".to_string()) },
-                    BinTemplate { name: "Audio".to_string(), path: "Audio".to_string(), color: Some("#FFBE0B".to_string()) },
+                    BinTemplate {
+                        name: "Ceremony".to_string(),
+                        path: "Ceremony".to_string(),
+                        color: Some("#FF6B6B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Reception".to_string(),
+                        path: "Reception".to_string(),
+                        color: Some("#4ECDC4".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Details".to_string(),
+                        path: "Details".to_string(),
+                        color: Some("#45B7D1".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Audio".to_string(),
+                        path: "Audio".to_string(),
+                        color: Some("#FFBE0B".to_string()),
+                    },
                 ],
                 sequences: vec![
-                    SequenceTemplate { name: "Highlight".to_string(), preset: "Cinematic".to_string() },
-                    SequenceTemplate { name: "Full Ceremony".to_string(), preset: "Documentary".to_string() },
+                    SequenceTemplate {
+                        name: "Highlight".to_string(),
+                        preset: "Cinematic".to_string(),
+                    },
+                    SequenceTemplate {
+                        name: "Full Ceremony".to_string(),
+                        preset: "Documentary".to_string(),
+                    },
                 ],
                 ..Default::default()
             },
@@ -192,14 +336,31 @@ impl TemplateCategory {
                 audio_channels: 2,
                 color_space: ColorSpace::Rec709,
                 bins: vec![
-                    BinTemplate { name: "Interviews".to_string(), path: "Interviews".to_string(), color: Some("#FF6B6B".to_string()) },
-                    BinTemplate { name: "B-Roll".to_string(), path: "B-Roll".to_string(), color: Some("#4ECDC4".to_string()) },
-                    BinTemplate { name: "Graphics".to_string(), path: "Graphics".to_string(), color: Some("#45B7D1".to_string()) },
-                    BinTemplate { name: "Audio".to_string(), path: "Audio".to_string(), color: Some("#FFBE0B".to_string()) },
+                    BinTemplate {
+                        name: "Interviews".to_string(),
+                        path: "Interviews".to_string(),
+                        color: Some("#FF6B6B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "B-Roll".to_string(),
+                        path: "B-Roll".to_string(),
+                        color: Some("#4ECDC4".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Graphics".to_string(),
+                        path: "Graphics".to_string(),
+                        color: Some("#45B7D1".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Audio".to_string(),
+                        path: "Audio".to_string(),
+                        color: Some("#FFBE0B".to_string()),
+                    },
                 ],
-                sequences: vec![
-                    SequenceTemplate { name: "Main".to_string(), preset: "Corporate".to_string() },
-                ],
+                sequences: vec![SequenceTemplate {
+                    name: "Main".to_string(),
+                    preset: "Corporate".to_string(),
+                }],
                 ..Default::default()
             },
             TemplateCategory::Broadcast => ProjectSettings {
@@ -210,14 +371,31 @@ impl TemplateCategory {
                 audio_channels: 2,
                 color_space: ColorSpace::Rec709,
                 bins: vec![
-                    BinTemplate { name: "Packages".to_string(), path: "Packages".to_string(), color: Some("#FF6B6B".to_string()) },
-                    BinTemplate { name: "VO".to_string(), path: "VO".to_string(), color: Some("#4ECDC4".to_string()) },
-                    BinTemplate { name: "Graphics".to_string(), path: "Graphics".to_string(), color: Some("#45B7D1".to_string()) },
-                    BinTemplate { name: "Music".to_string(), path: "Music".to_string(), color: Some("#FFBE0B".to_string()) },
+                    BinTemplate {
+                        name: "Packages".to_string(),
+                        path: "Packages".to_string(),
+                        color: Some("#FF6B6B".to_string()),
+                    },
+                    BinTemplate {
+                        name: "VO".to_string(),
+                        path: "VO".to_string(),
+                        color: Some("#4ECDC4".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Graphics".to_string(),
+                        path: "Graphics".to_string(),
+                        color: Some("#45B7D1".to_string()),
+                    },
+                    BinTemplate {
+                        name: "Music".to_string(),
+                        path: "Music".to_string(),
+                        color: Some("#FFBE0B".to_string()),
+                    },
                 ],
-                sequences: vec![
-                    SequenceTemplate { name: "Package".to_string(), preset: "Broadcast".to_string() },
-                ],
+                sequences: vec![SequenceTemplate {
+                    name: "Package".to_string(),
+                    preset: "Broadcast".to_string(),
+                }],
                 ..Default::default()
             },
             TemplateCategory::Custom => ProjectSettings::default(),
@@ -266,7 +444,6 @@ pub struct BinTemplate {
     pub name: String,
     pub path: String,
     pub color: Option<String>,
-    pub search_bin: Option<SearchBinTemplate>,
 }
 
 /// Sequence template
@@ -402,7 +579,11 @@ impl ProjectTemplate {
         Ok(template)
     }
 
-    pub fn create_project(&self, destination: &Path, variables: HashMap<String, Value>) -> Result<(), ProjectError> {
+    pub fn create_project(
+        &self,
+        destination: &Path,
+        variables: HashMap<String, Value>,
+    ) -> Result<(), ProjectError> {
         // Create directory structure
         fs::create_dir_all(destination)?;
 
@@ -439,15 +620,21 @@ impl ProjectTemplate {
         Ok(())
     }
 
-    fn resolve_variables(settings: &mut ProjectSettings, variables: &HashMap<String, Value>) -> Result<(), ProjectError> {
+    fn resolve_variables(
+        settings: &mut ProjectSettings,
+        variables: &HashMap<String, Value>,
+    ) -> Result<(), ProjectError> {
         // Replace variables in settings
-        let json = serde_json::to_value(settings)?;
+        let json = serde_json::to_value(&*settings)?;
         let resolved = Self::replace_variables_in_value(json, variables)?;
         *settings = serde_json::from_value(resolved)?;
         Ok(())
     }
 
-    fn replace_variables_in_value(value: Value, variables: &HashMap<String, Value>) -> Result<Value, ProjectError> {
+    fn replace_variables_in_value(
+        value: Value,
+        variables: &HashMap<String, Value>,
+    ) -> Result<Value, ProjectError> {
         match value {
             Value::String(s) => {
                 let mut result = s;
@@ -506,6 +693,8 @@ pub enum ProjectError {
     InvalidManifest(#[from] serde_json::Error),
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
+    #[error("Walk error: {0}")]
+    WalkError(#[from] walkdir::Error),
     #[error("Variable resolution error: {0}")]
     VariableError(String),
     #[error("Template not found")]

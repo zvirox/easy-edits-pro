@@ -2,27 +2,25 @@
 //!
 //! High-level project management combining templates, search bins, and graphics.
 
-pub mod template;
-pub mod search_bin;
-pub mod manager;
-
-pub use template::{ProjectTemplate, TemplateCategory, TemplateManifest, TemplateVariable, ProjectSettings, BinTemplate, SequenceTemplate, SearchBinTemplate};
-pub use search_bin::{SearchBin, SearchBinQuery, SearchBinRule, SearchOperator, SearchField, SearchLogic, SearchBinManager, MediaItem, SearchBinMatch, presets};
-pub use manager::{ProjectManager, TemplateManager, SearchBinManager as BinManager};
-
-use saturn_timeline::*;
+use crate::search_bin::{
+    MediaItem, SearchBin, SearchBinManager, SearchBinQuery, SearchBinRule, SearchField,
+    SearchLogic, SearchOperator,
+};
+use crate::template::{ProjectError, ProjectSettings, ProjectTemplate, TemplateCategory};
+use chrono;
+use indexmap::IndexMap;
+use parking_lot::RwLock;
+use saturn_graphics::TemplateId;
 use saturn_graphics::*;
+use saturn_timeline::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use uuid::Uuid;
 use std::collections::HashMap;
-use indexmap::IndexMap;
-use std::sync::Arc;
-use parking_lot::RwLock;
-use walkdir::WalkDir;
-use chrono;
-use std::path::{Path, PathBuf};
 use std::fs;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use uuid::Uuid;
+use walkdir::WalkDir;
 
 /// Project manager for high-level project operations
 pub struct ProjectManager {
@@ -138,7 +136,8 @@ impl TemplateManager {
             let entry = entry?;
             if entry.file_type().is_dir() {
                 let template = ProjectTemplate::from_directory(entry.path())?;
-                self.templates.insert(template.manifest.id, template);
+                self.templates
+                    .insert(TemplateId(template.manifest.id), template);
             }
         }
         Ok(())
@@ -153,13 +152,21 @@ impl TemplateManager {
     }
 
     pub fn list_by_category(&self, category: TemplateCategory) -> Vec<&ProjectTemplate> {
-        self.templates.values()
+        self.templates
+            .values()
             .filter(|t| t.manifest.category == category)
             .collect()
     }
 
-    pub fn create_project(&self, template_id: TemplateId, destination: &Path, variables: HashMap<String, Value>) -> Result<Project, ProjectError> {
-        let template = self.templates.get(&template_id)
+    pub fn create_project(
+        &self,
+        template_id: TemplateId,
+        destination: &Path,
+        variables: HashMap<String, Value>,
+    ) -> Result<Project, ProjectError> {
+        let template = self
+            .templates
+            .get(&template_id)
             .ok_or(ProjectError::TemplateNotFound)?;
 
         let project = template.create_project(destination, variables)?;
@@ -190,8 +197,15 @@ impl ProjectManager {
         self.template_manager.load_templates()
     }
 
-    pub fn create_project(&mut self, template_id: TemplateId, destination: &Path, variables: HashMap<String, Value>) -> Result<Project, ProjectError> {
-        let project = self.template_manager.create_project(template_id, destination, variables)?;
+    pub fn create_project(
+        &mut self,
+        template_id: TemplateId,
+        destination: &Path,
+        variables: HashMap<String, Value>,
+    ) -> Result<Project, ProjectError> {
+        let project = self
+            .template_manager
+            .create_project(template_id, destination, variables)?;
         self.current_project = Some(project.clone());
         Ok(project)
     }
@@ -201,18 +215,14 @@ impl ProjectManager {
         if !project_file.exists() {
             return Err(ProjectError::IoError(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
-                "Project file not found"
+                "Project file not found",
             )));
         }
 
         let data = fs::read_to_string(&project_file)?;
         let settings: ProjectSettings = serde_json::from_str(&data)?;
 
-        let mut project = Project::new(
-            settings.name.clone(),
-            path.to_path_buf(),
-            settings,
-        );
+        let mut project = Project::new(settings.name.clone(), path.to_path_buf(), settings);
 
         // Load sequences, media, bins from project directory
         // This would be implemented based on project structure

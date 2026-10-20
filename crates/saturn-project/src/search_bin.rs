@@ -2,12 +2,14 @@
 //!
 //! Smart search bins for dynamic media organization based on queries.
 
-use super::*;
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use uuid::Uuid;
-use std::collections::HashMap;
 use chrono;
+use indexmap::IndexMap;
+use saturn_timeline::{FrameRate, TICKS_PER_SECOND, Ticks};
+use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
+use std::collections::HashMap;
+use std::path::PathBuf;
+use uuid::Uuid;
 
 /// Search bin query definition
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -48,7 +50,7 @@ pub struct SearchBinRule {
 }
 
 /// Search fields
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SearchField {
     Name,
     Path,
@@ -169,12 +171,18 @@ impl SearchBin {
         self.evaluate_rules(&self.query.rules, item, &self.query.logic)
     }
 
-    fn evaluate_rules(&self, rules: &[SearchBinRule], item: &MediaItem, logic: &SearchLogic) -> bool {
+    fn evaluate_rules(
+        &self,
+        rules: &[SearchBinRule],
+        item: &MediaItem,
+        logic: &SearchLogic,
+    ) -> bool {
         if rules.is_empty() {
             return true;
         }
 
-        let results: Vec<bool> = rules.iter()
+        let results: Vec<bool> = rules
+            .iter()
             .map(|rule| self.evaluate_rule(rule, item))
             .collect();
 
@@ -186,13 +194,18 @@ impl SearchBin {
 
     fn evaluate_rule(&self, rule: &SearchBinRule, item: &MediaItem) -> bool {
         let field_value = self.get_field_value(item, &rule.field);
-        self.compare_values(&field_value, &rule.operator, &rule.value, rule.case_sensitive)
+        self.compare_values(
+            &field_value,
+            &rule.operator,
+            &rule.value,
+            rule.case_sensitive,
+        )
     }
 
     fn get_field_value(&self, item: &MediaItem, field: &SearchField) -> Value {
         match field {
             SearchField::Name => json!(item.name),
-            SearchField::Path => json!(item.path.to_string()),
+            SearchField::Path => json!(item.path.display().to_string()),
             SearchField::FileName => json!(item.file_name()),
             SearchField::Extension => json!(item.extension()),
             SearchField::FileSize => json!(item.file_size),
@@ -215,7 +228,13 @@ impl SearchBin {
         }
     }
 
-    fn compare_values(&self, field_value: &Value, operator: &SearchOperator, rule_value: &Value, case_sensitive: bool) -> bool {
+    fn compare_values(
+        &self,
+        field_value: &Value,
+        operator: &SearchOperator,
+        rule_value: &Value,
+        case_sensitive: bool,
+    ) -> bool {
         use SearchOperator::*;
 
         match operator {
@@ -232,8 +251,18 @@ impl SearchBin {
             In => self.values_in(field_value, rule_value),
             NotIn => !self.values_in(field_value, rule_value),
             Regex => self.values_regex(field_value, rule_value),
-            IsEmpty => field_value.is_null() || (field_value.is_string() && field_value.as_str().unwrap_or("").is_empty()) || (field_value.is_array() && field_value.as_array().unwrap_or(&vec![]).is_empty()),
-            IsNotEmpty => !field_value.is_null() && !(field_value.is_string() && field_value.as_str().unwrap_or("").is_empty()) && !(field_value.is_array() && field_value.as_array().unwrap_or(&vec![]).is_empty()),
+            IsEmpty => {
+                field_value.is_null()
+                    || (field_value.is_string() && field_value.as_str().unwrap_or("").is_empty())
+                    || (field_value.is_array()
+                        && field_value.as_array().unwrap_or(&vec![]).is_empty())
+            }
+            IsNotEmpty => {
+                !field_value.is_null()
+                    && !(field_value.is_string() && field_value.as_str().unwrap_or("").is_empty())
+                    && !(field_value.is_array()
+                        && field_value.as_array().unwrap_or(&vec![]).is_empty())
+            }
             Between => self.values_between(field_value, rule_value),
             WithinDays => self.values_within_days(field_value, rule_value),
             WithinWeeks => self.values_within_weeks(field_value, rule_value),
@@ -277,7 +306,7 @@ impl SearchBin {
                 } else {
                     false
                 }
-            }
+            })
         } else {
             false
         }
@@ -312,8 +341,14 @@ impl SearchBin {
     }
 
     fn compare_numeric(&self, a: &Value, b: &Value, cmp: fn(f64, f64) -> bool) -> bool {
-        let a_num = a.as_f64().or_else(|| a.as_i64().map(|v| v as f64)).or_else(|| a.as_u64().map(|v| v as f64));
-        let b_num = b.as_f64().or_else(|| b.as_i64().map(|v| v as f64)).or_else(|| b.as_u64().map(|v| v as f64));
+        let a_num = a
+            .as_f64()
+            .or_else(|| a.as_i64().map(|v| v as f64))
+            .or_else(|| a.as_u64().map(|v| v as f64));
+        let b_num = b
+            .as_f64()
+            .or_else(|| b.as_i64().map(|v| v as f64))
+            .or_else(|| b.as_u64().map(|v| v as f64));
 
         match (a_num, b_num) {
             (Some(a), Some(b)) => cmp(a, b),
@@ -339,7 +374,10 @@ impl SearchBin {
             if arr.len() == 2 {
                 let min = arr[0].as_f64().unwrap_or(f64::NEG_INFINITY);
                 let max = arr[1].as_f64().unwrap_or(f64::INFINITY);
-                let field_num = field_value.as_f64().or_else(|| field_value.as_i64().map(|v| v as f64)).or_else(|| field_value.as_u64().map(|v| v as f64));
+                let field_num = field_value
+                    .as_f64()
+                    .or_else(|| field_value.as_i64().map(|v| v as f64))
+                    .or_else(|| field_value.as_u64().map(|v| v as f64));
                 field_num.map_or(false, |n| n >= min && n <= max)
             } else {
                 false
@@ -424,11 +462,19 @@ pub struct MediaItem {
 
 impl MediaItem {
     pub fn file_name(&self) -> String {
-        self.path.file_name().unwrap_or_default().to_string_lossy().to_string()
+        self.path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string()
     }
 
     pub fn extension(&self) -> String {
-        self.path.extension().unwrap_or_default().to_string_lossy().to_string()
+        self.path
+            .extension()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string()
     }
 }
 
@@ -592,140 +638,133 @@ pub mod presets {
         SearchBin::new(
             "Recently Added".to_string(),
             SearchBinQuery {
-                rules: vec![
-                    SearchBinRule {
-                        field: SearchField::DateImported,
-                        operator: SearchOperator::WithinDays,
-                        value: json!(days),
-                        case_sensitive: false,
-                    },
-                ],
+                rules: vec![SearchBinRule {
+                    field: SearchField::DateImported,
+                    operator: SearchOperator::WithinDays,
+                    value: json!(days),
+                    case_sensitive: false,
+                }],
                 logic: SearchLogic::And,
                 limit: Some(50),
                 sort_by: Some(SortField::DateImported),
                 sort_order: SortOrder::Descending,
-            }
-        ).with_color("#4ECDC4".to_string())
+            },
+        )
+        .with_color("#4ECDC4".to_string())
     }
 
     pub fn video_files() -> SearchBin {
         SearchBin::new(
             "Video Files".to_string(),
             SearchBinQuery {
-                rules: vec![
-                    SearchBinRule {
-                        field: SearchField::MediaType,
-                        operator: SearchOperator::Equals,
-                        value: json!("Video"),
-                        case_sensitive: false,
-                    },
-                ],
+                rules: vec![SearchBinRule {
+                    field: SearchField::MediaType,
+                    operator: SearchOperator::Equals,
+                    value: json!("Video"),
+                    case_sensitive: false,
+                }],
                 logic: SearchLogic::And,
                 limit: None,
                 sort_by: Some(SortField::Name),
                 sort_order: SortOrder::Ascending,
-            }
-        ).with_color("#FF6B6B".to_string())
+            },
+        )
+        .with_color("#FF6B6B".to_string())
     }
 
     pub fn audio_files() -> SearchBin {
         SearchBin::new(
             "Audio Files".to_string(),
             SearchBinQuery {
-                rules: vec![
-                    SearchBinRule {
-                        field: SearchField::MediaType,
-                        operator: SearchOperator::Equals,
-                        value: json!("Audio"),
-                        case_sensitive: false,
-                    },
-                ],
+                rules: vec![SearchBinRule {
+                    field: SearchField::MediaType,
+                    operator: SearchOperator::Equals,
+                    value: json!("Audio"),
+                    case_sensitive: false,
+                }],
                 logic: SearchLogic::And,
                 limit: None,
                 sort_by: Some(SortField::Name),
                 sort_order: SortOrder::Ascending,
-            }
-        ).with_color("#4ECDC4".to_string())
+            },
+        )
+        .with_color("#4ECDC4".to_string())
     }
 
     pub fn high_rated(min_rating: u8) -> SearchBin {
         SearchBin::new(
             format!("Rated {}+ Stars", min_rating),
             SearchBinQuery {
-                rules: vec![
-                    SearchBinRule {
-                        field: SearchField::Rating,
-                        operator: SearchOperator::GreaterThanOrEqual,
-                        value: json!(min_rating),
-                        case_sensitive: false,
-                    },
-                ],
+                rules: vec![SearchBinRule {
+                    field: SearchField::Rating,
+                    operator: SearchOperator::GreaterThanOrEqual,
+                    value: json!(min_rating),
+                    case_sensitive: false,
+                }],
                 logic: SearchLogic::And,
                 limit: None,
                 sort_by: Some(SortField::Rating),
                 sort_order: SortOrder::Descending,
-            }
-        ).with_color("#FFBE0B".to_string())
+            },
+        )
+        .with_color("#FFBE0B".to_string())
     }
 
     pub fn large_files(min_size_mb: u64) -> SearchBin {
         SearchBin::new(
             format!("Files > {} MB", min_size_mb),
             SearchBinQuery {
-                rules: vec![
-                    SearchBinRule {
-                        field: SearchField::FileSize,
-                        operator: SearchOperator::GreaterThan,
-                        value: json!(min_size_mb * 1024 * 1024),
-                        case_sensitive: false,
-                    },
-                ],
+                rules: vec![SearchBinRule {
+                    field: SearchField::FileSize,
+                    operator: SearchOperator::GreaterThan,
+                    value: json!(min_size_mb * 1024 * 1024),
+                    case_sensitive: false,
+                }],
                 logic: SearchLogic::And,
                 limit: None,
                 sort_by: Some(SortField::FileSize),
                 sort_order: SortOrder::Descending,
-            }
-        ).with_color("#FF6B6B".to_string())
+            },
+        )
+        .with_color("#FF6B6B".to_string())
     }
 
     pub fn missing_metadata() -> SearchBin {
         SearchBin::new(
             "Missing Metadata".to_string(),
             SearchBinQuery {
-                rules: vec![
-                    SearchBinRule {
-                        field: SearchField::Tags,
-                        operator: SearchOperator::IsEmpty,
-                        value: json!(null),
-                        case_sensitive: false,
-                    },
-                ],
+                rules: vec![SearchBinRule {
+                    field: SearchField::Tags,
+                    operator: SearchOperator::IsEmpty,
+                    value: json!(null),
+                    case_sensitive: false,
+                }],
                 logic: SearchLogic::Or,
                 limit: None,
                 sort_by: Some(SortField::DateModified),
                 sort_order: SortOrder::Descending,
-            }
-        ).with_color("#96CEB4".to_string())
+            },
+        )
+        .with_color("#96CEB4".to_string())
     }
 
     pub fn proxy_files() -> SearchBin {
         SearchBin::new(
             "Proxy Files".to_string(),
             SearchBinQuery {
-                rules: vec![
-                    SearchBinRule {
-                        field: SearchField::Name,
-                        operator: SearchOperator::Contains,
-                        value: json!("proxy"),
-                        case_sensitive: false,
-                    },
-                ],
+                rules: vec![SearchBinRule {
+                    field: SearchField::Name,
+                    operator: SearchOperator::Contains,
+                    value: json!("proxy"),
+                    case_sensitive: false,
+                }],
                 logic: SearchLogic::And,
                 limit: None,
                 sort_by: Some(SortField::Name),
                 sort_order: SortOrder::Ascending,
-            }
-        ).with_color("#45B7D1".to_string())
+            },
+        )
+        .with_color("#45B7D1".to_string())
     }
 }
 
@@ -735,10 +774,7 @@ mod tests {
 
     #[test]
     fn test_search_bin_creation() {
-        let bin = SearchBin::new(
-            "Test Bin".to_string(),
-            SearchBinQuery::default(),
-        );
+        let bin = SearchBin::new("Test Bin".to_string(), SearchBinQuery::default());
         assert_eq!(bin.name, "Test Bin");
     }
 
@@ -770,19 +806,17 @@ mod tests {
         let bin = SearchBin::new(
             "Video Files".to_string(),
             SearchBinQuery {
-                rules: vec![
-                    SearchBinRule {
-                        field: SearchField::MediaType,
-                        operator: SearchOperator::Equals,
-                        value: json!("Video"),
-                        case_sensitive: false,
-                    },
-                ],
+                rules: vec![SearchBinRule {
+                    field: SearchField::MediaType,
+                    operator: SearchOperator::Equals,
+                    value: json!("Video"),
+                    case_sensitive: false,
+                }],
                 logic: SearchLogic::And,
                 limit: None,
                 sort_by: None,
                 sort_order: SortOrder::Ascending,
-            }
+            },
         );
 
         assert!(bin.matches(&item));

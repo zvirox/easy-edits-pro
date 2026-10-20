@@ -15,8 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fairlight automation playback:** Added interpolated Read-mode volume and pan automation playback, plus a dedicated audio workspace hook and regression tests.
 - **Render workflow coverage:** Added render range handling, cancellation/progress coverage, and expanded project command workflow tests.
 - **Development roadmap:** Updated the main README and MCP documentation with verified capabilities, limitations, and the FilmCraft parity roadmap.
+- **Control server:** `saturn-control` now builds and exposes `GET /health`, `GET /commands`, `POST /commands/:id/execute`, and a `GET /ws` event stream backed by the shared command registry, with route-level tests.
+- **Graphics and project templates:** `saturn-graphics` and `saturn-project` are back in the Cargo workspace, with each type defined once in its owning module and library roots reduced to module declarations and re-exports.
+- **CLI command journal:** `cli-anything-eep history` lists the commands the harness executed, stored as JSON lines in the XDG state directory.
 
 ### Changed
+- **CLI undo/redo:** `cli-anything-eep undo` and `redo` now delegate straight to the engine's `edit.undo`/`edit.redo` commands; the duplicate in-process undo manager and its fake inverse replay are gone.
+- **Workspace membership:** `saturn-control`, `saturn-graphics`, and `saturn-project` are compiled and tested by `cargo test --workspace` again.
 - Expanded media/project IPC and path validation support, and updated editor smoke coverage for audio and export workspace interactions.
 - Formatted and aligned Rust command, timeline, render, and project schema modules with current workspace conventions.
 

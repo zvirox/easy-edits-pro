@@ -19,9 +19,9 @@ from typing import Optional, List, Dict, Any
 from cli_anything_eep.commands import project, timeline, clip, track, render, template, command, daemon, mcp, color, audio, media
 
 # Import core
-from cli_anything_eep.core import state, backend, errors, undo
+from cli_anything_eep.core import state, backend, errors, session
 from cli_anything_eep.core.errors import EepError, ErrorCode
-from cli_anything_eep.output import format_output
+from cli_anything_eep.output import format_output, format_success
 
 # Version
 __version__ = "0.1.0"
@@ -94,9 +94,9 @@ Available commands:
   render queue --preset <name> --out <path>  Queue render
   render status                         Show render queue
   
-  undo                                  Undo last operation
-  redo                                  Redo last operation
-  history                               Show undo history
+  undo                                  Undo last edit (Rust engine)
+  redo                                  Redo last undone edit (Rust engine)
+  history                               Show this CLI's command journal
   
   help                                  Show this help
   exit                                  Exit REPL
@@ -236,10 +236,10 @@ cli.add_command(media.media_group)
 @cli.command()
 @click.pass_context
 def undo(ctx: click.Context):
-    """Undo last operation."""
+    """Undo the last edit in the Rust engine."""
     try:
-        result = undo.UndoManager.undo()
-        format_output(result, ctx.obj['output_format'])
+        result = backend.get_saturn_cli().execute("edit.undo")
+        format_success("Undone", result, ctx.obj['output_format'])
     except EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         sys.exit(1)
@@ -248,24 +248,36 @@ def undo(ctx: click.Context):
 @cli.command()
 @click.pass_context
 def redo(ctx: click.Context):
-    """Redo last undone operation."""
+    """Redo the last undone edit in the Rust engine."""
     try:
-        result = undo.UndoManager.redo()
-        format_output(result, ctx.obj['output_format'])
+        result = backend.get_saturn_cli().execute("edit.redo")
+        format_success("Redone", result, ctx.obj['output_format'])
     except EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         sys.exit(1)
 
 
 @cli.command()
+@click.option('--limit', '-n', type=int, default=25, help='Number of recent entries to show')
 @click.pass_context
-def history(ctx: click.Context):
-    """Show undo/redo history."""
+def history(ctx: click.Context, limit: int):
+    """Show commands this CLI executed (the engine owns undo/redo state)."""
     try:
-        result = undo.UndoManager.history()
-        format_output(result, ctx.obj['output_format'])
-    except EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
+        log = session.SessionLog()
+        entries = [entry.to_dict() for entry in log.entries(limit=max(limit, 0))]
+        format_output(
+            {
+                "journal": str(log.path),
+                "entries": entries,
+                "note": "Undo/redo are owned by the Rust engine; this is the CLI command journal.",
+            },
+            ctx.obj['output_format'],
+        )
+    except OSError as e:
+        format_output(
+            errors.EepError(ErrorCode.INTERNAL_ERROR, f"Could not read the CLI journal: {e}").to_dict(),
+            ctx.obj['output_format'],
+        )
         sys.exit(1)
 
 

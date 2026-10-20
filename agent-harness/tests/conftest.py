@@ -6,6 +6,13 @@ import shutil
 from pathlib import Path
 
 
+@pytest.fixture(autouse=True)
+def isolate_cli_state(monkeypatch, tmp_path):
+    """Keep tests off the developer's real project state and command journal."""
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+
+
 @pytest.fixture
 def temp_dir():
     """Create a temporary directory for tests."""
