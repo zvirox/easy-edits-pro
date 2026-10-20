@@ -1,0 +1,21 @@
+[package]
+name = "saturn-timeline"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+description = "Enhanced timeline data model with nested sequences and atomic edits"
+
+[dependencies]
+saturn-commands = { path = "../saturn-commands" }
+saturn-core = { path = "../saturn-core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+indexmap = "2"
+parking_lot = "0.12"
+smallvec = "1"
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

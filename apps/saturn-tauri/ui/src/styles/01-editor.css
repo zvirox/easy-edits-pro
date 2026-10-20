@@ -11,8 +11,8 @@
   --border-active: rgba(217, 70, 143, 0.45);
   --border-focus: #c02669;
   --text-primary: #faf2f7;
-  --text-secondary: #bfa5b8;
-  --text-muted: #7d6377;
+  --text-secondary: #d4bccf;   /* Lightened for 4.5:1 on bg-surface */
+  --text-muted: #a890a0;       /* Lightened for 4.5:1 on bg-surface (#180d17) */
   --accent-primary: #9f1249;
   --accent-primary-hover: #be185d;
   --accent-secondary: #6b21a8;
@@ -22,6 +22,23 @@
   --status-success: #10b981;
   --status-warning: #f59e0b;
   --status-danger: #e11d48;
+
+  /* Text on accent backgrounds (WCAG AA 4.5:1) */
+  --text-on-accent: #ffffff;
+  --text-on-accent-secondary: #ffffff;
+
+  /* Backdrop blur tokens */
+  --blur-sm: blur(4px);
+  --blur-md: blur(8px);
+  --blur-lg: blur(12px);
+  --blur-xl: blur(16px);
+  --blur-2xl: blur(20px);
+
+  /* Transition tokens */
+  --transition-fast: 80ms ease;
+  --transition-base: 120ms ease;
+  --transition-smooth: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 200ms ease;
 
   /* Existing compatibility names resolve to the new semantic tokens. */
   --color-bg-base: var(--bg-base);
@@ -66,13 +83,13 @@
   --popover: var(--bg-elevated);
   --popover-foreground: var(--text-primary);
   --primary: var(--accent-primary);
-  --primary-foreground: #ffffff;
+  --primary-foreground: var(--text-on-accent);
   --secondary: var(--bg-elevated);
   --secondary-foreground: var(--text-secondary);
   --muted: var(--bg-elevated);
   --muted-foreground: var(--text-muted);
   --accent: var(--bg-selected);
-  --accent-foreground: var(--text-primary);
+  --accent-foreground: var(--text-on-accent);
   --destructive: var(--status-danger);
   --destructive-foreground: #ffffff;
   --border: var(--border-subtle);
@@ -92,8 +109,8 @@
   --border-active: rgba(159, 18, 73, 0.4);
   --border-focus: #9f1249;
   --text-primary: #281622;
-  --text-secondary: #62475a;
-  --text-muted: #826d7d;
+  --text-secondary: #4a3844;   /* Darkened for 4.5:1 on bg-surface */
+  --text-muted: #5d4f58;       /* Darkened for 4.5:1 on bg-surface (#fffafd) */
   --accent-primary: #9f1249;
   --accent-primary-hover: #be185d;
   --accent-secondary: #6b21a8;
@@ -103,6 +120,24 @@
   --status-success: #047857;
   --status-warning: #b45309;
   --status-danger: #be123c;
+
+  /* Text on accent backgrounds (WCAG AA 4.5:1) */
+  --text-on-accent: #ffffff;
+  --text-on-accent-secondary: #ffffff;
+
+  /* Backdrop blur tokens */
+  --blur-sm: blur(4px);
+  --blur-md: blur(8px);
+  --blur-lg: blur(12px);
+  --blur-xl: blur(16px);
+  --blur-2xl: blur(20px);
+
+  /* Transition tokens */
+  --transition-fast: 80ms ease;
+  --transition-base: 120ms ease;
+  --transition-smooth: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 200ms ease;
+
   --color-bg-base: var(--bg-base);
   --color-bg-surface: var(--bg-surface);
   --color-bg-elevated: var(--bg-elevated);
@@ -145,13 +180,13 @@
   --popover: var(--bg-elevated);
   --popover-foreground: var(--text-primary);
   --primary: var(--accent-primary);
-  --primary-foreground: #ffffff;
+  --primary-foreground: var(--text-on-accent);
   --secondary: var(--bg-elevated);
   --secondary-foreground: var(--text-secondary);
   --muted: var(--bg-elevated);
   --muted-foreground: var(--text-muted);
   --accent: var(--bg-selected);
-  --accent-foreground: var(--accent-primary);
+  --accent-foreground: var(--text-on-accent);
   --destructive: var(--status-danger);
   --destructive-foreground: #ffffff;
   --border: var(--border-subtle);
@@ -182,10 +217,10 @@
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity var(--transition-smooth), transform var(--transition-smooth);
   z-index: 10000;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: var(--blur-md);
+  -webkit-backdrop-filter: var(--blur-md);
   letter-spacing: 0.01em;
 }
 [data-tooltip]:hover::after {

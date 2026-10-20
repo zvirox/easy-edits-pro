@@ -9,7 +9,8 @@ const extractionBacklog = new Set([
   "ui/src/workspaces/KeyframesWorkspace.tsx",
   "../../crates/saturn-core/src/interop.rs",
 ]);
-const hardLimit = 2000;
+// Default hard limit is 800 lines; can be overridden via --max-lines=N or CHECK_SOURCE_SIZE_MAX_LINES env
+const hardLimit = Math.max(1, Number(process.env.CHECK_SOURCE_SIZE_MAX_LINES ?? process.argv.find(a => a.startsWith("--max-lines="))?.split("=")[1] ?? 800));
 const oversized = [];
 
 function visit(directory) {

@@ -143,7 +143,7 @@
   border: 2px dashed var(--border-strong);
   border-radius: 6px;
   background: var(--bg-panel);
-  transition: all 0.2s ease;
+  transition: border-color var(--transition-smooth), color var(--transition-smooth), background var(--transition-smooth);
 }
 
 .empty-drop-hint:hover {
@@ -328,7 +328,7 @@
   color: var(--text-secondary);
   background: transparent;
   border: 1px solid transparent;
-  transition: all 0.1s ease;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
 }
 
 .seq-crumb-btn:hover:not(:disabled) {
@@ -399,7 +399,7 @@
   color: var(--text-muted);
   background: transparent;
   cursor: pointer;
-  transition: all 0.1s ease;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
   font-size: 12px;
 }
 

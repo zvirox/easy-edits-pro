@@ -1,3 +1,13 @@
 [workspace]
-members = ["crates/saturn-core", "crates/saturn-cli", "crates/saturn-render"]
+members = [
+    "crates/saturn-core",
+    "crates/saturn-cli",
+    "crates/saturn-render",
+    "crates/saturn-commands",
+    "crates/saturn-mcp",
+    "crates/saturn-control",
+    "crates/saturn-timeline",
+    "crates/saturn-graphics",
+    "crates/saturn-project",
+]
 resolver = "3"

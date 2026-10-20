@@ -197,7 +197,7 @@
 .app-menu summary { list-style: none; cursor: pointer; padding: 6px 9px; border-radius: 4px; color: var(--text-sub); transition: background 0.15s, color 0.15s; }
 .app-menu summary::-webkit-details-marker { display: none; }
 .app-menu[open] summary, .app-menu summary:hover { background: var(--bg-hover); color: var(--text-main); }
-.menu-popover { position: absolute; z-index: 200; top: calc(100% + 4px); left: 0; min-width: 220px; padding: 5px; background: var(--bg-panel); border: 1px solid var(--border-strong); border-radius: 6px; box-shadow: var(--shadow-popup); backdrop-filter: blur(12px); }
+.menu-popover { position: absolute; z-index: 200; top: calc(100% + 4px); left: 0; min-width: 220px; padding: 5px; background: var(--bg-panel); border: 1px solid var(--border-strong); border-radius: 6px; box-shadow: var(--shadow-popup); backdrop-filter: var(--blur-lg); }
 .menu-popover button { display: flex; justify-content: space-between; width: 100%; border: 0; background: transparent; text-align: left; font-size: 11px; padding: 6px 10px; border-radius: 4px; color: var(--text-main); }
 .menu-popover button:hover:not(:disabled) { background: var(--bg-hover); color: var(--accent-primary); }
 .menu-popover small { color: var(--text-muted); margin-left: 20px; }
@@ -411,7 +411,7 @@
 .preview-stage audio { width: min(90%, 360px); }
 .preview-preparing { padding: 18px; text-align: center; }
 .preview-preparing small { max-width: 360px; color: #a9a9a9; }
-.preview-preparing-banner { position: absolute; inset: auto 12px 12px; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid rgba(159, 18, 73, 0.4); border-radius: 6px; color: #bfa5b8; background: rgba(17, 9, 16, 0.92); backdrop-filter: blur(8px); font-size: 11px; font-weight: 500; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); z-index: 10; }
+.preview-preparing-banner { position: absolute; inset: auto 12px 12px; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid rgba(159, 18, 73, 0.4); border-radius: 6px; color: #bfa5b8; background: rgba(17, 9, 16, 0.92); backdrop-filter: var(--blur-md); font-size: 11px; font-weight: 500; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); z-index: 10; }
 .preview-preparing-dot { width: 8px; height: 8px; border-radius: 50%; background: #9f1249; animation: preview-pulse 1.2s infinite ease-in-out; }
 @keyframes preview-pulse { 0%, 100% { transform: scale(0.85); opacity: 0.5; } 50% { transform: scale(1.15); opacity: 1; } }
 .preview-error { position: absolute; inset: auto 12px 12px; display: grid; gap: 4px; padding: 9px 11px; border: 1px solid #6b394b; border-radius: 4px; color: #f1d2c8; background: #221220ed; text-align: left; }

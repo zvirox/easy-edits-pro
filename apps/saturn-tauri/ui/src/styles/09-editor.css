@@ -352,7 +352,7 @@
 .program-subtitle-text {
   display: inline-block;
   background: rgba(0, 0, 0, 0.78);
-  backdrop-filter: blur(4px);
+  backdrop-filter: var(--blur-sm);
   color: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: clamp(14px, 2.2vw, 22px);
