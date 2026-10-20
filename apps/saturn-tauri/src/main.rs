@@ -17,6 +17,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, Manager, State, ipc::Channel};
 
 mod commands;
+mod gpu_detect;
 #[cfg(unix)]
 mod mcp_bridge;
 mod media_server;
@@ -28,6 +29,7 @@ mod state;
 use commands::*;
 pub use state::AppState;
 
+pub use gpu_detect::{glass_environment, save_glass_report};
 pub use media_server::{
     get_media_server_port, get_media_server_token, is_allowed_media_path,
     register_allowed_media_path, set_app_cache_dir, set_app_data_dir, start_media_server,
@@ -47,8 +49,13 @@ fn register_project_media(app: &AppHandle, document: &saturn_core::ProjectDocume
 }
 
 fn main() {
+    // WebKit's DMA-BUF renderer is disabled by default. The Phase 0 glass
+    // spike can keep it enabled to measure the difference:
+    // `EEP_KEEP_DMABUF=1 pnpm tauri dev`.
     #[cfg(target_os = "linux")]
-    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
+    if std::env::var_os("EEP_KEEP_DMABUF").is_none()
+        && std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none()
+    {
         unsafe {
             std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
         }
@@ -92,6 +99,8 @@ fn main() {
             get_media_server_port,
             get_media_server_token,
             get_system_diagnostics,
+            glass_environment,
+            save_glass_report,
             command_status,
             get_command_catalogue,
             recovery_status,
