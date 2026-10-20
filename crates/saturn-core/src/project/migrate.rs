@@ -1,6 +1,5 @@
 use super::*;
 
-
 pub(crate) fn migrate_project(value: &mut serde_json::Value) -> Result<(), String> {
     let version = value
         .get("schema_version")
@@ -43,59 +42,67 @@ pub(crate) fn migrate_project(value: &mut serde_json::Value) -> Result<(), Strin
 mod tests {
     use super::*;
 
-        #[test]
-        fn v9_project_migrates_to_v10_schema() {
-            let mut legacy = serde_json::to_value(ProjectDocument::new("V9 project")).unwrap();
-            legacy["schema_version"] = 9.into();
-            legacy["project"].as_object_mut().unwrap().remove("sequences");
-            migrate_project(&mut legacy).unwrap();
-            let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
-            assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
-            assert!(loaded.project.sequences.is_empty());
-            assert_eq!(loaded.project.sequence.id, 1);
+    #[test]
+    fn v9_project_migrates_to_v10_schema() {
+        let mut legacy = serde_json::to_value(ProjectDocument::new("V9 project")).unwrap();
+        legacy["schema_version"] = 9.into();
+        legacy["project"]
+            .as_object_mut()
+            .unwrap()
+            .remove("sequences");
+        migrate_project(&mut legacy).unwrap();
+        let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
+        assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
+        assert!(loaded.project.sequences.is_empty());
+        assert_eq!(loaded.project.sequence.id, 1);
+    }
+    #[test]
+    fn v1_project_migrates_to_current_schema() {
+        let mut legacy = serde_json::to_value(ProjectDocument::new("Legacy")).unwrap();
+        legacy["schema_version"] = 1.into();
+        legacy.as_object_mut().unwrap().remove("view");
+        migrate_project(&mut legacy).unwrap();
+        let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
+        assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
+        assert_eq!(loaded.view.active_sequence.as_deref(), Some("Sequence 1"));
+    }
+    #[test]
+    fn v8_project_migrates_to_v9_schema() {
+        let mut legacy = serde_json::to_value(ProjectDocument::new("V8 project")).unwrap();
+        legacy["schema_version"] = 8.into();
+        legacy["project"]
+            .as_object_mut()
+            .unwrap()
+            .remove("collaboration");
+        migrate_project(&mut legacy).unwrap();
+        let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
+        assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
+        assert_eq!(
+            loaded.project.collaboration.session_id,
+            "local-collab-session"
+        );
+        assert!(loaded.project.sequence.node_graph.is_none());
+    }
+    #[test]
+    fn v2_project_migrates_with_default_edit_properties() {
+        let mut legacy = serde_json::to_value(ProjectDocument::new("V2 project")).unwrap();
+        legacy["schema_version"] = 2.into();
+        for track in legacy["project"]["sequence"]["tracks"]
+            .as_array_mut()
+            .unwrap()
+        {
+            track.as_object_mut().unwrap().remove("gain_db");
         }
-        #[test]
-        fn v1_project_migrates_to_current_schema() {
-            let mut legacy = serde_json::to_value(ProjectDocument::new("Legacy")).unwrap();
-            legacy["schema_version"] = 1.into();
-            legacy.as_object_mut().unwrap().remove("view");
-            migrate_project(&mut legacy).unwrap();
-            let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
-            assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
-            assert_eq!(loaded.view.active_sequence.as_deref(), Some("Sequence 1"));
-        }
-        #[test]
-        fn v8_project_migrates_to_v9_schema() {
-            let mut legacy = serde_json::to_value(ProjectDocument::new("V8 project")).unwrap();
-            legacy["schema_version"] = 8.into();
-            legacy["project"].as_object_mut().unwrap().remove("collaboration");
-            migrate_project(&mut legacy).unwrap();
-            let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
-            assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
-            assert_eq!(loaded.project.collaboration.session_id, "local-collab-session");
-            assert!(loaded.project.sequence.node_graph.is_none());
-        }
-        #[test]
-        fn v2_project_migrates_with_default_edit_properties() {
-            let mut legacy = serde_json::to_value(ProjectDocument::new("V2 project")).unwrap();
-            legacy["schema_version"] = 2.into();
-            for track in legacy["project"]["sequence"]["tracks"]
-                .as_array_mut()
-                .unwrap()
-            {
-                track.as_object_mut().unwrap().remove("gain_db");
-            }
-            legacy["project"]["sequence"]["tracks"][0]["clips"] = serde_json::json!([
-                {"media_id": 3, "timeline_start": 0, "source_in": 0, "duration": 100}
-            ]);
-            migrate_project(&mut legacy).unwrap();
-            let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
-            assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
-            assert_eq!(loaded.project.sequence.tracks[0].gain_db, 0.0);
-            let clip = &loaded.project.sequence.tracks[0].clips[0];
-            assert_eq!(clip.color.exposure, 0.0);
-            assert_eq!(clip.color.contrast, 1.0);
-            assert!(clip.keyframes.is_empty());
-        }
-
+        legacy["project"]["sequence"]["tracks"][0]["clips"] = serde_json::json!([
+            {"media_id": 3, "timeline_start": 0, "source_in": 0, "duration": 100}
+        ]);
+        migrate_project(&mut legacy).unwrap();
+        let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
+        assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
+        assert_eq!(loaded.project.sequence.tracks[0].gain_db, 0.0);
+        let clip = &loaded.project.sequence.tracks[0].clips[0];
+        assert_eq!(clip.color.exposure, 0.0);
+        assert_eq!(clip.color.contrast, 1.0);
+        assert!(clip.keyframes.is_empty());
+    }
 }

@@ -17,6 +17,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, Manager, State, ipc::Channel};
 
 mod commands;
+#[cfg(unix)]
+mod mcp_bridge;
 mod media_server;
 mod net;
 mod path_validation;
@@ -30,11 +32,11 @@ pub use media_server::{
     get_media_server_port, get_media_server_token, is_allowed_media_path,
     register_allowed_media_path, set_app_cache_dir, set_app_data_dir, start_media_server,
 };
+pub use path_validation::{
+    PathValidationError, validate_dir_path, validate_read_path, validate_write_path,
+};
 pub use recovery::{
     autosave_once, discard_autosave, recovery_status, restore_autosave, start_autosave,
-};
-pub use path_validation::{
-    validate_dir_path, validate_read_path, validate_write_path, PathValidationError,
 };
 
 fn register_project_media(app: &AppHandle, document: &saturn_core::ProjectDocument) {
@@ -75,6 +77,8 @@ fn main() {
                     }
                 }
                 start_autosave(app.handle().clone(), state.clone());
+                #[cfg(unix)]
+                mcp_bridge::start(app.handle().clone(), state.clone());
                 let app_handle = app.handle().clone();
                 state.1.add_listener(move |info| {
                     let _ = app_handle.emit("job_queue_updated", info);

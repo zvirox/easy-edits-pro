@@ -22,7 +22,7 @@ serde_json = "1"
 tauri = { version = "2", features = ["protocol-asset"] }
 tauri-plugin-dialog = "2"
 thiserror = "2"
-tokio = { version = "1", features = ["time", "net"] }
+tokio = { version = "1", features = ["time", "net", "io-util"] }
 
 [dev-dependencies]
 tempfile = "3"

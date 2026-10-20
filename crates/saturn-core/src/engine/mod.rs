@@ -1,4 +1,4 @@
-use crate::command::{status, CommandRequest, CommandStatus, COMMANDS};
+use crate::command::{COMMANDS, CommandRequest, CommandStatus, status};
 use crate::project::{
     AudioPluginInstance, BusTarget, ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams,
     ColorWheels, CompositingNode, CompositingNodeKind, CropParams, CustomShaderParams,
@@ -9,9 +9,9 @@ use crate::project::{
     TitleProperties, Track, TrackAudioProcessing, TrackAutomation, TrackGroup, TrackKind,
     TrackingMode, Transition, TransitionKind, UserLock, VignetteParams,
 };
-use crate::time::{FrameRate, Tick, TICKS_PER_SECOND};
+use crate::time::{FrameRate, TICKS_PER_SECOND, Tick};
 use serde::Deserialize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::path::PathBuf;
 
 mod audio_cmds;

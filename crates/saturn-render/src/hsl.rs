@@ -47,12 +47,20 @@ pub fn hsl_to_rgb(h: f32, s: f32, l: f32) -> (f32, f32, f32) {
     let tg = hk;
     let tb = hk - 1.0 / 3.0;
 
-    (hue_to_rgb(p, q, tr), hue_to_rgb(p, q, tg), hue_to_rgb(p, q, tb))
+    (
+        hue_to_rgb(p, q, tr),
+        hue_to_rgb(p, q, tg),
+        hue_to_rgb(p, q, tb),
+    )
 }
 
 fn hue_to_rgb(p: f32, q: f32, mut t: f32) -> f32 {
-    if t < 0.0 { t += 1.0; }
-    if t > 1.0 { t -= 1.0; }
+    if t < 0.0 {
+        t += 1.0;
+    }
+    if t > 1.0 {
+        t -= 1.0;
+    }
     if t < 1.0 / 6.0 {
         return p + (q - p) * 6.0 * t;
     }
@@ -188,9 +196,15 @@ pub fn apply_hsl_qualifier_buffer(
 
             let (target_r, target_g, target_b) = hsl_to_rgb(new_h, new_s, new_l);
 
-            chunk[0] = ((r + (target_r - r) * factor) * 255.0).round().clamp(0.0, 255.0) as u8;
-            chunk[1] = ((g + (target_g - g) * factor) * 255.0).round().clamp(0.0, 255.0) as u8;
-            chunk[2] = ((b + (target_b - b) * factor) * 255.0).round().clamp(0.0, 255.0) as u8;
+            chunk[0] = ((r + (target_r - r) * factor) * 255.0)
+                .round()
+                .clamp(0.0, 255.0) as u8;
+            chunk[1] = ((g + (target_g - g) * factor) * 255.0)
+                .round()
+                .clamp(0.0, 255.0) as u8;
+            chunk[2] = ((b + (target_b - b) * factor) * 255.0)
+                .round()
+                .clamp(0.0, 255.0) as u8;
         }
     }
 }

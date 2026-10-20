@@ -308,7 +308,8 @@ pub async fn import_media(
         for selected_path in paths {
             let path = PathBuf::from(&selected_path);
             // Canonicalize to resolve any .. components and symlinks
-            let canonical_path = path.canonicalize()
+            let canonical_path = path
+                .canonicalize()
                 .map_err(|e| format!("Invalid media path `{}'`: {}", selected_path, e))?;
             if !canonical_path.is_file() {
                 continue;

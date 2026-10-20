@@ -57,17 +57,17 @@ impl Lut3D {
                     .parse()
                     .map_err(|_| format!("Invalid LUT_3D_SIZE value: `{rest}`"))?;
                 if parsed_size < 2 || parsed_size > 256 {
-                    return Err(format!("LUT_3D_SIZE {parsed_size} is outside valid range (2..=256)"));
+                    return Err(format!(
+                        "LUT_3D_SIZE {parsed_size} is outside valid range (2..=256)"
+                    ));
                 }
                 size = Some(parsed_size);
                 continue;
             }
 
             if let Some(rest) = trimmed.strip_prefix("DOMAIN_MIN") {
-                let parts: Result<Vec<f32>, _> = rest
-                    .split_whitespace()
-                    .map(str::parse::<f32>)
-                    .collect();
+                let parts: Result<Vec<f32>, _> =
+                    rest.split_whitespace().map(str::parse::<f32>).collect();
                 let parts = parts.map_err(|_| format!("Invalid DOMAIN_MIN values: `{rest}`"))?;
                 if parts.len() == 3 {
                     domain_min = [parts[0], parts[1], parts[2]];
@@ -76,10 +76,8 @@ impl Lut3D {
             }
 
             if let Some(rest) = trimmed.strip_prefix("DOMAIN_MAX") {
-                let parts: Result<Vec<f32>, _> = rest
-                    .split_whitespace()
-                    .map(str::parse::<f32>)
-                    .collect();
+                let parts: Result<Vec<f32>, _> =
+                    rest.split_whitespace().map(str::parse::<f32>).collect();
                 let parts = parts.map_err(|_| format!("Invalid DOMAIN_MAX values: `{rest}`"))?;
                 if parts.len() == 3 {
                     domain_max = [parts[0], parts[1], parts[2]];
@@ -105,12 +103,15 @@ impl Lut3D {
             }
         }
 
-        let lut_size = size.ok_or_else(|| "Missing LUT_3D_SIZE directive in .cube file".to_string())?;
+        let lut_size =
+            size.ok_or_else(|| "Missing LUT_3D_SIZE directive in .cube file".to_string())?;
         let expected_count = lut_size * lut_size * lut_size;
         if table.len() != expected_count {
             return Err(format!(
                 "Table entry count mismatch: expected {} (for {}^3) but found {}",
-                expected_count, lut_size, table.len()
+                expected_count,
+                lut_size,
+                table.len()
             ));
         }
 
@@ -156,9 +157,7 @@ impl Lut3D {
         let fz = zb - z0 as f32;
 
         // Adobe .cube order: index = x + y * size + z * size * size
-        let idx = |x: usize, y: usize, z: usize| -> usize {
-            x + y * size + z * size * size
-        };
+        let idx = |x: usize, y: usize, z: usize| -> usize { x + y * size + z * size * size };
 
         let c000 = self.table[idx(x0, y0, z0)];
         let c100 = self.table[idx(x1, y0, z0)];
@@ -291,57 +290,53 @@ impl Lut3D {
         let mut table = Vec::with_capacity(size * size * size);
 
         let (title, grade_fn): (&str, fn(f32, f32, f32) -> [f32; 3]) = match preset_id {
-            "teal_orange" => (
-                "Teal & Orange",
-                |r, g, b| {
-                    let luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-                    let shadow_mask = (1.0 - luma).powf(1.4);
-                    let highlight_mask = luma.powf(1.2);
-                    // Push shadows towards cyan/teal
-                    let mut out_r = r * (1.0 - 0.25 * shadow_mask) + 0.35 * highlight_mask * r;
-                    let mut out_g = g * (1.0 + 0.05 * shadow_mask) + 0.15 * highlight_mask * g;
-                    let mut out_b = b * (1.0 + 0.40 * shadow_mask) - 0.20 * highlight_mask * b;
-                    // Boost contrast slightly
-                    out_r = (out_r - 0.5) * 1.15 + 0.5;
-                    out_g = (out_g - 0.5) * 1.15 + 0.5;
-                    out_b = (out_b - 0.5) * 1.15 + 0.5;
-                    [out_r.clamp(0.0, 1.0), out_g.clamp(0.0, 1.0), out_b.clamp(0.0, 1.0)]
-                },
-            ),
-            "vintage" => (
-                "Warm Vintage Film",
-                |r, g, b| {
-                    // Lifted blacks, warm amber cast, rolled off highlights
-                    let out_r = (r * 0.90 + 0.08).clamp(0.0, 1.0);
-                    let out_g = (g * 0.85 + 0.05).clamp(0.0, 1.0);
-                    let out_b = (b * 0.75 + 0.03).clamp(0.0, 1.0);
-                    [out_r, out_g, out_b]
-                },
-            ),
-            "film_noir" => (
-                "Film Noir Monochrome",
-                |r, g, b| {
-                    let luma = 0.299 * r + 0.587 * g + 0.114 * b;
-                    // S-curve contrast on luma
-                    let s_luma = if luma < 0.5 {
-                        2.0 * luma * luma
-                    } else {
-                        1.0 - 2.0 * (1.0 - luma) * (1.0 - luma)
-                    };
-                    [s_luma.clamp(0.0, 1.0), s_luma.clamp(0.0, 1.0), s_luma.clamp(0.0, 1.0)]
-                },
-            ),
-            "rec709" => (
-                "Clean Rec.709",
-                |r, g, b| {
-                    // Standard video curve with rich punchy contrast
-                    let s_curve = |v: f32| -> f32 {
-                        let c = (v - 0.5) * 1.18 + 0.5;
-                        c.clamp(0.0, 1.0)
-                    };
-                    [s_curve(r), s_curve(g), s_curve(b)]
-                },
-            ),
+            "teal_orange" => ("Teal & Orange", |r, g, b| {
+                let luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                let shadow_mask = (1.0 - luma).powf(1.4);
+                let highlight_mask = luma.powf(1.2);
+                // Push shadows towards cyan/teal
+                let mut out_r = r * (1.0 - 0.25 * shadow_mask) + 0.35 * highlight_mask * r;
+                let mut out_g = g * (1.0 + 0.05 * shadow_mask) + 0.15 * highlight_mask * g;
+                let mut out_b = b * (1.0 + 0.40 * shadow_mask) - 0.20 * highlight_mask * b;
+                // Boost contrast slightly
+                out_r = (out_r - 0.5) * 1.15 + 0.5;
+                out_g = (out_g - 0.5) * 1.15 + 0.5;
+                out_b = (out_b - 0.5) * 1.15 + 0.5;
+                [
+                    out_r.clamp(0.0, 1.0),
+                    out_g.clamp(0.0, 1.0),
+                    out_b.clamp(0.0, 1.0),
+                ]
+            }),
+            "vintage" => ("Warm Vintage Film", |r, g, b| {
+                // Lifted blacks, warm amber cast, rolled off highlights
+                let out_r = (r * 0.90 + 0.08).clamp(0.0, 1.0);
+                let out_g = (g * 0.85 + 0.05).clamp(0.0, 1.0);
+                let out_b = (b * 0.75 + 0.03).clamp(0.0, 1.0);
+                [out_r, out_g, out_b]
+            }),
+            "film_noir" => ("Film Noir Monochrome", |r, g, b| {
+                let luma = 0.299 * r + 0.587 * g + 0.114 * b;
+                // S-curve contrast on luma
+                let s_luma = if luma < 0.5 {
+                    2.0 * luma * luma
+                } else {
+                    1.0 - 2.0 * (1.0 - luma) * (1.0 - luma)
+                };
+                [
+                    s_luma.clamp(0.0, 1.0),
+                    s_luma.clamp(0.0, 1.0),
+                    s_luma.clamp(0.0, 1.0),
+                ]
+            }),
+            "rec709" => ("Clean Rec.709", |r, g, b| {
+                // Standard video curve with rich punchy contrast
+                let s_curve = |v: f32| -> f32 {
+                    let c = (v - 0.5) * 1.18 + 0.5;
+                    c.clamp(0.0, 1.0)
+                };
+                [s_curve(r), s_curve(g), s_curve(b)]
+            }),
             other => return Err(format!("Unknown LUT preset: `{other}`")),
         };
 
@@ -391,9 +386,24 @@ mod tests {
 
         for [r, g, b] in test_colors {
             let sampled = id_lut.sample(r, g, b);
-            assert!((sampled[0] - r).abs() < 1e-4, "R diff: {} vs {}", sampled[0], r);
-            assert!((sampled[1] - g).abs() < 1e-4, "G diff: {} vs {}", sampled[1], g);
-            assert!((sampled[2] - b).abs() < 1e-4, "B diff: {} vs {}", sampled[2], b);
+            assert!(
+                (sampled[0] - r).abs() < 1e-4,
+                "R diff: {} vs {}",
+                sampled[0],
+                r
+            );
+            assert!(
+                (sampled[1] - g).abs() < 1e-4,
+                "G diff: {} vs {}",
+                sampled[1],
+                g
+            );
+            assert!(
+                (sampled[2] - b).abs() < 1e-4,
+                "B diff: {} vs {}",
+                sampled[2],
+                b
+            );
         }
     }
 
@@ -452,9 +462,9 @@ DOMAIN_MAX 1.0 1.0 1.0
     fn test_rgba_buffer_application() {
         let lut = Lut3D::build_preset("film_noir", 17).unwrap();
         let mut buffer = vec![
-            255, 0, 0, 255,   // Pure red
-            0, 255, 0, 255,   // Pure green
-            0, 0, 255, 255,   // Pure blue
+            255, 0, 0, 255, // Pure red
+            0, 255, 0, 255, // Pure green
+            0, 0, 255, 255, // Pure blue
         ];
         lut.apply_rgba(&mut buffer, 1.0);
         // In film noir, all R, G, B channels of a pixel should be identical (monochrome)

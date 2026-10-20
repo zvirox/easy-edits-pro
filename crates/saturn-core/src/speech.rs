@@ -121,8 +121,20 @@ pub struct RippleDeleteReport {
 
 /// List of standard hesitation and verbal filler words in speech.
 pub const STANDARD_FILLER_WORDS: &[&str] = &[
-    "um", "uh", "er", "ah", "hmm", "like", "you know", "basically", "literally",
-    "sort of", "kind of", "i mean", "right", "actually",
+    "um",
+    "uh",
+    "er",
+    "ah",
+    "hmm",
+    "like",
+    "you know",
+    "basically",
+    "literally",
+    "sort of",
+    "kind of",
+    "i mean",
+    "right",
+    "actually",
 ];
 
 /// Tests whether a given word string is considered a verbal hesitation filler.
@@ -141,7 +153,9 @@ pub fn is_filler_word(raw: &str, custom_fillers: Option<&[&str]>) -> bool {
         }
     }
 
-    STANDARD_FILLER_WORDS.iter().any(|&f| f.eq_ignore_ascii_case(&clean))
+    STANDARD_FILLER_WORDS
+        .iter()
+        .any(|&f| f.eq_ignore_ascii_case(&clean))
 }
 
 /// Detects and returns all filler words from speech segments.
@@ -185,7 +199,8 @@ pub fn extract_filler_intervals(
     for seg in segments {
         for word in &seg.words {
             if word.is_filler || is_filler_word(&word.word, custom_fillers) {
-                let dur_ms = (word.end_ticks.0 - word.start_ticks.0).max(0) / (crate::time::TICKS_PER_SECOND / 1000);
+                let dur_ms = (word.end_ticks.0 - word.start_ticks.0).max(0)
+                    / (crate::time::TICKS_PER_SECOND / 1000);
                 intervals.push(SilenceInterval {
                     start_ticks: word.start_ticks,
                     end_ticks: word.end_ticks,
@@ -230,7 +245,8 @@ pub fn detect_silence_from_peaks(
 
     // Convert dBFS threshold to 0..255 linear amplitude threshold:
     // amp = 255.0 * 10^(dBFS / 20)
-    let linear_threshold = (255.0 * 10.0f64.powf(options.threshold_db / 20.0)).clamp(1.0, 254.0) as u8;
+    let linear_threshold =
+        (255.0 * 10.0f64.powf(options.threshold_db / 20.0)).clamp(1.0, 254.0) as u8;
 
     let num_bins = peaks.len();
     let ticks_per_bin = total_duration.0 / num_bins as i64;
@@ -305,7 +321,11 @@ pub fn merge_time_ranges(ranges: &[(Tick, Tick)]) -> Vec<(Tick, Tick)> {
         .filter_map(|(s, e)| {
             let start = s.0.min(e.0);
             let end = s.0.max(e.0);
-            if end > start { Some((start, end)) } else { None }
+            if end > start {
+                Some((start, end))
+            } else {
+                None
+            }
         })
         .collect();
 
@@ -324,7 +344,10 @@ pub fn merge_time_ranges(ranges: &[(Tick, Tick)]) -> Vec<(Tick, Tick)> {
         }
     }
 
-    merged.into_iter().map(|(s, e)| (Tick(s), Tick(e))).collect()
+    merged
+        .into_iter()
+        .map(|(s, e)| (Tick(s), Tick(e)))
+        .collect()
 }
 
 /// Performs a multi-range ripple deletion across all unlocked tracks in a sequence.
@@ -449,7 +472,9 @@ pub fn ripple_delete_time_ranges(
         let sub_end = sub.end_ticks.0;
 
         // Check if subtitle lies completely inside a deleted range
-        let inside_deleted = merged.iter().any(|(s, e)| sub_start >= s.0 && sub_end <= e.0);
+        let inside_deleted = merged
+            .iter()
+            .any(|(s, e)| sub_start >= s.0 && sub_end <= e.0);
         if inside_deleted {
             subtitles_adjusted += 1;
             continue;

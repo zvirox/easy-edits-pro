@@ -26,7 +26,9 @@ pub struct CompositingNode {
     pub enabled: bool,
 }
 
-fn default_node_enabled() -> bool { true }
+fn default_node_enabled() -> bool {
+    true
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NodeConnection {
@@ -62,8 +64,12 @@ pub struct RotoSplineMask {
     pub points: Vec<RotoSplinePoint>,
 }
 
-fn default_mask_closed() -> bool { true }
-fn default_mask_opacity() -> f64 { 1.0 }
+fn default_mask_closed() -> bool {
+    true
+}
+fn default_mask_opacity() -> f64 {
+    1.0
+}
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct NodeGraph {
@@ -93,7 +99,9 @@ pub struct SpeedRamp {
     pub frame_blend: bool,
 }
 
-fn default_optical_flow() -> bool { true }
+fn default_optical_flow() -> bool {
+    true
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct MotionBlurParams {
@@ -105,9 +113,15 @@ pub struct MotionBlurParams {
     pub samples: u32,
 }
 
-fn default_motion_blur_enabled() -> bool { true }
-fn default_shutter_angle() -> f64 { 180.0 }
-fn default_motion_samples() -> u32 { 8 }
+fn default_motion_blur_enabled() -> bool {
+    true
+}
+fn default_shutter_angle() -> f64 {
+    180.0
+}
+fn default_motion_samples() -> u32 {
+    8
+}
 
 impl Default for MotionBlurParams {
     fn default() -> Self {

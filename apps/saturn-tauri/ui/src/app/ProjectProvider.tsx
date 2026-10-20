@@ -1,5 +1,6 @@
-import { createContext, useCallback, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import type { ProjectStatus } from "./projectTypes";
 
 export type CommandStatus = { enabled: boolean; reason: string | null };
@@ -46,6 +47,23 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     setConnection("Rust core connected");
     return status;
   }, []);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let active = true;
+    void listen("mcp_project_changed", () => {
+      void refreshProject().catch((error: unknown) => {
+        console.error("Could not refresh after an MCP edit:", error);
+      });
+    }).then((dispose) => {
+      if (active) unlisten = dispose;
+      else dispose();
+    });
+    return () => {
+      active = false;
+      unlisten?.();
+    };
+  }, [refreshProject]);
 
   const value = useMemo(() => ({
     projectState, setProjectState, undoStatus, redoStatus, setUndoStatus, setRedoStatus, missingMediaIds,

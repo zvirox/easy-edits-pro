@@ -53,19 +53,25 @@ pub fn parse_timestamp(s: &str) -> Result<Tick, String> {
     let time_tokens: Vec<&str> = time_part.split(':').collect();
     let (hours, mins, secs): (i64, i64, i64) = match time_tokens.as_slice() {
         [h, m, sec] => (
-            h.parse().map_err(|_| format!("Invalid hour in timestamp `{s}`"))?,
-            m.parse().map_err(|_| format!("Invalid minute in timestamp `{s}`"))?,
-            sec.parse().map_err(|_| format!("Invalid second in timestamp `{s}`"))?,
+            h.parse()
+                .map_err(|_| format!("Invalid hour in timestamp `{s}`"))?,
+            m.parse()
+                .map_err(|_| format!("Invalid minute in timestamp `{s}`"))?,
+            sec.parse()
+                .map_err(|_| format!("Invalid second in timestamp `{s}`"))?,
         ),
         [m, sec] => (
             0,
-            m.parse().map_err(|_| format!("Invalid minute in timestamp `{s}`"))?,
-            sec.parse().map_err(|_| format!("Invalid second in timestamp `{s}`"))?,
+            m.parse()
+                .map_err(|_| format!("Invalid minute in timestamp `{s}`"))?,
+            sec.parse()
+                .map_err(|_| format!("Invalid second in timestamp `{s}`"))?,
         ),
         [sec] => (
             0,
             0,
-            sec.parse().map_err(|_| format!("Invalid second in timestamp `{s}`"))?,
+            sec.parse()
+                .map_err(|_| format!("Invalid second in timestamp `{s}`"))?,
         ),
         _ => return Err(format!("Unrecognized time format `{s}`")),
     };
@@ -82,7 +88,11 @@ pub fn parse_srt(content: &str) -> Result<Vec<SubtitleItem>, String> {
     let mut auto_id = 1u64;
 
     for block in blocks {
-        let lines: Vec<&str> = block.lines().map(str::trim).filter(|l| !l.is_empty()).collect();
+        let lines: Vec<&str> = block
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty())
+            .collect();
         if lines.is_empty() {
             continue;
         }
@@ -172,7 +182,11 @@ pub fn parse_vtt(content: &str) -> Result<Vec<SubtitleItem>, String> {
     let mut auto_id = 1u64;
 
     for block in blocks {
-        let block_lines: Vec<&str> = block.lines().map(str::trim).filter(|l| !l.is_empty()).collect();
+        let block_lines: Vec<&str> = block
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty())
+            .collect();
         if block_lines.is_empty() {
             continue;
         }
@@ -294,7 +308,10 @@ Second line of caption.
 
         assert_eq!(subs[1].start_ticks, Tick::from_millis(5200));
         assert_eq!(subs[1].end_ticks, Tick::from_millis(8750));
-        assert_eq!(subs[1].text, "Professional video editing.\nSecond line of caption.");
+        assert_eq!(
+            subs[1].text,
+            "Professional video editing.\nSecond line of caption."
+        );
 
         let exported = export_srt(&subs);
         let round_trip = parse_srt(&exported).unwrap();

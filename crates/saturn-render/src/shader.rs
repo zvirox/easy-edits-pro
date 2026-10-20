@@ -134,10 +134,15 @@ pub fn apply_shader_preset_buffer(
     match preset_id {
         "crt_scanlines" => {
             let density = uniforms.get("u_scanline_density").copied().unwrap_or(0.5);
-            let intensity = uniforms.get("u_scanline_intensity").copied().unwrap_or(0.35) as f32;
+            let intensity = uniforms
+                .get("u_scanline_intensity")
+                .copied()
+                .unwrap_or(0.35) as f32;
             for y in 0..height {
                 let norm_y = y as f32 / height as f32;
-                let scanline = (norm_y * height as f32 * density as f32 * std::f32::consts::PI).sin() * 0.5 + 0.5;
+                let scanline =
+                    (norm_y * height as f32 * density as f32 * std::f32::consts::PI).sin() * 0.5
+                        + 0.5;
                 let factor = 1.0 - (1.0 - scanline) * intensity;
                 let row_start = y * width * 4;
                 for x in 0..width {

@@ -1,6 +1,6 @@
-use std::path::PathBuf;
 use crate::project::{Clip, MediaAsset, MediaKind, ProjectDocument, Track, TrackKind};
 use crate::time::{FrameRate, Tick};
+use std::path::PathBuf;
 
 /// Formats a time `Tick` into a standard SMPTE non-drop timecode `HH:MM:SS:FF`.
 pub fn ticks_to_timecode(tick: Tick, fps: FrameRate) -> String {
@@ -27,13 +27,23 @@ pub fn timecode_to_ticks(tc: &str, fps: FrameRate) -> Result<Tick, String> {
         .collect();
 
     if tokens.len() != 4 {
-        return Err(format!("Invalid timecode format `{tc}`, expected HH:MM:SS:FF"));
+        return Err(format!(
+            "Invalid timecode format `{tc}`, expected HH:MM:SS:FF"
+        ));
     }
 
-    let h: u64 = tokens[0].parse().map_err(|_| format!("Invalid hours in `{tc}`"))?;
-    let m: u64 = tokens[1].parse().map_err(|_| format!("Invalid minutes in `{tc}`"))?;
-    let s: u64 = tokens[2].parse().map_err(|_| format!("Invalid seconds in `{tc}`"))?;
-    let f: u64 = tokens[3].parse().map_err(|_| format!("Invalid frames in `{tc}`"))?;
+    let h: u64 = tokens[0]
+        .parse()
+        .map_err(|_| format!("Invalid hours in `{tc}`"))?;
+    let m: u64 = tokens[1]
+        .parse()
+        .map_err(|_| format!("Invalid minutes in `{tc}`"))?;
+    let s: u64 = tokens[2]
+        .parse()
+        .map_err(|_| format!("Invalid seconds in `{tc}`"))?;
+    let f: u64 = tokens[3]
+        .parse()
+        .map_err(|_| format!("Invalid frames in `{tc}`"))?;
 
     let nom_fps = (fps.numerator / fps.denominator.max(1)).max(1) as u64;
     let total_frames = (h * 3600 + m * 60 + s) * nom_fps + f;
@@ -127,14 +137,21 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
                 let duration = Tick((d_out.0 - d_in.0).max(s_out.0 - s_in.0).max(1));
 
                 // Check next line for "* FROM CLIP NAME: ..."
-                let clip_name = if i + 1 < lines.len() && lines[i + 1].starts_with("* FROM CLIP NAME:") {
-                    lines[i + 1].trim_start_matches("* FROM CLIP NAME:").trim().to_string()
-                } else {
-                    format!("Event {}", parts[0])
-                };
+                let clip_name =
+                    if i + 1 < lines.len() && lines[i + 1].starts_with("* FROM CLIP NAME:") {
+                        lines[i + 1]
+                            .trim_start_matches("* FROM CLIP NAME:")
+                            .trim()
+                            .to_string()
+                    } else {
+                        format!("Event {}", parts[0])
+                    };
 
                 // Add or find media asset
-                let media_id = if let Some(existing) = media_list.iter().find(|m: &&MediaAsset| m.name == clip_name) {
+                let media_id = if let Some(existing) = media_list
+                    .iter()
+                    .find(|m: &&MediaAsset| m.name == clip_name)
+                {
                     existing.id
                 } else {
                     let id = media_id_counter;
@@ -143,7 +160,11 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
                         id,
                         name: clip_name.clone(),
                         path: PathBuf::from(format!("assets/{}", clip_name)),
-                        kind: if track_type.starts_with('V') { MediaKind::Video } else { MediaKind::Audio },
+                        kind: if track_type.starts_with('V') {
+                            MediaKind::Video
+                        } else {
+                            MediaKind::Audio
+                        },
                         duration: Some(Tick(s_out.0 + 100_000)),
                         width: Some(1920),
                         height: Some(1080),
@@ -250,7 +271,10 @@ pub fn export_fcpxml(doc: &ProjectDocument) -> Result<String, String> {
     ));
 
     for media in &doc.project.media {
-        let dur_s = media.duration.map(|d| d.as_millis() as f64 / 1000.0).unwrap_or(60.0);
+        let dur_s = media
+            .duration
+            .map(|d| d.as_millis() as f64 / 1000.0)
+            .unwrap_or(60.0);
         out.push_str(&format!(
             "    <asset id=\"r{}\" name=\"{}\" src=\"{}\" duration=\"{:.3}s\" format=\"r1\" hasVideo=\"true\" hasAudio=\"true\"/>\n",
             media.id,
@@ -273,7 +297,13 @@ pub fn export_fcpxml(doc: &ProjectDocument) -> Result<String, String> {
     ));
     out.push_str("          <spine>\n");
 
-    if let Some(v_track) = doc.project.sequence.tracks.iter().find(|t| t.kind == TrackKind::Video) {
+    if let Some(v_track) = doc
+        .project
+        .sequence
+        .tracks
+        .iter()
+        .find(|t| t.kind == TrackKind::Video)
+    {
         for clip in &v_track.clips {
             let offset_s = clip.timeline_start.as_millis() as f64 / 1000.0;
             let dur_s = clip.duration.as_millis() as f64 / 1000.0;
@@ -326,7 +356,10 @@ pub fn import_fcpxml(xml: &str) -> Result<ProjectDocument, String> {
                 extract_attr(trimmed, "name"),
                 extract_attr(trimmed, "src"),
             ) {
-                let id: u64 = id_str.trim_start_matches('r').parse().unwrap_or(media_list.len() as u64 + 1);
+                let id: u64 = id_str
+                    .trim_start_matches('r')
+                    .parse()
+                    .unwrap_or(media_list.len() as u64 + 1);
                 media_list.push(MediaAsset {
                     id,
                     name,
@@ -406,7 +439,11 @@ pub fn import_fcpxml(xml: &str) -> Result<ProjectDocument, String> {
 pub fn export_premiere_xml(doc: &ProjectDocument) -> Result<String, String> {
     let settings = &doc.project.settings;
     let timebase = (settings.frame_rate.numerator / settings.frame_rate.denominator.max(1)).max(1);
-    let frame_dur = settings.frame_rate.frame_ticks().unwrap_or(10_584_000_000).max(1);
+    let frame_dur = settings
+        .frame_rate
+        .frame_ticks()
+        .unwrap_or(10_584_000_000)
+        .max(1);
     let total_frames = doc.project.sequence.duration().0 / frame_dur;
 
     let mut out = String::new();
@@ -414,10 +451,16 @@ pub fn export_premiere_xml(doc: &ProjectDocument) -> Result<String, String> {
     out.push_str("<!DOCTYPE xmeml>\n");
     out.push_str("<xmeml version=\"5\">\n");
     out.push_str("  <project>\n");
-    out.push_str(&format!("    <name>{}</name>\n", escape_xml(&doc.project.name)));
+    out.push_str(&format!(
+        "    <name>{}</name>\n",
+        escape_xml(&doc.project.name)
+    ));
     out.push_str("    <children>\n");
     out.push_str("      <sequence id=\"sequence-1\">\n");
-    out.push_str(&format!("        <name>{}</name>\n", escape_xml(&doc.project.sequence.name)));
+    out.push_str(&format!(
+        "        <name>{}</name>\n",
+        escape_xml(&doc.project.sequence.name)
+    ));
     out.push_str(&format!("        <duration>{}</duration>\n", total_frames));
     out.push_str("        <rate>\n");
     out.push_str(&format!("          <timebase>{}</timebase>\n", timebase));
@@ -427,12 +470,25 @@ pub fn export_premiere_xml(doc: &ProjectDocument) -> Result<String, String> {
     out.push_str("          <video>\n");
     out.push_str("            <format>\n");
     out.push_str("              <samplecharacteristics>\n");
-    out.push_str(&format!("                <width>{}</width>\n", settings.width));
-    out.push_str(&format!("                <height>{}</height>\n", settings.height));
+    out.push_str(&format!(
+        "                <width>{}</width>\n",
+        settings.width
+    ));
+    out.push_str(&format!(
+        "                <height>{}</height>\n",
+        settings.height
+    ));
     out.push_str("              </samplecharacteristics>\n");
     out.push_str("            </format>\n");
 
-    for (t_idx, track) in doc.project.sequence.tracks.iter().filter(|t| t.kind == TrackKind::Video).enumerate() {
+    for (t_idx, track) in doc
+        .project
+        .sequence
+        .tracks
+        .iter()
+        .filter(|t| t.kind == TrackKind::Video)
+        .enumerate()
+    {
         out.push_str("            <track>\n");
         for (c_idx, clip) in track.clips.iter().enumerate() {
             let start_f = clip.timeline_start.0 / frame_dur;
@@ -455,15 +511,30 @@ pub fn export_premiere_xml(doc: &ProjectDocument) -> Result<String, String> {
                 .map(|m| m.path.to_string_lossy().into_owned())
                 .unwrap_or_default();
 
-            out.push_str(&format!("              <clipitem id=\"clipitem-{}-{}\">\n", t_idx, c_idx));
-            out.push_str(&format!("                <name>{}</name>\n", escape_xml(name)));
+            out.push_str(&format!(
+                "              <clipitem id=\"clipitem-{}-{}\">\n",
+                t_idx, c_idx
+            ));
+            out.push_str(&format!(
+                "                <name>{}</name>\n",
+                escape_xml(name)
+            ));
             out.push_str(&format!("                <start>{}</start>\n", start_f));
             out.push_str(&format!("                <end>{}</end>\n", end_f));
             out.push_str(&format!("                <in>{}</in>\n", in_f));
             out.push_str(&format!("                <out>{}</out>\n", out_f));
-            out.push_str(&format!("                <file id=\"file-{}\">\n", clip.media_id));
-            out.push_str(&format!("                  <name>{}</name>\n", escape_xml(name)));
-            out.push_str(&format!("                  <pathurl>{}</pathurl>\n", escape_xml(&path)));
+            out.push_str(&format!(
+                "                <file id=\"file-{}\">\n",
+                clip.media_id
+            ));
+            out.push_str(&format!(
+                "                  <name>{}</name>\n",
+                escape_xml(name)
+            ));
+            out.push_str(&format!(
+                "                  <pathurl>{}</pathurl>\n",
+                escape_xml(&path)
+            ));
             out.push_str("                </file>\n");
             out.push_str("              </clipitem>\n");
         }
@@ -503,9 +574,15 @@ pub fn import_premiere_xml(xml: &str) -> Result<ProjectDocument, String> {
 
         let name = extract_tag_content(block, "name").unwrap_or_else(|| format!("Clip {}", idx));
         let path = extract_tag_content(block, "pathurl").unwrap_or_default();
-        let start_f: i64 = extract_tag_content(block, "start").and_then(|s| s.parse().ok()).unwrap_or(0);
-        let end_f: i64 = extract_tag_content(block, "end").and_then(|s| s.parse().ok()).unwrap_or(start_f + 120);
-        let in_f: i64 = extract_tag_content(block, "in").and_then(|s| s.parse().ok()).unwrap_or(0);
+        let start_f: i64 = extract_tag_content(block, "start")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0);
+        let end_f: i64 = extract_tag_content(block, "end")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(start_f + 120);
+        let in_f: i64 = extract_tag_content(block, "in")
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(0);
 
         let media_id = idx as u64;
         media_list.push(MediaAsset {
@@ -650,8 +727,12 @@ pub fn export_otio(doc: &ProjectDocument) -> Result<String, String> {
             let dur_frames = (clip.duration.0 / frame_ticks).max(1) as f64;
             let in_frames = (clip.source_in.0 / frame_ticks).max(0) as f64;
             let media_asset = doc.project.media.iter().find(|m| m.id == clip.media_id);
-            let media_name = media_asset.map(|m| m.name.clone()).unwrap_or_else(|| "Clip".into());
-            let media_path = media_asset.map(|m| m.path.to_string_lossy().into_owned()).unwrap_or_default();
+            let media_name = media_asset
+                .map(|m| m.name.clone())
+                .unwrap_or_else(|| "Clip".into());
+            let media_path = media_asset
+                .map(|m| m.path.to_string_lossy().into_owned())
+                .unwrap_or_default();
 
             children.push(serde_json::json!({
                 "OTIO_SCHEMA": "Clip.1",
@@ -713,20 +794,29 @@ pub fn export_otio(doc: &ProjectDocument) -> Result<String, String> {
         }
     });
 
-    serde_json::to_string_pretty(&otio_timeline).map_err(|e| format!("Failed to serialize OTIO: {e}"))
+    serde_json::to_string_pretty(&otio_timeline)
+        .map_err(|e| format!("Failed to serialize OTIO: {e}"))
 }
 
 /// Imports an OpenTimelineIO (.otio) JSON string into a new `ProjectDocument`.
 pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument, String> {
-    let root: serde_json::Value = serde_json::from_str(content)
-        .map_err(|e| format!("Invalid OpenTimelineIO JSON: {e}"))?;
+    let root: serde_json::Value =
+        serde_json::from_str(content).map_err(|e| format!("Invalid OpenTimelineIO JSON: {e}"))?;
 
-    let schema = root.get("OTIO_SCHEMA").and_then(|v| v.as_str()).unwrap_or_default();
+    let schema = root
+        .get("OTIO_SCHEMA")
+        .and_then(|v| v.as_str())
+        .unwrap_or_default();
     if !schema.starts_with("Timeline.") {
-        return Err(format!("Unsupported or invalid OTIO root schema `{schema}`, expected `Timeline.1`"));
+        return Err(format!(
+            "Unsupported or invalid OTIO root schema `{schema}`, expected `Timeline.1`"
+        ));
     }
 
-    let seq_name = root.get("name").and_then(|v| v.as_str()).unwrap_or("Imported OTIO Sequence");
+    let seq_name = root
+        .get("name")
+        .and_then(|v| v.as_str())
+        .unwrap_or("Imported OTIO Sequence");
     let mut doc = ProjectDocument::new(project_name);
     doc.project.sequence.name = seq_name.to_string();
     doc.project.sequence.tracks.clear();
@@ -745,25 +835,45 @@ pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument,
     let mut next_track_id = 1u64;
 
     for (t_idx, track_val) in track_children.iter().enumerate() {
-        let kind_str = track_val.get("kind").and_then(|k| k.as_str()).unwrap_or("Video");
+        let kind_str = track_val
+            .get("kind")
+            .and_then(|k| k.as_str())
+            .unwrap_or("Video");
         let track_kind = if kind_str.eq_ignore_ascii_case("audio") {
             TrackKind::Audio
         } else {
             TrackKind::Video
         };
-        let t_name = track_val.get("name")
-            .and_then(|n| n.as_str())
-            .unwrap_or(if track_kind == TrackKind::Video { "V1" } else { "A1" });
+        let t_name = track_val.get("name").and_then(|n| n.as_str()).unwrap_or(
+            if track_kind == TrackKind::Video {
+                "V1"
+            } else {
+                "A1"
+            },
+        );
 
         let mut clips = Vec::new();
         let mut current_timeline_tick = 0i64;
 
         if let Some(children) = track_val.get("children").and_then(|c| c.as_array()) {
             for item in children {
-                let item_schema = item.get("OTIO_SCHEMA").and_then(|s| s.as_str()).unwrap_or_default();
-                let dur_val = item.pointer("/source_range/duration/value").and_then(|v| v.as_f64()).unwrap_or(0.0);
-                let rate_val = item.pointer("/source_range/duration/rate").and_then(|v| v.as_f64()).unwrap_or(default_rate);
-                let rate_ratio = if rate_val > 0.0 { default_rate / rate_val } else { 1.0 };
+                let item_schema = item
+                    .get("OTIO_SCHEMA")
+                    .and_then(|s| s.as_str())
+                    .unwrap_or_default();
+                let dur_val = item
+                    .pointer("/source_range/duration/value")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                let rate_val = item
+                    .pointer("/source_range/duration/rate")
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(default_rate);
+                let rate_ratio = if rate_val > 0.0 {
+                    default_rate / rate_val
+                } else {
+                    1.0
+                };
                 let dur_ticks = (dur_val * rate_ratio * frame_ticks as f64) as i64;
 
                 if item_schema.starts_with("Gap.") {
@@ -772,17 +882,34 @@ pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument,
                 }
 
                 if item_schema.starts_with("Clip.") {
-                    let in_val = item.pointer("/source_range/start_time/value").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                    let in_val = item
+                        .pointer("/source_range/start_time/value")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(0.0);
                     let in_ticks = (in_val * rate_ratio * frame_ticks as f64) as i64;
 
-                    let raw_url = item.pointer("/media_reference/target_url").and_then(|u| u.as_str()).unwrap_or("");
+                    let raw_url = item
+                        .pointer("/media_reference/target_url")
+                        .and_then(|u| u.as_str())
+                        .unwrap_or("");
                     let clean_path = raw_url.strip_prefix("file://").unwrap_or(raw_url);
-                    let clip_name = item.get("name").and_then(|n| n.as_str()).unwrap_or_else(|| {
-                        std::path::Path::new(clean_path).file_name().and_then(|f| f.to_str()).unwrap_or("Asset")
-                    });
+                    let clip_name =
+                        item.get("name")
+                            .and_then(|n| n.as_str())
+                            .unwrap_or_else(|| {
+                                std::path::Path::new(clean_path)
+                                    .file_name()
+                                    .and_then(|f| f.to_str())
+                                    .unwrap_or("Asset")
+                            });
 
                     // Find or create MediaAsset
-                    let media_id = if let Some(existing) = doc.project.media.iter().find(|m| m.name == clip_name || m.path.to_string_lossy() == clean_path) {
+                    let media_id = if let Some(existing) = doc
+                        .project
+                        .media
+                        .iter()
+                        .find(|m| m.name == clip_name || m.path.to_string_lossy() == clean_path)
+                    {
                         existing.id
                     } else {
                         let id = next_media_id;
@@ -791,10 +918,22 @@ pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument,
                             id,
                             name: clip_name.to_string(),
                             path: PathBuf::from(clean_path),
-                            kind: if track_kind == TrackKind::Audio { MediaKind::Audio } else { MediaKind::Video },
+                            kind: if track_kind == TrackKind::Audio {
+                                MediaKind::Audio
+                            } else {
+                                MediaKind::Video
+                            },
                             duration: Some(Tick(dur_ticks.max(frame_ticks * 30))),
-                            width: if track_kind == TrackKind::Video { Some(1920) } else { None },
-                            height: if track_kind == TrackKind::Video { Some(1080) } else { None },
+                            width: if track_kind == TrackKind::Video {
+                                Some(1920)
+                            } else {
+                                None
+                            },
+                            height: if track_kind == TrackKind::Video {
+                                Some(1080)
+                            } else {
+                                None
+                            },
                             ..Default::default()
                         });
                         id

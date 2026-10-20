@@ -208,7 +208,11 @@ impl GpuPreviewPipeline {
     /// Read current presentation performance telemetry.
     pub fn metrics(&self) -> PresentationMetrics {
         let fps = if self.frame_counter > 0 { 60.0 } else { 0.0 };
-        let bandwidth_gbps = ((self.surface_width as f64 * self.surface_height as f64 * 4.0 * fps) / 1_000_000_000.0 * 100.0).round() / 100.0;
+        let bandwidth_gbps = ((self.surface_width as f64 * self.surface_height as f64 * 4.0 * fps)
+            / 1_000_000_000.0
+            * 100.0)
+            .round()
+            / 100.0;
         PresentationMetrics {
             frame_index: self.frame_counter,
             presentation_time_us: if self.frame_counter > 0 { 16_666 } else { 0 },

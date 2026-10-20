@@ -1,11 +1,11 @@
 //! Sequence Module
 
-use crate::time::{Ticks, TICKS_PER_SECOND, TimelineError};
-use crate::{FrameRate, Timecode, TimelineTime, TrackId, ClipId, ClipRef, Track};
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use std::collections::HashMap;
+use crate::time::{TICKS_PER_SECOND, Ticks, TimelineError};
+use crate::{ClipId, ClipRef, FrameRate, Timecode, TimelineTime, Track, TrackId};
 use chrono;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use uuid::Uuid;
 
 /// Sequence settings
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -177,7 +177,12 @@ impl Sequence {
         self.tracks.get_mut(&track_id)
     }
 
-    pub fn move_clip(&mut self, clip_id: ClipId, to_track: Option<TrackId>, new_start: Option<Ticks>) -> Result<(), TimelineError> {
+    pub fn move_clip(
+        &mut self,
+        clip_id: ClipId,
+        to_track: Option<TrackId>,
+        new_start: Option<Ticks>,
+    ) -> Result<(), TimelineError> {
         // Find and remove clip from current track
         let mut clip_ref = None;
         let mut from_track_id = None;
@@ -212,6 +217,7 @@ impl Sequence {
     }
 
     pub fn remove_nested_sequence(&mut self, sequence_id: SequenceId) {
-        self.nested_sequences.retain(|s| s.sequence_id != sequence_id);
+        self.nested_sequences
+            .retain(|s| s.sequence_id != sequence_id);
     }
 }

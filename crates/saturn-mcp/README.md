@@ -1,82 +1,74 @@
 # saturn-mcp
 
-MCP (Model Context Protocol) server for Easy Edits Pro — AI-assisted video editing.
+Model Context Protocol stdio server for Easy Edits Pro. The server calls
+`saturn-core::EditorEngine` directly, so the exposed command list and edits use
+the same Rust command dispatcher as the desktop app and CLI.
 
-## Features
+## Available tools
 
-- **Tools** — AI-callable editing operations
-- **Resources** — Timeline state, project metadata, media bins
-- **Prompts** — Guided workflows for common editing tasks
-- **Standard MCP** — Compatible with Claude, Cursor, Continue, etc.
+| Tool | Purpose |
+|---|---|
+| `command_list` | Discover engine command ids, labels, menu paths, shortcuts, and current enabled state. Supports a text filter. |
+| `command_run` | Run one engine command with its JSON parameters. |
+| `command_batch` | Run several commands in order, with optional stop-on-error behavior. Each successful command is applied separately. |
+| `doc_inspect` | Read the project document, active sequence, current path, and dirty state. |
+| `sequence_inspect` | Read the active sequence and its tracks/clips. |
+| `media_search` | Search imported media by name/path and optional type. |
+| `media_preview` | Inspect one asset and its timeline placements; returns the source path for client preview. |
+| `render_start` | Start an asynchronous MP4/WebM render and return its job id. |
+| `render_status` | Read queued/running progress and terminal render state. |
+| `render_cancel` | Cancel a queued or active render and remove partial output. |
+| `render_project` | Compatibility export tool; use the job tools for progress/cancellation. |
 
-## Tools
+The bridge workflow has been smoke-tested against the running desktop app with
+video and audio media: MCP added both to a sequence, split the video clip,
+updated track EQ/compression, saved an `.eep` project, and rendered an H.264/AAC
+MP4. A native desktop workflow also exercised media search/placement preview,
+Color, Effects, Keyframes, Fusion node creation, Fairlight automation/DSP state,
+transition rendering, render cancellation, and an increasing progress report on
+a 30-second render. This machine used the x264 software encoder. `--bridge`
+connects to the project open in the desktop app; commands share
+the app's undo history and the UI refreshes after MCP edits. Bridge requests are
+local and limited to 1 MiB. Render job progress/cancellation and project media
+search/asset inspection are implemented. `media_preview` returns asset metadata,
+the source path, and sequence placements; it does not yet extract a still frame.
+The desktop bridge currently uses a private Unix socket and is unavailable on
+Windows. UI automation and MCP resources/prompts remain future work. See the
+[FilmCraft parity roadmap](../../docs/filmcraft-parity-roadmap.md).
 
-| Tool | Description |
-|------|-------------|
-| `saturn.analyzeTimeline` | Analyze structure, detect gaps/overlaps, suggest optimizations |
-| `saturn.suggestEdit` | Suggest edits based on context, selection, playhead |
-| `saturn.batchOperation` | Execute multiple commands atomically with single undo |
-| `saturn.searchMedia` | Natural language media search (e.g., "close up person talking") |
-| `saturn.createTemplate` | Create project/graphics/sequence/bin templates from spec |
-
-## Resources
-
-```
-saturn://project/{id}/timeline     — Current timeline state
-saturn://project/{id}/media        — Media bin contents
-saturn://project/{id}/sequences    — All sequences
-saturn://project/{id}/tracks       — Track layout
-```
-
-## Prompts
-
-- `editing-workflow` — Guided edit session from rough cut to final
-- `color-grading` — Step-by-step color correction workflow
-- `audio-mixing` — Fairlight console mixing guide
-- `multi-cam-sync` — Multi-camera synchronization workflow
-
-## Usage
+## Run
 
 ```bash
-# Start MCP server (stdio transport for Claude Desktop)
+# Start with a new, unsaved project
 cargo run -p saturn-mcp
 
-# Or with custom transport
-cargo run -p saturn-mcp -- --transport tcp --port 3000
+# Start with an existing Easy Edits Pro project file
+cargo run -p saturn-mcp -- --project /path/to/project.eep
+
+# Connect to the project in the running desktop app (Unix desktop)
+cargo run -p saturn-mcp -- --bridge
 ```
 
-## Configuration (Claude Desktop)
+The server uses MCP stdio transport. Configure the MCP client with the executable
+and optional arguments, for example:
 
 ```json
 {
   "mcpServers": {
     "easy-edits-pro": {
-      "command": "saturn-mcp",
-      "args": []
+      "command": "cargo",
+      "args": ["run", "--quiet", "-p", "saturn-mcp", "--", "--bridge"]
     }
   }
 }
 ```
 
-## Example AI Interaction
-
-**User:** "Add a cross dissolve between the two clips on track V1"
-
-**AI:** Calls `saturn.suggestEdit` with context, returns:
-```json
-{
-  "command": "timeline.addTransition",
-  "params": {
-    "track_id": "V1",
-    "clip_id": "clip_2",
-    "transition": "cross_dissolve",
-    "duration": 1.0
-  }
-}
-```
-
-## Running Tests
-
-```bash
-cargo test -p saturn-mcp
-```
+Use `command_list` first to retrieve valid command ids and their menu metadata;
+pass the chosen id and command-specific parameters to `command_run`. Use
+`media_search` and `media_preview` to locate assets and inspect their timeline
+placements. Start exports with `render_start`, then poll `render_status` using
+the returned `job_id`; call `render_cancel` to stop a queued or running export.
+Pass an absolute `.mp4` or `.webm` `output_path`; settings default to the project
+sequence. To export a selected clip or section, pass
+`range: {"start_ticks": ..., "end_ticks": ...}` in project ticks, or use
+sequence In/Out marks with `use_mark_range: true`.

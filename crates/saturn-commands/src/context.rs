@@ -1,10 +1,8 @@
 //! Command execution context and handler system
 
 use crate::{
-    CommandId, CommandSpec, RegistryError, ValidationError,
-    CommandPriority, ExecutionMode, CommandCategory,
-    params::ParamSchema,
-    HandlerError,
+    CommandCategory, CommandId, CommandPriority, CommandSpec, ExecutionMode, HandlerError,
+    RegistryError, ValidationError, params::ParamSchema,
 };
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
@@ -79,22 +77,30 @@ pub struct ExecutionContext<'a> {
 
 impl<'a> ExecutionContext<'a> {
     pub fn get<T: serde::de::DeserializeOwned>(&self, name: &str) -> Result<T, ValidationError> {
-        let value = self.params.get(name).ok_or_else(|| ValidationError::MissingRequired(name.to_string()))?;
+        let value = self
+            .params
+            .get(name)
+            .ok_or_else(|| ValidationError::MissingRequired(name.to_string()))?;
         serde_json::from_value(value.clone()).map_err(|e| ValidationError::Custom {
             param: name.to_string(),
             message: format!("failed to deserialize: {e}"),
         })
     }
 
-    pub fn get_opt<T: serde::de::DeserializeOwned>(&self, name: &str) -> Result<Option<T>, ValidationError> {
+    pub fn get_opt<T: serde::de::DeserializeOwned>(
+        &self,
+        name: &str,
+    ) -> Result<Option<T>, ValidationError> {
         if let Some(value) = self.params.get(name) {
             if value.is_null() {
                 return Ok(None);
             }
-            Ok(Some(serde_json::from_value(value.clone()).map_err(|e| ValidationError::Custom {
-                param: name.to_string(),
-                message: format!("failed to deserialize: {e}"),
-            })?))
+            Ok(Some(serde_json::from_value(value.clone()).map_err(
+                |e| ValidationError::Custom {
+                    param: name.to_string(),
+                    message: format!("failed to deserialize: {e}"),
+                },
+            )?))
         } else {
             Ok(None)
         }
@@ -116,18 +122,49 @@ impl<'a> ExecutionContext<'a> {
 /// Application events
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AppEvent {
-    CommandStarted { command_id: CommandId, execution_id: Uuid },
-    CommandCompleted { command_id: CommandId, execution_id: Uuid, success: bool },
-    ProjectChanged { project_id: Uuid },
-    SequenceChanged { sequence_id: Uuid },
-    SelectionChanged { selection: SelectionState },
-    PlayheadMoved { position: u64 },
-    TrackAdded { track_id: Uuid },
-    TrackRemoved { track_id: Uuid },
-    ClipAdded { clip_id: Uuid, track_id: Uuid },
-    ClipRemoved { clip_id: Uuid },
-    ClipMoved { clip_id: Uuid, old_position: u64, new_position: u64 },
-    UndoStackChanged { can_undo: bool, can_redo: bool },
+    CommandStarted {
+        command_id: CommandId,
+        execution_id: Uuid,
+    },
+    CommandCompleted {
+        command_id: CommandId,
+        execution_id: Uuid,
+        success: bool,
+    },
+    ProjectChanged {
+        project_id: Uuid,
+    },
+    SequenceChanged {
+        sequence_id: Uuid,
+    },
+    SelectionChanged {
+        selection: SelectionState,
+    },
+    PlayheadMoved {
+        position: u64,
+    },
+    TrackAdded {
+        track_id: Uuid,
+    },
+    TrackRemoved {
+        track_id: Uuid,
+    },
+    ClipAdded {
+        clip_id: Uuid,
+        track_id: Uuid,
+    },
+    ClipRemoved {
+        clip_id: Uuid,
+    },
+    ClipMoved {
+        clip_id: Uuid,
+        old_position: u64,
+        new_position: u64,
+    },
+    UndoStackChanged {
+        can_undo: bool,
+        can_redo: bool,
+    },
 }
 
 /// Event bus
@@ -137,7 +174,9 @@ pub struct EventBus {
 
 impl EventBus {
     pub fn new() -> Self {
-        Self { subscribers: RwLock::new(Vec::new()) }
+        Self {
+            subscribers: RwLock::new(Vec::new()),
+        }
     }
 
     pub fn subscribe(&self, f: impl Fn(AppEvent) + Send + Sync + 'static) {

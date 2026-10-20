@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -20,13 +20,30 @@ impl std::fmt::Display for JobId {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum JobKind {
-    ProxyGeneration { media_id: u64, source_path: PathBuf },
-    WaveformDecoding { media_id: u64, source_path: PathBuf },
-    ExportRendering { output_path: PathBuf },
-    BatchExport { output_path: PathBuf, preset: String },
-    MotionTracking { clip_id: u64 },
-    MediaProbe { path: PathBuf },
-    Custom { name: String },
+    ProxyGeneration {
+        media_id: u64,
+        source_path: PathBuf,
+    },
+    WaveformDecoding {
+        media_id: u64,
+        source_path: PathBuf,
+    },
+    ExportRendering {
+        output_path: PathBuf,
+    },
+    BatchExport {
+        output_path: PathBuf,
+        preset: String,
+    },
+    MotionTracking {
+        clip_id: u64,
+    },
+    MediaProbe {
+        path: PathBuf,
+    },
+    Custom {
+        name: String,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -54,7 +71,10 @@ impl JobState {
     }
 
     pub fn is_terminal(&self) -> bool {
-        matches!(self, JobState::Completed { .. } | JobState::Failed { .. } | JobState::Cancelled)
+        matches!(
+            self,
+            JobState::Completed { .. } | JobState::Failed { .. } | JobState::Cancelled
+        )
     }
 }
 
@@ -207,7 +227,11 @@ impl JobManager {
         kind: JobKind,
         priority: JobPriority,
         task: impl FnOnce(&JobContext) -> Result<Option<String>, String> + Send + 'static,
-    ) -> (JobId, CancellationToken, Receiver<Result<Option<String>, String>>) {
+    ) -> (
+        JobId,
+        CancellationToken,
+        Receiver<Result<Option<String>, String>>,
+    ) {
         let id = JobId(self.inner.next_id.fetch_add(1, Ordering::SeqCst));
         let cancellation = CancellationToken::new();
         let (tx, rx) = channel();
@@ -280,7 +304,8 @@ impl JobManager {
         }
 
         // Check if it's currently running
-        if let Some((info, cancellation)) = state.running.iter_mut().find(|(item, _)| item.id == id) {
+        if let Some((info, cancellation)) = state.running.iter_mut().find(|(item, _)| item.id == id)
+        {
             cancellation.cancel();
             info.state = JobState::Cancelled;
             let info_copy = info.clone();
@@ -401,7 +426,9 @@ impl JobManager {
                             phase: "Starting".into(),
                         };
                         info.started_at = Some(now_epoch_ms());
-                        state.running.push((info.clone(), queued.cancellation.clone()));
+                        state
+                            .running
+                            .push((info.clone(), queued.cancellation.clone()));
 
                         break Some((info, queued.cancellation, queued.result_sender, queued.task));
                     }
@@ -417,23 +444,26 @@ impl JobManager {
 
             let inner_for_progress = Arc::clone(&inner);
             let job_id = info.id;
-            let progress_sender: Arc<dyn Fn(f32, String) + Send + Sync> = Arc::new(move |fraction, phase| {
-                let updated_info = {
-                    let mut state = inner_for_progress.queue.lock().unwrap();
-                    if let Some((run_info, _)) = state.running.iter_mut().find(|(i, _)| i.id == job_id) {
-                        run_info.state = JobState::Running {
-                            progress: fraction,
-                            phase: phase.clone(),
-                        };
-                        Some(run_info.clone())
-                    } else {
-                        None
+            let progress_sender: Arc<dyn Fn(f32, String) + Send + Sync> =
+                Arc::new(move |fraction, phase| {
+                    let updated_info = {
+                        let mut state = inner_for_progress.queue.lock().unwrap();
+                        if let Some((run_info, _)) =
+                            state.running.iter_mut().find(|(i, _)| i.id == job_id)
+                        {
+                            run_info.state = JobState::Running {
+                                progress: fraction,
+                                phase: phase.clone(),
+                            };
+                            Some(run_info.clone())
+                        } else {
+                            None
+                        }
+                    };
+                    if let Some(info) = updated_info {
+                        Self::notify_listeners(&inner_for_progress, &info);
                     }
-                };
-                if let Some(info) = updated_info {
-                    Self::notify_listeners(&inner_for_progress, &info);
-                }
-            });
+                });
 
             let ctx = JobContext {
                 job_id,
@@ -442,9 +472,7 @@ impl JobManager {
                 progress_sender,
             };
 
-            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                task(&ctx)
-            }));
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| task(&ctx)));
 
             let final_state = match result {
                 Ok(Ok(output)) => {
@@ -517,7 +545,9 @@ mod tests {
 
         let (id, _cancel, rx) = manager.submit(
             "Test Task",
-            JobKind::Custom { name: "test".into() },
+            JobKind::Custom {
+                name: "test".into(),
+            },
             JobPriority::Normal,
             |ctx| {
                 ctx.update_progress(0.5, "Halfway");
@@ -525,11 +555,15 @@ mod tests {
             },
         );
 
-        let result = rx.recv_timeout(Duration::from_secs(2)).expect("Did not receive job result");
+        let result = rx
+            .recv_timeout(Duration::from_secs(2))
+            .expect("Did not receive job result");
         assert_eq!(result, Ok(Some("All done".into())));
 
         if let Some(info) = manager.get_job(id) {
-            assert!(matches!(info.state, JobState::Completed { output: Some(ref s) } if s == "All done"));
+            assert!(
+                matches!(info.state, JobState::Completed { output: Some(ref s) } if s == "All done")
+            );
         } else {
             panic!("Job not found");
         }
@@ -542,7 +576,9 @@ mod tests {
         let manager = JobManager::new(1);
         let (id, _cancel, rx) = manager.submit(
             "Long running task",
-            JobKind::Custom { name: "sleep".into() },
+            JobKind::Custom {
+                name: "sleep".into(),
+            },
             JobPriority::Normal,
             |ctx| {
                 for _ in 0..100 {
@@ -559,7 +595,9 @@ mod tests {
         let cancelled = manager.cancel(id);
         assert!(cancelled);
 
-        let result = rx.recv_timeout(Duration::from_secs(2)).expect("Did not receive result after cancel");
+        let result = rx
+            .recv_timeout(Duration::from_secs(2))
+            .expect("Did not receive result after cancel");
         assert!(result.is_err());
 
         if let Some(info) = manager.get_job(id) {
@@ -574,7 +612,9 @@ mod tests {
         let blocker_done_clone = Arc::clone(&blocker_done);
         manager.submit_detached(
             "Blocker",
-            JobKind::Custom { name: "blocker".into() },
+            JobKind::Custom {
+                name: "blocker".into(),
+            },
             JobPriority::Immediate,
             move |_ctx| {
                 while !blocker_done_clone.load(Ordering::SeqCst) {
@@ -600,7 +640,9 @@ mod tests {
 
         manager.submit_detached(
             "High priority",
-            JobKind::Custom { name: "high".into() },
+            JobKind::Custom {
+                name: "high".into(),
+            },
             JobPriority::High,
             move |_ctx| {
                 order_clone2.lock().unwrap().push("high");

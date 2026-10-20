@@ -3,7 +3,16 @@ use saturn_core::project::{ColorWheelParam, ColorWheels};
 /// Applies Lift, Gamma, Gain, and Offset color wheel grading to an RGB triple.
 /// Values are in [0.0, 1.0] range.
 pub fn apply_color_wheels_rgb(r: f64, g: f64, b: f64, wheels: &ColorWheels) -> (f64, f64, f64) {
-    let process_channel = |val: f64, lift: &ColorWheelParam, gamma: &ColorWheelParam, gain: &ColorWheelParam, offset: &ColorWheelParam, c_lift: f64, c_gamma: f64, c_gain: f64, c_offset: f64| -> f64 {
+    let process_channel = |val: f64,
+                           lift: &ColorWheelParam,
+                           gamma: &ColorWheelParam,
+                           gain: &ColorWheelParam,
+                           offset: &ColorWheelParam,
+                           c_lift: f64,
+                           c_gamma: f64,
+                           c_gain: f64,
+                           c_offset: f64|
+     -> f64 {
         let v = val.clamp(0.0, 1.0);
 
         // 1. Lift (affects shadows predominantly)

@@ -68,21 +68,21 @@ Easy Edits Pro mirrors the streamlined, task-oriented workflow of industry-stand
   <tr>
     <td width="50%">
       <h3>3. Color Grading Studio <kbd>Shift + 3</kbd></h3>
-      <p>4 interactive 3-way color balance wheels (Lift, Gamma, Gain, Offset) with 2D chromaticity pucks, master luma rings, 3D LUT (.cube) tetrahedral grading, and real-time GPU scopes (Waveform, Vectorscope, Histogram, Parade).</p>
+      <p>Color wheels and basic grading state are connected to project clips. Advanced curves, HSL controls, presets, LUT loading, and scopes remain in development.</p>
     </td>
     <td width="50%">
       <h3>4. Fairlight Audio Studio <kbd>Shift + 4</kbd></h3>
-      <p>Multi-track mixing console with long-throw vertical dB faders, 60fps LED stereo peak VU meters, track pan knobs, Submix/Aux bus routing, fader automation modes (Read/Touch/Latch/Write), and VST3 plugin inserts.</p>
+      <p>Multi-track mixer with gain, pan, mute/solo, bus routing, EQ/compression controls, meters, and Read-mode volume/pan automation playback. Plugin slots currently store metadata; native VST3 hosting is not available.</p>
     </td>
   </tr>
   <tr>
     <td width="50%">
       <h3>5. Effects &amp; Keyframes <kbd>Shift + 5</kbd></h3>
-      <p>Composable multi-effect stack (Color Correction, Gaussian Blur, Crop, Vignette, Chroma Key), cubic bezier keyframe spline editor with Ease-In / Ease-Out tangent handles, and Lucas-Kanade optical flow motion tracking.</p>
+      <p>Clips support effect stacks and keyframes. Effect reorder/parameter editing and keyframe tangent-handle editing are unfinished; motion tracking is available as a separate engine workflow.</p>
     </td>
     <td width="50%">
       <h3>6. Delivery &amp; Batch Queue <kbd>Shift + 6</kbd></h3>
-      <p>Multi-job batch export queue with background worker daemon, atomic pause/resume controls, target delivery presets (YouTube, TikTok 9:16, Cinema 4K), and GPU hardware encoding (NVENC, VA-API, QSV).</p>
+      <p>MP4/WebM rendering and asynchronous MCP render jobs are available. The export queue UI and hardware output still need verification; this machine rendered with the x264 software encoder.</p>
     </td>
   </tr>
 </table>
@@ -109,10 +109,11 @@ Easy Edits Pro mirrors the streamlined, task-oriented workflow of industry-stand
 - **On-Screen Tracking Target:** High-visibility dashed crosshair overlay with corner brackets on the Program monitor.
 
 ### 🎚️ Fairlight Multitrack Mixer &amp; Automation
-- **Console Strips:** Motorized vertical faders with unity gain resets (<kbd>0 dB</kbd>), rotary stereo pan sliders, and dual stereo LED VU peak meters.
-- **Bus Routing Matrix:** Assign each track dynamically to `Master`, `Submix 1 (DX Dialogue)`, `Submix 2 (MX Music)`, or `Aux FX (Reverb)`.
-- **Fader Automation Modes:** `Read`, `Touch` (punch-in on mouse drag), `Latch`, and `Write` for volume and pan envelopes.
-- **VST3 Host Architecture:** Insert native DSP effects including Parametric 4-band EQ, Dynamics Compressor, De-Esser Pro, and Stereo Chorus.
+- **Console Strips:** Track gain and pan, mute/solo/lock controls, stereo VU meters, live EQ, compressor, and high-pass cleanup controls.
+- **Audio routing:** Track routes and bus gain settings are stored in the project and reflected in the Web Audio playback graph.
+- **Automation modes:** Off/Read/Touch/Latch/Write modes and automation data are stored; Read-mode volume and pan curves now play back with interpolation.
+- **Plugin slots:** Slot metadata can be added and toggled, but EEP does not yet host native VST3 plugins or process those slots.
+- **Loudness:** Live browser playback meters use the EBU R128 meter and support EBU, streaming, and ATSC target standards.
 
 ### ⚡ Batch Render Queue &amp; Background Worker
 - **Thread-Safe Daemon:** Multi-threaded Rust worker daemon (`saturn-core/src/job.rs`) with prioritized execution (`Immediate`, `High`, `Normal`, `Background`) and cooperative cancellation tokens.
@@ -221,10 +222,19 @@ Motion graphics templates with keyframe animation:
 - **Smart folders** auto-populate from metadata
 
 ### saturn-mcp — MCP Server for AI Editing
-Model Context Protocol server for AI-assisted workflows:
-- **Tools**: analyzeTimeline, suggestEdit, batchOperation, searchMedia, createTemplate
-- **Resources**: timeline state, project metadata, media bins
-- **Prompts**: editing workflows, color grading, audio mixing guides
+Model Context Protocol stdio server connected to `saturn-core::EditorEngine`:
+- **Available tools**: discover and run engine commands, inspect projects/sequences, search project media, and inspect media placements
+- **Project session**: headless mode can open a project path; `--bridge` connects to the project open in the running desktop app through a private same-user Unix socket
+- **Export**: render the active sequence or a selected timeline tick range to MP4 or WebM using the project's render pipeline
+- **Verified workflow**: add video and audio media, add and split clips, save the project, update audio DSP, and render both the sequence and a selected range to H.264/AAC MP4 through the running-app bridge
+- **Render jobs**: asynchronous export progress and cancellation through `render_start`, `render_status`, and `render_cancel`
+- **Native workflow tested**: created, saved, reopened, edited, and rendered a project containing a real recording, audio, color/effect/keyframe/node operations, and a transition
+- **Preview limitation**: asset metadata, source path, and timeline placements are available; still-frame extraction remains planned
+- **Hardware limitation**: this machine's tested render used the x264 software encoder; hardware H.264 output remains unverified
+- **Platform limitation**: the live desktop bridge currently uses a Unix socket; Windows support remains open
+- **In development**: UI automation, MCP resources/prompts, and richer workflow tools
+
+See [`crates/saturn-mcp/README.md`](crates/saturn-mcp/README.md) for setup and [`docs/filmcraft-parity-roadmap.md`](docs/filmcraft-parity-roadmap.md) for the staged feature plan.
 
 ---
 

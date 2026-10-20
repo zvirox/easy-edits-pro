@@ -21,7 +21,9 @@ pub struct UserLock {
     pub locked_at: u64,
 }
 
-fn default_user_color() -> String { "#38bdf8".into() }
+fn default_user_color() -> String {
+    "#38bdf8".into()
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct TimelineChangeEntry {
@@ -45,7 +47,9 @@ pub struct CollaborationState {
     pub change_log: Vec<TimelineChangeEntry>,
 }
 
-fn default_session_id() -> String { "local-collab-session".into() }
+fn default_session_id() -> String {
+    "local-collab-session".into()
+}
 
 impl Default for CollaborationState {
     fn default() -> Self {

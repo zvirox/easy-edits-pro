@@ -1,6 +1,6 @@
 //! Parameter schema system with JSON Schema validation
 
-use crate::{ValidationError, StringFormat, TrackKind, ParamType};
+use crate::{ParamType, StringFormat, TrackKind, ValidationError};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -80,12 +80,19 @@ impl ParamSchema {
     /// Validate a value against this schema
     pub fn validate(&self, param_name: &str, value: &Value) -> Result<(), ValidationError> {
         match self {
-            ParamSchema::String { min_length, max_length, pattern, format } => {
-                let s = value.as_str().ok_or_else(|| ValidationError::TypeMismatch {
-                    param: param_name.to_string(),
-                    expected: "string".to_string(),
-                    actual: value_type_name(value),
-                })?;
+            ParamSchema::String {
+                min_length,
+                max_length,
+                pattern,
+                format,
+            } => {
+                let s = value
+                    .as_str()
+                    .ok_or_else(|| ValidationError::TypeMismatch {
+                        param: param_name.to_string(),
+                        expected: "string".to_string(),
+                        actual: value_type_name(value),
+                    })?;
 
                 if let Some(min) = min_length {
                     if s.len() < *min {
@@ -121,12 +128,18 @@ impl ParamSchema {
                 Ok(())
             }
 
-            ParamSchema::Integer { minimum, maximum, multiple_of } => {
-                let n = value.as_i64().ok_or_else(|| ValidationError::TypeMismatch {
-                    param: param_name.to_string(),
-                    expected: "integer".to_string(),
-                    actual: value_type_name(value),
-                })?;
+            ParamSchema::Integer {
+                minimum,
+                maximum,
+                multiple_of,
+            } => {
+                let n = value
+                    .as_i64()
+                    .ok_or_else(|| ValidationError::TypeMismatch {
+                        param: param_name.to_string(),
+                        expected: "integer".to_string(),
+                        actual: value_type_name(value),
+                    })?;
 
                 if let Some(min) = minimum {
                     if n < *min {
@@ -155,12 +168,18 @@ impl ParamSchema {
                 Ok(())
             }
 
-            ParamSchema::Number { minimum, maximum, multiple_of } => {
-                let n = value.as_f64().ok_or_else(|| ValidationError::TypeMismatch {
-                    param: param_name.to_string(),
-                    expected: "number".to_string(),
-                    actual: value_type_name(value),
-                })?;
+            ParamSchema::Number {
+                minimum,
+                maximum,
+                multiple_of,
+            } => {
+                let n = value
+                    .as_f64()
+                    .ok_or_else(|| ValidationError::TypeMismatch {
+                        param: param_name.to_string(),
+                        expected: "number".to_string(),
+                        actual: value_type_name(value),
+                    })?;
 
                 if let Some(min) = minimum {
                     if n < *min {
@@ -200,12 +219,19 @@ impl ParamSchema {
                 Ok(())
             }
 
-            ParamSchema::Array { min_items, max_items, unique_items, items } => {
-                let arr = value.as_array().ok_or_else(|| ValidationError::TypeMismatch {
-                    param: param_name.to_string(),
-                    expected: "array".to_string(),
-                    actual: value_type_name(value),
-                })?;
+            ParamSchema::Array {
+                min_items,
+                max_items,
+                unique_items,
+                items,
+            } => {
+                let arr = value
+                    .as_array()
+                    .ok_or_else(|| ValidationError::TypeMismatch {
+                        param: param_name.to_string(),
+                        expected: "array".to_string(),
+                        actual: value_type_name(value),
+                    })?;
 
                 if let Some(min) = min_items {
                     if arr.len() < *min {
@@ -241,12 +267,18 @@ impl ParamSchema {
                 Ok(())
             }
 
-            ParamSchema::Object { properties, required, additional_properties } => {
-                let obj = value.as_object().ok_or_else(|| ValidationError::TypeMismatch {
-                    param: param_name.to_string(),
-                    expected: "object".to_string(),
-                    actual: value_type_name(value),
-                })?;
+            ParamSchema::Object {
+                properties,
+                required,
+                additional_properties,
+            } => {
+                let obj = value
+                    .as_object()
+                    .ok_or_else(|| ValidationError::TypeMismatch {
+                        param: param_name.to_string(),
+                        expected: "object".to_string(),
+                        actual: value_type_name(value),
+                    })?;
 
                 for req in required {
                     if !obj.contains_key(req) {
@@ -259,7 +291,8 @@ impl ParamSchema {
 
                 if !*additional_properties {
                     let allowed: std::collections::HashSet<_> = properties.keys().collect();
-                    let extra: Vec<String> = obj.keys()
+                    let extra: Vec<String> = obj
+                        .keys()
                         .filter(|k| !allowed.contains(*k))
                         .cloned()
                         .collect();
@@ -301,11 +334,13 @@ impl ParamSchema {
             }
 
             ParamSchema::Timecode => {
-                let s = value.as_str().ok_or_else(|| ValidationError::TypeMismatch {
-                    param: param_name.to_string(),
-                    expected: "timecode string".to_string(),
-                    actual: value_type_name(value),
-                })?;
+                let s = value
+                    .as_str()
+                    .ok_or_else(|| ValidationError::TypeMismatch {
+                        param: param_name.to_string(),
+                        expected: "timecode string".to_string(),
+                        actual: value_type_name(value),
+                    })?;
                 validate_timecode(s).map_err(|_| ValidationError::FormatError {
                     param: param_name.to_string(),
                     format: StringFormat::Timecode,
@@ -324,12 +359,17 @@ impl ParamSchema {
                 Ok(())
             }
 
-            ParamSchema::File { extensions, must_exist } => {
-                let s = value.as_str().ok_or_else(|| ValidationError::TypeMismatch {
-                    param: param_name.to_string(),
-                    expected: "file path string".to_string(),
-                    actual: value_type_name(value),
-                })?;
+            ParamSchema::File {
+                extensions,
+                must_exist,
+            } => {
+                let s = value
+                    .as_str()
+                    .ok_or_else(|| ValidationError::TypeMismatch {
+                        param: param_name.to_string(),
+                        expected: "file path string".to_string(),
+                        actual: value_type_name(value),
+                    })?;
                 if !extensions.is_empty() {
                     let ext = std::path::Path::new(s)
                         .extension()
@@ -338,7 +378,10 @@ impl ParamSchema {
                     if !extensions.iter().any(|e| e.eq_ignore_ascii_case(ext)) {
                         return Err(ValidationError::Custom {
                             param: param_name.to_string(),
-                            message: format!("file extension must be one of: {}", extensions.join(", ")),
+                            message: format!(
+                                "file extension must be one of: {}",
+                                extensions.join(", ")
+                            ),
                         });
                     }
                 }
@@ -352,11 +395,13 @@ impl ParamSchema {
             }
 
             ParamSchema::Directory => {
-                let s = value.as_str().ok_or_else(|| ValidationError::TypeMismatch {
-                    param: param_name.to_string(),
-                    expected: "directory path string".to_string(),
-                    actual: value_type_name(value),
-                })?;
+                let s = value
+                    .as_str()
+                    .ok_or_else(|| ValidationError::TypeMismatch {
+                        param: param_name.to_string(),
+                        expected: "directory path string".to_string(),
+                        actual: value_type_name(value),
+                    })?;
                 if !std::path::Path::new(s).is_dir() {
                     return Err(ValidationError::Custom {
                         param: param_name.to_string(),
@@ -367,11 +412,13 @@ impl ParamSchema {
             }
 
             ParamSchema::Color => {
-                let s = value.as_str().ok_or_else(|| ValidationError::TypeMismatch {
-                    param: param_name.to_string(),
-                    expected: "color string".to_string(),
-                    actual: value_type_name(value),
-                })?;
+                let s = value
+                    .as_str()
+                    .ok_or_else(|| ValidationError::TypeMismatch {
+                        param: param_name.to_string(),
+                        expected: "color string".to_string(),
+                        actual: value_type_name(value),
+                    })?;
                 validate_color(s).map_err(|_| ValidationError::FormatError {
                     param: param_name.to_string(),
                     format: StringFormat::HexColor,
@@ -419,45 +466,95 @@ impl ParamSchema {
     /// Get JSON Schema representation for documentation
     pub fn to_json_schema(&self) -> Value {
         match self {
-            ParamSchema::String { min_length, max_length, pattern, format } => {
+            ParamSchema::String {
+                min_length,
+                max_length,
+                pattern,
+                format,
+            } => {
                 let mut schema = serde_json::json!({ "type": "string" });
-                if let Some(min) = min_length { schema["minLength"] = Value::from(*min); }
-                if let Some(max) = max_length { schema["maxLength"] = Value::from(*max); }
-                if let Some(pat) = pattern { schema["pattern"] = Value::from(pat.as_str()); }
-                if let Some(fmt) = format { schema["format"] = Value::from(format!("{fmt:?}").to_lowercase()); }
+                if let Some(min) = min_length {
+                    schema["minLength"] = Value::from(*min);
+                }
+                if let Some(max) = max_length {
+                    schema["maxLength"] = Value::from(*max);
+                }
+                if let Some(pat) = pattern {
+                    schema["pattern"] = Value::from(pat.as_str());
+                }
+                if let Some(fmt) = format {
+                    schema["format"] = Value::from(format!("{fmt:?}").to_lowercase());
+                }
                 schema
             }
-            ParamSchema::Integer { minimum, maximum, multiple_of } => {
+            ParamSchema::Integer {
+                minimum,
+                maximum,
+                multiple_of,
+            } => {
                 let mut schema = serde_json::json!({ "type": "integer" });
-                if let Some(min) = minimum { schema["minimum"] = Value::from(*min); }
-                if let Some(max) = maximum { schema["maximum"] = Value::from(*max); }
-                if let Some(mult) = multiple_of { schema["multipleOf"] = Value::from(*mult); }
+                if let Some(min) = minimum {
+                    schema["minimum"] = Value::from(*min);
+                }
+                if let Some(max) = maximum {
+                    schema["maximum"] = Value::from(*max);
+                }
+                if let Some(mult) = multiple_of {
+                    schema["multipleOf"] = Value::from(*mult);
+                }
                 schema
             }
-            ParamSchema::Number { minimum, maximum, multiple_of } => {
+            ParamSchema::Number {
+                minimum,
+                maximum,
+                multiple_of,
+            } => {
                 let mut schema = serde_json::json!({ "type": "number" });
-                if let Some(min) = minimum { schema["minimum"] = Value::from(*min); }
-                if let Some(max) = maximum { schema["maximum"] = Value::from(*max); }
-                if let Some(mult) = multiple_of { schema["multipleOf"] = Value::from(*mult); }
+                if let Some(min) = minimum {
+                    schema["minimum"] = Value::from(*min);
+                }
+                if let Some(max) = maximum {
+                    schema["maximum"] = Value::from(*max);
+                }
+                if let Some(mult) = multiple_of {
+                    schema["multipleOf"] = Value::from(*mult);
+                }
                 schema
             }
             ParamSchema::Boolean => serde_json::json!({ "type": "boolean" }),
-            ParamSchema::Array { min_items, max_items, unique_items, items } => {
+            ParamSchema::Array {
+                min_items,
+                max_items,
+                unique_items,
+                items,
+            } => {
                 let mut schema = serde_json::json!({ "type": "array" });
-                if let Some(min) = min_items { schema["minItems"] = Value::from(*min); }
-                if let Some(max) = max_items { schema["maxItems"] = Value::from(*max); }
-                if *unique_items { schema["uniqueItems"] = Value::from(true); }
+                if let Some(min) = min_items {
+                    schema["minItems"] = Value::from(*min);
+                }
+                if let Some(max) = max_items {
+                    schema["maxItems"] = Value::from(*max);
+                }
+                if *unique_items {
+                    schema["uniqueItems"] = Value::from(true);
+                }
                 schema["items"] = items.to_json_schema();
                 schema
             }
-            ParamSchema::Object { properties, required, additional_properties } => {
+            ParamSchema::Object {
+                properties,
+                required,
+                additional_properties,
+            } => {
                 let mut schema = serde_json::json!({ "type": "object" });
-                let props: serde_json::Map<String, Value> = properties.iter()
+                let props: serde_json::Map<String, Value> = properties
+                    .iter()
                     .map(|(k, v)| (k.clone(), v.to_json_schema()))
                     .collect();
                 schema["properties"] = Value::Object(props);
                 if !required.is_empty() {
-                    schema["required"] = Value::Array(required.iter().map(|s| Value::from(s.as_str())).collect());
+                    schema["required"] =
+                        Value::Array(required.iter().map(|s| Value::from(s.as_str())).collect());
                 }
                 schema["additionalProperties"] = Value::Bool(*additional_properties);
                 schema
@@ -468,19 +565,27 @@ impl ParamSchema {
             ParamSchema::Time => serde_json::json!({ "type": "integer", "format": "ticks" }),
             ParamSchema::Timecode => serde_json::json!({ "type": "string", "format": "timecode" }),
             ParamSchema::Frame => serde_json::json!({ "type": "integer", "format": "frame" }),
-            ParamSchema::File { extensions, must_exist } => {
+            ParamSchema::File {
+                extensions,
+                must_exist,
+            } => {
                 let mut schema = serde_json::json!({ "type": "string", "format": "file-path" });
                 if !extensions.is_empty() {
-                    schema["extensions"] = Value::Array(extensions.iter().map(|s| Value::from(s.as_str())).collect());
+                    schema["extensions"] =
+                        Value::Array(extensions.iter().map(|s| Value::from(s.as_str())).collect());
                 }
                 schema["mustExist"] = Value::Bool(*must_exist);
                 schema
             }
-            ParamSchema::Directory => serde_json::json!({ "type": "string", "format": "directory" }),
+            ParamSchema::Directory => {
+                serde_json::json!({ "type": "string", "format": "directory" })
+            }
             ParamSchema::Color => serde_json::json!({ "type": "string", "format": "color" }),
             ParamSchema::Track { kind } => {
                 let mut schema = serde_json::json!({ "type": "integer", "format": "track-id" });
-                if let Some(k) = kind { schema["trackKind"] = Value::from(format!("{k:?}").to_lowercase()); }
+                if let Some(k) = kind {
+                    schema["trackKind"] = Value::from(format!("{k:?}").to_lowercase());
+                }
                 schema
             }
             ParamSchema::Clip => serde_json::json!({ "type": "integer", "format": "clip-id" }),
@@ -495,34 +600,55 @@ fn value_type_name(value: &Value) -> String {
         Value::Null => "null",
         Value::Bool(_) => "boolean",
         Value::Number(n) => {
-            if n.is_i64() || n.is_u64() { "integer" } else { "number" }
+            if n.is_i64() || n.is_u64() {
+                "integer"
+            } else {
+                "number"
+            }
         }
         Value::String(_) => "string",
         Value::Array(_) => "array",
         Value::Object(_) => "object",
-    }.to_string()
+    }
+    .to_string()
 }
 
-fn validate_string_format(param: &str, value: &str, format: StringFormat) -> Result<(), ValidationError> {
+fn validate_string_format(
+    param: &str,
+    value: &str,
+    format: StringFormat,
+) -> Result<(), ValidationError> {
     match format {
         StringFormat::Email => {
             if !value.contains('@') || !value.contains('.') {
-                return Err(ValidationError::FormatError { param: param.to_string(), format });
+                return Err(ValidationError::FormatError {
+                    param: param.to_string(),
+                    format,
+                });
             }
         }
         StringFormat::Uri => {
             if url::Url::parse(value).is_err() {
-                return Err(ValidationError::FormatError { param: param.to_string(), format });
+                return Err(ValidationError::FormatError {
+                    param: param.to_string(),
+                    format,
+                });
             }
         }
         StringFormat::Uuid => {
             if uuid::Uuid::parse_str(value).is_err() {
-                return Err(ValidationError::FormatError { param: param.to_string(), format });
+                return Err(ValidationError::FormatError {
+                    param: param.to_string(),
+                    format,
+                });
             }
         }
         StringFormat::DateTime => {
             if chrono::DateTime::parse_from_rfc3339(value).is_err() {
-                return Err(ValidationError::FormatError { param: param.to_string(), format });
+                return Err(ValidationError::FormatError {
+                    param: param.to_string(),
+                    format,
+                });
             }
         }
         StringFormat::Timecode => {
@@ -533,7 +659,10 @@ fn validate_string_format(param: &str, value: &str, format: StringFormat) -> Res
         }
         StringFormat::FilePath => {
             if std::path::Path::new(value).components().count() == 0 {
-                return Err(ValidationError::FormatError { param: param.to_string(), format });
+                return Err(ValidationError::FormatError {
+                    param: param.to_string(),
+                    format,
+                });
             }
         }
         StringFormat::HexColor => {
@@ -544,7 +673,10 @@ fn validate_string_format(param: &str, value: &str, format: StringFormat) -> Res
         }
         StringFormat::Base64 => {
             if base64::Engine::decode(&base64::engine::general_purpose::STANDARD, value).is_err() {
-                return Err(ValidationError::FormatError { param: param.to_string(), format });
+                return Err(ValidationError::FormatError {
+                    param: param.to_string(),
+                    format,
+                });
             }
         }
     }

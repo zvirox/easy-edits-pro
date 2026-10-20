@@ -6,17 +6,10 @@ license = "GPL-3.0-or-later"
 description = "MCP server for AI-assisted editing in Easy Edits Pro"
 
 [dependencies]
-saturn-commands = { path = "../saturn-commands" }
 saturn-core = { path = "../saturn-core" }
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+saturn-render = { path = "../saturn-render" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-std", "io-util", "net", "sync"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-thiserror = "2"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-rmcp = { version = "0.1", features = ["server"] }
-uuid = { version = "1", features = ["v4", "serde"] }
+rmcp = { version = "=0.1.5", default-features = false, features = ["server", "transport-io", "macros", "base64"] }
 anyhow = "1"
-
-[dev-dependencies]
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

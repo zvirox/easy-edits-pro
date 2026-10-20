@@ -126,7 +126,7 @@ export function useTimelineOperations({
 
   const saveTrackGain = useCallback(
     async (trackId: number, gainDb: number) => {
-      await perform("track.set_gain", { track_id: trackId, gain_db: gainDb }, `Track ${trackId} gain set to ${gainDb} dB`);
+      await perform("track.set_gain_db", { track_id: trackId, gain_db: gainDb }, `Track ${trackId} gain set to ${gainDb} dB`);
     },
     [perform]
   );
@@ -140,7 +140,7 @@ export function useTimelineOperations({
 
   const toggleTrackMute = useCallback(
     async (track: Track) => {
-      await perform("track.set_mute", { track_id: track.id, muted: !track.muted }, `Track ${track.id} ${track.muted ? "unmuted" : "muted"}`);
+      await perform("track.set_muted", { track_id: track.id, muted: !track.muted }, `Track ${track.id} ${track.muted ? "unmuted" : "muted"}`);
     },
     [perform]
   );
@@ -154,7 +154,7 @@ export function useTimelineOperations({
 
   const toggleTrackLock = useCallback(
     async (track: Track) => {
-      await perform("track.set_lock", { track_id: track.id, locked: !track.locked }, `Track ${track.id} ${track.locked ? "unlocked" : "locked"}`);
+      await perform("track.set_locked", { track_id: track.id, locked: !track.locked }, `Track ${track.id} ${track.locked ? "unlocked" : "locked"}`);
     },
     [perform]
   );

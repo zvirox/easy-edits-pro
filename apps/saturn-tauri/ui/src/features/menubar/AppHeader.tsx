@@ -1,5 +1,5 @@
 import { InteriorButton } from "../../components/interior/interior-button";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Icon } from "../../components/Icon";
 import { ThemeToggle } from "../../components/interior/theme-toggle";
@@ -112,7 +112,34 @@ export function AppHeader({
   toggleFullscreen,
 }: AppHeaderProps) {
   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState("");
   const jobDrawerRef = useRef<HTMLDivElement | null>(null);
+  const commandSearchRef = useRef<HTMLInputElement | null>(null);
+  const matchingCommands = useMemo(() => {
+    const query = commandQuery.trim().toLowerCase();
+    return commands
+      .filter((command) => !query || command.id.toLowerCase().includes(query) || command.label.toLowerCase().includes(query))
+      .slice(0, 12);
+  }, [commandQuery, commands]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setCommandPaletteOpen((open) => !open);
+        setCommandQuery("");
+      } else if (event.key === "Escape") {
+        setCommandPaletteOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (commandPaletteOpen) commandSearchRef.current?.focus();
+  }, [commandPaletteOpen]);
 
   function renderMenu(menu: string) {
     const commandItems = commands
@@ -187,6 +214,7 @@ export function AppHeader({
   }
 
   return (
+    <>
     <header className="app-header">
       {/* Tier 1 (32px System Menu & Global Utilities) */}
       <div className="system-bar-tier1">
@@ -199,6 +227,16 @@ export function AppHeader({
             <span>{project?.name ?? "Untitled project"}</span>
             {projectState?.is_dirty && <span className="dirty-indicator" title="Unsaved changes">•</span>}
           </div>
+          <InteriorButton
+            className="command-search-trigger"
+            onClick={() => { setCommandQuery(""); setCommandPaletteOpen(true); }}
+            aria-label="Search editor commands"
+            title="Search commands (Ctrl+K)"
+          >
+            <Icon name="search" />
+            <span>Find command</span>
+            <kbd>Ctrl K</kbd>
+          </InteriorButton>
           <nav className="menu-bar" aria-label="Application menus">
             {["File", "Edit", "Clip", "Sequence", "Markers", "View", "Window", "Help"].map(renderMenu)}
           </nav>
@@ -430,5 +468,47 @@ export function AppHeader({
         />
       </div>
     </header>
+    {commandPaletteOpen && (
+      <div
+        className="command-palette-backdrop"
+        onMouseDown={(event) => { if (event.target === event.currentTarget) setCommandPaletteOpen(false); }}
+      >
+        <section className="command-palette" role="dialog" aria-modal="true" aria-labelledby="command-palette-title">
+          <label id="command-palette-title" className="sr-only" htmlFor="command-palette-search">Find an editor command</label>
+          <div className="command-palette-search">
+            <Icon name="search" />
+            <input
+              id="command-palette-search"
+              ref={commandSearchRef}
+              autoFocus
+              value={commandQuery}
+              onChange={(event) => setCommandQuery(event.target.value)}
+              placeholder="Find tools and actions…"
+            />
+            <kbd>ESC</kbd>
+          </div>
+          <div className="command-palette-results" role="listbox" aria-label="Commands">
+            {matchingCommands.length ? matchingCommands.map((command) => (
+              <InteriorButton
+                key={command.id}
+                className="command-palette-result"
+                role="option"
+                aria-selected="false"
+                onClick={() => {
+                  setCommandPaletteOpen(false);
+                  void invokeMenuCommand(command.id).catch((error: unknown) => setNotice(String(error)));
+                }}
+              >
+                <span className="command-palette-result-label">{command.label}</span>
+                <span className="command-palette-result-meta">{command.menu.join(" › ") || command.id}</span>
+                {command.shortcut && <kbd>{command.shortcut}</kbd>}
+              </InteriorButton>
+            )) : <p className="command-palette-empty">No matching commands.</p>}
+          </div>
+          <footer><span>Search by tool name or command id</span><span><kbd>Ctrl K</kbd> to toggle</span></footer>
+        </section>
+      </div>
+    )}
+    </>
   );
 }

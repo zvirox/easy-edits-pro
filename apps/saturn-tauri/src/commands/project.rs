@@ -13,6 +13,16 @@ pub fn execute_command(
     state: State<'_, AppState>,
     request: CommandRequest,
 ) -> Result<Value, String> {
+    execute_command_with_state(&app, state.inner(), request)
+}
+
+/// Execute a command using the application's shared editor state. Used by Tauri IPC and the
+/// same-user MCP bridge so both interfaces edit the exact same project and undo history.
+pub fn execute_command_with_state(
+    app: &AppHandle,
+    state: &AppState,
+    request: CommandRequest,
+) -> Result<Value, String> {
     let command_id = request.id.clone();
     let result = state
         .0

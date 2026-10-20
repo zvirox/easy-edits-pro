@@ -103,8 +103,12 @@ pub struct TrackPoint {
     pub confidence: f64,
 }
 
-fn default_track_confidence() -> f64 { 1.0 }
-fn default_smoothness() -> f64 { 0.5 }
+fn default_track_confidence() -> f64 {
+    1.0
+}
+fn default_smoothness() -> f64 {
+    0.5
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct MotionTrackingData {
@@ -164,7 +168,9 @@ impl Track {
     }
 
     pub fn next_clip_after(&self, tick: Tick) -> Option<&Clip> {
-        self.clips.iter().find(|clip| clip.timeline_start.0 > tick.0)
+        self.clips
+            .iter()
+            .find(|clip| clip.timeline_start.0 > tick.0)
     }
 }
 

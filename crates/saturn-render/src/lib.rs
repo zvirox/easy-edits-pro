@@ -3,8 +3,11 @@ use gstreamer::prelude::*;
 use gstreamer_editing_services as ges;
 use gstreamer_editing_services::prelude::*;
 use gstreamer_pbutils as gst_pbutils;
+use saturn_core::project::{
+    Clip, EffectPayload, MediaKind, ProjectDocument, TrackAudioProcessing, TrackKind,
+    TransitionKind,
+};
 use saturn_core::{FrameRate, Tick};
-use saturn_core::project::{Clip, EffectPayload, MediaKind, ProjectDocument, TrackAudioProcessing, TrackKind, TransitionKind};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
@@ -22,19 +25,29 @@ pub mod tracking;
 pub mod wgpu_surface;
 pub mod wheels;
 
-pub use compositor::{BlendMode, Particle, ParticleEmitter, merge_alpha_over_rgba, rasterize_roto_mask, simulate_particle_field};
-pub use curves::{apply_rgb_curves, apply_rgb_curves_buffer, evaluate_spline, generate_curve_lut};
-pub use hsl::{apply_hsl_qualifier_buffer, calculate_matte_factor, generate_hsl_matte, hsl_to_rgb, rgb_to_hsl};
-pub use loudness::{
-    analyze_pcm_loudness, EbuR128Meter, LoudnessReport, LoudnessStandard,
+pub use compositor::{
+    BlendMode, Particle, ParticleEmitter, merge_alpha_over_rgba, rasterize_roto_mask,
+    simulate_particle_field,
 };
+pub use curves::{apply_rgb_curves, apply_rgb_curves_buffer, evaluate_spline, generate_curve_lut};
+pub use hsl::{
+    apply_hsl_qualifier_buffer, calculate_matte_factor, generate_hsl_matte, hsl_to_rgb, rgb_to_hsl,
+};
+pub use loudness::{EbuR128Meter, LoudnessReport, LoudnessStandard, analyze_pcm_loudness};
 pub use lut::{Lut3D, Lut3DInfo};
-pub use matting::{BackgroundMode, MattingModel, MattingOptions, MattingTemporalState, run_background_matting};
+pub use matting::{
+    BackgroundMode, MattingModel, MattingOptions, MattingTemporalState, run_background_matting,
+};
 pub use multicam::sync_waveforms_by_correlation;
 pub use shader::{SHADER_PRESETS, ShaderPreset, apply_shader_preset_buffer, get_preset_by_id};
-pub use speedramp::{apply_motion_blur_synthesis, blend_bidirectional_optical_flow, interpolate_speed_ramp};
+pub use speedramp::{
+    apply_motion_blur_synthesis, blend_bidirectional_optical_flow, interpolate_speed_ramp,
+};
 pub use tracking::{compute_stabilization_offset, evaluate_tracking_at, smooth_trajectory};
-pub use wgpu_surface::{DisplayColorSpace, GpuPreviewPipeline, PresentationMetrics, ScalingFilter, SurfaceBuffer, calculate_letterbox_viewport};
+pub use wgpu_surface::{
+    DisplayColorSpace, GpuPreviewPipeline, PresentationMetrics, ScalingFilter, SurfaceBuffer,
+    calculate_letterbox_viewport,
+};
 pub use wheels::{apply_color_wheels_rgb, apply_color_wheels_rgba};
 
 static GST_INIT: OnceLock<Result<(), String>> = OnceLock::new();
@@ -52,15 +65,26 @@ pub struct HardwareEncoderInfo {
 pub fn detect_hardware_encoders() -> HardwareEncoderInfo {
     let _ = GST_INIT.get_or_init(|| {
         gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
-        ges::init().map_err(|error| {
-            format!("Could not initialize GStreamer Editing Services: {error}")
-        })
+        ges::init()
+            .map_err(|error| format!("Could not initialize GStreamer Editing Services: {error}"))
     });
 
     let candidates = [
-        ("vah264enc", "vaapi", "VA-API Hardware H.264 (Intel / AMD GPU)"),
-        ("nvh264enc", "nvenc", "NVIDIA NVENC Hardware H.264 (NVIDIA GPU)"),
-        ("qsvh264enc", "qsv", "Intel Quick Sync Video H.264 (Intel QSV)"),
+        (
+            "vah264enc",
+            "vaapi",
+            "VA-API Hardware H.264 (Intel / AMD GPU)",
+        ),
+        (
+            "nvh264enc",
+            "nvenc",
+            "NVIDIA NVENC Hardware H.264 (NVIDIA GPU)",
+        ),
+        (
+            "qsvh264enc",
+            "qsv",
+            "Intel Quick Sync Video H.264 (Intel QSV)",
+        ),
         ("v4l2h264enc", "v4l2", "V4L2 Hardware Codec H.264"),
     ];
 
@@ -71,7 +95,11 @@ pub fn detect_hardware_encoders() -> HardwareEncoderInfo {
         if gst::ElementFactory::find(name).is_some() {
             available.push((*name).to_string());
             if selected.is_none() {
-                selected = Some(((*name).to_string(), (*enc_type).to_string(), (*desc).to_string()));
+                selected = Some((
+                    (*name).to_string(),
+                    (*enc_type).to_string(),
+                    (*desc).to_string(),
+                ));
             }
         }
     }
@@ -102,8 +130,6 @@ pub fn detect_hardware_encoders() -> HardwareEncoderInfo {
         }
     }
 }
-
-
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RenderProgress {
@@ -151,9 +177,9 @@ impl Drop for EncoderRankOverrides {
 
 fn prefer_hardware_h264_encoder() -> Option<(String, EncoderRankOverrides)> {
     let candidates = ["vah264enc", "qsvh264enc", "nvh264enc", "v4l2h264enc"];
-    let (name, selected) = candidates.iter().find_map(|name| {
-        gst::ElementFactory::find(name).map(|factory| (*name, factory))
-    })?;
+    let (name, selected) = candidates
+        .iter()
+        .find_map(|name| gst::ElementFactory::find(name).map(|factory| (*name, factory)))?;
     let mut overrides = Vec::new();
     overrides.push((selected.clone(), selected.rank()));
     selected.set_rank(gst::Rank::PRIMARY + 1);
@@ -168,8 +194,8 @@ fn prefer_software_h264_encoder() -> EncoderRankOverrides {
             factory.set_rank(gst::Rank::NONE);
         }
     }
-    let software = gst::ElementFactory::find("x264enc")
-        .or_else(|| gst::ElementFactory::find("openh264enc"));
+    let software =
+        gst::ElementFactory::find("x264enc").or_else(|| gst::ElementFactory::find("openh264enc"));
     if let Some(factory) = software {
         overrides.push((factory.clone(), factory.rank()));
         factory.set_rank(gst::Rank::PRIMARY + 1);
@@ -228,8 +254,28 @@ pub fn render_project_range_with_settings(
     output_path: &Path,
     range: Option<RenderRange>,
     settings: RenderSettings,
-    mut on_progress: impl FnMut(RenderProgress),
+    on_progress: impl FnMut(RenderProgress),
 ) -> Result<(), String> {
+    render_project_range_with_control(document, output_path, range, settings, on_progress, || {
+        false
+    })
+}
+
+/// Like `render_project_range_with_settings`, but also lets the owner stop a
+/// render while GStreamer is processing it. The callback is checked between
+/// bus polls so cancellation latency stays bounded without interrupting GES
+/// from another thread.
+pub fn render_project_range_with_control(
+    document: &ProjectDocument,
+    output_path: &Path,
+    range: Option<RenderRange>,
+    settings: RenderSettings,
+    mut on_progress: impl FnMut(RenderProgress),
+    is_cancelled: impl Fn() -> bool,
+) -> Result<(), String> {
+    if is_cancelled() {
+        return Err("Render cancelled".into());
+    }
     document.validate().map_err(|error| error.to_string())?;
     let format = OutputFormat::from_path(output_path)?;
     if document
@@ -241,9 +287,12 @@ pub fn render_project_range_with_settings(
     {
         return Err("Add at least one clip to the timeline before rendering".into());
     }
-    let frame_rate = FrameRate::new(settings.frame_rate_numerator, settings.frame_rate_denominator)
-        .filter(|rate| rate.numerator <= 240 * rate.denominator)
-        .ok_or_else(|| "Export frame rate must be between 1 and 240 fps".to_string())?;
+    let frame_rate = FrameRate::new(
+        settings.frame_rate_numerator,
+        settings.frame_rate_denominator,
+    )
+    .filter(|rate| rate.numerator <= 240 * rate.denominator)
+    .ok_or_else(|| "Export frame rate must be between 1 and 240 fps".to_string())?;
     if !(16..=16_384).contains(&settings.width) || !(16..=16_384).contains(&settings.height) {
         return Err("Export dimensions must be between 16 and 16,384 pixels".into());
     }
@@ -256,7 +305,13 @@ pub fn render_project_range_with_settings(
         None => None,
     };
     let render_document = ranged_document.as_ref().unwrap_or(&export_document);
-    if render_document.project.sequence.tracks.iter().all(|track| track.clips.is_empty()) {
+    if render_document
+        .project
+        .sequence
+        .tracks
+        .iter()
+        .all(|track| track.clips.is_empty())
+    {
         return Err("The In/Out range does not contain any clips to render".into());
     }
     let output_path = absolute_output_path(output_path)?;
@@ -292,16 +347,37 @@ pub fn render_project_range_with_settings(
     let output_uri = gst::glib::filename_to_uri(&output_path, None)
         .map_err(|error| format!("Output path is not a valid file URI: {error}"))?;
 
-    let mut result = render_timeline(&timeline, &output_uri, &profile, &mut on_progress);
-    if result.is_err() && encoder_rank_overrides.is_some() {
+    let mut result = render_timeline(
+        &timeline,
+        &output_uri,
+        &profile,
+        &mut on_progress,
+        &is_cancelled,
+    );
+    if result.is_err() && encoder_rank_overrides.is_some() && !is_cancelled() {
         let hardware_error = result.unwrap_err();
-        eprintln!("Hardware H.264 render failed ({hardware_error}); retrying with software encoding");
+        eprintln!(
+            "Hardware H.264 render failed ({hardware_error}); retrying with software encoding"
+        );
         drop(encoder_rank_overrides);
         let _software_encoder_rank_overrides = prefer_software_h264_encoder();
         let _ = std::fs::remove_file(&output_path);
-        on_progress(RenderProgress { fraction_percent: 0, phase: "Retrying with software encoder" });
+        on_progress(RenderProgress {
+            fraction_percent: 0,
+            phase: "Retrying with software encoder",
+        });
         let software_timeline = build_timeline(render_document)?;
-        result = render_timeline(&software_timeline, &output_uri, &profile, &mut on_progress);
+        result = render_timeline(
+            &software_timeline,
+            &output_uri,
+            &profile,
+            &mut on_progress,
+            &is_cancelled,
+        );
+    }
+    if is_cancelled() {
+        let _ = std::fs::remove_file(&output_path);
+        return Err("Render cancelled".into());
     }
     result?;
     on_progress(RenderProgress {
@@ -316,6 +392,7 @@ fn render_timeline(
     output_uri: &str,
     profile: &gst_pbutils::EncodingContainerProfile,
     on_progress: &mut impl FnMut(RenderProgress),
+    is_cancelled: &impl Fn() -> bool,
 ) -> Result<(), String> {
     let pipeline = ges::Pipeline::new();
     pipeline
@@ -338,6 +415,9 @@ fn render_timeline(
 
     let mut last_percent = 0_u8;
     let result = loop {
+        if is_cancelled() {
+            break Err("Render cancelled".into());
+        }
         if let Some(message) = bus.timed_pop(gst::ClockTime::from_mseconds(100)) {
             match message.view() {
                 gst::MessageView::Eos(..) => break Ok(()),
@@ -373,7 +453,10 @@ fn render_timeline(
     Ok(())
 }
 
-fn slice_document(document: &ProjectDocument, range: RenderRange) -> Result<ProjectDocument, String> {
+fn slice_document(
+    document: &ProjectDocument,
+    range: RenderRange,
+) -> Result<ProjectDocument, String> {
     if range.start.0 < 0 || range.end.0 <= range.start.0 {
         return Err("Export range must have an Out point after its In point".into());
     }
@@ -385,14 +468,19 @@ fn slice_document(document: &ProjectDocument, range: RenderRange) -> Result<Proj
             let original_end = original_start.saturating_add(original.duration.0);
             let intersect_start = original_start.max(range.start.0);
             let intersect_end = original_end.min(range.end.0);
-            if intersect_start >= intersect_end { continue; }
+            if intersect_start >= intersect_end {
+                continue;
+            }
             let trim = intersect_start - original_start;
             let mut clip = original.clone();
             clip.timeline_start = Tick(intersect_start - range.start.0);
             clip.source_in.0 = clip.source_in.0.saturating_add(trim);
             clip.duration = Tick(intersect_end - intersect_start);
-            clip.keyframes.retain(|key| key.time.0 >= trim && key.time.0 <= trim + clip.duration.0);
-            for key in &mut clip.keyframes { key.time.0 -= trim; }
+            clip.keyframes
+                .retain(|key| key.time.0 >= trim && key.time.0 <= trim + clip.duration.0);
+            for key in &mut clip.keyframes {
+                key.time.0 -= trim;
+            }
             clips.push(clip);
         }
         track.clips = clips;
@@ -400,6 +488,27 @@ fn slice_document(document: &ProjectDocument, range: RenderRange) -> Result<Proj
     sliced.project.sequence.mark_in = None;
     sliced.project.sequence.mark_out = None;
     Ok(sliced)
+}
+
+fn transition_clip_timing(
+    track: &saturn_core::Track,
+    clip: &Clip,
+) -> (Tick, Tick, Tick) {
+    let mut start = clip.timeline_start.0;
+    let mut source_in = clip.source_in.0;
+    let mut end = clip.timeline_start.0.saturating_add(clip.duration.0);
+    for transition in &track.transitions {
+        let overlap = (transition.duration.0 / 2).max(0);
+        if end == transition.cut_at.0 {
+            end = end.saturating_add(overlap);
+        }
+        if start == transition.cut_at.0 {
+            let pre_roll = overlap.min(source_in.max(0));
+            start = start.saturating_sub(pre_roll);
+            source_in = source_in.saturating_sub(pre_roll);
+        }
+    }
+    (Tick(start), Tick(source_in), Tick(end.saturating_sub(start)))
 }
 
 fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
@@ -443,6 +552,8 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
         let effective_gain_db = if is_audible { track.gain_db } else { -120.0 };
         let layer = timeline.append_layer();
         for clip in &track.clips {
+            let (render_start, render_source_in, render_duration) =
+                transition_clip_timing(track, clip);
             let media = document
                 .project
                 .media
@@ -453,8 +564,8 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
                 })?;
             if matches!(media.kind, MediaKind::Title) {
                 if let Some(title_clip) = ges::TitleClip::new() {
-                    let _ = title_clip.set_start(clock_time(clip.timeline_start)?);
-                    let _ = title_clip.set_duration(clock_time(clip.duration)?);
+                    let _ = title_clip.set_start(clock_time(render_start)?);
+                    let _ = title_clip.set_duration(clock_time(render_duration)?);
                     if let Some(props) = &media.title {
                         let _ = title_clip.set_child_property("text", &props.text);
                     }
@@ -480,15 +591,15 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
             let ges_clip = ges::UriClip::new(&uri)
                 .map_err(|error| format!("Could not decode {}: {error}", media.name))?;
             ges_clip
-                .set_start(clock_time(clip.timeline_start)?)
+                .set_start(clock_time(render_start)?)
                 .then_some(())
                 .ok_or_else(|| format!("Could not set the start time for {}", media.name))?;
             ges_clip
-                .set_inpoint(clock_time(clip.source_in)?)
+                .set_inpoint(clock_time(render_source_in)?)
                 .then_some(())
                 .ok_or_else(|| format!("Could not set the source in-point for {}", media.name))?;
             ges_clip
-                .set_duration(clock_time(clip.duration)?)
+                .set_duration(clock_time(render_duration)?)
                 .then_some(())
                 .ok_or_else(|| format!("Could not set the duration for {}", media.name))?;
 
@@ -516,6 +627,14 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
                 TransitionKind::SlideLeft | TransitionKind::SlideRight => "slide",
             };
             if let Some(ges_trans) = ges::TransitionClip::for_nick(nick) {
+                // Each model track is rendered as its own GES layer. A GES
+                // transition defaults to audio+video; on a video-only source
+                // its audio operation has too few inputs and invalidates the
+                // whole composition, so constrain it to the model track kind.
+                ges_trans.set_supported_formats(match track.kind {
+                    TrackKind::Video => ges::TrackType::VIDEO,
+                    TrackKind::Audio => ges::TrackType::AUDIO,
+                });
                 let half_dur = trans.duration.0 / 2;
                 let start_tick = Tick(trans.cut_at.0.saturating_sub(half_dur).max(0));
                 if let Ok(st) = clock_time(start_tick) {
@@ -569,31 +688,38 @@ fn apply_clip_effects(
                             "videobalance brightness={brightness:.3} contrast={:.3} saturation={:.3} hue={:.3}",
                             params.contrast, params.saturation, params.hue
                         );
-                        let effect = ges::Effect::new(&effect_str)
-                            .map_err(|error| format!("Could not create color correction effect: {error}"))?;
-                        clip.add_top_effect(&effect, -1)
-                            .map_err(|error| format!("Could not apply color correction effect: {error}"))?;
+                        let effect = ges::Effect::new(&effect_str).map_err(|error| {
+                            format!("Could not create color correction effect: {error}")
+                        })?;
+                        clip.add_top_effect(&effect, -1).map_err(|error| {
+                            format!("Could not apply color correction effect: {error}")
+                        })?;
                     }
                     EffectPayload::GaussianBlur(params) => {
                         if params.sigma > 0.0 {
                             let effect_str = format!("gaussianblur sigma={:.2}", params.sigma);
-                            let effect = ges::Effect::new(&effect_str)
-                                .map_err(|error| format!("Could not create gaussian blur effect: {error}"))?;
-                            clip.add_top_effect(&effect, -1)
-                                .map_err(|error| format!("Could not apply gaussian blur effect: {error}"))?;
+                            let effect = ges::Effect::new(&effect_str).map_err(|error| {
+                                format!("Could not create gaussian blur effect: {error}")
+                            })?;
+                            clip.add_top_effect(&effect, -1).map_err(|error| {
+                                format!("Could not apply gaussian blur effect: {error}")
+                            })?;
                         }
                     }
                     EffectPayload::Crop(params) => {
                         let top_px = ((params.top / 100.0) * project_height as f64).round() as u32;
-                        let bottom_px = ((params.bottom / 100.0) * project_height as f64).round() as u32;
+                        let bottom_px =
+                            ((params.bottom / 100.0) * project_height as f64).round() as u32;
                         let left_px = ((params.left / 100.0) * project_width as f64).round() as u32;
-                        let right_px = ((params.right / 100.0) * project_width as f64).round() as u32;
+                        let right_px =
+                            ((params.right / 100.0) * project_width as f64).round() as u32;
                         if top_px > 0 || bottom_px > 0 || left_px > 0 || right_px > 0 {
                             let effect_str = format!(
                                 "videocrop top={top_px} bottom={bottom_px} left={left_px} right={right_px}"
                             );
-                            let effect = ges::Effect::new(&effect_str)
-                                .map_err(|error| format!("Could not create crop effect: {error}"))?;
+                            let effect = ges::Effect::new(&effect_str).map_err(|error| {
+                                format!("Could not create crop effect: {error}")
+                            })?;
                             clip.add_top_effect(&effect, -1)
                                 .map_err(|error| format!("Could not apply crop effect: {error}"))?;
                         }
@@ -604,10 +730,12 @@ fn apply_clip_effects(
                         let effect_str = format!(
                             "alpha method=custom target-r={r} target-g={g} target-b={b} angle={angle:.1}"
                         );
-                        let effect = ges::Effect::new(&effect_str)
-                            .map_err(|error| format!("Could not create chroma key effect: {error}"))?;
-                        clip.add_top_effect(&effect, -1)
-                            .map_err(|error| format!("Could not apply chroma key effect: {error}"))?;
+                        let effect = ges::Effect::new(&effect_str).map_err(|error| {
+                            format!("Could not create chroma key effect: {error}")
+                        })?;
+                        clip.add_top_effect(&effect, -1).map_err(|error| {
+                            format!("Could not apply chroma key effect: {error}")
+                        })?;
                     }
                     EffectPayload::Vignette(_) => {
                         // Vignette is rendered visually on program monitor; no standalone GStreamer core element
@@ -781,5 +909,19 @@ mod tests {
         assert_eq!(parse_hex_color("#ff0000"), (255, 0, 0));
         assert_eq!(parse_hex_color("0000ff"), (0, 0, 255));
         assert_eq!(parse_hex_color("invalid"), (0, 255, 0));
+    }
+
+    #[test]
+    fn render_cancellation_is_checked_before_pipeline_setup() {
+        let document = saturn_core::EditorEngine::default().document().clone();
+        let result = render_project_range_with_control(
+            &document,
+            Path::new("/tmp/eep-cancel-before-start.mp4"),
+            None,
+            RenderSettings::from_project(&document),
+            |_| {},
+            || true,
+        );
+        assert_eq!(result.unwrap_err(), "Render cancelled");
     }
 }

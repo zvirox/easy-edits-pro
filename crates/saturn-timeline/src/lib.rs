@@ -3,38 +3,37 @@
 //! Provides nested sequences, atomic edits, and advanced timeline features
 //! inspired by FilmCraft's 254B ticks/sec timeline model.
 
-pub mod time;
-pub mod sequence;
-pub mod track;
+pub mod atomic;
 pub mod clip;
 pub mod edit;
-pub mod atomic;
+pub mod sequence;
+pub mod time;
+pub mod track;
 
 // Re-export everything from submodules
-pub use time::{
-    TimelineTime, Timecode, FrameRate, Ticks, TICKS_PER_SECOND,
-    TimelineError, ColorSpace,
+pub use atomic::{
+    AtomicEditEngine, UndoRedoManager, create_atomic_engine, create_undo_redo_manager,
 };
-pub use sequence::{
-    Sequence, SequenceId, SequenceRef, SequenceSettings, SequenceState,
-    SequenceMetadata, Marker, MarkerType,
-};
-pub use track::{Track, TrackId, TrackKind, TrackSettings, TrackState, BlendMode};
 pub use clip::{
-    Clip, ClipId, ClipRef, ClipSource, ClipTiming, ClipEffects,
-    VideoEffect, AudioEffect, ColorGrade, Transform, ClipMetadata,
+    AudioEffect, Clip, ClipEffects, ClipId, ClipMetadata, ClipRef, ClipSource, ClipTiming,
+    ColorGrade, Transform, VideoEffect,
 };
-pub use edit::{
-    EditOperation, Edit, EditTransaction, EditId,
+pub use edit::{Edit, EditId, EditOperation, EditTransaction};
+pub use sequence::{
+    Marker, MarkerType, Sequence, SequenceId, SequenceMetadata, SequenceRef, SequenceSettings,
+    SequenceState,
 };
-pub use atomic::{AtomicEditEngine, UndoRedoManager, create_atomic_engine, create_undo_redo_manager};
+pub use time::{
+    ColorSpace, FrameRate, TICKS_PER_SECOND, Ticks, Timecode, TimelineError, TimelineTime,
+};
+pub use track::{BlendMode, Track, TrackId, TrackKind, TrackSettings, TrackState};
 
-use saturn_commands::{CommandId, CommandSpec, CommandCategory, CommandPriority, ExecutionMode};
+use chrono;
+use indexmap::IndexMap;
+use parking_lot::RwLock;
+use saturn_commands::{CommandCategory, CommandId, CommandPriority, CommandSpec, ExecutionMode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use uuid::Uuid;
-use std::sync::Arc;
-use parking_lot::RwLock;
-use indexmap::IndexMap;
 use smallvec::SmallVec;
-use chrono;
+use std::sync::Arc;
+use uuid::Uuid;

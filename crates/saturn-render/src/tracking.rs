@@ -32,8 +32,16 @@ pub fn smooth_trajectory(points: &[TrackPoint], smoothness: f64) -> Vec<TrackPoi
             sum_w += conf_weight;
         }
 
-        let avg_x = if sum_w > 0.0 { sum_x / sum_w } else { points[i].x };
-        let avg_y = if sum_w > 0.0 { sum_y / sum_w } else { points[i].y };
+        let avg_x = if sum_w > 0.0 {
+            sum_x / sum_w
+        } else {
+            points[i].x
+        };
+        let avg_y = if sum_w > 0.0 {
+            sum_y / sum_w
+        } else {
+            points[i].y
+        };
 
         smoothed.push(TrackPoint {
             time: points[i].time,
@@ -107,10 +115,14 @@ pub fn track_patch_displacement(
 
             for py in 0..patch_size {
                 let cy = py as isize + dy;
-                if cy < 0 || cy >= patch_size as isize { continue; }
+                if cy < 0 || cy >= patch_size as isize {
+                    continue;
+                }
                 for px in 0..patch_size {
                     let cx = px as isize + dx;
-                    if cx < 0 || cx >= patch_size as isize { continue; }
+                    if cx < 0 || cx >= patch_size as isize {
+                        continue;
+                    }
 
                     let p_val = prev_patch[py * patch_size + px] as i64;
                     let c_val = curr_patch[(cy as usize) * patch_size + (cx as usize)] as i64;
@@ -146,11 +158,36 @@ mod tests {
     #[test]
     fn test_smooth_trajectory_reduces_variance() {
         let raw = vec![
-            TrackPoint { time: Tick(0), x: 0.50, y: 0.50, confidence: 1.0 },
-            TrackPoint { time: Tick(10), x: 0.55, y: 0.45, confidence: 1.0 }, // jitter
-            TrackPoint { time: Tick(20), x: 0.51, y: 0.51, confidence: 1.0 },
-            TrackPoint { time: Tick(30), x: 0.56, y: 0.44, confidence: 1.0 }, // jitter
-            TrackPoint { time: Tick(40), x: 0.52, y: 0.52, confidence: 1.0 },
+            TrackPoint {
+                time: Tick(0),
+                x: 0.50,
+                y: 0.50,
+                confidence: 1.0,
+            },
+            TrackPoint {
+                time: Tick(10),
+                x: 0.55,
+                y: 0.45,
+                confidence: 1.0,
+            }, // jitter
+            TrackPoint {
+                time: Tick(20),
+                x: 0.51,
+                y: 0.51,
+                confidence: 1.0,
+            },
+            TrackPoint {
+                time: Tick(30),
+                x: 0.56,
+                y: 0.44,
+                confidence: 1.0,
+            }, // jitter
+            TrackPoint {
+                time: Tick(40),
+                x: 0.52,
+                y: 0.52,
+                confidence: 1.0,
+            },
         ];
 
         let smoothed = smooth_trajectory(&raw, 0.8);
@@ -162,8 +199,18 @@ mod tests {
     #[test]
     fn test_evaluate_tracking_interpolation() {
         let pts = vec![
-            TrackPoint { time: Tick(0), x: 100.0, y: 200.0, confidence: 1.0 },
-            TrackPoint { time: Tick(100), x: 200.0, y: 300.0, confidence: 1.0 },
+            TrackPoint {
+                time: Tick(0),
+                x: 100.0,
+                y: 200.0,
+                confidence: 1.0,
+            },
+            TrackPoint {
+                time: Tick(100),
+                x: 200.0,
+                y: 300.0,
+                confidence: 1.0,
+            },
         ];
 
         let mid = evaluate_tracking_at(&pts, Tick(50)).unwrap();
@@ -172,8 +219,18 @@ mod tests {
 
     #[test]
     fn test_stabilization_offset_neutralizes_shake() {
-        let jitter_pt = TrackPoint { time: Tick(10), x: 0.55, y: 0.48, confidence: 1.0 };
-        let smoothed_pt = TrackPoint { time: Tick(10), x: 0.50, y: 0.50, confidence: 1.0 };
+        let jitter_pt = TrackPoint {
+            time: Tick(10),
+            x: 0.55,
+            y: 0.48,
+            confidence: 1.0,
+        };
+        let smoothed_pt = TrackPoint {
+            time: Tick(10),
+            x: 0.50,
+            y: 0.50,
+            confidence: 1.0,
+        };
 
         let (dx, dy) = compute_stabilization_offset(&jitter_pt, &smoothed_pt);
         // Corrected point: jitter + offset == smoothed

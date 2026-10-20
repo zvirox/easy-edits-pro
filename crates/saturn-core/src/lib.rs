@@ -2,6 +2,7 @@ pub mod command;
 pub mod engine;
 pub mod interop;
 pub mod job;
+pub mod local_control;
 pub mod project;
 pub mod speech;
 pub mod subtitles;

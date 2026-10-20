@@ -28,7 +28,11 @@ pub fn evaluate_spline(points: &[CurvePoint], x: f64) -> f64 {
     let p0 = if i > 0 { &points[i - 1] } else { &points[i] };
     let p1 = &points[i];
     let p2 = &points[i + 1];
-    let p3 = if i + 2 < points.len() { &points[i + 2] } else { p2 };
+    let p3 = if i + 2 < points.len() {
+        &points[i + 2]
+    } else {
+        p2
+    };
 
     let dx = p2.x - p1.x;
     if dx.abs() < 1e-7 {
@@ -101,10 +105,7 @@ mod tests {
 
     #[test]
     fn test_identity_spline_and_lut() {
-        let points = vec![
-            CurvePoint { x: 0.0, y: 0.0 },
-            CurvePoint { x: 1.0, y: 1.0 },
-        ];
+        let points = vec![CurvePoint { x: 0.0, y: 0.0 }, CurvePoint { x: 1.0, y: 1.0 }];
         let lut = generate_curve_lut(&points);
         assert_eq!(lut[0], 0);
         assert_eq!(lut[128], 128);

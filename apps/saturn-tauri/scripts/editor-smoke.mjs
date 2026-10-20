@@ -62,10 +62,12 @@ try {
     let currentPath = null;
     let nextId = 1;
     const undoStack = [];
+    window.__commandRequests = [];
     const snapshot = () => ({ document: structuredClone(doc), path: currentPath, is_dirty: undoStack.length > 0 });
     const push = () => undoStack.push(structuredClone(doc));
     const execute = request => {
       const { id, params = {} } = request;
+      window.__commandRequests.push({ id, params });
       if (id === 'project.status') return snapshot();
       if (id === 'project.new') {
         doc = { format: 'project-saturn.project', schema_version: 5, generator: 'browser-smoke-test', project: {
@@ -116,6 +118,13 @@ try {
         const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
         track.clips.splice(params.clip_index, 1);
         return { removed: true };
+      }
+      if (id === 'track.set_audio_processing') {
+        push();
+        const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
+        const { track_id: _trackId, ...processing } = params;
+        track.audio_processing = { ...track.audio_processing, ...processing };
+        return { updated: true };
       }
       if (id === 'edit.undo') {
         if (undoStack.length) doc = undoStack.pop();
@@ -231,6 +240,17 @@ try {
   const previousFrameTime = Number(await timelinePlayhead.getAttribute('aria-valuenow'));
   assert.ok(previousFrameTime < nextFrameTime, `previous-frame should move the preview backward; ${nextFrameTime}s -> ${previousFrameTime}s`);
 
+  const audioWorkspaceNav = page.getByRole('radiogroup', { name: 'Workspaces' });
+  await audioWorkspaceNav.getByRole('radio', { name: 'Fairlight' }).click();
+  await page.getByText('FAIRLIGHT SOUND SUITE').waitFor();
+  await page.getByText('CHANNEL STRIP RACK').waitFor();
+  await page.locator('.eq-module .dsp-power-btn').click();
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('.eq-module .dsp-power-btn')).some(button => button.textContent?.trim() === 'ACTIVE'));
+  const audioCommand = await page.evaluate(() => window.__commandRequests.findLast(item => item.id === 'track.set_audio_processing'));
+  assert.equal(audioCommand?.params?.track_id, 2, 'Fairlight EQ toggle should update the selected audio track');
+  assert.equal(audioCommand?.params?.eq_enabled, true, 'Fairlight EQ toggle should send the enabled state to the editor engine');
+  assert.ok(await page.locator('.fairlight-channel-strip').count() >= 2, 'Fairlight should display the project video and audio channel strips');
+
   const workspaceNav = page.getByRole('radiogroup', { name: 'Workspaces' });
   await workspaceNav.getByRole('radio', { name: 'Deliver' }).click();
   await page.getByText('Media File', { exact: true }).waitFor();
@@ -253,7 +273,7 @@ try {
 
   assert.deepEqual(pageErrors, [], `the app should not produce browser errors: ${pageErrors.join('\n')}`);
   await page.screenshot({ path: '/tmp/easy-edits-pro-editor-smoke.png', fullPage: false });
-  console.log(JSON.stringify({ page: await page.url(), viewport: page.viewportSize(), welcome: 'passed', importWorkspace: 'passed', importMediaSelection: 'passed', exportWorkspace: 'passed', hardwareEncoderFormatToggle: 'passed', mediaPointerDropPx: initialLeft, zoomWidth: { before: widthBefore, after: widthAfter }, scrubSeekSeconds: seekTime, playbackAdvancedToSeconds: playingTime, nextFrameSeconds: nextFrameTime, previousFrameSeconds: previousFrameTime, movedClipLeftPx: movedLeft, editorScreenshot: '/tmp/easy-edits-pro-editor-smoke.png', importScreenshot: '/tmp/easy-edits-pro-import-workspace.png', exportScreenshot: '/tmp/easy-edits-pro-export-workspace.png', browserErrors: pageErrors.length }, null, 2));
+  console.log(JSON.stringify({ page: await page.url(), viewport: page.viewportSize(), welcome: 'passed', importWorkspace: 'passed', importMediaSelection: 'passed', audioWorkspace: 'passed', audioDspCommand: audioCommand, exportWorkspace: 'passed', hardwareEncoderFormatToggle: 'passed', mediaPointerDropPx: initialLeft, zoomWidth: { before: widthBefore, after: widthAfter }, scrubSeekSeconds: seekTime, playbackAdvancedToSeconds: playingTime, nextFrameSeconds: nextFrameTime, previousFrameSeconds: previousFrameTime, movedClipLeftPx: movedLeft, editorScreenshot: '/tmp/easy-edits-pro-editor-smoke.png', importScreenshot: '/tmp/easy-edits-pro-import-workspace.png', exportScreenshot: '/tmp/easy-edits-pro-export-workspace.png', browserErrors: pageErrors.length }, null, 2));
 } finally {
   await browser.close();
   server.kill('SIGTERM');

@@ -96,11 +96,7 @@ fn overlay_channel(fg: f32, bg: f32) -> f32 {
 
 /// Rasterizes a RotoSplineMask into an 8-bit grayscale alpha buffer (0..255).
 /// Supports point-in-polygon ray casting, edge distance feathering, and invert toggle.
-pub fn rasterize_roto_mask(
-    mask: &RotoSplineMask,
-    width: usize,
-    height: usize,
-) -> Vec<u8> {
+pub fn rasterize_roto_mask(mask: &RotoSplineMask, width: usize, height: usize) -> Vec<u8> {
     let mut alpha_map = vec![0u8; width * height];
     if mask.points.len() < 3 {
         if mask.inverted {
@@ -162,7 +158,11 @@ pub fn rasterize_roto_mask(
 fn sample_spline_points(points: &[RotoSplinePoint], closed: bool) -> Vec<(f64, f64)> {
     let mut sampled = Vec::new();
     let count = points.len();
-    let num_segments = if closed { count } else { count.saturating_sub(1) };
+    let num_segments = if closed {
+        count
+    } else {
+        count.saturating_sub(1)
+    };
 
     for i in 0..num_segments {
         let p0 = &points[i];
@@ -184,8 +184,14 @@ fn sample_spline_points(points: &[RotoSplinePoint], closed: bool) -> Vec<(f64, f
             for s in 0..steps {
                 let t = s as f64 / steps as f64;
                 let omt = 1.0 - t;
-                let bx = omt.powi(3) * c0.0 + 3.0 * omt.powi(2) * t * c1.0 + 3.0 * omt * t.powi(2) * c2.0 + t.powi(3) * c3.0;
-                let by = omt.powi(3) * c0.1 + 3.0 * omt.powi(2) * t * c1.1 + 3.0 * omt * t.powi(2) * c2.1 + t.powi(3) * c3.1;
+                let bx = omt.powi(3) * c0.0
+                    + 3.0 * omt.powi(2) * t * c1.0
+                    + 3.0 * omt * t.powi(2) * c2.0
+                    + t.powi(3) * c3.0;
+                let by = omt.powi(3) * c0.1
+                    + 3.0 * omt.powi(2) * t * c1.1
+                    + 3.0 * omt * t.powi(2) * c2.1
+                    + t.powi(3) * c3.1;
                 sampled.push((bx, by));
             }
         }
@@ -201,8 +207,8 @@ fn point_in_polygon(px: f64, py: f64, poly: &[(f64, f64)]) -> bool {
         let (xi, yi) = poly[i];
         let (xj, yj) = poly[j];
 
-        let intersect = ((yi > py) != (yj > py))
-            && (px < (xj - xi) * (py - yi) / (yj - yi + 1e-12) + xi);
+        let intersect =
+            ((yi > py) != (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi + 1e-12) + xi);
         if intersect {
             inside = !inside;
         }
@@ -331,8 +337,12 @@ mod tests {
         let width = 2;
         let height = 2;
         // 50% transparent pure red over opaque pure blue
-        let fg = vec![255, 0, 0, 128, 255, 0, 0, 128, 255, 0, 0, 128, 255, 0, 0, 128];
-        let bg = vec![0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255];
+        let fg = vec![
+            255, 0, 0, 128, 255, 0, 0, 128, 255, 0, 0, 128, 255, 0, 0, 128,
+        ];
+        let bg = vec![
+            0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255, 0, 0, 255, 255,
+        ];
         let mut out = vec![0u8; 16];
 
         merge_alpha_over_rgba(&fg, &bg, &mut out, width, height, 1.0, BlendMode::Normal);
@@ -356,10 +366,30 @@ mod tests {
             feather: 5.0,
             opacity: 1.0,
             points: vec![
-                RotoSplinePoint { x: 20.0, y: 20.0, handle_in: (0.0, 0.0), handle_out: (0.0, 0.0) },
-                RotoSplinePoint { x: 80.0, y: 20.0, handle_in: (0.0, 0.0), handle_out: (0.0, 0.0) },
-                RotoSplinePoint { x: 80.0, y: 80.0, handle_in: (0.0, 0.0), handle_out: (0.0, 0.0) },
-                RotoSplinePoint { x: 20.0, y: 80.0, handle_in: (0.0, 0.0), handle_out: (0.0, 0.0) },
+                RotoSplinePoint {
+                    x: 20.0,
+                    y: 20.0,
+                    handle_in: (0.0, 0.0),
+                    handle_out: (0.0, 0.0),
+                },
+                RotoSplinePoint {
+                    x: 80.0,
+                    y: 20.0,
+                    handle_in: (0.0, 0.0),
+                    handle_out: (0.0, 0.0),
+                },
+                RotoSplinePoint {
+                    x: 80.0,
+                    y: 80.0,
+                    handle_in: (0.0, 0.0),
+                    handle_out: (0.0, 0.0),
+                },
+                RotoSplinePoint {
+                    x: 20.0,
+                    y: 80.0,
+                    handle_in: (0.0, 0.0),
+                    handle_out: (0.0, 0.0),
+                },
             ],
         };
 

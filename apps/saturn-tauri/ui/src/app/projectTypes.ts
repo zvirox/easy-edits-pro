@@ -1,12 +1,12 @@
 import type {
-  AudioBus, AudioPluginInstance, BusTarget, CollaborationState, EffectInstance,
+  AudioBus, AudioPluginInstance, AutomationMode, BusTarget, CollaborationState, EffectInstance,
   HslQualifier, Keyframe, MotionBlurParams, MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves,
   SpeedRamp, SubtitleItem, TrackAudioProcessing, TrackAutomation, TrackGroup,
   SilenceInterval,
 } from "../engine/playbackEngine";
 
 export type {
-  AudioBus, AudioPluginInstance, BusTarget, CollaborationState, EffectInstance,
+  AudioBus, AudioPluginInstance, AutomationMode, BusTarget, CollaborationState, EffectInstance,
   HslQualifier, Keyframe, MotionBlurParams, MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves,
   SpeedRamp, SubtitleItem, TrackAudioProcessing, TrackAutomation, TrackGroup,
   SilenceInterval,

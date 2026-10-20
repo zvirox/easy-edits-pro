@@ -76,10 +76,18 @@ pub struct TitleProperties {
     pub bg_color: Option<String>,
 }
 
-fn default_title_style() -> String { "lower_third".into() }
-fn default_font_family() -> String { "Inter".into() }
-fn default_font_size() -> f64 { 42.0 }
-fn default_title_color() -> String { "#ffffff".into() }
+fn default_title_style() -> String {
+    "lower_third".into()
+}
+fn default_font_family() -> String {
+    "Inter".into()
+}
+fn default_font_size() -> f64 {
+    42.0
+}
+fn default_title_color() -> String {
+    "#ffffff".into()
+}
 
 impl Default for TitleProperties {
     fn default() -> Self {

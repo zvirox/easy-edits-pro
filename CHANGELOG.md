@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **MCP editing workflow:** Re-enabled `saturn-mcp` in the Cargo workspace with command discovery/execution, project and sequence inspection, media search and asset-placement preview, and asynchronous render jobs with progress and cancellation.
+- **Live desktop MCP bridge:** Added a same-user Unix socket bridge so MCP edits use the open desktop project's shared editor state and undo history. Requests are size-limited and the runtime socket directory and socket use restrictive permissions.
+- **Fairlight automation playback:** Added interpolated Read-mode volume and pan automation playback, plus a dedicated audio workspace hook and regression tests.
+- **Render workflow coverage:** Added render range handling, cancellation/progress coverage, and expanded project command workflow tests.
+- **Development roadmap:** Updated the main README and MCP documentation with verified capabilities, limitations, and the FilmCraft parity roadmap.
+
+### Changed
+- Expanded media/project IPC and path validation support, and updated editor smoke coverage for audio and export workspace interactions.
+- Formatted and aligned Rust command, timeline, render, and project schema modules with current workspace conventions.
+
 ## [0.1.0-alpha.1] - 2026-10-18
 
 First public alpha pre-release of Easy Edits Pro for modern Linux systems.

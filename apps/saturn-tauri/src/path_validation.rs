@@ -81,9 +81,10 @@ pub fn validate_path(
 
     // Check if path is within allowed roots
     if !config.allowed_roots.is_empty() {
-        let is_allowed = config.allowed_roots.iter().any(|root| {
-            canonical.starts_with(root)
-        });
+        let is_allowed = config
+            .allowed_roots
+            .iter()
+            .any(|root| canonical.starts_with(root));
         if !is_allowed {
             return Err(PathValidationError::NotAllowed);
         }
@@ -109,7 +110,11 @@ pub fn validate_path(
             if metadata.len() > max_size {
                 return Err(PathValidationError::IoError(std::io::Error::new(
                     std::io::ErrorKind::InvalidInput,
-                    format!("File size {} exceeds maximum allowed {}", metadata.len(), max_size),
+                    format!(
+                        "File size {} exceeds maximum allowed {}",
+                        metadata.len(),
+                        max_size
+                    ),
                 )));
             }
         }

@@ -1,4 +1,4 @@
-import type { TrackAudioProcessing, Track, LoudnessStandard, LoudnessReport } from "./types.ts";
+import type { TrackAudioProcessing, Track, LoudnessStandard, LoudnessReport, AudioBus, BusTarget } from "./types.ts";
 import { EbuR128WebMeter } from "./audioMeter.ts";
 
 /**
@@ -10,6 +10,7 @@ import { EbuR128WebMeter } from "./audioMeter.ts";
 export class AudioClockMaster {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private masterBusGain: GainNode | null = null;
   private masterLimiter: DynamicsCompressorNode | null = null;
   private masterAnalyser: AnalyserNode | null = null;
   private scriptProcessor: ScriptProcessorNode | null = null;
@@ -19,6 +20,8 @@ export class AudioClockMaster {
   private trackGains = new Map<number, GainNode>();
   private trackPanners = new Map<number, StereoPannerNode>();
   private trackAnalysers = new Map<number, AnalyserNode>();
+  private busOutputs = new Map<BusTarget, GainNode>();
+  private trackBusTargets = new Map<number, BusTarget>();
   private trackDenoiseFilters = new Map<number, BiquadFilterNode>();
   private trackLowShelfs = new Map<number, BiquadFilterNode>();
   private trackMidPeaks = new Map<number, BiquadFilterNode>();
@@ -37,6 +40,7 @@ export class AudioClockMaster {
       if (AudioCtx) {
         this.ctx = new AudioCtx();
         this.masterGain = this.ctx.createGain();
+        this.masterBusGain = this.ctx.createGain();
 
         // Master Limiter (True-Peak brickwall at -0.5 dB)
         this.masterLimiter = this.ctx.createDynamicsCompressor();
@@ -50,7 +54,8 @@ export class AudioClockMaster {
         this.masterAnalyser.fftSize = 256;
         this.masterAnalyser.smoothingTimeConstant = 0.5;
 
-        this.masterGain.connect(this.masterLimiter);
+        this.masterGain.connect(this.masterBusGain);
+        this.masterBusGain.connect(this.masterLimiter);
         this.masterLimiter.connect(this.masterAnalyser);
         this.masterAnalyser.connect(this.ctx.destination);
 
@@ -63,7 +68,7 @@ export class AudioClockMaster {
               const inR = e.inputBuffer.numberOfChannels > 1 ? e.inputBuffer.getChannelData(1) : inL;
               this.ebuMeter.processBuffer(inL, inR);
             };
-            this.masterGain.connect(this.scriptProcessor);
+            this.masterBusGain.connect(this.scriptProcessor);
             const silenceGain = this.ctx.createGain();
             silenceGain.gain.setValueAtTime(0, this.ctx.currentTime);
             this.scriptProcessor.connect(silenceGain);
@@ -84,6 +89,35 @@ export class AudioClockMaster {
 
   getCurrentTime(): number {
     return performance.now() / 1000;
+  }
+
+  private getBusOutput(target: BusTarget): GainNode | null {
+    const ctx = this.getContext();
+    if (!ctx || !this.masterGain || !this.masterBusGain) return null;
+    if (target === "master") return this.masterBusGain;
+    let output = this.busOutputs.get(target);
+    if (!output) {
+      output = ctx.createGain();
+      output.connect(this.masterGain);
+      this.busOutputs.set(target, output);
+    }
+    return output;
+  }
+
+  setBusGain(target: BusTarget, gainDb: number): void {
+    const ctx = this.getContext();
+    const output = this.getBusOutput(target);
+    if (!ctx || !output) return;
+    output.gain.setTargetAtTime(Math.max(0, Math.min(4, 10 ** (gainDb / 20))), ctx.currentTime, 0.02);
+  }
+
+  private routeTrack(trackId: number, target: BusTarget): void {
+    const analyser = this.trackAnalysers.get(trackId);
+    const output = this.getBusOutput(target);
+    if (!analyser || !output || this.trackBusTargets.get(trackId) === target) return;
+    analyser.disconnect();
+    analyser.connect(output);
+    this.trackBusTargets.set(trackId, target);
   }
 
   getTrackGainNode(trackId: number, gainDb = 0): GainNode | null {
@@ -160,7 +194,8 @@ export class AudioClockMaster {
       } else {
         gainNode.connect(analyser);
       }
-      analyser.connect(this.masterGain);
+      analyser.connect(this.getBusOutput("master") ?? this.masterGain);
+      this.trackBusTargets.set(trackId, "master");
     }
     const gainNode = this.trackGains.get(trackId);
     if (gainNode) {
@@ -260,16 +295,18 @@ export class AudioClockMaster {
     return this.masterLimiter ? this.masterLimiter.reduction : 0;
   }
 
-  updateTracksState(tracks: Track[]): void {
+  updateTracksState(tracks: Track[], buses: AudioBus[] = []): void {
     const ctx = this.getContext();
     if (!ctx) return;
     const anySolo = tracks.some((t) => t.solo);
+    for (const bus of buses) this.setBusGain(bus.target, bus.gain_db);
     for (const track of tracks) {
       this.trackRawGains.set(track.id, track.gain_db);
       this.trackMutes.set(track.id, !!track.muted);
       this.trackSolos.set(track.id, !!track.solo);
       this.trackPans.set(track.id, track.pan ?? 0);
       this.updateTrackAudioProcessing(track.id, track.audio_processing);
+      this.routeTrack(track.id, track.bus ?? "master");
 
       const panner = this.trackPanners.get(track.id);
       if (panner && panner.pan) {

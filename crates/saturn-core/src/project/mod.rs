@@ -121,13 +121,21 @@ impl ProjectDocument {
                 return Err(format!("Track {} has invalid gain", track.name));
             }
             let ap = &track.audio_processing;
-            if !ap.eq_low_gain.is_finite() || !(-24.0..=24.0).contains(&ap.eq_low_gain)
-                || !ap.eq_mid_gain.is_finite() || !(-24.0..=24.0).contains(&ap.eq_mid_gain)
-                || !ap.eq_high_gain.is_finite() || !(-24.0..=24.0).contains(&ap.eq_high_gain)
-                || !ap.comp_threshold.is_finite() || !(-80.0..=0.0).contains(&ap.comp_threshold)
-                || !ap.comp_ratio.is_finite() || !(1.0..=50.0).contains(&ap.comp_ratio)
+            if !ap.eq_low_gain.is_finite()
+                || !(-24.0..=24.0).contains(&ap.eq_low_gain)
+                || !ap.eq_mid_gain.is_finite()
+                || !(-24.0..=24.0).contains(&ap.eq_mid_gain)
+                || !ap.eq_high_gain.is_finite()
+                || !(-24.0..=24.0).contains(&ap.eq_high_gain)
+                || !ap.comp_threshold.is_finite()
+                || !(-80.0..=0.0).contains(&ap.comp_threshold)
+                || !ap.comp_ratio.is_finite()
+                || !(1.0..=50.0).contains(&ap.comp_ratio)
             {
-                return Err(format!("Track {} has invalid audio processing parameters", track.name));
+                return Err(format!(
+                    "Track {} has invalid audio processing parameters",
+                    track.name
+                ));
             }
             for clip in &track.clips {
                 if clip.duration.0 <= 0
@@ -154,38 +162,57 @@ impl ProjectDocument {
                                 || !p.hue.is_finite()
                                 || !(-1.0..=1.0).contains(&p.hue)
                             {
-                                return Err("Project contains invalid color correction effect values".into());
+                                return Err(
+                                    "Project contains invalid color correction effect values"
+                                        .into(),
+                                );
                             }
                         }
                         EffectPayload::GaussianBlur(p) => {
                             if !p.sigma.is_finite() || !(0.0..=50.0).contains(&p.sigma) {
-                                return Err("Project contains invalid gaussian blur effect values".into());
+                                return Err(
+                                    "Project contains invalid gaussian blur effect values".into()
+                                );
                             }
                         }
                         EffectPayload::Crop(p) => {
-                            if !p.top.is_finite() || !(0.0..=100.0).contains(&p.top)
-                                || !p.bottom.is_finite() || !(0.0..=100.0).contains(&p.bottom)
-                                || !p.left.is_finite() || !(0.0..=100.0).contains(&p.left)
-                                || !p.right.is_finite() || !(0.0..=100.0).contains(&p.right)
+                            if !p.top.is_finite()
+                                || !(0.0..=100.0).contains(&p.top)
+                                || !p.bottom.is_finite()
+                                || !(0.0..=100.0).contains(&p.bottom)
+                                || !p.left.is_finite()
+                                || !(0.0..=100.0).contains(&p.left)
+                                || !p.right.is_finite()
+                                || !(0.0..=100.0).contains(&p.right)
                             {
                                 return Err("Project contains invalid crop effect values".into());
                             }
                         }
                         EffectPayload::Vignette(p) => {
-                            if !p.intensity.is_finite() || !(0.0..=1.0).contains(&p.intensity)
-                                || !p.radius.is_finite() || !(0.0..=2.0).contains(&p.radius)
-                                || !p.softness.is_finite() || !(0.0..=1.0).contains(&p.softness)
+                            if !p.intensity.is_finite()
+                                || !(0.0..=1.0).contains(&p.intensity)
+                                || !p.radius.is_finite()
+                                || !(0.0..=2.0).contains(&p.radius)
+                                || !p.softness.is_finite()
+                                || !(0.0..=1.0).contains(&p.softness)
                             {
-                                return Err("Project contains invalid vignette effect values".into());
+                                return Err(
+                                    "Project contains invalid vignette effect values".into()
+                                );
                             }
                         }
                         EffectPayload::ChromaKey(p) => {
                             if p.color.trim().is_empty()
-                                || !p.tolerance.is_finite() || !(0.0..=100.0).contains(&p.tolerance)
-                                || !p.softness.is_finite() || !(0.0..=100.0).contains(&p.softness)
-                                || !p.spill_suppression.is_finite() || !(0.0..=1.0).contains(&p.spill_suppression)
+                                || !p.tolerance.is_finite()
+                                || !(0.0..=100.0).contains(&p.tolerance)
+                                || !p.softness.is_finite()
+                                || !(0.0..=100.0).contains(&p.softness)
+                                || !p.spill_suppression.is_finite()
+                                || !(0.0..=1.0).contains(&p.spill_suppression)
                             {
-                                return Err("Project contains invalid chroma key effect values".into());
+                                return Err(
+                                    "Project contains invalid chroma key effect values".into()
+                                );
                             }
                         }
                         EffectPayload::Lut(p) => {
@@ -227,7 +254,10 @@ impl ProjectDocument {
             }
         }
         for sub in &self.project.sequence.subtitles {
-            if sub.start_ticks.0 < 0 || sub.end_ticks.0 <= sub.start_ticks.0 || sub.text.trim().is_empty() {
+            if sub.start_ticks.0 < 0
+                || sub.end_ticks.0 <= sub.start_ticks.0
+                || sub.text.trim().is_empty()
+            {
                 return Err("Project contains an invalid subtitle item".into());
             }
         }
@@ -331,7 +361,10 @@ mod tests {
         let trans_outside = seq.transition_at(Tick(400));
         assert!(trans_outside.is_none());
 
-        assert_eq!(seq.tracks[0].next_clip_after(Tick(200)).unwrap().media_id, 2);
+        assert_eq!(
+            seq.tracks[0].next_clip_after(Tick(200)).unwrap().media_id,
+            2
+        );
     }
 
     #[test]

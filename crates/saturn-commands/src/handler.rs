@@ -1,13 +1,11 @@
 //! Command handler implementations and built-in commands
 
 use crate::{
-    CommandId, CommandSpec, CommandCategory, CommandPriority, ExecutionMode,
-    CommandResult, RegistryError, ValidationError,
-    context::{AppContext, ExecutionContext, AppEvent},
+    CommandCategory, CommandId, CommandPriority, CommandResult, CommandSpec, ExecutionMode,
+    HandlerError, RegistryError, TrackKind, ValidationError,
+    context::{AppContext, AppEvent, ExecutionContext},
     registry::CommandRegistry,
-    undo::{UndoManager, UndoEntry},
-    HandlerError,
-    TrackKind,
+    undo::{UndoEntry, UndoManager},
 };
 use async_trait::async_trait;
 use parking_lot::RwLock;
@@ -23,12 +21,17 @@ impl crate::CommandHandler for EchoCommand {
         CommandSpec::new("test.echo", "Echo")
             .with_category(CommandCategory::Other)
             .with_params(vec![
-                crate::ParamSpec::new("message", "Message", crate::ParamSchema::String {
-                    min_length: None,
-                    max_length: None,
-                    pattern: None,
-                    format: None,
-                }).with_description("Message to echo back")
+                crate::ParamSpec::new(
+                    "message",
+                    "Message",
+                    crate::ParamSchema::String {
+                        min_length: None,
+                        max_length: None,
+                        pattern: None,
+                        format: None,
+                    },
+                )
+                .with_description("Message to echo back"),
             ])
             .non_mutating()
     }
@@ -68,27 +71,46 @@ impl crate::CommandHandler for NewProjectCommand {
             .with_category(CommandCategory::File)
             .with_shortcut("Ctrl+N")
             .with_params(vec![
-                crate::ParamSpec::new("name", "Project Name", crate::ParamSchema::String {
-                    min_length: Some(1),
-                    max_length: Some(100),
-                    pattern: None,
-                    format: None,
-                }),
-                crate::ParamSpec::new("width", "Width", crate::ParamSchema::Integer {
-                    minimum: Some(640),
-                    maximum: Some(8192),
-                    multiple_of: None,
-                }).with_default(serde_json::json!(1920)),
-                crate::ParamSpec::new("height", "Height", crate::ParamSchema::Integer {
-                    minimum: Some(360),
-                    maximum: Some(8192),
-                    multiple_of: None,
-                }).with_default(serde_json::json!(1080)),
-                crate::ParamSpec::new("frame_rate", "Frame Rate", crate::ParamSchema::Number {
-                    minimum: Some(1.0),
-                    maximum: Some(120.0),
-                    multiple_of: None,
-                }).with_default(serde_json::json!(30.0)),
+                crate::ParamSpec::new(
+                    "name",
+                    "Project Name",
+                    crate::ParamSchema::String {
+                        min_length: Some(1),
+                        max_length: Some(100),
+                        pattern: None,
+                        format: None,
+                    },
+                ),
+                crate::ParamSpec::new(
+                    "width",
+                    "Width",
+                    crate::ParamSchema::Integer {
+                        minimum: Some(640),
+                        maximum: Some(8192),
+                        multiple_of: None,
+                    },
+                )
+                .with_default(serde_json::json!(1920)),
+                crate::ParamSpec::new(
+                    "height",
+                    "Height",
+                    crate::ParamSchema::Integer {
+                        minimum: Some(360),
+                        maximum: Some(8192),
+                        multiple_of: None,
+                    },
+                )
+                .with_default(serde_json::json!(1080)),
+                crate::ParamSpec::new(
+                    "frame_rate",
+                    "Frame Rate",
+                    crate::ParamSchema::Number {
+                        minimum: Some(1.0),
+                        maximum: Some(120.0),
+                        multiple_of: None,
+                    },
+                )
+                .with_default(serde_json::json!(30.0)),
             ])
     }
 
@@ -104,9 +126,7 @@ impl crate::CommandHandler for NewProjectCommand {
         state.project = Some(crate::context::ProjectHandle(project_id));
         state.playhead = 0;
 
-        ctx.emit_event(crate::context::AppEvent::ProjectChanged {
-            project_id,
-        });
+        ctx.emit_event(crate::context::AppEvent::ProjectChanged { project_id });
 
         Ok(serde_json::json!({
             "project_id": project_id.to_string(),
@@ -123,7 +143,11 @@ impl crate::CommandHandler for AddClipCommand {
         CommandSpec::new("timeline.addClip", "Add Clip to Timeline")
             .with_category(CommandCategory::Timeline)
             .with_params(vec![
-                crate::ParamSpec::new("track_id", "Track ID", crate::ParamSchema::Track { kind: None }),
+                crate::ParamSpec::new(
+                    "track_id",
+                    "Track ID",
+                    crate::ParamSchema::Track { kind: None },
+                ),
                 crate::ParamSpec::new("media_id", "Media ID", crate::ParamSchema::Media),
                 crate::ParamSpec::new("timeline_start", "Start Time", crate::ParamSchema::Time)
                     .optional()
@@ -176,21 +200,30 @@ impl crate::CommandHandler for RazorCommand {
             .with_category(CommandCategory::Timeline)
             .with_shortcut("Ctrl+K")
             .with_params(vec![
-                crate::ParamSpec::new("track_id", "Track ID", crate::ParamSchema::Track { kind: None }),
-                crate::ParamSpec::new("clip_index", "Clip Index", crate::ParamSchema::Integer {
-                    minimum: Some(0),
-                    maximum: None,
-                    multiple_of: None,
-                }),
-                crate::ParamSpec::new("at", "Split Time", crate::ParamSchema::Time)
-                    .optional(),
+                crate::ParamSpec::new(
+                    "track_id",
+                    "Track ID",
+                    crate::ParamSchema::Track { kind: None },
+                ),
+                crate::ParamSpec::new(
+                    "clip_index",
+                    "Clip Index",
+                    crate::ParamSchema::Integer {
+                        minimum: Some(0),
+                        maximum: None,
+                        multiple_of: None,
+                    },
+                ),
+                crate::ParamSpec::new("at", "Split Time", crate::ParamSchema::Time).optional(),
             ])
     }
 
     async fn execute(&self, ctx: ExecutionContext<'_>) -> Result<Value, crate::HandlerError> {
         let track_id: u64 = ctx.get("track_id")?;
         let clip_index: usize = ctx.get("clip_index")?;
-        let at: u64 = ctx.get_opt("at")?.unwrap_or_else(|| ctx.app.state.read().playhead);
+        let at: u64 = ctx
+            .get_opt("at")?
+            .unwrap_or_else(|| ctx.app.state.read().playhead);
 
         let new_clip_id = uuid::Uuid::new_v4();
 
@@ -224,19 +257,30 @@ impl crate::CommandHandler for AddTransitionCommand {
             .with_category(CommandCategory::Transitions)
             .with_shortcut("Ctrl+D")
             .with_params(vec![
-                crate::ParamSpec::new("track_id", "Track ID", crate::ParamSchema::Track { kind: Some(crate::TrackKind::Video) }),
+                crate::ParamSpec::new(
+                    "track_id",
+                    "Track ID",
+                    crate::ParamSchema::Track {
+                        kind: Some(crate::TrackKind::Video),
+                    },
+                ),
                 crate::ParamSpec::new("cut_at", "Cut Time", crate::ParamSchema::Time),
                 crate::ParamSpec::new("duration", "Duration", crate::ParamSchema::Time)
                     .with_default(serde_json::json!(1_000_000_000)),
-                crate::ParamSpec::new("type", "Transition Type", crate::ParamSchema::Enum {
-                    values: vec![
-                        serde_json::json!("cross_dissolve"),
-                        serde_json::json!("dip_to_black"),
-                        serde_json::json!("dip_to_white"),
-                        serde_json::json!("wipe_left"),
-                        serde_json::json!("wipe_right"),
-                    ],
-                }).with_default(serde_json::json!("cross_dissolve")),
+                crate::ParamSpec::new(
+                    "type",
+                    "Transition Type",
+                    crate::ParamSchema::Enum {
+                        values: vec![
+                            serde_json::json!("cross_dissolve"),
+                            serde_json::json!("dip_to_black"),
+                            serde_json::json!("dip_to_white"),
+                            serde_json::json!("wipe_left"),
+                            serde_json::json!("wipe_right"),
+                        ],
+                    },
+                )
+                .with_default(serde_json::json!("cross_dissolve")),
             ])
     }
 
@@ -290,7 +334,9 @@ impl crate::CommandHandler for UndoCommand {
             });
             Ok(serde_json::json!({ "undone": entry.description }))
         } else {
-            Err(crate::HandlerError::Execution("Nothing to undo".to_string()))
+            Err(crate::HandlerError::Execution(
+                "Nothing to undo".to_string(),
+            ))
         }
     }
 
@@ -319,7 +365,9 @@ impl crate::CommandHandler for RedoCommand {
             });
             Ok(serde_json::json!({ "redone": entry.description }))
         } else {
-            Err(crate::HandlerError::Execution("Nothing to redo".to_string()))
+            Err(crate::HandlerError::Execution(
+                "Nothing to redo".to_string(),
+            ))
         }
     }
 
@@ -337,13 +385,19 @@ impl crate::CommandHandler for SetPlayheadCommand {
             .with_category(CommandCategory::Timeline)
             .with_params(vec![
                 crate::ParamSpec::new("position", "Position", crate::ParamSchema::Time),
-                crate::ParamSpec::new("timecode", "Timecode", crate::ParamSchema::Timecode).optional(),
+                crate::ParamSpec::new("timecode", "Timecode", crate::ParamSchema::Timecode)
+                    .optional(),
                 crate::ParamSpec::new("frame", "Frame", crate::ParamSchema::Frame).optional(),
-                crate::ParamSpec::new("seconds", "Seconds", crate::ParamSchema::Number {
-                    minimum: Some(0.0),
-                    maximum: None,
-                    multiple_of: None,
-                }).optional(),
+                crate::ParamSpec::new(
+                    "seconds",
+                    "Seconds",
+                    crate::ParamSchema::Number {
+                        minimum: Some(0.0),
+                        maximum: None,
+                        multiple_of: None,
+                    },
+                )
+                .optional(),
             ])
             .non_mutating()
     }
@@ -361,7 +415,9 @@ impl crate::CommandHandler for SetPlayheadCommand {
             let secs: f64 = ctx.get("seconds")?;
             (secs * 254_016_000_000.0) as u64
         } else {
-            return Err(crate::HandlerError::Execution("No position specified".to_string()));
+            return Err(crate::HandlerError::Execution(
+                "No position specified".to_string(),
+            ));
         };
 
         let mut state = ctx.app.state.write();
@@ -376,19 +432,32 @@ impl crate::CommandHandler for SetPlayheadCommand {
 fn parse_timecode(tc: &str) -> Result<u64, crate::HandlerError> {
     let parts: Vec<&str> = tc.split(|c| c == ':' || c == ';').collect();
     if parts.len() != 4 {
-        return Err(crate::HandlerError::Execution("Invalid timecode format".to_string()));
+        return Err(crate::HandlerError::Execution(
+            "Invalid timecode format".to_string(),
+        ));
     }
-    let hours: u64 = parts[0].parse().map_err(|_| crate::HandlerError::Execution("Invalid hours".to_string()))?;
-    let minutes: u64 = parts[1].parse().map_err(|_| crate::HandlerError::Execution("Invalid minutes".to_string()))?;
-    let seconds: u64 = parts[2].parse().map_err(|_| crate::HandlerError::Execution("Invalid seconds".to_string()))?;
-    let frames: u64 = parts[3].parse().map_err(|_| crate::HandlerError::Execution("Invalid frames".to_string()))?;
+    let hours: u64 = parts[0]
+        .parse()
+        .map_err(|_| crate::HandlerError::Execution("Invalid hours".to_string()))?;
+    let minutes: u64 = parts[1]
+        .parse()
+        .map_err(|_| crate::HandlerError::Execution("Invalid minutes".to_string()))?;
+    let seconds: u64 = parts[2]
+        .parse()
+        .map_err(|_| crate::HandlerError::Execution("Invalid seconds".to_string()))?;
+    let frames: u64 = parts[3]
+        .parse()
+        .map_err(|_| crate::HandlerError::Execution("Invalid frames".to_string()))?;
 
     let frame_rate = 30;
-    let total_frames = hours * 3600 * frame_rate + minutes * 60 * frame_rate + seconds * frame_rate + frames;
+    let total_frames =
+        hours * 3600 * frame_rate + minutes * 60 * frame_rate + seconds * frame_rate + frames;
     Ok(total_frames * (254_016_000_000 / frame_rate))
 }
 
-pub fn register_builtin_commands(registry: &crate::CommandRegistry) -> Result<(), crate::RegistryError> {
+pub fn register_builtin_commands(
+    registry: &crate::CommandRegistry,
+) -> Result<(), crate::RegistryError> {
     registry.register(Box::new(EchoCommand))?;
     registry.register(Box::new(ProjectStatusCommand))?;
     registry.register(Box::new(NewProjectCommand))?;
@@ -404,8 +473,8 @@ pub fn register_builtin_commands(registry: &crate::CommandRegistry) -> Result<()
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::registry::CommandRegistry;
     use crate::context::AppContext;
+    use crate::registry::CommandRegistry;
 
     #[tokio::test]
     async fn test_builtin_commands() {
@@ -420,10 +489,24 @@ mod tests {
             events: Arc::new(crate::context::EventBus::new()),
         };
 
-        let result = registry.execute(&CommandId::new("test.echo"), serde_json::json!({ "message": "hello" }), &ctx).await.unwrap();
+        let result = registry
+            .execute(
+                &CommandId::new("test.echo"),
+                serde_json::json!({ "message": "hello" }),
+                &ctx,
+            )
+            .await
+            .unwrap();
         assert_eq!(result["echo"], "hello");
 
-        let result = registry.execute(&CommandId::new("project.status"), serde_json::json!({}), &ctx).await.unwrap();
+        let result = registry
+            .execute(
+                &CommandId::new("project.status"),
+                serde_json::json!({}),
+                &ctx,
+            )
+            .await
+            .unwrap();
         assert_eq!(result["has_project"], false);
     }
 }

@@ -27,9 +27,8 @@ pub async fn export_timeline_interop(
     if let Some(target_path) = path {
         let validated_path = validate_write_path(&app, &target_path, Some(50 * 1024 * 1024)) // 50 MB limit
             .map_err(|e| format!("Invalid export path: {e}"))?;
-        std::fs::write(&validated_path, &content).map_err(|e| {
-            format!("Could not write timeline interchange export: {e}")
-        })?;
+        std::fs::write(&validated_path, &content)
+            .map_err(|e| format!("Could not write timeline interchange export: {e}"))?;
     }
 
     Ok(content)

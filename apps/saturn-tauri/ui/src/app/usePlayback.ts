@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { audioClockMaster, evaluateTimelinePlayback, type TimelinePlaybackSnapshot } from "../engine/playbackEngine";
+import { evaluateAutomation } from "../engine/playback/audioAutomation";
 import type { MediaAsset, ProjectDocument, ProjectStatus } from "./projectTypes";
 
 const TICKS_PER_SECOND = 254_016_000_000;
@@ -60,8 +61,17 @@ export function usePlayback({ projectState, project, media, preparedPreviews, me
       const element = audioPlayersRef.current.get(key);
       if (!element) continue;
       element.muted = false;
-      const targetVolume = Math.max(0, Math.min(1, 10 ** (audioItem.gainDb / 20)));
-      if (Math.abs(element.volume - targetVolume) > 0.02) element.volume = targetVolume;
+      const automation = audioItem.track.automation;
+      const automationEnabled = !!automation && automation.mode !== "off";
+      const gainDb = automationEnabled
+        ? evaluateAutomation(automation.volume_points, currentPlayhead, audioItem.gainDb)
+        : audioItem.gainDb;
+      const pan = automationEnabled
+        ? evaluateAutomation(automation.pan_points, currentPlayhead, audioItem.track.pan ?? 0)
+        : audioItem.track.pan ?? 0;
+      audioClockMaster.updateTrackGain(audioItem.track.id, gainDb);
+      audioClockMaster.updateTrackPan(audioItem.track.id, pan);
+      if (element.volume !== 1) element.volume = 1;
       if (Math.abs(element.currentTime - audioItem.currentTime) > 0.25) {
         try { element.currentTime = audioItem.currentTime; } catch { /* browser may not be seekable yet */ }
       }

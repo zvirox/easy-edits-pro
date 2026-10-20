@@ -51,8 +51,12 @@ pub struct AudioPluginInstance {
     pub params: std::collections::HashMap<String, f64>,
 }
 
-fn default_plugin_format() -> String { "builtin".into() }
-fn default_plugin_enabled() -> bool { true }
+fn default_plugin_format() -> String {
+    "builtin".into()
+}
+fn default_plugin_enabled() -> bool {
+    true
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioBus {
@@ -109,9 +113,9 @@ pub fn default_audio_buses() -> Vec<AudioBus> {
 #[serde(default)]
 pub struct TrackAudioProcessing {
     pub eq_enabled: bool,
-    pub eq_low_gain: f64,    // -15.0 to +15.0 dB
-    pub eq_mid_gain: f64,    // -15.0 to +15.0 dB
-    pub eq_high_gain: f64,   // -15.0 to +15.0 dB
+    pub eq_low_gain: f64,  // -15.0 to +15.0 dB
+    pub eq_mid_gain: f64,  // -15.0 to +15.0 dB
+    pub eq_high_gain: f64, // -15.0 to +15.0 dB
     pub comp_enabled: bool,
     pub comp_threshold: f64, // -60.0 to 0.0 dB
     pub comp_ratio: f64,     // 1.0 to 20.0

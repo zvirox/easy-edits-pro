@@ -50,9 +50,15 @@ pub struct ColorCorrectionParams {
     pub wheels: ColorWheels,
 }
 
-fn default_exposure() -> f64 { 0.0 }
-fn default_contrast() -> f64 { 1.0 }
-fn default_saturation() -> f64 { 1.0 }
+fn default_exposure() -> f64 {
+    0.0
+}
+fn default_contrast() -> f64 {
+    1.0
+}
+fn default_saturation() -> f64 {
+    1.0
+}
 
 impl Default for ColorCorrectionParams {
     fn default() -> Self {
@@ -72,7 +78,9 @@ pub struct GaussianBlurParams {
     pub sigma: f64,
 }
 
-fn default_blur_sigma() -> f64 { 2.0 }
+fn default_blur_sigma() -> f64 {
+    2.0
+}
 
 impl Default for GaussianBlurParams {
     fn default() -> Self {
@@ -102,9 +110,15 @@ pub struct VignetteParams {
     pub softness: f64,
 }
 
-fn default_vignette_intensity() -> f64 { 0.5 }
-fn default_vignette_radius() -> f64 { 0.8 }
-fn default_vignette_softness() -> f64 { 0.5 }
+fn default_vignette_intensity() -> f64 {
+    0.5
+}
+fn default_vignette_radius() -> f64 {
+    0.8
+}
+fn default_vignette_softness() -> f64 {
+    0.5
+}
 
 impl Default for VignetteParams {
     fn default() -> Self {
@@ -128,10 +142,18 @@ pub struct ChromaKeyParams {
     pub spill_suppression: f64,
 }
 
-fn default_chroma_color() -> String { "#00ff00".into() }
-fn default_chroma_tolerance() -> f64 { 25.0 }
-fn default_chroma_softness() -> f64 { 10.0 }
-fn default_chroma_spill() -> f64 { 0.5 }
+fn default_chroma_color() -> String {
+    "#00ff00".into()
+}
+fn default_chroma_tolerance() -> f64 {
+    25.0
+}
+fn default_chroma_softness() -> f64 {
+    10.0
+}
+fn default_chroma_spill() -> f64 {
+    0.5
+}
 
 impl Default for ChromaKeyParams {
     fn default() -> Self {
@@ -156,8 +178,12 @@ pub struct LutParams {
     pub preset_id: Option<String>,
 }
 
-fn default_lut_name() -> String { "Teal & Orange".into() }
-fn default_lut_intensity() -> f64 { 1.0 }
+fn default_lut_name() -> String {
+    "Teal & Orange".into()
+}
+fn default_lut_intensity() -> f64 {
+    1.0
+}
 
 impl Default for LutParams {
     fn default() -> Self {
@@ -196,7 +222,9 @@ void main() {
     vec4 color = texture2D(u_texture, v_texCoord);
     gl_FragColor = color;
 }
-"#.trim().into(),
+"#
+            .trim()
+            .into(),
             preset_id: Some("passthrough".into()),
             uniforms: std::collections::HashMap::new(),
         }
@@ -215,7 +243,9 @@ pub enum EffectPayload {
     CustomShader(CustomShaderParams),
 }
 
-fn default_effect_enabled() -> bool { true }
+fn default_effect_enabled() -> bool {
+    true
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct EffectInstance {
@@ -323,10 +353,7 @@ pub struct RgbCurves {
 }
 
 pub fn default_curve_points() -> Vec<CurvePoint> {
-    vec![
-        CurvePoint { x: 0.0, y: 0.0 },
-        CurvePoint { x: 1.0, y: 1.0 },
-    ]
+    vec![CurvePoint { x: 0.0, y: 0.0 }, CurvePoint { x: 1.0, y: 1.0 }]
 }
 
 impl Default for RgbCurves {
@@ -374,14 +401,30 @@ pub struct HslQualifier {
     pub exposure_shift: f64,
 }
 
-fn default_hue_center() -> f64 { 120.0 }
-fn default_hue_width() -> f64 { 40.0 }
-fn default_sat_center() -> f64 { 0.5 }
-fn default_sat_width() -> f64 { 0.5 }
-fn default_luma_center() -> f64 { 0.5 }
-fn default_luma_width() -> f64 { 0.5 }
-fn default_softness() -> f64 { 0.15 }
-fn default_one() -> f64 { 1.0 }
+fn default_hue_center() -> f64 {
+    120.0
+}
+fn default_hue_width() -> f64 {
+    40.0
+}
+fn default_sat_center() -> f64 {
+    0.5
+}
+fn default_sat_width() -> f64 {
+    0.5
+}
+fn default_luma_center() -> f64 {
+    0.5
+}
+fn default_luma_width() -> f64 {
+    0.5
+}
+fn default_softness() -> f64 {
+    0.15
+}
+fn default_one() -> f64 {
+    1.0
+}
 
 impl Default for HslQualifier {
     fn default() -> Self {

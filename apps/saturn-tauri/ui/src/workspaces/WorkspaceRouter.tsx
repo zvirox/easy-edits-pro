@@ -32,6 +32,7 @@ export interface WorkspaceRouterProps {
   redoStatus: CommandStatus;
   programPreviewError: string | null;
   audioClockMaster: any;
+  audioOps: any;
 }
 
 export function WorkspaceRouter({
@@ -56,6 +57,7 @@ export function WorkspaceRouter({
   redoStatus,
   programPreviewError,
   audioClockMaster,
+  audioOps,
 }: WorkspaceRouterProps) {
   if (davinciWorkspace === "media") {
     return (
@@ -164,52 +166,43 @@ export function WorkspaceRouter({
         selectedClip={timelineOps.selectedClip}
         setSelectedClip={timelineOps.setSelectedClip}
         setSelectedClips={timelineOps.setSelectedClips}
-        selectedFairlightTrackId={null}
-        setSelectedFairlightTrackId={() => {}}
-        audioProcessingDrafts={{}}
-        setAudioProcessingDrafts={() => {}}
-        saveTrackAudioProcessing={async () => {}}
-        trackGr={{}}
-        masterGr={0}
-        vuLevels={{}}
-        masterVu={{ left: -60, right: -60, peakDb: -60 }}
+        selectedFairlightTrackId={audioOps.selectedFairlightTrackId}
+        setSelectedFairlightTrackId={audioOps.setSelectedFairlightTrackId}
+        audioProcessingDrafts={audioOps.audioProcessingDrafts}
+        setAudioProcessingDrafts={audioOps.setAudioProcessingDrafts}
+        saveTrackAudioProcessing={audioOps.saveTrackAudioProcessing}
+        trackGr={audioOps.trackGr}
+        masterGr={audioOps.masterGr}
+        vuLevels={audioOps.vuLevels}
+        masterVu={audioOps.masterVu}
         gainDrafts={timelineOps.gainDrafts}
         setGainDrafts={timelineOps.setGainDrafts}
         saveTrackGain={timelineOps.saveTrackGain}
         panDrafts={timelineOps.panDrafts}
         setPanDrafts={timelineOps.setPanDrafts}
         saveTrackPan={timelineOps.saveTrackPan}
-        masterGainDraft={0}
-        setMasterGainDraft={() => {}}
-        busGainDrafts={{}}
-        setBusGainDrafts={() => {}}
-        loudnessStandard="ebu_r128"
-        setLoudnessStandard={() => {}}
-        loudnessReport={{
-          integratedLufs: -70,
-          shortTermLufs: -70,
-          momentaryLufs: -70,
-          loudnessRangeLu: 0,
-          truePeakDbtp: -60,
-          targetLufs: -23,
-          isCompliant: true,
-          gainRecommendationDb: 0,
-        }}
-        autoTrimLoudness={() => {}}
-        resetLoudness={() => {}}
+        masterGainDraft={audioOps.masterGainDraft}
+        setMasterGainDraft={audioOps.setMasterGainDraft}
+        busGainDrafts={audioOps.busGainDrafts}
+        setBusGainDrafts={audioOps.setBusGainDrafts}
+        loudnessStandard={audioOps.loudnessStandard}
+        setLoudnessStandard={audioOps.setLoudnessStandard}
+        loudnessReport={audioOps.loudnessReport}
+        autoTrimLoudness={audioOps.autoTrimLoudness}
+        resetLoudness={audioOps.resetLoudness}
         programPlaying={playback.programPlaying}
         toggleProgramPlayback={playback.toggleProgramPlayback}
         stepProgramFrame={playback.stepProgramFrame}
         handleShuttleKey={playback.handleShuttleKey}
-        clearAllSolos={() => {}}
-        muteAllTracks={() => {}}
+        clearAllSolos={audioOps.clearAllSolos}
+        muteAllTracks={audioOps.muteAllTracks}
         toggleTrackMute={timelineOps.toggleTrackMute}
         toggleTrackSolo={timelineOps.toggleTrackSolo}
         toggleTrackLock={timelineOps.toggleTrackLock}
-        setTrackBusRoute={() => {}}
-        setTrackAutomationMode={() => {}}
-        addTrackPlugin={() => {}}
-        toggleTrackPlugin={() => {}}
+        setTrackBusRoute={audioOps.setTrackBusRoute}
+        setTrackAutomationMode={audioOps.setTrackAutomationMode}
+        addTrackPlugin={audioOps.addTrackPlugin}
+        toggleTrackPlugin={audioOps.toggleTrackPlugin}
         zoomTimeline={timelineOps.zoomTimeline}
         beginTimelineScrub={timelineOps.beginTimelineScrub}
         moveTimelineScrub={timelineOps.moveTimelineScrub}

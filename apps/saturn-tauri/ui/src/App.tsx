@@ -10,6 +10,7 @@ import { useMediaOperations } from "./app/useMediaOperations";
 import { useTimelineOperations } from "./app/useTimelineOperations";
 import { useInspectorOperations } from "./app/useInspectorOperations";
 import { useProjectOperations } from "./app/useProjectOperations";
+import { useAudioWorkspace } from "./app/useAudioWorkspace";
 
 import { AppHeader } from "./features/menubar";
 import { WorkspaceRouter } from "./workspaces/WorkspaceRouter";
@@ -102,6 +103,8 @@ function EditorApp() {
     setCompoundClipNameDraft: projectOps.setCompoundClipNameDraft,
     keyframeProperty: "opacity", keyframeValue: "1",
   });
+
+  const audioOps = useAudioWorkspace(project, perform, playback.programPlaying);
 
   const selectedTimelineClip =
     timelineOps.selectedClip && project
@@ -257,6 +260,7 @@ function EditorApp() {
           inspectorOps={inspectorOps} projectOps={projectOps}
           perform={perform} undoStatus={undoStatus} redoStatus={redoStatus}
           programPreviewError={programPreviewError} audioClockMaster={audioClockMaster}
+          audioOps={audioOps}
         />
       </ErrorBoundary>
 

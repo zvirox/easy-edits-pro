@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case")]
 pub enum LoudnessStandard {
     #[default]
-    EbuR128,     // Target: -23.0 LUFS, Max TP: -1.0 dBTP, Tolerance: ±1.0 LU
-    Streaming,   // Target: -14.0 LUFS, Max TP: -1.0 dBTP, Tolerance: ±1.5 LU (YouTube, Spotify, Apple)
-    AtscA85,     // Target: -24.0 LUFS, Max TP: -2.0 dBTP, Tolerance: ±1.0 LU (US Television)
+    EbuR128, // Target: -23.0 LUFS, Max TP: -1.0 dBTP, Tolerance: ±1.0 LU
+    Streaming, // Target: -14.0 LUFS, Max TP: -1.0 dBTP, Tolerance: ±1.5 LU (YouTube, Spotify, Apple)
+    AtscA85,   // Target: -24.0 LUFS, Max TP: -2.0 dBTP, Tolerance: ±1.0 LU (US Television)
 }
 
 impl LoudnessStandard {
@@ -140,13 +140,7 @@ impl KWeightingFilter {
         // BS.1770-4 Stage 2: 2nd-order High-Pass RLB filter
         // At 48 kHz exact values:
         let stage2_rlb = if sample_rate == 48_000 {
-            Biquad::new(
-                1.0,
-                -2.0,
-                1.0,
-                -1.99004745483398,
-                0.99007225036621,
-            )
+            Biquad::new(1.0, -2.0, 1.0, -1.99004745483398, 0.99007225036621)
         } else {
             // Bilinear transform: f0 = 38.135 Hz, Q = 0.5003
             let f0 = 38.13547087613982;
@@ -222,7 +216,9 @@ pub struct EbuR128Meter {
 impl EbuR128Meter {
     pub fn new(sample_rate: u32, channels: usize, standard: LoudnessStandard) -> Self {
         let channels = channels.max(1);
-        let filters = (0..channels).map(|_| KWeightingFilter::new(sample_rate)).collect();
+        let filters = (0..channels)
+            .map(|_| KWeightingFilter::new(sample_rate))
+            .collect();
 
         let samples_in_100ms = (sample_rate as f64 * 0.1).round() as usize;
         let samples_in_400ms = (sample_rate as f64 * 0.4).round() as usize;
@@ -454,7 +450,8 @@ impl EbuR128Meter {
         }
 
         // Compute intermediate ungated loudness Gamma
-        let ungated_mean = abs_gated_energies.iter().sum::<f64>() / (abs_gated_energies.len() as f64);
+        let ungated_mean =
+            abs_gated_energies.iter().sum::<f64>() / (abs_gated_energies.len() as f64);
         let gamma = -0.691 + 10.0 * ungated_mean.log10();
 
         // Relative threshold: Gamma - 10.0 LU
@@ -545,7 +542,8 @@ mod tests {
         let sample_rate = 48_000;
         let channels = 2;
         let silence = vec![0.0_f32; sample_rate as usize * channels]; // 1 second of silence
-        let report = analyze_pcm_loudness(&silence, channels, sample_rate, LoudnessStandard::EbuR128);
+        let report =
+            analyze_pcm_loudness(&silence, channels, sample_rate, LoudnessStandard::EbuR128);
 
         assert_eq!(report.momentary_lufs, -70.0);
         assert_eq!(report.integrated_lufs, -70.0);
@@ -572,7 +570,8 @@ mod tests {
             samples.push(val); // Right
         }
 
-        let report = analyze_pcm_loudness(&samples, channels, sample_rate, LoudnessStandard::EbuR128);
+        let report =
+            analyze_pcm_loudness(&samples, channels, sample_rate, LoudnessStandard::EbuR128);
 
         // Measured integrated loudness should be close to -23.0 LUFS (within ±1.0 LU tolerance)
         assert!(
@@ -604,7 +603,8 @@ mod tests {
         samples[100] = 0.5;
         samples[101] = 0.5;
 
-        let report = analyze_pcm_loudness(&samples, channels, sample_rate, LoudnessStandard::EbuR128);
+        let report =
+            analyze_pcm_loudness(&samples, channels, sample_rate, LoudnessStandard::EbuR128);
         assert!(report.true_peak_dbtp > -7.0 && report.true_peak_dbtp < -4.0);
     }
 }

@@ -112,11 +112,23 @@ impl UndoManager {
     }
 
     pub fn history(&self, limit: usize) -> Vec<UndoEntry> {
-        self.undo_stack.read().iter().rev().take(limit).cloned().collect()
+        self.undo_stack
+            .read()
+            .iter()
+            .rev()
+            .take(limit)
+            .cloned()
+            .collect()
     }
 
     pub fn redo_history(&self, limit: usize) -> Vec<UndoEntry> {
-        self.redo_stack.read().iter().rev().take(limit).cloned().collect()
+        self.redo_stack
+            .read()
+            .iter()
+            .rev()
+            .take(limit)
+            .cloned()
+            .collect()
     }
 
     pub fn clear(&self) {
@@ -212,9 +224,21 @@ mod tests {
     fn test_undo_redo() {
         let manager = UndoManager::new(100);
 
-        manager.push(UndoEntry::new("Action 1", json!({ "a": 1 }), json!({ "a": 0 })));
-        manager.push(UndoEntry::new("Action 2", json!({ "b": 2 }), json!({ "b": 0 })));
-        manager.push(UndoEntry::new("Action 3", json!({ "c": 3 }), json!({ "c": 0 })));
+        manager.push(UndoEntry::new(
+            "Action 1",
+            json!({ "a": 1 }),
+            json!({ "a": 0 }),
+        ));
+        manager.push(UndoEntry::new(
+            "Action 2",
+            json!({ "b": 2 }),
+            json!({ "b": 0 }),
+        ));
+        manager.push(UndoEntry::new(
+            "Action 3",
+            json!({ "c": 3 }),
+            json!({ "c": 0 }),
+        ));
 
         assert_eq!(manager.undo_count(), 3);
         assert!(manager.can_undo());

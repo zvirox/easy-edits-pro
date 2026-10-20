@@ -1,11 +1,15 @@
 //! Edit Operations Module
 
-use crate::time::{Ticks, TICKS_PER_SECOND};
-use crate::{FrameRate, TrackId, SequenceId, ClipId, ClipRef, ClipTiming, ClipEffects, ClipSource, ClipMetadata, VideoEffect, AudioEffect, ColorGrade, Transform, BlendMode, TrackKind, Track, SequenceRef, Marker, MarkerType};
+use crate::time::{TICKS_PER_SECOND, Ticks};
+use crate::{
+    AudioEffect, BlendMode, ClipEffects, ClipId, ClipMetadata, ClipRef, ClipSource, ClipTiming,
+    ColorGrade, FrameRate, Marker, MarkerType, SequenceId, SequenceRef, Track, TrackId, TrackKind,
+    Transform, VideoEffect,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use uuid::Uuid;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 /// Edit operation types
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -138,12 +142,13 @@ impl EditOperation {
     }
 
     pub fn is_structural(&self) -> bool {
-        matches!(self,
-            EditOperation::AddTrack { .. } |
-            EditOperation::RemoveTrack { .. } |
-            EditOperation::ReorderTracks { .. } |
-            EditOperation::AddNestedSequence { .. } |
-            EditOperation::RemoveNestedSequence { .. }
+        matches!(
+            self,
+            EditOperation::AddTrack { .. }
+                | EditOperation::RemoveTrack { .. }
+                | EditOperation::ReorderTracks { .. }
+                | EditOperation::AddNestedSequence { .. }
+                | EditOperation::RemoveNestedSequence { .. }
         )
     }
 
@@ -160,9 +165,10 @@ impl EditOperation {
             EditOperation::TransformClip { clip_id, .. } => vec![*clip_id],
             EditOperation::ChangeOpacity { clip_id, .. } => vec![*clip_id],
             EditOperation::ChangeBlendMode { clip_id, .. } => vec![*clip_id],
-            EditOperation::Batch { operations, .. } => {
-                operations.iter().flat_map(|op| op.affected_clips()).collect()
-            }
+            EditOperation::Batch { operations, .. } => operations
+                .iter()
+                .flat_map(|op| op.affected_clips())
+                .collect(),
             _ => vec![],
         }
     }
@@ -171,13 +177,18 @@ impl EditOperation {
         match self {
             EditOperation::AddClip { track_id, .. } => vec![*track_id],
             EditOperation::RemoveClip { track_id, .. } => vec![*track_id],
-            EditOperation::MoveClip { from_track, to_track, .. } => vec![*from_track, *to_track],
+            EditOperation::MoveClip {
+                from_track,
+                to_track,
+                ..
+            } => vec![*from_track, *to_track],
             EditOperation::AddTrack { track_id, .. } => vec![*track_id],
             EditOperation::RemoveTrack { track_id, .. } => vec![*track_id],
             EditOperation::ReorderTracks { new_order, .. } => new_order.clone(),
-            EditOperation::Batch { operations, .. } => {
-                operations.iter().flat_map(|op| op.affected_tracks()).collect()
-            }
+            EditOperation::Batch { operations, .. } => operations
+                .iter()
+                .flat_map(|op| op.affected_tracks())
+                .collect(),
             _ => vec![],
         }
     }

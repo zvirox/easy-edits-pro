@@ -1,10 +1,9 @@
 //! Command registry - central command management
 
 use crate::{
-    CommandId, CommandSpec, CommandCategory, RegistryError, ValidationError,
+    CommandCategory, CommandId, CommandSpec, HandlerError, RegistryError, ValidationError,
     context::{AppContext, ExecutionContext},
     params::ParamSchema,
-    HandlerError,
 };
 use indexmap::IndexMap;
 use parking_lot::RwLock;
@@ -51,7 +50,10 @@ impl CommandRegistry {
     }
 
     pub fn unregister(&self, id: &CommandId) -> Result<(), RegistryError> {
-        let spec = self.specs.write().shift_remove(id)
+        let spec = self
+            .specs
+            .write()
+            .shift_remove(id)
             .ok_or(RegistryError::NotFound(id.clone()))?;
 
         self.commands.write().shift_remove(id);
@@ -76,7 +78,11 @@ impl CommandRegistry {
     }
 
     pub fn by_category(&self, category: CommandCategory) -> Vec<CommandId> {
-        self.by_category.read().get(&category).cloned().unwrap_or_default()
+        self.by_category
+            .read()
+            .get(&category)
+            .cloned()
+            .unwrap_or_default()
     }
 
     pub fn menu_structure(&self) -> Vec<MenuCategory> {
@@ -113,19 +119,24 @@ impl CommandRegistry {
         params: Value,
         ctx: &AppContext,
     ) -> Result<Value, crate::HandlerError> {
-        let handler = self.get(id).ok_or(crate::HandlerError::Execution(
-            format!("Command not found: {}", id)
-        ))?;
+        let handler = self.get(id).ok_or(crate::HandlerError::Execution(format!(
+            "Command not found: {}",
+            id
+        )))?;
 
-        let spec = self.get_spec(id).ok_or(crate::HandlerError::Execution(
-            format!("Spec not found for command: {}", id)
-        ))?;
+        let spec = self
+            .get_spec(id)
+            .ok_or(crate::HandlerError::Execution(format!(
+                "Spec not found for command: {}",
+                id
+            )))?;
         validate_params(&spec, &params)?;
 
         if !handler.is_available(ctx).await {
-            return Err(crate::HandlerError::NotAvailable(
-                format!("Command {} not available in current context", id)
-            ));
+            return Err(crate::HandlerError::NotAvailable(format!(
+                "Command {} not available in current context",
+                id
+            )));
         }
 
         let execution_id = uuid::Uuid::new_v4();
@@ -226,20 +237,20 @@ fn menu_category_order(cat: CommandCategory) -> u32 {
 }
 
 fn validate_params(spec: &CommandSpec, params: &Value) -> Result<(), crate::HandlerError> {
-    let obj = params.as_object().ok_or_else(|| crate::HandlerError::Validation(
-        ValidationError::Custom {
+    let obj = params.as_object().ok_or_else(|| {
+        crate::HandlerError::Validation(ValidationError::Custom {
             param: "params".to_string(),
             message: "parameters must be an object".to_string(),
-        }
-    ))?;
+        })
+    })?;
 
     for param in &spec.params {
         if param.required {
             if !obj.contains_key(&param.name) || obj[&param.name].is_null() {
                 if param.default.is_none() {
-                    return Err(crate::HandlerError::Validation(ValidationError::MissingRequired(
-                        param.name.clone()
-                    )));
+                    return Err(crate::HandlerError::Validation(
+                        ValidationError::MissingRequired(param.name.clone()),
+                    ));
                 }
             }
         }
@@ -275,13 +286,15 @@ mod tests {
         fn spec(&self) -> CommandSpec {
             CommandSpec::new("test.cmd", "Test Command")
                 .with_category(CommandCategory::Edit)
-                .with_params(vec![
-                    crate::ParamSpec::new("value", "Value", crate::ParamSchema::Integer {
+                .with_params(vec![crate::ParamSpec::new(
+                    "value",
+                    "Value",
+                    crate::ParamSchema::Integer {
                         minimum: Some(0),
                         maximum: Some(100),
                         multiple_of: None,
-                    })
-                ])
+                    },
+                )])
         }
 
         async fn execute(&self, ctx: ExecutionContext<'_>) -> Result<Value, crate::HandlerError> {
@@ -303,7 +316,10 @@ mod tests {
             events: Arc::new(crate::context::EventBus::new()),
         };
 
-        let result = registry.execute(&CommandId::new("test.cmd"), json!({ "value": 21 }), &ctx).await.unwrap();
+        let result = registry
+            .execute(&CommandId::new("test.cmd"), json!({ "value": 21 }), &ctx)
+            .await
+            .unwrap();
         assert_eq!(result["doubled"], 42);
     }
 }

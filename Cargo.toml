@@ -4,7 +4,7 @@ members = [
     "crates/saturn-cli",
     "crates/saturn-render",
     "crates/saturn-commands",
-    # "crates/saturn-mcp",   # does not compile yet; re-enable when fixed (see review)
+    "crates/saturn-mcp",
     # "crates/saturn-control",   # does not compile yet; re-enable when fixed (see review)
     "crates/saturn-timeline",
     # "crates/saturn-graphics",   # does not compile yet; re-enable when fixed (see review)

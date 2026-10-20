@@ -182,7 +182,7 @@ export function PreviewSection({
                     if (el) {
                       audioPlayersRef.current.set(audioKey, el);
                       audioClockMaster.connectMediaElement(audioItem.track.id, el);
-                      el.volume = Math.max(0, Math.min(1, 10 ** (audioItem.gainDb / 20)));
+                      el.volume = 1;
                       if (Math.abs(el.currentTime - audioItem.currentTime) > 0.25) {
                         try {
                           el.currentTime = audioItem.currentTime;

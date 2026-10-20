@@ -1,10 +1,10 @@
 //! Track Module
 
-use crate::time::{Ticks, TICKS_PER_SECOND};
+use crate::time::{TICKS_PER_SECOND, Ticks};
 use crate::{ClipId, ClipRef};
+use chrono;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono;
 
 /// Track kind
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -186,13 +186,15 @@ impl Track {
     }
 
     pub fn clips_in_range(&self, start: Ticks, end: Ticks) -> Vec<&ClipRef> {
-        self.clips.iter()
+        self.clips
+            .iter()
             .filter(|r| r.timing.timeline_start < end && r.timeline_end() > start)
             .collect()
     }
 
     pub fn total_duration(&self) -> Ticks {
-        self.clips.iter()
+        self.clips
+            .iter()
             .map(|r| r.timeline_end())
             .max()
             .unwrap_or(0)

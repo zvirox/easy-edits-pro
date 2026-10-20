@@ -260,7 +260,10 @@ fn transitions_and_title_clips_workflow_with_undo() {
         ))
         .unwrap();
     let updated_media = &engine.document().project.media[0];
-    assert_eq!(updated_media.title.as_ref().unwrap().text, "Intro Title Updated");
+    assert_eq!(
+        updated_media.title.as_ref().unwrap().text,
+        "Intro Title Updated"
+    );
     assert_eq!(updated_media.title.as_ref().unwrap().color, "#38bdf8");
 
     // Add transition on Track 1
@@ -276,7 +279,12 @@ fn transitions_and_title_clips_workflow_with_undo() {
         ))
         .unwrap();
     let trans_id = trans_res["transition_id"].as_u64().unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[0].transitions.len(), 1);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0]
+            .transitions
+            .len(),
+        1
+    );
     assert_eq!(
         engine.document().project.sequence.tracks[0].transitions[0].kind,
         TransitionKind::Crossfade
@@ -291,8 +299,20 @@ fn transitions_and_title_clips_workflow_with_undo() {
     loaded
         .execute(CommandRequest::new("file.open", json!({"path": path})))
         .unwrap();
-    assert_eq!(loaded.document().project.sequence.tracks[0].transitions.len(), 1);
-    assert_eq!(loaded.document().project.media[0].title.as_ref().unwrap().text, "Intro Title Updated");
+    assert_eq!(
+        loaded.document().project.sequence.tracks[0]
+            .transitions
+            .len(),
+        1
+    );
+    assert_eq!(
+        loaded.document().project.media[0]
+            .title
+            .as_ref()
+            .unwrap()
+            .text,
+        "Intro Title Updated"
+    );
 
     // Test remove transition with undo
     loaded
@@ -301,12 +321,22 @@ fn transitions_and_title_clips_workflow_with_undo() {
             json!({"track_id": 1, "transition_id": trans_id}),
         ))
         .unwrap();
-    assert_eq!(loaded.document().project.sequence.tracks[0].transitions.len(), 0);
+    assert_eq!(
+        loaded.document().project.sequence.tracks[0]
+            .transitions
+            .len(),
+        0
+    );
 
     loaded
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
-    assert_eq!(loaded.document().project.sequence.tracks[0].transitions.len(), 1);
+    assert_eq!(
+        loaded.document().project.sequence.tracks[0]
+            .transitions
+            .len(),
+        1
+    );
 }
 
 #[test]
@@ -473,7 +503,9 @@ fn effect_stack_workflow_with_undo() {
         ))
         .unwrap();
     assert_eq!(
-        loaded.document().project.sequence.tracks[0].clips[0].effects.len(),
+        loaded.document().project.sequence.tracks[0].clips[0]
+            .effects
+            .len(),
         1
     );
 
@@ -481,7 +513,9 @@ fn effect_stack_workflow_with_undo() {
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
     assert_eq!(
-        loaded.document().project.sequence.tracks[0].clips[0].effects.len(),
+        loaded.document().project.sequence.tracks[0].clips[0]
+            .effects
+            .len(),
         2
     );
 }
@@ -505,10 +539,7 @@ fn track_audio_and_lock_controls_workflow_with_undo() {
             json!({"track_id": track_id, "pan": -0.75}),
         ))
         .unwrap();
-    assert_eq!(
-        engine.document().project.sequence.tracks[0].pan,
-        -0.75
-    );
+    assert_eq!(engine.document().project.sequence.tracks[0].pan, -0.75);
 
     // 2. Set track mute
     engine
@@ -572,7 +603,10 @@ fn rolling_and_slide_edit_workflow_with_undo() {
 
     let mut engine = EditorEngine::default();
     engine
-        .execute(CommandRequest::new("project.new", json!({"name":"Roll & Slide Test"})))
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name":"Roll & Slide Test"}),
+        ))
         .unwrap();
     let media = engine
         .execute(CommandRequest::new(
@@ -683,7 +717,10 @@ fn rate_stretch_and_clip_link_workflow_with_undo() {
 
     let mut engine = EditorEngine::default();
     engine
-        .execute(CommandRequest::new("project.new", json!({"name":"Rate & Link Test"})))
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name":"Rate & Link Test"}),
+        ))
         .unwrap();
     let media = engine
         .execute(CommandRequest::new(
@@ -730,8 +767,14 @@ fn rate_stretch_and_clip_link_workflow_with_undo() {
         .unwrap();
     assert!(link_res["linked"].as_bool().unwrap());
     let group_id = link_res["group_id"].as_u64().unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].group_id, Some(group_id));
-    assert_eq!(engine.document().project.sequence.tracks[1].clips[0].group_id, Some(group_id));
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].group_id,
+        Some(group_id)
+    );
+    assert_eq!(
+        engine.document().project.sequence.tracks[1].clips[0].group_id,
+        Some(group_id)
+    );
 
     // 2. Batch move linked clips together by +2s
     engine
@@ -745,8 +788,18 @@ fn rate_stretch_and_clip_link_workflow_with_undo() {
             }),
         ))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].timeline_start.0, 2 * TICKS_PER_SECOND);
-    assert_eq!(engine.document().project.sequence.tracks[1].clips[0].timeline_start.0, 2 * TICKS_PER_SECOND);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0]
+            .timeline_start
+            .0,
+        2 * TICKS_PER_SECOND
+    );
+    assert_eq!(
+        engine.document().project.sequence.tracks[1].clips[0]
+            .timeline_start
+            .0,
+        2 * TICKS_PER_SECOND
+    );
 
     // 3. Rate Stretch video clip from 4s to 8s (slow motion -> 0.5x speed)
     let stretch_res = engine
@@ -761,8 +814,16 @@ fn rate_stretch_and_clip_link_workflow_with_undo() {
         .unwrap();
     assert!(stretch_res["stretched"].as_bool().unwrap());
     assert_eq!(stretch_res["speed"].as_f64().unwrap(), 0.5);
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].duration.0, 8 * TICKS_PER_SECOND);
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].speed, 0.5);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0]
+            .duration
+            .0,
+        8 * TICKS_PER_SECOND
+    );
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].speed,
+        0.5
+    );
 
     // Test setting speed directly: 2.0x (fast motion)
     let speed_res = engine
@@ -777,18 +838,34 @@ fn rate_stretch_and_clip_link_workflow_with_undo() {
         .unwrap();
     assert_eq!(speed_res["speed"].as_f64().unwrap(), 2.0);
     // At 2x speed, the 4s content takes 2s timeline duration
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].duration.0, 2 * TICKS_PER_SECOND);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0]
+            .duration
+            .0,
+        2 * TICKS_PER_SECOND
+    );
 
     // Undo rate stretch
     engine
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].speed, 0.5);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].speed,
+        0.5
+    );
     engine
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].speed, 1.0);
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].duration.0, 4 * TICKS_PER_SECOND);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].speed,
+        1.0
+    );
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0]
+            .duration
+            .0,
+        4 * TICKS_PER_SECOND
+    );
 
     // 4. Unlink clips
     engine
@@ -799,15 +876,27 @@ fn rate_stretch_and_clip_link_workflow_with_undo() {
             }),
         ))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].group_id, None);
-    assert_eq!(engine.document().project.sequence.tracks[1].clips[0].group_id, None);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].group_id,
+        None
+    );
+    assert_eq!(
+        engine.document().project.sequence.tracks[1].clips[0].group_id,
+        None
+    );
 
     // Undo unlink
     engine
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].group_id, Some(group_id));
-    assert_eq!(engine.document().project.sequence.tracks[1].clips[0].group_id, Some(group_id));
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].group_id,
+        Some(group_id)
+    );
+    assert_eq!(
+        engine.document().project.sequence.tracks[1].clips[0].group_id,
+        Some(group_id)
+    );
 }
 
 #[test]
@@ -867,7 +956,11 @@ fn audio_processing_and_color_hue_workflow_with_undo() {
     engine
         .execute(CommandRequest::new("edit.redo", serde_json::Value::Null))
         .unwrap();
-    assert!(engine.document().project.sequence.tracks[1].audio_processing.eq_enabled);
+    assert!(
+        engine.document().project.sequence.tracks[1]
+            .audio_processing
+            .eq_enabled
+    );
 }
 
 #[test]
@@ -887,7 +980,10 @@ fn subtitles_crud_and_undo_workflow() {
         .unwrap();
     let sub1_id = res1["id"].as_u64().unwrap();
     assert_eq!(engine.document().project.sequence.subtitles.len(), 1);
-    assert_eq!(engine.document().project.sequence.subtitles[0].text, "First caption line");
+    assert_eq!(
+        engine.document().project.sequence.subtitles[0].text,
+        "First caption line"
+    );
 
     // 2. Add subtitle 2 (earlier time to verify sorting)
     let res2 = engine
@@ -916,19 +1012,28 @@ fn subtitles_crud_and_undo_workflow() {
             }),
         ))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.subtitles[1].text, "Updated caption text");
+    assert_eq!(
+        engine.document().project.sequence.subtitles[1].text,
+        "Updated caption text"
+    );
 
     // 4. Undo update
     engine
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.subtitles[1].text, "First caption line");
+    assert_eq!(
+        engine.document().project.sequence.subtitles[1].text,
+        "First caption line"
+    );
 
     // 5. Redo update
     engine
         .execute(CommandRequest::new("edit.redo", serde_json::Value::Null))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.subtitles[1].text, "Updated caption text");
+    assert_eq!(
+        engine.document().project.sequence.subtitles[1].text,
+        "Updated caption text"
+    );
 
     // 6. Remove subtitle 2
     engine
@@ -1012,8 +1117,14 @@ fn keyframe_bezier_interpolation_workflow() {
 
     let clip = &engine.document().project.sequence.tracks[0].clips[0];
     assert_eq!(clip.keyframes.len(), 2);
-    assert_eq!(clip.keyframes[0].interpolation, saturn_core::InterpolationKind::Linear);
-    assert_eq!(clip.keyframes[1].interpolation, saturn_core::InterpolationKind::Bezier);
+    assert_eq!(
+        clip.keyframes[0].interpolation,
+        saturn_core::InterpolationKind::Linear
+    );
+    assert_eq!(
+        clip.keyframes[1].interpolation,
+        saturn_core::InterpolationKind::Bezier
+    );
     assert_eq!(clip.keyframes[1].handle_in_x, Some(0.42));
     assert_eq!(clip.keyframes[1].handle_out_y, Some(1.0));
 }
@@ -1203,7 +1314,10 @@ fn multicam_workflow_with_undo() {
     let multicam_id = multi_res["id"].as_u64().unwrap();
 
     assert_eq!(engine.document().project.sequence.multicam_clips.len(), 1);
-    assert_eq!(engine.document().project.sequence.multicam_clips[0].name, "Interview Multicam");
+    assert_eq!(
+        engine.document().project.sequence.multicam_clips[0].name,
+        "Interview Multicam"
+    );
 
     // Switch active angle to Angle 2 (Cam B)
     engine
@@ -1239,8 +1353,13 @@ fn multicam_workflow_with_undo() {
     assert_eq!(group.angles[1].sync_offset_ticks, saturn_core::Tick(250));
 
     // Test Undo
-    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
-    assert_eq!(engine.document().project.sequence.multicam_clips[0].angles[1].sync_offset_ticks, saturn_core::Tick(100));
+    engine
+        .execute(CommandRequest::new("edit.undo", Value::Null))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.multicam_clips[0].angles[1].sync_offset_ticks,
+        saturn_core::Tick(100)
+    );
 }
 
 #[test]
@@ -1310,12 +1429,20 @@ fn motion_tracking_and_pinning_workflow() {
         ))
         .unwrap();
 
-    let pinned = engine.document().project.sequence.tracks[0].clips[clip_index].tracking.as_ref().unwrap();
+    let pinned = engine.document().project.sequence.tracks[0].clips[clip_index]
+        .tracking
+        .as_ref()
+        .unwrap();
     assert_eq!(pinned.pinned_clip_id, Some(99));
 
     // Test Undo
-    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
-    let unpinned = engine.document().project.sequence.tracks[0].clips[clip_index].tracking.as_ref().unwrap();
+    engine
+        .execute(CommandRequest::new("edit.undo", Value::Null))
+        .unwrap();
+    let unpinned = engine.document().project.sequence.tracks[0].clips[clip_index]
+        .tracking
+        .as_ref()
+        .unwrap();
     assert_eq!(unpinned.pinned_clip_id, None);
 }
 
@@ -1334,7 +1461,10 @@ fn fairlight_bus_routing_and_automation_workflow() {
         ))
         .unwrap();
 
-    assert_eq!(engine.document().project.sequence.tracks[1].bus, saturn_core::BusTarget::Submix1);
+    assert_eq!(
+        engine.document().project.sequence.tracks[1].bus,
+        saturn_core::BusTarget::Submix1
+    );
 
     // 2. Set fader volume & pan automation
     engine
@@ -1383,8 +1513,14 @@ fn fairlight_bus_routing_and_automation_workflow() {
         ))
         .unwrap();
 
-    assert_eq!(engine.document().project.sequence.tracks[1].plugins.len(), 1);
-    assert_eq!(engine.document().project.sequence.tracks[1].plugins[0].name, "Fairlight 4-Band Studio EQ");
+    assert_eq!(
+        engine.document().project.sequence.tracks[1].plugins.len(),
+        1
+    );
+    assert_eq!(
+        engine.document().project.sequence.tracks[1].plugins[0].name,
+        "Fairlight 4-Band Studio EQ"
+    );
 
     // 4. Toggle plugin
     engine
@@ -1397,7 +1533,10 @@ fn fairlight_bus_routing_and_automation_workflow() {
             }),
         ))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[1].plugins[0].enabled, false);
+    assert_eq!(
+        engine.document().project.sequence.tracks[1].plugins[0].enabled,
+        false
+    );
 
     // 5. Set Audio Bus Gain
     engine
@@ -1410,12 +1549,28 @@ fn fairlight_bus_routing_and_automation_workflow() {
         ))
         .unwrap();
 
-    let master_bus = engine.document().project.sequence.buses.iter().find(|b| b.target == saturn_core::BusTarget::Master).unwrap();
+    let master_bus = engine
+        .document()
+        .project
+        .sequence
+        .buses
+        .iter()
+        .find(|b| b.target == saturn_core::BusTarget::Master)
+        .unwrap();
     assert_eq!(master_bus.gain_db, -2.5);
 
     // Test Undo
-    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
-    let undone_bus = engine.document().project.sequence.buses.iter().find(|b| b.target == saturn_core::BusTarget::Master).unwrap();
+    engine
+        .execute(CommandRequest::new("edit.undo", Value::Null))
+        .unwrap();
+    let undone_bus = engine
+        .document()
+        .project
+        .sequence
+        .buses
+        .iter()
+        .find(|b| b.target == saturn_core::BusTarget::Master)
+        .unwrap();
     assert_eq!(undone_bus.gain_db, 0.0);
 }
 
@@ -1500,7 +1655,13 @@ fn fusion_node_graph_workflow_with_undo() {
         .unwrap();
     let out_id = res.get("node_id").unwrap().as_u64().unwrap();
 
-    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    let graph = engine
+        .document()
+        .project
+        .sequence
+        .node_graph
+        .as_ref()
+        .unwrap();
     assert_eq!(graph.nodes.len(), 3);
 
     // 4. Connect MediaSource -> Keyer, and Keyer -> OutputSink
@@ -1527,7 +1688,13 @@ fn fusion_node_graph_workflow_with_undo() {
         ))
         .unwrap();
 
-    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    let graph = engine
+        .document()
+        .project
+        .sequence
+        .node_graph
+        .as_ref()
+        .unwrap();
     assert_eq!(graph.connections.len(), 2);
 
     // 5. Update Keyer position and params
@@ -1543,7 +1710,13 @@ fn fusion_node_graph_workflow_with_undo() {
         ))
         .unwrap();
 
-    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    let graph = engine
+        .document()
+        .project
+        .sequence
+        .node_graph
+        .as_ref()
+        .unwrap();
     let keyer = graph.nodes.iter().find(|n| n.id == keyer_id).unwrap();
     assert_eq!(keyer.pos_x, 320.0);
     assert_eq!(keyer.params["tolerance"], 45.0);
@@ -1571,7 +1744,13 @@ fn fusion_node_graph_workflow_with_undo() {
         ))
         .unwrap();
 
-    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    let graph = engine
+        .document()
+        .project
+        .sequence
+        .node_graph
+        .as_ref()
+        .unwrap();
     assert_eq!(graph.masks.len(), 1);
     assert_eq!(graph.masks[0].name, "Garbage Matte");
     assert_eq!(graph.masks[0].feather, 12.0);
@@ -1584,13 +1763,27 @@ fn fusion_node_graph_workflow_with_undo() {
         ))
         .unwrap();
 
-    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    let graph = engine
+        .document()
+        .project
+        .sequence
+        .node_graph
+        .as_ref()
+        .unwrap();
     assert_eq!(graph.nodes.len(), 2);
     assert_eq!(graph.connections.len(), 0);
 
     // 8. Test Undo
-    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
-    let graph = engine.document().project.sequence.node_graph.as_ref().unwrap();
+    engine
+        .execute(CommandRequest::new("edit.undo", Value::Null))
+        .unwrap();
+    let graph = engine
+        .document()
+        .project
+        .sequence
+        .node_graph
+        .as_ref()
+        .unwrap();
     assert_eq!(graph.nodes.len(), 3);
     assert_eq!(graph.connections.len(), 2);
 }
@@ -1676,7 +1869,9 @@ fn optical_flow_speed_ramp_and_motion_blur_workflow_with_undo() {
     assert_eq!(mb.samples, 12);
 
     // 3. Test Undo
-    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    engine
+        .execute(CommandRequest::new("edit.undo", Value::Null))
+        .unwrap();
     let clip = &engine.document().project.sequence.tracks[0].clips[0];
     assert!(clip.motion_blur.is_none());
 }
@@ -1852,7 +2047,10 @@ fn speech_to_subtitles_and_ripple_deletion_workflow_with_undo() {
     engine
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.duration().0, 10 * TICKS_PER_SECOND);
+    assert_eq!(
+        engine.document().project.sequence.duration().0,
+        10 * TICKS_PER_SECOND
+    );
     assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 1);
 }
 
@@ -1929,10 +2127,6 @@ fn timeline_interop_edl_fcpxml_premiere_workflow_with_undo() {
     assert_eq!(res["imported"], true);
 }
 
-
-
-
-
 #[test]
 fn nested_sequences_and_compound_clips_workflow() {
     let mut engine = EditorEngine::default();
@@ -1995,23 +2189,41 @@ fn nested_sequences_and_compound_clips_workflow() {
 
     let compound_media_id = compound_res["compound_media_id"].as_u64().unwrap();
     let nested_seq_id = compound_res["sequence_id"].as_u64().unwrap();
-    assert_eq!(compound_res["duration"].as_i64().unwrap(), 10 * TICKS_PER_SECOND);
+    assert_eq!(
+        compound_res["duration"].as_i64().unwrap(),
+        10 * TICKS_PER_SECOND
+    );
 
     // Active sequence track V1 now has 1 single compound clip spanning 10s
     let v_track = &engine.document().project.sequence.tracks[0];
     assert_eq!(v_track.clips.len(), 1);
     assert_eq!(v_track.clips[0].media_id, compound_media_id);
     assert_eq!(v_track.clips[0].duration.0, 10 * TICKS_PER_SECOND);
-    assert_eq!(v_track.clips[0].compound_sequence_id, Some(compound_media_id));
+    assert_eq!(
+        v_track.clips[0].compound_sequence_id,
+        Some(compound_media_id)
+    );
 
     // Project sequences list contains the nested sequence
     assert_eq!(engine.document().project.sequences.len(), 1);
     assert_eq!(engine.document().project.sequences[0].id, nested_seq_id);
-    assert_eq!(engine.document().project.sequences[0].name, "Interview Sequence Compound");
+    assert_eq!(
+        engine.document().project.sequences[0].name,
+        "Interview Sequence Compound"
+    );
 
     // Media asset created
-    let compound_media = engine.document().project.media.iter().find(|m| m.id == compound_media_id).unwrap();
-    assert_eq!(compound_media.kind, saturn_core::project::MediaKind::CompoundSequence);
+    let compound_media = engine
+        .document()
+        .project
+        .media
+        .iter()
+        .find(|m| m.id == compound_media_id)
+        .unwrap();
+    assert_eq!(
+        compound_media.kind,
+        saturn_core::project::MediaKind::CompoundSequence
+    );
     assert!(compound_media.nested_sequence.is_some());
 
     // 2. Switch Sequence into the nested sequence
@@ -2023,7 +2235,10 @@ fn nested_sequences_and_compound_clips_workflow() {
         .unwrap();
     assert_eq!(switch_res["switched"], true);
     assert_eq!(engine.document().project.sequence.id, nested_seq_id);
-    assert_eq!(engine.document().project.sequence.name, "Interview Sequence Compound");
+    assert_eq!(
+        engine.document().project.sequence.name,
+        "Interview Sequence Compound"
+    );
     // Inside the nested sequence, there are 2 clips
     assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 2);
 
@@ -2053,7 +2268,10 @@ fn nested_sequences_and_compound_clips_workflow() {
     assert_eq!(restored_v_track.clips.len(), 2);
     assert_eq!(restored_v_track.clips[0].timeline_start.0, 0);
     assert_eq!(restored_v_track.clips[0].duration.0, 4 * TICKS_PER_SECOND);
-    assert_eq!(restored_v_track.clips[1].timeline_start.0, 4 * TICKS_PER_SECOND);
+    assert_eq!(
+        restored_v_track.clips[1].timeline_start.0,
+        4 * TICKS_PER_SECOND
+    );
     assert_eq!(restored_v_track.clips[1].duration.0, 6 * TICKS_PER_SECOND);
 
     // 4. Undo decomposition -> restores compound clip
@@ -2061,7 +2279,10 @@ fn nested_sequences_and_compound_clips_workflow() {
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
     assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 1);
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].compound_sequence_id, Some(compound_media_id));
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].compound_sequence_id,
+        Some(compound_media_id)
+    );
 
     // Redo decomposition -> expands again
     engine
@@ -2093,7 +2314,10 @@ fn media_bins_properties_and_missing_detection_workflow() {
         .unwrap();
     let media_id = add_res["media_id"].as_u64().unwrap();
     assert_eq!(engine.document().project.media[0].fps, Some(59.94));
-    assert_eq!(engine.document().project.media[0].codec.as_deref(), Some("h264"));
+    assert_eq!(
+        engine.document().project.media[0].codec.as_deref(),
+        Some("h264")
+    );
     assert_eq!(engine.document().project.media[0].audio_channels, Some(2));
 
     // 2. Create Media Bin
@@ -2153,7 +2377,10 @@ fn media_bins_properties_and_missing_detection_workflow() {
 
     // 6. Check missing media (mock path doesn't exist on disk)
     let check_res = engine
-        .execute(CommandRequest::new("media.check_missing", serde_json::Value::Null))
+        .execute(CommandRequest::new(
+            "media.check_missing",
+            serde_json::Value::Null,
+        ))
         .unwrap();
     assert_eq!(check_res["checked"], true);
     assert_eq!(check_res["missing_count"], 1);
@@ -2215,11 +2442,10 @@ fn timeline_add_remove_track_and_ripple_gap_workflow() {
             json!({ "track_id": v2_id, "locked": true }),
         ))
         .unwrap();
-    let locked_remove_err = engine
-        .execute(CommandRequest::new(
-            "timeline.remove_track",
-            json!({ "track_id": v2_id }),
-        ));
+    let locked_remove_err = engine.execute(CommandRequest::new(
+        "timeline.remove_track",
+        json!({ "track_id": v2_id }),
+    ));
     assert!(locked_remove_err.is_err());
 
     // Unlock and remove V2
@@ -2284,13 +2510,23 @@ fn timeline_add_remove_track_and_ripple_gap_workflow() {
     engine
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[1].timeline_start.0, 6 * TICKS_PER_SECOND);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[1]
+            .timeline_start
+            .0,
+        6 * TICKS_PER_SECOND
+    );
 
     // Redo gap ripple delete -> Clip B returns to 3s
     engine
         .execute(CommandRequest::new("edit.redo", serde_json::Value::Null))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[1].timeline_start.0, 3 * TICKS_PER_SECOND);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[1]
+            .timeline_start
+            .0,
+        3 * TICKS_PER_SECOND
+    );
 }
 
 #[test]
@@ -2347,7 +2583,10 @@ fn track_groups_curves_qualifier_and_custom_shader_workflow_with_undo() {
             }),
         ))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[0].group_id, Some(group_id));
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].group_id,
+        Some(group_id)
+    );
 
     // 3. Toggle Group Collapsed
     let toggle_res = engine
@@ -2357,7 +2596,10 @@ fn track_groups_curves_qualifier_and_custom_shader_workflow_with_undo() {
         ))
         .unwrap();
     assert_eq!(toggle_res["collapsed"], true);
-    assert_eq!(engine.document().project.sequence.track_groups[0].collapsed, true);
+    assert_eq!(
+        engine.document().project.sequence.track_groups[0].collapsed,
+        true
+    );
 
     // 4. Update Group Properties (Mute/Solo/Lock)
     engine
@@ -2370,8 +2612,14 @@ fn track_groups_curves_qualifier_and_custom_shader_workflow_with_undo() {
             }),
         ))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.track_groups[0].name, "Vocals & Dialogue");
-    assert_eq!(engine.document().project.sequence.track_groups[0].muted, true);
+    assert_eq!(
+        engine.document().project.sequence.track_groups[0].name,
+        "Vocals & Dialogue"
+    );
+    assert_eq!(
+        engine.document().project.sequence.track_groups[0].muted,
+        true
+    );
     assert_eq!(engine.document().project.sequence.tracks[0].muted, true);
 
     // 5. Update RGB Curves
@@ -2391,7 +2639,12 @@ fn track_groups_curves_qualifier_and_custom_shader_workflow_with_undo() {
             }),
         ))
         .unwrap();
-    assert!(engine.document().project.sequence.tracks[0].clips[0].color.curves.is_some());
+    assert!(
+        engine.document().project.sequence.tracks[0].clips[0]
+            .color
+            .curves
+            .is_some()
+    );
 
     // 6. Update HSL Qualifier
     let qualifier = json!({
@@ -2420,7 +2673,12 @@ fn track_groups_curves_qualifier_and_custom_shader_workflow_with_undo() {
             }),
         ))
         .unwrap();
-    assert!(engine.document().project.sequence.tracks[0].clips[0].color.qualifier.is_some());
+    assert!(
+        engine.document().project.sequence.tracks[0].clips[0]
+            .color
+            .qualifier
+            .is_some()
+    );
 
     // 7. Add Custom GLSL Shader Effect
     let shader_res = engine
@@ -2438,7 +2696,12 @@ fn track_groups_curves_qualifier_and_custom_shader_workflow_with_undo() {
         .unwrap();
     assert_eq!(shader_res["added"], true);
     let shader_effect_id = shader_res["effect_id"].as_u64().unwrap();
-    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].effects.len(), 1);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0]
+            .effects
+            .len(),
+        1
+    );
 
     // 8. Update Custom Shader Uniforms
     engine
@@ -2463,7 +2726,9 @@ fn track_groups_curves_qualifier_and_custom_shader_workflow_with_undo() {
     engine
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
-    if let EffectPayload::CustomShader(p) = &engine.document().project.sequence.tracks[0].clips[0].effects[0].payload {
+    if let EffectPayload::CustomShader(p) =
+        &engine.document().project.sequence.tracks[0].clips[0].effects[0].payload
+    {
         assert_eq!(p.uniforms.get("u_intensity"), Some(&0.75));
     }
 

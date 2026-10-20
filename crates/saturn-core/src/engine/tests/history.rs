@@ -1,7 +1,7 @@
 use crate::command::CommandRequest;
 use crate::engine::EditorEngine;
 use crate::project::MediaKind;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[test]
 fn commands_report_reasons_and_undo_redo_project_mutations() {

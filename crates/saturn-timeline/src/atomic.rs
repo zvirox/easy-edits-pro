@@ -1,13 +1,16 @@
 //! Atomic Operations Module
 
 use crate::time::{Ticks, TimelineError};
-use crate::{Sequence, ClipId, TrackId, ClipRef, ClipTiming, EditOperation, Edit, EditTransaction, EditId, VideoEffect, Track};
+use crate::{
+    ClipId, ClipRef, ClipTiming, Edit, EditId, EditOperation, EditTransaction, Sequence, Track,
+    TrackId, VideoEffect,
+};
+use chrono;
+use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use uuid::Uuid;
 use std::sync::Arc;
-use parking_lot::RwLock;
-use chrono;
+use uuid::Uuid;
 
 /// Atomic edit engine for applying and reverting edits
 pub struct AtomicEditEngine {
@@ -49,15 +52,30 @@ impl AtomicEditEngine {
             crate::edit::EditOperation::AddClip { track_id, clip_ref } => {
                 let mut clip = clip_ref.clone();
                 clip.track_id = *track_id;
-                seq.get_track_mut(*track_id).ok_or(crate::TimelineError::TrackNotFound)?.add_clip(clip);
+                seq.get_track_mut(*track_id)
+                    .ok_or(crate::TimelineError::TrackNotFound)?
+                    .add_clip(clip);
             }
-            crate::edit::EditOperation::RemoveClip { track_id, clip_id, .. } => {
-                seq.get_track_mut(*track_id).ok_or(crate::TimelineError::TrackNotFound)?.remove_clip(*clip_id);
+            crate::edit::EditOperation::RemoveClip {
+                track_id, clip_id, ..
+            } => {
+                seq.get_track_mut(*track_id)
+                    .ok_or(crate::TimelineError::TrackNotFound)?
+                    .remove_clip(*clip_id);
             }
-            crate::edit::EditOperation::MoveClip { clip_id, to_track, new_start, .. } => {
+            crate::edit::EditOperation::MoveClip {
+                clip_id,
+                to_track,
+                new_start,
+                ..
+            } => {
                 seq.move_clip(*clip_id, Some(*to_track), Some(*new_start))?;
             }
-            crate::edit::EditOperation::TrimClip { clip_id, new_timing, .. } => {
+            crate::edit::EditOperation::TrimClip {
+                clip_id,
+                new_timing,
+                ..
+            } => {
                 for track in seq.tracks.values_mut() {
                     if let Some(clip) = track.clips.iter_mut().find(|c| c.clip_id == *clip_id) {
                         clip.timing = new_timing.clone();
@@ -65,7 +83,9 @@ impl AtomicEditEngine {
                     }
                 }
             }
-            crate::edit::EditOperation::ChangeSpeed { clip_id, new_speed, .. } => {
+            crate::edit::EditOperation::ChangeSpeed {
+                clip_id, new_speed, ..
+            } => {
                 for track in seq.tracks.values_mut() {
                     if let Some(clip) = track.clips.iter_mut().find(|c| c.clip_id == *clip_id) {
                         clip.timing.speed = *new_speed;
@@ -81,7 +101,9 @@ impl AtomicEditEngine {
                     }
                 }
             }
-            crate::edit::EditOperation::RemoveEffect { clip_id, effect_id, .. } => {
+            crate::edit::EditOperation::RemoveEffect {
+                clip_id, effect_id, ..
+            } => {
                 for track in seq.tracks.values_mut() {
                     if let Some(clip) = track.clips.iter_mut().find(|c| c.clip_id == *clip_id) {
                         clip.effects.video_effects.retain(|e| e.id != *effect_id);
@@ -89,17 +111,31 @@ impl AtomicEditEngine {
                     }
                 }
             }
-            crate::edit::EditOperation::ModifyEffect { clip_id, effect_id, new_params, .. } => {
+            crate::edit::EditOperation::ModifyEffect {
+                clip_id,
+                effect_id,
+                new_params,
+                ..
+            } => {
                 for track in seq.tracks.values_mut() {
                     if let Some(clip) = track.clips.iter_mut().find(|c| c.clip_id == *clip_id) {
-                        if let Some(effect) = clip.effects.video_effects.iter_mut().find(|e| e.id == *effect_id) {
+                        if let Some(effect) = clip
+                            .effects
+                            .video_effects
+                            .iter_mut()
+                            .find(|e| e.id == *effect_id)
+                        {
                             effect.parameters = new_params.clone();
                             break;
                         }
                     }
                 }
             }
-            crate::edit::EditOperation::TransformClip { clip_id, new_transform, .. } => {
+            crate::edit::EditOperation::TransformClip {
+                clip_id,
+                new_transform,
+                ..
+            } => {
                 for track in seq.tracks.values_mut() {
                     if let Some(clip) = track.clips.iter_mut().find(|c| c.clip_id == *clip_id) {
                         clip.effects.transform = new_transform.clone();
@@ -107,7 +143,11 @@ impl AtomicEditEngine {
                     }
                 }
             }
-            crate::edit::EditOperation::ChangeOpacity { clip_id, new_opacity, .. } => {
+            crate::edit::EditOperation::ChangeOpacity {
+                clip_id,
+                new_opacity,
+                ..
+            } => {
                 for track in seq.tracks.values_mut() {
                     if let Some(clip) = track.clips.iter_mut().find(|c| c.clip_id == *clip_id) {
                         clip.effects.opacity = *new_opacity;
@@ -115,7 +155,9 @@ impl AtomicEditEngine {
                     }
                 }
             }
-            crate::edit::EditOperation::ChangeBlendMode { clip_id, new_mode, .. } => {
+            crate::edit::EditOperation::ChangeBlendMode {
+                clip_id, new_mode, ..
+            } => {
                 for track in seq.tracks.values_mut() {
                     if let Some(clip) = track.clips.iter_mut().find(|c| c.clip_id == *clip_id) {
                         clip.effects.blend_mode = *new_mode;
@@ -123,7 +165,11 @@ impl AtomicEditEngine {
                     }
                 }
             }
-            crate::edit::EditOperation::AddTrack { track_id, kind, index } => {
+            crate::edit::EditOperation::AddTrack {
+                track_id,
+                kind,
+                index,
+            } => {
                 let track = crate::track::Track::with_id(*track_id, *kind, *index);
                 seq.state.tracks.push(*track_id);
                 seq.tracks.insert(*track_id, track);
@@ -140,7 +186,11 @@ impl AtomicEditEngine {
             crate::edit::EditOperation::RemoveMarker { marker_id, .. } => {
                 seq.state.markers.retain(|m| m.id != *marker_id);
             }
-            crate::edit::EditOperation::MoveMarker { marker_id, new_position, .. } => {
+            crate::edit::EditOperation::MoveMarker {
+                marker_id,
+                new_position,
+                ..
+            } => {
                 for marker in &mut seq.state.markers {
                     if marker.id == *marker_id {
                         marker.position = *new_position;
@@ -148,7 +198,9 @@ impl AtomicEditEngine {
                     }
                 }
             }
-            crate::edit::EditOperation::SetWorkArea { new_start, new_end, .. } => {
+            crate::edit::EditOperation::SetWorkArea {
+                new_start, new_end, ..
+            } => {
                 seq.state.work_area_start = *new_start;
                 seq.state.work_area_end = *new_end;
             }
@@ -168,8 +220,12 @@ impl AtomicEditEngine {
     }
 
     pub fn undo(&mut self) -> Result<Edit, crate::TimelineError> {
-        let edit = self.history.pop()
-            .ok_or(crate::TimelineError::InvalidOperation("Nothing to undo".to_string()))?;
+        let edit = self
+            .history
+            .pop()
+            .ok_or(crate::TimelineError::InvalidOperation(
+                "Nothing to undo".to_string(),
+            ))?;
 
         self.apply_inverse(&edit.operation)?;
 
@@ -178,8 +234,12 @@ impl AtomicEditEngine {
     }
 
     pub fn redo(&mut self) -> Result<Edit, crate::TimelineError> {
-        let edit = self.redo_stack.pop()
-            .ok_or(crate::TimelineError::InvalidOperation("Nothing to redo".to_string()))?;
+        let edit = self
+            .redo_stack
+            .pop()
+            .ok_or(crate::TimelineError::InvalidOperation(
+                "Nothing to redo".to_string(),
+            ))?;
 
         self.apply_operation(&edit.operation)?;
         self.history.push(edit.clone());
@@ -193,10 +253,19 @@ impl AtomicEditEngine {
             crate::edit::EditOperation::AddClip { track_id, .. } => {
                 // Placeholder - would need to store clip_id for proper inverse
             }
-            crate::edit::EditOperation::RemoveClip { track_id, clip_ref, .. } => {
-                seq.get_track_mut(*track_id).ok_or(crate::TimelineError::TrackNotFound)?.add_clip(clip_ref.clone());
+            crate::edit::EditOperation::RemoveClip {
+                track_id, clip_ref, ..
+            } => {
+                seq.get_track_mut(*track_id)
+                    .ok_or(crate::TimelineError::TrackNotFound)?
+                    .add_clip(clip_ref.clone());
             }
-            crate::edit::EditOperation::MoveClip { clip_id, from_track, old_start, .. } => {
+            crate::edit::EditOperation::MoveClip {
+                clip_id,
+                from_track,
+                old_start,
+                ..
+            } => {
                 let mut found = false;
                 for track in seq.tracks.values_mut() {
                     if let Some(clip) = track.clips.iter_mut().find(|c| c.clip_id == *clip_id) {
@@ -216,7 +285,11 @@ impl AtomicEditEngine {
                     }
                 }
             }
-            crate::edit::EditOperation::TrimClip { clip_id, old_timing, .. } => {
+            crate::edit::EditOperation::TrimClip {
+                clip_id,
+                old_timing,
+                ..
+            } => {
                 for track in seq.tracks.values_mut() {
                     if let Some(clip) = track.clips.iter_mut().find(|c| c.clip_id == *clip_id) {
                         clip.timing = old_timing.clone();
@@ -224,7 +297,9 @@ impl AtomicEditEngine {
                     }
                 }
             }
-            crate::edit::EditOperation::ChangeSpeed { clip_id, old_speed, .. } => {
+            crate::edit::EditOperation::ChangeSpeed {
+                clip_id, old_speed, ..
+            } => {
                 for track in seq.tracks.values_mut() {
                     if let Some(clip) = track.clips.iter_mut().find(|c| c.clip_id == *clip_id) {
                         clip.timing.speed = *old_speed;
@@ -240,7 +315,9 @@ impl AtomicEditEngine {
                     }
                 }
             }
-            crate::edit::EditOperation::RemoveEffect { clip_id, effect, .. } => {
+            crate::edit::EditOperation::RemoveEffect {
+                clip_id, effect, ..
+            } => {
                 for track in seq.tracks.values_mut() {
                     if let Some(clip) = track.clips.iter_mut().find(|c| c.clip_id == *clip_id) {
                         clip.effects.video_effects.push(effect.clone());
@@ -278,7 +355,9 @@ impl AtomicEditEngine {
             }
             Ok(())
         } else {
-            Err(crate::TimelineError::InvalidOperation("No active transaction".to_string()))
+            Err(crate::TimelineError::InvalidOperation(
+                "No active transaction".to_string(),
+            ))
         }
     }
 
@@ -307,7 +386,10 @@ impl UndoRedoManager {
         self.engine.apply_edit(edit)
     }
 
-    pub fn apply_operation(&mut self, operation: EditOperation) -> Result<(), crate::TimelineError> {
+    pub fn apply_operation(
+        &mut self,
+        operation: EditOperation,
+    ) -> Result<(), crate::TimelineError> {
         self.engine.apply_edit(Edit::new(operation))
     }
 
@@ -345,10 +427,14 @@ impl UndoRedoManager {
 }
 
 /// Factory functions for external use
-pub fn create_atomic_engine(sequence: Arc<parking_lot::RwLock<crate::sequence::Sequence>>) -> AtomicEditEngine {
+pub fn create_atomic_engine(
+    sequence: Arc<parking_lot::RwLock<crate::sequence::Sequence>>,
+) -> AtomicEditEngine {
     AtomicEditEngine::new(sequence)
 }
 
-pub fn create_undo_redo_manager(sequence: Arc<parking_lot::RwLock<crate::sequence::Sequence>>) -> UndoRedoManager {
+pub fn create_undo_redo_manager(
+    sequence: Arc<parking_lot::RwLock<crate::sequence::Sequence>>,
+) -> UndoRedoManager {
     UndoRedoManager::new(sequence)
 }

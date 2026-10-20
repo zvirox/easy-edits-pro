@@ -101,10 +101,18 @@ pub fn blend_bidirectional_optical_flow(
             let w_fwd = 1.0 - alpha;
             let w_bwd = alpha;
 
-            out[out_idx] = ((sample_fwd[0] as f32 * w_fwd + sample_bwd[0] as f32 * w_bwd).round() as u8).min(255);
-            out[out_idx + 1] = ((sample_fwd[1] as f32 * w_fwd + sample_bwd[1] as f32 * w_bwd).round() as u8).min(255);
-            out[out_idx + 2] = ((sample_fwd[2] as f32 * w_fwd + sample_bwd[2] as f32 * w_bwd).round() as u8).min(255);
-            out[out_idx + 3] = ((sample_fwd[3] as f32 * w_fwd + sample_bwd[3] as f32 * w_bwd).round() as u8).min(255);
+            out[out_idx] = ((sample_fwd[0] as f32 * w_fwd + sample_bwd[0] as f32 * w_bwd).round()
+                as u8)
+                .min(255);
+            out[out_idx + 1] = ((sample_fwd[1] as f32 * w_fwd + sample_bwd[1] as f32 * w_bwd)
+                .round() as u8)
+                .min(255);
+            out[out_idx + 2] = ((sample_fwd[2] as f32 * w_fwd + sample_bwd[2] as f32 * w_bwd)
+                .round() as u8)
+                .min(255);
+            out[out_idx + 3] = ((sample_fwd[3] as f32 * w_fwd + sample_bwd[3] as f32 * w_bwd)
+                .round() as u8)
+                .min(255);
         }
     }
 
@@ -159,18 +167,28 @@ fn estimate_sparse_flow(src: &[u8], dst: &[u8], width: usize, height: usize) -> 
                     for iy in 0..block_size {
                         let sy = by + iy;
                         let ty = (sy as isize + dy).clamp(0, (height - 1) as isize) as usize;
-                        if sy >= height { break; }
+                        if sy >= height {
+                            break;
+                        }
 
                         for ix in 0..block_size {
                             let sx = bx + ix;
                             let tx = (sx as isize + dx).clamp(0, (width - 1) as isize) as usize;
-                            if sx >= width { break; }
+                            if sx >= width {
+                                break;
+                            }
 
                             let s_idx = (sy * width + sx) * 4;
                             let t_idx = (ty * width + tx) * 4;
                             // Luminance difference
-                            let s_luma = (src[s_idx] as u32 * 54 + src[s_idx + 1] as u32 * 183 + src[s_idx + 2] as u32 * 19) >> 8;
-                            let t_luma = (dst[t_idx] as u32 * 54 + dst[t_idx + 1] as u32 * 183 + dst[t_idx + 2] as u32 * 19) >> 8;
+                            let s_luma = (src[s_idx] as u32 * 54
+                                + src[s_idx + 1] as u32 * 183
+                                + src[s_idx + 2] as u32 * 19)
+                                >> 8;
+                            let t_luma = (dst[t_idx] as u32 * 54
+                                + dst[t_idx + 1] as u32 * 183
+                                + dst[t_idx + 2] as u32 * 19)
+                                >> 8;
                             sad += s_luma.abs_diff(t_luma) as u64;
                         }
                     }
@@ -186,10 +204,14 @@ fn estimate_sparse_flow(src: &[u8], dst: &[u8], width: usize, height: usize) -> 
             // Assign flow to all pixels in block
             for iy in 0..block_size {
                 let y = by + iy;
-                if y >= height { break; }
+                if y >= height {
+                    break;
+                }
                 for ix in 0..block_size {
                     let x = bx + ix;
-                    if x >= width { break; }
+                    if x >= width {
+                        break;
+                    }
                     flow[y * width + x] = (best_dx as f32, best_dy as f32);
                 }
             }
@@ -331,7 +353,8 @@ mod tests {
         prev.fill(0);
         next.fill(200);
 
-        let blended = blend_bidirectional_optical_flow(&prev, &next, None, None, 0.5, width, height);
+        let blended =
+            blend_bidirectional_optical_flow(&prev, &next, None, None, 0.5, width, height);
         assert_eq!(blended.len(), 64);
         // At alpha=0.5, pixel value should be approximately 100
         assert!(blended[0] >= 90 && blended[0] <= 110);

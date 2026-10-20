@@ -136,7 +136,7 @@ impl EditorEngine {
                     _ => {
                         return Err(DispatchError::InvalidParameters(
                             "Effect is not a custom shader".into(),
-                        ))
+                        ));
                     }
                 }
                 Ok(json!({"updated": true, "effect_id": params.effect_id}))

@@ -1,6 +1,6 @@
 //! Keyboard shortcut management system
 
-use crate::{CommandId};
+use crate::CommandId;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -179,7 +179,11 @@ impl ShortcutManager {
             }
         }
 
-        self.shortcuts.write().entry(command_id.clone()).or_default().push(spec.clone());
+        self.shortcuts
+            .write()
+            .entry(command_id.clone())
+            .or_default()
+            .push(spec.clone());
         self.bindings.write().insert(key, command_id);
 
         Ok(())
@@ -195,13 +199,24 @@ impl ShortcutManager {
         }
     }
 
-    pub fn set(&self, command_id: &CommandId, binding: KeyBinding, panel: Option<String>) -> Result<(), ShortcutError> {
+    pub fn set(
+        &self,
+        command_id: &CommandId,
+        binding: KeyBinding,
+        panel: Option<String>,
+    ) -> Result<(), ShortcutError> {
         self.unregister(command_id);
-        self.register(ShortcutSpec::new(command_id.clone(), binding).with_panel(panel.unwrap_or_default()))
+        self.register(
+            ShortcutSpec::new(command_id.clone(), binding).with_panel(panel.unwrap_or_default()),
+        )
     }
 
     pub fn get(&self, command_id: &CommandId) -> Vec<ShortcutSpec> {
-        self.shortcuts.read().get(command_id).cloned().unwrap_or_default()
+        self.shortcuts
+            .read()
+            .get(command_id)
+            .cloned()
+            .unwrap_or_default()
     }
 
     pub fn all(&self) -> Vec<ShortcutSpec> {
@@ -223,7 +238,8 @@ impl ShortcutManager {
     }
 
     pub fn for_panel(&self, panel: &str) -> Vec<ShortcutSpec> {
-        self.shortcuts.read()
+        self.shortcuts
+            .read()
             .values()
             .flatten()
             .filter(|s| s.panel.as_deref() == Some(panel) || s.panel.is_none())
@@ -240,7 +256,8 @@ impl ShortcutManager {
         let mut conflicts = Vec::new();
         let bindings = self.bindings.read();
 
-        let mut groups: HashMap<(Platform, Option<String>, KeyBinding), Vec<&CommandId>> = HashMap::new();
+        let mut groups: HashMap<(Platform, Option<String>, KeyBinding), Vec<&CommandId>> =
+            HashMap::new();
         for (key, cmd_id) in bindings.iter() {
             groups.entry(key.clone()).or_default().push(cmd_id);
         }
@@ -351,7 +368,12 @@ impl ShortcutManager {
     }
 
     pub fn presets(&self) -> Vec<String> {
-        vec!["default".to_string(), "premiere".to_string(), "davinci".to_string(), "final_cut".to_string()]
+        vec![
+            "default".to_string(),
+            "premiere".to_string(),
+            "davinci".to_string(),
+            "final_cut".to_string(),
+        ]
     }
 }
 
@@ -364,7 +386,9 @@ impl Default for ShortcutManager {
 /// Shortcut errors
 #[derive(Debug, thiserror::Error)]
 pub enum ShortcutError {
-    #[error("Shortcut conflict: {binding} already assigned to {existing:?}, trying to assign to {new:?}")]
+    #[error(
+        "Shortcut conflict: {binding} already assigned to {existing:?}, trying to assign to {new:?}"
+    )]
     Conflict {
         binding: String,
         existing: CommandId,
@@ -420,23 +444,33 @@ mod tests {
     fn test_shortcut_manager() {
         let manager = ShortcutManager::new();
 
-        manager.register(ShortcutSpec::new(
-            CommandId::new("test.cmd"),
-            KeyBinding::new("K", vec![Modifier::Ctrl]),
-        )).unwrap();
+        manager
+            .register(ShortcutSpec::new(
+                CommandId::new("test.cmd"),
+                KeyBinding::new("K", vec![Modifier::Ctrl]),
+            ))
+            .unwrap();
 
-        assert_eq!(manager.format(&CommandId::new("test.cmd")), Some("Ctrl+K".to_string()));
-        assert_eq!(manager.find_by_string("Ctrl+K", None), Some(CommandId::new("test.cmd")));
+        assert_eq!(
+            manager.format(&CommandId::new("test.cmd")),
+            Some("Ctrl+K".to_string())
+        );
+        assert_eq!(
+            manager.find_by_string("Ctrl+K", None),
+            Some(CommandId::new("test.cmd"))
+        );
     }
 
     #[test]
     fn test_shortcut_conflict() {
         let manager = ShortcutManager::new();
 
-        manager.register(ShortcutSpec::new(
-            CommandId::new("cmd1"),
-            KeyBinding::new("K", vec![Modifier::Ctrl]),
-        )).unwrap();
+        manager
+            .register(ShortcutSpec::new(
+                CommandId::new("cmd1"),
+                KeyBinding::new("K", vec![Modifier::Ctrl]),
+            ))
+            .unwrap();
 
         let result = manager.register(ShortcutSpec::new(
             CommandId::new("cmd2"),
@@ -465,6 +499,9 @@ mod tests {
 
         let manager2 = ShortcutManager::new();
         manager2.import(exported, true).unwrap();
-        assert_eq!(manager2.format(&CommandId::new("edit.undo")), Some("Ctrl+Z".to_string()));
+        assert_eq!(
+            manager2.format(&CommandId::new("edit.undo")),
+            Some("Ctrl+Z".to_string())
+        );
     }
 }

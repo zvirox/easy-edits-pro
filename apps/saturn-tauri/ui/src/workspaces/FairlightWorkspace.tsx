@@ -300,8 +300,8 @@ export function FairlightWorkspace({
                     onChange={(e) => {
                       const val = Number(e.target.value);
                       setMasterGainDraft(val);
-                      audioClockMaster.setMasterGain(val);
                     }}
+                    onPointerUp={(e) => void perform("bus.set_gain_db", { target: "master", gain_db: Number(e.currentTarget.value) })}
                   />
                 </div>
                 <div className="strip-fader-footer">
@@ -311,7 +311,7 @@ export function FairlightWorkspace({
                     title="Reset master gain to unity 0 dB"
                     onClick={() => {
                       setMasterGainDraft(0);
-                      audioClockMaster.setMasterGain(0);
+                      void perform("bus.set_gain_db", { target: "master", gain_db: 0 });
                     }}
                   >
                     0 dB
@@ -523,6 +523,7 @@ export function FairlightWorkspace({
                     onChange={(e) => {
                       const val = Number(e.target.value);
                       setBusGainDrafts((prev) => ({ ...prev, [b.target]: val }));
+                      audioClockMaster.setBusGain(b.target, val);
                     }}
                     onPointerUp={(e) => void perform("bus.set_gain_db", { target: b.target, gain_db: Number(e.currentTarget.value) })}
                   />

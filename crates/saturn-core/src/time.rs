@@ -47,7 +47,6 @@ impl From<Tick> for i64 {
     }
 }
 
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FrameRate {
     pub numerator: u32,

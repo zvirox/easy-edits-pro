@@ -5,7 +5,8 @@ pub use assets::{download_openverse_asset, search_openverse};
 pub use network::import_network_media;
 mod project;
 pub use project::{
-    check_media_availability, command_status, execute_command, get_command_catalogue,
+    check_media_availability, command_status, execute_command, execute_command_with_state,
+    get_command_catalogue,
 };
 mod media;
 pub use media::{import_media, prepare_video_preview};

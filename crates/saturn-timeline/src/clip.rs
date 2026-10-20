@@ -1,18 +1,30 @@
 //! Clip Module
 
-use crate::time::{Ticks, TICKS_PER_SECOND};
-use crate::{FrameRate, TrackId, SequenceId, BlendMode};
+use crate::time::{TICKS_PER_SECOND, Ticks};
+use crate::{BlendMode, FrameRate, SequenceId, TrackId};
+use chrono;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use chrono;
 
 /// Clip source
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ClipSource {
-    Media { media_id: uuid::Uuid, file_path: String },
-    Generated { generator: String, parameters: serde_json::Value },
-    NestedSequence { sequence_id: SequenceId },
-    Placeholder { width: u32, height: u32, color: String },
+    Media {
+        media_id: uuid::Uuid,
+        file_path: String,
+    },
+    Generated {
+        generator: String,
+        parameters: serde_json::Value,
+    },
+    NestedSequence {
+        sequence_id: SequenceId,
+    },
+    Placeholder {
+        width: u32,
+        height: u32,
+        color: String,
+    },
 }
 
 impl ClipSource {
@@ -141,7 +153,11 @@ impl ClipRef {
                 ..Default::default()
             },
             effects: ClipEffects::default(),
-            source: ClipSource::Placeholder { width: 1920, height: 1080, color: "#000000".to_string() },
+            source: ClipSource::Placeholder {
+                width: 1920,
+                height: 1080,
+                color: "#000000".to_string(),
+            },
             metadata: ClipMetadata::default(),
         }
     }
@@ -203,8 +219,7 @@ impl Clip {
     }
 
     pub fn create_ref(&self, timeline_start: Ticks, timeline_duration: Ticks) -> ClipRef {
-        ClipRef::new(self.id, timeline_start, timeline_duration)
-            .with_source(self.source.clone())
+        ClipRef::new(self.id, timeline_start, timeline_duration).with_source(self.source.clone())
     }
 }
 

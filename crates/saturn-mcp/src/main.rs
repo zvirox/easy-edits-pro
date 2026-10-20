@@ -1,63 +1,58 @@
-//! MCP Server for AI-assisted editing in Easy Edits Pro
-//!
-//! This binary provides an MCP (Model Context Protocol) server that exposes
-//! the command registry to AI assistants for intelligent editing assistance.
+//! MCP stdio entry point for Easy Edits Pro's editor engine.
 
-use std::sync::Arc;
-use saturn_commands::{
-    CommandRegistry, CommandHandler, CommandHandlerError, CommandSpec,
-    context::{AppContext, AppState, EventBus},
-    undo::UndoManager,
-    shortcuts::ShortcutManager,
-    register_builtin_commands,
-};
-use rmcp::{
-    ServerHandler,
-    model::{CallToolRequestParam, CallToolResult, ListToolsResult, Tool},
-    service::ServiceExt,
-    transport::stdio,
-};
-use tracing::{info, error};
-use uuid::Uuid;
-use anyhow::Result;
+use anyhow::{Context, Result};
+use rmcp::{ServiceExt, transport::stdio};
+use saturn_core::{CommandRequest, EditorEngine};
 
-mod handlers;
-mod tools;
-
-use handlers::McpServerHandler;
+mod server;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
-        .init();
+    let mut args = std::env::args().skip(1);
+    let mut project_path = None;
+    let mut bridge = false;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--bridge" => bridge = true,
+            "--project" => {
+                project_path = Some(args.next().context("--project requires a project path")?);
+            }
+            "--help" | "-h" => {
+                println!(
+                    "saturn-mcp [--project <path> | --bridge]\nRuns the Easy Edits Pro MCP server over stdio. --bridge connects to the running desktop app."
+                );
+                return Ok(());
+            }
+            unknown => anyhow::bail!("unknown argument: {unknown}"),
+        }
+    }
 
-    info!("Starting Saturn MCP Server");
+    if bridge && project_path.is_some() {
+        anyhow::bail!("--bridge and --project cannot be used together");
+    }
 
-    // Create application context
-    let registry = Arc::new(CommandRegistry::new());
-    register_builtin_commands(&registry)?;
+    let server = if bridge {
+        server::EditorMcp::bridge()
+    } else {
+        let mut engine = EditorEngine::default();
+        if let Some(path) = project_path {
+            engine
+                .execute(CommandRequest::new(
+                    "file.open",
+                    serde_json::json!({ "path": path }),
+                ))
+                .context("failed to open the requested project")?;
+        }
+        server::EditorMcp::new(engine)
+    };
 
-    let app_context = Arc::new(AppContext {
-        state: Arc::new(tokio::sync::RwLock::new(AppState::default())),
-        registry: registry.clone(),
-        undo: Arc::new(saturn_commands::UndoManager::new(1000)),
-        shortcuts: Arc::new(ShortcutManager::new()),
-        events: Arc::new(EventBus::new()),
-    });
-
-    // Create MCP server handler
-    let handler = McpServerHandler::new(app_context);
-
-    // Start MCP server over stdio
-    let service = handler.serve(stdio()).await?;
-
-    info!("MCP Server running on stdio");
-
-    // Wait for shutdown
-    tokio::signal::ctrl_c().await?;
-    info!("Shutting down MCP Server");
-
+    let service = server
+        .serve(stdio())
+        .await
+        .context("failed to start MCP stdio service")?;
+    service
+        .waiting()
+        .await
+        .context("MCP service stopped with an error")?;
     Ok(())
 }

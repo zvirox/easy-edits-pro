@@ -10,7 +10,7 @@ pub enum MattingModel {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MattingOptions {
     pub model: MattingModel,
-    pub threshold: f32, // [0.0, 1.0]
+    pub threshold: f32,      // [0.0, 1.0]
     pub feather_radius: f32, // pixels, e.g. 0.0 .. 15.0
     pub background_mode: BackgroundMode,
     pub temporal_coherence: bool,
@@ -64,10 +64,18 @@ pub fn run_background_matting(
 
     // Human saliency / skin & torso estimation heuristic representing neural segmentation
     for y in 0..height {
-        let ny = if height > 1 { (y as f32 + 0.5) / height as f32 } else { 0.5 };
+        let ny = if height > 1 {
+            (y as f32 + 0.5) / height as f32
+        } else {
+            0.5
+        };
         let row_start = y * width * 4;
         for x in 0..width {
-            let nx = if width > 1 { (x as f32 + 0.5) / width as f32 } else { 0.5 };
+            let nx = if width > 1 {
+                (x as f32 + 0.5) / width as f32
+            } else {
+                0.5
+            };
             let idx = row_start + x * 4;
 
             let r = rgba_buf[idx] as f32 / 255.0;
@@ -93,14 +101,16 @@ pub fn run_background_matting(
                 MattingModel::ModNet => {
                     // MODNet sharp semantic boundary
                     alpha = if alpha > options.threshold {
-                        ((alpha - options.threshold) / (1.0 - options.threshold).max(1e-4)).powf(0.85)
+                        ((alpha - options.threshold) / (1.0 - options.threshold).max(1e-4))
+                            .powf(0.85)
                     } else {
                         0.0
                     };
                 }
                 MattingModel::RobustVideoMatting => {
                     // RVM recurrent soft boundary
-                    alpha = (1.0 / (1.0 + (-(alpha - options.threshold) * 8.0).exp())).clamp(0.0, 1.0);
+                    alpha =
+                        (1.0 / (1.0 + (-(alpha - options.threshold) * 8.0).exp())).clamp(0.0, 1.0);
                 }
             }
 
@@ -109,13 +119,17 @@ pub fn run_background_matting(
     }
 
     // Apply temporal coherence with recurrent state (smoothing video across frames)
-    if options.temporal_coherence && !temporal_state.previous_alpha.is_empty() && temporal_state.previous_alpha.len() == num_pixels {
+    if options.temporal_coherence
+        && !temporal_state.previous_alpha.is_empty()
+        && temporal_state.previous_alpha.len() == num_pixels
+    {
         let recurrent_decay = match options.model {
             MattingModel::RobustVideoMatting => 0.45,
             MattingModel::ModNet => 0.20,
         };
         for i in 0..num_pixels {
-            current_alpha[i] = current_alpha[i] * (1.0 - recurrent_decay) + temporal_state.previous_alpha[i] * recurrent_decay;
+            current_alpha[i] = current_alpha[i] * (1.0 - recurrent_decay)
+                + temporal_state.previous_alpha[i] * recurrent_decay;
         }
     }
     temporal_state.previous_alpha = current_alpha.clone();
@@ -123,7 +137,12 @@ pub fn run_background_matting(
 
     // Apply edge feathering if radius > 0
     let final_alpha = if options.feather_radius > 0.5 {
-        apply_box_feather(&current_alpha, width, height, options.feather_radius as usize)
+        apply_box_feather(
+            &current_alpha,
+            width,
+            height,
+            options.feather_radius as usize,
+        )
     } else {
         current_alpha
     };
@@ -141,7 +160,9 @@ pub fn run_background_matting(
                 let orig_b = rgba_buf[idx + 2] as f32;
 
                 rgba_buf[idx] = (orig_r * alpha).round() as u8;
-                rgba_buf[idx + 1] = (orig_g * alpha + 255.0 * (1.0 - alpha)).round().clamp(0.0, 255.0) as u8;
+                rgba_buf[idx + 1] = (orig_g * alpha + 255.0 * (1.0 - alpha))
+                    .round()
+                    .clamp(0.0, 255.0) as u8;
                 rgba_buf[idx + 2] = (orig_b * alpha).round() as u8;
                 rgba_buf[idx + 3] = 255;
             }
@@ -150,9 +171,15 @@ pub fn run_background_matting(
                 let orig_g = rgba_buf[idx + 1] as f32;
                 let orig_b = rgba_buf[idx + 2] as f32;
 
-                rgba_buf[idx] = (orig_r * alpha + r as f32 * (1.0 - alpha)).round().clamp(0.0, 255.0) as u8;
-                rgba_buf[idx + 1] = (orig_g * alpha + g as f32 * (1.0 - alpha)).round().clamp(0.0, 255.0) as u8;
-                rgba_buf[idx + 2] = (orig_b * alpha + b as f32 * (1.0 - alpha)).round().clamp(0.0, 255.0) as u8;
+                rgba_buf[idx] = (orig_r * alpha + r as f32 * (1.0 - alpha))
+                    .round()
+                    .clamp(0.0, 255.0) as u8;
+                rgba_buf[idx + 1] = (orig_g * alpha + g as f32 * (1.0 - alpha))
+                    .round()
+                    .clamp(0.0, 255.0) as u8;
+                rgba_buf[idx + 2] = (orig_b * alpha + b as f32 * (1.0 - alpha))
+                    .round()
+                    .clamp(0.0, 255.0) as u8;
                 rgba_buf[idx + 3] = 255;
             }
         }

@@ -145,7 +145,7 @@ export function FairlightMixerRack({
                     {/* Audio Plugins VST3 Slot with Stacked Header to Prevent Clipping */}
                     <div className="strip-plugins-rack" onClick={(e) => e.stopPropagation()}>
                       <div className="strip-plugins-header">
-                        <span>PLUGINS</span>
+                        <span>PLUGIN SLOTS · BUILT-IN EFFECT HOST PENDING</span>
                         <select
                           className="strip-add-plugin-select"
                           value=""
@@ -156,11 +156,11 @@ export function FairlightMixerRack({
                             }
                           }}
                         >
-                          <option value="" disabled>+ VST3…</option>
-                          <option value="Saturn Dynamics">VST3: Saturn Dynamics</option>
-                          <option value="Saturn Reverb">VST3: Studio Reverb</option>
-                          <option value="Saturn De-Esser">VST3: De-Esser Pro</option>
-                          <option value="Saturn Chorus">VST3: Chorus &amp; Widener</option>
+                          <option value="" disabled>+ Plugin…</option>
+                          <option value="Saturn Dynamics">Saturn Dynamics (saved slot)</option>
+                          <option value="Saturn Reverb">Studio Reverb (saved slot)</option>
+                          <option value="Saturn De-Esser">De-Esser Pro (saved slot)</option>
+                          <option value="Saturn Chorus">Chorus &amp; Widener (saved slot)</option>
                         </select>
                       </div>
                       {(track.plugins ?? []).map((plugin) => (
@@ -172,7 +172,7 @@ export function FairlightMixerRack({
                             onClick={() => void toggleTrackPlugin(track.id, plugin.id, !plugin.enabled)}
                           />
                           <span className="plugin-name-label" title={plugin.name}>{plugin.name}</span>
-                          <span className="plugin-format-badge">VST3</span>
+                          <span className="plugin-format-badge">SLOT</span>
                         </div>
                       ))}
                     </div>

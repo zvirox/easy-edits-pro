@@ -35,9 +35,10 @@ impl FrameRate {
             FrameRate::Fps50 => TICKS_PER_SECOND / 50,
             FrameRate::Fps59_94 => TICKS_PER_SECOND / 60000 * 1001,
             FrameRate::Fps60 => TICKS_PER_SECOND / 60,
-            FrameRate::Custom { numerator, denominator } => {
-                TICKS_PER_SECOND * *denominator as i64 / *numerator as i64
-            }
+            FrameRate::Custom {
+                numerator,
+                denominator,
+            } => TICKS_PER_SECOND * *denominator as i64 / *numerator as i64,
         }
     }
 
@@ -52,7 +53,10 @@ impl FrameRate {
             FrameRate::Fps50 => 50.0,
             FrameRate::Fps59_94 => 60000.0 / 1001.0,
             FrameRate::Fps60 => 60.0,
-            FrameRate::Custom { numerator, denominator } => *numerator as f64 / *denominator as f64,
+            FrameRate::Custom {
+                numerator,
+                denominator,
+            } => *numerator as f64 / *denominator as f64,
         }
     }
 }
@@ -75,7 +79,13 @@ pub struct Timecode {
 
 impl Timecode {
     pub fn new(hours: u8, minutes: u8, seconds: u8, frames: u8, drop_frame: bool) -> Self {
-        Self { hours, minutes, seconds, frames, drop_frame }
+        Self {
+            hours,
+            minutes,
+            seconds,
+            frames,
+            drop_frame,
+        }
     }
 
     pub fn from_ticks(ticks: Ticks, frame_rate: FrameRate, drop_frame: bool) -> Self {
@@ -98,7 +108,13 @@ impl Timecode {
         let minutes = (total_minutes % 60) as u8;
         let hours = (total_minutes / 60) as u8;
 
-        Self { hours, minutes, seconds, frames, drop_frame }
+        Self {
+            hours,
+            minutes,
+            seconds,
+            frames,
+            drop_frame,
+        }
     }
 
     pub fn to_ticks(&self, frame_rate: FrameRate) -> Ticks {
@@ -113,9 +129,15 @@ impl Timecode {
 
     pub fn format(&self) -> String {
         if self.drop_frame {
-            format!("{:02}:{:02}:{:02};{:02}", self.hours, self.minutes, self.seconds, self.frames)
+            format!(
+                "{:02}:{:02}:{:02};{:02}",
+                self.hours, self.minutes, self.seconds, self.frames
+            )
         } else {
-            format!("{:02}:{:02}:{:02}:{:02}", self.hours, self.minutes, self.seconds, self.frames)
+            format!(
+                "{:02}:{:02}:{:02}:{:02}",
+                self.hours, self.minutes, self.seconds, self.frames
+            )
         }
     }
 }
@@ -135,15 +157,21 @@ impl TimelineTime {
     }
 
     pub fn from_seconds(seconds: f64) -> Self {
-        Self { ticks: (seconds * TICKS_PER_SECOND as f64) as Ticks }
+        Self {
+            ticks: (seconds * TICKS_PER_SECOND as f64) as Ticks,
+        }
     }
 
     pub fn from_frames(frames: i64, frame_rate: FrameRate) -> Self {
-        Self { ticks: frames * frame_rate.ticks_per_frame() }
+        Self {
+            ticks: frames * frame_rate.ticks_per_frame(),
+        }
     }
 
     pub fn from_timecode(tc: Timecode, frame_rate: FrameRate) -> Self {
-        Self { ticks: tc.to_ticks(frame_rate) }
+        Self {
+            ticks: tc.to_ticks(frame_rate),
+        }
     }
 
     pub fn as_seconds(&self) -> f64 {
@@ -159,47 +187,63 @@ impl TimelineTime {
     }
 
     pub fn add(&self, other: Self) -> Self {
-        Self { ticks: self.ticks.saturating_add(other.ticks) }
+        Self {
+            ticks: self.ticks.saturating_add(other.ticks),
+        }
     }
 
     pub fn sub(&self, other: Self) -> Self {
-        Self { ticks: self.ticks.saturating_sub(other.ticks) }
+        Self {
+            ticks: self.ticks.saturating_sub(other.ticks),
+        }
     }
 
     pub fn mul(&self, factor: f64) -> Self {
-        Self { ticks: (self.ticks as f64 * factor) as Ticks }
+        Self {
+            ticks: (self.ticks as f64 * factor) as Ticks,
+        }
     }
 
     pub fn div(&self, divisor: f64) -> Self {
-        Self { ticks: (self.ticks as f64 / divisor) as Ticks }
+        Self {
+            ticks: (self.ticks as f64 / divisor) as Ticks,
+        }
     }
 }
 
 impl std::ops::Add for TimelineTime {
     type Output = Self;
     fn add(self, other: Self) -> Self {
-        Self { ticks: self.ticks.saturating_add(other.ticks) }
+        Self {
+            ticks: self.ticks.saturating_add(other.ticks),
+        }
     }
 }
 
 impl std::ops::Sub for TimelineTime {
     type Output = Self;
     fn sub(self, other: Self) -> Self {
-        Self { ticks: self.ticks.saturating_sub(other.ticks) }
+        Self {
+            ticks: self.ticks.saturating_sub(other.ticks),
+        }
     }
 }
 
 impl std::ops::Mul<f64> for TimelineTime {
     type Output = Self;
     fn mul(self, factor: f64) -> Self {
-        Self { ticks: (self.ticks as f64 * factor) as Ticks }
+        Self {
+            ticks: (self.ticks as f64 * factor) as Ticks,
+        }
     }
 }
 
 impl std::ops::Div<f64> for TimelineTime {
     type Output = Self;
     fn div(self, divisor: f64) -> Self {
-        Self { ticks: (self.ticks as f64 / divisor) as Ticks }
+        Self {
+            ticks: (self.ticks as f64 / divisor) as Ticks,
+        }
     }
 }
 
@@ -251,7 +295,10 @@ mod tests {
     #[test]
     fn test_time_conversions() {
         let time = TimelineTime::from_seconds(1.5);
-        assert_eq!(time.ticks, TICKS_PER_SECOND as i64 + TICKS_PER_SECOND as i64 / 2);
+        assert_eq!(
+            time.ticks,
+            TICKS_PER_SECOND as i64 + TICKS_PER_SECOND as i64 / 2
+        );
         assert!((time.as_seconds() - 1.5).abs() < 0.001);
     }
 
