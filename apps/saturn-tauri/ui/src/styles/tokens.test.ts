@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   auditContrast,
+  auditTextColours,
   contrastRatio,
   parseColor,
   parseThemes,
@@ -74,6 +75,10 @@ test("dark accent text does not reuse the accent surface colour", () => {
 test("every semantic text/surface pair meets WCAG AA", () => {
   const { failures } = auditContrast();
   assert.deepEqual(failures, []);
+});
+
+test("no banned accent or muted text literals remain", () => {
+  assert.deepEqual(auditTextColours(), []);
 });
 
 test("contrast maths matches the WCAG reference values", () => {

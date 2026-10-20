@@ -5,6 +5,13 @@
 Semantic tokens come from `01-editor.css` and `00-tokens-glass.css`. Contrast
 pairs are enforced by `pnpm check:contrast` at WCAG AA (4.5:1).
 
+## Degradation modes
+
+- `[data-glass="lite"]`: opaque surfaces, no backdrop blur, softer shadow.
+- `[data-glass="off"]`: opaque surfaces, no backdrop blur, no shadow.
+- `prefers-reduced-transparency: reduce`: same as `lite`.
+- `prefers-reduced-motion: reduce`: durations become `0ms`, easing becomes `linear`.
+
 ## Text and accents
 
 | Token | Dark | Light |
