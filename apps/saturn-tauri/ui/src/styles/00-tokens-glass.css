@@ -87,7 +87,8 @@
    so [data-glass] works from day one.
    -------------------------------------------------------------------------- */
 
-[data-glass="lite"] {
+[data-glass="lite"],
+[data-webkit-gtk-slow="true"] {
   --glass-l1: var(--bg-surface);
   --glass-l2: var(--bg-surface);
   --glass-l3: var(--bg-surface);

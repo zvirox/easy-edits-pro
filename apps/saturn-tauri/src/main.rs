@@ -17,6 +17,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::{AppHandle, Emitter, Manager, State, ipc::Channel};
 
 mod commands;
+mod gpu_detect;
 #[cfg(unix)]
 mod mcp_bridge;
 mod media_server;
@@ -47,12 +48,10 @@ fn register_project_media(app: &AppHandle, document: &saturn_core::ProjectDocume
 }
 
 fn main() {
-    #[cfg(target_os = "linux")]
-    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
-        unsafe {
-            std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-        }
-    }
+    // Phase 0 proved that WebKit's DMA-BUF renderer is the difference between
+    // a 59 fps editor and a 2 fps editor on Intel Iris Xe. It stays enabled by
+    // default; EEP_DISABLE_DMABUF is the opt-in escape hatch.
+    gpu_detect::configure_dmabuf();
 
     start_media_server();
 
@@ -88,6 +87,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             execute_command,
+            gpu_detect::glass_environment,
             prepare_video_preview,
             get_media_server_port,
             get_media_server_token,
