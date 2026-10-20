@@ -185,7 +185,6 @@ The plan was written against a slightly different tree. Findings:
 | `transition: all` cleanup | 41 occurrences in `styles/`. |
 | Raw literal cleanup | 762 raw hex + 436 `rgb()/rgba()` occurrences in `styles/`. |
 | `styles/120-glass.css` | Does not exist; no `.glass` selectors outside the spike. Greenfield. |
-| Build an AppImage for the spike | Not required for this gate: the dev and release builds share the same WebKitGTK runtime. Skipped deliberately; the window used here is a real Tauri window. |
 
 The plan's Phase 1 "139 rules" figure should be recalculated from the current
 tree rather than trusted, and Phase 2's rename map should be checked against the
@@ -225,8 +224,8 @@ The spike is development-only: `main.tsx` mounts it only when
   Intel UHD, AMD, NVIDIA or software-rendered session was measured.
 - **Linux/Wayland only.** Windows (WebView2/Chromium) and macOS (WKWebView)
   are untested, though `backdrop-filter` support differs by engine.
-- **Dev build.** Same WebKitGTK library as release, but not the packaged
-  AppImage. Release packaging does not change compositing.
+- **Dev build.** Same WebKitGTK library as release; release packaging does not
+  change compositing.
 - **720p30 single video.** 1080p/4K previews, multiple simultaneous videos,
   HDR and 10-bit sources are untested and will cost more.
 - **Panel geometry is representative, not exhaustive.** Four panels plus one

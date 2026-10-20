@@ -18,7 +18,6 @@ body:
     attributes:
       label: Installation Method
       options:
-        - AppImage
         - Debian Package (.deb)
         - RPM Package (.rpm)
         - Built from source (pnpm tauri build / dev)

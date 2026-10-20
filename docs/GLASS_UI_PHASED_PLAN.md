@@ -37,8 +37,6 @@ The plan predates the current tree. These corrections apply to the phases below:
   rules** (15 declarations including `-webkit-`), **41 `transition: all`**, and
   762 hex + 436 `rgb()/rgba()` literals across 19 CSS files (8,553 lines). There
   are **no `.glass` selectors** outside the Phase 0 spike.
-- **AppImage:** not required to validate compositing. Dev and release share the
-  same WebKitGTK runtime; Phase 0 measured a real Tauri dev window.
 
 ---
 
@@ -55,7 +53,7 @@ Validate `backdrop-filter` performance in Tauri's WebKitGTK **before committing 
   - [ ] Discrete / high-end GPU (not available; follow-up)
 - [x] Test **inside Tauri window** (WebKitGTK), not Chrome
 - [x] Document results in `docs/glass-spike.md`
-- [x] *Skipped:* AppImage build (`pnpm tauri build`). Dev and release share the same WebKitGTK runtime; the spike ran in a real Tauri window.
+- [x] *Out of scope:* release packaging. Dev and release share the same WebKitGTK runtime; the spike ran in a real Tauri window.
 
 ### Result (2026-10-20)
 

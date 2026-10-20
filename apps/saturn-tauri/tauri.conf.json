@@ -30,16 +30,13 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["appimage", "deb", "rpm"],
+    "targets": ["deb", "rpm"],
     "category": "Video",
     "shortDescription": "Open source video editor for Linux",
     "longDescription": "Easy Edits Pro is an open source desktop video editor built with Rust, Tauri, and GStreamer.",
     "licenseFile": "../../LICENSE",
     "icon": ["../../assets/icons/saturn-camera.png"],
     "linux": {
-      "appimage": {
-        "bundleMediaFramework": true
-      },
       "deb": {
         "depends": [
           "libwebkit2gtk-4.1-0",

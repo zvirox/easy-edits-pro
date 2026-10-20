@@ -296,7 +296,7 @@ easy-edits-pro/
 ### Phase 15: Quality, Packaging & Legal
 **Goal:** Bulletproof distribution.
 - Automated tests: unit tests, property tests (`proptest`), Playwright E2E smoke tests.
-- Linux packaging: Flatpak on Flathub, portable AppImage, Arch Linux PKGBUILD, Debian (`.deb`), RPM (`.rpm`).
+- Linux packaging: Debian (`.deb`) and RPM (`.rpm`) release packages now; Flatpak on Flathub and Arch Linux AUR/PKGBUILD later.
 - Windows MSI / macOS DMG with notarization.
 - Clean LGPL dynamic linking for FFmpeg / GStreamer compliance.
 - **Exit criteria:** One-click installable package across all major Linux distributions, macOS, and Windows.
@@ -451,7 +451,7 @@ This section evaluates **exactly where Easy Edits Pro stands today** against the
 
 ### 🟡 In Progress / Polish
 1. **Packaging & Distribution (Phase 15):**
-   - AppImage, Flatpak manifest, and Arch Linux AUR PKGBUILD recipes.
+   - Flatpak manifest and Arch Linux AUR PKGBUILD recipes.
 2. **Comprehensive E2E UI Automation (Phase U13):**
    - Expanded Playwright end-to-end regression test suite across Wayland compositors.
 

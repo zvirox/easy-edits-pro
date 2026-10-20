@@ -45,7 +45,7 @@ First public alpha pre-release of Easy Edits Pro for modern Linux systems.
 - **Color Grading Suite**: 4-wheel interactive color balance (Lift, Gamma, Gain, Offset), 3D LUT (.cube) tetrahedral grading, and real-time HTML5 Canvas 2D scopes (Waveform, Vectorscope, Histogram, Parade).
 - **Subtitles & Transcription**: Dedicated subtitle track with `.srt` and `.vtt` file import/export, plus automatic speech transcription via Whisper.
 - **Fairlight Audio Console**: Channel strip faders, dB meters, pan dials, submix bus routing, master compressor, limiter, and 4-band parametric EQ.
-- **Packaging & Distribution**: Automated GitHub release pipeline generating standalone AppImage (`bundleMediaFramework: true`), Debian (`.deb`), and Red Hat (`.rpm`) packages with SHA-256 checksums.
+- **Packaging & Distribution**: Automated GitHub release pipeline generating Debian (`.deb`) and Red Hat (`.rpm`) packages with SHA-256 checksums.
 - **Crash & Diagnostic Logging**: Automatic panic hook writing crash backtraces to `~/.local/share/com.zvirox.easyeditspro/logs/easy-edits-pro.log`.
 - **System Diagnostics**: Added "Help → Copy System Diagnostics" to capture OS, GStreamer version, plugin availability, and hardware encoders to clipboard.
 
@@ -57,5 +57,4 @@ First public alpha pre-release of Easy Edits Pro for modern Linux systems.
 
 ### Known Issues & Limitations (Alpha)
 - On some NVIDIA Wayland setups, WebKitGTK may experience blank window rendering; if encountered, launch with `WEBKIT_DISABLE_DMABUF_RENDERER=1 easy-edits-pro`.
-- On Ubuntu 24.04+, running AppImages requires `libfuse2` (`sudo apt install libfuse2`) or launching with `--appimage-extract-and-run`.
 - VST3 plugin slots and AI matting are in active development and marked as experimental.
