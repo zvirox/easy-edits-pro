@@ -1,0 +1,2 @@
+[console_scripts]
+cli-anything-eep = cli_anything_eep.cli:main
