@@ -4,7 +4,7 @@ Clip management commands for Easy Edits Pro.
 
 import click
 from cli_anything_eep.core import backend, errors
-from cli_anything_eep.output import format_output, format_success
+from cli_anything_eep.output import format_output, format_success, report_unsupported
 
 
 @click.group(name='clip')
@@ -26,6 +26,10 @@ def clip_group():
 def clip_add(ctx: click.Context, source: str, track: str, timeline_start: int, duration: int, source_in: int, source_out: int, speed: float, reverse: bool):
     """Add a clip to a track."""
     try:
+        if duration is not None and duration <= 0:
+            raise errors.EepError.validation_error('duration', 'Must be greater than zero ticks')
+        if source_in != 0 or source_out is not None or speed != 1.0 or reverse:
+            report_unsupported(ctx, "clip.add", "Source trimming, speed, and reverse are not supported by the current Rust command engine.")
         cli = backend.get_saturn_cli()
         result = cli.clip_add(source=source, track_id=track, timeline_start=timeline_start, timeline_duration=duration)
         format_success(f"Clip added to track {track}", result, ctx.obj['output_format'])
@@ -86,11 +90,9 @@ def clip_remove(ctx: click.Context, id: str):
 @click.pass_context
 def clip_speed(ctx: click.Context, id: str, speed: float):
     """Change clip playback speed."""
-    try:
-        format_success(f"Clip {id} speed set to {speed}x", {"speed": speed}, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    failure = errors.EepError(errors.ErrorCode.COMMAND_NOT_FOUND, "Clip speed editing is not wired to the Rust engine yet.", details={"clip": id, "speed": speed}, recoverable=False)
+    format_output(failure.to_dict(), ctx.obj['output_format'])
+    ctx.exit(1)
 
 
 @clip_group.command('reverse')
@@ -99,11 +101,9 @@ def clip_speed(ctx: click.Context, id: str, speed: float):
 @click.pass_context
 def clip_reverse(ctx: click.Context, id: str, enable: bool):
     """Toggle clip reverse playback."""
-    try:
-        format_success(f"Clip {id} reverse {'enabled' if enable else 'disabled'}", {"reverse": enable}, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    failure = errors.EepError(errors.ErrorCode.COMMAND_NOT_FOUND, "Clip reverse playback is not wired to the Rust engine yet.", details={"clip": id, "reverse": enable}, recoverable=False)
+    format_output(failure.to_dict(), ctx.obj['output_format'])
+    ctx.exit(1)
 
 
 @clip_group.command('list')
@@ -112,7 +112,8 @@ def clip_reverse(ctx: click.Context, id: str, enable: bool):
 def clip_list(ctx: click.Context, track: str):
     """List clips in current timeline."""
     try:
-        format_output({"clips": [], "message": "Would list clips"}, ctx.obj['output_format'])
+        cli = backend.get_saturn_cli()
+        format_output(cli.clip_list(track), ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)

@@ -1,183 +1,39 @@
-# TEST.md — Easy Edits Pro CLI Test Plan & Results
+# CLI Harness Verification
 
-## Test Strategy
+## Test command
 
-| Layer | Tool | Coverage Target |
-|-------|------|-----------------|
-| Unit | pytest + mocks | ≥90% |
-| E2E | pytest + real saturn-cli | ≥80% critical paths |
-| CLI Subprocess | Installed command verification | 100% commands |
-
----
-
-## Unit Tests (`tests/unit/`)
-
-### `test_state.py`
-- [ ] `ProjectState` load/save roundtrip
-- [ ] `ProjectState` recent projects tracking
-- [ ] Global state singleton behavior
-
-### `test_output.py`
-- [ ] JSON output valid structure
-- [ ] Text output formatting
-- [ ] Table output with various data shapes
-- [ ] Error output formatting
-- [ ] Progress indicator
-
-### `test_errors.py`
-- [ ] `EepError` to_dict() structure
-- [ ] Error code classification
-- [ ] Specific error types (ProjectNotOpenError, etc.)
-- [ ] Validation error creation
-
-### `test_undo.py`
-- [ ] Single operation undo/redo
-- [ ] Transaction group undo/redo
-- [ ] History limits
-- [ ] Clear operation
-
-### `test_commands_unit.py` (per command group)
-- [ ] Parameter validation
-- [ ] Help text generation
-- [ ] Output format switching
-
----
-
-## E2E Tests (`tests/e2e/`)
-
-### `test_project_workflow.py`
-- [ ] Create project → save → open → inspect
-- [ ] Template selection (youtube-1080p, cinema-4k, vertical-9x16)
-- [ ] Project with custom settings
-- [ ] Multiple projects in sequence
-
-### `test_timeline_editing.py`
-- [ ] Create timeline → add tracks → add clips → trim → move
-- [ ] Multi-track editing (V1, V2, A1, A2)
-- [ ] Clip speed/reverse
-- [ ] Nested sequences
-
-### `test_render_pipeline.py`
-- [ ] Queue render with presets (youtube, tiktok, cinema-4k)
-- [ ] Render status polling
-- [ ] Cancel render
-- [ ] Output file validation
-
-### `test_color_audio.py`
-- [ ] Color grade Lift/Gamma/Gain/Offset
-- [ ] LUT application
-- [ ] Audio mix volume/pan
-- [ ] Audio effects chain
-- [ ] Automation modes
-
-### `test_media_management.py`
-- [ ] Media import (file + directory)
-- [ ] Natural language search
-- [ ] Proxy generation
-- [ ] Bin organization
-
-### `test_templates.py`
-- [ ] Template create from spec
-- [ ] Template apply with params
-- [ ] .sgt export/import
-
-### `test_mcp_integration.py`
-- [ ] MCP server start/stop
-- [ ] Tool discovery
-- [ ] Resource access
-
-### `test_repl.py`
-- [ ] REPL command execution
-- [ ] History persistence
-- [ ] Undo/redo in REPL
-
----
-
-## CLI Subprocess Tests (`tests/test_cli_subprocess.py`)
-
-- [ ] `pip install -e .` succeeds
-- [ ] `cli-anything-eep --help` works
-- [ ] `cli-anything-eep --version` works
-- [ ] All commands return valid JSON with `--json`
-- [ ] Error codes map correctly
-- [ ] REPL entry works
-
----
-
-## Fixtures (`tests/fixtures/`)
-
-| Fixture | Description |
-|---------|-------------|
-| `sample_project.eep` | Minimal valid project |
-| `sample_timeline.json` | Timeline with tracks/clips |
-| `sample_footage.mp4` | 1-frame test video (100KB) |
-| `sample_audio.wav` | 1-second test audio |
-| `sample_lut.cube` | 17x17x17 identity LUT |
-| `sample_template.sgt` | Minimal graphics template |
-
----
-
-## Running Tests
+Run from the repository root:
 
 ```bash
-# Unit tests only (fast)
-pytest tests/unit -v
-
-# E2E tests (requires saturn-cli)
-pytest tests/e2e -v
-
-# All tests with coverage
-pytest --cov=cli_anything_eep --cov-report=html
-
-# Specific test file
-pytest tests/unit/test_undo.py -v
-
-# CLI subprocess verification
-pytest tests/test_cli_subprocess.py -v
+python -m pytest -q agent-harness/tests
 ```
 
----
+The Rust integration test uses the workspace `saturn-cli` binary when available and skips when it is not built. Unit tests use a protocol-compatible fake backend for control-process behavior.
 
-## CI Configuration
+## Coverage
 
-```yaml
-# .github/workflows/test.yml
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-      - name: Build saturn-cli
-        run: cargo build --release --bin saturn-cli
-      - name: Install CLI
-        run: pip install -e ./agent-harness
-      - name: Unit tests
-        run: pytest tests/unit -v
-      - name: E2E tests
-        run: pytest tests/e2e -v
-      - name: CLI verification
-        run: pytest tests/test_cli_subprocess.py -v
-```
+- Structured backend errors and JSON-lines request/response handling.
+- Project CLI error mapping and persisted project state.
+- REPL command dispatch and persistent readline history.
+- Real engine-backed undo/redo, including grouped operations.
+- Backend-backed clip listing and render cancellation errors.
+- Rust control-process project/track/undo/redo integration.
+- Existing CLI subprocess, output formatting, error, and undo-manager behavior.
 
----
+## Latest local result
 
-## Test Results Log
+| Date | Result | Notes |
+|------|--------|-------|
+| 2026-10-20 | 45 passed (previous run) | Ran `python -m pytest -q` from `agent-harness`, including a real `saturn-cli control` smoke run for project creation, track add/list, undo, and redo. Final review then added option validation and failure-safe grouped undo; rerun the suite before release. |
 
-| Date | Commit | Unit | E2E | CLI Subprocess | Notes |
-|------|--------|------|-----|----------------|-------|
-| | | | | | |
+## Packaging and CI
 
----
+`.github/workflows/rust.yml` includes a `python-cli-harness` job that installs the harness in editable mode, builds `saturn-cli`, and runs the pytest suite.
 
-## Performance Baselines
+A local clean editable install could not be verified on this machine: Python's isolated build environment could not reach the package index to obtain `setuptools`, and the configured interpreter does not have `setuptools` for a no-build-isolation install. CI now exercises the clean install on GitHub Actions.
 
-| Operation | Target | Actual |
-|-----------|--------|--------|
-| Project create | <500ms | |
-| Timeline create | <200ms | |
-| Clip add | <100ms | |
-| Render queue | <1s | |
-| Color grade | <50ms | |
-| REPL startup | <1s | |
+## Known test limits
+
+- Render queue/status/cancel require the desktop application's local socket bridge and are not exercised by the standalone Rust control smoke test.
+- Hardware encoder selection/output is not verified by these CLI harness tests.
+- Commands unsupported by the current Rust backend are expected to return structured errors; they are not counted as implemented functionality.

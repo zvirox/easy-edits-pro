@@ -4,7 +4,7 @@ Audio mixing commands for Easy Edits Pro.
 
 import click
 from cli_anything_eep.core import backend, errors
-from cli_anything_eep.output import format_output, format_success
+from cli_anything_eep.output import format_output, format_success, report_unsupported
 
 
 @click.group(name='audio')
@@ -23,8 +23,10 @@ def audio_group():
 def audio_mix(ctx: click.Context, track: str, volume: float, pan: float, mute: bool, solo: bool):
     """Adjust track audio mix parameters."""
     try:
+        if all(value is None for value in (volume, pan, mute, solo)):
+            raise errors.EepError.validation_error('mix', 'Provide at least one of --volume, --pan, --mute, or --solo')
         cli = backend.get_saturn_cli()
-        result = cli.audio_mix(track_id=track, volume=volume, pan=pan)
+        result = cli.audio_mix(track_id=track, volume=volume, pan=pan, mute=mute, solo=solo)
         format_success(f"Audio mix updated for track {track}", result, ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
@@ -40,17 +42,7 @@ def audio_mix(ctx: click.Context, track: str, volume: float, pan: float, mute: b
 @click.pass_context
 def audio_effect(ctx: click.Context, clip: str, name: str, params: str, order: int, enable: bool):
     """Add or modify audio effect on clip."""
-    import json
-    try:
-        param_dict = json.loads(params) if params else {}
-        format_success(f"Audio effect '{name}' {'enabled' if enable else 'disabled'} on clip {clip}", 
-                       {"effect": name, "enabled": enable}, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
-    except json.JSONDecodeError:
-        format_output(errors.EepError.validation_error('params', 'Invalid JSON').to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    report_unsupported(ctx, "audio.effect", "Clip audio effects are not available in the Rust command catalogue; track DSP is supported separately.")
 
 
 @audio_group.command('meter')
@@ -58,11 +50,7 @@ def audio_effect(ctx: click.Context, clip: str, name: str, params: str, order: i
 @click.pass_context
 def audio_meter(ctx: click.Context, track: str):
     """Show current audio levels for track."""
-    try:
-        format_output({"track": track, "peak_l": -6.2, "peak_r": -5.8, "rms_l": -18.5, "rms_r": -18.1}, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    report_unsupported(ctx, "audio.meter", "Live meter readings are available only in the running desktop app, not through saturn-cli.")
 
 
 @audio_group.command('automation')
@@ -73,7 +61,8 @@ def audio_meter(ctx: click.Context, track: str):
 def audio_automation(ctx: click.Context, track: str, param: str, mode: str):
     """Set automation mode for track parameter."""
     try:
-        format_success(f"Automation mode set for {track}.{param}: {mode}", {"track": track, "param": param, "mode": mode}, ctx.obj['output_format'])
+        result = backend.get_saturn_cli().track_automation(track, mode, param)
+        format_success(f"Automation mode set for {track}.{param}: {mode}", result, ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)

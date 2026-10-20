@@ -1,188 +1,34 @@
 ---
 name: cli-anything-eep
-description: "Agent-native CLI for Easy Edits Pro — professional video editing on Linux"
+description: "Agent-friendly command line access to the Easy Edits Pro editing engine"
 version: "0.1.0"
 ---
 
-# cli-anything-eep — Easy Edits Pro CLI
+# Easy Edits Pro CLI
 
-Agent-native CLI for Easy Edits Pro video editor. Provides structured command access to all editing capabilities.
+Use `cli-anything-eep --json ...` for machine-readable operations. The CLI calls the Rust `saturn-cli` backend; it does not simulate successful edits. Commands unavailable in the backend return a structured error.
 
-## Installation
+## Setup
 
-```bash
-pip install cli-anything-eep
-# or from source:
-cd agent-harness && pip install -e .
-```
+Build the Rust CLI from the repository root with `cargo build --bin saturn-cli`, then install the harness with `python -m pip install --editable ./agent-harness`. The backend is discovered through `SATURN_CLI`, `PATH`, or the workspace `target` directories.
 
-## Quick Start
+## Supported workflow
 
 ```bash
-# Create project
-cli-anything-eep project create --name "My Video" --template youtube-1080p
-
-# Create timeline
-cli-anything-eep timeline create --name "Main" --fps 30 --width 1920 --height 1080
-
-# Add tracks
-cli-anything-eep track add --kind video --name "V1"
-cli-anything-eep track add --kind audio --name "A1"
-
-# Add clips
-cli-anything-eep clip add --source footage.mp4 --track V1 --at 0
-
-# Color grade
-cli-anything-eep color grade --clip clip_1 --lift 0.1 0.1 0.1 --gain 1.0 0.9 0.9
-
-# Render
-cli-anything-eep render queue --preset youtube --output output.mp4
+cli-anything-eep --json project create --name "My Video" --path ./my-video.eep --fps 30
+cli-anything-eep --json --project ./my-video.eep track add --kind video --name V1
+cli-anything-eep --json --project ./my-video.eep track list
+cli-anything-eep --json --project ./my-video.eep clip list
+cli-anything-eep --json --project ./my-video.eep undo
+cli-anything-eep --json --project ./my-video.eep redo
 ```
 
-## Command Reference
+The interactive REPL accepts these commands without the executable prefix. It provides command/group tab completion and persistent readline history. Undo and redo are sent to the Rust engine and change the project itself.
 
-### Project Management
-| Command | Description |
-|---------|-------------|
-| `project create --name <name> [--template]` | Create new project |
-| `project open <path>` | Open existing project |
-| `project save [--path]` | Save current project |
-| `project close` | Close current project |
-| `project inspect <path>` | Inspect project metadata |
-| `project templates` | List available templates |
+## Available backend operations
 
-### Timeline Management
-| Command | Description |
-|---------|-------------|
-| `timeline create --name <name> [--fps] [--width] [--height]` | Create timeline |
-| `timeline list` | List all timelines |
-| `timeline open --id <id>` | Open/select timeline |
-| `timeline settings --id <id> [--fps] [--width] [--height]` | Update settings |
+Project create/open/save/inspect; timeline list/open/inspect; track add/remove/list and supported settings; clip add/move/remove/list; media import/search/list/bins/info; audio mix/automation; color reset/wheels; command catalogue/execution; render queue/status/cancel through the running desktop bridge; and engine-backed undo/redo.
 
-### Track Management
-| Command | Description |
-|---------|-------------|
-| `track add --kind <video|audio|subtitle|submix> [--name] [--index]` | Add track |
-| `track remove --id <id>` | Remove track |
-| `track list` | List tracks |
-| `track move --id <id> --index <n>` | Move track |
-| `track settings --id <id> [--name] [--volume] [--pan] [--muted] [--solo]` | Update settings |
+Timeline creation/settings, clip trim/speed/reverse, track reorder, full color grading/LUT, audio effects/meters, template persistence/application, standalone daemon lifecycle, and MCP lifecycle/discovery are not implemented by the backend yet. Report these as unavailable; do not substitute mock success. Hardware encoding depends on the render backend and machine.
 
-### Clip Management
-| Command | Description |
-|---------|-------------|
-| `clip add --source <path> --track <id> --at <ticks> [--duration]` | Add clip |
-| `clip move --id <id> --track <id> --at <ticks>` | Move clip |
-| `clip trim --id <id> --in <ticks> --out <ticks>` | Trim clip |
-| `clip remove --id <id>` | Remove clip |
-| `clip speed --id <id> --speed <float>` | Change speed |
-| `clip reverse --id <id> [--enable/--disable]` | Toggle reverse |
-
-### Rendering
-| Command | Description |
-|---------|-------------|
-| `render queue --preset <name> --output <path> [--timeline]` | Queue render |
-| `render status` | Show queue status |
-| `render cancel --job-id <id>` | Cancel job |
-| `render presets` | List presets |
-
-### Color Grading
-| Command | Description |
-|---------|-------------|
-| `color grade --clip <id> [--lift] [--gamma] [--gain] [--offset] [--contrast] [--saturation] [--temperature] [--tint]` | Apply grade |
-| `color reset --clip <id>` | Reset grade |
-| `color lut --clip <id> --file <.cube> [--intensity]` | Apply LUT |
-| `color wheels --clip <id>` | Show wheel values |
-
-### Audio Mixing
-| Command | Description |
-|---------|-------------|
-| `audio mix --track <id> [--volume] [--pan] [--mute] [--solo]` | Adjust mix |
-| `audio effect --clip <id> --name <name> [--params] [--order]` | Add effect |
-| `audio meter --track <id>` | Show levels |
-| `audio automation --track <id> --param <volume|pan|mute|solo> --mode <read|touch|latch|write>` | Set automation |
-
-### Media Management
-| Command | Description |
-|---------|-------------|
-| `media import --path <path> [--bin] [--recursive] [--proxy]` | Import media |
-| `media search --query <text> [--bin] [--limit]` | Natural language search |
-| `media list [--bin] [--type]` | List media |
-| `media bins` | List bins |
-| `media proxy --media-id <id> [--generate/--delete] [--quality]` | Manage proxies |
-| `media info --media-id <id>` | Show media info |
-
-### Templates (.sgt)
-| Command | Description |
-|---------|-------------|
-| `template create --name <name> --type <project|graphics|sequence|bin> --spec <json|path>` | Create template |
-| `template list [--type]` | List templates |
-| `template apply --id <id> [--params]` | Apply template |
-| `template export --id <id> --output <path>` | Export .sgt |
-
-### Command Registry
-| Command | Description |
-|---------|-------------|
-| `command list [--category]` | List commands |
-| `command execute --id <id> [--params]` | Execute command |
-| `command info --id <id>` | Command details |
-| `command categories` | List categories |
-
-### Control Server
-| Command | Description |
-|---------|-------------|
-| `daemon start [--port] [--host]` | Start control server |
-| `daemon stop` | Stop server |
-| `daemon status` | Show status |
-
-### MCP Server
-| Command | Description |
-|---------|-------------|
-| `mcp start [--transport stdio|tcp] [--port]` | Start MCP server |
-| `mcp stop` | Stop server |
-| `mcp tools` | List tools |
-| `mcp resources` | List resources |
-| `mcp prompts` | List prompts |
-
-### Utility
-| Command | Description |
-|---------|-------------|
-| `repl` | Enter interactive REPL |
-| `undo` | Undo last operation |
-| `redo` | Redo last operation |
-| `history` | Show undo history |
-| `version` | Show version info |
-
-## Output Formats
-
-All commands support:
-- `--json` — Structured JSON output (for agents)
-- `--format text` — Human-readable (default)
-- `--format table` — Tabular data
-
-## Error Format
-
-```json
-{
-  "error": "ERROR_CODE",
-  "message": "Human-readable description",
-  "details": {},
-  "recoverable": true
-}
-```
-
-## Agent Guidance
-
-- Use `--json` for all automated workflows
-- Commands are composable: `project create` → `timeline create` → `track add` → `clip add` → `render queue`
-- Use `undo`/`redo` for safe experimentation
-- `repl` mode provides interactive session with history
-- `history` shows full transaction log
-
-## Backend
-
-Requires `saturn-cli` (Easy Edits Pro) on PATH. The CLI wraps the Rust crates via subprocess with JSON I/O.
-
-## License
-
-Apache-2.0
+Project state is remembered between CLI sessions. Pass `--project <file>` before the command group to explicitly select a project. Use `--json` before the command group for structured output and errors.

@@ -9,8 +9,10 @@ saturn-control, saturn-mcp, saturn-render to structured CLI.
 
 import sys
 import json
-import click
+import os
+import shlex
 from pathlib import Path
+import click
 from typing import Optional, List, Dict, Any
 
 # Import command groups
@@ -31,7 +33,9 @@ class ReplSkin:
     def __init__(self, ctx: click.Context):
         self.ctx = ctx
         self.history: List[str] = []
-        self.project = state.ProjectState()
+        self.project = ctx.obj.get('project_state') or state.ProjectState.load_saved()
+        self.history_path = self._history_path()
+        self.readline = self._configure_readline()
     
     def run(self):
         """Enter REPL loop."""
@@ -41,30 +45,30 @@ class ReplSkin:
         if self.project.current:
             click.echo(f"Project: {self.project.current.name}")
         
-        while True:
-            try:
-                prompt = "eep> " if not self.project.current else f"eep:{self.project.current.name}> "
-                line = input(prompt).strip()
-                
-                if not line:
-                    continue
-                
-                if line in ('exit', 'quit'):
+        try:
+            while True:
+                try:
+                    prompt = "eep> " if not self.project.current else f"eep:{self.project.current.name}> "
+                    line = input(prompt).strip()
+                    if not line:
+                        continue
+                    if line in ('exit', 'quit'):
+                        break
+                    if line == 'help':
+                        self.show_help()
+                        continue
+                    self.history.append(line)
+                    if self.readline:
+                        self.readline.add_history(line)
+                    self.execute(line)
+                except KeyboardInterrupt:
+                    click.echo("\nUse 'exit' to quit")
+                except EOFError:
                     break
-                
-                if line == 'help':
-                    self.show_help()
-                    continue
-                
-                self.history.append(line)
-                self.execute(line)
-                
-            except KeyboardInterrupt:
-                click.echo("\nUse 'exit' to quit")
-            except EOFError:
-                break
-            except Exception as e:
-                click.echo(f"Error: {e}")
+                except Exception as error:
+                    click.echo(f"Error: {error}")
+        finally:
+            self._save_history()
     
     def show_help(self):
         click.echo("""
@@ -99,16 +103,63 @@ Available commands:
         """)
     
     def execute(self, line: str):
-        # Parse and execute - simplified for demo
-        parts = line.split()
+        """Dispatch a shell-like command through the same Click command tree."""
+        parts = shlex.split(line)
         if not parts:
             return
-        
-        cmd = parts[0]
-        args = parts[1:]
-        
-        # This would dispatch to actual command implementations
-        click.echo(f"[REPL] Would execute: {cmd} {' '.join(args)}")
+        prefix = []
+        if self.ctx.obj.get('output_json'):
+            prefix.append('--json')
+        project_path = self.ctx.obj.get('project_path')
+        if project_path:
+            prefix.extend(['--project', project_path])
+        cli.main(args=prefix + parts, standalone_mode=False, obj=self.ctx.obj)
+        self.project = self.ctx.obj.get('project_state') or self.project
+
+    @staticmethod
+    def _history_path() -> Path:
+        state_root = Path(os.environ.get('XDG_STATE_HOME', Path.home() / '.local/state'))
+        return state_root / 'easy-edits-pro' / 'repl_history'
+
+    def _configure_readline(self):
+        try:
+            import readline
+        except ImportError:
+            return None
+        self.history_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            readline.read_history_file(str(self.history_path))
+        except FileNotFoundError:
+            pass
+        readline.set_history_length(1000)
+        readline.set_completer(self._complete)
+        readline.parse_and_bind('tab: complete')
+        return readline
+
+    def _complete(self, text: str, index: int):
+        buffer = self.readline.get_line_buffer() if self.readline else ''
+        try:
+            words = shlex.split(buffer)
+        except ValueError:
+            words = buffer.split()
+        if buffer.endswith(' '):
+            words.append('')
+        if len(words) <= 1:
+            candidates = list(cli.commands) + ['help', 'exit', 'quit']
+        else:
+            group = cli.commands.get(words[0])
+            candidates = list(group.commands) if isinstance(group, click.Group) else []
+        matches = [value for value in sorted(set(candidates)) if value.startswith(text)]
+        return matches[index] if index < len(matches) else None
+
+    def _save_history(self) -> None:
+        if not self.readline:
+            return
+        try:
+            self.history_path.parent.mkdir(parents=True, exist_ok=True)
+            self.readline.write_history_file(str(self.history_path))
+        except OSError as error:
+            click.echo(f"Could not save REPL history: {error}", err=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -133,7 +184,23 @@ def cli(ctx: click.Context, output_json: bool, output_format: str, project_path:
     
     # Initialize project state if path provided
     if project_path:
-        state.ProjectState.load(project_path)
+        try:
+            loaded_state = state.ProjectState.load(project_path)
+        except ValueError as error:
+            raise EepError(ErrorCode.PROJECT_INVALID, str(error), details={"path": project_path}, recoverable=False) from error
+        ctx.obj['project_state'] = loaded_state
+        cli_backend = backend.get_saturn_cli()
+        resolved_path = str(Path(project_path).expanduser().resolve())
+        if cli_backend.current_path != resolved_path:
+            cli_backend.project_open(resolved_path)
+        loaded_state.save()
+    else:
+        loaded_state = state.ProjectState.load_saved()
+        ctx.obj['project_state'] = loaded_state
+        if loaded_state.current and Path(loaded_state.current.path).is_file():
+            cli_backend = backend.get_saturn_cli()
+            if cli_backend.current_path != loaded_state.current.path:
+                cli_backend.project_open(loaded_state.current.path)
 
 
 @cli.command()
@@ -232,6 +299,8 @@ def main():
             "recoverable": False
         }), err=True)
         sys.exit(1)
+    finally:
+        backend.close_saturn_cli()
 
 
 if __name__ == '__main__':

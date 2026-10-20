@@ -4,7 +4,7 @@ Graphics template commands for Easy Edits Pro.
 
 import click
 from cli_anything_eep.core import backend, errors
-from cli_anything_eep.output import format_output, format_success
+from cli_anything_eep.output import format_output, format_success, report_unsupported
 
 
 @click.group(name='template')
@@ -20,13 +20,7 @@ def template_group():
 @click.pass_context
 def template_create(ctx: click.Context, name: str, type: str, spec: str):
     """Create a new template from specification."""
-    try:
-        cli = backend.get_saturn_cli()
-        result = cli.template_create(name=name, type_=type, spec=spec)
-        format_success(f"Template '{name}' created", result, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    report_unsupported(ctx, "template.create", "Template storage is not implemented by the Rust engine yet.")
 
 
 @template_group.command('list')
@@ -34,13 +28,7 @@ def template_create(ctx: click.Context, name: str, type: str, spec: str):
 @click.pass_context
 def template_list(ctx: click.Context, type: str):
     """List available templates."""
-    try:
-        cli = backend.get_saturn_cli()
-        result = cli.template_list()
-        format_output(result, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    report_unsupported(ctx, "template.list", "The Rust engine does not persist templates yet.")
 
 
 @template_group.command('apply')
@@ -49,11 +37,7 @@ def template_list(ctx: click.Context, type: str):
 @click.pass_context
 def template_apply(ctx: click.Context, id: str, params: str):
     """Apply template with parameter bindings."""
-    try:
-        format_success(f"Template {id} applied", {"applied": True}, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    report_unsupported(ctx, "template.apply", "Template application is not implemented by the Rust engine yet.")
 
 
 @template_group.command('export')
@@ -62,8 +46,4 @@ def template_apply(ctx: click.Context, id: str, params: str):
 @click.pass_context
 def template_export(ctx: click.Context, id: str, output: str):
     """Export template to .sgt file."""
-    try:
-        format_success(f"Template exported to {output}", {"exported": True}, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    report_unsupported(ctx, "template.export", "Template export is not implemented by the Rust engine yet.")

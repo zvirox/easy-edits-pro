@@ -96,7 +96,9 @@ class EepError(Exception):
             msg = f"{context}: {msg}"
         
         # Classify based on error message
-        if "not found" in msg.lower():
+        if "saturn-cli not found" in msg.lower() or "required backend not found" in msg.lower() or "not installed" in msg.lower():
+            return cls(ErrorCode.BACKEND_NOT_FOUND, msg, recoverable=False)
+        elif "not found" in msg.lower():
             return cls(ErrorCode.NOT_FOUND, msg, recoverable=False)
         elif "permission" in msg.lower():
             return cls(ErrorCode.PERMISSION_DENIED, msg, recoverable=False)

@@ -3,8 +3,9 @@ Media management commands for Easy Edits Pro.
 """
 
 import click
+from pathlib import Path
 from cli_anything_eep.core import backend, errors
-from cli_anything_eep.output import format_output, format_success
+from cli_anything_eep.output import format_output, format_success, report_unsupported
 
 
 @click.group(name='media')
@@ -22,7 +23,11 @@ def media_group():
 def media_import(ctx: click.Context, path: str, bin: str, recursive: bool, proxy: bool):
     """Import media into project."""
     try:
+        if bin is not None or proxy:
+            report_unsupported(ctx, "media.import", "Bins and proxy generation are not supported by the current Rust command engine.")
         cli = backend.get_saturn_cli()
+        if Path(path).is_dir():
+            report_unsupported(ctx, "media.import", "Directory import is not supported yet; select individual media files.")
         result = cli.media_import(path=path, bin_name=bin)
         format_success(f"Media imported from {path}", result, ctx.obj['output_format'])
     except errors.EepError as e:
@@ -38,8 +43,13 @@ def media_import(ctx: click.Context, path: str, bin: str, recursive: bool, proxy
 def media_search(ctx: click.Context, query: str, bin: str, limit: int):
     """Search media with natural language."""
     try:
+        if limit < 1:
+            raise errors.EepError.validation_error('limit', 'Must be at least 1')
+        if bin is not None:
+            report_unsupported(ctx, "media.search", "Filtering search results by bin is not supported yet.")
         cli = backend.get_saturn_cli()
         result = cli.media_search(query)
+        result['media'] = result.get('media', [])[:limit]
         format_output(result, ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
@@ -53,6 +63,8 @@ def media_search(ctx: click.Context, query: str, bin: str, limit: int):
 def media_list(ctx: click.Context, bin: str, type: str):
     """List media in bins."""
     try:
+        if bin is not None or type != 'all':
+            report_unsupported(ctx, "media.list", "Bin and type filters are not supported by the current Rust media-list command.")
         cli = backend.get_saturn_cli()
         result = cli.media_list(bin_name=bin)
         format_output(result, ctx.obj['output_format'])
@@ -66,7 +78,7 @@ def media_list(ctx: click.Context, bin: str, type: str):
 def media_bins(ctx: click.Context):
     """List all media bins."""
     try:
-        format_output({"bins": ["Footage", "Audio", "Graphics", "Music", "SFX"]}, ctx.obj['output_format'])
+        format_output(backend.get_saturn_cli().media_bins(), ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)
@@ -79,12 +91,7 @@ def media_bins(ctx: click.Context):
 @click.pass_context
 def media_proxy(ctx: click.Context, media_id: str, generate: bool, quality: str):
     """Generate or delete proxy for media."""
-    try:
-        action = "generated" if generate else "deleted"
-        format_success(f"Proxy {action} for media {media_id}", {"media_id": media_id, "quality": quality}, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    report_unsupported(ctx, "media.proxy", "Proxy generation is not implemented by the Rust CLI yet.")
 
 
 @media_group.command('info')
@@ -93,17 +100,7 @@ def media_proxy(ctx: click.Context, media_id: str, generate: bool, quality: str)
 def media_info(ctx: click.Context, media_id: str):
     """Show detailed media information."""
     try:
-        format_output({
-            "id": media_id,
-            "name": "example.mp4",
-            "duration": 120.5,
-            "resolution": "1920x1080",
-            "frame_rate": 29.97,
-            "codec": "h264",
-            "audio_channels": 2,
-            "sample_rate": 48000,
-            "has_proxy": True
-        }, ctx.obj['output_format'])
+        format_output(backend.get_saturn_cli().media_info(media_id), ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)

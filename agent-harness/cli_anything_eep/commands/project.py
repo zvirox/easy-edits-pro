@@ -3,7 +3,7 @@ Project management commands for Easy Edits Pro.
 """
 
 import click
-from cli_anything_eep.core import backend, errors
+from cli_anything_eep.core import backend, errors, state
 from cli_anything_eep.output import format_output, format_success
 
 
@@ -25,13 +25,21 @@ def project_create(ctx: click.Context, name: str, template: str, path: str, fps:
     """Create a new Easy Edits Pro project."""
     try:
         cli = backend.get_saturn_cli()
-        result = cli.project_create(name=name, template=template, path=path)
+        path = path or f"{name.replace('/', '_').replace(chr(92), '_')}.eep"
+        result = cli.project_create(name=name, template=template, path=path, fps=fps, width=width, height=height)
+        ctx.obj['project_state'] = state.ProjectState.load(path)
+        ctx.obj['project_state'].save()
         format_success(f"Project '{name}' created", result, ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)
+    except ValueError as e:
+        failure = errors.EepError(errors.ErrorCode.PROJECT_INVALID, str(e), details={"path": path}, recoverable=False)
+        format_output(failure.to_dict(), ctx.obj['output_format'])
+        ctx.exit(1)
     except Exception as e:
-        format_output(backend.BackendNotFoundError().to_dict(), ctx.obj['output_format'])
+        failure = errors.EepError.from_backend_error(e, "Could not create project")
+        format_output(failure.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)
 
 
@@ -43,12 +51,19 @@ def project_open(ctx: click.Context, path: str):
     try:
         cli = backend.get_saturn_cli()
         result = cli.project_open(path)
+        ctx.obj['project_state'] = state.ProjectState.load(path)
+        ctx.obj['project_state'].save()
         format_success(f"Project opened", result, ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)
+    except ValueError as e:
+        failure = errors.EepError(errors.ErrorCode.PROJECT_INVALID, str(e), details={"path": path}, recoverable=False)
+        format_output(failure.to_dict(), ctx.obj['output_format'])
+        ctx.exit(1)
     except Exception as e:
-        format_output(backend.BackendNotFoundError().to_dict(), ctx.obj['output_format'])
+        failure = errors.EepError.from_backend_error(e, "Could not open project")
+        format_output(failure.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)
 
 
@@ -60,6 +75,9 @@ def project_save(ctx: click.Context, path: str):
     try:
         cli = backend.get_saturn_cli()
         result = cli.project_save(path)
+        if path:
+            ctx.obj['project_state'] = state.ProjectState.load(path)
+            ctx.obj['project_state'].save()
         format_success("Project saved", result, ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
@@ -70,12 +88,9 @@ def project_save(ctx: click.Context, path: str):
 @click.pass_context
 def project_close(ctx: click.Context):
     """Close current project."""
-    try:
-        # Would clear project state
-        format_success("Project closed", {"closed": True}, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    failure = errors.EepError(errors.ErrorCode.COMMAND_NOT_FOUND, "Project close is not supported by the Rust editor engine yet.", recoverable=False)
+    format_output(failure.to_dict(), ctx.obj['output_format'])
+    ctx.exit(1)
 
 
 @project_group.command('inspect')

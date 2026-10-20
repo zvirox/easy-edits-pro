@@ -2,12 +2,22 @@
 
 import pytest
 from cli_anything_eep.core.undo import UndoManager, UndoEntry
+from cli_anything_eep.core import backend
 from datetime import datetime
 
 
 def setup_function():
     """Reset undo manager before each test."""
     UndoManager.clear()
+
+
+@pytest.fixture(autouse=True)
+def fake_editor_backend(monkeypatch):
+    class FakeBackend:
+        def execute(self, command_id, params, record_undo=True):
+            return {"undone": True} if command_id == "edit.undo" else {"redone": True}
+
+    monkeypatch.setattr(backend, "get_saturn_cli", lambda: FakeBackend())
 
 
 def test_record_single():
@@ -51,13 +61,9 @@ def test_transaction_group():
     group_id = UndoManager.begin_transaction("Batch edit")
     UndoManager.record("clip_add", {"id": "1"}, "Add clip 1", group_id=group_id)
     UndoManager.record("clip_add", {"id": "2"}, "Add clip 2", group_id=group_id)
-    # begin_transaction adds a "transaction_begin" entry, so total 3 entries
-    UndoManager._current_group = group_id
-    
-    # Should undo all 3 in one call (transaction_begin + 2 clips)
+    UndoManager.commit_transaction()
     result = UndoManager.undo()
-    assert result["undone"] == 3
-    UndoManager._current_group = None
+    assert result["undone"] == 2
 
 
 def test_rollback_transaction():

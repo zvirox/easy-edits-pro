@@ -6,6 +6,16 @@ Supports JSON (agents), text (humans), table (data).
 import json
 import click
 from typing import Any, Dict, List, Optional
+
+
+def report_unsupported(ctx, command: str, reason: str) -> None:
+    """Emit an honest structured error for features without an engine implementation."""
+    from cli_anything_eep.core.errors import EepError, ErrorCode
+    format_output(
+        EepError(ErrorCode.COMMAND_NOT_FOUND, f"{command} is unavailable: {reason}", details={"command": command}, recoverable=False).to_dict(),
+        ctx.obj['output_format'],
+    )
+    ctx.exit(1)
 from tabulate import tabulate
 
 

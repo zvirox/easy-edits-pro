@@ -4,7 +4,7 @@ Command registry commands for Easy Edits Pro.
 
 import click
 from cli_anything_eep.core import backend, errors
-from cli_anything_eep.output import format_output, format_success
+from cli_anything_eep.output import format_output, format_success, report_unsupported
 
 
 @click.group(name='command')
@@ -53,7 +53,10 @@ def command_execute(ctx: click.Context, id: str, params: str):
 def command_info(ctx: click.Context, id: str):
     """Get detailed command information."""
     try:
-        format_output({"command_id": id, "message": "Command info would be here"}, ctx.obj['output_format'])
+        command = next((item for item in backend.get_saturn_cli().commands_list() if item.get('id') == id), None)
+        if command is None:
+            raise errors.EepError(errors.ErrorCode.COMMAND_NOT_FOUND, f"Command not found: {id}", recoverable=False)
+        format_output(command, ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)
@@ -63,9 +66,5 @@ def command_info(ctx: click.Context, id: str):
 @click.pass_context
 def command_categories(ctx: click.Context):
     """List command categories."""
-    categories = [
-        "project", "timeline", "track", "clip", "render", 
-        "color", "audio", "media", "template", "effect",
-        "transition", "text", "automation", "system"
-    ]
+    categories = sorted({item['id'].split('.', 1)[0] for item in backend.get_saturn_cli().commands_list()})
     format_output(categories, ctx.obj['output_format'])

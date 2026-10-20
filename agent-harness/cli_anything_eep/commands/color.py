@@ -4,7 +4,7 @@ Color grading commands for Easy Edits Pro.
 
 import click
 from cli_anything_eep.core import backend, errors
-from cli_anything_eep.output import format_output, format_success
+from cli_anything_eep.output import format_output, format_success, report_unsupported
 
 
 @click.group(name='color')
@@ -26,23 +26,7 @@ def color_group():
 @click.pass_context
 def color_grade(ctx: click.Context, clip: str, lift, gamma, gain, offset, contrast, saturation, temperature, tint):
     """Apply color grade to clip."""
-    try:
-        cli = backend.get_saturn_cli()
-        result = cli.color_grade(
-            clip_id=clip,
-            lift=list(lift) if lift else None,
-            gamma=list(gamma) if gamma else None,
-            gain=list(gain) if gain else None,
-            offset=list(offset) if offset else None,
-            contrast=contrast,
-            saturation=saturation,
-            temperature=temperature,
-            tint=tint
-        )
-        format_success(f"Color grade applied to clip {clip}", result, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    report_unsupported(ctx, "color.grade", "The Rust CLI cannot translate Lift/Gamma/Gain controls to its current scalar color command yet.")
 
 
 @color_group.command('reset')
@@ -51,7 +35,8 @@ def color_grade(ctx: click.Context, clip: str, lift, gamma, gain, offset, contra
 def color_reset(ctx: click.Context, clip: str):
     """Reset color grade to default."""
     try:
-        format_success(f"Color grade reset for clip {clip}", {"reset": True}, ctx.obj['output_format'])
+        result = backend.get_saturn_cli().color_reset(clip)
+        format_success(f"Color grade reset for clip {clip}", result, ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)
@@ -64,11 +49,7 @@ def color_reset(ctx: click.Context, clip: str):
 @click.pass_context
 def color_lut(ctx: click.Context, clip: str, file: str, intensity: float):
     """Apply 3D LUT to clip."""
-    try:
-        format_success(f"LUT applied to clip {clip}", {"lut": file, "intensity": intensity}, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    report_unsupported(ctx, "color.lut", "LUT application is not exposed through the current Rust CLI command catalogue.")
 
 
 @color_group.command('wheels')
@@ -77,7 +58,7 @@ def color_lut(ctx: click.Context, clip: str, file: str, intensity: float):
 def color_wheels(ctx: click.Context, clip: str):
     """Show current color wheel values for clip."""
     try:
-        format_output({"clip": clip, "lift": [0,0,0], "gamma": [1,1,1], "gain": [1,1,1], "offset": [0,0,0]}, ctx.obj['output_format'])
+        format_output(backend.get_saturn_cli().color_wheels(clip), ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)

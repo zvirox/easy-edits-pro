@@ -105,19 +105,15 @@ class TestCLISubprocess:
         assert "--path" in result.stdout
     
     def test_error_handling(self):
-        """Test error output format."""
-        # Run command that will fail (no project open)
+        """Test JSON output for a real Rust-backed read command."""
         result = self.run_cli(["--json", "timeline", "list"])
-        # Should return error but valid JSON on stderr
-        assert result.returncode != 0
-        
+        assert result.returncode == 0
         import json
         try:
-            data = json.loads(result.stderr)
-            assert "error" in data
-            assert "message" in data
+            data = json.loads(result.stdout)
+            assert isinstance(data["timelines"], list)
         except json.JSONDecodeError:
-            pytest.fail("Error output is not valid JSON")
+            pytest.fail("Timeline listing output is not valid JSON")
     
     def test_repl_help(self):
         """Test repl command exists."""

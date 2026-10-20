@@ -4,7 +4,7 @@ Timeline management commands for Easy Edits Pro.
 
 import click
 from cli_anything_eep.core import backend, errors
-from cli_anything_eep.output import format_output, format_success
+from cli_anything_eep.output import format_output, format_success, report_unsupported
 
 
 @click.group(name='timeline')
@@ -66,7 +66,7 @@ def timeline_inspect(ctx: click.Context, id: str):
     """Inspect timeline details."""
     try:
         cli = backend.get_saturn_cli()
-        result = cli.timeline_open(id)  # Would be separate inspect command
+        result = cli.timeline_inspect(id)
         format_output(result, ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
@@ -82,10 +82,4 @@ def timeline_inspect(ctx: click.Context, id: str):
 @click.pass_context
 def timeline_settings(ctx: click.Context, id: str, fps: float, width: int, height: int, color_space: str):
     """Get or update timeline settings."""
-    try:
-        cli = backend.get_saturn_cli()
-        # Would call timeline update command
-        format_success(f"Timeline {id} settings updated", {"updated": True}, ctx.obj['output_format'])
-    except errors.EepError as e:
-        format_output(e.to_dict(), ctx.obj['output_format'])
-        ctx.exit(1)
+    report_unsupported(ctx, "timeline.settings", "Sequence settings are not editable through the current Rust command catalogue.")

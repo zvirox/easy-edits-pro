@@ -4,9 +4,10 @@ Integrates with saturn-commands undo system.
 """
 
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-import json
+import uuid
+from .errors import EepError, ErrorCode
 
 
 @dataclass
@@ -26,7 +27,8 @@ class UndoManager:
     
     _history: List[UndoEntry] = []
     _redo_stack: List[UndoEntry] = []
-    _max_history: int = 1000
+    # Keep the CLI's display stack aligned with EditorEngine's 100 snapshots.
+    _max_history: int = 100
     _current_group: Optional[str] = None
     
     @classmethod
@@ -40,7 +42,7 @@ class UndoManager:
     ) -> UndoEntry:
         """Record an operation for undo/redo."""
         entry = UndoEntry(
-            id=f"undo_{len(cls._history)}",
+            id=f"undo_{uuid.uuid4().hex[:12]}",
             timestamp=datetime.now(),
             command=command,
             params=params,
@@ -53,9 +55,9 @@ class UndoManager:
         if len(cls._history) > cls._max_history:
             cls._history.pop(0)
         
-        # Clear redo stack on new operation
-        if not group_id:  # Don't clear during transaction
-            cls._redo_stack.clear()
+        # Any new engine mutation invalidates the redo branch, including edits
+        # recorded inside a transaction group.
+        cls._redo_stack.clear()
         
         return entry
     
@@ -63,23 +65,31 @@ class UndoManager:
     def undo(cls) -> Dict[str, Any]:
         """Undo last operation or group."""
         if not cls._history:
-            raise RuntimeError("Nothing to undo")
+            raise EepError(ErrorCode.NOTHING_TO_UNDO, "Nothing to undo.", recoverable=True)
         
-        # Pop entries until group boundary or single entry
-        entries = []
-        while cls._history:
-            entry = cls._history.pop()
-            entries.append(entry)
-            if entry.group_id is None or entry.group_id != cls._current_group:
-                break
+        # A transaction is undone by replaying each corresponding Rust engine undo,
+        # newest first. Ungrouped commands still undo one checkpoint at a time.
+        group_id = cls._history[-1].group_id
+        count = 1
+        if group_id is not None:
+            while count < len(cls._history) and cls._history[-count - 1].group_id == group_id:
+                count += 1
+        entries = list(reversed(cls._history[-count:]))
         
         # Execute inverse operations
         results = []
-        for entry in reversed(entries):
-            # Would call backend to execute inverse
-            result = cls._execute_inverse(entry)
-            results.append(result)
-            cls._redo_stack.append(entry)
+        try:
+            for entry in entries:
+                results.append(cls._execute_inverse(entry))
+        except Exception as error:
+            # Restore any snapshots already undone before leaving the metadata intact.
+            for completed in reversed(entries[:len(results)]):
+                cls._execute_forward(completed)
+            if isinstance(error, EepError):
+                raise
+            raise EepError.from_backend_error(error, "Could not undo operation") from error
+        del cls._history[-count:]
+        cls._redo_stack.extend(entries)
         
         return {
             "undone": len(entries),
@@ -91,21 +101,28 @@ class UndoManager:
     def redo(cls) -> Dict[str, Any]:
         """Redo last undone operation or group."""
         if not cls._redo_stack:
-            raise RuntimeError("Nothing to redo")
+            raise EepError(ErrorCode.NOTHING_TO_REDO, "Nothing to redo.", recoverable=True)
         
-        entries = []
-        while cls._redo_stack:
-            entry = cls._redo_stack.pop()
-            entries.append(entry)
-            if entry.group_id is None or entry.group_id != cls._current_group:
-                break
+        group_id = cls._redo_stack[-1].group_id
+        count = 1
+        if group_id is not None:
+            while count < len(cls._redo_stack) and cls._redo_stack[-count - 1].group_id == group_id:
+                count += 1
+        entries = list(reversed(cls._redo_stack[-count:]))
         
         results = []
-        for entry in entries:
-            # Would call backend to re-execute
-            result = cls._execute_forward(entry)
-            results.append(result)
-            cls._history.append(entry)
+        try:
+            for entry in entries:
+                results.append(cls._execute_forward(entry))
+        except Exception as error:
+            # Rewind successful forward steps so the project and CLI stacks remain aligned.
+            for completed in reversed(entries[:len(results)]):
+                cls._execute_inverse(completed)
+            if isinstance(error, EepError):
+                raise
+            raise EepError.from_backend_error(error, "Could not redo operation") from error
+        del cls._redo_stack[-count:]
+        cls._history.extend(entries)
         
         return {
             "redone": len(entries),
@@ -134,10 +151,8 @@ class UndoManager:
     @classmethod
     def begin_transaction(cls, description: str) -> str:
         """Begin a transaction group."""
-        import uuid
         group_id = f"txn_{uuid.uuid4().hex[:8]}"
         cls._current_group = group_id
-        cls.record("transaction_begin", {}, description, group_id=group_id)
         return group_id
     
     @classmethod
@@ -145,7 +160,6 @@ class UndoManager:
         """Commit current transaction."""
         group_id = cls._current_group
         cls._current_group = None
-        cls.record("transaction_commit", {}, "Transaction committed", group_id=group_id)
         return {"transaction_id": group_id, "committed": True}
     
     @classmethod
@@ -153,35 +167,44 @@ class UndoManager:
         """Rollback current transaction."""
         group_id = cls._current_group
         cls._current_group = None
+        if group_id is None:
+            return {"transaction_id": None, "rolled_back": False, "undone": []}
         
-        # Undo all entries in this transaction
+        # Undo the transaction atomically from the CLI's perspective. If the
+        # engine rejects a step, replay already-undone snapshots and keep history.
+        count = 0
+        while count < len(cls._history) and cls._history[-count - 1].group_id == group_id:
+            count += 1
+        if count == 0:
+            return {"transaction_id": group_id, "rolled_back": True, "undone": []}
+        entries = list(reversed(cls._history[-count:]))
         undone = []
-        while cls._history and cls._history[-1].group_id == group_id:
-            entry = cls._history.pop()
-            result = cls._execute_inverse(entry)
-            undone.append({"command": entry.command, "result": result})
+        try:
+            for entry in entries:
+                undone.append({"command": entry.command, "result": cls._execute_inverse(entry)})
+        except Exception as error:
+            for entry in reversed(entries[:len(undone)]):
+                cls._execute_forward(entry)
+            if isinstance(error, EepError):
+                raise
+            raise EepError.from_backend_error(error, "Could not roll back transaction") from error
+        del cls._history[-count:]
         
         return {"transaction_id": group_id, "rolled_back": True, "undone": undone}
     
     @classmethod
     def _execute_inverse(cls, entry: UndoEntry) -> Dict[str, Any]:
-        """Execute inverse of an operation."""
-        # This would call the actual backend inverse
-        # For now, return placeholder
-        return {
-            "command": entry.command,
-            "inverse_executed": True,
-            "description": f"Undid: {entry.description}"
-        }
+        """Ask the Rust engine to restore its previous project snapshot."""
+        from .backend import get_saturn_cli
+        result = get_saturn_cli().execute("edit.undo", {}, record_undo=False)
+        return {"command": entry.command, "backend": result, "description": f"Undid: {entry.description}"}
     
     @classmethod
     def _execute_forward(cls, entry: UndoEntry) -> Dict[str, Any]:
-        """Re-execute an operation for redo."""
-        return {
-            "command": entry.command,
-            "redo_executed": True,
-            "description": f"Redid: {entry.description}"
-        }
+        """Ask the Rust engine to restore the snapshot popped by undo."""
+        from .backend import get_saturn_cli
+        result = get_saturn_cli().execute("edit.redo", {}, record_undo=False)
+        return {"command": entry.command, "backend": result, "description": f"Redid: {entry.description}"}
     
     @classmethod
     def can_undo(cls) -> bool:
