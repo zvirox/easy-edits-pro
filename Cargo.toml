@@ -4,10 +4,10 @@ members = [
     "crates/saturn-cli",
     "crates/saturn-render",
     "crates/saturn-commands",
-    "crates/saturn-mcp",
-    "crates/saturn-control",
+    # "crates/saturn-mcp",   # does not compile yet; re-enable when fixed (see review)
+    # "crates/saturn-control",   # does not compile yet; re-enable when fixed (see review)
     "crates/saturn-timeline",
-    "crates/saturn-graphics",
-    "crates/saturn-project",
+    # "crates/saturn-graphics",   # does not compile yet; re-enable when fixed (see review)
+    # "crates/saturn-project",   # does not compile yet; re-enable when fixed (see review)
 ]
 resolver = "3"

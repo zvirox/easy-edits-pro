@@ -62,7 +62,7 @@ jobs:
 
       - name: Check source file size limits (800 lines)
         working-directory: apps/saturn-tauri
-        run: pnpm check:source-size --max-lines 800
+        run: pnpm check:source-size --max-lines=800
 
       - name: Check Tauri desktop backend
         working-directory: apps/saturn-tauri
@@ -71,6 +71,10 @@ jobs:
       - name: Run Tauri crate tests
         working-directory: apps/saturn-tauri
         run: cargo test --verbose
+
+      - name: Install Playwright Chromium
+        working-directory: apps/saturn-tauri
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run Playwright smoke test
         working-directory: apps/saturn-tauri
