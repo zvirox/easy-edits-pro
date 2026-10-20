@@ -8,8 +8,8 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 14px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-panel);
+  background: var(--bg-card);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   margin-bottom: 12px;
 }
@@ -28,13 +28,13 @@
 }
 
 .hw-dot.active {
-  background: #10b981;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  background: var(--status-success);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-success) 50%, transparent);
 }
 
 .hw-dot.fallback {
-  background: #f59e0b;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+  background: var(--status-warning);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-warning) 40%, transparent);
 }
 
 .hw-status-details {
@@ -66,15 +66,15 @@
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
+  background: var(--bg-chip);
+  border: 1px solid var(--border-control);
   color: var(--text-muted);
 }
 
 .hw-codec-tag.preferred {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #34d399;
+  background: color-mix(in srgb, var(--status-success) 15%, transparent);
+  border-color: color-mix(in srgb, var(--status-success) 40%, transparent);
+  color: var(--status-success-text);
 }
 
 /* 1-Click Delivery Presets Shelf */
@@ -109,8 +109,8 @@
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  background: var(--bg-subpanel);
-  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  border: 1px solid var(--border-control);
   border-radius: 6px;
   cursor: pointer;
   text-align: left;
@@ -118,14 +118,14 @@
 }
 
 .export-preset-card:hover {
-  border-color: var(--border-strong);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover);
 }
 
 .export-preset-card.selected {
-  border-color: #6b21a8;
-  background: rgba(107, 33, 168, 0.1);
-  box-shadow: 0 0 10px rgba(107, 33, 168, 0.2);
+  border-color: var(--border-card-selected);
+  background: var(--bg-card-selected);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--border-card-selected) 20%, transparent);
 }
 
 .preset-card-icon {
@@ -161,7 +161,7 @@
   font-weight: 800;
   padding: 1px 4px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--color-white) 8%, transparent);
   color: var(--text-muted);
   letter-spacing: 0.5px;
 }
@@ -204,9 +204,9 @@
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: color-mix(in srgb, var(--status-danger-bright) 15%, transparent);
+  color: var(--status-danger-text);
+  border: 1px solid color-mix(in srgb, var(--status-danger-bright) 30%, transparent);
 }
 
 .limiter-active-pill {
@@ -214,7 +214,7 @@
   font-weight: 800;
   padding: 1px 5px;
   border-radius: 2px;
-  background: #462d40;
+  background: var(--border-strong-solid);
   color: var(--text-muted);
   letter-spacing: 0.5px;
 }
@@ -231,7 +231,7 @@
   font-size: 9px;
   color: var(--text-muted);
   padding: 4px 6px;
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--color-black) 20%, transparent);
   border-radius: 4px;
 }
 
@@ -259,27 +259,27 @@
 }
 
 .gr-label-row b.gr-active {
-  color: #ef4444;
+  color: var(--status-danger-bright);
   font-weight: 700;
 }
 
 .gr-meter-bar-slot {
   height: 6px;
-  background: rgba(0, 0, 0, 0.4);
+  background: color-mix(in srgb, var(--color-black) 40%, transparent);
   border-radius: 3px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid color-mix(in srgb, var(--color-white) 5%, transparent);
 }
 
 .gr-meter-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+  background: linear-gradient(90deg, var(--status-warning) 0%, var(--status-danger-bright) 100%);
   border-radius: 3px;
   transition: width 0.04s ease-out;
 }
 
 .gr-meter-bar-fill.master {
-  background: linear-gradient(90deg, #f59e0b 0%, #dc2626 100%);
+  background: linear-gradient(90deg, var(--status-warning) 0%, var(--status-danger-deep) 100%);
 }
 
 /* Center Column: Dedicated Track Audio DSP Rack */
@@ -391,21 +391,21 @@
 }
 
 .module-badge.eq {
-  background: rgba(107, 33, 168, 0.2);
+  background: color-mix(in srgb, var(--accent-secondary) 20%, transparent);
   color: var(--accent-text);
-  border: 1px solid rgba(107, 33, 168, 0.3);
+  border: 1px solid color-mix(in srgb, var(--accent-secondary) 30%, transparent);
 }
 
 .module-badge.comp {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: color-mix(in srgb, var(--status-warning) 20%, transparent);
+  color: var(--status-warning-bright);
+  border: 1px solid color-mix(in srgb, var(--status-warning) 30%, transparent);
 }
 
 .module-badge.denoise {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: color-mix(in srgb, var(--status-success) 20%, transparent);
+  color: var(--status-success-text);
+  border: 1px solid color-mix(in srgb, var(--status-success) 30%, transparent);
 }
 
 .module-title-box strong {
@@ -437,23 +437,23 @@
 }
 
 .dsp-power-btn.active {
-  background: rgba(107, 33, 168, 0.2);
-  border-color: #6b21a8;
+  background: color-mix(in srgb, var(--accent-secondary) 20%, transparent);
+  border-color: var(--accent-secondary);
   color: var(--accent-text);
-  box-shadow: 0 0 8px rgba(107, 33, 168, 0.2);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-secondary) 20%, transparent);
 }
 
 .dsp-power-btn.comp.active {
-  background: rgba(245, 158, 11, 0.2);
-  border-color: #f59e0b;
-  color: #fbbf24;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+  background: color-mix(in srgb, var(--status-warning) 20%, transparent);
+  border-color: var(--status-warning);
+  color: var(--status-warning-bright);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-warning) 20%, transparent);
 }
 
 .dsp-power-btn.denoise.active {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: #10b981;
-  color: #34d399;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+  background: color-mix(in srgb, var(--status-success) 20%, transparent);
+  border-color: var(--status-success);
+  color: var(--status-success-text);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-success) 20%, transparent);
 }
 

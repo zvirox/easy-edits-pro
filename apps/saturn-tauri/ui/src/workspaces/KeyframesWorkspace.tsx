@@ -340,8 +340,8 @@ export function KeyframesWorkspace({
               >
                 <defs>
                   <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6b21a8" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="#6b21a8" stopOpacity="0.02" />
+                    <stop offset="0%" style={{ stopColor: "var(--accent-secondary)", stopOpacity: 0.35 }} />
+                    <stop offset="100%" style={{ stopColor: "var(--accent-secondary)", stopOpacity: 0.02 }} />
                   </linearGradient>
                 </defs>
 
@@ -353,7 +353,7 @@ export function KeyframesWorkspace({
                       y1={tick.y}
                       x2={padL + plotW}
                       y2={tick.y}
-                      stroke="rgba(255, 255, 255, 0.07)"
+                      style={{ stroke: "var(--curve-grid-line)" }}
                       strokeDasharray="4 4"
                     />
                     <text
@@ -375,7 +375,7 @@ export function KeyframesWorkspace({
                       y1={padT}
                       x2={tick.x}
                       y2={padT + plotH}
-                      stroke="rgba(255, 255, 255, 0.05)"
+                      style={{ stroke: "var(--curve-grid-line-subtle)" }}
                     />
                     <text
                       x={tick.x}
@@ -398,7 +398,7 @@ export function KeyframesWorkspace({
                   <path
                     d={curvePath}
                     fill="none"
-                    stroke="#6b21a8"
+                    style={{ stroke: "var(--accent-secondary)" }}
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -414,7 +414,7 @@ export function KeyframesWorkspace({
                       y1={activeTangents.outLine.y1}
                       x2={activeTangents.outLine.x2}
                       y2={activeTangents.outLine.y2}
-                      stroke="#f59e0b"
+                      style={{ stroke: "var(--status-warning)" }}
                       strokeWidth="1.5"
                       strokeDasharray="3 3"
                     />
@@ -422,8 +422,7 @@ export function KeyframesWorkspace({
                       cx={activeTangents.outLine.x2}
                       cy={activeTangents.outLine.y2}
                       r="5"
-                      fill="#f59e0b"
-                      stroke="#ffffff"
+                      style={{ fill: "var(--status-warning)", stroke: "var(--color-white)" }}
                       strokeWidth="1.5"
                       className="tangent-circle-handle"
                     />
@@ -437,7 +436,7 @@ export function KeyframesWorkspace({
                       y1={activeTangents.inLine.y1}
                       x2={activeTangents.inLine.x2}
                       y2={activeTangents.inLine.y2}
-                      stroke="#f59e0b"
+                      style={{ stroke: "var(--status-warning)" }}
                       strokeWidth="1.5"
                       strokeDasharray="3 3"
                     />
@@ -445,8 +444,7 @@ export function KeyframesWorkspace({
                       cx={activeTangents.inLine.x2}
                       cy={activeTangents.inLine.y2}
                       r="5"
-                      fill="#f59e0b"
-                      stroke="#ffffff"
+                      style={{ fill: "var(--status-warning)", stroke: "var(--color-white)" }}
                       strokeWidth="1.5"
                       className="tangent-circle-handle"
                     />
@@ -459,13 +457,13 @@ export function KeyframesWorkspace({
                   y1={padT - 6}
                   x2={timeToX(relPlayhead)}
                   y2={padT + plotH + 8}
-                  stroke="#ef4444"
+                  style={{ stroke: "var(--status-danger-bright)" }}
                   strokeWidth="2"
                   pointerEvents="none"
                 />
                 <polygon
                   points={`${timeToX(relPlayhead) - 6},${padT - 6} ${timeToX(relPlayhead) + 6},${padT - 6} ${timeToX(relPlayhead)},${padT + 4}`}
-                  fill="#ef4444"
+                  style={{ fill: "var(--status-danger-bright)" }}
                   pointerEvents="none"
                 />
 

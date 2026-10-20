@@ -133,21 +133,55 @@ For an editor whose main content is a 30 fps video, this is comfortably above
 the 30 fps gate. A repeat run measured 58.5 fps (full) and 58.0 fps (stress),
 so the result is stable rather than a one-off.
 
+### Real editor re-measurement (production build)
+
+The spike above used a synthetic stage. After the DMA-BUF default was fixed, the
+same benchmark ran inside the real editor with a 10 s 1080p H.264 clip, at
+1600×900 @ DPR 2, against the production asset bundle:
+
+| Real editor scenario | DMA-BUF on (default) | `EEP_DISABLE_DMABUF=1` |
+|---|---:|---:|
+| Video only | **54.0 fps**, 30 fps video, 0 dropped | 13.1 fps, 0 presented frames |
+| Drag full glass, run 1 | **43.9 fps** | 8.5 fps |
+| Drag full glass, run 2 | **47.9 fps** | 7.2 fps |
+
+After G1d tokenized the style sheet, the same build held **51.6 fps**
+video-only and **47.2 / 47.8 fps** while dragging, still with 0 dropped video
+frames. The full-glass path keeps roughly 1.5× headroom over the 30 fps gate.
+
+The runtime probe was also verified live: the default reports
+`dmabufPolicy=enabled-default` and `data-webkit-gtk-slow="false"`; with
+`EEP_DISABLE_DMABUF=1` it reports `dmabuf=disabled`, `data-webkit-gtk-slow="true"`,
+and the UI paints with no `backdrop-filter` at all.
+
 ---
 
 ## Interpretation
 
-### The blocker is `WEBKIT_DISABLE_DMABUF_RENDERER=1`
+### The blocker was `WEBKIT_DISABLE_DMABUF_RENDERER=1`
 
-`apps/saturn-tauri/src/main.rs` sets `WEBKIT_DISABLE_DMABUF_RENDERER=1`
+`apps/saturn-tauri/src/main.rs` used to set `WEBKIT_DISABLE_DMABUF_RENDERER=1`
 unconditionally on Linux (introduced in `c6b5ee5`, alongside the local media
 server). On this Intel/Wayland stack that workaround does the opposite of what
 the preview needs: the video sink never presents and the UI stalls whenever the
 video layer is visible and something moves.
 
-This is **not** a glass-specific issue. It must be treated as a preview
-regression first, because it makes the editor unusable with video regardless of
-the visual design.
+This was **not** a glass-specific issue. It was a preview regression first,
+because it made the editor unusable with video regardless of the visual design.
+
+**Resolved:** `src/gpu_detect.rs` now applies an opt-out policy before Tauri or
+WebKit initialises:
+
+- DMA-BUF renderer is **enabled by default**.
+- `EEP_DISABLE_DMABUF=1` disables it for every driver.
+- `EEP_DISABLE_DMABUF=i915,nvidia` (driver or vendor names) disables it only for
+  matching GPUs, leaving other machines on the fast path.
+- An externally set `WEBKIT_DISABLE_DMABUF_RENDERER` is respected.
+- `EEP_KEEP_DMABUF=1` remains a deprecated force-enable shim.
+- The frontend tags `[data-webkit-gtk-slow="true"]` whenever DMA-BUF is disabled
+  or the GPU probe is unknown, which switches the UI to the Lite token set.
+
+Eleven Rust policy tests cover the matrix.
 
 ### Glass is affordable on integrated graphics
 
@@ -201,11 +235,11 @@ cd apps/saturn-tauri
 # One-time: generate the moving test clip (ignored by git)
 scripts/make-glass-spike-video.sh
 
-# Current default: DMA-BUF disabled
+# Current default: DMA-BUF enabled
 VITE_GLASS_SPIKE=1 pnpm tauri dev
 
-# Comparison: DMA-BUF enabled
-EEP_KEEP_DMABUF=1 VITE_GLASS_SPIKE=1 pnpm tauri dev
+# Comparison: force the lite path (no DMA-BUF)
+EEP_DISABLE_DMABUF=1 VITE_GLASS_SPIKE=1 pnpm tauri dev
 ```
 
 The benchmark starts automatically, runs for about 70 seconds and writes
@@ -226,25 +260,27 @@ The spike is development-only: `main.tsx` mounts it only when
   are untested, though `backdrop-filter` support differs by engine.
 - **Dev build.** Same WebKitGTK library as release; release packaging does not
   change compositing.
-- **720p30 single video.** 1080p/4K previews, multiple simultaneous videos,
-  HDR and 10-bit sources are untested and will cost more.
+- **720p30 single video in the spike; 1080p30 single video in the real editor.**
+  4K previews, multiple simultaneous videos, HDR and 10-bit sources are
+  untested and will cost more.
 - **Panel geometry is representative, not exhaustive.** Four panels plus one
   or two moving panels cover the common editor layout; full-screen blur or
   dozens of layers would be heavier.
-- **DMA-BUF safety is unverified.** It was disabled for a reason; that reason
-  needs to be found and reproduced before flipping the default. Enabling it
-  must be validated on the GPU/driver matrix with a crash/blank-frame
-  fallback.
+- **DMA-BUF safety is validated only on Intel i915 here.** AMD, NVIDIA, older
+  Intel and software-rendered sessions still need the driver-matrix pass. The
+  opt-out policy and Lite fallback exist precisely so a bad driver can be
+  quarantined without shipping a new UI.
 
 ---
 
-## Required follow-up before Phase 2
+## Follow-up status
 
-1. **Fix the preview path first.** Make DMA-BUF opt-out
-   (`EEP_DISABLE_DMABUF=1`) rather than unconditionally off, keep a per-driver
-   escape hatch, and test real timeline previews on Intel i915/Xe, AMD and
-   NVIDIA.
-2. Re-run this spike against the real editor preview and a 1080p source.
-3. Keep the three safety layers: `VITE_GLASS_ENABLED`, `data-glass="lite|off"`,
-   and `[data-webkit-gtk-slow]` (GPU class + DMA-BUF state).
-4. Only then start Phase 2 (`120-glass.css`, `.glass` elevation system).
+1. **Done — preview path fixed.** DMA-BUF is opt-out (`EEP_DISABLE_DMABUF=1`)
+   with a per-driver list; the real timeline preview was measured on Intel
+   i915. AMD and NVIDIA validation is still outstanding.
+2. **Done — real editor re-measured** with a 1080p30 source (see above).
+3. **Done — three safety layers kept:** `VITE_GLASS_ENABLED`,
+   `data-glass="lite|off"`, and `[data-webkit-gtk-slow]` (GPU class + DMA-BUF
+   state).
+4. **Next — Phase 2** (`120-glass.css`, `.glass` elevation system), preserving
+   the measured ≥30 fps headroom.

@@ -56,9 +56,9 @@
 }
 
 .auto-pill.active {
-  background: #10b981;
-  color: #fff;
-  border-color: #059669;
+  background: var(--status-success);
+  color: var(--color-white);
+  border-color: var(--status-success-deep);
 }
 
 .strip-plugins-rack {
@@ -66,7 +66,7 @@
   flex-direction: column;
   gap: 4px;
   margin: 6px 0;
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--color-black) 20%, transparent);
   border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 4px;
@@ -119,15 +119,15 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #7d6377;
+  background: var(--text-muted);
   border: none;
   cursor: pointer;
   padding: 0;
 }
 
 .plugin-power-dot.active {
-  background: #22c55e;
-  box-shadow: 0 0 5px #22c55e;
+  background: var(--status-success-bright);
+  box-shadow: 0 0 5px var(--status-success-bright);
 }
 
 .plugin-name-label {
@@ -144,7 +144,7 @@
   font-weight: 800;
   padding: 1px 4px;
   border-radius: 2px;
-  background: rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-violet-bright) 20%, transparent);
   color: var(--accent-text-violet);
 }
 
@@ -180,7 +180,7 @@
   font-weight: 800;
   padding: 1px 4px;
   border-radius: 2px;
-  background: rgba(159, 18, 73, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
   color: var(--accent-text);
 }
 
@@ -194,7 +194,7 @@
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background: #110910;
+  background: var(--bg-base);
 }
 
 .fusion-workspace-header {
@@ -218,10 +218,10 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(17, 9, 16, 0.6);
+  background: var(--bg-surface);
   padding: 4px 8px;
   border-radius: 6px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-subtle);
 }
 
 .fusion-add-label {
@@ -233,9 +233,9 @@
 }
 
 .fusion-tool-btn {
-  background: var(--bg-app);
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
+  background: var(--bg-control-subtle);
+  border: 1px solid var(--border-control);
+  color: var(--text-primary);
   padding: 3px 8px;
   border-radius: 4px;
   font-size: 11px;
@@ -245,8 +245,8 @@
 }
 
 .fusion-tool-btn:hover {
-  background: var(--bg-hover);
-  border-color: var(--accent-primary);
+  background: var(--bg-control);
+  border-color: var(--border-focus);
   color: var(--accent-text);
 }
 
@@ -265,11 +265,11 @@
   height: 100%;
   position: relative;
   overflow: auto;
-  background-color: #0b060a;
+  background-color: var(--neutral-950);
   background-image: 
-    radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    radial-gradient(circle, color-mix(in srgb, var(--color-white) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to right, color-mix(in srgb, var(--color-white) 2%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-white) 2%, transparent) 1px, transparent 1px);
   background-size: 24px 24px, 120px 120px, 120px 120px;
   user-select: none;
 }
@@ -298,14 +298,14 @@
 .fusion-wire {
   pointer-events: none;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 4px rgba(159, 18, 73, 0.4));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent-primary) 40%, transparent));
   transition: stroke 0.2s ease;
 }
 
 .fusion-wire-hitbox:hover + .fusion-wire {
-  stroke: #ef4444 !important;
+  stroke: var(--status-danger-bright) !important;
   stroke-width: 3.5px;
-  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.7));
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--status-danger-bright) 70%, transparent));
 }
 
 /* Fusion Node Cards */
@@ -313,10 +313,10 @@
   position: absolute;
   width: 160px;
   min-height: 80px;
-  background: #110910;
-  border: 1px solid #462d40;
+  background: var(--bg-node);
+  border: 1px solid var(--border-node);
   border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-node);
   display: flex;
   flex-direction: column;
   z-index: 2;
@@ -325,37 +325,37 @@
 }
 
 .fusion-node-card:hover {
-  border-color: #7d6377;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+  border-color: var(--text-muted);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--color-black) 60%, transparent);
 }
 
 .fusion-node-card.selected {
-  border-color: #be185d;
-  box-shadow: 0 0 0 2px rgba(159, 18, 73, 0.35), 0 8px 24px rgba(0, 0, 0, 0.7);
+  border-color: var(--accent-primary-hover);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 35%, transparent), 0 8px 24px color-mix(in srgb, var(--color-black) 70%, transparent);
   z-index: 3;
 }
 
 /* Node Kind Variants */
 .fusion-node-card.kind-merge {
-  border-top: 3px solid #6b21a8;
+  border-top: 3px solid var(--accent-secondary);
 }
 .fusion-node-card.kind-transform {
-  border-top: 3px solid #be185d;
+  border-top: 3px solid var(--accent-primary-hover);
 }
 .fusion-node-card.kind-keyer {
-  border-top: 3px solid #22c55e;
+  border-top: 3px solid var(--status-success-bright);
 }
 .fusion-node-card.kind-mask {
-  border-top: 3px solid #ec4899;
+  border-top: 3px solid var(--accent-bright-hover);
 }
 .fusion-node-card.kind-particles {
-  border-top: 3px solid #f59e0b;
+  border-top: 3px solid var(--status-warning);
 }
 .fusion-node-card.kind-media_source {
-  border-top: 3px solid #6b21a8;
+  border-top: 3px solid var(--accent-secondary);
 }
 .fusion-node-card.kind-output_sink {
-  border-top: 3px solid #e11d48;
+  border-top: 3px solid var(--status-danger);
 }
 
 .fusion-node-header {
@@ -363,8 +363,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid #221220;
+  background: color-mix(in srgb, var(--color-white) 3%, transparent);
+  border-bottom: 1px solid var(--bg-elevated);
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
   cursor: grab;
@@ -382,7 +382,7 @@
 .node-title {
   font-size: 11px;
   font-weight: 700;
-  color: #faf2f7;
+  color: var(--text-primary);
   flex: 1;
   margin-left: 6px;
   white-space: nowrap;
@@ -403,8 +403,8 @@
 }
 
 .node-delete-btn:hover {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.15);
+  color: var(--status-danger-bright);
+  background: color-mix(in srgb, var(--status-danger-bright) 15%, transparent);
 }
 
 .fusion-node-body {
@@ -414,6 +414,8 @@
   padding: 8px 6px;
   flex: 1;
   min-height: 48px;
+  background: var(--bg-base);
+  color: var(--text-primary);
 }
 
 .node-sockets-left {

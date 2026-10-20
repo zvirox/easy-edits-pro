@@ -47,6 +47,25 @@ export function isSlowEnvironment(environment: RuntimeEnvironment | null): boole
   );
 }
 
+/**
+ * Build-time kill switch. `VITE_GLASS_ENABLED=0` (or `false`) turns glass off
+ * completely for a distribution build. Anything else, including the default
+ * undefined value, keeps the measured full-glass path.
+ */
+export function isGlassEnabled(value: string | undefined = import.meta.env?.VITE_GLASS_ENABLED): boolean {
+  return value !== "0" && value !== "false";
+}
+
+export type GlassMode = "full" | "lite" | "off";
+
+export function glassMode(
+  environment: RuntimeEnvironment | null,
+  enabled: boolean = isGlassEnabled(),
+): GlassMode {
+  if (!enabled) return "off";
+  return isSlowEnvironment(environment) ? "lite" : "full";
+}
+
 export function capabilityAttributes(environment: RuntimeEnvironment | null): Record<string, string> {
   if (!environment) {
     return {
@@ -73,9 +92,12 @@ export function capabilityAttributes(environment: RuntimeEnvironment | null): Re
 export function tagGlassCapability(
   environment: RuntimeEnvironment | null,
   root: HTMLElement = document.documentElement,
+  enabled: boolean = isGlassEnabled(),
 ): void {
   for (const [name, value] of Object.entries(capabilityAttributes(environment))) {
     root.setAttribute(name, value);
   }
-  root.classList.toggle("webkit-gtk-slow", isSlowEnvironment(environment));
+  const mode = glassMode(environment, enabled);
+  root.setAttribute("data-glass", mode);
+  root.classList.toggle("webkit-gtk-slow", mode !== "full");
 }

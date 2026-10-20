@@ -41,6 +41,33 @@ export const SURFACE_TOKENS = [
   "--bg-glass",
 ];
 
+/**
+ * Component roles introduced by G1d. They resolve to the core surfaces, but
+ * auditing them directly catches a role that drifts to a low-contrast value.
+ */
+export const ROLE_SURFACE_TOKENS = [
+  "--bg-workspace",
+  "--bg-card",
+  "--bg-card-hover",
+  "--bg-card-selected",
+  "--bg-control",
+  "--bg-control-subtle",
+  "--bg-status",
+  "--bg-node",
+  "--bg-strip",
+  "--bg-inset",
+  "--bg-meter-pair",
+  "--bg-chip",
+  "--bg-scopes",
+  "--bg-scopes-header",
+  "--bg-panel",
+  "--bg-subpanel",
+  "--bg-input",
+  "--bg-selected",
+  "--bg-hover",
+  "--bg-active",
+];
+
 export const ON_ACCENT_TOKENS = [
   "--accent-primary",
   "--accent-primary-hover",
@@ -119,10 +146,20 @@ export function parseThemes(files = TOKEN_FILES) {
     for (const { selector, body } of topLevelBlocks(css)) {
       // Only theme blocks belong in the maps. [data-glass="lite|off"] and
       // component selectors are degradation/override modes, not themes.
-      const isThemeBlock = /:root|\[data-theme=|(^|[\s,])\.(dark|light)\b/.test(selector);
-      if (!isThemeBlock) continue;
-      const target = /light/i.test(selector) ? themes.light : themes.dark;
-      for (const [name, value] of declarations(body)) target.set(name, value);
+      // `:root` is global: it seeds both maps, then the theme-specific blocks
+      // override it. This mirrors how the browser applies the CSS.
+      const selectors = selector.split(",").map((part) => part.trim());
+      const appliesToRoot = selectors.some((part) => part === ":root");
+      const appliesToDark = appliesToRoot || selectors.some((part) => part.includes("dark"));
+      const appliesToLight = appliesToRoot || selectors.some((part) => part.includes("light"));
+      if (!appliesToDark && !appliesToLight) continue;
+      const found = declarations(body);
+      if (appliesToDark) {
+        for (const [name, value] of found) themes.dark.set(name, value);
+      }
+      if (appliesToLight) {
+        for (const [name, value] of found) themes.light.set(name, value);
+      }
     }
   }
   return themes;
@@ -188,6 +225,17 @@ export function parseColor(value) {
     return { r, g, b, a: Number.isNaN(alpha) ? 1 : alpha };
   }
 
+  // G1d uses color-mix() for translucent overlays. The audit only needs the
+  // common shape: an opaque colour mixed with transparent at a percentage.
+  const mix = /^color-mix\(in srgb,\s*(.+?)\s+([\d.]+)%,\s*transparent\)$/.exec(text);
+  if (mix) {
+    const base = parseColor(mix[1]);
+    if (!base) return null;
+    const weight = Number.parseFloat(mix[2]) / 100;
+    if (Number.isNaN(weight)) return null;
+    return { ...base, a: (base.a ?? 1) * weight };
+  }
+
   return null;
 }
 
@@ -240,7 +288,7 @@ export function auditContrast(files = TOKEN_FILES) {
     }
 
     for (const textToken of TEXT_TOKENS) {
-      for (const surfaceToken of SURFACE_TOKENS) {
+      for (const surfaceToken of [...SURFACE_TOKENS, ...ROLE_SURFACE_TOKENS]) {
         const foreground = effectiveColor(resolveToken(textToken, tokens), tokens, canvas);
         const background = effectiveColor(resolveToken(surfaceToken, tokens), tokens, canvas);
         if (!foreground || !background) {
@@ -255,6 +303,7 @@ export function auditContrast(files = TOKEN_FILES) {
           theme,
           foreground: textToken,
           background: surfaceToken,
+          role: ROLE_SURFACE_TOKENS.includes(surfaceToken),
           ratio,
           minimum: MIN_TEXT,
           pass: ratio >= MIN_TEXT,

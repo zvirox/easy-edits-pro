@@ -6,7 +6,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
-import { auditContrast, parseThemes, resolveToken } from "./check-contrast.mjs";
+import { auditContrast, parseThemes, resolveToken, ROLE_SURFACE_TOKENS } from "./check-contrast.mjs";
 
 const APP_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const DOC_PATH = join(APP_ROOT, "../../docs/glass-tokens.md");
@@ -18,9 +18,11 @@ const GROUPS = [
       "--text-primary",
       "--text-secondary",
       "--text-muted",
+      "--text-soft",
       "--accent-text",
       "--accent-text-hover",
       "--accent-text-violet",
+      "--accent-bright",
       "--text-on-accent",
     ],
   },
@@ -52,6 +54,30 @@ const GROUPS = [
       "--blur-l2",
       "--blur-l3",
       "--blur-l4",
+    ],
+  },
+  {
+    title: "Component surfaces (G1d)",
+    tokens: ROLE_SURFACE_TOKENS,
+  },
+  {
+    title: "Component roles (G1d)",
+    tokens: [
+      "--bg-meter-slot",
+      "--master-accent",
+      "--strip-accent",
+      "--strip-end",
+      "--border-card-selected",
+      "--border-control",
+      "--border-hover",
+      "--border-node",
+      "--border-inset",
+      "--border-meter-pair",
+      "--border-status",
+      "--shadow-node",
+      "--curve-grid-line",
+      "--curve-grid-line-subtle",
+      "--curve-grid-text",
     ],
   },
   {
@@ -98,10 +124,13 @@ function generate() {
   lines.push(
     "## Contrast matrix",
     "",
+    "Core text/surface pairs are listed below. The G1d component surfaces are",
+    "audited by the same script; only the core pairs are repeated here.",
+    "",
     "| Foreground | Background | Dark | Light | Minimum |",
     "|---|---|---:|---:|---:|",
   );
-  for (const row of rows.filter((item) => item.foreground !== "--text-on-accent")) {
+  for (const row of rows.filter((item) => item.foreground !== "--text-on-accent" && !item.role)) {
     const dark = rows.find(
       (item) =>
         item.theme === "dark" &&

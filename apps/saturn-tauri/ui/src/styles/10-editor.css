@@ -27,7 +27,7 @@
 }
 
 .lut-file-info {
-  background: rgba(0, 0, 0, 0.25);
+  background: color-mix(in srgb, var(--color-black) 25%, transparent);
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 10px;
@@ -60,8 +60,8 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--bg-main);
-  color: var(--text-main);
+  background: var(--bg-workspace);
+  color: var(--text-primary);
 }
 
 .keyframes-workspace-header {
@@ -133,7 +133,7 @@
   padding: 4px 10px;
   border-radius: 4px;
   border: 1px solid var(--border-color);
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--color-white) 4%, transparent);
   color: var(--text-muted);
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
@@ -146,8 +146,8 @@
 }
 
 .property-pill-btn.active {
-  background: rgba(107, 33, 168, 0.18);
-  border-color: #6b21a8;
+  background: color-mix(in srgb, var(--accent-secondary) 18%, transparent);
+  border-color: var(--accent-secondary);
   color: var(--accent-text);
 }
 
@@ -171,7 +171,7 @@
 .curve-canvas-wrapper {
   flex: 1;
   position: relative;
-  background: #0b060a;
+  background: var(--bg-canvas);
   overflow: hidden;
   display: flex;
   align-items: stretch;
@@ -187,7 +187,7 @@
 .curve-grid-text {
   font-family: monospace;
   font-size: 9.5px;
-  fill: rgba(255, 255, 255, 0.4);
+  fill: var(--curve-grid-text);
   user-select: none;
 }
 
@@ -206,22 +206,22 @@
 }
 
 .kf-diamond {
-  fill: #6b21a8;
-  stroke: #ffffff;
+  fill: var(--accent-secondary);
+  stroke: var(--color-white);
   stroke-width: 1.5;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .kf-diamond:hover {
-  fill: #d9468f;
+  fill: var(--accent-bright);
   transform: rotate(45deg) scale(1.2);
 }
 
 .kf-diamond.selected {
-  fill: #f59e0b;
-  stroke: #ffffff;
+  fill: var(--status-warning);
+  stroke: var(--color-white);
   stroke-width: 2;
-  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8));
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--status-warning) 80%, transparent));
 }
 
 .curve-transport-bar {
@@ -297,13 +297,13 @@
 }
 
 .ease-preset-card:hover:not(:disabled) {
-  border-color: #6b21a8;
+  border-color: var(--accent-secondary);
   background: var(--bg-hover);
 }
 
 .ease-preset-card.active {
-  background: rgba(107, 33, 168, 0.15);
-  border-color: #6b21a8;
+  background: color-mix(in srgb, var(--accent-secondary) 15%, transparent);
+  border-color: var(--accent-secondary);
 }
 
 .ease-card-title {
@@ -401,14 +401,14 @@
 }
 
 .ease-pill-btn.active {
-  background: rgba(107, 33, 168, 0.2);
-  border-color: #6b21a8;
+  background: color-mix(in srgb, var(--accent-secondary) 20%, transparent);
+  border-color: var(--accent-secondary);
   color: var(--accent-text);
 }
 
 .keyframe-row.is-selected {
-  border-color: #6b21a8;
-  background: rgba(107, 33, 168, 0.12);
+  border-color: var(--accent-secondary);
+  background: color-mix(in srgb, var(--accent-secondary) 12%, transparent);
 }
 
 

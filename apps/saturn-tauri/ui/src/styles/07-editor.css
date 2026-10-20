@@ -53,7 +53,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000;
+  background: var(--color-black);
   position: relative;
   overflow: hidden;
 }
@@ -85,7 +85,7 @@
 
 .color-transport-bar button.active-toggle {
   background: var(--accent-primary);
-  color: #0b060a;
+  color: var(--bg-canvas);
   font-weight: 700;
 }
 
@@ -106,7 +106,7 @@
 }
 
 .color-hint-text {
-  color: #f59e0b;
+  color: var(--status-warning);
   font-style: italic;
 }
 
@@ -266,7 +266,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000;
+  background: var(--color-black);
   position: relative;
   overflow: hidden;
 }
@@ -298,7 +298,7 @@
 
 .effects-transport-bar button.active-toggle {
   background: var(--accent-primary);
-  color: #0b060a;
+  color: var(--bg-canvas);
   font-weight: 700;
 }
 
@@ -413,8 +413,8 @@
 
 .reel-clip-card.selected {
   border-color: var(--accent-primary);
-  background: rgba(107, 33, 168, 0.08);
-  box-shadow: 0 0 10px rgba(107, 33, 168, 0.2);
+  background: color-mix(in srgb, var(--accent-secondary) 8%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-secondary) 20%, transparent);
 }
 
 .reel-clip-badge {
@@ -429,18 +429,18 @@
   font-weight: 700;
   padding: 1px 4px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--color-white) 8%, transparent);
   color: var(--text-muted);
 }
 
 .reel-track-kind.video {
   color: var(--accent-text);
-  background: rgba(159, 18, 73, 0.12);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 .reel-track-kind.audio {
-  color: #34d399;
-  background: rgba(52, 211, 153, 0.12);
+  color: var(--status-success-text);
+  background: color-mix(in srgb, var(--status-success-text) 12%, transparent);
 }
 
 .reel-clip-badge code {
@@ -452,7 +452,7 @@
 .reel-fx-count-pill {
   font-size: 8.5px;
   font-weight: 700;
-  background: rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-violet-bright) 20%, transparent);
   color: var(--accent-text-violet);
   padding: 1px 4px;
   border-radius: 3px;

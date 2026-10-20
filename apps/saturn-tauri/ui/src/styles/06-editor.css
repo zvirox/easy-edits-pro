@@ -98,7 +98,7 @@
 }
 
 .audio-timeline-tray .clip-waveform-container {
-  color: #34d399 !important;
+  color: var(--status-success-text) !important;
   opacity: 0.92 !important;
   z-index: 1;
 }
@@ -156,7 +156,7 @@
   height: 100%;
   width: 100%;
   min-height: 0;
-  background: #0b060a;
+  background: var(--bg-scopes);
 }
 
 .scopes-header {
@@ -164,8 +164,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  background: var(--bg-subpanel);
-  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-scopes-header);
+  border-bottom: 1px solid var(--border-control);
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -189,9 +189,9 @@
   letter-spacing: 0.05em;
   padding: 2px 6px;
   border-radius: 3px;
-  background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: color-mix(in srgb, var(--status-success-bright) 15%, transparent);
+  color: var(--status-success-light);
+  border: 1px solid color-mix(in srgb, var(--status-success-bright) 30%, transparent);
 }
 
 .scope-tabs-bar {
@@ -219,15 +219,15 @@
 
 .scope-tab-btn.active {
   background: var(--accent-primary);
-  color: #0b060a;
+  color: var(--bg-canvas);
   font-weight: 700;
   border-color: var(--accent-primary);
 }
 
 .scope-tab-btn.quad-btn.active {
-  background: #a855f7;
-  color: #ffffff;
-  border-color: #a855f7;
+  background: var(--accent-violet-bright);
+  color: var(--color-white);
+  border-color: var(--accent-violet-bright);
 }
 
 .scopes-controls-bar {
@@ -266,9 +266,9 @@
 }
 
 .scope-toggle-btn.active {
-  background: rgba(159, 18, 73, 0.18);
+  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
   color: var(--accent-text);
-  border-color: rgba(159, 18, 73, 0.4);
+  border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
 .scopes-canvas-stage {
@@ -277,7 +277,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #050505;
+  background: var(--neutral-950);
   position: relative;
   overflow: hidden;
   padding: 4px;
@@ -430,8 +430,8 @@
   cursor: crosshair;
   touch-action: none;
   user-select: none;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.4);
-  border: 2px solid rgba(148, 163, 184, 0.2);
+  box-shadow: inset 0 0 10px color-mix(in srgb, var(--color-black) 80%, transparent), 0 2px 6px color-mix(in srgb, var(--color-black) 40%, transparent);
+  border: 2px solid color-mix(in srgb, var(--neutral-slate) 20%, transparent);
   overflow: hidden;
 }
 
@@ -441,22 +441,22 @@
   border-radius: 50%;
   background: conic-gradient(
     from 90deg,
-    #ff0000 0deg,
-    #ffff00 60deg,
-    #00ff00 120deg,
-    #00ffff 180deg,
-    #0000ff 240deg,
-    #ff00ff 300deg,
-    #ff0000 360deg
+    var(--scope-red) 0deg,
+    var(--scope-yellow) 60deg,
+    var(--scope-green) 120deg,
+    var(--scope-cyan) 180deg,
+    var(--scope-blue) 240deg,
+    var(--scope-magenta) 300deg,
+    var(--scope-red) 360deg
   );
   opacity: 0.85;
-  mask-image: radial-gradient(circle, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0.9) 85%);
-  -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 0) 10%, rgba(0, 0, 0, 0.9) 85%);
+  mask-image: radial-gradient(circle, transparent 10%, color-mix(in srgb, var(--color-black) 90%, transparent) 85%);
+  -webkit-mask-image: radial-gradient(circle, transparent 10%, color-mix(in srgb, var(--color-black) 90%, transparent) 85%);
 }
 
 .wheel-crosshair {
   position: absolute;
-  background: rgba(255, 255, 255, 0.18);
+  background: color-mix(in srgb, var(--color-white) 18%, transparent);
   pointer-events: none;
 }
 
@@ -482,7 +482,7 @@
   top: 50%;
   width: 6px;
   height: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid color-mix(in srgb, var(--color-white) 35%, transparent);
   border-radius: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -493,9 +493,9 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #ffffff;
-  border: 2px solid #000000;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.8), 0 0 2px #fff;
+  background: var(--color-white);
+  border: 2px solid var(--color-black);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--color-black) 80%, transparent), 0 0 2px var(--color-white);
   transform: translate(-50%, -50%);
   pointer-events: none;
   transition: transform 0.05s ease-out;

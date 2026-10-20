@@ -1,7 +1,7 @@
 # Easy Edits Pro — Glass UI Phased Implementation Plan v2.1
 
 > **Source:** `glass-ui-plan-v2.md` + skill analysis (glassmorphism, progressive-blur, baseline-ui, reverse-engineer-anything) + risk mitigation strategies
-> **Status:** Phase 0 complete — **conditional GO** (see [`glass-spike.md`](./glass-spike.md))
+> **Status:** Phase 1 complete — Phase 0's DMA-BUF condition is resolved and the real editor has been re-measured (see [`glass-spike.md`](./glass-spike.md))
 > **Total estimated effort:** 2.5–3 weeks (13–18 work days)
 
 ---
@@ -10,8 +10,8 @@
 
 | Phase | Duration | Focus | Gate |
 |-------|----------|-------|------|
-| **0** | 0.5–1 day | Feasibility spike (WebKitGTK performance) | **GO (conditional: DMA-BUF)** |
-| **1** | 1–2 days | Token cleanup, contrast, CI gates | All contrast ≥4.5:1 |
+| **0** | 0.5–1 day | Feasibility spike (WebKitGTK performance) | **GO (DMA-BUF default enabled)** |
+| **1** | 1–2 days | Token cleanup, contrast, CI gates | All contrast ≥4.5:1, 0 raw colours |
 | **2** | 1–2 days | Glass surfaces, background, rename CSS | 0 ad-hoc backdrop-filter |
 | **3** | 1–2 days | Animation hygiene, motion/react | 0 `transition: all` |
 | **4** | 3–5 days | Floating panel engine | Drag/resize/snap/dock/persist |
@@ -33,10 +33,12 @@ The plan predates the current tree. These corrections apply to the phases below:
 - **Motion is already present:** `motion ^14.2.0` is installed and used by
   `components/interior/*` (`motion/react`, `useReducedMotion`). Phase 3 needs no
   dependency add.
-- **Existing glass debt:** `styles/` contains **11 ad-hoc `backdrop-filter`
-  rules** (15 declarations including `-webkit-`), **41 `transition: all`**, and
-  762 hex + 436 `rgb()/rgba()` literals across 19 CSS files (8,553 lines). There
-  are **no `.glass` selectors** outside the Phase 0 spike.
+- **Existing glass debt (pre-G1d snapshot):** `styles/` contained **11 ad-hoc
+  `backdrop-filter` rules** (15 declarations including `-webkit-`), **41
+  `transition: all`**, and 762 hex + 436 `rgb()/rgba()` literals across 19 CSS
+  files (8,553 lines). Phase 1 G1d has since replaced all non-token literals and
+  removed every `transition: all`; there are **no `.glass` selectors** outside
+  the Phase 0 spike yet.
 
 ---
 
@@ -67,10 +69,24 @@ Validate `backdrop-filter` performance in Tauri's WebKitGTK **before committing 
 
 **Decision:** Full glass passes the ≥30 fps gate with ~2× headroom on
 integrated graphics — **but only when WebKit's DMA-BUF renderer is enabled**.
-With the current default (`WEBKIT_DISABLE_DMABUF_RENDERER=1`), the preview
-collapses to 1–3.5 fps even without any blur, so the blocker is the video
-compositing path, not glass. Phase 1 may proceed; Phase 2 starts only after the
-DMA-BUF default is fixed and re-verified in the real editor.
+With the old default (`WEBKIT_DISABLE_DMABUF_RENDERER=1`), the preview collapsed
+to 1–3.5 fps even without any blur, so the blocker was the video compositing
+path, not glass.
+
+**Runtime follow-up (resolved):** the unconditional disable was replaced by an
+opt-out policy (`EEP_DISABLE_DMABUF=1`, or a driver/vendor match), so DMA-BUF is
+on by default with a per-driver escape hatch. The real editor was then measured
+with a 10 s 1080p H.264 clip at 1600×900 @ DPR 2:
+
+| Real editor scenario | DMA-BUF on | DMA-BUF forced off |
+|---|---:|---:|
+| Video only | **54.0 fps** (30 fps video) | 13.1 fps, 0 presented frames |
+| Drag full glass, run 1 | **43.9 fps** | 8.5 fps |
+| Drag full glass, run 2 | **47.9 fps** | 7.2 fps |
+
+After the G1d token burn-down the same production build held 51.6 fps
+video-only and 47.2/47.8 fps while dragging, with 0 dropped video frames. Full
+glass is approved; Phase 2 must preserve that headroom.
 
 ### Go/No-Go Criteria
 | Metric | Threshold | Decision |
@@ -86,17 +102,18 @@ DMA-BUF default is fixed and re-verified in the real editor.
 ### Risk Mitigation (NEW)
 - [x] Pre-build **Lite fallback** (CSS gradient + shadow, zero `backdrop-filter`) for slow paths — `[data-glass="lite"]` / `[data-glass="off"]`
 - [x] Rust-side GPU detection (`apps/saturn-tauri/src/gpu_detect.rs`) — exposes GPU class/driver/DMA-BUF state to the UI, which sets `[data-webkit-gtk-slow]` at startup
-- [x] Feature flag `VITE_GLASS_ENABLED` for instant kill switch
+- [x] Feature flag `VITE_GLASS_ENABLED` for instant kill switch — build-time;
+  `VITE_GLASS_ENABLED=0` (or `false`) sets `data-glass="off"` and removes blur
 
 ---
 
 ## Phase 1 — Token Cleanup & Contrast (1–2 days) 🎨 **FOUNDATION**
 
-> **Status 2026-10-20:** foundation landed on `feat/glass-phase-1`. G1a–G1c and
-> G1e are complete. G1d is a measured burn-down: 951 raw colours remain, and the
-> 44 light-theme selectors are tokenized but not deleted. The style gate is a
-> ratchet, so no new raw colour or `transition: all` can land while the rest is
-> paid down.
+> **Status 2026-10-20:** Phase 1 is complete. G1a–G1c and G1e landed on
+> `feat/glass-phase-1`; G1d landed on `feat/glass-runtime` after the DMA-BUF fix.
+> All 951 remaining raw colours were replaced, the 44 light-theme selectors were
+> deleted, and light mode now resolves entirely through tokens. The style gate
+> has an empty baseline, so any new literal fails immediately.
 
 ### Objective
 Establish token-only color system with WCAG AA contrast; eliminate all raw literals.
@@ -132,27 +149,34 @@ Establish token-only color system with WCAG AA contrast; eliminate all raw liter
 #### G1c — Contrast CI Gate
 - [x] Create `scripts/check-contrast.mjs`:
   - Parses all token blocks (dark + light), resolves `var()` aliases
-  - Computes contrast for every semantic text/surface pair (66 pairs), including
+  - Computes contrast for every semantic text/surface pair (306 pairs,
+    including the G1d component roles), including
     translucent `--bg-glass` composited over the canvas
   - Fails CI if any pair is <4.5:1, or if a banned accent/muted text literal appears
 - [x] Add to CI: `pnpm check:contrast` runs on every PR
 
-#### G1d — Literal Elimination (in progress)
-- [x] Introduce a raw-colour ratchet (`scripts/style-baseline.json`): 951
-  tracked colours, new debt fails CI
-- [x] Tokenize the light-theme overrides in `16-editor.css` (62 literal
-  replacements: surfaces, borders, text, shadows)
-- [ ] Batch replace the remaining raw hex/rgba in `styles/` by file: **951**
-  remain (mostly backgrounds, borders, shadows, and intentional dark-canvas
-  rules such as the Fusion viewport)
-- [ ] Delete the 44 `[data-theme="light"]` selectors once the base component
-  rules are tokenized
-- [ ] Target: **0 raw hex/rgba in `styles/`** (except token files)
+#### G1d — Literal Elimination
+- [x] Introduce a raw-colour ratchet (`scripts/style-baseline.json`) and then
+  zero it: the baseline is now `{}`, so any literal hex/rgb/hsl outside the
+  token files fails CI
+- [x] Replace all 951 remaining raw colours across `styles/` with semantic
+  tokens or `color-mix()` over tokens; raw literals also stripped from
+  `var(--token, literal)` fallbacks
+- [x] Add the role tokens the component rules needed in both themes:
+  `--bg-workspace`, `--bg-card*`, `--bg-control*`, `--bg-strip`, `--bg-inset`,
+  `--bg-scopes*`, `--bg-meter-*`, `--bg-status`, `--border-node`,
+  `--border-inset`, `--border-meter-pair`, `--master-accent`, `--strip-accent`,
+  `--shadow-node`, `--curve-grid-*`, and status/text roles
+- [x] Delete all 44 `[data-theme="light"]` selectors in `16-editor.css`; the
+  base component rules now consume the theme-aware roles
+- [x] Fix the Keyframes curve grid/labels with `--curve-grid-line*` /
+  `--curve-grid-text` so the graph stays legible in light mode
+- [x] Target: **0 raw hex/rgba in `styles/`** (except token files) — met
 
 #### G1e — Lint Gates
 - [x] Add style gates (`scripts/check-styles.mjs`, dependency-free rather than
   Stylelint so it runs without a new toolchain):
-  - raw-colour ratchet outside token files
+  - raw-colour check outside token files (comments stripped, `hsl()` included)
   - `transition: all` ban
   - max-lines-per-file: 1,000 hard, 700 warning
 - [x] Remove all 41 `transition: all` declarations (expanded to explicit
@@ -161,12 +185,12 @@ Establish token-only color system with WCAG AA contrast; eliminate all raw liter
   same.
 
 ### Acceptance Criteria
-- [x] `pnpm check:contrast` passes (66 pairs at 4.5:1, 0 banned text colours)
-- [ ] 0 raw hex/rgba in `styles/` — currently 951 tracked; the ratchet blocks
-  new ones but the burn-down is not finished
+- [x] `pnpm check:contrast` passes (306 pairs at 4.5:1, 0 banned text colours)
+- [x] 0 raw hex/rgba in `styles/` — empty ratchet baseline; `hsl()` also checked
 - [x] 0 `transition: all` in codebase
-- [ ] 0 `[data-theme="light"]` overrides in `styles/` — 44 remain, values tokenized
-- [ ] Light theme works via tokens only — partial; see G1d
+- [x] 0 `[data-theme="light"]` overrides in `styles/` (token files only)
+- [x] Light theme works via tokens only — verified in the real editor across
+  Edit, Fusion, Color, Fairlight, Curves, and Deliver
 
 ### Risk Mitigation (NEW)
 - [x] **Contract tests** for token values:

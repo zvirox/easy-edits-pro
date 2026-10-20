@@ -8,7 +8,7 @@
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background: #000;
+  background: var(--color-black);
   border-radius: 6px;
   overflow: hidden;
   position: relative;
@@ -23,14 +23,14 @@
   height: calc(100% - 38px);
   padding: 4px;
   box-sizing: border-box;
-  background: #0b060a;
+  background: var(--bg-canvas);
 }
 
 .multicam-tile {
   position: relative;
-  background: #0b060a;
+  background: var(--bg-canvas);
   border-radius: 4px;
-  border: 2px solid #221220;
+  border: 2px solid var(--bg-elevated);
   overflow: hidden;
   cursor: pointer;
   display: flex;
@@ -40,12 +40,12 @@
 }
 
 .multicam-tile:hover {
-  border-color: #22c55e;
+  border-color: var(--status-success-bright);
 }
 
 .multicam-tile.active-angle {
-  border-color: #ef4444;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+  border-color: var(--status-danger-bright);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--status-danger-bright) 40%, transparent);
 }
 
 .multicam-tile-video {
@@ -64,9 +64,9 @@
   letter-spacing: 0.05em;
   padding: 2px 7px;
   border-radius: 3px;
-  background: rgba(17, 9, 16, 0.85);
+  background: color-mix(in srgb, var(--bg-base) 85%, transparent);
   color: var(--text-muted);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--color-white) 10%, transparent);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -74,21 +74,21 @@
 }
 
 .multicam-tile.active-angle .multicam-tally-badge {
-  background: #ef4444;
-  color: #fff;
-  border-color: #b91c1c;
+  background: var(--status-danger-bright);
+  color: var(--color-white);
+  border-color: var(--status-danger-dark);
 }
 
 .multicam-tally-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #7d6377;
+  background: var(--text-muted);
 }
 
 .multicam-tile.active-angle .multicam-tally-dot {
-  background: #fff;
-  box-shadow: 0 0 6px #fff;
+  background: var(--color-white);
+  box-shadow: 0 0 6px var(--color-white);
 }
 
 .multicam-angle-meta {
@@ -97,8 +97,8 @@
   right: 8px;
   font-size: 10px;
   font-weight: 700;
-  color: #faf2f7;
-  background: rgba(0, 0, 0, 0.7);
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--color-black) 70%, transparent);
   padding: 2px 6px;
   border-radius: 3px;
   z-index: 5;
@@ -139,9 +139,9 @@
 }
 
 .multicam-angle-btn.active {
-  background: #ef4444;
-  color: #fff;
-  border-color: #b91c1c;
+  background: var(--status-danger-bright);
+  color: var(--color-white);
+  border-color: var(--status-danger-dark);
 }
 
 .multicam-sync-btn {
@@ -152,16 +152,16 @@
   gap: 5px;
   padding: 4px 10px;
   border-radius: 4px;
-  background: rgba(107, 33, 168, 0.15);
-  border: 1px solid #6b21a8;
+  background: color-mix(in srgb, var(--accent-secondary) 15%, transparent);
+  border: 1px solid var(--accent-secondary);
   color: var(--accent-text);
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .multicam-sync-btn:hover {
-  background: rgba(107, 33, 168, 0.25);
-  color: #fff;
+  background: color-mix(in srgb, var(--accent-secondary) 25%, transparent);
+  color: var(--color-white);
 }
 
 /* Batch Export Queue in Deliver Workspace */
@@ -211,9 +211,9 @@
 }
 
 .batch-queue-btn.paused {
-  background: rgba(245, 158, 11, 0.18);
-  border-color: #f59e0b;
-  color: #fbbf24;
+  background: color-mix(in srgb, var(--status-warning) 18%, transparent);
+  border-color: var(--status-warning);
+  color: var(--status-warning-bright);
 }
 
 .batch-queue-list {
@@ -252,18 +252,18 @@
   text-transform: uppercase;
   padding: 2px 5px;
   border-radius: 3px;
-  background: #462d40;
+  background: var(--border-strong-solid);
   color: var(--text-muted);
 }
 
 .batch-status-pill.running {
-  background: rgba(107, 33, 168, 0.2);
+  background: color-mix(in srgb, var(--accent-secondary) 20%, transparent);
   color: var(--accent-text);
 }
 
 .batch-status-pill.completed {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
+  background: color-mix(in srgb, var(--status-success) 20%, transparent);
+  color: var(--status-success-text);
 }
 
 .batch-queue-progress-bar {
@@ -276,7 +276,7 @@
 
 .batch-queue-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6b21a8, #9f1249);
+  background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
   border-radius: 2px;
   transition: width 0.2s ease;
 }
@@ -325,8 +325,8 @@
 }
 
 .tracking-mode-btn.active {
-  background: rgba(107, 33, 168, 0.18);
-  border-color: #6b21a8;
+  background: color-mix(in srgb, var(--accent-secondary) 18%, transparent);
+  border-color: var(--accent-secondary);
   color: var(--accent-text);
 }
 
@@ -353,7 +353,7 @@
 }
 
 .tracking-action-btn:hover:not(:disabled) {
-  border-color: #6b21a8;
+  border-color: var(--accent-secondary);
   color: var(--accent-text);
 }
 
@@ -369,8 +369,8 @@
   transform: translate(-50%, -50%);
   width: 90px;
   height: 90px;
-  border: 2px dashed #d9468f;
-  box-shadow: 0 0 10px rgba(217, 70, 143, 0.4), inset 0 0 10px rgba(217, 70, 143, 0.2);
+  border: 2px dashed var(--accent-bright);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-bright) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--accent-bright) 20%, transparent);
   border-radius: 4px;
   pointer-events: none;
   z-index: 10;
@@ -389,7 +389,7 @@
 .tracking-box-crosshair::after {
   content: "";
   position: absolute;
-  background: #d9468f;
+  background: var(--accent-bright);
 }
 
 .tracking-box-crosshair::before {

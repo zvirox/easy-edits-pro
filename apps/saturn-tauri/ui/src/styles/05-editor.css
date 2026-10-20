@@ -7,7 +7,7 @@
 .master-rate-badge {
   font-size: 8.5px;
   font-family: monospace;
-  color: #fbbf24;
+  color: var(--status-warning-bright);
   font-weight: 700;
 }
 
@@ -28,8 +28,8 @@
   font-size: 9px;
   font-weight: 800;
   border-radius: 3px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-button);
+  border: 1px solid var(--border-control);
+  background: var(--bg-control);
   color: var(--text-muted);
   cursor: pointer;
   text-align: center;
@@ -42,24 +42,24 @@
 }
 
 .strip-btn.btn-mute.active {
-  background: #ef4444;
-  color: #ffffff;
-  border-color: #b91c1c;
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+  background: var(--status-danger-bright);
+  color: var(--color-white);
+  border-color: var(--status-danger-dark);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-danger-bright) 40%, transparent);
 }
 
 .strip-btn.btn-solo.active {
-  background: #f59e0b;
-  color: #000000;
-  border-color: #d97706;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+  background: var(--status-warning);
+  color: var(--color-black);
+  border-color: var(--status-warning-deep);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--status-warning) 40%, transparent);
 }
 
 .strip-btn.btn-lock.active {
-  background: #6b21a8;
-  color: #000000;
-  border-color: #6b21a8;
-  box-shadow: 0 0 8px rgba(107, 33, 168, 0.4);
+  background: var(--accent-secondary);
+  color: var(--color-black);
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-secondary) 40%, transparent);
 }
 
 .master-bus-placeholder {
@@ -73,7 +73,7 @@
   font-size: 8.5px;
   font-weight: 800;
   letter-spacing: 0.6px;
-  color: #fbbf24;
+  color: var(--status-warning-bright);
 }
 
 /* Meter + Fader Area */
@@ -102,8 +102,8 @@
   width: 100%;
   gap: 2px;
   padding: 2px;
-  background: #0b060a;
-  border: 1px solid #180d17;
+  background: var(--bg-meter-pair);
+  border: 1px solid var(--border-meter-pair);
   border-radius: 3px;
   position: relative;
 }
@@ -111,7 +111,7 @@
 .vu-bar-slot {
   flex: 1;
   height: 100%;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-meter-slot);
   border-radius: 1px;
   position: relative;
   overflow: hidden;
@@ -122,13 +122,13 @@
 .vu-bar-fill {
   width: 100%;
   min-height: 0;
-  background: linear-gradient(0deg, #10b981 0%, #10b981 65%, #f59e0b 82%, #ef4444 100%);
+  background: linear-gradient(0deg, var(--status-success) 0%, var(--status-success) 65%, var(--status-warning) 82%, var(--status-danger-bright) 100%);
   border-radius: 1px;
   transition: height 0.05s linear;
 }
 
 .vu-bar-fill.master {
-  background: linear-gradient(0deg, #059669 0%, #10b981 60%, #fbbf24 82%, #ef4444 100%);
+  background: linear-gradient(0deg, var(--status-success-deep) 0%, var(--status-success) 60%, var(--status-warning-bright) 82%, var(--status-danger-bright) 100%);
 }
 
 .vu-db-readout {
@@ -185,7 +185,7 @@
 }
 
 .vertical-fader.master-fader {
-  accent-color: #fbbf24;
+  accent-color: var(--status-warning-bright);
 }
 
 /* Fader Footer */
@@ -215,8 +215,8 @@
 }
 
 .strip-unity-btn.master-unity:hover {
-  border-color: #fbbf24;
-  color: #fbbf24;
+  border-color: var(--status-warning-bright);
+  color: var(--status-warning-bright);
 }
 
 .strip-gain-text {
@@ -227,7 +227,7 @@
 }
 
 .strip-gain-text.master-gain-text {
-  color: #fbbf24;
+  color: var(--status-warning-bright);
 }
 
 /* ==========================================================================
@@ -302,8 +302,8 @@
 }
 
 .btn-primary-subtle {
-  background: rgba(107, 33, 168, 0.12);
-  border: 1px solid rgba(107, 33, 168, 0.35);
+  background: color-mix(in srgb, var(--accent-secondary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-secondary) 35%, transparent);
   color: var(--accent-text);
   padding: 5px 14px;
   border-radius: 4px;
@@ -314,7 +314,7 @@
 }
 
 .btn-primary-subtle:hover {
-  background: rgba(107, 33, 168, 0.22);
+  background: color-mix(in srgb, var(--accent-secondary) 22%, transparent);
   border-color: var(--accent-primary);
 }
 
@@ -331,7 +331,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  background: rgba(0, 0, 0, 0.35);
+  background: color-mix(in srgb, var(--color-black) 35%, transparent);
   padding: 3px 10px;
   border-radius: 4px;
   border: 1px solid var(--border-color);
@@ -380,7 +380,7 @@
 
 .transport-btn.play-btn.active-toggle {
   background: var(--accent-primary);
-  color: #0b060a;
+  color: var(--bg-canvas);
   border-color: var(--accent-primary);
 }
 
@@ -444,7 +444,7 @@
 .audio-sync-preview-stage {
   aspect-ratio: 16 / 9;
   width: 100%;
-  background: #000;
+  background: var(--color-black);
   border-radius: 4px;
   overflow: hidden;
   position: relative;
@@ -455,13 +455,13 @@
 
 .audio-master-bus-card {
   background: var(--bg-panel);
-  border: 1px solid #d97706;
+  border: 1px solid var(--master-accent);
   border-radius: 6px;
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 0 16px rgba(217, 119, 6, 0.08);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--master-accent) 8%, transparent);
 }
 
 .master-bus-header {
@@ -473,7 +473,7 @@
 .master-bus-title strong {
   display: block;
   font-size: 12px;
-  color: #fbbf24;
+  color: var(--status-warning-bright);
 }
 
 .bus-badge {

@@ -1,7 +1,7 @@
 /* Timeline Change Audit Log */
 .collab-change-ledger {
-  background: #110910;
-  border: 1px solid #462d40;
+  background: var(--bg-base);
+  border: 1px solid var(--border-strong-solid);
   border-radius: 6px;
   max-height: 180px;
   overflow-y: auto;
@@ -14,7 +14,7 @@
   align-items: center;
   gap: 10px;
   padding: 6px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-white) 5%, transparent);
   font-size: 11px;
 }
 
@@ -38,7 +38,7 @@
 .ledger-action {
   font-size: 9.5px;
   font-weight: 700;
-  background: #221220;
+  background: var(--bg-elevated);
   padding: 1px 5px;
   border-radius: 3px;
   color: var(--text-muted);
@@ -46,7 +46,7 @@
 }
 
 .ledger-summary {
-  color: #e5d4e0;
+  color: var(--text-soft);
   flex: 1;
   white-space: nowrap;
   overflow: hidden;
@@ -67,9 +67,9 @@
 
 .ledger-add-row input {
   flex: 1;
-  background: #110910;
-  border: 1px solid #462d40;
-  color: #faf2f7;
+  background: var(--bg-base);
+  border: 1px solid var(--border-strong-solid);
+  color: var(--text-primary);
   padding: 6px 10px;
   border-radius: 4px;
   font-size: 11.5px;
@@ -77,16 +77,16 @@
 
 .ledger-add-row input:focus {
   outline: none;
-  border-color: #be185d;
+  border-color: var(--accent-primary-hover);
 }
 
 /* Phase 13 & Phase 14 UI Components */
 .modal-dialog-card {
-  background: #110910;
-  border: 1px solid #462d40;
+  background: var(--bg-base);
+  border: 1px solid var(--border-strong-solid);
   border-radius: 10px;
   padding: 20px 24px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 16px 40px color-mix(in srgb, var(--color-black) 70%, transparent);
   color: var(--text-main);
   width: 100%;
   animation: modalPop 0.15s ease-out;
@@ -106,7 +106,7 @@
 .modal-header h2 {
   font-size: 15px;
   font-weight: 700;
-  color: #faf2f7;
+  color: var(--text-primary);
 }
 
 .modal-desc {
@@ -127,8 +127,8 @@
 }
 
 .close-btn:hover {
-  color: #faf2f7;
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--color-white) 8%, transparent);
 }
 
 /* GPU Preview Status Pill in Status Bar */
@@ -136,8 +136,8 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: rgba(159, 18, 73, 0.12);
-  border: 1px solid rgba(159, 18, 73, 0.35);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent);
   border-radius: 12px;
   padding: 2px 9px;
   color: var(--accent-text);
@@ -148,17 +148,17 @@
 }
 
 .gpu-status-pill:hover {
-  background: rgba(159, 18, 73, 0.22);
-  border-color: #be185d;
-  box-shadow: 0 0 8px rgba(159, 18, 73, 0.3);
+  background: color-mix(in srgb, var(--accent-primary) 22%, transparent);
+  border-color: var(--accent-primary-hover);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 .gpu-status-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 6px #22c55e;
+  background: var(--status-success-bright);
+  box-shadow: 0 0 6px var(--status-success-bright);
   animation: pulseGreen 2s infinite ease-in-out;
 }
 
@@ -169,8 +169,8 @@
 
 /* Interop Tab Buttons */
 .interop-tab-btn {
-  background: #221220;
-  border: 1px solid #462d40;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong-solid);
   color: var(--text-muted);
   border-radius: 5px;
   padding: 6px 12px;
@@ -181,15 +181,15 @@
 }
 
 .interop-tab-btn:hover {
-  background: #462d40;
-  color: #faf2f7;
+  background: var(--border-strong-solid);
+  color: var(--text-primary);
 }
 
 .interop-tab-btn.active {
-  background: #9f1249;
-  border-color: #be185d;
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(159, 18, 73, 0.35);
+  background: var(--accent-primary);
+  border-color: var(--accent-primary-hover);
+  color: var(--color-white);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--accent-primary) 35%, transparent);
 }
 
 /* Interop Badge */
@@ -202,21 +202,21 @@
 }
 
 .interop-badge.apple {
-  background: rgba(159, 18, 73, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
   color: var(--accent-text);
-  border: 1px solid rgba(159, 18, 73, 0.4);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
 .interop-badge.adobe {
-  background: rgba(168, 85, 247, 0.2);
+  background: color-mix(in srgb, var(--accent-violet-bright) 20%, transparent);
   color: var(--accent-text-violet);
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  border: 1px solid color-mix(in srgb, var(--accent-violet-bright) 40%, transparent);
 }
 
 .interop-badge.broadcast {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: color-mix(in srgb, var(--status-success) 20%, transparent);
+  color: var(--status-success-text);
+  border: 1px solid color-mix(in srgb, var(--status-success) 40%, transparent);
 }
 
 /* ------------------------------------------------------------------
@@ -234,7 +234,7 @@
 
 /* Timeline: ruler stays at the top, track headers stay at the left */
 .timeline-ruler { position: sticky; top: 0; z-index: 8; background: var(--bg-panel); }
-.timeline-ruler .track-spacer { position: sticky; left: 0; z-index: 9; background: var(--bg-subpanel); border-right: 1px solid #343434; }
+.timeline-ruler .track-spacer { position: sticky; left: 0; z-index: 9; background: var(--bg-subpanel); border-right: 1px solid var(--neutral-650); }
 .track-row > .track-label { position: sticky; left: 0; z-index: 7; }
 
 
@@ -253,8 +253,8 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(34, 18, 32, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: color-mix(in srgb, var(--bg-elevated) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--neutral-slate) 20%, transparent);
   color: var(--text-muted);
   font-size: 11px;
   font-weight: 600;
@@ -265,21 +265,21 @@
 }
 
 .seq-crumb-btn:hover {
-  background: rgba(70, 45, 64, 0.8);
-  color: #faf2f7;
-  border-color: rgba(159, 18, 73, 0.4);
+  background: color-mix(in srgb, var(--border-strong-solid) 80%, transparent);
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
 .seq-crumb-btn.active {
-  background: rgba(159, 18, 73, 0.15);
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
   color: var(--accent-text);
-  border-color: #be185d;
+  border-color: var(--accent-primary-hover);
 }
 
 .seq-crumb-btn.compound-crumb {
-  background: rgba(168, 85, 247, 0.15);
+  background: color-mix(in srgb, var(--accent-violet-bright) 15%, transparent);
   color: var(--accent-text-violet);
-  border-color: #a855f7;
+  border-color: var(--accent-violet-bright);
 }
 
 .seq-crumb-arrow {
@@ -289,9 +289,9 @@
 }
 
 .seq-exit-compound-btn {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #f87171;
+  background: color-mix(in srgb, var(--status-danger-bright) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-danger-bright) 40%, transparent);
+  color: var(--status-danger-text);
   font-size: 10px;
   font-weight: 700;
   padding: 3px 7px;
@@ -301,15 +301,15 @@
 }
 
 .seq-exit-compound-btn:hover {
-  background: rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
-  border-color: #ef4444;
+  background: color-mix(in srgb, var(--status-danger-bright) 30%, transparent);
+  color: var(--status-danger-pale);
+  border-color: var(--status-danger-bright);
 }
 
 .seq-dropdown-select {
-  background: #110910;
-  color: #e5d4e0;
-  border: 1px solid #462d40;
+  background: var(--bg-base);
+  color: var(--text-soft);
+  border: 1px solid var(--border-strong-solid);
   border-radius: 4px;
   font-size: 11px;
   padding: 3px 6px;
@@ -318,33 +318,33 @@
 }
 
 .seq-dropdown-select:hover {
-  border-color: #be185d;
+  border-color: var(--accent-primary-hover);
 }
 
 /* Compound Clip Timeline Appearance */
 .timeline-clip.compound-clip {
-  background: linear-gradient(180deg, #581c87 0%, #3b0764 100%) !important;
-  border: 1px solid #6b21a8 !important;
-  box-shadow: 0 2px 8px rgba(147, 51, 234, 0.25);
+  background: linear-gradient(180deg, var(--accent-violet-deep) 0%, var(--accent-violet-dark) 100%) !important;
+  border: 1px solid var(--accent-secondary) !important;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent-violet-600) 25%, transparent);
 }
 
 .timeline-clip.compound-clip:hover {
-  border-color: #c084fc !important;
-  box-shadow: 0 2px 12px rgba(168, 85, 247, 0.4);
+  border-color: var(--accent-violet-soft) !important;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--accent-violet-bright) 40%, transparent);
 }
 
 .timeline-clip.compound-clip.selected {
-  outline: 2px solid #e9d5ff !important;
-  border-color: #ffffff !important;
+  outline: 2px solid var(--accent-violet-200) !important;
+  border-color: var(--color-white) !important;
 }
 
 .clip-compound-badge {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: rgba(147, 51, 234, 0.4);
-  border: 1px solid #c084fc;
-  color: #f3e8ff;
+  background: color-mix(in srgb, var(--accent-violet-600) 40%, transparent);
+  border: 1px solid var(--accent-violet-soft);
+  color: var(--accent-violet-100);
   font-size: 9px;
   font-weight: 700;
   padding: 1px 5px;
@@ -355,25 +355,25 @@
 }
 
 .clip-compound-badge:hover {
-  background: #6b21a8;
-  color: #ffffff;
+  background: var(--accent-secondary);
+  color: var(--color-white);
 }
 
 .media-item.compound-item {
-  border-left: 3px solid #a855f7;
+  border-left: 3px solid var(--accent-violet-bright);
 }
 
 /* EBU R128 Master Bus Loudness Meter Card */
 .audio-master-loudness-card {
-  background: #180d17;
-  border: 1px solid #221220;
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-elevated);
   border-radius: 6px;
   padding: 12px;
   margin-top: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-black) 30%, transparent);
 }
 
 .loudness-card-header {
@@ -382,7 +382,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
-  border-bottom: 1px solid #221220;
+  border-bottom: 1px solid var(--bg-elevated);
   padding-bottom: 8px;
 }
 
@@ -395,7 +395,7 @@
 .loudness-title strong {
   font-size: 11px;
   font-weight: 700;
-  color: #faf2f7;
+  color: var(--text-primary);
   letter-spacing: 0.5px;
 }
 
@@ -403,9 +403,9 @@
   font-size: 8.5px;
   font-weight: 700;
   padding: 1px 5px;
-  background: rgba(159, 18, 73, 0.15);
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
   color: var(--accent-text);
-  border: 1px solid rgba(159, 18, 73, 0.3);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent);
   border-radius: 3px;
 }
 
@@ -415,8 +415,8 @@
 }
 
 .loudness-tab-btn {
-  background: rgba(34, 18, 32, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: color-mix(in srgb, var(--bg-elevated) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--neutral-slate) 20%, transparent);
   color: var(--text-muted);
   font-size: 9.5px;
   font-weight: 600;
@@ -427,14 +427,14 @@
 }
 
 .loudness-tab-btn:hover {
-  background: #221220;
-  color: #faf2f7;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .loudness-tab-btn.active {
-  background: rgba(159, 18, 73, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
   color: var(--accent-text);
-  border-color: #be185d;
+  border-color: var(--accent-primary-hover);
   font-weight: 700;
 }
 

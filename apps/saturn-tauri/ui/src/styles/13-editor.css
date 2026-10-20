@@ -10,12 +10,12 @@
 }
 
 .socket-port:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--color-white) 8%, transparent);
 }
 
 .socket-port.active {
-  background: rgba(159, 18, 73, 0.2);
-  outline: 1px solid #be185d;
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  outline: 1px solid var(--accent-primary-hover);
 }
 
 .socket-port small {
@@ -30,37 +30,37 @@
   height: 9px;
   border-radius: 50%;
   display: inline-block;
-  box-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 3px color-mix(in srgb, var(--color-black) 60%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-white) 30%, transparent);
 }
 
 .socket-dot.in {
-  background: #be185d;
+  background: var(--accent-primary-hover);
 }
 
 .socket-dot.fg {
-  background: #a855f7;
+  background: var(--accent-violet-bright);
 }
 
 .socket-dot.bg {
-  background: #9f1249;
+  background: var(--accent-primary);
 }
 
 .socket-dot.mask {
-  background: #ec4899;
+  background: var(--accent-bright-hover);
 }
 
 .socket-dot.out {
-  background: #10b981;
+  background: var(--status-success);
 }
 
 .sink-label {
   font-size: 9px;
   font-weight: 700;
-  color: #ef4444;
+  color: var(--status-danger-bright);
   letter-spacing: 0.05em;
   padding: 2px 4px;
-  background: rgba(239, 68, 68, 0.12);
+  background: color-mix(in srgb, var(--status-danger-bright) 12%, transparent);
   border-radius: 3px;
 }
 
@@ -69,7 +69,8 @@
   width: 320px;
   min-width: 280px;
   background: var(--bg-panel);
-  border-left: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-panel);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -102,6 +103,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  background: var(--bg-surface);
 }
 
 .inspector-title-row {
@@ -124,7 +126,7 @@
   font-weight: 800;
   padding: 2px 6px;
   border-radius: 3px;
-  background: rgba(159, 18, 73, 0.15);
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
   color: var(--accent-text);
   letter-spacing: 0.06em;
 }
@@ -184,7 +186,7 @@
   font-weight: 700;
   padding: 2px 5px;
   border-radius: 3px;
-  background: rgba(159, 18, 73, 0.15);
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
   color: var(--accent-text);
 }
 
@@ -218,7 +220,7 @@
 .speed-preset-btn.active,
 .shutter-btn.active {
   background: var(--accent-primary);
-  color: #0b060a;
+  color: var(--bg-canvas);
   font-weight: 700;
   border-color: var(--accent-primary);
 }
@@ -238,7 +240,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: rgba(17, 9, 16, 0.8) !important;
+  background: color-mix(in srgb, var(--bg-base) 80%, transparent) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: 16px !important;
   padding: 3px 10px !important;
@@ -247,8 +249,8 @@
 }
 
 .collab-pill-btn:hover {
-  border-color: #be185d !important;
-  background: rgba(34, 18, 32, 0.9) !important;
+  border-color: var(--accent-primary-hover) !important;
+  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent) !important;
 }
 
 .collab-indicator-dot {
@@ -269,7 +271,7 @@
   font-size: 10px;
   font-weight: 700;
   color: var(--accent-text);
-  background: rgba(159, 18, 73, 0.15);
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
   padding: 1px 5px;
   border-radius: 8px;
 }
@@ -278,10 +280,10 @@
 .collab-modal {
   max-width: 680px;
   width: 90vw;
-  background: #110910;
-  border: 1px solid #462d40;
+  background: var(--bg-base);
+  border: 1px solid var(--border-strong-solid);
   border-radius: 10px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--color-black) 80%, transparent);
 }
 
 .collab-modal-content {
@@ -297,8 +299,8 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #221220;
-  border: 1px solid #462d40;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong-solid);
   border-radius: 8px;
   padding: 12px 16px;
 }
@@ -312,8 +314,8 @@
   justify-content: center;
   font-size: 18px;
   font-weight: 800;
-  color: #fff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  color: var(--color-white);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-black) 50%, transparent);
   flex-shrink: 0;
 }
 
@@ -333,9 +335,9 @@
 }
 
 .collab-user-inputs input[type="text"] {
-  background: #110910;
-  border: 1px solid #462d40;
-  color: #faf2f7;
+  background: var(--bg-base);
+  border: 1px solid var(--border-strong-solid);
+  color: var(--text-primary);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
@@ -347,8 +349,8 @@
   width: 48px;
   padding: 1px 2px;
   border-radius: 4px;
-  border: 1px solid #462d40;
-  background: #110910;
+  border: 1px solid var(--border-strong-solid);
+  background: var(--bg-base);
   cursor: pointer;
 }
 
@@ -356,18 +358,18 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0, 0, 0, 0.3);
+  background: color-mix(in srgb, var(--color-black) 30%, transparent);
   padding: 6px 10px;
   border-radius: 6px;
-  border: 1px solid #462d40;
+  border: 1px solid var(--border-strong-solid);
 }
 
 .session-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 6px #22c55e;
+  background: var(--status-success-bright);
+  box-shadow: 0 0 6px var(--status-success-bright);
 }
 
 .collab-session-badge small {
@@ -405,8 +407,8 @@
 }
 
 .collab-lock-card {
-  background: #221220;
-  border: 1px solid #462d40;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong-solid);
   border-radius: 8px;
   padding: 12px;
   display: flex;
@@ -423,7 +425,7 @@
 .lock-card-header strong {
   font-size: 12px;
   font-weight: 700;
-  color: #faf2f7;
+  color: var(--text-primary);
 }
 
 .lock-status-badge {
@@ -435,15 +437,15 @@
 }
 
 .lock-status-badge.available {
-  background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: color-mix(in srgb, var(--status-success-bright) 15%, transparent);
+  color: var(--status-success-light);
+  border: 1px solid color-mix(in srgb, var(--status-success-bright) 30%, transparent);
 }
 
 .lock-status-badge.locked {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: color-mix(in srgb, var(--status-danger-bright) 15%, transparent);
+  color: var(--status-danger-text);
+  border: 1px solid color-mix(in srgb, var(--status-danger-bright) 30%, transparent);
 }
 
 .collab-lock-card p {
@@ -459,9 +461,9 @@
   align-items: center;
   justify-content: space-between;
   font-size: 11px;
-  color: #e5d4e0;
+  color: var(--text-soft);
   padding-top: 4px;
-  border-top: 1px solid #462d40;
+  border-top: 1px solid var(--border-strong-solid);
 }
 
 .lock-holder-info b {

@@ -19,9 +19,11 @@ pairs are enforced by `pnpm check:contrast` at WCAG AA (4.5:1).
 | `--text-primary` | `#faf2f7` | `#281622` |
 | `--text-secondary` | `#d4bccf` | `#4a3844` |
 | `--text-muted` | `#a890a0` | `#5d4f58` |
+| `--text-soft` | `#e5d4e0` | `#4a3844` |
 | `--accent-text` | `#f472b6` | `#9f1249` |
-| `--accent-text-hover` | `#f9a8d4` | `#be185d` |
+| `--accent-text-hover` | `#f9a8d4` | `#991144` |
 | `--accent-text-violet` | `#c084fc` | `#6b21a8` |
+| `--accent-bright` | `#d9468f` | `#be185d` |
 | `--text-on-accent` | `#ffffff` | `#ffffff` |
 
 ## Surfaces
@@ -54,6 +56,51 @@ pairs are enforced by `pnpm check:contrast` at WCAG AA (4.5:1).
 | `--blur-l3` | `20px` | `20px` |
 | `--blur-l4` | `28px` | `28px` |
 
+## Component surfaces (G1d)
+
+| Token | Dark | Light |
+|---|---|---|
+| `--bg-workspace` | `#0b060a` | `#f8f1f6` |
+| `--bg-card` | `#221220` | `#f8f1f6` |
+| `--bg-card-hover` | `color-mix(in srgb, #ffffff 4%, transparent)` | `#f8f1f6` |
+| `--bg-card-selected` | `color-mix(in srgb, #6b21a8 10%, transparent)` | `rgba(159, 18, 73, 0.12)` |
+| `--bg-control` | `#221220` | `#f8f1f6` |
+| `--bg-control-subtle` | `#0b060a` | `#f8f1f6` |
+| `--bg-status` | `#1d1d1d` | `#f8f1f6` |
+| `--bg-node` | `#110910` | `#fffafd` |
+| `--bg-strip` | `#221220` | `#fffafd` |
+| `--bg-inset` | `color-mix(in srgb, #000000 20%, transparent)` | `#f8f1f6` |
+| `--bg-meter-pair` | `#0b060a` | `#f8f1f6` |
+| `--bg-chip` | `color-mix(in srgb, #ffffff 5%, transparent)` | `#f8f1f6` |
+| `--bg-scopes` | `#0b060a` | `#f8f1f6` |
+| `--bg-scopes-header` | `#221220` | `#fffafd` |
+| `--bg-panel` | `#180d17` | `#fffafd` |
+| `--bg-subpanel` | `#221220` | `#ede1e9` |
+| `--bg-input` | `#100810` | `#fffafd` |
+| `--bg-selected` | `rgba(159, 18, 73, 0.18)` | `rgba(159, 18, 73, 0.12)` |
+| `--bg-hover` | `rgba(244, 215, 235, 0.05)` | `rgba(83, 41, 67, 0.05)` |
+| `--bg-active` | `rgba(244, 215, 235, 0.09)` | `rgba(83, 41, 67, 0.09)` |
+
+## Component roles (G1d)
+
+| Token | Dark | Light |
+|---|---|---|
+| `--bg-meter-slot` | `color-mix(in srgb, #ffffff 2%, transparent)` | `#f8f1f6` |
+| `--master-accent` | `#d97706` | `#c2410c` |
+| `--strip-accent` | `#6b21a8` | `#9f1249` |
+| `--strip-end` | `#221220` | `#fffafd` |
+| `--border-card-selected` | `#6b21a8` | `#9f1249` |
+| `--border-control` | `rgba(244, 215, 235, 0.07)` | `rgba(83, 41, 67, 0.16)` |
+| `--border-hover` | `rgba(217, 70, 143, 0.45)` | `rgba(83, 41, 67, 0.16)` |
+| `--border-node` | `#462d40` | `rgba(83, 41, 67, 0.16)` |
+| `--border-inset` | `color-mix(in srgb, #ffffff 3%, transparent)` | `rgba(83, 41, 67, 0.10)` |
+| `--border-meter-pair` | `#180d17` | `rgba(83, 41, 67, 0.10)` |
+| `--border-status` | `#303030` | `rgba(83, 41, 67, 0.10)` |
+| `--shadow-node` | `0 4px 14px color-mix(in srgb, #000000 50%, transparent)` | `0 4px 14px rgba(17, 9, 16, 0.08)` |
+| `--curve-grid-line` | `color-mix(in srgb, #ffffff 7%, transparent)` | `color-mix(in srgb, #5d4f58 22%, transparent)` |
+| `--curve-grid-line-subtle` | `color-mix(in srgb, #ffffff 5%, transparent)` | `color-mix(in srgb, #5d4f58 14%, transparent)` |
+| `--curve-grid-text` | `color-mix(in srgb, #ffffff 40%, transparent)` | `#5d4f58` |
+
 ## Motion
 
 | Token | Dark | Light |
@@ -65,6 +112,9 @@ pairs are enforced by `pnpm check:contrast` at WCAG AA (4.5:1).
 | `--dur-slow` | `360ms` | `360ms` |
 
 ## Contrast matrix
+
+Core text/surface pairs are listed below. The G1d component surfaces are
+audited by the same script; only the core pairs are repeated here.
 
 | Foreground | Background | Dark | Light | Minimum |
 |---|---|---:|---:|---:|
@@ -118,11 +168,11 @@ pairs are enforced by `pnpm check:contrast` at WCAG AA (4.5:1).
 | `--accent-text` | `--bg-surface` | 7.15:1 | 7.66:1 | 4.5:1 |
 | `--accent-text` | `--bg-elevated` | 6.75:1 | 6.23:1 | 4.5:1 |
 | `--accent-text` | `--bg-glass` | 7.24:1 | 7.50:1 | 4.5:1 |
-| `--accent-text-hover` | `--bg-canvas` | 11.08:1 | 5.04:1 | 4.5:1 |
-| `--accent-text-hover` | `--bg-base` | 10.82:1 | 5.44:1 | 4.5:1 |
-| `--accent-text-hover` | `--bg-surface` | 10.44:1 | 5.85:1 | 4.5:1 |
-| `--accent-text-hover` | `--bg-elevated` | 9.85:1 | 4.76:1 | 4.5:1 |
-| `--accent-text-hover` | `--bg-glass` | 10.57:1 | 5.73:1 | 4.5:1 |
+| `--accent-text-hover` | `--bg-canvas` | 11.08:1 | 6.96:1 | 4.5:1 |
+| `--accent-text-hover` | `--bg-base` | 10.82:1 | 7.51:1 | 4.5:1 |
+| `--accent-text-hover` | `--bg-surface` | 10.44:1 | 8.08:1 | 4.5:1 |
+| `--accent-text-hover` | `--bg-elevated` | 9.85:1 | 6.57:1 | 4.5:1 |
+| `--accent-text-hover` | `--bg-glass` | 10.57:1 | 7.92:1 | 4.5:1 |
 | `--accent-text-violet` | `--bg-canvas` | 7.61:1 | 7.28:1 | 4.5:1 |
 | `--accent-text-violet` | `--bg-base` | 7.42:1 | 7.85:1 | 4.5:1 |
 | `--accent-text-violet` | `--bg-surface` | 7.17:1 | 8.45:1 | 4.5:1 |

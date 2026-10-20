@@ -194,6 +194,212 @@
   --ring: var(--border-focus);
 }
 
+/* --------------------------------------------------------------------------
+   Primitive and component tokens for G1d.
+   Constants live on :root so they are available before the theme attribute is
+   applied. Theme-dependent tokens are declared for dark and light below.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --canvas-black: #000000;
+  --scope-red: #ff0000;
+  --scope-green: #00ff00;
+  --scope-blue: #0000ff;
+  --scope-cyan: #00ffff;
+  --scope-magenta: #ff00ff;
+  --scope-yellow: #ffff00;
+  --neutral-950: #050505;
+  --neutral-925: #080808;
+  --neutral-900: #090909;
+  --neutral-850: #111111;
+  --neutral-800: #151515;
+  --neutral-775: #1d1d1d;
+  --neutral-750: #202020;
+  --neutral-700: #303030;
+  --neutral-650: #343434;
+  --neutral-600: #444444;
+  --neutral-550: #555555;
+  --neutral-400: #999999;
+  --neutral-350: #aaaaaa;
+  --neutral-300: #bbbbbb;
+  --neutral-200: #dddddd;
+  --neutral-100: #eeeeee;
+  --neutral-slate: #94a3b8;
+}
+
+:root,
+[data-theme="dark"],
+.dark {
+  --text-soft: #e5d4e0;
+  --accent-bright: #d9468f;
+  --accent-bright-hover: #ec4899;
+  --accent-primary-deep: #831843;
+  --accent-violet-bright: #a855f7;
+  --accent-violet-soft: #c084fc;
+  --accent-violet-pale: #d8b4fe;
+  --accent-violet-100: #f3e8ff;
+  --accent-violet-200: #e9d5ff;
+  --accent-violet-300: #a78bfa;
+  --accent-violet-600: #9333ea;
+  --accent-violet-deep: #581c87;
+  --accent-violet-dark: #3b0764;
+  --status-success-bright: #22c55e;
+  --status-success-text: #34d399;
+  --status-success-light: #4ade80;
+  --status-success-mint: #6ee7b7;
+  --status-success-deep: #059669;
+  --status-success-darker: #047857;
+  --status-success-darkest: #064e3b;
+  --status-success-ink: #022c22;
+  --status-warning-bright: #fbbf24;
+  --status-warning-yellow: #eab308;
+  --status-warning-pale: #fde68a;
+  --status-warning-soft: #fde047;
+  --status-warning-deep: #d97706;
+  --status-warning-darker: #b45309;
+  --status-warning-dark: #78350f;
+  --status-warning-orange: #c2410c;
+  --status-warning-cream: #fef3c7;
+  --status-danger-bright: #ef4444;
+  --status-danger-text: #f87171;
+  --status-danger-pale: #fca5a5;
+  --status-danger-soft: #f43f5e;
+  --status-danger-deep: #dc2626;
+  --status-danger-dark: #b91c1c;
+  --status-danger-darkest: #7f1d1d;
+  --status-danger-muted: #f4a0a0;
+  --status-danger-border-muted: #754848;
+  --status-danger-text-muted: #ffb8b8;
+  --status-danger-border-soft: #6b394b;
+  --status-danger-text-soft: #f1d2c8;
+  --status-danger-text-dim: #d5a89d;
+  --playhead: #f29b45;
+  --playhead-hover: #ffc078;
+  --drop-target: #f2a24d;
+  --marker-in: #79c896;
+  --marker-out: #e7a264;
+  --border-strong-solid: #462d40;
+  --bg-workspace: var(--bg-canvas);
+  --bg-card: var(--bg-elevated);
+  --bg-card-hover: color-mix(in srgb, var(--color-white) 4%, transparent);
+  --bg-card-selected: color-mix(in srgb, var(--accent-secondary) 10%, transparent);
+  --border-card-selected: var(--accent-secondary);
+  --bg-control: var(--bg-elevated);
+  --bg-control-subtle: var(--bg-canvas);
+  --border-control: var(--border-subtle);
+  --bg-status: var(--neutral-775);
+  --border-status: var(--neutral-700);
+  --bg-node: var(--bg-base);
+  --border-node: var(--border-strong-solid);
+  --shadow-node: 0 4px 14px color-mix(in srgb, var(--color-black) 50%, transparent);
+  --bg-strip: var(--bg-subpanel);
+  --border-hover: var(--border-active);
+  --strip-accent: var(--accent-secondary);
+  --strip-end: var(--bg-subpanel);
+  --master-accent: var(--status-warning-deep);
+  --bg-inset: color-mix(in srgb, var(--color-black) 20%, transparent);
+  --border-inset: color-mix(in srgb, var(--color-white) 3%, transparent);
+  --bg-meter-pair: var(--bg-canvas);
+  --border-meter-pair: var(--bg-surface);
+  --bg-meter-slot: color-mix(in srgb, var(--color-white) 2%, transparent);
+  --bg-chip: color-mix(in srgb, var(--color-white) 5%, transparent);
+  --bg-scopes: var(--bg-canvas);
+  --bg-scopes-header: var(--bg-subpanel);
+  --theme-thumb-bg: var(--color-white);
+  --theme-thumb-shadow: 0 1px 4px color-mix(in srgb, var(--color-black) 40%, transparent), 0 0 10px color-mix(in srgb, var(--color-white) 35%, transparent);
+  --theme-icon-active: var(--bg-canvas);
+  --curve-grid-line: color-mix(in srgb, var(--color-white) 7%, transparent);
+  --curve-grid-line-subtle: color-mix(in srgb, var(--color-white) 5%, transparent);
+  --curve-grid-text: color-mix(in srgb, var(--color-white) 40%, transparent);
+}
+
+[data-theme="light"],
+.light {
+  --text-soft: #4a3844;
+  --accent-bright: #be185d;
+  --accent-bright-hover: #9f1249;
+  --accent-primary-deep: #831843;
+  --accent-violet-bright: #7c3aed;
+  --accent-violet-soft: #a855f7;
+  --accent-violet-pale: #c084fc;
+  --accent-violet-100: #f3e8ff;
+  --accent-violet-200: #e9d5ff;
+  --accent-violet-300: #a78bfa;
+  --accent-violet-600: #9333ea;
+  --accent-violet-deep: #6b21a8;
+  --accent-violet-dark: #581c87;
+  --status-success-bright: #16a34a;
+  --status-success-text: #047857;
+  --status-success-light: #059669;
+  --status-success-mint: #10b981;
+  --status-success-deep: #047857;
+  --status-success-darker: #065f46;
+  --status-success-darkest: #064e3b;
+  --status-success-ink: #022c22;
+  --status-warning-bright: #b45309;
+  --status-warning-yellow: #ca8a04;
+  --status-warning-pale: #92400e;
+  --status-warning-soft: #ca8a04;
+  --status-warning-deep: #b45309;
+  --status-warning-darker: #92400e;
+  --status-warning-dark: #78350f;
+  --status-warning-orange: #c2410c;
+  --status-warning-cream: #78350f;
+  --status-danger-bright: #dc2626;
+  --status-danger-text: #be123c;
+  --status-danger-pale: #be123c;
+  --status-danger-soft: #e11d48;
+  --status-danger-deep: #b91c1c;
+  --status-danger-dark: #991b1b;
+  --status-danger-darkest: #7f1d1d;
+  --status-danger-muted: #be123c;
+  --status-danger-border-muted: #b91c1c;
+  --status-danger-text-muted: #be123c;
+  --status-danger-border-soft: #b91c1c;
+  --status-danger-text-soft: #be123c;
+  --status-danger-text-dim: #9f1239;
+  --playhead: #d97706;
+  --playhead-hover: #f59e0b;
+  --drop-target: #d97706;
+  --marker-in: #059669;
+  --marker-out: #d97706;
+  --border-strong-solid: rgba(83, 41, 67, 0.16);
+  --bg-workspace: var(--bg-base);
+  --bg-card: var(--bg-base);
+  --bg-card-hover: var(--bg-base);
+  --bg-card-selected: var(--bg-selected);
+  --border-card-selected: var(--border-focus);
+  --bg-control: var(--bg-base);
+  --bg-control-subtle: var(--bg-base);
+  --border-control: var(--border-default);
+  --bg-status: var(--bg-base);
+  --border-status: var(--border-subtle);
+  --bg-node: var(--bg-surface);
+  --border-node: var(--border-default);
+  --shadow-node: var(--shadow-soft-lg);
+  --bg-strip: var(--bg-surface);
+  --border-hover: var(--border-default);
+  --strip-accent: var(--accent-primary);
+  --strip-end: var(--bg-surface);
+  --master-accent: var(--accent-orange);
+  --bg-inset: var(--bg-base);
+  --border-inset: var(--border-subtle);
+  --bg-meter-pair: var(--bg-base);
+  --border-meter-pair: var(--border-subtle);
+  --bg-meter-slot: var(--bg-base);
+  --bg-chip: var(--bg-base);
+  --bg-scopes: var(--bg-base);
+  --bg-scopes-header: var(--bg-surface);
+  --theme-thumb-bg: var(--bg-base);
+  --theme-thumb-shadow: 0 2px 6px color-mix(in srgb, var(--bg-base) 30%, transparent);
+  --theme-icon-active: var(--color-white);
+  --curve-grid-line: color-mix(in srgb, var(--text-muted) 22%, transparent);
+  --curve-grid-line-subtle: color-mix(in srgb, var(--text-muted) 14%, transparent);
+  --curve-grid-text: var(--text-muted);
+}
+
 /* Universal Floating Tooltips */
 [data-tooltip] {
   position: relative;

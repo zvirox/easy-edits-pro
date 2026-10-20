@@ -4,9 +4,9 @@
  *
  * - No `transition: all` (layout/unknown-property animation is banned).
  * - No CSS file over 1,000 lines.
- * - Raw colour ratchet: token files are exempt; every other file is compared
- *   against scripts/style-baseline.json. New debt fails CI, and reducing debt
- *   is always allowed. Update the baseline with --update-baseline.
+ * - Raw colours: token files are the only place a literal hex/rgb/hsl value may
+ *   live. Every other file must use a token or color-mix() with a token.
+ *   scripts/style-baseline.json is intentionally empty; any new literal fails.
  *
  * Usage: node scripts/check-styles.mjs [--update-baseline]
  */
@@ -37,9 +37,12 @@ function walk(directory) {
 }
 
 function countRawColours(source) {
-  const hex = source.match(/#[0-9a-fA-F]{3,8}\b/g) ?? [];
-  const rgb = source.match(/rgba?\([^)]*\)/g) ?? [];
-  return hex.length + rgb.length;
+  // Comments are documentation, not paint. Count only live declarations.
+  const live = source.replace(/\/\*[\s\S]*?\*\//g, "");
+  const hex = live.match(/#[0-9a-fA-F]{3,8}\b/g) ?? [];
+  const rgb = live.match(/rgba?\([^)]*\)/g) ?? [];
+  const hsl = live.match(/hsla?\([^)]*\)/g) ?? [];
+  return hex.length + rgb.length + hsl.length;
 }
 
 function collect() {
@@ -121,7 +124,7 @@ function main() {
     process.exitCode = 1;
     return;
   }
-  console.log(`✓ styles: no transition:all, no oversized files, ${total} tracked raw colours (ratchet)`);
+  console.log(`✓ styles: no transition:all, no oversized files, ${total} raw colours outside token files`);
 }
 
 main();

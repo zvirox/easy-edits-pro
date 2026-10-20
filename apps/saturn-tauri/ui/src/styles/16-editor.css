@@ -1,8 +1,8 @@
 /* Track Delete Button */
 .track-mini-btn.delete-track-btn:hover:not(:disabled) {
-  background: #dc2626;
-  color: #ffffff;
-  border-color: #ef4444;
+  background: var(--status-danger-deep);
+  color: var(--color-white);
+  border-color: var(--status-danger-bright);
 }
 
 .track-mini-btn:disabled {
@@ -12,8 +12,8 @@
 
 /* Track Lane Drop Target Indicator */
 .track-lane.media-drop-target {
-  background: rgba(159, 18, 73, 0.12) !important;
-  box-shadow: inset 0 0 0 2px #be185d;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent) !important;
+  box-shadow: inset 0 0 0 2px var(--accent-primary-hover);
 }
 
 /* Timeline Empty Gap Detection & 1-Click Ripple Deletion */
@@ -23,12 +23,12 @@
   bottom: 4px;
   background: repeating-linear-gradient(
     -45deg,
-    rgba(239, 68, 68, 0.08),
-    rgba(239, 68, 68, 0.08) 6px,
-    rgba(0, 0, 0, 0.25) 6px,
-    rgba(0, 0, 0, 0.25) 12px
+    color-mix(in srgb, var(--status-danger-bright) 8%, transparent),
+    color-mix(in srgb, var(--status-danger-bright) 8%, transparent) 6px,
+    color-mix(in srgb, var(--color-black) 25%, transparent) 6px,
+    color-mix(in srgb, var(--color-black) 25%, transparent) 12px
   );
-  border: 1px dashed rgba(239, 68, 68, 0.35);
+  border: 1px dashed color-mix(in srgb, var(--status-danger-bright) 35%, transparent);
   border-radius: 3px;
   cursor: pointer;
   display: flex;
@@ -41,21 +41,21 @@
 .timeline-gap-segment:hover {
   background: repeating-linear-gradient(
     -45deg,
-    rgba(239, 68, 68, 0.22),
-    rgba(239, 68, 68, 0.22) 6px,
-    rgba(0, 0, 0, 0.4) 6px,
-    rgba(0, 0, 0, 0.4) 12px
+    color-mix(in srgb, var(--status-danger-bright) 22%, transparent),
+    color-mix(in srgb, var(--status-danger-bright) 22%, transparent) 6px,
+    color-mix(in srgb, var(--color-black) 40%, transparent) 6px,
+    color-mix(in srgb, var(--color-black) 40%, transparent) 12px
   );
-  border-color: rgba(239, 68, 68, 0.8);
+  border-color: color-mix(in srgb, var(--status-danger-bright) 80%, transparent);
 }
 
 .gap-ripple-pill {
   padding: 2px 6px;
   font-size: 9px;
   font-weight: 700;
-  color: #fca5a5;
-  background: rgba(153, 27, 27, 0.85);
-  border: 1px solid #ef4444;
+  color: var(--status-danger-pale);
+  background: color-mix(in srgb, var(--status-danger-dark) 85%, transparent);
+  border: 1px solid var(--status-danger-bright);
   border-radius: 3px;
   pointer-events: none;
   white-space: nowrap;
@@ -69,15 +69,15 @@
 .track-group-row {
   min-height: 28px !important;
   height: 28px !important;
-  background: #180d17;
-  border-top: 1px solid #221220;
-  border-bottom: 1px solid #221220;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--bg-elevated);
+  border-bottom: 1px solid var(--bg-elevated);
   font-size: 11px;
 }
 
 .track-group-label {
   padding: 3px 8px !important;
-  background: #221220 !important;
+  background: var(--bg-elevated) !important;
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
@@ -95,7 +95,7 @@
 }
 
 .track-group-collapse-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, var(--color-white) 10%, transparent);
 }
 
 .track-group-lane {
@@ -104,7 +104,7 @@
 }
 
 .is-grouped-track {
-  background: rgba(34, 18, 32, 0.3);
+  background: color-mix(in srgb, var(--bg-elevated) 30%, transparent);
 }
 
 .track-group-select {
@@ -114,7 +114,7 @@
 }
 
 .track-group-select:hover {
-  border-color: #9f1249 !important;
+  border-color: var(--accent-primary) !important;
 }
 
 /* Color Studio Tabs */
@@ -126,12 +126,16 @@
   filter: brightness(1.15);
 }
 
+.color-studio-tabs {
+  border-bottom-color: var(--border-subtle) !important;
+}
+
 /* Multicam Switcher & Tallies */
 .multicam-stage-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b060a;
+  background: var(--bg-canvas);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -148,28 +152,28 @@
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.5px;
-  background: rgba(0, 0, 0, 0.7);
-  color: #faf2f7;
+  background: color-mix(in srgb, var(--color-black) 70%, transparent);
+  color: var(--text-primary);
   z-index: 5;
 }
 
 .multicam-tile {
   position: relative;
   cursor: pointer;
-  border: 2px solid #221220;
+  border: 2px solid var(--bg-elevated);
   border-radius: 4px;
   overflow: hidden;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
 }
 
 .multicam-tile.active-angle {
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+  border-color: var(--status-danger-bright) !important;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--status-danger-bright) 40%, transparent);
 }
 
 .multicam-tile.active-angle .multicam-tally-badge {
-  background: #dc2626 !important;
-  color: #ffffff;
+  background: var(--status-danger-deep) !important;
+  color: var(--color-white);
 }
 
 .multicam-tile-video {
@@ -186,226 +190,12 @@
   text-transform: uppercase;
   padding: 1px 4px;
   border-radius: 3px;
-  background: rgba(168, 85, 247, 0.2);
-  border: 1px solid rgba(168, 85, 247, 0.5);
+  background: color-mix(in srgb, var(--accent-violet-bright) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-violet-bright) 50%, transparent);
   color: var(--accent-text-violet);
   margin-left: 4px;
   line-height: 1;
   display: inline-block;
   vertical-align: middle;
-}
-
-/* ==========================================================================
-   Light Theme Comprehensive Polish & Aesthetics
-   ========================================================================== */
-
-[data-theme="light"] .status-bar {
-  background: var(--bg-base);
-  border-top: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-}
-
-[data-theme="light"] .status-bar span,
-[data-theme="light"] .status-bar strong {
-  color: var(--text-primary);
-}
-
-/* Fusion Compositor Light Mode */
-[data-theme="light"] .fusion-workspace-page {
-  background: var(--bg-base);
-}
-
-/* Enforce Strict NLE Viewport Rule: Node graph canvas stays dark for accurate compositing */
-[data-theme="light"] .fusion-canvas-container {
-  background-color: #0b060a;
-  background-image: 
-    radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-}
-
-[data-theme="light"] .fusion-inspector-panel {
-  background: var(--bg-panel);
-  border-left: 1px solid var(--border-panel);
-  color: var(--text-primary);
-}
-
-[data-theme="light"] .fusion-add-buttons {
-  background: var(--bg-surface);
-  border-color: var(--border-subtle);
-}
-
-[data-theme="light"] .fusion-tool-btn {
-  background: var(--bg-base);
-  border-color: var(--border-default);
-  color: var(--text-primary);
-}
-
-[data-theme="light"] .fusion-tool-btn:hover {
-  background: var(--bg-base);
-  border-color: var(--border-focus);
-  color: var(--accent-text);
-}
-
-[data-theme="light"] .fusion-node-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  box-shadow: var(--shadow-soft-lg);
-}
-
-[data-theme="light"] .fusion-node-body {
-  background: var(--bg-base);
-  color: var(--text-primary);
-}
-
-[data-theme="light"] .fusion-node-inspector {
-  background: var(--bg-surface);
-}
-
-[data-theme="light"] .fusion-empty-inspector {
-  color: var(--text-muted);
-}
-
-/* Export / Deliver Workspace Light Mode */
-[data-theme="light"] .export-workspace {
-  background: var(--bg-base);
-}
-
-[data-theme="light"] .export-destinations,
-[data-theme="light"] .export-settings-panel,
-[data-theme="light"] .export-preview-panel {
-  background: var(--bg-surface);
-}
-
-[data-theme="light"] .export-destination:hover {
-  background: var(--bg-base);
-}
-
-[data-theme="light"] .export-destination.selected {
-  border-color: var(--border-default);
-  background: var(--bg-base);
-}
-
-[data-theme="light"] .export-hw-status-card {
-  background: var(--bg-base);
-  border-color: var(--border-subtle);
-}
-
-[data-theme="light"] .hw-codec-tag {
-  background: var(--bg-base);
-  border-color: var(--border-subtle);
-  color: var(--text-muted);
-}
-
-[data-theme="light"] .export-preset-card {
-  background: var(--bg-base);
-  border-color: var(--border-subtle);
-}
-
-[data-theme="light"] .export-preset-card:hover {
-  background: var(--bg-base);
-  border-color: var(--border-default);
-}
-
-[data-theme="light"] .export-preset-card.selected {
-  border-color: var(--border-focus);
-  background: var(--bg-selected);
-}
-
-[data-theme="light"] .export-summary {
-  background: var(--bg-base);
-  border: 1px solid var(--border-subtle);
-}
-
-[data-theme="light"] .export-field input,
-[data-theme="light"] .export-field select {
-  background: var(--bg-surface);
-  border-color: var(--border-default);
-  color: var(--text-primary);
-}
-
-/* Fairlight Light Mode */
-[data-theme="light"] .fairlight-channel-strip {
-  background: var(--bg-surface);
-  border-color: var(--border-subtle);
-  box-shadow: var(--shadow-soft);
-}
-
-[data-theme="light"] .fairlight-channel-strip:hover {
-  border-color: var(--border-default);
-}
-
-[data-theme="light"] .fairlight-channel-strip.is-selected {
-  border-color: var(--border-focus);
-  background: linear-gradient(180deg, rgba(159, 18, 73, 0.06) 0%, var(--bg-surface) 35%);
-}
-
-[data-theme="light"] .master-channel-strip {
-  border-color: var(--accent-orange);
-  background: linear-gradient(180deg, rgba(217, 119, 6, 0.06) 0%, var(--bg-surface) 40%);
-}
-
-[data-theme="light"] .strip-pan-section {
-  background: var(--bg-base);
-  border-color: var(--border-subtle);
-}
-
-[data-theme="light"] .vu-meter-pair {
-  background: var(--bg-base);
-  border-color: var(--border-subtle);
-}
-
-[data-theme="light"] .vu-bar-slot {
-  background: var(--bg-base);
-}
-
-[data-theme="light"] .audio-master-bus-card {
-  background: var(--bg-surface);
-  border-color: var(--accent-orange);
-}
-
-[data-theme="light"] .eq-band-item {
-  background: var(--bg-base);
-  border: 1px solid var(--border-subtle);
-}
-
-[data-theme="light"] .strip-dsp-btn {
-  background: var(--bg-base);
-  border-color: var(--border-subtle);
-  color: var(--text-muted);
-}
-
-[data-theme="light"] .strip-btn {
-  background: var(--bg-base);
-  border-color: var(--border-subtle);
-  color: var(--text-muted);
-}
-
-/* Color Workspace Light Mode */
-[data-theme="light"] .color-studio-tabs {
-  border-bottom-color: var(--border-subtle) !important;
-}
-
-[data-theme="light"] .color-wheels-dock-wrapper {
-  background: var(--bg-surface);
-}
-
-[data-theme="light"] .video-scopes-container {
-  background: var(--bg-base);
-}
-
-[data-theme="light"] .scopes-header {
-  background: var(--bg-surface);
-  border-bottom-color: var(--border-subtle);
-}
-
-[data-theme="light"] .scopes-tab-btn {
-  color: var(--text-muted);
-}
-
-[data-theme="light"] .scopes-tab-btn.active {
-  background: var(--bg-selected);
-  color: var(--accent-text);
-  border-color: var(--border-active);
 }
 

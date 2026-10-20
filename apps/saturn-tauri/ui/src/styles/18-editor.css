@@ -96,8 +96,8 @@
   bottom: 0;
   left: 6px;
   width: 1px;
-  background: #f29b45;
-  box-shadow: 0 0 8px rgba(242, 155, 69, 0.8);
+  background: var(--playhead);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--playhead) 80%, transparent);
   pointer-events: none;
 }
 
@@ -107,7 +107,7 @@
   bottom: 0;
   left: 6px;
   width: 1px;
-  background: #f29b45;
+  background: var(--playhead);
   pointer-events: none;
 }
 
@@ -209,7 +209,7 @@
   color: var(--text-muted);
   font-size: 10px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.02);
+  background: color-mix(in srgb, var(--color-white) 2%, transparent);
 }
 
 /* Subtitle Track Styles */
@@ -227,7 +227,7 @@
 .subtitle-badge-pill {
   padding: 1px 6px;
   border-radius: 9999px;
-  background: rgba(159, 18, 73, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
   color: var(--accent-text);
   font-size: 7.5px;
   font-weight: 700;
@@ -246,9 +246,9 @@
 }
 
 .subtitle-clip {
-  background: linear-gradient(110deg, #581c87, #3b0764) !important;
-  border-color: #6b21a8 !important;
-  color: #f3e8ff !important;
+  background: linear-gradient(110deg, var(--accent-violet-deep), var(--accent-violet-dark)) !important;
+  border-color: var(--accent-secondary) !important;
+  color: var(--accent-violet-100) !important;
   min-height: 28px;
   font-size: 9px;
 }
@@ -258,7 +258,7 @@
   padding: 1px 4px;
   margin-right: 4px;
   border-radius: 2px;
-  background: rgba(217, 70, 143, 0.3);
+  background: color-mix(in srgb, var(--accent-bright) 30%, transparent);
   color: var(--accent-text);
   font-size: 7px;
   font-weight: 700;
@@ -349,8 +349,8 @@
 }
 
 .compound-crumb {
-  background: rgba(168, 85, 247, 0.15) !important;
-  border-color: rgba(168, 85, 247, 0.4) !important;
+  background: color-mix(in srgb, var(--accent-violet-bright) 15%, transparent) !important;
+  border-color: color-mix(in srgb, var(--accent-violet-bright) 40%, transparent) !important;
   color: var(--accent-text-violet) !important;
 }
 
@@ -435,8 +435,8 @@
   bottom: 0;
   left: 6px;
   width: 1px;
-  background: #f29b45;
-  box-shadow: 0 0 6px rgba(242, 155, 69, 0.8);
+  background: var(--playhead);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--playhead) 80%, transparent);
 }
 
 /* Track row height variants */
@@ -499,13 +499,13 @@
 
 .clip-trim-left {
   left: 0;
-  border-left: 2px solid #f29b45;
+  border-left: 2px solid var(--playhead);
   border-radius: 3px 0 0 3px;
 }
 
 .clip-trim-right {
   right: 0;
-  border-right: 2px solid #f29b45;
+  border-right: 2px solid var(--playhead);
   border-radius: 0 3px 3px 0;
 }
 
@@ -516,8 +516,8 @@
   bottom: 0;
   background: repeating-linear-gradient(
     45deg,
-    rgba(255, 255, 255, 0.03),
-    rgba(255, 255, 255, 0.03) 8px,
+    color-mix(in srgb, var(--color-white) 3%, transparent),
+    color-mix(in srgb, var(--color-white) 3%, transparent) 8px,
     transparent 8px,
     transparent 16px
   );
@@ -533,19 +533,19 @@
 .timeline-gap-segment:hover {
   background: repeating-linear-gradient(
     45deg,
-    rgba(242, 155, 69, 0.15),
-    rgba(242, 155, 69, 0.15) 8px,
+    color-mix(in srgb, var(--playhead) 15%, transparent),
+    color-mix(in srgb, var(--playhead) 15%, transparent) 8px,
     transparent 8px,
     transparent 16px
   );
-  border-color: #f29b45;
+  border-color: var(--playhead);
 }
 
 .gap-close-icon {
   font-size: 14px;
   font-weight: 700;
-  color: #f29b45;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  color: var(--playhead);
+  text-shadow: 0 0 4px color-mix(in srgb, var(--color-black) 80%, transparent);
 }
 
 /* Compound clip badge */
@@ -556,8 +556,8 @@
   margin-left: auto;
   padding: 1px 5px;
   border-radius: 3px;
-  background: rgba(168, 85, 247, 0.2);
-  border: 1px solid rgba(168, 85, 247, 0.5);
+  background: color-mix(in srgb, var(--accent-violet-bright) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-violet-bright) 50%, transparent);
   color: var(--accent-text-violet);
   font-size: 7.5px;
   font-weight: 700;
@@ -571,9 +571,9 @@
   margin-left: auto;
   padding: 1px 4px;
   border-radius: 3px;
-  background: rgba(234, 179, 8, 0.25);
-  border: 1px solid rgba(234, 179, 8, 0.6);
-  color: #fde047;
+  background: color-mix(in srgb, var(--status-warning-yellow) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-warning-yellow) 60%, transparent);
+  color: var(--status-warning-soft);
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -591,12 +591,12 @@
 
 /* Audio clip waveform colors */
 .timeline-clip.audio .clip-waveform-svg path {
-  stroke: #34d399;
+  stroke: var(--status-success-text);
 }
 
 /* Video clip waveform colors */
 .timeline-clip:not(.audio) .clip-waveform-svg path {
-  stroke: #be185d;
+  stroke: var(--accent-primary-hover);
 }
 
 /* Visually hidden utility */

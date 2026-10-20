@@ -1,7 +1,6 @@
 /* Enforce Strict NLE Viewport Rule: Scopes stage stays dark obsidian in both themes */
-.scopes-canvas-stage,
-[data-theme="light"] .scopes-canvas-stage {
-  background: #050505;
+.scopes-canvas-stage {
+  background: var(--neutral-950);
 }
 
 /* Ensure Video Scopes & Color Monitor do not get clipped */
@@ -119,7 +118,7 @@
 
 /* Section 1: Live Waveform & Stereo VU Meter Strip */
 .audio-meter-waveform-strip {
-  background: #110910;
+  background: var(--bg-base);
   border: 1px solid var(--border-panel);
   border-radius: 6px;
   padding: 8px 10px;
@@ -155,9 +154,9 @@
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;
-  background: rgba(107, 33, 168, 0.15);
+  background: color-mix(in srgb, var(--accent-secondary) 15%, transparent);
   color: var(--accent-text);
-  border: 1px solid rgba(107, 33, 168, 0.3);
+  border: 1px solid color-mix(in srgb, var(--accent-secondary) 30%, transparent);
 }
 
 .meter-peak-badge {
@@ -166,21 +165,21 @@
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: color-mix(in srgb, var(--status-success) 15%, transparent);
+  color: var(--status-success-text);
+  border: 1px solid color-mix(in srgb, var(--status-success) 30%, transparent);
 }
 
 .meter-peak-badge.warn {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border-color: rgba(245, 158, 11, 0.3);
+  background: color-mix(in srgb, var(--status-warning) 15%, transparent);
+  color: var(--status-warning-bright);
+  border-color: color-mix(in srgb, var(--status-warning) 30%, transparent);
 }
 
 .meter-peak-badge.clip {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  border-color: rgba(239, 68, 68, 0.4);
+  background: color-mix(in srgb, var(--status-danger-bright) 20%, transparent);
+  color: var(--status-danger-text);
+  border-color: color-mix(in srgb, var(--status-danger-bright) 40%, transparent);
 }
 
 /* Waveform Canvas / SVG Container */
@@ -189,7 +188,7 @@
   width: 100%;
   border-radius: 4px;
   overflow: hidden;
-  background: #0b060a;
+  background: var(--bg-canvas);
   display: flex;
   align-items: center;
   position: relative;
@@ -218,7 +217,7 @@
 .vu-ch-track {
   flex: 1;
   height: 6px;
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--color-white) 8%, transparent);
   border-radius: 2px;
   overflow: hidden;
   position: relative;
@@ -228,7 +227,7 @@
   height: 100%;
   transition: width 0.05s linear;
   border-radius: 2px;
-  background: linear-gradient(to right, #10b981 0%, #10b981 70%, #f59e0b 85%, #ef4444 100%);
+  background: linear-gradient(to right, var(--status-success) 0%, var(--status-success) 70%, var(--status-warning) 85%, var(--status-danger-bright) 100%);
 }
 
 .stereo-vu-scale {
@@ -287,18 +286,18 @@
 }
 
 .compact-ch-badge.audio {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
+  background: color-mix(in srgb, var(--status-success) 15%, transparent);
+  color: var(--status-success-text);
 }
 
 .compact-ch-badge.video {
-  background: rgba(159, 18, 73, 0.15);
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
   color: var(--accent-text);
 }
 
 .compact-ch-badge.master {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
+  background: color-mix(in srgb, var(--status-warning) 15%, transparent);
+  color: var(--status-warning-bright);
 }
 
 .compact-ch-name {
@@ -331,15 +330,15 @@
 }
 
 .compact-mute-btn.active {
-  background: #ef4444;
-  color: #ffffff;
-  border-color: #dc2626;
+  background: var(--status-danger-bright);
+  color: var(--color-white);
+  border-color: var(--status-danger-deep);
 }
 
 .compact-solo-btn.active {
-  background: #f59e0b;
-  color: #0b060a;
-  border-color: #d97706;
+  background: var(--status-warning);
+  color: var(--bg-canvas);
+  border-color: var(--status-warning-deep);
 }
 
 .compact-fader-container {
@@ -370,7 +369,7 @@
 .source-audio-stage {
   width: 100%;
   height: 100%;
-  background: #050505;
+  background: var(--neutral-950);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -384,14 +383,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--color-white) 4%, transparent);
   border-radius: 4px;
 }
 
 .source-audio-badge {
   font-size: 10px;
   font-weight: 700;
-  color: #34d399;
+  color: var(--status-success-text);
   letter-spacing: 0.05em;
   display: flex;
   align-items: center;
@@ -413,9 +412,9 @@
   position: relative;
   cursor: pointer;
   margin: 10px 0;
-  background: #100810;
+  background: var(--bg-input);
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid color-mix(in srgb, var(--color-white) 8%, transparent);
   overflow: hidden;
 }
 
@@ -429,8 +428,8 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background: #be185d;
-  box-shadow: 0 0 8px rgba(159, 18, 73, 0.8);
+  background: var(--accent-primary-hover);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 80%, transparent);
   pointer-events: none;
 }
 
@@ -439,7 +438,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--color-white) 3%, transparent);
   border-radius: 6px;
 }
 
@@ -468,15 +467,15 @@
 .source-transport-btn.play {
   min-width: 65px;
   font-weight: 700;
-  background: rgba(159, 18, 73, 0.2);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
   color: var(--accent-text);
-  border-color: rgba(159, 18, 73, 0.4);
+  border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
 .source-transport-btn.active-toggle {
-  background: rgba(16, 185, 129, 0.25);
-  color: #34d399;
-  border-color: rgba(16, 185, 129, 0.5);
+  background: color-mix(in srgb, var(--status-success) 25%, transparent);
+  color: var(--status-success-text);
+  border-color: color-mix(in srgb, var(--status-success) 50%, transparent);
 }
 
 
@@ -499,7 +498,7 @@ button.interior-button--primary {
   color: var(--text-primary);
   background: var(--accent-primary);
   border-color: var(--border-active);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-white) 18%, transparent);
   font-weight: 650;
 }
 button.interior-button--primary:hover:not(:disabled) {
@@ -510,7 +509,7 @@ button.interior-button--secondary {
   color: var(--text-primary);
   background: var(--bg-elevated);
   border-color: var(--border-default);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-white) 8%, transparent);
 }
 button.interior-button--secondary:hover:not(:disabled) {
   border-color: var(--border-active);
@@ -523,7 +522,7 @@ button.interior-button--ghost {
 }
 button.interior-button--ghost:hover:not(:disabled) {
   color: var(--text-primary);
-  background: rgba(244, 215, 235, 0.06);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
   border-color: var(--border-subtle);
 }
 button.interior-button--danger {

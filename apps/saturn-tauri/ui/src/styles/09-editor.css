@@ -3,8 +3,8 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--color-black) 35%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-white) 5%, transparent);
   border-radius: 4px;
   padding: 6px;
 }
@@ -35,7 +35,8 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-inset);
+  border: 1px solid var(--border-inset);
   border-radius: 4px;
   padding: 6px 8px;
 }
@@ -57,7 +58,7 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  background: rgba(0, 0, 0, 0.3);
+  background: color-mix(in srgb, var(--color-black) 30%, transparent);
   border-radius: 4px;
   padding: 6px 8px;
 }
@@ -80,7 +81,7 @@
 }
 
 .gr-meta b.gr-active {
-  color: #f59e0b;
+  color: var(--status-warning);
   font-weight: 700;
 }
 
@@ -102,7 +103,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--color-black) 20%, transparent);
   border-radius: 4px;
   padding: 6px 8px;
 }
@@ -116,7 +117,7 @@
 
 .param-label-row b {
   font-family: monospace;
-  color: #fbbf24;
+  color: var(--status-warning-bright);
 }
 
 /* Vocal Denoise Module */
@@ -130,14 +131,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(0, 0, 0, 0.25);
+  background: color-mix(in srgb, var(--color-black) 25%, transparent);
   border-radius: 4px;
   padding: 6px 10px;
 }
 
 .rumble-icon {
   font-size: 14px;
-  color: #34d399;
+  color: var(--status-success-text);
 }
 
 .rumble-text {
@@ -165,21 +166,21 @@
 }
 
 .rumble-status.off {
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--color-white) 5%, transparent);
   color: var(--text-muted);
 }
 
 .rumble-status.engaged {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  background: color-mix(in srgb, var(--status-success) 20%, transparent);
+  color: var(--status-success-text);
+  border: 1px solid color-mix(in srgb, var(--status-success) 40%, transparent);
 }
 
 .denoise-amount-slider-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background: rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--color-black) 20%, transparent);
   border-radius: 4px;
   padding: 6px 10px;
 }
@@ -193,14 +194,14 @@
 
 .slider-header-row b {
   font-family: monospace;
-  color: #34d399;
+  color: var(--status-success-text);
 }
 
 /* Channel Strip DSP badges & active selection styles */
 .fairlight-channel-strip.is-selected {
-  border-color: #6b21a8;
-  box-shadow: 0 0 10px rgba(107, 33, 168, 0.25);
-  background: linear-gradient(180deg, rgba(107, 33, 168, 0.08) 0%, var(--bg-subpanel) 35%);
+  border-color: var(--strip-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--strip-accent) 25%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--strip-accent) 8%, transparent) 0%, var(--strip-end) 35%);
 }
 
 .strip-dsp-badges {
@@ -215,8 +216,8 @@
   font-weight: 800;
   padding: 1px 4px;
   border-radius: 3px;
-  border: 1px solid var(--border-color);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-control);
+  background: var(--bg-control);
   color: var(--text-muted);
   cursor: pointer;
   transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease, transform 0.12s ease;
@@ -228,27 +229,27 @@
 }
 
 .strip-dsp-btn.active {
-  background: rgba(107, 33, 168, 0.2);
-  border-color: #6b21a8;
+  background: color-mix(in srgb, var(--accent-secondary) 20%, transparent);
+  border-color: var(--accent-secondary);
   color: var(--accent-text);
 }
 
 .strip-dsp-btn.comp.active {
-  background: rgba(245, 158, 11, 0.2);
-  border-color: #f59e0b;
-  color: #fbbf24;
+  background: color-mix(in srgb, var(--status-warning) 20%, transparent);
+  border-color: var(--status-warning);
+  color: var(--status-warning-bright);
 }
 
 .strip-dsp-btn.denoise.active {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: #10b981;
-  color: #34d399;
+  background: color-mix(in srgb, var(--status-success) 20%, transparent);
+  border-color: var(--status-success);
+  color: var(--status-success-text);
 }
 
 .strip-mini-gr-slot {
   width: 3px;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: color-mix(in srgb, var(--color-black) 50%, transparent);
   border-radius: 2px;
   overflow: hidden;
   display: flex;
@@ -257,7 +258,7 @@
 
 .strip-mini-gr-fill {
   width: 100%;
-  background: #f59e0b;
+  background: var(--status-warning);
   border-radius: 2px;
   transition: height 0.05s linear;
 }
@@ -267,13 +268,13 @@
    ========================================================================== */
 
 .subtitle-track-row {
-  border-bottom: 2px solid rgba(107, 33, 168, 0.35);
-  background: rgba(107, 33, 168, 0.04);
+  border-bottom: 2px solid color-mix(in srgb, var(--accent-secondary) 35%, transparent);
+  background: color-mix(in srgb, var(--accent-secondary) 4%, transparent);
 }
 
 .subtitle-track-label {
-  border-right: 2px solid rgba(107, 33, 168, 0.35);
-  background: linear-gradient(90deg, rgba(107, 33, 168, 0.12) 0%, var(--bg-subpanel) 100%);
+  border-right: 2px solid color-mix(in srgb, var(--accent-secondary) 35%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent-secondary) 12%, transparent) 0%, var(--bg-subpanel) 100%);
 }
 
 .subtitle-badge-pill {
@@ -281,8 +282,8 @@
   font-weight: 800;
   padding: 1px 4px;
   border-radius: 3px;
-  background: #6b21a8;
-  color: #ffffff;
+  background: var(--accent-secondary);
+  color: var(--color-white);
   letter-spacing: 0.5px;
 }
 
@@ -294,36 +295,36 @@
 .subtitle-track-lane {
   position: relative;
   height: 38px;
-  background: rgba(17, 9, 16, 0.4);
+  background: color-mix(in srgb, var(--bg-base) 40%, transparent);
 }
 
 .subtitle-clip {
   position: absolute;
   top: 3px;
   height: 32px;
-  background: linear-gradient(180deg, #6b21a8 0%, #6b21a8 100%);
-  border: 1px solid #a855f7;
+  background: linear-gradient(180deg, var(--accent-secondary) 0%, var(--accent-secondary) 100%);
+  border: 1px solid var(--accent-violet-bright);
   border-radius: 4px;
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 0 8px;
-  color: #ffffff;
+  color: var(--color-white);
   cursor: pointer;
   user-select: none;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--color-black) 35%, transparent);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .subtitle-clip:hover {
-  border-color: #d8b4fe;
-  box-shadow: 0 0 8px rgba(167, 139, 250, 0.5);
+  border-color: var(--accent-violet-pale);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-violet-300) 50%, transparent);
 }
 
 .subtitle-clip.selected {
-  border-color: #ffffff;
-  box-shadow: 0 0 0 2px #d8b4fe, 0 2px 8px rgba(107, 33, 168, 0.6);
+  border-color: var(--color-white);
+  box-shadow: 0 0 0 2px var(--accent-violet-pale), 0 2px 8px color-mix(in srgb, var(--accent-secondary) 60%, transparent);
   z-index: 4;
 }
 
@@ -333,7 +334,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: #ffffff;
+  color: var(--color-white);
 }
 
 /* On-Screen Program Monitor Caption Overlay */
@@ -351,9 +352,9 @@
 
 .program-subtitle-text {
   display: inline-block;
-  background: rgba(0, 0, 0, 0.78);
+  background: color-mix(in srgb, var(--color-black) 78%, transparent);
   backdrop-filter: var(--blur-sm);
-  color: #ffffff;
+  color: var(--color-white);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: clamp(14px, 2.2vw, 22px);
   font-weight: 600;
@@ -361,8 +362,8 @@
   letter-spacing: 0.3px;
   padding: 6px 16px;
   border-radius: 6px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--color-black) 60%, transparent);
+  text-shadow: 0 1px 2px color-mix(in srgb, var(--color-black) 90%, transparent);
   word-break: break-word;
 }
 
@@ -404,8 +405,8 @@
 
 .subtitle-textarea-label textarea:focus {
   outline: none;
-  border-color: #6b21a8;
-  box-shadow: 0 0 0 2px rgba(107, 33, 168, 0.2);
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-secondary) 20%, transparent);
 }
 
 .subtitle-tc-cards {

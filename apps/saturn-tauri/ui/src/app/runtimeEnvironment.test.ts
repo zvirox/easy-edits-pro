@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   capabilityAttributes,
+  glassMode,
+  isGlassEnabled,
   isSlowEnvironment,
   type RuntimeEnvironment,
 } from "./runtimeEnvironment.ts";
@@ -51,4 +53,19 @@ test("a missing probe forces the lite fallback", () => {
     "data-webkit-gtk-slow": "true",
     "data-runtime-probe": "unavailable",
   });
+});
+
+test("glass is enabled unless the build sets the kill switch", () => {
+  assert.equal(isGlassEnabled(undefined), true);
+  assert.equal(isGlassEnabled("1"), true);
+  assert.equal(isGlassEnabled("true"), true);
+  assert.equal(isGlassEnabled("0"), false);
+  assert.equal(isGlassEnabled("false"), false);
+});
+
+test("glass mode is full, lite, or off from the probe and kill switch", () => {
+  assert.equal(glassMode(environment(), true), "full");
+  assert.equal(glassMode(environment({ dmabufRendererDisabled: true }), true), "lite");
+  assert.equal(glassMode(environment(), false), "off");
+  assert.equal(glassMode(null, false), "off");
 });
