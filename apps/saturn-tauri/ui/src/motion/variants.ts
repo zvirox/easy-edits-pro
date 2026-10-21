@@ -61,10 +61,32 @@ export interface MotionPreset {
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
+let reducedMotionOverride: boolean | null = null;
+const reducedMotionListeners = new Set<() => void>();
+
+/**
+ * Preferences can force motion on or off. `null` hands control back to the
+ * operating system media query.
+ */
+export function setReducedMotionOverride(value: boolean | null): void {
+  if (reducedMotionOverride === value) return;
+  reducedMotionOverride = value;
+  for (const listener of reducedMotionListeners) listener();
+}
+
 function subscribeReducedMotion(onChange: () => void) {
   const query = window.matchMedia(REDUCED_MOTION_QUERY);
   query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
+  reducedMotionListeners.add(onChange);
+  return () => {
+    query.removeEventListener("change", onChange);
+    reducedMotionListeners.delete(onChange);
+  };
+}
+
+function reducedMotionSnapshot(): boolean {
+  if (reducedMotionOverride !== null) return reducedMotionOverride;
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
 }
 
 /**
@@ -73,11 +95,7 @@ function subscribeReducedMotion(onChange: () => void) {
  * media query directly and re-render on changes.
  */
 export function useReducedMotionPreference(): boolean {
-  return useSyncExternalStore(
-    subscribeReducedMotion,
-    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
-    () => false,
-  );
+  return useSyncExternalStore(subscribeReducedMotion, reducedMotionSnapshot, () => false);
 }
 
 /**

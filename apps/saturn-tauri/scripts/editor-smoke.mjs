@@ -246,6 +246,40 @@ try {
   await page.locator('.shortcuts-dialog').getByRole('button', { name: 'Reset all to defaults' }).click();
   await page.locator('.shortcuts-dialog').getByRole('button', { name: 'Close' }).click();
 
+  // Preferences apply theme, glass, motion, and timeline defaults immediately.
+  await page.locator('.app-shell').press('Control+,');
+  const preferencesDialog = page.locator('.preferences-dialog');
+  await preferencesDialog.waitFor();
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: '/tmp/easy-edits-pro-preferences.png' });
+  assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
+  await preferencesDialog.getByRole('button', { name: 'Light', exact: true }).click();
+  assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
+  await preferencesDialog.getByRole('button', { name: 'Dark', exact: true }).click();
+  await preferencesDialog.getByRole('button', { name: 'Off', exact: true }).click();
+  assert.equal(await page.locator('html').getAttribute('data-glass'), 'off');
+  await preferencesDialog.getByRole('button', { name: 'Full', exact: true }).click();
+  await preferencesDialog.getByRole('tab', { name: 'Timeline' }).click();
+  await preferencesDialog.getByRole('button', { name: 'Compact', exact: true }).click();
+  if ((await page.locator('.track-row').count()) > 0) {
+    assert.ok(
+      (await page.locator('.track-row.track-height-compact').count()) > 0,
+      'the compact track height should reach the timeline rows',
+    );
+  }
+  await preferencesDialog.getByRole('button', { name: 'Normal', exact: true }).click();
+  await preferencesDialog.getByRole('button', { name: /Snapping on/ }).click();
+  await preferencesDialog.getByRole('button', { name: /Snapping off/ }).waitFor();
+  await preferencesDialog.getByRole('button', { name: /Snapping off/ }).click();
+  await preferencesDialog.getByRole('button', { name: 'Close' }).click();
+  const storedPreferences = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('easy-edits-pro.preferences.v1') ?? '{}'),
+  );
+  assert.equal(storedPreferences.theme, 'dark', 'theme should persist');
+  assert.equal(storedPreferences.glass, 'full', 'glass mode should persist');
+  assert.equal(storedPreferences.trackHeight, 'normal', 'track height should persist');
+  assert.equal(storedPreferences.snap, true, 'snapping should persist');
+
   // UI-only commands dispatch locally instead of hitting the engine.
   await menuBar.getByRole('button', { name: 'View', exact: true }).click();
   await page.locator('.menu-popover').getByText('Theme: Light', { exact: true }).click();
@@ -264,6 +298,32 @@ try {
   await menuBar.getByRole('button', { name: 'Window', exact: true }).click();
   await page.locator('.menu-popover').getByText('Workspace: Edit', { exact: false }).click();
   await page.locator('.app-shell').waitFor();
+
+  // Layout presets retract floating panels and restore them.
+  await menuBar.getByRole('button', { name: 'Window', exact: true }).click();
+  await page
+    .locator('.menu-popover')
+    .getByRole('button', { name: 'Layout Preset: Review', exact: true })
+    .click();
+  await page.waitForTimeout(350);
+  assert.equal(
+    await page.locator('.floating-panel').count(),
+    0,
+    'the Review preset should hide the media and inspector panels',
+  );
+  await page.locator('.panel-rail').waitFor();
+  await menuBar.getByRole('button', { name: 'Window', exact: true }).click();
+  await page
+    .locator('.menu-popover')
+    .getByRole('button', { name: 'Layout Preset: Learning', exact: true })
+    .click();
+  await page.waitForTimeout(350);
+  assert.equal(
+    await page.locator('.floating-panel').count(),
+    2,
+    'the Learning preset should restore both panels',
+  );
+
   // Shortcut-dispatched commands receive playhead context.
   await page.locator('.app-shell').press('i');
   const markRequests = await page.evaluate(() => window.__commandRequests);

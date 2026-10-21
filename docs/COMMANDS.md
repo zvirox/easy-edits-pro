@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-129 commands.
+135 commands.
 
 ## File
 
@@ -34,6 +34,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Ripple Delete Filler Words | `speech.ripple_delete_fillers` | planned |  | `{"segments":[obj],"custom_fillers":[str]?}` |
 | Ripple Delete Time Ranges | `timeline.ripple_delete_ranges` | planned |  | `{"ranges":obj}` |
 | Ripple Delete Timeline Gap | `timeline.ripple_delete_gap` | planned |  | `{"track_id":int?,"at_tick":obj}` |
+| Preferences… | `edit.preferences` | shipped | Ctrl+, | `{}` |
 
 ## Clip
 
@@ -168,6 +169,11 @@ Generated from the command catalogue. Do not edit by hand.
 | Workspace: Library | `workspace.library` | planned |  | `{}` |
 | Workspace: AI Assistant | `workspace.ai` | planned |  | `{}` |
 | Workspace: Export | `workspace.export` | planned |  | `{}` |
+| Layout Preset: Assembly | `workspace.preset_assembly` | shipped |  | `{}` |
+| Layout Preset: Captions & Graphics | `workspace.preset_captions` | shipped |  | `{}` |
+| Layout Preset: Review | `workspace.preset_review` | shipped |  | `{}` |
+| Layout Preset: Learning | `workspace.preset_learning` | shipped |  | `{}` |
+| Layout Preset: All Panels | `workspace.preset_all_panels` | shipped |  | `{}` |
 | Reset Panel Layout | `window.reset_layout` | planned |  | `{}` |
 
 ## Help

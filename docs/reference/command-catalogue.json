@@ -782,6 +782,26 @@
     "undoGroup": "transaction"
   },
   {
+    "aliases": [
+      "prefs",
+      "settings"
+    ],
+    "category": "Edit",
+    "id": "edit.preferences",
+    "label": "Preferences…",
+    "menu": [
+      "Edit",
+      "Preferences"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl+,",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
     "aliases": [],
     "category": "Effects",
     "id": "nodegraph.add_node",
@@ -2092,6 +2112,91 @@
     "mutating": false,
     "params": "{}",
     "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.preset_assembly",
+    "label": "Layout Preset: Assembly",
+    "menu": [
+      "Window",
+      "Layout Presets"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.preset_captions",
+    "label": "Layout Preset: Captions & Graphics",
+    "menu": [
+      "Window",
+      "Layout Presets"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.preset_review",
+    "label": "Layout Preset: Review",
+    "menu": [
+      "Window",
+      "Layout Presets"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.preset_learning",
+    "label": "Layout Preset: Learning",
+    "menu": [
+      "Window",
+      "Layout Presets"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.preset_all_panels",
+    "label": "Layout Preset: All Panels",
+    "menu": [
+      "Window",
+      "Layout Presets"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
     "uiOnly": true,

@@ -85,4 +85,18 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         shipped: false,
         ui_only: false,
     },
+    CommandSpec {
+        id: "edit.preferences",
+        label: "Preferences…",
+        menu: &["Edit", "Preferences"],
+        shortcut: Some("Ctrl+,"),
+        params: "{}",
+        category: Category::Edit,
+        mutating: false,
+        undo_group: UndoGroup::None,
+        aliases: &["prefs", "settings"],
+        since: "0.1.0",
+        shipped: true,
+        ui_only: true,
+    },
 ];

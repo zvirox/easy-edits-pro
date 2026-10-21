@@ -1,3 +1,5 @@
+import { storedGlassMode } from "../features/preferences/preferences.ts";
+
 export interface GpuDevice {
   vendor: string;
   model: string;
@@ -97,7 +99,8 @@ export function tagGlassCapability(
   for (const [name, value] of Object.entries(capabilityAttributes(environment))) {
     root.setAttribute(name, value);
   }
-  const mode = glassMode(environment, enabled);
-  root.setAttribute("data-glass", mode);
-  root.classList.toggle("webkit-gtk-slow", mode !== "full");
+  const capabilityMode = glassMode(environment, enabled);
+  // An explicit preference wins; otherwise the probe decides.
+  root.setAttribute("data-glass", storedGlassMode() ?? capabilityMode);
+  root.classList.toggle("webkit-gtk-slow", capabilityMode !== "full");
 }

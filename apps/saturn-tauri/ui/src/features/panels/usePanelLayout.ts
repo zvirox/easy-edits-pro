@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { defaultLayout } from "./layouts.ts";
+import { PANEL_LAYOUT_EVENT, PANEL_LAYOUT_STORAGE_PREFIX } from "./presets.ts";
 import {
   clampPanelRect,
   pixelsToRect,
@@ -38,7 +39,7 @@ interface PanelLayoutApi {
   resetLayout: () => void;
 }
 
-const STORAGE_KEY = "easy-edits-pro.panel-layout.v1";
+const STORAGE_KEY = PANEL_LAYOUT_STORAGE_PREFIX;
 const BASE_Z = 500;
 
 function storageKeyFor(workspace: string) {
@@ -167,6 +168,30 @@ export function usePanelLayout({
     // Load once per workspace mount; panel ids are de-duplicated above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspace]);
+
+  // Layout presets rewrite localStorage; reload this workspace in place
+  // instead of remounting the editor tree.
+  useEffect(() => {
+    const reload = () => {
+      const local = readLocalStorage(workspace);
+      if (!local) return;
+      const ids = panelIdsKey ? panelIdsKey.split("|") : [];
+      const sanitised = sanitizePanelLayout(
+        { rects: local.rects, hidden: local.hidden },
+        ids,
+        regionRefState.current,
+      );
+      if (Object.keys(sanitised).length > 0) {
+        setRects((previous) => ({ ...previous, ...sanitised }));
+      }
+      if (local.hidden && typeof local.hidden === "object") {
+        setHidden({ ...(local.hidden as Record<string, boolean>) });
+      }
+      setCollapsed({});
+    };
+    window.addEventListener(PANEL_LAYOUT_EVENT, reload);
+    return () => window.removeEventListener(PANEL_LAYOUT_EVENT, reload);
+  }, [workspace, panelIdsKey]);
 
   const refs = useRef({ rects, hidden });
   refs.current = { rects, hidden };

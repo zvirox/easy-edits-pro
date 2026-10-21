@@ -1,0 +1,273 @@
+/* Preferences dialog: tab rail, segmented controls, and toggles. Tokens only. */
+.preferences-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 720px;
+  min-height: 440px;
+}
+
+.preferences-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.preferences-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.preferences-header p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.preferences-header .close-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+}
+
+.preferences-header .close-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.preferences-body {
+  display: grid;
+  grid-template-columns: 158px minmax(0, 1fr);
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+.preferences-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 10px;
+  border-right: 1px solid var(--border-color);
+}
+
+.preferences-tab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.preferences-tab:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.preferences-tab.active {
+  border-color: var(--border-strong);
+  background: var(--bg-selected);
+  color: var(--text-main);
+}
+
+.preferences-tab:disabled {
+  color: var(--text-muted);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.preferences-tab-soon {
+  padding: 1px 5px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.preferences-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 0;
+  padding: 2px 4px 2px 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.preferences-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.preferences-field-head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.preferences-field-label {
+  color: var(--text-main);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.preferences-field-hint {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.preferences-segment {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
+  background: var(--bg-subpanel);
+}
+
+.preferences-segment-option {
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.preferences-segment-option:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.preferences-segment-option.active {
+  border-color: var(--border-strong);
+  background: var(--bg-selected);
+  color: var(--text-main);
+}
+
+.preferences-facts {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.preferences-facts div {
+  display: grid;
+  gap: 2px;
+}
+
+.preferences-facts dt {
+  color: var(--text-muted);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.preferences-facts dd {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 12px;
+}
+
+.preferences-note {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 7px;
+  background: var(--bg-subpanel);
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.preferences-toggle {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 12px 5px 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--bg-subpanel);
+  color: var(--text-sub);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+
+.preferences-toggle.active {
+  border-color: var(--accent-primary);
+  background: var(--bg-selected);
+  color: var(--text-main);
+}
+
+.preferences-toggle-track {
+  position: relative;
+  display: block;
+  width: 28px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--border-strong);
+  transition: background var(--transition-base);
+}
+
+.preferences-toggle.active .preferences-toggle-track {
+  background: var(--accent-primary);
+}
+
+.preferences-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg-base);
+  transition: transform var(--transition-base);
+}
+
+.preferences-toggle.active .preferences-toggle-thumb {
+  transform: translateX(12px);
+}
+
+.preferences-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.preferences-reset {
+  padding: 4px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--bg-button);
+  color: var(--text-main);
+  font-size: 11px;
+}

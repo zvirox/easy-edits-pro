@@ -21,16 +21,27 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { TICKS_PER_SECOND, timelineTools } from "./features/timeline/types";
 import { audioClockMaster } from "./engine/playbackEngine";
 import { ShortcutsDialog } from "./features/shortcuts/ShortcutsDialog";
+import { PreferencesDialog } from "./features/preferences/PreferencesDialog";
+import {
+  DEFAULT_PREFERENCES,
+  loadPreferences,
+  savePreferences,
+  type Preferences,
+} from "./features/preferences/preferences";
+import { setReducedMotionOverride } from "./motion/variants";
+import {
+  PANEL_LAYOUT_EVENT,
+  PANEL_LAYOUT_STORAGE_PREFIX,
+  workspacePresets,
+} from "./features/panels/presets";
 import type { CommandSpec, SelectedClip } from "./types";
 
 function EditorApp() {
-  const [theme, setTheme] = useState<"dark" | "light">(() => {
-    try {
-      const saved = localStorage.getItem("eep-theme");
-      if (saved === "light" || saved === "dark") return saved;
-    } catch {}
-    return "dark";
-  });
+  const [preferences, setPreferences] = useState<Preferences>(loadPreferences);
+  const theme = preferences.theme;
+  const setTheme = useCallback((next: Preferences["theme"]) => {
+    setPreferences((current) => ({ ...current, theme: next }));
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -41,7 +52,29 @@ function EditorApp() {
     } catch {}
   }, [theme]);
 
-  const toggleTheme = useCallback(() => setTheme((t) => (t === "dark" ? "light" : "dark")), []);
+  useEffect(() => {
+    savePreferences(preferences);
+  }, [preferences]);
+
+  useEffect(() => {
+    setReducedMotionOverride(preferences.reducedMotion);
+  }, [preferences.reducedMotion]);
+
+  // The runtime probe owns the first glass tag; only apply explicit changes so
+  // a slow host's lite fallback is not overridden on startup.
+  const glassApplied = useRef(false);
+  useEffect(() => {
+    if (!glassApplied.current) {
+      glassApplied.current = true;
+      return;
+    }
+    document.documentElement.setAttribute("data-glass", preferences.glass);
+  }, [preferences.glass]);
+
+  const toggleTheme = useCallback(
+    () => setTheme(theme === "dark" ? "light" : "dark"),
+    [setTheme, theme]
+  );
   const [commands, setCommands] = useState<CommandSpec[]>([]);
   useEffect(() => {
     invoke<CommandSpec[]>("get_command_catalogue")
@@ -51,6 +84,7 @@ function EditorApp() {
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [shortcutOverrides, setShortcutOverrides] = useState<Record<string, string>>(() => {
     try {
       const raw = localStorage.getItem("easy-edits-pro.shortcuts.v1");
@@ -142,7 +176,25 @@ function EditorApp() {
     setCompoundClipModalOpen: projectOps.setCompoundClipModalOpen,
     setCompoundClipNameDraft: projectOps.setCompoundClipNameDraft,
     keyframeProperty: "opacity", keyframeValue: "1",
+    initialSnapEnabled: preferences.snap,
+    initialTrackHeight: preferences.trackHeight,
   });
+
+  useEffect(() => {
+    setPreferences((current) =>
+      current.snap === timelineOps.snapEnabled
+        ? current
+        : { ...current, snap: timelineOps.snapEnabled }
+    );
+  }, [timelineOps.snapEnabled]);
+
+  useEffect(() => {
+    setPreferences((current) =>
+      current.trackHeight === timelineOps.timelineTrackHeight
+        ? current
+        : { ...current, trackHeight: timelineOps.timelineTrackHeight }
+    );
+  }, [timelineOps.timelineTrackHeight]);
 
   useEffect(() => {
     menuContext.current = {
@@ -199,6 +251,26 @@ function EditorApp() {
    */
   const dispatchCommand = useCallback(
     async (id: string) => {
+      if (id.startsWith("workspace.preset_")) {
+        const preset = workspacePresets.find(
+          (entry) => `workspace.preset_${entry.id}` === id
+        );
+        if (!preset) return;
+        for (const [workspace, layout] of Object.entries(preset.layouts)) {
+          const payload = { rects: layout.rects, hidden: layout.hidden };
+          try {
+            localStorage.setItem(
+              `${PANEL_LAYOUT_STORAGE_PREFIX}.${workspace}`,
+              JSON.stringify(payload)
+            );
+          } catch {}
+          void invoke("save_panel_layout", { workspace, layout: payload }).catch(() => {});
+        }
+        window.dispatchEvent(new Event(PANEL_LAYOUT_EVENT));
+        selectDavinciWorkspace(preset.workspace as DavinciWorkspace);
+        setNotice(`Layout preset · ${preset.label}`);
+        return;
+      }
       if (id.startsWith("workspace.")) {
         selectDavinciWorkspace(id.slice("workspace.".length) as DavinciWorkspace);
         return;
@@ -223,19 +295,22 @@ function EditorApp() {
           timelineOps.setTimelineZoom(72);
           return;
         case "view.theme_dark":
-        case "view.theme_light": {
-          const wanted = id === "view.theme_dark" ? "dark" : "light";
-          if (theme !== wanted) toggleTheme();
+        case "view.theme_light":
+          setPreferences((current) => ({
+            ...current,
+            theme: id === "view.theme_dark" ? "dark" : "light",
+          }));
           return;
-        }
-        case "view.reduced_motion": {
-          const root = document.documentElement;
-          root.setAttribute(
-            "data-reduced-motion",
-            root.getAttribute("data-reduced-motion") === "true" ? "false" : "true"
-          );
+        case "view.reduced_motion":
+          setPreferences((current) => ({
+            ...current,
+            reducedMotion:
+              current.reducedMotion === null ? true : current.reducedMotion ? false : null,
+          }));
           return;
-        }
+        case "edit.preferences":
+          setPreferencesOpen(true);
+          return;
         case "help.shortcuts":
           setShortcutsOpen(true);
           return;
@@ -250,12 +325,13 @@ function EditorApp() {
           return;
       }
       if (id.startsWith("view.glass_")) {
-        document.documentElement.setAttribute("data-glass", id.slice("view.glass_".length));
+        const glass = id.slice("view.glass_".length) as Preferences["glass"];
+        setPreferences((current) => ({ ...current, glass }));
         return;
       }
       await projectOps.invokeMenuCommand(id);
     },
-    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps, theme, toggleTheme]
+    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps]
   );
 
   const shortcuts = useShortcuts({
@@ -385,6 +461,24 @@ function EditorApp() {
         toolLabel={activeTool?.label}
         onFetchGpuTelemetry={projectOps.handleFetchGpuTelemetry}
         onToggleGpuTelemetry={() => projectOps.setGpuTelemetryOpen((v) => !v)}
+      />
+
+      <PreferencesDialog
+        open={preferencesOpen}
+        onClose={() => setPreferencesOpen(false)}
+        preferences={preferences}
+        onChange={(patch) =>
+          setPreferences((current) => ({ ...current, ...patch }))
+        }
+        onReset={() => {
+          setPreferences(DEFAULT_PREFERENCES);
+          timelineOps.setSnapEnabled(DEFAULT_PREFERENCES.snap);
+          timelineOps.setTimelineTrackHeight(DEFAULT_PREFERENCES.trackHeight);
+        }}
+        snapEnabled={timelineOps.snapEnabled}
+        onSnapChange={timelineOps.setSnapEnabled}
+        trackHeight={timelineOps.timelineTrackHeight}
+        onTrackHeightChange={timelineOps.setTimelineTrackHeight}
       />
 
       <ShortcutsDialog

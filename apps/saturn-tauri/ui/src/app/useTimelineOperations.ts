@@ -45,6 +45,8 @@ export type UseTimelineOperationsOptions = {
   setCompoundClipNameDraft: (name: string) => void;
   keyframeProperty: KeyframeProperty;
   keyframeValue: string;
+  initialSnapEnabled?: boolean;
+  initialTrackHeight?: "compact" | "normal" | "expanded";
 };
 
 export function useTimelineOperations({
@@ -61,11 +63,13 @@ export function useTimelineOperations({
   setCompoundClipNameDraft: _setCompoundClipNameDraft,
   keyframeProperty: _keyframeProperty,
   keyframeValue: _keyframeValue,
+  initialSnapEnabled = true,
+  initialTrackHeight = "normal",
 }: UseTimelineOperationsOptions) {
   const [timelineTool, setTimelineTool] = useState<TimelineTool>("select");
   const [timelineZoom, setTimelineZoom] = useState(72);
-  const [snapEnabled, setSnapEnabled] = useState(true);
-  const [timelineTrackHeight, setTimelineTrackHeight] = useState<"compact" | "normal" | "expanded">("normal");
+  const [snapEnabled, setSnapEnabled] = useState(initialSnapEnabled);
+  const [timelineTrackHeight, setTimelineTrackHeight] = useState<"compact" | "normal" | "expanded">(initialTrackHeight);
 
   const [selectedClip, setSelectedClip] = useState<SelectedClip | null>(null);
   const [selectedClips, setSelectedClips] = useState<SelectedClip[]>([]);
