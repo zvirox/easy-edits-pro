@@ -24,7 +24,7 @@ import {
   getTrackGaps,
 } from "./types";
 import { rulerSteps } from "./ruler";
-import { TimelineToolbar, TimelineToolRail } from "./TimelineToolbar";
+import { TimelineToolbar } from "./TimelineToolbar";
 
 export {
   type TimelineTool,
@@ -124,7 +124,6 @@ export interface TimelineSectionProps {
 
 export function TimelineSection({
   timelineTool,
-  setTimelineTool,
   project,
   media,
   switchSequence,
@@ -237,12 +236,8 @@ export function TimelineSection({
   return (
     <section className="timeline">
       {/* Timeline Header with Sequence Switcher */}
-      <div className="timeline-header-bar">
-        <TimelineToolRail
-          timelineTool={timelineTool}
-          setTimelineTool={setTimelineTool}
-        />
-        {hasSequences && (
+      {hasSequences && (
+        <div className="timeline-header-bar">
           <div className="timeline-sequence-switcher">
             <label htmlFor="sequence-select" className="visually-hidden">
               Active Sequence
@@ -261,8 +256,8 @@ export function TimelineSection({
               ))}
             </select>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="timeline-workbench">
         <TimelineToolbar

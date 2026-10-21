@@ -2,6 +2,7 @@ import { MediaPanel, type MediaPanelProps } from "../features/media-pool";
 import { PreviewSection, type PreviewSectionProps } from "../features/preview";
 import {
   TimelineSection,
+  TimelineToolRail,
   TrimMonitorPanel,
   type TimelineSectionProps,
 } from "../features/timeline";
@@ -63,11 +64,21 @@ export function EditWorkspace({
 
   return (
     <main className="editor is-floating-panels">
+      <div className="editor-panel-layer">
+        <PanelHost workspace="edit" entries={entries} />
+      </div>
+      <aside className="editor-toolbox" aria-label="Editing toolbox">
+        <TimelineToolRail
+          timelineTool={timelineSectionProps.timelineTool}
+          setTimelineTool={timelineSectionProps.setTimelineTool}
+        />
+      </aside>
       <section className="work-area">
         <PreviewSection {...previewSectionProps} />
-        <TimelineSection {...timelineSectionProps} />
       </section>
-      <PanelHost workspace="edit" entries={entries} />
+      <div className="editor-timeline-dock">
+        <TimelineSection {...timelineSectionProps} />
+      </div>
     </main>
   );
 }

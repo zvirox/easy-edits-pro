@@ -260,6 +260,30 @@ try {
     5,
     'the tool rail should group tools into five named segments',
   );
+  // Layout contract: media | toolbox | preview across the top, with a
+  // full-width timeline docked at the bottom edge.
+  const viewport = page.viewportSize();
+  const mediaBox = await page
+    .locator('.floating-panel')
+    .filter({ hasText: 'Media pool' })
+    .boundingBox();
+  const previewBox = await page.locator('.monitor-unified').boundingBox();
+  const railBox = await toolRail.boundingBox();
+  const timelineBox = await page.locator('.timeline').boundingBox();
+  assert.ok(viewport && mediaBox && previewBox && railBox && timelineBox);
+  assert.ok(
+    timelineBox.x <= 1 && timelineBox.x + timelineBox.width >= viewport.width - 1,
+    'the timeline should span the app width',
+  );
+  assert.ok(
+    railBox.x >= mediaBox.x + mediaBox.width - 2 &&
+      railBox.x + railBox.width <= previewBox.x + 2,
+    'the toolbox should sit between the media pool and the preview',
+  );
+  assert.ok(
+    mediaBox.height < viewport.height * 0.75,
+    'the media pool should stop above the full-width timeline',
+  );
   await toolRail.getByRole('button', { name: 'Type Tool', exact: true }).click();
   await page.locator('.status-bar-tool').getByText('Type Tool').waitFor();
   await page.locator('.app-shell').press('Shift+A');

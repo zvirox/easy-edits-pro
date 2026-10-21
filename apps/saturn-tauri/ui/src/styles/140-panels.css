@@ -207,9 +207,68 @@
   border: 1px solid var(--border-default);
 }
 
-/* With panels floating, the work area keeps its docked centre column so the
-   default layout mirrors the old editor exactly; the floating panels visually
-   occupy the side columns and can be dragged anywhere above the grid. */
-.editor.is-floating-panels > .work-area {
+/* Edit workspace: top row is media pool · toolbox · preview, and the timeline
+   owns the full-width bottom row so it reaches the app borders. Floating panels
+   are measured against the top row only, which keeps them from covering the
+   timeline when they are at their default height. */
+.editor.is-floating-panels {
+  grid-template-columns: minmax(240px, 25vw) 74px minmax(450px, 1fr) minmax(240px, 22vw);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 7px 8px;
+  padding: 8px 8px 0;
+}
+
+.editor.is-floating-panels > .editor-panel-layer {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  pointer-events: none;
+}
+
+.editor.is-floating-panels > .editor-panel-layer > .panel-rail {
+  pointer-events: auto;
+}
+
+.editor.is-floating-panels > .editor-toolbox {
   grid-column: 2;
+  grid-row: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-panel);
+}
+
+.editor-toolbox .timeline-tool-rail {
+  height: 100%;
+  border-right: 0;
+  background: transparent;
+}
+
+.editor.is-floating-panels > .work-area {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.editor.is-floating-panels > .editor-timeline-dock {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+  margin: 0 -8px;
+}
+
+.editor.is-floating-panels .timeline {
+  height: var(--timeline-height, clamp(230px, 36vh, 440px));
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+}
+
+@media (max-width: 1280px) {
+  .editor.is-floating-panels {
+    grid-template-columns: minmax(190px, 22vw) 64px minmax(410px, 1fr) minmax(200px, 21vw);
+  }
 }
