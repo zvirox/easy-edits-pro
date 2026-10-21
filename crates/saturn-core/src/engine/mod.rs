@@ -1,4 +1,4 @@
-use crate::command::{COMMANDS, CommandRequest, CommandStatus, status};
+use crate::command::{CommandRequest, CommandStatus, find_command, status};
 use crate::project::{
     AudioPluginInstance, BusTarget, ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams,
     ColorWheels, CompositingNode, CompositingNodeKind, CropParams, CustomShaderParams,
@@ -36,6 +36,8 @@ use params::*;
 #[derive(Debug)]
 pub enum DispatchError {
     UnknownCommand(String),
+    /// The command is declared `ui_only` and must be handled by the frontend.
+    UiOnly(String),
     Disabled { id: String, reason: String },
     InvalidParameters(String),
     Operation(String),
@@ -45,6 +47,7 @@ impl std::fmt::Display for DispatchError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::UnknownCommand(id) => write!(f, "Unknown command `{id}`"),
+            Self::UiOnly(id) => write!(f, "Command `{id}` is handled by the interface"),
             Self::Disabled { id, reason } => write!(f, "Command `{id}` is disabled: {reason}"),
             Self::InvalidParameters(error) | Self::Operation(error) => f.write_str(error),
         }
@@ -60,6 +63,8 @@ pub struct EditorEngine {
     undo: Vec<ProjectDocument>,
     redo: Vec<ProjectDocument>,
     saved_snapshot: String,
+    gesture_depth: u32,
+    gesture_checkpointed: bool,
 }
 
 impl Default for EditorEngine {
@@ -72,6 +77,8 @@ impl Default for EditorEngine {
             undo: Vec::new(),
             redo: Vec::new(),
             saved_snapshot,
+            gesture_depth: 0,
+            gesture_checkpointed: false,
         }
     }
 }
@@ -103,9 +110,28 @@ impl EditorEngine {
         Ok(())
     }
 
+    /// Open an undo gesture. Mutating commands executed until `end_gesture`
+    /// collapse into the first history entry taken inside the gesture.
+    pub fn begin_gesture(&mut self) {
+        if self.gesture_depth == 0 {
+            self.gesture_checkpointed = false;
+        }
+        self.gesture_depth = self.gesture_depth.saturating_add(1);
+    }
+
+    /// Close an undo gesture. Unbalanced calls are ignored.
+    pub fn end_gesture(&mut self) {
+        self.gesture_depth = self.gesture_depth.saturating_sub(1);
+    }
+
+    pub fn in_gesture(&self) -> bool {
+        self.gesture_depth > 0
+    }
+
     pub fn command_status(&self, id: &str) -> Result<CommandStatus, DispatchError> {
-        if !COMMANDS.iter().any(|command| command.id == id) {
-            return Err(DispatchError::UnknownCommand(id.to_owned()));
+        let command = find_command(id).ok_or_else(|| DispatchError::UnknownCommand(id.to_owned()))?;
+        if command.ui_only {
+            return Ok(status(true, ""));
         }
         let result = match id {
             "edit.undo" => status(!self.undo.is_empty(), "Nothing to undo"),
@@ -116,10 +142,11 @@ impl EditorEngine {
     }
 
     pub fn execute(&mut self, request: CommandRequest) -> Result<Value, DispatchError> {
-        let command = COMMANDS
-            .iter()
-            .find(|command| command.id == request.id.as_str())
+        let command = find_command(&request.id)
             .ok_or_else(|| DispatchError::UnknownCommand(request.id.clone()))?;
+        if command.ui_only {
+            return Err(DispatchError::UiOnly(request.id));
+        }
         let availability = self.command_status(command.id)?;
         if !availability.enabled {
             return Err(DispatchError::Disabled {

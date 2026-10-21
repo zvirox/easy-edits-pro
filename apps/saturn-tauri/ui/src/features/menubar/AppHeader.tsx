@@ -18,7 +18,20 @@ import type {
 
 export type { DavinciWorkspace, SelectedClip };
 export type Workspace = "edit" | "color" | "effects" | "audio" | "keyframes" | "export" | "library" | "ai";
-export type CommandSpec = { id: string; label: string; menu: string[]; shortcut: string | null; mutating: boolean };
+export type CommandSpec = {
+  id: string;
+  label: string;
+  menu: string[];
+  shortcut: string | null;
+  params: string;
+  category: string;
+  mutating: boolean;
+  undoGroup: "none" | "transaction" | "gesture";
+  aliases: string[];
+  since: string;
+  shipped: boolean;
+  uiOnly: boolean;
+};
 
 export const davinciWorkspaces: { id: DavinciWorkspace; label: string; shortcut: string; icon: string; isExperimental?: boolean }[] = [
   { id: "media", label: "Media", shortcut: "Shift+1", icon: "media" },
@@ -124,7 +137,15 @@ export function AppHeader({
   const matchingCommands = useMemo(() => {
     const query = commandQuery.trim().toLowerCase();
     return commands
-      .filter((command) => !query || command.id.toLowerCase().includes(query) || command.label.toLowerCase().includes(query))
+      .filter((command) => command.shipped)
+      .filter((command) => {
+        if (!query) return true;
+        return (
+          command.id.toLowerCase().includes(query) ||
+          command.label.toLowerCase().includes(query) ||
+          command.menu.join(" ").toLowerCase().includes(query)
+        );
+      })
       .slice(0, 12);
   }, [commandQuery, commands]);
 
@@ -162,55 +183,44 @@ export function AppHeader({
     };
   }, [openMenu]);
 
+  function disabledReason(id: string): string | null {
+    if (busy) return "Working…";
+    if (id === "edit.undo") return undoStatus.enabled ? null : undoStatus.reason ?? "Nothing to undo";
+    if (id === "edit.redo") return redoStatus.enabled ? null : redoStatus.reason ?? "Nothing to redo";
+    if (
+      ["timeline.split_clip", "timeline.ripple_delete", "timeline.remove_clip"].includes(id) &&
+      !selectedClip
+    ) {
+      return "Select a timeline clip first";
+    }
+    if (id === "timeline.add_clip" && !selectedMedia) return "Select a media item first";
+    if (id === "window.reset_layout") return "Panel layouts are not open yet";
+    return null;
+  }
+
   function renderMenu(menu: string) {
-    const commandItems = commands
-      .filter((command) => command.menu[0] === menu)
-      .map((command) => ({
+    // Preserve catalogue order, grouped by the second menu segment.
+    const groups = new Map<string, { id: string; label: string; shortcut: string | null; reason: string | null }[]>();
+    for (const command of commands) {
+      if (!command.shipped || command.menu[0] !== menu) continue;
+      const section = command.menu.length > 1 ? command.menu[1] : "";
+      const activeWorkspace =
+        command.id.startsWith("workspace.") &&
+        (command.id.slice("workspace.".length) === davinciWorkspace ||
+          command.id.slice("workspace.".length) === workspace);
+      const entry = {
         id: command.id,
-        label: command.label,
+        label:
+          (command.id === "view.toggle_snap" && snapEnabled) || activeWorkspace
+            ? `${command.label} ✓`
+            : command.label,
         shortcut: command.shortcut,
-        disabled:
-          busy ||
-          (command.id === "edit.undo" && !undoStatus.enabled) ||
-          (command.id === "edit.redo" && !redoStatus.enabled) ||
-          (["timeline.split_clip", "timeline.ripple_delete", "timeline.remove_clip"].includes(command.id) &&
-            !selectedClip) ||
-          (command.id === "timeline.add_clip" && !selectedMedia),
-      }));
-
-    const extraItems: { id: string; label: string; shortcut?: string | null; disabled?: boolean }[] =
-      menu === "File"
-        ? [
-            { id: "file.import_interop", label: "Import Timeline (EDL, FCPXML, Premiere)…", shortcut: null },
-            { id: "file.export_interop", label: "Export Timeline (EDL, FCPXML, Premiere)…", shortcut: null },
-            { id: "speech.transcribe", label: "Auto-Transcribe Speech (Whisper AI)…", shortcut: null },
-            { id: "speech.silence_removal", label: "Remove Silence & Filler Words…", shortcut: null },
-            { id: "app.export", label: "Export Media File…", shortcut: null },
-            { id: "app.quit", label: "Quit", shortcut: "Ctrl+Q" },
-          ]
-        : menu === "View"
-        ? [
-            { id: "view.toggle_snap", label: `Snap to frame${snapEnabled ? " ✓" : ""}`, shortcut: "S" },
-            { id: "view.zoom_in", label: "Zoom In", shortcut: "+" },
-            { id: "view.zoom_out", label: "Zoom Out", shortcut: "−" },
-            { id: "view.zoom_reset", label: "Reset Timeline Zoom", shortcut: "0" },
-          ]
-        : menu === "Window"
-        ? workspaces.map((item) => ({
-            id: `workspace.${item.id}`,
-            label: `${item.label}${workspace === item.id ? " ✓" : ""}`,
-            shortcut: null,
-          }))
-        : menu === "Help"
-        ? [
-            { id: "help.shortcuts", label: "Keyboard Shortcuts", shortcut: null },
-            { id: "help.diagnostics", label: "Copy System Diagnostics", shortcut: null },
-            { id: "help.support", label: "Report Issue / Support", shortcut: null },
-            { id: "help.about", label: "About Easy Edits Pro", shortcut: null },
-          ]
-        : [];
-
-    const items = [...commandItems, ...extraItems];
+        reason: disabledReason(command.id),
+      };
+      const bucket = groups.get(section);
+      if (bucket) bucket.push(entry);
+      else groups.set(section, [entry]);
+    }
 
     return (
       <div className="app-menu" key={menu}>
@@ -236,19 +246,28 @@ export function AppHeader({
               transition={motionPreset.transition}
               style={{ transformOrigin: "top left" }}
             >
-              {items.map((item) => (
-                <InteriorButton
-                  key={item.id}
-                  onClick={(event) => {
-                    void invokeMenuCommand(item.id).catch((error: unknown) => setNotice(String(error)));
-                    setOpenMenu(null);
-                    event.currentTarget.blur();
-                  }}
-                  disabled={item.disabled}
-                >
-                  <span>{item.label}</span>
-                  {item.shortcut && <small>{item.shortcut.replace("Ctrl", "⌘/Ctrl")}</small>}
-                </InteriorButton>
+              {groups.size === 0 && <div className="menu-section-label">No commands yet</div>}
+              {[...groups.entries()].map(([section, items]) => (
+                <div className="menu-section" key={section || "root"}>
+                  {section && <div className="menu-section-label">{section}</div>}
+                  {items.map((item) => (
+                    <InteriorButton
+                      key={item.id}
+                      title={item.reason ?? undefined}
+                      disabled={item.reason !== null}
+                      onClick={(event) => {
+                        setOpenMenu(null);
+                        event.currentTarget.blur();
+                        void invokeMenuCommand(item.id).catch((error: unknown) =>
+                          setNotice(String(error)),
+                        );
+                      }}
+                    >
+                      <span>{item.label}</span>
+                      {item.shortcut && <small>{item.shortcut.replace("Ctrl", "⌘/Ctrl")}</small>}
+                    </InteriorButton>
+                  ))}
+                </div>
               ))}
             </motion.div>
           )}
@@ -282,7 +301,11 @@ export function AppHeader({
             <kbd>Ctrl K</kbd>
           </InteriorButton>
           <nav className="menu-bar" aria-label="Application menus" ref={menuBarRef}>
-            {["File", "Edit", "Clip", "Sequence", "Markers", "View", "Window", "Help"].map(renderMenu)}
+            {["File", "Edit", "Clip", "Sequence", "Markers", "Graphics", "Audio", "Effects", "View", "Window", "Help"]
+              .filter((menu) =>
+                commands.some((command) => command.shipped && command.menu[0] === menu)
+              )
+              .map(renderMenu)}
           </nav>
           <nav className="file-actions" aria-label="Project actions" style={{ display: "flex", gap: "2px" }}>
             <InteriorButton

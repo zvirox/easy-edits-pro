@@ -21,15 +21,75 @@ fn run() -> Result<(), String> {
     let mut engine = EditorEngine::default();
     match command.as_str() {
         "commands" => {
-            for spec in command_catalogue() {
-                println!(
-                    "{}\t{}\t{}",
-                    spec.id,
-                    spec.label,
-                    spec.shortcut.unwrap_or("")
+            let mut as_json = false;
+            let mut filter = String::new();
+            for arg in args {
+                if arg == "--json" {
+                    as_json = true;
+                } else if filter.is_empty() {
+                    filter = arg;
+                }
+            }
+            let items: Vec<&saturn_core::CommandSpec> = if filter.is_empty() {
+                command_catalogue().iter().collect()
+            } else {
+                saturn_core::search_commands(&filter)
+            };
+            if as_json {
+                let value = Value::Array(
+                    items
+                        .iter()
+                        .map(|spec| {
+                            json!({
+                                "id": spec.id,
+                                "label": spec.label,
+                                "menu": spec.menu,
+                                "shortcut": spec.shortcut,
+                                "params": spec.params,
+                                "category": spec.category.label(),
+                                "shipped": spec.shipped,
+                                "uiOnly": spec.ui_only,
+                            })
+                        })
+                        .collect(),
                 );
+                print_json(&value)?;
+            } else {
+                for spec in items {
+                    println!(
+                        "{}\t{}\t{}\t{}",
+                        spec.id,
+                        spec.label,
+                        spec.menu_path(),
+                        spec.shortcut.unwrap_or("")
+                    );
+                }
             }
         }
+        "describe" => {
+            let id = args.next().ok_or("missing command id")?;
+            let spec = saturn_core::find_command(&id)
+                .ok_or_else(|| format!("unknown command: {id}"))?;
+            let status = engine.command_status(&id).map_err(|error| error.to_string())?;
+            print_json(&json!({
+                "id": spec.id,
+                "label": spec.label,
+                "menu": spec.menu,
+                "defaultShortcut": spec.shortcut,
+                "shortcut": spec.shortcut,
+                "params": spec.params,
+                "category": spec.category.label(),
+                "mutating": spec.mutating,
+                "undoGroup": spec.undo_group,
+                "aliases": spec.aliases,
+                "since": spec.since,
+                "shipped": spec.shipped,
+                "uiOnly": spec.ui_only,
+                "enabled": status.enabled,
+                "reason": status.reason,
+            }))?;
+        }
+        "catalogue" => run_catalogue(args.collect())?,
         "control" => run_control()?,
         "template" => run_template(args.collect())?,
         "new" => {
@@ -131,6 +191,56 @@ fn media_kind(path: &std::path::Path) -> &'static str {
         "mp4" | "mkv" | "mov" | "webm" | "avi" | "m4v" => "video",
         _ => "unknown",
     }
+}
+
+/// Generate or verify the checked-in command reference.
+///
+/// ```text
+/// saturn-cli catalogue docs <path> [--check]
+/// saturn-cli catalogue json <path> [--check]
+/// ```
+fn run_catalogue(tokens: Vec<String>) -> Result<(), String> {
+    let check = tokens.iter().any(|token| token == "--check");
+    let tokens: Vec<String> = tokens.into_iter().filter(|token| token != "--check").collect();
+    let (positional, _flags) = parse_flags(tokens);
+    let format = positional.first().map(String::as_str).unwrap_or_default();
+    let path = positional.get(1).map(PathBuf::from);
+
+    let rendered = match format {
+        "docs" | "markdown" => saturn_core::catalogue_markdown(),
+        "json" => serde_json::to_string_pretty(&saturn_core::catalogue_json())
+            .map_err(|error| error.to_string())?,
+        _ => return Err("usage: saturn-cli catalogue <docs|json> <path> [--check]".into()),
+    };
+
+    let problems = saturn_core::validate_catalogue();
+    if !problems.is_empty() {
+        return Err(format!(
+            "command catalogue is invalid:\n  {}",
+            problems.join("\n  ")
+        ));
+    }
+
+    let path = path.ok_or("missing catalogue output path")?;
+    if check {
+        let existing = std::fs::read_to_string(&path)
+            .map_err(|error| format!("could not read {}: {error}", path.display()))?;
+        if existing.trim_end() != rendered.trim_end() {
+            return Err(format!(
+                "{} is out of date; run `saturn-cli catalogue {} {}`",
+                path.display(),
+                format,
+                path.display()
+            ));
+        }
+        println!("{} is up to date", path.display());
+        return Ok(());
+    }
+
+    std::fs::write(&path, rendered)
+        .map_err(|error| format!("could not write {}: {error}", path.display()))?;
+    println!("Wrote {}", path.display());
+    Ok(())
 }
 
 /// Graphics template commands backed by the `.sgt` format in `saturn-graphics`.
@@ -290,5 +400,5 @@ fn print_json(value: &Value) -> Result<(), String> {
 }
 
 fn usage<T>() -> Result<T, String> {
-    Err("usage: saturn-cli commands | control | new <project.saturn> [name] | inspect <project.saturn> | list-media <project.saturn> | add-media <project.saturn> <media-path> | template create|inspect|list|export".into())
+    Err("usage: saturn-cli commands [filter] [--json] | describe <id> | catalogue <docs|json> <path> [--check] | control | new <project.saturn> [name] | inspect <project.saturn> | list-media <project.saturn> | add-media <project.saturn> <media-path> | template create|inspect|list|export".into())
 }

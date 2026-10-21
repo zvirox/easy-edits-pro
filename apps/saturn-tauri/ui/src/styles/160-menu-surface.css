@@ -1,0 +1,47 @@
+/*
+ * Command menu surface.
+ *
+ * Menus are generated from the Rust command catalogue, so the popover needs a
+ * stable way to group deeply nested commands (Clip ▸ Effects, Graphics ▸
+ * Captions, ...). Tokens only: no raw colours, no glass on menu rows.
+ */
+
+/* `.glass` sets `position: relative` for its sheen layer and loads after the
+ * base menu rules, so an anchored popover must re-assert absolute positioning
+ * at matching specificity. */
+.menu-popover.glass {
+  position: absolute;
+}
+
+.menu-popover {
+  max-height: min(70vh, 620px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menu-section + .menu-section {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.menu-section-label {
+  padding: 5px 10px 3px;
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.menu-popover button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

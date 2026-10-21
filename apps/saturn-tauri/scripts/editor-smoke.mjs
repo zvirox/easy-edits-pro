@@ -9,6 +9,7 @@ import { chromium } from 'playwright';
 const appDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const fixture = await readFile(path.join(appDirectory, 'tests/fixtures/editor-smoke.webm'));
 const mockVideoUrl = `data:video/webm;base64,${fixture.toString('base64')}`;
+const catalogue = JSON.parse(await readFile(path.join(appDirectory, '../../docs/reference/command-catalogue.json'), 'utf8'));
 const server = spawn('pnpm', ['dev', '--host', '127.0.0.1', '--strictPort'], {
   cwd: appDirectory,
   stdio: ['ignore', 'pipe', 'pipe'],
@@ -56,7 +57,7 @@ await page.route('http://127.0.0.1:1421/media**', async route => {
 
 try {
   await waitForServer();
-  await page.addInitScript(({ mediaUrl }) => {
+  await page.addInitScript(({ mediaUrl, catalogue }) => {
     const second = 254016000000;
     let doc = null;
     let currentPath = null;
@@ -132,12 +133,6 @@ try {
       }
       return { ok: true };
     };
-    const catalogue = [
-      ['project.new','New Project',['File'],'Ctrl+N'], ['file.open','Open Project',['File'],'Ctrl+O'], ['file.save','Save Project',['File'],'Ctrl+S'],
-      ['project.add_media','Import Media',['File','Import Media'],'Ctrl+I'], ['edit.undo','Undo',['Edit'],'Ctrl+Z'], ['edit.redo','Redo',['Edit'],'Ctrl+Shift+Z'],
-      ['timeline.add_clip','Add Clip to Timeline',['Sequence'],null], ['timeline.remove_clip','Remove Clip',['Clip'],null], ['timeline.move_clip','Move Clip',['Timeline'],null],
-      ['timeline.split_clip','Split Clip at Playhead',['Clip'],null], ['timeline.ripple_delete','Ripple Delete',['Clip'],null],
-    ].map(([id,label,menu,shortcut]) => ({ id,label,menu,shortcut,mutating:true }));
     window.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: () => {} };
     window.__TAURI_INTERNALS__ = {
       metadata: { currentWindow: { label: 'main' } },
@@ -166,7 +161,7 @@ try {
         throw new Error(`Unhandled mocked Tauri command: ${command}`);
       },
     };
-  }, { mediaUrl: mockVideoUrl });
+  }, { mediaUrl: mockVideoUrl, catalogue });
 
   await page.goto('http://127.0.0.1:1420/');
   assert.equal(await page.title(), 'Easy Edits Pro', 'the intended app page should load');
@@ -174,6 +169,67 @@ try {
   await page.getByRole('button', { name: /Create a new project/ }).click();
   await page.getByRole('button', { name: /Create project/ }).click();
   await page.locator('.app-shell').waitFor();
+
+  // Menus are generated from the Rust command catalogue: every top-level menu
+  // must list commands, and Window must expose the workspace switcher.
+  const menuBar = page.locator('.menu-bar');
+  for (const menu of ['File', 'Edit', 'Clip', 'Markers', 'View', 'Window', 'Help']) {
+    await menuBar.getByRole('button', { name: menu, exact: true }).click();
+    const popover = page.locator('.menu-popover').last();
+    await popover.waitFor();
+    const entries = await popover.locator('button').count();
+    assert.ok(entries > 0, `the ${menu} menu should list at least one command`);
+    await page.keyboard.press('Escape');
+    await popover.waitFor({ state: 'detached' });
+  }
+  for (const emptyMenu of ['Sequence', 'Graphics', 'Audio', 'Effects']) {
+    assert.equal(
+      await menuBar.getByRole('button', { name: emptyMenu, exact: true }).count(),
+      0,
+      `the ${emptyMenu} menu has no shipped commands yet and must not render`,
+    );
+  }
+  // The command palette reads the same catalogue.
+  await page.keyboard.press('Control+k');
+  await page.locator('#command-palette-search').fill('ripple');
+  await page.locator('.command-palette-result-label', { hasText: 'Ripple Delete' }).first().waitFor();
+  await page.keyboard.press('Escape');
+
+  // UI-only commands dispatch locally instead of hitting the engine.
+  await menuBar.getByRole('button', { name: 'View', exact: true }).click();
+  await page.locator('.menu-popover').getByText('Theme: Light', { exact: true }).click();
+  assert.equal(
+    await page.evaluate(() => document.documentElement.dataset.theme),
+    'light',
+    'View ▸ Theme: Light should switch the theme',
+  );
+  await menuBar.getByRole('button', { name: 'View', exact: true }).click();
+  await page.locator('.menu-popover').getByText('Theme: Dark', { exact: true }).click();
+
+  // Window ▸ Workspaces switches the routed workspace.
+  await menuBar.getByRole('button', { name: 'Window', exact: true }).click();
+  await page.locator('.menu-popover').getByText('Workspace: Color', { exact: true }).click();
+  await page.locator('.color-workspace-page').waitFor();
+  await menuBar.getByRole('button', { name: 'Window', exact: true }).click();
+  await page.locator('.menu-popover').getByText('Workspace: Edit', { exact: false }).click();
+  await page.locator('.app-shell').waitFor();
+  // Shortcut-dispatched commands receive playhead context.
+  await page.locator('.app-shell').press('i');
+  const markRequests = await page.evaluate(() => window.__commandRequests);
+  assert.ok(
+    markRequests.some(
+      (request) => request.id === 'timeline.set_mark_in' && typeof request.params?.at === 'number',
+    ),
+    'I should set the in point with the playhead tick position',
+  );
+
+  await menuBar.getByRole('button', { name: 'Window', exact: true }).click();
+  await page.locator('.menu-popover').getByText('Workspace: Edit').waitFor();
+  // Let the menu fade-in finish so the artifact matches the settled UI.
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: '/tmp/easy-edits-pro-menu.png', fullPage: false });
+  await page.keyboard.press('Escape');
+
   await page.locator('button[data-tooltip="Import Media Files (Ctrl+I)"]').first().click();
   await page.locator('.media-item strong', { hasText: 'editor-smoke.webm' }).waitFor();
 

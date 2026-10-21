@@ -1,0 +1,4857 @@
+[
+ {
+  "id": "audio.toggleScrubbing",
+  "label": "Toggle Audio During Scrubbing",
+  "menu": [],
+  "shortcut": "Shift+S"
+ },
+ {
+  "id": "audio.voiceover.settings",
+  "label": "Voice-Over Record Settings",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "audio.voiceover.start",
+  "label": "Start Voice-over Recording",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "audio.voiceover.stop",
+  "label": "Stop Voice-over Recording",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "audio.voiceover.sync",
+  "label": "Sync Voice-over Capture",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.add",
+  "label": "Add Caption at Playhead",
+  "menu": [
+   "Sequence",
+   "Captions"
+  ],
+  "shortcut": "Cmd+Alt+C"
+ },
+ {
+  "id": "captions.delete",
+  "label": "Delete Captions",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.deleteTrack",
+  "label": "Delete Caption Track",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.export",
+  "label": "Captions\u2026",
+  "menu": [
+   "File",
+   "Export"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "captions.goTo",
+  "label": "Go to Caption",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.hideAll",
+  "label": "Hide All Caption Tracks",
+  "menu": [
+   "Sequence",
+   "Captions"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "captions.import",
+  "label": "Import Captions\u2026",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.list",
+  "label": "List Captions",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.merge",
+  "label": "Merge Captions",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.move",
+  "label": "Move Captions",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.newTrack",
+  "label": "Add New Caption Track\u2026",
+  "menu": [
+   "Sequence",
+   "Captions"
+  ],
+  "shortcut": "Cmd+Alt+A"
+ },
+ {
+  "id": "captions.next",
+  "label": "Go to Next Caption Segment",
+  "menu": [
+   "Sequence",
+   "Captions"
+  ],
+  "shortcut": "Cmd+Alt+Down"
+ },
+ {
+  "id": "captions.previous",
+  "label": "Go to Previous Caption Segment",
+  "menu": [
+   "Sequence",
+   "Captions"
+  ],
+  "shortcut": "Cmd+Alt+Up"
+ },
+ {
+  "id": "captions.select",
+  "label": "Select Captions",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.setStyle",
+  "label": "Caption Track Style",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.setText",
+  "label": "Edit Caption Text",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.setTimes",
+  "label": "Set Caption In/Out",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.setTrack",
+  "label": "Caption Track Settings",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.showActiveOnly",
+  "label": "Show Active Caption Tracks Only",
+  "menu": [
+   "Sequence",
+   "Captions"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "captions.showAll",
+  "label": "Show All Caption Tracks",
+  "menu": [
+   "Sequence",
+   "Captions"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "captions.split",
+  "label": "Split Caption",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "captions.trim",
+  "label": "Trim Caption",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clip.audioChannels",
+  "label": "Audio Channels\u2026",
+  "menu": [
+   "Clip",
+   "Modify"
+  ],
+  "shortcut": "Shift+G"
+ },
+ {
+  "id": "clip.audioGain",
+  "label": "Audio Gain\u2026",
+  "menu": [
+   "Clip",
+   "Audio Options"
+  ],
+  "shortcut": "G"
+ },
+ {
+  "id": "clip.audioPeak",
+  "label": "Audio Clip Peak Amplitude",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clip.automateToSequence",
+  "label": "Automate to Sequence\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.breakoutToMono",
+  "label": "Breakout to Mono",
+  "menu": [
+   "Clip",
+   "Audio Options"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.clearPosterFrame",
+  "label": "Clear Poster Frame",
+  "menu": [],
+  "shortcut": "Alt+P"
+ },
+ {
+  "id": "clip.createMulticam",
+  "label": "Create Multi-Camera Source Sequence\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.editOffline",
+  "label": "Edit Offline\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.editSubclip",
+  "label": "Edit Subclip\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.enable",
+  "label": "Enable",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": "Shift+E"
+ },
+ {
+  "id": "clip.extractAudio",
+  "label": "Extract Audio",
+  "menu": [
+   "Clip",
+   "Audio Options"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.fieldOptions",
+  "label": "Field Options\u2026",
+  "menu": [
+   "Clip",
+   "Video Options"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.fillFrame",
+  "label": "Fill frame",
+  "menu": [
+   "Clip",
+   "Video Options"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.fitToFrame",
+  "label": "Fit to frame",
+  "menu": [
+   "Clip",
+   "Video Options"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.frameHold",
+  "label": "Add Frame Hold",
+  "menu": [
+   "Clip",
+   "Video Options"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.frameHoldOptions",
+  "label": "Frame Hold Options\u2026",
+  "menu": [
+   "Clip",
+   "Video Options"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.generateAudioWaveform",
+  "label": "Generate Audio Waveform",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.group",
+  "label": "Group",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": "Cmd+G"
+ },
+ {
+  "id": "clip.insertFrameHoldSegment",
+  "label": "Insert Frame Hold Segment",
+  "menu": [
+   "Clip",
+   "Video Options"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.interpretFootage",
+  "label": "Interpret Footage\u2026",
+  "menu": [
+   "Clip",
+   "Modify"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.link",
+  "label": "Link",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": "Cmd+L"
+ },
+ {
+  "id": "clip.makeSubclip",
+  "label": "Make Subclip\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": "Cmd+U"
+ },
+ {
+  "id": "clip.mergeClips",
+  "label": "Merge Clips\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.modifyTimecode",
+  "label": "Timecode\u2026",
+  "menu": [
+   "Clip",
+   "Modify"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.multicamEnable",
+  "label": "Enable",
+  "menu": [
+   "Clip",
+   "Multi-Camera"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.multicamFlatten",
+  "label": "Flatten",
+  "menu": [
+   "Clip",
+   "Multi-Camera"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.nest",
+  "label": "Nest\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.nudgeVolumeDown1",
+  "label": "Nudge Volume -1dB",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clip.nudgeVolumeDown3",
+  "label": "Nudge Volume -3dB",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clip.nudgeVolumeUp1",
+  "label": "Nudge Volume +1dB",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clip.nudgeVolumeUp3",
+  "label": "Nudge Volume +3dB",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clip.remix",
+  "label": "Remix",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clip.remix.enable",
+  "label": "Enable Remix",
+  "menu": [
+   "Clip",
+   "Remix"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.remix.properties",
+  "label": "Remix Properties\u2026",
+  "menu": [
+   "Clip",
+   "Remix"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.remix.revert",
+  "label": "Revert Remix",
+  "menu": [
+   "Clip",
+   "Remix"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.rename",
+  "label": "Rename\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.replaceFromBin",
+  "label": "From Bin",
+  "menu": [
+   "Clip",
+   "Replace With Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.replaceFromSource",
+  "label": "From Source Monitor",
+  "menu": [
+   "Clip",
+   "Replace With Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.replaceFromSourceMatchFrame",
+  "label": "From Source Monitor, Match Frame",
+  "menu": [
+   "Clip",
+   "Replace With Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.restoreCaptionsFromSource",
+  "label": "Restore Captions from Source Clip",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.revealInProject",
+  "label": "Reveal in Project",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clip.scaleToFrameSize",
+  "label": "Scale to Frame Size",
+  "menu": [
+   "Clip",
+   "Video Options"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.sceneEditDetection",
+  "label": "Scene Edit Detection\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.setPosterFrame",
+  "label": "Set Poster Frame",
+  "menu": [],
+  "shortcut": "Cmd+P"
+ },
+ {
+  "id": "clip.setTimeInterpolation",
+  "label": "Set Time Interpolation",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clip.sourceSettings",
+  "label": "Source Settings\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.speedDuration",
+  "label": "Speed/Duration\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": "Cmd+R"
+ },
+ {
+  "id": "clip.synchronize",
+  "label": "Synchronize\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.timeInterpolation.frameBlending",
+  "label": "Frame Blending",
+  "menu": [
+   "Clip",
+   "Video Options",
+   "Time Interpolation"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.timeInterpolation.frameSampling",
+  "label": "Frame Sampling",
+  "menu": [
+   "Clip",
+   "Video Options",
+   "Time Interpolation"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.timeInterpolation.opticalFlow",
+  "label": "Optical Flow",
+  "menu": [
+   "Clip",
+   "Video Options",
+   "Time Interpolation"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.ungroup",
+  "label": "Ungroup",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": "Cmd+Shift+G"
+ },
+ {
+  "id": "clip.updateMetadata",
+  "label": "Update Metadata\u2026",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "clip.volumeDown",
+  "label": "Decrease Clip Volume",
+  "menu": [],
+  "shortcut": "["
+ },
+ {
+  "id": "clip.volumeDownMany",
+  "label": "Decrease Clip Volume Many",
+  "menu": [],
+  "shortcut": "Shift+["
+ },
+ {
+  "id": "clip.volumeUp",
+  "label": "Increase Clip Volume",
+  "menu": [],
+  "shortcut": "]"
+ },
+ {
+  "id": "clip.volumeUpMany",
+  "label": "Increase Clip Volume Many",
+  "menu": [],
+  "shortcut": "Shift+]"
+ },
+ {
+  "id": "clipMixer.release",
+  "label": "Release Clip Mixer Control",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clipMixer.set",
+  "label": "Audio Clip Mixer Adjust",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clipMixer.setMode",
+  "label": "Audio Clip Mixer Automation Mode",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "clipMixer.touch",
+  "label": "Touch Clip Mixer Control",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "color.spaces",
+  "label": "List Colour Spaces",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "command.list",
+  "label": "List Commands",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "edit.clear",
+  "label": "Clear",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Backspace"
+ },
+ {
+  "id": "edit.consolidateDuplicates",
+  "label": "Consolidate Duplicates",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.copy",
+  "label": "Copy",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+C"
+ },
+ {
+  "id": "edit.cut",
+  "label": "Cut",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+X"
+ },
+ {
+  "id": "edit.deselectAll",
+  "label": "Deselect All",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+Shift+A"
+ },
+ {
+  "id": "edit.duplicate",
+  "label": "Duplicate",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+Shift+/"
+ },
+ {
+  "id": "edit.editOriginal",
+  "label": "Edit Original",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+E"
+ },
+ {
+  "id": "edit.find",
+  "label": "Find\u2026",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+F"
+ },
+ {
+  "id": "edit.findNext",
+  "label": "Find Next",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label",
+  "label": "Label",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.blue",
+  "label": "Blue",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.brown",
+  "label": "Brown",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.caribbean",
+  "label": "Caribbean",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.cerulean",
+  "label": "Cerulean",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.forest",
+  "label": "Forest",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.green",
+  "label": "Green",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.iris",
+  "label": "Iris",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.lavender",
+  "label": "Lavender",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.magenta",
+  "label": "Magenta",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.mango",
+  "label": "Mango",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.purple",
+  "label": "Purple",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.rose",
+  "label": "Rose",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.tan",
+  "label": "Tan",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.teal",
+  "label": "Teal",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.violet",
+  "label": "Violet",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.label.yellow",
+  "label": "Yellow",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.paste",
+  "label": "Paste",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+V"
+ },
+ {
+  "id": "edit.pasteAttributes",
+  "label": "Paste Attributes\u2026",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+Alt+V"
+ },
+ {
+  "id": "edit.pasteInsert",
+  "label": "Paste Insert",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+Shift+V"
+ },
+ {
+  "id": "edit.pasteMedia",
+  "label": "Paste Media",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "edit.redo",
+  "label": "Redo",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+Shift+Z"
+ },
+ {
+  "id": "edit.removeAttributes",
+  "label": "Remove Attributes\u2026",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.removeUnused",
+  "label": "Remove Unused",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.rippleDelete",
+  "label": "Ripple Delete",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Shift+Delete"
+ },
+ {
+  "id": "edit.rippleDeleteHead",
+  "label": "Ripple Delete Head Frame",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.selectAll",
+  "label": "Select All",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+A"
+ },
+ {
+  "id": "edit.selectAllMatching",
+  "label": "Select All Matching",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.selectLabelGroup",
+  "label": "Select Label Group",
+  "menu": [
+   "Edit",
+   "Label"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "edit.undo",
+  "label": "Undo",
+  "menu": [
+   "Edit"
+  ],
+  "shortcut": "Cmd+Z"
+ },
+ {
+  "id": "effects.addKeyframe",
+  "label": "Add/Remove Keyframe",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.apply",
+  "label": "Apply Effect",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.deleteKeyframe",
+  "label": "Delete Keyframe",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.list",
+  "label": "List Effects",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.moveKeyframe",
+  "label": "Move Keyframe",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.moveKeyframes",
+  "label": "Move Keyframes",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.remove",
+  "label": "Remove Effect",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.reset",
+  "label": "Reset Effect",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.resetParam",
+  "label": "Reset Parameter",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.select",
+  "label": "Select Effect",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.setDefaultTransition",
+  "label": "Set Selected as Default Transition",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.setInterpolation",
+  "label": "Keyframe Interpolation",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.setKeyframe",
+  "label": "Edit Keyframe",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.setParam",
+  "label": "Set Effect Parameter",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.toggleAnimation",
+  "label": "Toggle Animation",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "effects.toggleEnabled",
+  "label": "Toggle Effect",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "essentialSound.applyPreset",
+  "label": "Apply Sound Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "essentialSound.autoMatch",
+  "label": "Auto-Match Loudness",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "essentialSound.clearType",
+  "label": "Clear Audio Type",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "essentialSound.deletePreset",
+  "label": "Delete Sound Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "essentialSound.generateDucking",
+  "label": "Generate Ducking Keyframes",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "essentialSound.inspect",
+  "label": "Inspect Essential Sound",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "essentialSound.savePreset",
+  "label": "Save Sound Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "essentialSound.set",
+  "label": "Essential Sound Setting",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "essentialSound.setType",
+  "label": "Set Audio Type",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "events.clear",
+  "label": "Clear All Events",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "events.list",
+  "label": "List Events",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.formats",
+  "label": "List Export Formats",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.presets.delete",
+  "label": "Delete Export Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.presets.export",
+  "label": "Export Export Presets",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.presets.favorite",
+  "label": "Favorite Export Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.presets.get",
+  "label": "Get Export Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.presets.import",
+  "label": "Import Export Presets",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.presets.list",
+  "label": "List Export Presets",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.presets.save",
+  "label": "Save Export Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.queue.add",
+  "label": "Send to Export Queue",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.queue.cancel",
+  "label": "Cancel Queued Export",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.queue.clear",
+  "label": "Clear Finished Exports",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.queue.list",
+  "label": "List Export Queue",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.queue.move",
+  "label": "Reorder Queued Export",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.queue.remove",
+  "label": "Remove Queued Export",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.queue.retry",
+  "label": "Retry Queued Export",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.queue.start",
+  "label": "Start Export Queue",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.queue.stop",
+  "label": "Stop Export Queue",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.quick",
+  "label": "Quick Export",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "export.resolve",
+  "label": "Resolve Export Settings",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "file.autoSaveNow",
+  "label": "Auto Save Now",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "file.autoSaveStatus",
+  "label": "Auto Save Status",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "file.close",
+  "label": "Close",
+  "menu": [
+   "File"
+  ],
+  "shortcut": "Cmd+W"
+ },
+ {
+  "id": "file.closeAllOtherProjects",
+  "label": "Close All Other Projects",
+  "menu": [
+   "File"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.closeAllProjects",
+  "label": "Close All Projects",
+  "menu": [
+   "File"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.closeProject",
+  "label": "Close Project",
+  "menu": [
+   "File"
+  ],
+  "shortcut": "Cmd+Shift+W"
+ },
+ {
+  "id": "file.discardRecovery",
+  "label": "Discard Unsaved Changes",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportAaf",
+  "label": "AAF\u2026",
+  "menu": [
+   "File",
+   "Export"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportAle",
+  "label": "Avid Log Exchange\u2026",
+  "menu": [
+   "File",
+   "Export"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportEdl",
+  "label": "EDL\u2026",
+  "menu": [
+   "File",
+   "Export"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportFcp7Xml",
+  "label": "Final Cut Pro XML\u2026",
+  "menu": [
+   "File",
+   "Export"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportFcpxml",
+  "label": "FCPXML\u2026",
+  "menu": [
+   "File",
+   "Export"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportFrame",
+  "label": "Export Frame",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportGraphicsTemplate",
+  "label": "Motion Graphics Template\u2026",
+  "menu": [
+   "File",
+   "Export"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportInterchange",
+  "label": "Export Interchange",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportMedia",
+  "label": "Media\u2026",
+  "menu": [
+   "File",
+   "Export"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportOmf",
+  "label": "OMF\u2026",
+  "menu": [
+   "File",
+   "Export"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportOtio",
+  "label": "OpenTimelineIO\u2026",
+  "menu": [
+   "File",
+   "Export"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.exportSelectionProject",
+  "label": "Selection as FilmCraft Project\u2026",
+  "menu": [
+   "File",
+   "Export"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.import",
+  "label": "Import\u2026",
+  "menu": [
+   "File"
+  ],
+  "shortcut": "Cmd+I"
+ },
+ {
+  "id": "file.importAaf",
+  "label": "Import AAF\u2026",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "file.importDemoFootage",
+  "label": "Demo Footage",
+  "menu": [
+   "File",
+   "Import From"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.importFromMediaBrowser",
+  "label": "Import from Media Browser",
+  "menu": [
+   "File"
+  ],
+  "shortcut": "Cmd+Alt+I"
+ },
+ {
+  "id": "file.importImageSequence",
+  "label": "Import Image Sequence\u2026",
+  "menu": [
+   "File"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.listAutoSaves",
+  "label": "Browse Auto-Saves",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "file.mediaProperties",
+  "label": "Selection\u2026",
+  "menu": [
+   "File",
+   "Get Media File Properties for"
+  ],
+  "shortcut": "Cmd+Shift+H"
+ },
+ {
+  "id": "file.mediaPropertiesFile",
+  "label": "File\u2026",
+  "menu": [
+   "File",
+   "Get Media File Properties for"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.newAdjustmentLayer",
+  "label": "Adjustment Layer\u2026",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.newBarsAndTone",
+  "label": "Bars and Tone\u2026",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.newBin",
+  "label": "Bin",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": "Cmd+B"
+ },
+ {
+  "id": "file.newBinFromSelection",
+  "label": "Bin From Selection",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": "Shift+B"
+ },
+ {
+  "id": "file.newBlackVideo",
+  "label": "Black Video\u2026",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.newColorMatte",
+  "label": "Color Matte\u2026",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.newCountingLeader",
+  "label": "Universal Counting Leader\u2026",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.newOfflineFile",
+  "label": "Offline File\u2026",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.newProject",
+  "label": "Project\u2026",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": "Cmd+Alt+N"
+ },
+ {
+  "id": "file.newProjectFromTemplate",
+  "label": "New Project from Template",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "file.newSearchBin",
+  "label": "Search Bin",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.newSequence",
+  "label": "Sequence\u2026",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": "Cmd+N"
+ },
+ {
+  "id": "file.newSequenceFromClip",
+  "label": "Sequence From Clip",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.newTransparentVideo",
+  "label": "Transparent Video\u2026",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.open",
+  "label": "Open Project\u2026",
+  "menu": [
+   "File"
+  ],
+  "shortcut": "Cmd+O"
+ },
+ {
+  "id": "file.openDemoProject",
+  "label": "Demo Project",
+  "menu": [
+   "File",
+   "New"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.projectManager",
+  "label": "Project Manager\u2026",
+  "menu": [
+   "File"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.projectSettings.general",
+  "label": "General\u2026",
+  "menu": [
+   "File",
+   "Project Settings"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.projectSettings.scratchDisks",
+  "label": "Scratch Disks\u2026",
+  "menu": [
+   "File",
+   "Project Settings"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.recover",
+  "label": "Recover Unsaved Changes\u2026",
+  "menu": [
+   "File"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.recoveryList",
+  "label": "List Recoverable Sessions",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "file.replaceFonts",
+  "label": "Replace Fonts in Projects\u2026",
+  "menu": [
+   "Graphics and Titles"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.reveal",
+  "label": "Reveal in Finder",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "file.revert",
+  "label": "Revert",
+  "menu": [
+   "File"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.save",
+  "label": "Save",
+  "menu": [
+   "File"
+  ],
+  "shortcut": "Cmd+S"
+ },
+ {
+  "id": "file.saveAll",
+  "label": "Save All",
+  "menu": [
+   "File"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.saveAs",
+  "label": "Save As\u2026",
+  "menu": [
+   "File"
+  ],
+  "shortcut": "Cmd+Shift+S"
+ },
+ {
+  "id": "file.saveAsTemplate",
+  "label": "Save as Template\u2026",
+  "menu": [
+   "File"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "file.saveCopy",
+  "label": "Save a Copy\u2026",
+  "menu": [
+   "File"
+  ],
+  "shortcut": "Cmd+Alt+S"
+ },
+ {
+  "id": "file.templates",
+  "label": "List Project Templates",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "fonts.list",
+  "label": "List Fonts",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.align",
+  "label": "Align Layers",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignFrame.bottom",
+  "label": "Bottom",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignFrame.hcenter",
+  "label": "Center Horizontally",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignFrame.left",
+  "label": "Left",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignFrame.right",
+  "label": "Right",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignFrame.top",
+  "label": "Top",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignFrame.vcenter",
+  "label": "Center Vertically",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignGroup.bottom",
+  "label": "Bottom",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame as Group"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignGroup.hcenter",
+  "label": "Center Horizontally",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame as Group"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignGroup.left",
+  "label": "Left",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame as Group"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignGroup.right",
+  "label": "Right",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame as Group"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignGroup.top",
+  "label": "Top",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame as Group"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignGroup.vcenter",
+  "label": "Center Vertically",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Video Frame as Group"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignSelection.bottom",
+  "label": "Bottom",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Selection"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignSelection.hcenter",
+  "label": "Center Horizontally",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Selection"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignSelection.left",
+  "label": "Left",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Selection"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignSelection.right",
+  "label": "Right",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Selection"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignSelection.top",
+  "label": "Top",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Selection"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignSelection.vcenter",
+  "label": "Center Vertically",
+  "menu": [
+   "Graphics and Titles",
+   "Align to Selection"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.alignTextCenter",
+  "label": "Center align text",
+  "menu": [],
+  "shortcut": "Cmd+Shift+C"
+ },
+ {
+  "id": "graphics.alignTextLeft",
+  "label": "Left align text",
+  "menu": [],
+  "shortcut": "Cmd+Shift+L"
+ },
+ {
+  "id": "graphics.alignTextRight",
+  "label": "Right align text",
+  "menu": [],
+  "shortcut": "Cmd+Shift+R"
+ },
+ {
+  "id": "graphics.arrangeLayer",
+  "label": "Arrange Graphic Layer",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.bringForward",
+  "label": "Bring Forward",
+  "menu": [
+   "Graphics and Titles",
+   "Arrange"
+  ],
+  "shortcut": "Cmd+]"
+ },
+ {
+  "id": "graphics.bringToFront",
+  "label": "Bring to Front",
+  "menu": [
+   "Graphics and Titles",
+   "Arrange"
+  ],
+  "shortcut": "Cmd+Shift+]"
+ },
+ {
+  "id": "graphics.deleteLayer",
+  "label": "Delete Graphic Layer",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.distribute",
+  "label": "Distribute Layers",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.distributeHorizontally",
+  "label": "Distribute Horizontally",
+  "menu": [
+   "Graphics and Titles",
+   "Distribute"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.distributeSpaceHorizontally",
+  "label": "Distribute Space Horizontally",
+  "menu": [
+   "Graphics and Titles",
+   "Distribute"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.distributeSpaceVertically",
+  "label": "Distribute Space Vertically",
+  "menu": [
+   "Graphics and Titles",
+   "Distribute"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.distributeVertically",
+  "label": "Distribute Vertically",
+  "menu": [
+   "Graphics and Titles",
+   "Distribute"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.fontSizeDown",
+  "label": "Decrease Font Size by One Unit",
+  "menu": [],
+  "shortcut": "Cmd+Alt+Left"
+ },
+ {
+  "id": "graphics.fontSizeDown5",
+  "label": "Decrease Font Size by Five Units",
+  "menu": [],
+  "shortcut": "Cmd+Alt+Shift+Left"
+ },
+ {
+  "id": "graphics.fontSizeUp",
+  "label": "Increase Font Size by One Unit",
+  "menu": [],
+  "shortcut": "Cmd+Alt+Right"
+ },
+ {
+  "id": "graphics.fontSizeUp5",
+  "label": "Increase Font Size by Five Units",
+  "menu": [],
+  "shortcut": "Cmd+Alt+Shift+Right"
+ },
+ {
+  "id": "graphics.fonts.used",
+  "label": "List Fonts Used",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.leadingDown",
+  "label": "Decrease Leading by One Unit",
+  "menu": [],
+  "shortcut": "Alt+Down"
+ },
+ {
+  "id": "graphics.leadingDown5",
+  "label": "Decrease Leading by Five Units",
+  "menu": [],
+  "shortcut": "Alt+Shift+Down"
+ },
+ {
+  "id": "graphics.leadingUp",
+  "label": "Increase Leading by One Unit",
+  "menu": [],
+  "shortcut": "Alt+Up"
+ },
+ {
+  "id": "graphics.leadingUp5",
+  "label": "Increase Leading by Five Units",
+  "menu": [],
+  "shortcut": "Alt+Shift+Up"
+ },
+ {
+  "id": "graphics.list",
+  "label": "List Graphic Layers",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.newEllipse",
+  "label": "Ellipse",
+  "menu": [
+   "Graphics and Titles",
+   "New Layer"
+  ],
+  "shortcut": "Cmd+Alt+E"
+ },
+ {
+  "id": "graphics.newFromFile",
+  "label": "From file\u2026",
+  "menu": [
+   "Graphics and Titles",
+   "New Layer"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.newPolygon",
+  "label": "Polygon",
+  "menu": [
+   "Graphics and Titles",
+   "New Layer"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.newRectangle",
+  "label": "Rectangle",
+  "menu": [
+   "Graphics and Titles",
+   "New Layer"
+  ],
+  "shortcut": "Cmd+Alt+R"
+ },
+ {
+  "id": "graphics.newShape",
+  "label": "Shape",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.newText",
+  "label": "Text",
+  "menu": [
+   "Graphics and Titles",
+   "New Layer"
+  ],
+  "shortcut": "Cmd+T"
+ },
+ {
+  "id": "graphics.newVerticalText",
+  "label": "Vertical Text",
+  "menu": [
+   "Graphics and Titles",
+   "New Layer"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.nudgeDown",
+  "label": "Nudge Selected Object down by one",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.nudgeDown5",
+  "label": "Nudge Selected Object down by five",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.nudgeLeft",
+  "label": "Nudge Selected Object to left by one",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.nudgeLeft5",
+  "label": "Nudge Selected Object to left by five",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.nudgeRight",
+  "label": "Nudge Selected Object to right by one",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.nudgeRight5",
+  "label": "Nudge Selected Object to right by five",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.nudgeUp",
+  "label": "Nudge Selected Object up by one",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.nudgeUp5",
+  "label": "Nudge Selected Object up by five",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.pin",
+  "label": "Responsive Design - Position",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.resetAllParameters",
+  "label": "Reset All Parameters",
+  "menu": [
+   "Graphics and Titles"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.resetDuration",
+  "label": "Reset Duration",
+  "menu": [
+   "Graphics and Titles"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.selectLayer",
+  "label": "Select Graphic Layer",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.selectNextGraphic",
+  "label": "Select Next Graphic",
+  "menu": [
+   "Graphics and Titles",
+   "Select"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.selectNextLayer",
+  "label": "Select Next Layer",
+  "menu": [
+   "Graphics and Titles",
+   "Select"
+  ],
+  "shortcut": "Cmd+Alt+]"
+ },
+ {
+  "id": "graphics.selectPreviousGraphic",
+  "label": "Select Previous Graphic",
+  "menu": [
+   "Graphics and Titles",
+   "Select"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.selectPreviousLayer",
+  "label": "Select Previous Layer",
+  "menu": [
+   "Graphics and Titles",
+   "Select"
+  ],
+  "shortcut": "Cmd+Alt+["
+ },
+ {
+  "id": "graphics.sendBackward",
+  "label": "Send Backward",
+  "menu": [
+   "Graphics and Titles",
+   "Arrange"
+  ],
+  "shortcut": "Cmd+["
+ },
+ {
+  "id": "graphics.sendToBack",
+  "label": "Send to Back",
+  "menu": [
+   "Graphics and Titles",
+   "Arrange"
+  ],
+  "shortcut": "Cmd+Shift+["
+ },
+ {
+  "id": "graphics.set",
+  "label": "Set Graphic Properties",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.setCharStyle",
+  "label": "Character Style",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.setResponsiveTime",
+  "label": "Responsive Design - Time",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.setRoll",
+  "label": "Roll/Crawl Options",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.setText",
+  "label": "Edit Text",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.setTextType",
+  "label": "Text Layer Type",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.template.apply",
+  "label": "Apply Graphics Template",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.template.controls",
+  "label": "List Template Properties",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.template.export",
+  "label": "Export As Motion Graphics Template\u2026",
+  "menu": [
+   "Graphics and Titles"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.template.install",
+  "label": "Install Motion Graphics Template\u2026",
+  "menu": [
+   "Graphics and Titles"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.template.list",
+  "label": "List Graphics Templates",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.template.remove",
+  "label": "Remove Graphics Template",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.template.set",
+  "label": "Set Template Property",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.template.thumbnail",
+  "label": "Graphics Template Thumbnail",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.upgradeCaption",
+  "label": "Upgrade Caption to Graphic",
+  "menu": [
+   "Graphics and Titles"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "graphics.upgradeToSourceGraphic",
+  "label": "Upgrade to Source Graphic",
+  "menu": [
+   "Graphics and Titles"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "help.systemReport",
+  "label": "System Compatibility Report",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "history.list",
+  "label": "List History",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "jobs.cancel",
+  "label": "Cancel Job",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "jobs.list",
+  "label": "List Jobs",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "labels.deletePreset",
+  "label": "Delete Label Color Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "labels.exportPreset",
+  "label": "Export Label Color Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "labels.importPreset",
+  "label": "Import Label Color Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "labels.presets",
+  "label": "Label Color Presets",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "lumetri.applyMatch",
+  "label": "Apply Match",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "lumetri.applyPreset",
+  "label": "Apply Lumetri Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "lumetri.presetThumbnails",
+  "label": "Lumetri Preset Thumbnails",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "lumetri.presets",
+  "label": "List Lumetri Presets",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "lumetri.setInputLut",
+  "label": "Set Input LUT",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "lumetri.setLook",
+  "label": "Set Creative Look",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "lumetri.setSection",
+  "label": "Toggle Lumetri Section",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "lut.export",
+  "label": "Export LUT",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "lut.import",
+  "label": "Import LUT\u2026",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "lut.list",
+  "label": "List LUTs",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "lut.remove",
+  "label": "Remove LUT",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "markers.add",
+  "label": "Add Marker",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "M"
+ },
+ {
+  "id": "markers.addChapter",
+  "label": "Add Chapter Marker\u2026",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.addFlashCue",
+  "label": "Add Flash Cue Marker\u2026",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.addRange",
+  "label": "Add Range Marker",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "Ctrl+Shift+M"
+ },
+ {
+  "id": "markers.addRangeInOut",
+  "label": "Add Range Marker to In and Out",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "Ctrl+M"
+ },
+ {
+  "id": "markers.clearAll",
+  "label": "Clear Markers",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "Cmd+Alt+Shift+M"
+ },
+ {
+  "id": "markers.clearCurrent",
+  "label": "Clear Selected Marker",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "Cmd+Alt+M"
+ },
+ {
+  "id": "markers.clearIn",
+  "label": "Clear In",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "Cmd+Shift+I"
+ },
+ {
+  "id": "markers.clearInOut",
+  "label": "Clear In and Out",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "Cmd+Shift+X"
+ },
+ {
+  "id": "markers.clearOut",
+  "label": "Clear Out",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "Cmd+Shift+O"
+ },
+ {
+  "id": "markers.copyPasteIncludesSequenceMarkers",
+  "label": "Copy Paste Includes Sequence Markers",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.edit",
+  "label": "Edit Marker\u2026",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "markers.exportCsv",
+  "label": "Export Markers as CSV\u2026",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.filterColors",
+  "label": "Marker Colour Filter",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "markers.goNext",
+  "label": "Go to Next Marker",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "Shift+M"
+ },
+ {
+  "id": "markers.goPrev",
+  "label": "Go to Previous Marker",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "Cmd+Shift+M"
+ },
+ {
+  "id": "markers.goToIn",
+  "label": "Go to In",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "Shift+I"
+ },
+ {
+  "id": "markers.goToOut",
+  "label": "Go to Out",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "Shift+O"
+ },
+ {
+  "id": "markers.goToSplitAudioIn",
+  "label": "Audio In",
+  "menu": [
+   "Markers",
+   "Go to Split"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.goToSplitAudioOut",
+  "label": "Audio Out",
+  "menu": [
+   "Markers",
+   "Go to Split"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.goToSplitVideoIn",
+  "label": "Video In",
+  "menu": [
+   "Markers",
+   "Go to Split"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.goToSplitVideoOut",
+  "label": "Video Out",
+  "menu": [
+   "Markers",
+   "Go to Split"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.markClip",
+  "label": "Mark Clip",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "X"
+ },
+ {
+  "id": "markers.markIn",
+  "label": "Mark In",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "I"
+ },
+ {
+  "id": "markers.markOut",
+  "label": "Mark Out",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "O"
+ },
+ {
+  "id": "markers.markSelection",
+  "label": "Mark Selection",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": "/"
+ },
+ {
+  "id": "markers.markSplitAudioIn",
+  "label": "Audio In",
+  "menu": [
+   "Markers",
+   "Mark Split"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.markSplitAudioOut",
+  "label": "Audio Out",
+  "menu": [
+   "Markers",
+   "Mark Split"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.markSplitVideoIn",
+  "label": "Video In",
+  "menu": [
+   "Markers",
+   "Mark Split"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.markSplitVideoOut",
+  "label": "Video Out",
+  "menu": [
+   "Markers",
+   "Mark Split"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.rippleSequenceMarkers",
+  "label": "Ripple Sequence Markers",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "markers.showAllMarkerColors",
+  "label": "Show All Marker Colors",
+  "menu": [
+   "Markers"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "masks.add",
+  "label": "Create Mask",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "masks.addVertex",
+  "label": "Add Mask Vertex",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "masks.list",
+  "label": "List Masks",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "masks.moveVertex",
+  "label": "Move Mask Vertex",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "masks.remove",
+  "label": "Delete Mask",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "masks.removeVertex",
+  "label": "Delete Mask Vertex",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "masks.roundCorners",
+  "label": "Round Mask Corners",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "masks.select",
+  "label": "Select Mask",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "masks.set",
+  "label": "Change Mask",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "masks.toggleVertexSmooth",
+  "label": "Convert Mask Vertex",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "masks.track",
+  "label": "Track Selected Mask",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "masks.translate",
+  "label": "Move Mask",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "media.attachProxies",
+  "label": "Attach Proxies\u2026",
+  "menu": [
+   "Clip",
+   "Proxy"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "media.autoRelink",
+  "label": "Relink Moved Media",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "media.colorInfo",
+  "label": "Media Colour Info",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "media.createProxies",
+  "label": "Create Proxies\u2026",
+  "menu": [
+   "Clip",
+   "Proxy"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "media.detachProxies",
+  "label": "Detach Proxies",
+  "menu": [
+   "Clip",
+   "Proxy"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "media.findMissing",
+  "label": "Find Missing Media",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "media.linkMedia",
+  "label": "Link Media\u2026",
+  "menu": [
+   "File"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "media.makeOffline",
+  "label": "Make Offline\u2026",
+  "menu": [
+   "File"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "media.offlineAll",
+  "label": "Offline All",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "media.proxyPresets",
+  "label": "Proxy Presets",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "media.reconnectFullRes",
+  "label": "Reconnect Full Resolution Media\u2026",
+  "menu": [
+   "Clip",
+   "Proxy"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "media.refreshChanged",
+  "label": "Refresh Changed Media",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "media.relink",
+  "label": "Relink Media",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "media.replaceFootage",
+  "label": "Replace Footage\u2026",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "media.search",
+  "label": "Search for Media",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "media.status",
+  "label": "Media Status",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "media.toggleProxies",
+  "label": "Toggle Proxies",
+  "menu": [
+   "View"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "mediaBrowser.clearRecent",
+  "label": "Clear Recent Directories",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mediaBrowser.favorite",
+  "label": "Add to Favorites",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mediaBrowser.import",
+  "label": "Import",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mediaBrowser.list",
+  "label": "List Directory",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mediaBrowser.navigate",
+  "label": "Go to Directory",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mediaBrowser.openInSource",
+  "label": "Open In Source Monitor",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mediaBrowser.probe",
+  "label": "Media File Properties",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mediaBrowser.roots",
+  "label": "Media Browser Locations",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mediaBrowser.select",
+  "label": "Select Files",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mediaBrowser.settings",
+  "label": "Media Browser Settings",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mediaCache.clean",
+  "label": "Delete Media Cache Files",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mediaCache.info",
+  "label": "Media Cache Info",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "metadata.get",
+  "label": "Get Metadata",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "metadata.set",
+  "label": "Edit Metadata",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.addInsert",
+  "label": "Add Track Effect",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.addSend",
+  "label": "Add Send",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.addSubmix",
+  "label": "Add Audio Submix Track",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.clearLane",
+  "label": "Clear Track Keyframes",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.deleteKeyframe",
+  "label": "Delete Track Keyframe",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.deleteSubmix",
+  "label": "Delete Submix Track",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.inspect",
+  "label": "Inspect Audio Track Mixer",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.moveKeyframe",
+  "label": "Move Track Keyframe",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.recordStart",
+  "label": "Start Automation Pass",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.recordStop",
+  "label": "Write Automation",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.release",
+  "label": "Release Mixer Control",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.removeInsert",
+  "label": "Remove Track Effect",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.removeSend",
+  "label": "Remove Send",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.setInsert",
+  "label": "Track Effect Settings",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.setKeyframe",
+  "label": "Add Track Keyframe",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.setSend",
+  "label": "Send Settings",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.setStrip",
+  "label": "Track Mixer Settings",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.setValue",
+  "label": "Set Mixer Control",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.touch",
+  "label": "Touch Mixer Control",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "mixer.writeAutomation",
+  "label": "Write Automation Points",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.audioFollowsVideo",
+  "label": "Multi-Camera Audio Follows Video",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.autoAdjustQuality",
+  "label": "Auto-Adjust Multi-Camera Playback Quality",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.cut",
+  "label": "Cut to Camera",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.cutToCamera",
+  "label": "Cut to Camera",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.cutToCamera1",
+  "label": "Cut to Camera 1",
+  "menu": [],
+  "shortcut": "Ctrl+1"
+ },
+ {
+  "id": "multicam.cutToCamera2",
+  "label": "Cut to Camera 2",
+  "menu": [],
+  "shortcut": "Ctrl+2"
+ },
+ {
+  "id": "multicam.cutToCamera3",
+  "label": "Cut to Camera 3",
+  "menu": [],
+  "shortcut": "Ctrl+3"
+ },
+ {
+  "id": "multicam.cutToCamera4",
+  "label": "Cut to Camera 4",
+  "menu": [],
+  "shortcut": "Ctrl+4"
+ },
+ {
+  "id": "multicam.cutToCamera5",
+  "label": "Cut to Camera 5",
+  "menu": [],
+  "shortcut": "Ctrl+5"
+ },
+ {
+  "id": "multicam.cutToCamera6",
+  "label": "Cut to Camera 6",
+  "menu": [],
+  "shortcut": "Ctrl+6"
+ },
+ {
+  "id": "multicam.cutToCamera7",
+  "label": "Cut to Camera 7",
+  "menu": [],
+  "shortcut": "Ctrl+7"
+ },
+ {
+  "id": "multicam.cutToCamera8",
+  "label": "Cut to Camera 8",
+  "menu": [],
+  "shortcut": "Ctrl+8"
+ },
+ {
+  "id": "multicam.cutToCamera9",
+  "label": "Cut to Camera 9",
+  "menu": [],
+  "shortcut": "Ctrl+9"
+ },
+ {
+  "id": "multicam.editCameras",
+  "label": "Edit Cameras\u2026",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.grid",
+  "label": "Multi-Camera Grid",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.gridLayout",
+  "label": "Multi-Camera Layout",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.inspect",
+  "label": "Inspect Multi-Camera",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.nextPage",
+  "label": "Next Multi-Camera Page",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.page",
+  "label": "Multi-Camera Page",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.prevPage",
+  "label": "Previous Multi-Camera Page",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.recordStart",
+  "label": "Start Multi-Camera Recording",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.recordStop",
+  "label": "Stop Multi-Camera Recording",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.selectCamera1",
+  "label": "Select Camera 1",
+  "menu": [],
+  "shortcut": "1"
+ },
+ {
+  "id": "multicam.selectCamera2",
+  "label": "Select Camera 2",
+  "menu": [],
+  "shortcut": "2"
+ },
+ {
+  "id": "multicam.selectCamera3",
+  "label": "Select Camera 3",
+  "menu": [],
+  "shortcut": "3"
+ },
+ {
+  "id": "multicam.selectCamera4",
+  "label": "Select Camera 4",
+  "menu": [],
+  "shortcut": "4"
+ },
+ {
+  "id": "multicam.selectCamera5",
+  "label": "Select Camera 5",
+  "menu": [],
+  "shortcut": "5"
+ },
+ {
+  "id": "multicam.selectCamera6",
+  "label": "Select Camera 6",
+  "menu": [],
+  "shortcut": "6"
+ },
+ {
+  "id": "multicam.selectCamera7",
+  "label": "Select Camera 7",
+  "menu": [],
+  "shortcut": "7"
+ },
+ {
+  "id": "multicam.selectCamera8",
+  "label": "Select Camera 8",
+  "menu": [],
+  "shortcut": "8"
+ },
+ {
+  "id": "multicam.selectCamera9",
+  "label": "Select Camera 9",
+  "menu": [],
+  "shortcut": "9"
+ },
+ {
+  "id": "multicam.selectionTopDown",
+  "label": "Multi-Camera Selection Top Down",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.showPreviewMonitor",
+  "label": "Show Multi-Camera Preview Monitor",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.switchAngle",
+  "label": "Switch Multi-Camera Angle",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "multicam.transmitView",
+  "label": "Transmit Multi-Camera View",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "perf.stats",
+  "label": "Performance Statistics",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "playhead.end",
+  "label": "Go to Sequence End",
+  "menu": [],
+  "shortcut": "End"
+ },
+ {
+  "id": "playhead.nextEdit",
+  "label": "Go to Next Edit Point",
+  "menu": [],
+  "shortcut": "Down"
+ },
+ {
+  "id": "playhead.nextEditAnyTrack",
+  "label": "Go to Next Edit Point on Any Track",
+  "menu": [],
+  "shortcut": "Shift+Down"
+ },
+ {
+  "id": "playhead.prevEdit",
+  "label": "Go to Previous Edit Point",
+  "menu": [],
+  "shortcut": "Up"
+ },
+ {
+  "id": "playhead.prevEditAnyTrack",
+  "label": "Go to Previous Edit Point on Any Track",
+  "menu": [],
+  "shortcut": "Shift+Up"
+ },
+ {
+  "id": "playhead.selectedClipEnd",
+  "label": "Go to Selected Clip End",
+  "menu": [],
+  "shortcut": "Shift+End"
+ },
+ {
+  "id": "playhead.selectedClipStart",
+  "label": "Go to Selected Clip Start",
+  "menu": [],
+  "shortcut": "Shift+Home"
+ },
+ {
+  "id": "playhead.set",
+  "label": "Set Playhead",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "playhead.start",
+  "label": "Go to Sequence Start",
+  "menu": [],
+  "shortcut": "Home"
+ },
+ {
+  "id": "playhead.step",
+  "label": "Step Frames",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "playhead.stepBack",
+  "label": "Step Back One Frame",
+  "menu": [],
+  "shortcut": "Left"
+ },
+ {
+  "id": "playhead.stepBack5",
+  "label": "Step Back Five Frames",
+  "menu": [],
+  "shortcut": "Shift+Left"
+ },
+ {
+  "id": "playhead.stepForward",
+  "label": "Step Forward One Frame",
+  "menu": [],
+  "shortcut": "Right"
+ },
+ {
+  "id": "playhead.stepForward5",
+  "label": "Step Forward Five Frames",
+  "menu": [],
+  "shortcut": "Shift+Right"
+ },
+ {
+  "id": "prefs.get",
+  "label": "Get Preferences",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "prefs.reset",
+  "label": "Reset Preferences",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "prefs.schema",
+  "label": "Settings Schema",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "prefs.set",
+  "label": "Set Preferences",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "presets.apply",
+  "label": "Apply Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "presets.delete",
+  "label": "Delete Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "presets.export",
+  "label": "Export Presets",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "presets.import",
+  "label": null,
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "presets.list",
+  "label": "List Effect Presets",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "presets.rename",
+  "label": "Rename Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "presets.save",
+  "label": "Save Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.columns.list",
+  "label": "List Project Columns",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.columns.resize",
+  "label": "Resize Column",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.columns.set",
+  "label": "Metadata Display",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.delete",
+  "label": "Clear",
+  "menu": [],
+  "shortcut": "Delete"
+ },
+ {
+  "id": "project.deleteSearchBin",
+  "label": "Delete Search Bin",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.deselectAll",
+  "label": "Deselect All Project Items",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.editSearchBin",
+  "label": "Edit Search Bin",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.alignToGrid",
+  "label": "Align to Grid",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.arrangements",
+  "label": "List Arrangements",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.deleteArrangement",
+  "label": "Delete Arrangement",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.layout",
+  "label": "Freeform Layout",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.move",
+  "label": "Move Clip Cards",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.options",
+  "label": "Freeform View Options\u2026",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.reset",
+  "label": "Reset to Grid",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.resize",
+  "label": "Clip Size",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.restoreArrangement",
+  "label": "Restore Arrangement",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.saveArrangement",
+  "label": "Save Arrangement",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.stack",
+  "label": "Stack Clips",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.freeform.unstack",
+  "label": "Unstack Clips",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.ingestSettings",
+  "label": "Ingest Settings\u2026",
+  "menu": [
+   "File",
+   "Project Settings"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "project.inspect",
+  "label": "Inspect Project",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.items",
+  "label": "List Project Panel Rows",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.matteColor",
+  "label": "Color Matte Color\u2026",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.moveToBin",
+  "label": "Move to Bin",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.notes",
+  "label": "Get Project Notes",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.renameBin",
+  "label": "Rename Bin",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.searchBinItems",
+  "label": "Search Bin Contents",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.select",
+  "label": "Select Project Items",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.selectAll",
+  "label": "Select All Project Items",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.setMarks",
+  "label": "Set Source In/Out",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.setNotes",
+  "label": "Edit Project Notes",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.sort",
+  "label": "Sort Project Items",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.view.get",
+  "label": "Project Panel View",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.view.set",
+  "label": "Set Project Panel View",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.viewPreset.delete",
+  "label": "Delete View Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.viewPreset.list",
+  "label": "List View Presets",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.viewPreset.rename",
+  "label": "Rename View Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.viewPreset.restore",
+  "label": "Restore View Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.viewPreset.save",
+  "label": "Save Current View Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "project.viewPreset.saveAs",
+  "label": "Save As New View Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "scopes.read",
+  "label": "Read Lumetri Scopes",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.addEdit",
+  "label": "Add Edit",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": "Cmd+K"
+ },
+ {
+  "id": "sequence.addEditAllTracks",
+  "label": "Add Edit to All Tracks",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": "Cmd+Shift+K"
+ },
+ {
+  "id": "sequence.addTracks",
+  "label": "Add Tracks\u2026",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.applyAudioTransition",
+  "label": "Apply Audio Transition",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": "Cmd+Shift+D"
+ },
+ {
+  "id": "sequence.applyVideoTransition",
+  "label": "Apply Video Transition",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": "Cmd+D"
+ },
+ {
+  "id": "sequence.close",
+  "label": "Close Sequence",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.closeGap",
+  "label": "Close Gap",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.closeOthers",
+  "label": "Close Other Timeline Panels",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.colorSettings",
+  "label": "Color Management\u2026",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.deleteRenderFiles",
+  "label": "Delete Render Files",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.deleteRenderFilesInToOut",
+  "label": "Delete Render Files In to Out",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.deleteTrack",
+  "label": "Delete Track",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.deleteTracks",
+  "label": "Delete Tracks\u2026",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.extract",
+  "label": "Extract",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": "'"
+ },
+ {
+  "id": "sequence.goToNextGap",
+  "label": "Next in Sequence",
+  "menu": [
+   "Sequence",
+   "Go to Gap"
+  ],
+  "shortcut": "Shift+;"
+ },
+ {
+  "id": "sequence.goToNextGapInTrack",
+  "label": "Next in Track",
+  "menu": [
+   "Sequence",
+   "Go to Gap"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.goToPrevGap",
+  "label": "Previous in Sequence",
+  "menu": [
+   "Sequence",
+   "Go to Gap"
+  ],
+  "shortcut": "Cmd+Shift+;"
+ },
+ {
+  "id": "sequence.goToPrevGapInTrack",
+  "label": "Previous in Track",
+  "menu": [
+   "Sequence",
+   "Go to Gap"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.inspect",
+  "label": "Inspect Sequence",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.joinThroughEdits",
+  "label": "Join Through Edits",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.lift",
+  "label": "Lift",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": ";"
+ },
+ {
+  "id": "sequence.linkedSelection",
+  "label": "Linked Selection",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.makeSubsequence",
+  "label": "Make Subsequence",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": "Shift+U"
+ },
+ {
+  "id": "sequence.matchFrame",
+  "label": "Match Frame",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": "F"
+ },
+ {
+  "id": "sequence.moveTab",
+  "label": "Move Sequence Tab",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.nestSequences",
+  "label": "Insert and overwrite sequences as nests or individual clips",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.normalizeMixTrack",
+  "label": "Normalize Mix Track\u2026",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.open",
+  "label": "Open in Timeline",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.removeTransition",
+  "label": "Clear Transition",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.renderAudio",
+  "label": "Render Audio",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.renderBar",
+  "label": "Render Bar",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.renderEffectsInToOut",
+  "label": "Render Effects In to Out",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": "Enter"
+ },
+ {
+  "id": "sequence.renderInToOut",
+  "label": "Render In to Out",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.renderSelection",
+  "label": "Render Selection",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.revealInProject",
+  "label": "Reveal Sequence in Project",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.revealNested",
+  "label": "Reveal Nested Sequence",
+  "menu": [],
+  "shortcut": "Cmd+Alt+F"
+ },
+ {
+  "id": "sequence.reverseMatchFrame",
+  "label": "Reverse Match Frame",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": "Shift+R"
+ },
+ {
+  "id": "sequence.selectionFollowsPlayhead",
+  "label": "Selection Follows Playhead",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.setTransition",
+  "label": "Edit Transition Settings",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.settings",
+  "label": "Sequence Settings\u2026",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.showThroughEdits",
+  "label": "Show Through Edits",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.simplify",
+  "label": "Simplify Sequence\u2026",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.snap",
+  "label": "Snap in Timeline",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": "S"
+ },
+ {
+  "id": "sequence.throughEdits",
+  "label": "List Through Edits",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "sequence.transcribe",
+  "label": "Transcribe Sequence\u2026",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.audit",
+  "label": "Shortcut Audit",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.clear",
+  "label": "Clear Shortcut",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.conflicts",
+  "label": "Shortcut Conflicts",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.deletePreset",
+  "label": "Delete Shortcut Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.export",
+  "label": "Export Keyboard Shortcuts",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.forKey",
+  "label": "Shortcuts on a Key",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.get",
+  "label": "Get Shortcuts of a Command",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.import",
+  "label": "Import Keyboard Shortcuts",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.list",
+  "label": "List Keyboard Shortcuts",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.loadPreset",
+  "label": "Load Shortcut Preset",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.presets",
+  "label": "Keyboard Shortcut Presets",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.redo",
+  "label": "Redo Shortcut Change",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.resolve",
+  "label": "Resolve Shortcut",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.savePreset",
+  "label": "Save Shortcut Preset As",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.set",
+  "label": "Assign Shortcut",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "shortcuts.undo",
+  "label": "Undo Shortcut Change",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "source.close",
+  "label": "Close",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "source.closeAll",
+  "label": "Close All",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "source.insert",
+  "label": "Insert",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": ","
+ },
+ {
+  "id": "source.inspect",
+  "label": "Inspect Source Monitor",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "source.open",
+  "label": "Open in Source Monitor",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "source.overwrite",
+  "label": "Overwrite",
+  "menu": [
+   "Clip"
+  ],
+  "shortcut": "."
+ },
+ {
+  "id": "source.setPlayhead",
+  "label": "Set Source Playhead",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "state.inspect",
+  "label": "Inspect Editor State",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.move",
+  "label": "Move Clips",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.moveAudioTargetsDown",
+  "label": "Move All Audio Targets Down",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.moveAudioTargetsUp",
+  "label": "Move All Audio Targets Up",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.moveVideoTargetsDown",
+  "label": "Move All Video Targets Down",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.moveVideoTargetsUp",
+  "label": "Move All Video Targets Up",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.nudgeDown",
+  "label": "Nudge Clip Selection Down",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.nudgeLeft",
+  "label": "Nudge Clip Selection Left One Frame",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.nudgeLeft5",
+  "label": "Nudge Clip Selection Left Five Frames",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.nudgeRight",
+  "label": "Nudge Clip Selection Right One Frame",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.nudgeRight5",
+  "label": "Nudge Clip Selection Right Five Frames",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.nudgeUp",
+  "label": "Nudge Clip Selection Up",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.place",
+  "label": "Place Clip",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.rateStretch",
+  "label": "Rate Stretch",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.razor",
+  "label": "Razor",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.roll",
+  "label": "Rolling Edit",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.select",
+  "label": "Select Clips",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.selectClipAtPlayhead",
+  "label": "Select Clip at Playhead",
+  "menu": [],
+  "shortcut": "D"
+ },
+ {
+  "id": "timeline.selectGap",
+  "label": "Select Gap",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.selectNextClip",
+  "label": "Select Next Clip",
+  "menu": [],
+  "shortcut": "Cmd+Down"
+ },
+ {
+  "id": "timeline.selectPrevClip",
+  "label": "Select Previous Clip",
+  "menu": [],
+  "shortcut": "Cmd+Up"
+ },
+ {
+  "id": "timeline.setTargeting",
+  "label": "Track Targeting",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.setTrack",
+  "label": "Track Settings",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.slide",
+  "label": "Slide",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.slideLeft",
+  "label": "Slide Clip Selection Left One Frame",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.slideLeft5",
+  "label": "Slide Clip Selection Left Five Frames",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.slideRight",
+  "label": "Slide Clip Selection Right One Frame",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.slideRight5",
+  "label": "Slide Clip Selection Right Five Frames",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.slip",
+  "label": "Slip",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.slipLeft",
+  "label": "Slip Clip Selection Left One Frame",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.slipLeft5",
+  "label": "Slip Clip Selection Left Five Frames",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.slipRight",
+  "label": "Slip Clip Selection Right One Frame",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.slipRight5",
+  "label": "Slip Clip Selection Right Five Frames",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleAllAudioTargets",
+  "label": "Toggle All Audio Targets",
+  "menu": [],
+  "shortcut": "Cmd+9"
+ },
+ {
+  "id": "timeline.toggleAllSourceAudio",
+  "label": "Toggle All Source Audio",
+  "menu": [],
+  "shortcut": "Cmd+Alt+9"
+ },
+ {
+  "id": "timeline.toggleAllSourceVideo",
+  "label": "Toggle All Source Video",
+  "menu": [],
+  "shortcut": "Cmd+Alt+0"
+ },
+ {
+  "id": "timeline.toggleAllVideoTargets",
+  "label": "Toggle All Video Targets",
+  "menu": [],
+  "shortcut": "Cmd+0"
+ },
+ {
+  "id": "timeline.toggleMuteTargetedAudio",
+  "label": "Toggle Mute for All Targeted Audio Tracks",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleOutputTargetedVideo",
+  "label": "Toggle Track Output for All Targeted Video Tracks",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleSoloTargetedAudio",
+  "label": "Toggle Solo for All Targeted Audio Tracks",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetA1",
+  "label": "Toggle Target Audio 1",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetA2",
+  "label": "Toggle Target Audio 2",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetA3",
+  "label": "Toggle Target Audio 3",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetA4",
+  "label": "Toggle Target Audio 4",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetA5",
+  "label": "Toggle Target Audio 5",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetA6",
+  "label": "Toggle Target Audio 6",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetA7",
+  "label": "Toggle Target Audio 7",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetA8",
+  "label": "Toggle Target Audio 8",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetV1",
+  "label": "Toggle Target Video 1",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetV2",
+  "label": "Toggle Target Video 2",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetV3",
+  "label": "Toggle Target Video 3",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetV4",
+  "label": "Toggle Target Video 4",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetV5",
+  "label": "Toggle Target Video 5",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetV6",
+  "label": "Toggle Target Video 6",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetV7",
+  "label": "Toggle Target Video 7",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.toggleTargetV8",
+  "label": "Toggle Target Video 8",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "timeline.trim",
+  "label": "Trim Edit",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.createCaptions",
+  "label": "Create Captions from Transcript\u2026",
+  "menu": [
+   "Sequence",
+   "Transcript"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.delete",
+  "label": "Delete Transcript",
+  "menu": [
+   "Sequence",
+   "Transcript"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.downloadModel",
+  "label": "Download Speech Model",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.extract",
+  "label": "Extract Selected Text",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.generate",
+  "label": "Transcribe\u2026",
+  "menu": [
+   "Sequence",
+   "Transcript"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.inspect",
+  "label": "Inspect Transcript",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.lift",
+  "label": "Lift Selected Text",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.models",
+  "label": "List Speech Models",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.removeFillers",
+  "label": "Remove Filler Words",
+  "menu": [
+   "Sequence",
+   "Transcript"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.removePauses",
+  "label": "Remove Pauses",
+  "menu": [
+   "Sequence",
+   "Transcript"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.renameSpeaker",
+  "label": "Rename Speaker\u2026",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.search",
+  "label": "Search Transcript",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.select",
+  "label": "Mark Selected Text",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "transcript.set",
+  "label": "Import Transcript",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "trim.applyDefaultTransition",
+  "label": "Apply Default Transitions to Selection",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": null
+ },
+ {
+  "id": "trim.backward",
+  "label": "Trim Backward",
+  "menu": [],
+  "shortcut": "Alt+Left"
+ },
+ {
+  "id": "trim.backwardMany",
+  "label": "Trim Backward Many",
+  "menu": [],
+  "shortcut": "Alt+Shift+Left"
+ },
+ {
+  "id": "trim.cancelDynamic",
+  "label": "Cancel Dynamic Trim",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "trim.clear",
+  "label": "Clear Edit Point Selection",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "trim.edit",
+  "label": "Trim Edit",
+  "menu": [
+   "Sequence"
+  ],
+  "shortcut": "Shift+T"
+ },
+ {
+  "id": "trim.extendNextEdit",
+  "label": "Extend Next Edit To Playhead",
+  "menu": [],
+  "shortcut": "Shift+W"
+ },
+ {
+  "id": "trim.extendPreviousEdit",
+  "label": "Extend Previous Edit To Playhead",
+  "menu": [],
+  "shortcut": "Shift+Q"
+ },
+ {
+  "id": "trim.extendToPlayhead",
+  "label": "Extend Selected Edit to Playhead",
+  "menu": [],
+  "shortcut": "E"
+ },
+ {
+  "id": "trim.forward",
+  "label": "Trim Forward",
+  "menu": [],
+  "shortcut": "Alt+Right"
+ },
+ {
+  "id": "trim.forwardMany",
+  "label": "Trim Forward Many",
+  "menu": [],
+  "shortcut": "Alt+Shift+Right"
+ },
+ {
+  "id": "trim.monitor",
+  "label": "Trim Monitor State",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "trim.next",
+  "label": "Trim Next Edit to Playhead",
+  "menu": [],
+  "shortcut": "Alt+W"
+ },
+ {
+  "id": "trim.nudge",
+  "label": "Trim by Frames",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "trim.playAround",
+  "label": "Play Around Edit",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "trim.previous",
+  "label": "Trim Previous Edit to Playhead",
+  "menu": [],
+  "shortcut": "Alt+Q"
+ },
+ {
+  "id": "trim.rippleNext",
+  "label": "Ripple Trim Next Edit to Playhead",
+  "menu": [],
+  "shortcut": "W"
+ },
+ {
+  "id": "trim.ripplePrevious",
+  "label": "Ripple Trim Previous Edit to Playhead",
+  "menu": [],
+  "shortcut": "Q"
+ },
+ {
+  "id": "trim.selectEditPoint",
+  "label": "Select Edit Point",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "trim.selectNearest",
+  "label": "Select Nearest Edit Point",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "trim.shuttle",
+  "label": "Dynamic Trim (Shuttle)",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "trim.shuttleStop",
+  "label": "Dynamic Trim Stop",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "trim.tick",
+  "label": "Advance Trim Playback",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "trim.toggleType",
+  "label": "Toggle Trim Type",
+  "menu": [],
+  "shortcut": "Ctrl+T"
+ },
+ {
+  "id": "tts.create",
+  "label": "New Narration",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "tts.downloadVoices",
+  "label": "Download Natural Voices",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "tts.edit",
+  "label": "Edit Narration",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "tts.inspect",
+  "label": "Inspect Narration",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "tts.preview",
+  "label": "Preview Narration",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "tts.render",
+  "label": "Synthesize Narration",
+  "menu": [],
+  "shortcut": null
+ },
+ {
+  "id": "tts.voices",
+  "label": "List Narration Voices",
+  "menu": [],
+  "shortcut": null
+ }
+]

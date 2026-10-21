@@ -1,0 +1,12 @@
+pub(super) mod audio;
+pub(super) mod clip;
+pub(super) mod edit;
+pub(super) mod effects;
+pub(super) mod engine;
+pub(super) mod file;
+pub(super) mod graphics;
+pub(super) mod help;
+pub(super) mod markers;
+pub(super) mod sequence;
+pub(super) mod view;
+pub(super) mod window;

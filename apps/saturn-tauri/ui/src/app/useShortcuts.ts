@@ -78,11 +78,6 @@ export function useShortcuts(options: Options) {
       options.setCompoundClipModalOpen(true); return;
     }
     if ((event.ctrlKey || event.metaKey) && event.altKey && event.key.toLowerCase() === "t") { event.preventDefault(); options.toggleTheme(); return; }
-    if (event.shiftKey && ["1", "2", "3", "4", "5", "6", "7"].includes(event.key)) {
-      event.preventDefault();
-      const spaces: Record<string, DavinciWorkspace> = { "1": "media", "2": "edit", "3": "color", "4": "audio", "5": "effects", "6": "keyframes", "7": "deliver" };
-      options.selectDavinciWorkspace(spaces[event.key]); return;
-    }
     if (!(event.ctrlKey || event.metaKey || event.altKey)) {
       const tool = options.timelineTools.find((item) => item.shortcut.toLowerCase() === event.key.toLowerCase());
       if (tool) { event.preventDefault(); options.setTimelineTool(tool.id); return; }

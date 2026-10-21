@@ -473,7 +473,11 @@ button:disabled { opacity: .48; cursor: not-allowed; }
   width: 100vw;
   min-height: 0;
   min-width: 0;
+  /* The shell must never scroll: workspaces own their scrolling. `clip` keeps
+   * programmatic scrollIntoView from shifting the whole app when a control's
+   * content overflows its box. */
   overflow: hidden;
+  overflow: clip;
   display: flex;
   flex-direction: column;
   background: var(--color-bg-base, var(--bg-app));

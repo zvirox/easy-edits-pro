@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { ProjectProvider, runCommand } from "./app/ProjectProvider";
 import { useProject } from "./app/useProject";
 import { usePlayback } from "./features/preview";
@@ -19,6 +20,7 @@ import { EditorModals } from "./features/dialogs";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { TICKS_PER_SECOND, timelineTools } from "./features/timeline/types";
 import { audioClockMaster } from "./engine/playbackEngine";
+import type { CommandSpec, SelectedClip } from "./types";
 
 function EditorApp() {
   const [theme, setTheme] = useState<"dark" | "light">(() => {
@@ -39,6 +41,12 @@ function EditorApp() {
   }, [theme]);
 
   const toggleTheme = useCallback(() => setTheme((t) => (t === "dark" ? "light" : "dark")), []);
+  const [commands, setCommands] = useState<CommandSpec[]>([]);
+  useEffect(() => {
+    invoke<CommandSpec[]>("get_command_catalogue")
+      .then((catalogue) => setCommands(catalogue))
+      .catch(() => setCommands([]));
+  }, []);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -79,12 +87,18 @@ function EditorApp() {
     }
   }, [refreshProject]);
 
+  const menuContext = useRef<{ selectedClip: SelectedClip | null; playhead: number }>({
+    selectedClip: null,
+    playhead: 0,
+  });
+
   const projectOps = useProjectOperations({
     projectState, setProjectState, refreshProject,
     perform, runCommand, setNotice, setBusy, busy,
     setPlayhead: playback.setPlayhead,
     setSelectedClip: () => {}, setSelectedClips: () => {},
     setSelectedTransition: () => {}, setSelectedMediaId: () => {},
+    getMenuContext: () => menuContext.current,
   });
 
   const timelineEndSeconds = Math.max(
@@ -103,6 +117,13 @@ function EditorApp() {
     setCompoundClipNameDraft: projectOps.setCompoundClipNameDraft,
     keyframeProperty: "opacity", keyframeValue: "1",
   });
+
+  useEffect(() => {
+    menuContext.current = {
+      selectedClip: timelineOps.selectedClip,
+      playhead: playback.playhead,
+    };
+  }, [timelineOps.selectedClip, playback.playhead]);
 
   const audioOps = useAudioWorkspace(project, perform, playback.programPlaying);
 
@@ -143,8 +164,74 @@ function EditorApp() {
     else if (ws === "keyframes") projectOps.setWorkspace("keyframes");
   }, [projectOps]);
 
+  /**
+   * Single entry point for menus, the command palette, keyboard shortcuts, and
+   * workspace toolbars. UI-only commands are handled here; everything else goes
+   * through the engine-aware `invokeMenuCommand`.
+   */
+  const dispatchCommand = useCallback(
+    async (id: string) => {
+      if (id.startsWith("workspace.")) {
+        selectDavinciWorkspace(id.slice("workspace.".length) as DavinciWorkspace);
+        return;
+      }
+      switch (id) {
+        case "project.new":
+          projectOps.setNewProjectOpen(true);
+          return;
+        case "project.add_media":
+          await mediaOps.importMedia();
+          return;
+        case "view.toggle_snap":
+          timelineOps.setSnapEnabled((value) => !value);
+          return;
+        case "view.zoom_in":
+          timelineOps.zoomTimeline(1.25);
+          return;
+        case "view.zoom_out":
+          timelineOps.zoomTimeline(0.8);
+          return;
+        case "view.zoom_reset":
+          timelineOps.setTimelineZoom(72);
+          return;
+        case "view.theme_dark":
+        case "view.theme_light": {
+          const wanted = id === "view.theme_dark" ? "dark" : "light";
+          if (theme !== wanted) toggleTheme();
+          return;
+        }
+        case "view.reduced_motion": {
+          const root = document.documentElement;
+          root.setAttribute(
+            "data-reduced-motion",
+            root.getAttribute("data-reduced-motion") === "true" ? "false" : "true"
+          );
+          return;
+        }
+        case "help.shortcuts":
+          setNotice("Every shortcut is listed beside its menu item.");
+          return;
+        case "help.diagnostics":
+          setNotice("Diagnostics are available from the status bar.");
+          return;
+        case "help.support":
+          setNotice("Report issues from the project repository.");
+          return;
+        case "help.about":
+          setNotice("Easy Edits Pro — glass NLE built on the Saturn engine.");
+          return;
+      }
+      if (id.startsWith("view.glass_")) {
+        document.documentElement.setAttribute("data-glass", id.slice("view.glass_".length));
+        return;
+      }
+      await projectOps.invokeMenuCommand(id);
+    },
+    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps, theme, toggleTheme]
+  );
+
   const shortcuts = useShortcuts({
-    commands: [],
+    commands: commands.filter((command) => command.shipped),
     timelineTools: timelineTools.map((t) => ({ id: t.id, shortcut: t.shortcut })),
     project,
     multicamMode: false,
@@ -170,7 +257,7 @@ function EditorApp() {
     setTimelineTool: timelineOps.setTimelineTool,
     setSnapEnabled: timelineOps.setSnapEnabled,
     zoomTimeline: timelineOps.zoomTimeline,
-    invokeMenuCommand: projectOps.invokeMenuCommand,
+    invokeMenuCommand: dispatchCommand,
     setNotice,
   });
 
@@ -214,7 +301,7 @@ function EditorApp() {
       <AppHeader
         project={project}
         projectState={projectState}
-        commands={[]}
+        commands={commands}
         busy={busy}
         undoStatus={undoStatus}
         redoStatus={redoStatus}
@@ -224,7 +311,7 @@ function EditorApp() {
         workspace={projectOps.workspace as any}
         davinciWorkspace={projectOps.davinciWorkspace}
         selectDavinciWorkspace={selectDavinciWorkspace}
-        invokeMenuCommand={projectOps.invokeMenuCommand}
+        invokeMenuCommand={dispatchCommand}
         ensureDiscardIsOkay={projectOps.ensureDiscardIsOkay}
         setNewProjectName={projectOps.setNewProjectName}
         setNewProjectOpen={projectOps.setNewProjectOpen}
@@ -258,6 +345,7 @@ function EditorApp() {
           selectDavinciWorkspace={selectDavinciWorkspace} playback={playback}
           mediaOps={mediaOps} timelineOps={timelineOps}
           inspectorOps={inspectorOps} projectOps={projectOps}
+          invokeMenuCommand={dispatchCommand}
           perform={perform} undoStatus={undoStatus} redoStatus={redoStatus}
           programPreviewError={programPreviewError} audioClockMaster={audioClockMaster}
           audioOps={audioOps}

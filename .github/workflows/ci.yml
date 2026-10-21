@@ -100,6 +100,14 @@ jobs:
         working-directory: apps/saturn-tauri
         run: pnpm check:source-size --max-lines=800
 
+      - name: Check command catalogue structure
+        working-directory: apps/saturn-tauri
+        run: pnpm check:commands
+
+      - name: Check command catalogue drift
+        working-directory: apps/saturn-tauri
+        run: pnpm catalogue:check
+
       - name: Check Tauri desktop backend
         working-directory: apps/saturn-tauri
         run: cargo check --verbose

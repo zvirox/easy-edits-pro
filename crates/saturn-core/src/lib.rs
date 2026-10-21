@@ -1,3 +1,4 @@
+pub mod catalogue;
 pub mod command;
 pub mod engine;
 pub mod interop;
@@ -8,7 +9,11 @@ pub mod speech;
 pub mod subtitles;
 pub mod time;
 
-pub use command::{CommandRequest, CommandSpec, CommandStatus, command_catalogue};
+pub use command::{
+    Category, CommandRequest, CommandSpec, CommandStatus, MENU_BAR, UndoGroup,
+    catalogue_json, catalogue_markdown, command_catalogue, find_command, menu_commands,
+    search_commands, validate_catalogue,
+};
 pub use engine::{DispatchError, EditorEngine};
 pub use interop::{
     export_cmx3600_edl, export_fcpxml, export_otio, export_premiere_xml, import_cmx3600_edl,

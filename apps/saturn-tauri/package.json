@@ -12,6 +12,10 @@
     "check:tokens": "node scripts/build-token-docs.mjs --check",
     "tokens:docs": "node scripts/build-token-docs.mjs",
     "check:glass": "pnpm check:contrast && pnpm check:styles && pnpm check:tokens",
+    "check:commands": "node scripts/check-commands.mjs",
+    "check:parity": "node scripts/check-parity.mjs",
+    "catalogue:sync": "cargo run -q --manifest-path ../../Cargo.toml -p saturn-cli -- catalogue json ../../docs/reference/command-catalogue.json && cargo run -q --manifest-path ../../Cargo.toml -p saturn-cli -- catalogue docs ../../docs/COMMANDS.md",
+    "catalogue:check": "cargo run -q --manifest-path ../../Cargo.toml -p saturn-cli -- catalogue json ../../docs/reference/command-catalogue.json --check && cargo run -q --manifest-path ../../Cargo.toml -p saturn-cli -- catalogue docs ../../docs/COMMANDS.md --check",
     "check:source-size": "node scripts/check-source-size.mjs",
     "test:e2e": "node scripts/editor-smoke.mjs",
     "tauri": "tauri"

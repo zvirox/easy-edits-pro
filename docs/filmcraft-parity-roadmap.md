@@ -1,9 +1,11 @@
 # FilmCraft parity roadmap
 
-This roadmap uses the supplied FilmCraft source archive as a reference for
-feature boundaries and workflow design. FilmCraft is a source-code reference;
-there is no FilmCraft application installed on this machine for live runtime
-comparison. Easy Edits Pro remains its own implementation and project format.
+This roadmap uses the installed FilmCraft 0.8.0 app (Flatpak
+`ai.storyteller.filmcraft`, commit `cd3e6fe5`, installed 2026-10-14) and its
+`filmcraft-cli` as the authoritative reference for the command, menu, and tool
+inventory. The supplied source archive remains a reference for internals such as
+workspaces and panel layout. Easy Edits Pro remains its own implementation and
+project format.
 
 FilmCraft's automation documentation describes a useful end-to-end pattern:
 discover engine commands, inspect project/sequence state, run single or batched
@@ -11,6 +13,24 @@ commands, and connect automation to the running application. Its own parity
 notes also identify unfinished areas such as docking, timeline editing details,
 codec/hardware support, and real-media validation. Those notes are reference
 material, not proof that each feature works in EEP.
+
+## Command catalogue
+
+`saturn-core/src/catalogue` is the single source of truth for every engine and
+UI command. It drives menus, keyboard shortcuts, the command palette,
+`saturn-cli commands` / `describe`, the MCP tool list, and the generated
+reference in `docs/COMMANDS.md`.
+
+- Add or change commands in `crates/saturn-core/src/catalogue/commands/<menu>.rs`.
+- Run `pnpm catalogue:sync` from `apps/saturn-tauri` after Rust changes.
+- `pnpm check:commands` fails on duplicate ids, unknown menus, shortcut
+  collisions, unreachable shipped commands, or stale docs.
+- `pnpm check:parity` prints per-family coverage against
+  `docs/reference/filmcraft-commands.json` (701 commands recorded from the
+  installed FilmCraft 0.8.0).
+- A command is `shipped` only when a working UI affordance exists. Planned
+  commands stay in the catalogue for CLI/MCP use but are hidden from menus and
+  the palette until their phase lands.
 
 ## Current foundation
 

@@ -29,6 +29,7 @@ export interface WorkspaceRouterProps {
   timelineOps: any;
   inspectorOps: any;
   projectOps: any;
+  invokeMenuCommand: (id: string) => Promise<void>;
   perform: (id: string, params?: unknown, msg?: string) => Promise<boolean>;
   undoStatus: CommandStatus;
   redoStatus: CommandStatus;
@@ -54,6 +55,7 @@ export function WorkspaceRouter({
   timelineOps,
   inspectorOps,
   projectOps,
+  invokeMenuCommand,
   perform,
   undoStatus,
   redoStatus,
@@ -182,7 +184,7 @@ export function WorkspaceRouter({
         setUseHardwareEncoding={projectOps.setUseHardwareEncoding}
         exportMarkedRange={projectOps.exportMarkedRange}
         setExportMarkedRange={projectOps.setExportMarkedRange}
-        invokeMenuCommand={projectOps.invokeMenuCommand}
+        invokeMenuCommand={invokeMenuCommand}
         activeClip={null}
         selectedMedia={selectedMedia}
         renderPreview={() => null}
@@ -511,7 +513,7 @@ export function WorkspaceRouter({
         setCompoundClipNameDraft: projectOps.setCompoundClipNameDraft,
         setCompoundClipModalOpen: projectOps.setCompoundClipModalOpen,
         decomposeSelectedCompoundClip: timelineOps.decomposeSelectedCompoundClip,
-        invokeMenuCommand: projectOps.invokeMenuCommand,
+        invokeMenuCommand,
         zoomTimeline: timelineOps.zoomTimeline,
         handleCreateTrackGroup: timelineOps.handleCreateTrackGroup,
         attachTimelineScroller: timelineOps.attachTimelineScroller,
@@ -615,7 +617,7 @@ export function WorkspaceRouter({
         project,
         exportMarkedRange: projectOps.exportMarkedRange,
         setExportMarkedRange: projectOps.setExportMarkedRange,
-        invokeMenuCommand: projectOps.invokeMenuCommand,
+        invokeMenuCommand,
         exportFormat: projectOps.exportFormat,
         setExportFormat: projectOps.setExportFormat,
         rendering: projectOps.rendering,

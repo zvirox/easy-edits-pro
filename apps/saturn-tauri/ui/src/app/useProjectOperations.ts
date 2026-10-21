@@ -15,6 +15,7 @@ import type {
   SilenceInterval,
   Transition,
 } from "./projectTypes";
+import { TICKS_PER_SECOND } from "./projectTypes";
 
 const recentProjectsKey = "easy-edits-pro.recent-projects.v1";
 const projectFilters = [{ name: "Easy Edits Pro project", extensions: ["saturn"] }];
@@ -57,6 +58,8 @@ export interface UseProjectOperationsOptions {
   setSelectedClips: Dispatch<SetStateAction<SelectedClip[]>>;
   setSelectedTransition: Dispatch<SetStateAction<{ track_id: number; transition: Transition } | null>>;
   setSelectedMediaId: Dispatch<SetStateAction<number | null>>;
+  /** Live timeline context, read at invocation time to fill command parameters. */
+  getMenuContext: () => { selectedClip: SelectedClip | null; playhead: number };
 }
 
 export function useProjectOperations({
@@ -73,6 +76,7 @@ export function useProjectOperations({
   setSelectedClips,
   setSelectedTransition,
   setSelectedMediaId,
+  getMenuContext,
 }: UseProjectOperationsOptions) {
   const project = projectState?.document.project ?? null;
 
@@ -527,26 +531,46 @@ export function useProjectOperations({
     } catch {}
   }, [fullscreen]);
 
+  /**
+   * Menu, palette, and toolbar entry point.
+   *
+   * Commands that need timeline context get their parameters from the current
+   * selection and playhead, so a menu item never fires with an empty payload.
+   */
   const invokeMenuCommand = useCallback(
-    async (id: string) => {
+    async (id: string, explicitParams?: unknown) => {
       switch (id) {
-        case "file.new":
+        case "project.new":
           setNewProjectOpen(true);
-          break;
+          return;
         case "file.open":
           await openProject();
-          break;
+          return;
         case "file.save":
           await saveProject();
-          break;
+          return;
         case "view.fullscreen":
           await toggleFullscreen();
-          break;
-        default:
-          await perform(id);
+          return;
       }
+
+      let params = explicitParams;
+      if (params === undefined) {
+        const { selectedClip, playhead } = getMenuContext();
+        if (id === "timeline.set_mark_in" || id === "timeline.set_mark_out") {
+          params = { at: Math.round(playhead * TICKS_PER_SECOND) };
+        } else if (selectedClip && id === "timeline.split_clip") {
+          params = { ...selectedClip, at: Math.round(playhead * TICKS_PER_SECOND) };
+        } else if (
+          selectedClip &&
+          (id === "timeline.remove_clip" || id === "timeline.ripple_delete")
+        ) {
+          params = { ...selectedClip };
+        }
+      }
+      await perform(id, params ?? null);
     },
-    [openProject, saveProject, toggleFullscreen, perform]
+    [openProject, saveProject, toggleFullscreen, perform, getMenuContext]
   );
 
   return {

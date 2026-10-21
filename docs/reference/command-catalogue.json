@@ -1,0 +1,2116 @@
+[
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.set_gain_db",
+    "label": "Set Track Gain",
+    "menu": [
+      "Audio"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"gain_db\":num}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.set_pan",
+    "label": "Set Track Pan",
+    "menu": [
+      "Audio"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"pan\":num}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.set_muted",
+    "label": "Set Track Muted",
+    "menu": [
+      "Audio"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"muted\":bool}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.set_solo",
+    "label": "Set Track Solo",
+    "menu": [
+      "Audio"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"solo\":bool}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.set_audio_processing",
+    "label": "Set Track Audio Processing",
+    "menu": [
+      "Audio"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"eq_enabled\":bool?,\"eq_low_gain\":num?,\"eq_mid_gain\":num?,\"eq_high_gain\":num?,\"comp_enabled\":bool?,\"comp_threshold\":num?,\"comp_ratio\":num?,\"comp_attack\":num?,\"comp_release\":num?,\"denoise_enabled\":bool?,\"denoise_amount\":num?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.set_bus_route",
+    "label": "Set Track Bus Route",
+    "menu": [
+      "Audio",
+      "Routing"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"bus\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.set_automation",
+    "label": "Set Track Automation",
+    "menu": [
+      "Audio",
+      "Automation"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"automation\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.add_audio_plugin",
+    "label": "Add Audio Plugin",
+    "menu": [
+      "Audio",
+      "Plugins"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"plugin\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.toggle_audio_plugin",
+    "label": "Toggle Audio Plugin",
+    "menu": [
+      "Audio",
+      "Plugins"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"plugin_id\":int,\"enabled\":bool}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Audio",
+    "id": "bus.set_gain_db",
+    "label": "Set Audio Bus Gain",
+    "menu": [
+      "Audio",
+      "Buses"
+    ],
+    "mutating": true,
+    "params": "{\"target\":obj,\"gain_db\":num}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Transcription",
+    "id": "speech.transcribe_to_subtitles",
+    "label": "Transcribe Speech to Subtitles",
+    "menu": [
+      "Audio",
+      "Speech"
+    ],
+    "mutating": true,
+    "params": "{\"segments\":[obj],\"replace_existing\":bool?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.remove_clip",
+    "label": "Remove Clip",
+    "menu": [
+      "Clip"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.split_clip",
+    "label": "Split Clip at Playhead",
+    "menu": [
+      "Clip"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"at\":obj}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.ripple_delete",
+    "label": "Ripple Delete",
+    "menu": [
+      "Clip"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int}",
+    "shipped": true,
+    "shortcut": "Shift+Delete",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.set_color",
+    "label": "Set Clip Color",
+    "menu": [
+      "Clip",
+      "Color"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"exposure\":num,\"contrast\":num,\"saturation\":num,\"hue\":num?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.set_keyframe",
+    "label": "Set Keyframe",
+    "menu": [
+      "Clip",
+      "Keyframes"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"property\":obj,\"time\":obj,\"value\":num,\"interpolation\":obj?,\"handle_in_x\":num?,\"handle_in_y\":num?,\"handle_out_x\":num?,\"handle_out_y\":num?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.remove_keyframe",
+    "label": "Remove Keyframe",
+    "menu": [
+      "Clip",
+      "Keyframes"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"property\":obj,\"time\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.add_effect",
+    "label": "Add Clip Effect",
+    "menu": [
+      "Clip",
+      "Effects"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"kind\":obj,\"name\":str?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.remove_effect",
+    "label": "Remove Clip Effect",
+    "menu": [
+      "Clip",
+      "Effects"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"effect_id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.update_effect",
+    "label": "Update Clip Effect",
+    "menu": [
+      "Clip",
+      "Effects"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"effect_id\":int,\"payload\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.toggle_effect",
+    "label": "Toggle Clip Effect",
+    "menu": [
+      "Clip",
+      "Effects"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"effect_id\":int,\"enabled\":bool?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.reorder_effects",
+    "label": "Reorder Clip Effects",
+    "menu": [
+      "Clip",
+      "Effects"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"from_index\":int,\"to_index\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.rate_stretch",
+    "label": "Rate Stretch",
+    "menu": [
+      "Clip"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"new_duration\":obj?,\"speed\":num?}",
+    "shipped": false,
+    "shortcut": "X",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.link_clips",
+    "label": "Link Clips",
+    "menu": [
+      "Clip"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[obj]}",
+    "shipped": false,
+    "shortcut": "Ctrl+L",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.unlink_clips",
+    "label": "Unlink Clips",
+    "menu": [
+      "Clip"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[obj]}",
+    "shipped": false,
+    "shortcut": "Ctrl+Shift+L",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.set_color_wheels",
+    "label": "Set Color Wheels",
+    "menu": [
+      "Clip",
+      "Color"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"wheels\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Multi-Cam",
+    "id": "multicam.create",
+    "label": "Create Multicam Clip",
+    "menu": [
+      "Clip",
+      "Multicam"
+    ],
+    "mutating": true,
+    "params": "{\"name\":str,\"angles\":[obj],\"sync_mode\":obj?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Multi-Cam",
+    "id": "multicam.switch_angle",
+    "label": "Switch Multicam Angle",
+    "menu": [
+      "Clip",
+      "Multicam"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"angle_id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Multi-Cam",
+    "id": "multicam.sync",
+    "label": "Sync Multicam Angles",
+    "menu": [
+      "Clip",
+      "Multicam"
+    ],
+    "mutating": true,
+    "params": "{\"multicam_id\":int,\"sync_mode\":obj,\"offsets\":obj?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.set_motion_tracking",
+    "label": "Set Motion Tracking & Stabilization",
+    "menu": [
+      "Clip",
+      "Tracking"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"tracking\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.pin_to_track",
+    "label": "Pin Clip to Motion Track",
+    "menu": [
+      "Clip",
+      "Tracking"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"pinned_clip_id\":int?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.set_speed_ramp",
+    "label": "Set Optical Flow Speed Ramp",
+    "menu": [
+      "Clip",
+      "Speed"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"speed_ramp\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.set_motion_blur",
+    "label": "Set Dynamic Shutter Motion Blur",
+    "menu": [
+      "Clip",
+      "Motion"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"motion_blur\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.create_compound_clip",
+    "label": "Create Compound Clip",
+    "menu": [
+      "Clip",
+      "Compound"
+    ],
+    "mutating": true,
+    "params": "{\"name\":str?,\"target_track_id\":int?,\"clips\":[obj]}",
+    "shipped": false,
+    "shortcut": "Ctrl+G",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.decompose_compound_clip",
+    "label": "Decompose Compound Clip in Place",
+    "menu": [
+      "Clip",
+      "Compound"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int}",
+    "shipped": false,
+    "shortcut": "Ctrl+Shift+G",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.move_to_bin",
+    "label": "Move Media to Bin",
+    "menu": [
+      "Clip"
+    ],
+    "mutating": true,
+    "params": "{\"media_id\":int,\"bin_id\":int?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.update_properties",
+    "label": "Update Media Properties",
+    "menu": [
+      "Clip"
+    ],
+    "mutating": true,
+    "params": "{\"media_id\":int,\"name\":str?,\"color_label\":str?,\"tags\":[str]?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.update_rgb_curves",
+    "label": "Update Clip RGB Curves",
+    "menu": [
+      "Clip",
+      "Color"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"curves\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.update_hsl_qualifier",
+    "label": "Update Clip HSL Qualifier",
+    "menu": [
+      "Clip",
+      "Color"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"qualifier\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.add_custom_shader",
+    "label": "Add Custom GLSL Shader",
+    "menu": [
+      "Clip",
+      "Effects"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"name\":str?,\"shader_code\":str?,\"preset_id\":str?,\"uniforms\":obj?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Clip",
+    "id": "clip.update_custom_shader",
+    "label": "Update Custom GLSL Shader",
+    "menu": [
+      "Clip",
+      "Effects"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"effect_id\":int,\"name\":str?,\"shader_code\":str?,\"preset_id\":str?,\"uniforms\":obj?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.undo",
+    "label": "Undo",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl+Z",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.redo",
+    "label": "Redo",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl+Shift+Z",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Transcription",
+    "id": "speech.ripple_delete_silence",
+    "label": "Ripple Delete Audio Silence",
+    "menu": [
+      "Edit",
+      "Speech"
+    ],
+    "mutating": true,
+    "params": "{\"peaks\":[int],\"options\":obj?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Transcription",
+    "id": "speech.ripple_delete_fillers",
+    "label": "Ripple Delete Filler Words",
+    "menu": [
+      "Edit",
+      "Speech"
+    ],
+    "mutating": true,
+    "params": "{\"segments\":[obj],\"custom_fillers\":[str]?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.ripple_delete_ranges",
+    "label": "Ripple Delete Time Ranges",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{\"ranges\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.ripple_delete_gap",
+    "label": "Ripple Delete Timeline Gap",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int?,\"at_tick\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Effects",
+    "id": "nodegraph.add_node",
+    "label": "Add Node to Graph",
+    "menu": [
+      "Effects",
+      "Nodes"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int?,\"clip_index\":int?,\"kind\":obj,\"title\":str?,\"pos_x\":num?,\"pos_y\":num?,\"params\":any?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Effects",
+    "id": "nodegraph.remove_node",
+    "label": "Remove Node from Graph",
+    "menu": [
+      "Effects",
+      "Nodes"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int?,\"clip_index\":int?,\"node_id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Effects",
+    "id": "nodegraph.connect",
+    "label": "Connect Graph Sockets",
+    "menu": [
+      "Effects",
+      "Nodes"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int?,\"clip_index\":int?,\"from_node\":int,\"from_socket\":str,\"to_node\":int,\"to_socket\":str}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Effects",
+    "id": "nodegraph.disconnect",
+    "label": "Disconnect Graph Sockets",
+    "menu": [
+      "Effects",
+      "Nodes"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int?,\"clip_index\":int?,\"from_node\":int,\"from_socket\":str,\"to_node\":int,\"to_socket\":str}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Effects",
+    "id": "nodegraph.update_node",
+    "label": "Update Node Properties",
+    "menu": [
+      "Effects",
+      "Nodes"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int?,\"clip_index\":int?,\"node_id\":int,\"pos_x\":num?,\"pos_y\":num?,\"enabled\":bool?,\"params\":any?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Effects",
+    "id": "nodegraph.add_mask",
+    "label": "Add Roto-Spline Mask",
+    "menu": [
+      "Effects",
+      "Masks"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int?,\"clip_index\":int?,\"mask\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.update_media",
+    "label": "Update Media Metadata",
+    "menu": [],
+    "mutating": true,
+    "params": "{\"path\":path,\"kind\":str?,\"duration\":ticks?,\"width\":int?,\"height\":int?,\"waveform\":[int]?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.relink_media",
+    "label": "Relink Missing Media",
+    "menu": [],
+    "mutating": true,
+    "params": "{\"media_id\":int,\"path\":path}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.begin_gesture",
+    "label": "Begin Undo Gesture",
+    "menu": [],
+    "mutating": false,
+    "params": "{\"label\":str?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.end_gesture",
+    "label": "End Undo Gesture",
+    "menu": [],
+    "mutating": false,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.inspect",
+    "label": "Inspect Project",
+    "menu": [],
+    "mutating": false,
+    "params": "",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.status",
+    "label": "Project Status",
+    "menu": [],
+    "mutating": false,
+    "params": "",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.list",
+    "label": "List Media",
+    "menu": [],
+    "mutating": false,
+    "params": "",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.slip_clip",
+    "label": "Slip Clip Source",
+    "menu": [],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"delta\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.ripple_delete_batch",
+    "label": "Ripple Delete Selected Clips",
+    "menu": [],
+    "mutating": true,
+    "params": "{\"clips\":[obj],\"ripple\":bool?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.new",
+    "label": "New Project",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"name\":str?,\"sequence_name\":str?,\"width\":int?,\"height\":int?,\"frame_rate\":str?}",
+    "shipped": true,
+    "shortcut": "Ctrl+N",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "file.open",
+    "label": "Open Project",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"path\":path}",
+    "shipped": true,
+    "shortcut": "Ctrl+O",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "file.save",
+    "label": "Save Project",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{\"path\":path}",
+    "shipped": true,
+    "shortcut": "Ctrl+S",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.add_media",
+    "label": "Import Media…",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"name\":str,\"path\":path,\"kind\":str?,\"duration\":ticks?,\"width\":int?,\"height\":int?,\"fps\":num?,\"audio_channels\":int?,\"codec\":str?,\"bin_id\":int?,\"color_label\":str?,\"tags\":[str]?,\"title\":obj?,\"waveform\":[int]?}",
+    "shipped": true,
+    "shortcut": "Ctrl+I",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Other",
+    "id": "collab.acquire_lock",
+    "label": "Acquire Project Lock",
+    "menu": [
+      "File",
+      "Collaboration"
+    ],
+    "mutating": true,
+    "params": "{\"user_id\":str,\"user_name\":str,\"user_color\":str?,\"target_kind\":obj,\"target_id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Other",
+    "id": "collab.release_lock",
+    "label": "Release Project Lock",
+    "menu": [
+      "File",
+      "Collaboration"
+    ],
+    "mutating": true,
+    "params": "{\"user_id\":str,\"target_kind\":obj,\"target_id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Other",
+    "id": "collab.record_change",
+    "label": "Record Change History Entry",
+    "menu": [
+      "File",
+      "Collaboration"
+    ],
+    "mutating": true,
+    "params": "{\"user_id\":str,\"user_name\":str,\"action\":str,\"summary\":str}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "interop.import_edl",
+    "label": "Import CMX 3600 EDL",
+    "menu": [
+      "File",
+      "Import"
+    ],
+    "mutating": true,
+    "params": "{\"edl\":str,\"project_name\":str?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "interop.import_fcpxml",
+    "label": "Import Final Cut Pro XML",
+    "menu": [
+      "File",
+      "Import"
+    ],
+    "mutating": true,
+    "params": "{\"xml\":str}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "interop.import_premiere_xml",
+    "label": "Import Premiere Pro XML",
+    "menu": [
+      "File",
+      "Import"
+    ],
+    "mutating": true,
+    "params": "{\"xml\":str}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.create_bin",
+    "label": "Create Media Bin",
+    "menu": [
+      "File",
+      "Bin"
+    ],
+    "mutating": true,
+    "params": "{\"name\":str,\"parent_id\":int?,\"color\":str?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.rename_bin",
+    "label": "Rename Media Bin",
+    "menu": [
+      "File",
+      "Bin"
+    ],
+    "mutating": true,
+    "params": "{\"bin_id\":int,\"name\":str}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.delete_bin",
+    "label": "Delete Media Bin",
+    "menu": [
+      "File",
+      "Bin"
+    ],
+    "mutating": true,
+    "params": "{\"bin_id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.check_missing",
+    "label": "Check Missing Media",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "interop.import_otio",
+    "label": "Import OpenTimelineIO",
+    "menu": [
+      "File",
+      "Import"
+    ],
+    "mutating": true,
+    "params": "{\"content\":str,\"project_name\":str?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Graphics",
+    "id": "title.update",
+    "label": "Update Title Properties",
+    "menu": [
+      "Graphics",
+      "Titles"
+    ],
+    "mutating": true,
+    "params": "{\"media_id\":int,\"text\":str?,\"subtitle\":str?,\"style\":str?,\"font_size\":num?,\"color\":str?,\"bg_color\":str?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Graphics",
+    "id": "subtitle.add",
+    "label": "Add Subtitle",
+    "menu": [
+      "Graphics",
+      "Captions"
+    ],
+    "mutating": true,
+    "params": "{\"start_ticks\":obj,\"end_ticks\":obj,\"text\":str}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Graphics",
+    "id": "subtitle.remove",
+    "label": "Remove Subtitle",
+    "menu": [
+      "Graphics",
+      "Captions"
+    ],
+    "mutating": true,
+    "params": "{\"id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Graphics",
+    "id": "subtitle.update",
+    "label": "Update Subtitle",
+    "menu": [
+      "Graphics",
+      "Captions"
+    ],
+    "mutating": true,
+    "params": "{\"id\":int,\"start_ticks\":obj?,\"end_ticks\":obj?,\"text\":str?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Graphics",
+    "id": "subtitle.clear",
+    "label": "Clear Subtitles",
+    "menu": [
+      "Graphics",
+      "Captions"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Help",
+    "id": "help.shortcuts",
+    "label": "Keyboard Shortcuts",
+    "menu": [
+      "Help"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Help",
+    "id": "help.diagnostics",
+    "label": "Copy System Diagnostics",
+    "menu": [
+      "Help"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Help",
+    "id": "help.support",
+    "label": "Report Issue / Support",
+    "menu": [
+      "Help"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Help",
+    "id": "help.about",
+    "label": "About Easy Edits Pro",
+    "menu": [
+      "Help"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.set_mark_in",
+    "label": "Set In Point",
+    "menu": [
+      "Markers"
+    ],
+    "mutating": true,
+    "params": "{\"at\":obj}",
+    "shipped": true,
+    "shortcut": "I",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.set_mark_out",
+    "label": "Set Out Point",
+    "menu": [
+      "Markers"
+    ],
+    "mutating": true,
+    "params": "{\"at\":obj}",
+    "shipped": true,
+    "shortcut": "O",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.clear_marks",
+    "label": "Clear In/Out Points",
+    "menu": [
+      "Markers"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.add_clip",
+    "label": "Add Clip to Timeline",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"media_id\":int,\"track_id\":int?,\"timeline_start\":obj?,\"source_in\":obj?,\"duration\":obj?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.move_clip",
+    "label": "Move Clip",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"target_track_id\":int?,\"timeline_start\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.set_locked",
+    "label": "Set Track Locked",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"locked\":bool}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.add_transition",
+    "label": "Add Transition",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"cut_at\":obj,\"duration\":obj?,\"kind\":obj?}",
+    "shipped": false,
+    "shortcut": "Ctrl+D",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.remove_transition",
+    "label": "Remove Transition",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"transition_id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.add_title",
+    "label": "Add Title Clip",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"text\":str,\"subtitle\":str?,\"style\":str?,\"duration\":obj?,\"track_id\":int?,\"timeline_start\":obj?}",
+    "shipped": false,
+    "shortcut": "Ctrl+T",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.roll_edit",
+    "label": "Rolling Edit",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"left_clip_index\":int,\"delta\":obj}",
+    "shipped": false,
+    "shortcut": "N",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.slide_clip",
+    "label": "Slide Edit",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"delta\":obj}",
+    "shipped": false,
+    "shortcut": "U",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.move_clips_batch",
+    "label": "Move Clips Batch",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"moves\":[obj]}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.switch_sequence",
+    "label": "Switch Active Sequence",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"sequence_id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.add_track",
+    "label": "Add Timeline Track",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"kind\":obj?,\"name\":str?}",
+    "shipped": false,
+    "shortcut": "Ctrl+Shift+T",
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.remove_track",
+    "label": "Remove Timeline Track",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.create_track_group",
+    "label": "Create Track Group",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"name\":str,\"color\":str?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.assign_track_group",
+    "label": "Assign Track to Group",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"group_id\":int?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggle_track_group_collapsed",
+    "label": "Toggle Track Group Collapsed",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"group_id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.delete_track_group",
+    "label": "Delete Track Group",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"group_id\":int}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.set_track_group_properties",
+    "label": "Set Track Group Properties",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"group_id\":int,\"name\":str?,\"color\":str?,\"muted\":bool?,\"solo\":bool?,\"locked\":bool?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.toggle_snap",
+    "label": "Snap to Frame",
+    "menu": [
+      "View"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "S",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.zoom_in",
+    "label": "Zoom In",
+    "menu": [
+      "View"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl++",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.zoom_out",
+    "label": "Zoom Out",
+    "menu": [
+      "View"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl+-",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.zoom_reset",
+    "label": "Reset Timeline Zoom",
+    "menu": [
+      "View"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl+0",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.fullscreen",
+    "label": "Toggle Full Screen",
+    "menu": [
+      "View"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "F11",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.glass_full",
+    "label": "Appearance: Full Glass",
+    "menu": [
+      "View",
+      "Appearance"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.glass_lite",
+    "label": "Appearance: Lite Glass",
+    "menu": [
+      "View",
+      "Appearance"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.glass_off",
+    "label": "Appearance: No Glass",
+    "menu": [
+      "View",
+      "Appearance"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.theme_dark",
+    "label": "Theme: Dark",
+    "menu": [
+      "View",
+      "Appearance"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.theme_light",
+    "label": "Theme: Light",
+    "menu": [
+      "View",
+      "Appearance"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.reduced_motion",
+    "label": "Reduce Motion",
+    "menu": [
+      "View",
+      "Appearance"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.media",
+    "label": "Workspace: Media",
+    "menu": [
+      "Window",
+      "Workspaces"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+1",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.edit",
+    "label": "Workspace: Edit",
+    "menu": [
+      "Window",
+      "Workspaces"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+2",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.fusion",
+    "label": "Workspace: Fusion",
+    "menu": [
+      "Window",
+      "Workspaces"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+3",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.color",
+    "label": "Workspace: Color",
+    "menu": [
+      "Window",
+      "Workspaces"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+4",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.audio",
+    "label": "Workspace: Fairlight",
+    "menu": [
+      "Window",
+      "Workspaces"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+5",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.effects",
+    "label": "Workspace: Effects",
+    "menu": [
+      "Window",
+      "Workspaces"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+6",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.keyframes",
+    "label": "Workspace: Animation",
+    "menu": [
+      "Window",
+      "Workspaces"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+7",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.deliver",
+    "label": "Workspace: Deliver",
+    "menu": [
+      "Window",
+      "Workspaces"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+8",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.library",
+    "label": "Workspace: Library",
+    "menu": [
+      "Window",
+      "Workspaces"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.ai",
+    "label": "Workspace: AI Assistant",
+    "menu": [
+      "Window",
+      "Workspaces"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.export",
+    "label": "Workspace: Export",
+    "menu": [
+      "Window",
+      "Workspaces"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "window.reset_layout",
+    "label": "Reset Panel Layout",
+    "menu": [
+      "Window"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  }
+]

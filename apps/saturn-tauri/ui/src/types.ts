@@ -261,7 +261,20 @@ export type ProjectStatus = { document: ProjectDocument; path: string | null; is
 export type CommandStatus = { enabled: boolean; reason: string | null };
 export type RecoveryStatus = { available: boolean; projectName?: string; savedAt?: number };
 export type MediaAvailability = { mediaId: number; missing: boolean };
-export type CommandSpec = { id: string; label: string; menu: string[]; shortcut: string | null; mutating: boolean };
+export type CommandSpec = {
+  id: string;
+  label: string;
+  menu: string[];
+  shortcut: string | null;
+  params: string;
+  category: string;
+  mutating: boolean;
+  undoGroup: "none" | "transaction" | "gesture";
+  aliases: string[];
+  since: string;
+  shipped: boolean;
+  uiOnly: boolean;
+};
 export type SelectedClip = { track_id: number; clip_index: number };
 export type ClipPointerDrag = { pointerId: number; trackId: number; clipIndex: number; startX: number; startY: number; startTime: number; duration: number };
 export type MediaPointerDrag = { pointerId: number; mediaId: number; startX: number; startY: number; dragging: boolean };
