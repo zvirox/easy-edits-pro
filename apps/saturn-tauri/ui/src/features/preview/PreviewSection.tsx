@@ -1,7 +1,8 @@
 import { InteriorButton } from "../../components/interior/interior-button";
 import type { CSSProperties, RefObject, MutableRefObject } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatTime } from "../../utils/formatters";
+import { TICKS_PER_SECOND } from "../../engine/playback/constants";
 import { audioClockMaster, type MultiCamClip } from "../../engine/playbackEngine";
 import type { MediaAsset, ProjectDocument, TitleProperties } from "../../app/projectTypes";
 import { SourceAudioVisualizer } from "../../components/SourceAudioVisualizer";
@@ -18,6 +19,7 @@ export interface SourcePreviewFocus {
 }
 
 export type MonitorMode = "program" | "multicam" | "source";
+export type ThreePointMode = "insert" | "overwrite";
 
 export interface PreviewSectionProps {
   selectedMedia: MediaAsset | null;
@@ -49,6 +51,13 @@ export interface PreviewSectionProps {
   setMulticamActiveAngle: (angle: number) => void;
   switchMulticamAngle: (angle: number) => Promise<void>;
   syncMulticamWaveforms: () => Promise<void>;
+  /** Send a marked source range to the timeline as an insert or overwrite. */
+  onThreePointEdit?: (
+    mode: ThreePointMode,
+    mediaId: number,
+    sourceInTicks: number,
+    durationTicks: number,
+  ) => void | Promise<void>;
 }
 
 export function PreviewSection({
@@ -80,14 +89,104 @@ export function PreviewSection({
   setMulticamActiveAngle,
   switchMulticamAngle,
   syncMulticamWaveforms,
+  onThreePointEdit,
 }: PreviewSectionProps) {
   const [monitorMode, setMonitorMode] = useState<MonitorMode>("program");
+  const sourceVideoRef = useRef<HTMLVideoElement>(null);
+  const [sourceTime, setSourceTime] = useState(0);
+  const [sourceMarks, setSourceMarks] = useState<{
+    inTicks: number;
+    outTicks: number;
+  } | null>(null);
 
   // Clicking a clip in the timeline or an item in the media pool bumps the
   // shared sourcePreview focus — jump the monitor to its Source tab.
   useEffect(() => {
     if (sourcePreview) setMonitorMode("source");
   }, [sourcePreview?.key]);
+
+  useEffect(() => {
+    setSourceMarks(null);
+    setSourceTime((sourcePreview?.startSeconds ?? 0) * TICKS_PER_SECOND);
+  }, [sourcePreview?.key]);
+
+  const sourceTicks = () =>
+    Math.round(
+      (sourceVideoRef.current?.currentTime ?? sourcePreview?.startSeconds ?? 0) *
+        TICKS_PER_SECOND,
+    );
+
+  const markSourceIn = () => {
+    if (!sourcePreview) return;
+    const at = sourceTicks();
+    setSourceMarks((current) => ({
+      inTicks: at,
+      outTicks:
+        current?.outTicks && current.outTicks > at
+          ? current.outTicks
+          : Math.max(at + 1, sourcePreview.asset.duration ?? TICKS_PER_SECOND * 5),
+    }));
+  };
+
+  const markSourceOut = () => {
+    if (!sourcePreview) return;
+    const at = sourceTicks();
+    setSourceMarks((current) => ({
+      inTicks: current?.inTicks ?? 0,
+      outTicks: at,
+    }));
+  };
+
+  const applyThreePointEdit = (mode: ThreePointMode) => {
+    if (!sourcePreview) {
+      setSourcePreviewError("Open a source clip in the monitor first");
+      return;
+    }
+    const duration = sourcePreview.asset.duration ?? TICKS_PER_SECOND * 5;
+    const sourceIn = sourceMarks?.inTicks ?? 0;
+    const sourceOut = sourceMarks?.outTicks ?? duration;
+    if (sourceOut <= sourceIn) {
+      setSourcePreviewError("The Out point must be later than the In point");
+      return;
+    }
+    setSourcePreviewError(null);
+    void onThreePointEdit?.(
+      mode,
+      sourcePreview.asset.id,
+      sourceIn,
+      sourceOut - sourceIn,
+    );
+  };
+
+  // I/O mark the source while the Source tab is visible; comma/period send the
+  // marked range to the playhead. Capture phase keeps the global timeline
+  // shortcuts from stealing these keys.
+  useEffect(() => {
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (monitorMode !== "source" || !sourcePreview) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) {
+        return;
+      }
+      const key = event.key.toLowerCase();
+      if (key === "i") {
+        event.preventDefault();
+        event.stopPropagation();
+        markSourceIn();
+      } else if (key === "o") {
+        event.preventDefault();
+        event.stopPropagation();
+        markSourceOut();
+      } else if (event.key === "," || event.key === ".") {
+        event.preventDefault();
+        event.stopPropagation();
+        applyThreePointEdit(event.key === "," ? "insert" : "overwrite");
+      }
+    };
+    window.addEventListener("keydown", onKeyDown, true);
+    return () => window.removeEventListener("keydown", onKeyDown, true);
+  }, [monitorMode, sourcePreview, sourceMarks]);
 
   const renderTitleOverlay = (titleProps: TitleProperties | undefined) => {
     if (!titleProps) return null;
@@ -191,7 +290,7 @@ export function PreviewSection({
           {deckSnapshot?.activeAudioClips
             .filter((c: ActiveAudioClip) => !c.track.muted)
             .map((audioItem: ActiveAudioClip) => {
-              const audioKey = `audio-track-${audioItem.track.id}-${audioItem.clip.media_id}`;
+              const audioKey = `audio-track-${audioItem.track.id}-${audioItem.clip.timeline_start}-${audioItem.clip.media_id}`;
               return (
                 <audio
                   key={audioKey}
@@ -320,12 +419,16 @@ export function PreviewSection({
         <div className="preview-stage">
           <video
             key={`source-${item.id}-${sourcePath}-${startSeconds}`}
+            ref={sourceVideoRef}
             src={mediaServerPort > 0 ? source : undefined}
             style={visualStyle}
             controls
             playsInline
             preload="auto"
             crossOrigin="anonymous"
+            onTimeUpdate={(event) =>
+              setSourceTime(Math.round(event.currentTarget.currentTime * TICKS_PER_SECOND))
+            }
             onCanPlay={() => setCurrentError(null)}
             onLoadedMetadata={(event) => {
               // Timeline picks land on the clip's In point, like FilmCraft's source viewer.
@@ -449,7 +552,53 @@ export function PreviewSection({
             <code>{formatTime(playhead)}</code>
           </div>
         </div>
-        <div className="monitor-tab-panel" hidden={monitorMode !== "source"}>
+        <div className="monitor-tab-panel source-tab-panel" hidden={monitorMode !== "source"}>
+          <div className="source-edit-bar">
+            <InteriorButton
+              aria-label="Mark source In"
+              data-tooltip="Mark Source In (I)"
+              data-tooltip-pos="top"
+              disabled={!sourcePreview}
+              onClick={markSourceIn}
+            >
+              Mark In
+            </InteriorButton>
+            <InteriorButton
+              aria-label="Mark source Out"
+              data-tooltip="Mark Source Out (O)"
+              data-tooltip-pos="top"
+              disabled={!sourcePreview}
+              onClick={markSourceOut}
+            >
+              Mark Out
+            </InteriorButton>
+            <span className="source-edit-range">
+              <strong>{formatTime(sourceMarks?.inTicks ?? 0)}</strong>
+              <span>→</span>
+              <strong>
+                {formatTime(sourceMarks?.outTicks ?? sourcePreview?.asset.duration ?? 0)}
+              </strong>
+              <small>source {formatTime(sourceTime)}</small>
+            </span>
+            <InteriorButton
+              aria-label="Insert source range"
+              data-tooltip="Insert Edit at Playhead (,)"
+              data-tooltip-pos="top"
+              disabled={!sourcePreview}
+              onClick={() => applyThreePointEdit("insert")}
+            >
+              Insert
+            </InteriorButton>
+            <InteriorButton
+              aria-label="Overwrite source range"
+              data-tooltip="Overwrite Edit at Playhead (.)"
+              data-tooltip-pos="top"
+              disabled={!sourcePreview}
+              onClick={() => applyThreePointEdit("overwrite")}
+            >
+              Overwrite
+            </InteriorButton>
+          </div>
           {renderPreview(sourcePreview?.asset ?? null, sourcePreview?.startSeconds ?? 0)}
         </div>
       </section>

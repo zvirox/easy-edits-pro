@@ -12,6 +12,8 @@ export interface TrimMonitorPanelProps {
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
   getMediaUrl: (path: string) => string;
+  onCommit?: () => void;
+  onCancel?: () => void;
 }
 
 interface FrameSpec {
@@ -96,6 +98,8 @@ export function TrimMonitorPanel({
   project,
   media,
   getMediaUrl,
+  onCommit,
+  onCancel,
 }: TrimMonitorPanelProps) {
   const track = project?.sequence.tracks.find((item) => item.id === session.trackId);
   const clip = track?.clips[session.clipIndex] ?? null;
@@ -213,6 +217,13 @@ export function TrimMonitorPanel({
       <p className="trim-monitor-note">
         {plan.ok ? label : plan.reason}
       </p>
+      {session.dynamic && (
+        <div className="trim-monitor-actions">
+          <span>J/L shuttle · K stop · Enter commit · Esc cancel</span>
+          <button type="button" onClick={onCancel}>Cancel</button>
+          <button type="button" className="primary" onClick={onCommit}>Commit trim</button>
+        </div>
+      )}
     </div>
   );
 }

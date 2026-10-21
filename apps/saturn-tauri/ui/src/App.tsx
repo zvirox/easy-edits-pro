@@ -30,6 +30,12 @@ import {
 } from "./features/preferences/preferences";
 import { setReducedMotionOverride } from "./motion/variants";
 import { formatTrimStatus } from "./app/timelineTrim";
+import { parseTimecode, resolvePlayheadCommand } from "./app/playheadNavigation";
+import { inspectSelectedEdit } from "./app/editInspect";
+import {
+  EDIT_CLIPBOARD_COMMANDS,
+  useEditClipboard,
+} from "./app/useEditClipboard";
 import {
   PANEL_LAYOUT_EVENT,
   PANEL_LAYOUT_STORAGE_PREFIX,
@@ -41,6 +47,7 @@ import {
   captureWorkspaceLayout,
   createCustomPreset,
   loadCustomPresets,
+  parseCustomPresets,
   saveCustomPresets,
   type CustomWorkspacePreset,
 } from "./features/panels/presetStore";
@@ -52,6 +59,8 @@ import type { CommandSpec, SelectedClip } from "./types";
 
 function EditorApp() {
   const [preferences, setPreferences] = useState<Preferences>(loadPreferences);
+  const preferencesHydrated = useRef(false);
+  const shortcutsHydrated = useRef(false);
   const theme = preferences.theme;
   const setTheme = useCallback((next: Preferences["theme"]) => {
     setPreferences((current) => ({ ...current, theme: next }));
@@ -68,7 +77,33 @@ function EditorApp() {
 
   useEffect(() => {
     savePreferences(preferences);
+    if (!preferencesHydrated.current) return;
+    void runCommand("prefs.set", { values: preferences }).catch(() => {});
   }, [preferences]);
+
+  // Settings live in the engine's settings.json; localStorage stays as the
+  // instant cache so the first paint still has the user's theme and glass mode.
+  useEffect(() => {
+    let active = true;
+    void runCommand<{ prefs: Record<string, unknown> }>("prefs.get")
+      .then(({ prefs }) => {
+        if (!active) return;
+        const allowed = new Set(Object.keys(DEFAULT_PREFERENCES));
+        const stored = Object.fromEntries(
+          Object.entries(prefs ?? {}).filter(([key]) => allowed.has(key)),
+        ) as Partial<Preferences>;
+        if (Object.keys(stored).length) {
+          setPreferences((current) => ({ ...current, ...stored }));
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        preferencesHydrated.current = true;
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     setReducedMotionOverride(preferences.reducedMotion);
@@ -114,7 +149,54 @@ function EditorApp() {
     try {
       localStorage.setItem("easy-edits-pro.shortcuts.v1", JSON.stringify(shortcutOverrides));
     } catch {}
+    if (!shortcutsHydrated.current) return;
+    void runCommand("shortcuts.set", { shortcuts: shortcutOverrides }).catch(() => {});
   }, [shortcutOverrides]);
+
+  useEffect(() => {
+    let active = true;
+    void runCommand<{ shortcuts: Record<string, unknown> }>("shortcuts.list")
+      .then(({ shortcuts }) => {
+        if (!active) return;
+        const overrides = Object.fromEntries(
+          Object.entries(shortcuts ?? {}).filter(([, value]) => typeof value === "string"),
+        ) as Record<string, string>;
+        if (Object.keys(overrides).length) {
+          setShortcutOverrides(overrides);
+        } else if (Object.keys(shortcutOverrides).length) {
+          // Migrate the localStorage cache into settings.json once.
+          void runCommand("shortcuts.set", { shortcuts: shortcutOverrides }).catch(() => {});
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        shortcutsHydrated.current = true;
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    void runCommand<{ presets: unknown[] }>("workspace.list")
+      .then(({ presets }) => {
+        if (!active) return;
+        if (!Array.isArray(presets) || presets.length === 0) {
+          // Migrate presets saved in localStorage before settings.json existed.
+          for (const preset of loadCustomPresets()) {
+            void runCommand("workspace.save", { preset }).catch(() => {});
+          }
+          return;
+        }
+        const stored = parseCustomPresets(JSON.stringify(presets));
+        if (stored.length) setCustomPresets(stored);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const effectiveCommands = useMemo(
     () =>
       commands.map((command) => {
@@ -187,7 +269,10 @@ function EditorApp() {
 
   const timelineOps = useTimelineOperations({
     project, media, playhead: playback.playhead,
-    seekProgramTo: playback.seekProgramTo, timelineEndSeconds,
+    seekProgramTo: playback.seekProgramTo,
+    handleShuttleKey: playback.handleShuttleKey,
+    stopPlayback: playback.stopPlayback,
+    timelineEndSeconds,
     perform, runCommand, setNotice, busy, refreshProject,
     setCompoundClipModalOpen: projectOps.setCompoundClipModalOpen,
     setCompoundClipNameDraft: projectOps.setCompoundClipNameDraft,
@@ -280,6 +365,19 @@ function EditorApp() {
     [selectDavinciWorkspace]
   );
 
+  const runEditClipboard = useEditClipboard({
+    project,
+    media,
+    playhead: playback.playhead,
+    selectedClip: timelineOps.selectedClip,
+    selectedClips: timelineOps.selectedClips,
+    setSelectedClip: timelineOps.setSelectedClip,
+    setSelectedClips: timelineOps.setSelectedClips,
+    runCommand,
+    refreshProject,
+    setNotice,
+  });
+
   /**
    * Single entry point for menus, the command palette, keyboard shortcuts, and
    * workspace toolbars. UI-only commands are handled here; everything else goes
@@ -303,6 +401,55 @@ function EditorApp() {
         setPresetsOpen(false);
         window.dispatchEvent(new Event(PANEL_RESET_EVENT));
         setNotice("Panel layout reset");
+        return;
+      }
+      if ((EDIT_CLIPBOARD_COMMANDS as string[]).includes(id)) {
+        await runEditClipboard(id as (typeof EDIT_CLIPBOARD_COMMANDS)[number]);
+        return;
+      }
+      if (id === "playhead.go_to_timecode") {
+        const value = window.prompt("Go to timecode (HH:MM:SS:FF)", "00:00:00:00");
+        if (value === null) return;
+        const target = parseTimecode(value, project?.settings.frame_rate);
+        if (target === null) {
+          setNotice("Enter a timecode such as 00:01:23:12");
+          return;
+        }
+        playback.seekProgramTo(target);
+        return;
+      }
+      if (id.startsWith("playhead.")) {
+        const target = resolvePlayheadCommand(id, {
+          project,
+          selected: timelineOps.selectedClip,
+          playhead: playback.playhead,
+        });
+        if (target !== null) playback.seekProgramTo(target);
+        return;
+      }
+      if (id === "trim.enter") {
+        timelineOps.enterTrimMode();
+        return;
+      }
+      if (id === "trim.commit") {
+        await timelineOps.commitTrimMode();
+        return;
+      }
+      if (id === "trim.exit" || id === "trim.cancel") {
+        timelineOps.cancelTrimMode();
+        return;
+      }
+      if (id === "timeline.inspect" || id === "trim.inspect") {
+        const selected = timelineOps.selectedClip;
+        if (!selected) {
+          setNotice("Select a clip to inspect its edit points");
+          return;
+        }
+        try {
+          setNotice(await inspectSelectedEdit(runCommand, id, selected));
+        } catch (error) {
+          setNotice(String(error));
+        }
         return;
       }
       if (id.startsWith("workspace.")) {
@@ -373,7 +520,7 @@ function EditorApp() {
       }
       await projectOps.invokeMenuCommand(id);
     },
-    [selectDavinciWorkspace, applyWorkspacePreset, projectOps, mediaOps, timelineOps]
+    [selectDavinciWorkspace, applyWorkspacePreset, projectOps, mediaOps, timelineOps, project, playback, runEditClipboard]
   );
 
   const shortcuts = useShortcuts({
@@ -388,6 +535,10 @@ function EditorApp() {
     switchMulticamAngle: () => {},
     handleShuttleKey: playback.handleShuttleKey,
     stepProgramFrame: playback.stepProgramFrame,
+    trimActive: timelineOps.trimMode !== null,
+    handleTrimShuttle: timelineOps.handleTrimShuttle,
+    commitTrim: timelineOps.commitTrimMode,
+    cancelTrim: timelineOps.cancelTrimMode,
     seekProgramTo: playback.seekProgramTo,
     removeSelectedTransition: mediaOps.removeSelectedTransition,
     removeSelectedClip: timelineOps.removeSelectedClip,
@@ -421,6 +572,7 @@ function EditorApp() {
       const next = [...customPresets, preset];
       setCustomPresets(next);
       saveCustomPresets(next);
+      void runCommand("workspace.save", { preset }).catch(() => {});
       setNotice(`Saved layout · ${preset.label}`);
     },
     [projectOps.workspace, customPresets]
@@ -433,6 +585,7 @@ function EditorApp() {
       );
       setCustomPresets(next);
       saveCustomPresets(next);
+      void runCommand("workspace.rename", { id, label }).catch(() => {});
     },
     [customPresets]
   );
@@ -442,6 +595,7 @@ function EditorApp() {
       const next = customPresets.filter((preset) => preset.id !== id);
       setCustomPresets(next);
       saveCustomPresets(next);
+      void runCommand("workspace.delete", { id }).catch(() => {});
       setNotice("Layout preset deleted");
     },
     [customPresets]

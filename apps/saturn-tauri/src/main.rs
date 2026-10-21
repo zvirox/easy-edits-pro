@@ -1,20 +1,20 @@
-use gstreamer_pbutils::Discoverer;
 use gstreamer_pbutils::prelude::*;
+use gstreamer_pbutils::Discoverer;
 use saturn_core::{
-    CommandRequest, CommandStatus, JobId, JobInfo, JobKind, JobPriority, MediaKind,
-    TICKS_PER_SECOND, Tick, command_catalogue, export_cmx3600_edl, export_fcpxml, export_otio,
-    export_premiere_xml, is_filler_word,
+    command_catalogue, export_cmx3600_edl, export_fcpxml, export_otio, export_premiere_xml,
+    is_filler_word, CommandRequest, CommandStatus, JobId, JobInfo, JobKind, JobPriority, MediaKind,
+    Tick, TICKS_PER_SECOND,
 };
-use saturn_render::{LoudnessReport, LoudnessStandard, PresentationMetrics, analyze_pcm_loudness};
+use saturn_render::{analyze_pcm_loudness, LoudnessReport, LoudnessStandard, PresentationMetrics};
 use serde::Deserialize;
 use serde::Serialize;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use std::hash::{Hash, Hasher};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tauri::{AppHandle, Emitter, Manager, State, ipc::Channel};
+use tauri::{ipc::Channel, AppHandle, Emitter, Manager, State};
 
 mod commands;
 mod gpu_detect;
@@ -34,7 +34,7 @@ pub use media_server::{
     register_allowed_media_path, set_app_cache_dir, set_app_data_dir, start_media_server,
 };
 pub use path_validation::{
-    PathValidationError, validate_dir_path, validate_read_path, validate_write_path,
+    validate_dir_path, validate_read_path, validate_write_path, PathValidationError,
 };
 pub use recovery::{
     autosave_once, discard_autosave, recovery_status, restore_autosave, start_autosave,
@@ -64,7 +64,10 @@ fn main() {
             move |app| {
                 setup_crash_logging(&app.handle());
                 if let Ok(data_dir) = app.path().app_data_dir() {
-                    set_app_data_dir(data_dir);
+                    set_app_data_dir(data_dir.clone());
+                    if let Ok(mut guard) = state.0.lock() {
+                        guard.load_settings(data_dir.join("settings.json"));
+                    }
                 }
                 if let Ok(cache_dir) = app.path().app_cache_dir() {
                     set_app_cache_dir(cache_dir);

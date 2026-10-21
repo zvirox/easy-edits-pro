@@ -482,6 +482,14 @@ export function WorkspaceRouter({
         setMulticamActiveAngle: () => {},
         switchMulticamAngle: async () => {},
         syncMulticamWaveforms: async () => {},
+        onThreePointEdit: (mode, mediaId, sourceIn, duration) =>
+          timelineOps.threePointEdit(
+            mode,
+            mediaId,
+            sourceIn,
+            duration,
+            playback.playhead,
+          ),
       }}
       timelineSectionProps={{
         timelineTool: timelineOps.timelineTool,
@@ -678,6 +686,8 @@ export function WorkspaceRouter({
         project,
         media,
         getMediaUrl,
+        onCommit: () => void timelineOps.commitTrimMode(),
+        onCancel: timelineOps.cancelTrimMode,
       }}
     />
   );

@@ -17,6 +17,7 @@ import { TICKS_PER_SECOND } from "../engine/playback/constants";
 import type { KeyframeProperty } from "../engine/playback/types";
 import { PANEL_OPEN_EVENT } from "../features/panels/presets.ts";
 import { planTrim, type TrimEdge, type TrimSession } from "./timelineTrim.ts";
+import { useTrimMode } from "./useTrimMode.ts";
 
 type ClipPointerDrag = {
   pointerId: number;
@@ -41,6 +42,8 @@ export type UseTimelineOperationsOptions = {
   media: MediaAsset[];
   playhead: number;
   seekProgramTo: (ticks: number) => void;
+  handleShuttleKey: (key: "j" | "k" | "l") => void;
+  stopPlayback: () => void;
   timelineEndSeconds: number;
   perform: (id: string, params?: unknown, msg?: string) => Promise<boolean>;
   runCommand: <T = unknown>(id: string, params?: unknown) => Promise<T>;
@@ -60,6 +63,8 @@ export function useTimelineOperations({
   media,
   playhead,
   seekProgramTo,
+  handleShuttleKey,
+  stopPlayback,
   timelineEndSeconds: _timelineEndSeconds,
   perform,
   runCommand,
@@ -311,6 +316,44 @@ export function useTimelineOperations({
     await perform("timeline.decompose_compound_clip", { track_id: selectedClip.track_id, clip_index: selectedClip.clip_index }, "Decomposed compound clip");
   }, [selectedClip, perform]);
 
+  /** Source-monitor 3-point edit: send a marked range to the playhead. */
+  const threePointEdit = useCallback(
+    async (
+      mode: "insert" | "overwrite",
+      mediaId: number,
+      sourceInTicks: number,
+      durationTicks: number,
+      atTicks: number,
+    ) => {
+      const asset = media.find((item) => item.id === mediaId);
+      if (!asset) {
+        setNotice("That source clip is no longer in the media pool");
+        return;
+      }
+      const kind = asset.kind === "audio" ? "audio" : "video";
+      const track = project?.sequence.tracks.find(
+        (item) => item.kind === kind && !item.locked,
+      );
+      if (!track) {
+        setNotice(`Add an unlocked ${kind} track before a three-point edit`);
+        return;
+      }
+      const label = mode === "insert" ? "Inserted" : "Overwrote";
+      await perform(
+        mode === "insert" ? "timeline.insert_clip" : "timeline.overwrite_clip",
+        {
+          media_id: mediaId,
+          track_id: track.id,
+          at: Math.max(0, atTicks),
+          source_in: Math.max(0, sourceInTicks),
+          duration: Math.max(1, durationTicks),
+        },
+        `${label} ${asset.name} at the playhead`,
+      );
+    },
+    [media, project, perform, setNotice],
+  );
+
   const beginTimelineScrub = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       event.preventDefault();
@@ -460,6 +503,23 @@ export function useTimelineOperations({
     },
     [trimInput, endGesture, runCommand, refreshProject, setNotice]
   );
+
+  const trimModeOps = useTrimMode({
+    selectedClip,
+    project,
+    timelineTool,
+    playhead,
+    beginGesture,
+    endGesture,
+    seekProgramTo,
+    handleShuttleKey,
+    stopPlayback,
+    setNotice,
+    trimSession,
+    setTrimSession,
+    trimInput,
+    commitTrim,
+  });
 
   const moveTimelineClipPointer = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
@@ -648,6 +708,7 @@ export function useTimelineOperations({
     setClipDragOffset,
     trimSession,
     setTrimSession,
+    ...trimModeOps,
     zoomTimeline,
     attachTimelineScroller,
     handleTimelinePanStart,
@@ -672,6 +733,7 @@ export function useTimelineOperations({
     unlinkSelectedClips,
     createCompoundClip,
     decomposeSelectedCompoundClip,
+    threePointEdit,
     beginTimelineScrub,
     moveTimelineScrub,
     finishTimelineScrub,

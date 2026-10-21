@@ -57,7 +57,7 @@ export function usePlayback({ projectState, project, media, preparedPreviews, me
 
     for (const audioItem of snapshot.activeAudioClips ?? []) {
       if (audioItem.track.muted) continue;
-      const key = `audio-track-${audioItem.track.id}-${audioItem.clip.media_id}`;
+      const key = `audio-track-${audioItem.track.id}-${audioItem.clip.timeline_start}-${audioItem.clip.media_id}`;
       const element = audioPlayersRef.current.get(key);
       if (!element) continue;
       element.muted = false;

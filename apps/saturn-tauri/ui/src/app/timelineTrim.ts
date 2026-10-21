@@ -8,6 +8,8 @@ export interface TrimSession {
   tool: TimelineTool;
   edge: TrimEdge;
   deltaTicks: number;
+  /** True while Trim Mode is shuttling with J/K/L rather than dragging. */
+  dynamic?: boolean;
 }
 
 /** One frame at 30 fps; the shortest clip a trim gesture may leave behind. */

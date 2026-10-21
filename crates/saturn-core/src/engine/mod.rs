@@ -1,4 +1,4 @@
-use crate::command::{CommandRequest, CommandStatus, find_command, status};
+use crate::command::{find_command, status, CommandRequest, CommandStatus};
 use crate::project::{
     AudioPluginInstance, BusTarget, ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams,
     ColorWheels, CompositingNode, CompositingNodeKind, CropParams, CustomShaderParams,
@@ -9,9 +9,9 @@ use crate::project::{
     TitleProperties, Track, TrackAudioProcessing, TrackAutomation, TrackGroup, TrackKind,
     TrackingMode, Transition, TransitionKind, UserLock, VignetteParams,
 };
-use crate::time::{FrameRate, TICKS_PER_SECOND, Tick};
+use crate::time::{FrameRate, Tick, TICKS_PER_SECOND};
 use serde::Deserialize;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use std::path::PathBuf;
 
 mod audio_cmds;
@@ -20,6 +20,7 @@ mod clip_cmds;
 mod collab_cmds;
 mod color_cmds;
 mod compound_cmds;
+mod edit_cmds;
 mod effects_cmds;
 mod helpers;
 mod history;
@@ -28,6 +29,7 @@ mod media_cmds;
 mod nodegraph_cmds;
 mod params;
 mod project_cmds;
+mod settings_cmds;
 mod subtitles_cmds;
 mod timeline_cmds;
 use helpers::*;
@@ -38,7 +40,10 @@ pub enum DispatchError {
     UnknownCommand(String),
     /// The command is declared `ui_only` and must be handled by the frontend.
     UiOnly(String),
-    Disabled { id: String, reason: String },
+    Disabled {
+        id: String,
+        reason: String,
+    },
     InvalidParameters(String),
     Operation(String),
 }
@@ -65,6 +70,7 @@ pub struct EditorEngine {
     saved_snapshot: String,
     gesture_depth: u32,
     gesture_checkpointed: bool,
+    settings: settings_cmds::SettingsStore,
 }
 
 impl Default for EditorEngine {
@@ -79,6 +85,7 @@ impl Default for EditorEngine {
             saved_snapshot,
             gesture_depth: 0,
             gesture_checkpointed: false,
+            settings: settings_cmds::SettingsStore::default(),
         }
     }
 }
@@ -129,7 +136,8 @@ impl EditorEngine {
     }
 
     pub fn command_status(&self, id: &str) -> Result<CommandStatus, DispatchError> {
-        let command = find_command(id).ok_or_else(|| DispatchError::UnknownCommand(id.to_owned()))?;
+        let command =
+            find_command(id).ok_or_else(|| DispatchError::UnknownCommand(id.to_owned()))?;
         if command.ui_only {
             return Ok(status(true, ""));
         }
@@ -162,6 +170,12 @@ impl EditorEngine {
             return result;
         }
         if let Some(result) = self.dispatch_history(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_edit(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_settings(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_clip(command.id, request.params.clone()) {

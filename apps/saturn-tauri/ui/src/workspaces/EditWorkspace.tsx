@@ -16,6 +16,8 @@ export interface TrimMonitorEntryProps {
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
   getMediaUrl: (path: string) => string;
+  onCommit?: () => void;
+  onCancel?: () => void;
 }
 
 export interface EditWorkspaceProps {
@@ -52,6 +54,8 @@ export function EditWorkspace({
           project={trimMonitorProps.project}
           media={trimMonitorProps.media}
           getMediaUrl={trimMonitorProps.getMediaUrl}
+          onCommit={trimMonitorProps.onCommit}
+          onCancel={trimMonitorProps.onCancel}
         />
       ),
     });

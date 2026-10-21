@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-140 commands.
+181 commands.
 
 ## File
 
@@ -30,11 +30,20 @@ Generated from the command catalogue. Do not edit by hand.
 |---|---|---|---|---|
 | Undo | `edit.undo` | shipped | Ctrl+Z | `{}` |
 | Redo | `edit.redo` | shipped | Ctrl+Shift+Z | `{}` |
+| Cut | `edit.cut` | shipped | Ctrl+X | `{}` |
+| Copy | `edit.copy` | shipped | Ctrl+C | `{}` |
+| Paste | `edit.paste` | shipped | Ctrl+V | `{}` |
+| Delete Selected | `edit.delete` | shipped |  | `{}` |
+| Select All Clips | `edit.select_all` | shipped | Ctrl+A | `{}` |
+| Deselect All | `edit.deselect_all` | shipped | Ctrl+Shift+A | `{}` |
+| Select Clip at Playhead | `edit.select_clip_at_playhead` | shipped |  | `{}` |
 | Ripple Delete Audio Silence | `speech.ripple_delete_silence` | planned |  | `{"peaks":[int],"options":obj?}` |
 | Ripple Delete Filler Words | `speech.ripple_delete_fillers` | planned |  | `{"segments":[obj],"custom_fillers":[str]?}` |
 | Ripple Delete Time Ranges | `timeline.ripple_delete_ranges` | planned |  | `{"ranges":obj}` |
 | Ripple Delete Timeline Gap | `timeline.ripple_delete_gap` | planned |  | `{"track_id":int?,"at_tick":obj}` |
 | Preferences… | `edit.preferences` | shipped | Ctrl+, | `{}` |
+| Insert Source Clip | `timeline.insert_clip` | shipped |  | `{"media_id":int,"track_id":int?,"at":obj?,"source_in":obj?,"duration":obj?}` |
+| Overwrite Source Clip | `timeline.overwrite_clip` | shipped |  | `{"media_id":int,"track_id":int?,"at":obj?,"source_in":obj?,"duration":obj?}` |
 
 ## Clip
 
@@ -70,11 +79,30 @@ Generated from the command catalogue. Do not edit by hand.
 | Update Clip HSL Qualifier | `clip.update_hsl_qualifier` | planned |  | `{"track_id":int,"clip_index":int,"qualifier":obj}` |
 | Add Custom GLSL Shader | `clip.add_custom_shader` | planned |  | `{"track_id":int,"clip_index":int,"name":str?,"shader_code":str?,"preset_id":str?,"uniforms":obj?}` |
 | Update Custom GLSL Shader | `clip.update_custom_shader` | planned |  | `{"track_id":int,"clip_index":int,"effect_id":int,"name":str?,"shader_code":str?,"preset_id":str?,"uniforms":obj?}` |
+| Inspect Edit Point | `timeline.inspect` | shipped |  | `{"track_id":int?,"clip_index":int?,"at":obj?}` |
+| Inspect Trim Point | `trim.inspect` | shipped |  | `{"track_id":int,"clip_index":int,"edge":"start"\|"end"}` |
 
 ## Sequence
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Go to Sequence Start | `playhead.start` | shipped | Home | `{}` |
+| Go to Sequence End | `playhead.end` | shipped | End | `{}` |
+| Next Edit Point | `playhead.next_edit` | shipped | Down | `{}` |
+| Previous Edit Point | `playhead.previous_edit` | shipped | Up | `{}` |
+| Go to In Point | `playhead.go_to_in` | shipped | Shift+I | `{}` |
+| Go to Out Point | `playhead.go_to_out` | shipped | Shift+O | `{}` |
+| Go to Selected Clip Start | `playhead.go_to_clip_start` | shipped | Shift+Home | `{}` |
+| Go to Selected Clip End | `playhead.go_to_clip_end` | shipped | Shift+End | `{}` |
+| Go to Timecode… | `playhead.go_to_timecode` | shipped |  | `{}` |
+| Step Back One Frame | `playhead.nudge_back_1` | shipped | Alt+Left | `{}` |
+| Step Forward One Frame | `playhead.nudge_forward_1` | shipped | Alt+Right | `{}` |
+| Step Back Five Frames | `playhead.nudge_back_5` | shipped | Alt+Shift+Left | `{}` |
+| Step Forward Five Frames | `playhead.nudge_forward_5` | shipped | Alt+Shift+Right | `{}` |
+| Enter Trim Mode | `trim.enter` | shipped | Ctrl+Alt+E | `{"edge":"start"\|"end"?}` |
+| Exit Trim Mode | `trim.exit` | shipped |  | `{}` |
+| Commit Trim | `trim.commit` | shipped |  | `{}` |
+| Cancel Trim | `trim.cancel` | shipped |  | `{}` |
 | Add Clip to Timeline | `timeline.add_clip` | planned |  | `{"media_id":int,"track_id":int?,"timeline_start":obj?,"source_in":obj?,"duration":obj?}` |
 | Move Clip | `timeline.move_clip` | planned |  | `{"track_id":int,"clip_index":int,"target_track_id":int?,"timeline_start":obj}` |
 | Trim Clip Edge | `timeline.trim_clip` | planned |  | `{"track_id":int,"clip_index":int,"edge":"start"\|"end","delta":obj,"ripple":bool?}` |

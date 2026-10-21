@@ -7,6 +7,8 @@ pub(super) mod file;
 pub(super) mod graphics;
 pub(super) mod help;
 pub(super) mod markers;
+pub(super) mod playhead;
 pub(super) mod sequence;
+pub(super) mod settings;
 pub(super) mod view;
 pub(super) mod window;

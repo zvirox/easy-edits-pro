@@ -50,6 +50,36 @@
   flex: 1;
 }
 
+.trim-monitor-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.trim-monitor-actions span {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.trim-monitor-actions button {
+  padding: 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-button);
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.trim-monitor-actions button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
 .trim-monitor-frame {
   display: flex;
   flex-direction: column;

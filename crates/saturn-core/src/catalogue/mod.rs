@@ -10,8 +10,8 @@ use serde_json::Value;
 
 /// Top-level menus, in bar order. `CommandSpec::menu[0]` must be one of these.
 pub const MENU_BAR: &[&str] = &[
-    "File", "Edit", "Clip", "Sequence", "Markers", "Graphics", "Audio", "Effects", "View", "Window",
-    "Help",
+    "File", "Edit", "Clip", "Sequence", "Markers", "Graphics", "Audio", "Effects", "View",
+    "Window", "Help",
 ];
 
 /// Coarse grouping used by the command reference, palette badges, and docs.
@@ -130,7 +130,9 @@ static COMMANDS: std::sync::LazyLock<Vec<CommandSpec>> = std::sync::LazyLock::ne
     all.extend_from_slice(commands::graphics::COMMANDS);
     all.extend_from_slice(commands::help::COMMANDS);
     all.extend_from_slice(commands::markers::COMMANDS);
+    all.extend_from_slice(commands::playhead::COMMANDS);
     all.extend_from_slice(commands::sequence::COMMANDS);
+    all.extend_from_slice(commands::settings::COMMANDS);
     all.extend_from_slice(commands::view::COMMANDS);
     all.extend_from_slice(commands::window::COMMANDS);
     all
@@ -155,8 +157,10 @@ pub fn menu_commands(menu: &str) -> Vec<&'static CommandSpec> {
 /// Fuzzy-ish search over id, label, aliases, and menu path.
 pub fn search_commands(query: &str) -> Vec<&'static CommandSpec> {
     let query = query.trim();
-    let mut matches: Vec<&'static CommandSpec> =
-        command_catalogue().iter().filter(|command| command.matches(query)).collect();
+    let mut matches: Vec<&'static CommandSpec> = command_catalogue()
+        .iter()
+        .filter(|command| command.matches(query))
+        .collect();
     // Prefer label-prefix matches, then shorter labels.
     matches.sort_by_key(|command| {
         let label = command.label.to_lowercase();
@@ -238,7 +242,9 @@ pub fn catalogue_json() -> Value {
 
 /// Markdown reference grouped by top-level menu.
 pub fn catalogue_markdown() -> String {
-    let mut out = String::from("# Command reference\n\nGenerated from the command catalogue. Do not edit by hand.\n\n");
+    let mut out = String::from(
+        "# Command reference\n\nGenerated from the command catalogue. Do not edit by hand.\n\n",
+    );
     out.push_str(&format!("{} commands.\n", command_catalogue().len()));
     for menu in MENU_BAR {
         let items = menu_commands(menu);
@@ -250,7 +256,11 @@ pub fn catalogue_markdown() -> String {
         for command in items {
             let shortcut = command.shortcut.unwrap_or("");
             let params = command.params.replace('|', "\\|");
-            let status = if command.shipped { "shipped" } else { "planned" };
+            let status = if command.shipped {
+                "shipped"
+            } else {
+                "planned"
+            };
             out.push_str(&format!(
                 "| {} | `{}` | {} | {} | `{}` |\n",
                 command.label, command.id, status, shortcut, params
@@ -259,4 +269,3 @@ pub fn catalogue_markdown() -> String {
     }
     out
 }
-

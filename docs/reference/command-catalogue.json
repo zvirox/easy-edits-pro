@@ -717,6 +717,123 @@
   },
   {
     "aliases": [],
+    "category": "Edit",
+    "id": "edit.cut",
+    "label": "Cut",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl+X",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.copy",
+    "label": "Copy",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl+C",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.paste",
+    "label": "Paste",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl+V",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "clear"
+    ],
+    "category": "Edit",
+    "id": "edit.delete",
+    "label": "Delete Selected",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.select_all",
+    "label": "Select All Clips",
+    "menu": [
+      "Edit",
+      "Selection"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl+A",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.deselect_all",
+    "label": "Deselect All",
+    "menu": [
+      "Edit",
+      "Selection"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl+Shift+A",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.select_clip_at_playhead",
+    "label": "Select Clip at Playhead",
+    "menu": [
+      "Edit",
+      "Selection"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
     "category": "Transcription",
     "id": "speech.ripple_delete_silence",
     "label": "Ripple Delete Audio Silence",
@@ -1477,6 +1594,399 @@
     "undoGroup": "transaction"
   },
   {
+    "aliases": [
+      "start",
+      "beginning"
+    ],
+    "category": "Sequence",
+    "id": "playhead.start",
+    "label": "Go to Sequence Start",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Home",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "end",
+      "finish"
+    ],
+    "category": "Sequence",
+    "id": "playhead.end",
+    "label": "Go to Sequence End",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "End",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "next cut",
+      "next edit"
+    ],
+    "category": "Sequence",
+    "id": "playhead.next_edit",
+    "label": "Next Edit Point",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Down",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "previous cut",
+      "previous edit"
+    ],
+    "category": "Sequence",
+    "id": "playhead.previous_edit",
+    "label": "Previous Edit Point",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Up",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "mark in"
+    ],
+    "category": "Sequence",
+    "id": "playhead.go_to_in",
+    "label": "Go to In Point",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+I",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "mark out"
+    ],
+    "category": "Sequence",
+    "id": "playhead.go_to_out",
+    "label": "Go to Out Point",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+O",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "playhead.go_to_clip_start",
+    "label": "Go to Selected Clip Start",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+Home",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "playhead.go_to_clip_end",
+    "label": "Go to Selected Clip End",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Shift+End",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "timecode"
+    ],
+    "category": "Sequence",
+    "id": "playhead.go_to_timecode",
+    "label": "Go to Timecode…",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "nudge left"
+    ],
+    "category": "Sequence",
+    "id": "playhead.nudge_back_1",
+    "label": "Step Back One Frame",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Alt+Left",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "nudge right"
+    ],
+    "category": "Sequence",
+    "id": "playhead.nudge_forward_1",
+    "label": "Step Forward One Frame",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Alt+Right",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "playhead.nudge_back_5",
+    "label": "Step Back Five Frames",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Alt+Shift+Left",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "playhead.nudge_forward_5",
+    "label": "Step Forward Five Frames",
+    "menu": [
+      "Sequence",
+      "Playhead"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Alt+Shift+Right",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "three point insert",
+      "insert edit"
+    ],
+    "category": "Edit",
+    "id": "timeline.insert_clip",
+    "label": "Insert Source Clip",
+    "menu": [
+      "Edit",
+      "Three-Point Edit"
+    ],
+    "mutating": true,
+    "params": "{\"media_id\":int,\"track_id\":int?,\"at\":obj?,\"source_in\":obj?,\"duration\":obj?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "three point overwrite",
+      "overwrite edit"
+    ],
+    "category": "Edit",
+    "id": "timeline.overwrite_clip",
+    "label": "Overwrite Source Clip",
+    "menu": [
+      "Edit",
+      "Three-Point Edit"
+    ],
+    "mutating": true,
+    "params": "{\"media_id\":int,\"track_id\":int?,\"at\":obj?,\"source_in\":obj?,\"duration\":obj?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "inspect clip",
+      "clip info"
+    ],
+    "category": "Clip",
+    "id": "timeline.inspect",
+    "label": "Inspect Edit Point",
+    "menu": [
+      "Clip",
+      "Inspect"
+    ],
+    "mutating": false,
+    "params": "{\"track_id\":int?,\"clip_index\":int?,\"at\":obj?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "trim info",
+      "trim handles"
+    ],
+    "category": "Sequence",
+    "id": "trim.inspect",
+    "label": "Inspect Trim Point",
+    "menu": [
+      "Clip",
+      "Inspect"
+    ],
+    "mutating": false,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"edge\":\"start\"|\"end\"}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "dynamic trim"
+    ],
+    "category": "Sequence",
+    "id": "trim.enter",
+    "label": "Enter Trim Mode",
+    "menu": [
+      "Sequence",
+      "Trim Mode"
+    ],
+    "mutating": false,
+    "params": "{\"edge\":\"start\"|\"end\"?}",
+    "shipped": true,
+    "shortcut": "Ctrl+Alt+E",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "trim.exit",
+    "label": "Exit Trim Mode",
+    "menu": [
+      "Sequence",
+      "Trim Mode"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "trim.commit",
+    "label": "Commit Trim",
+    "menu": [
+      "Sequence",
+      "Trim Mode"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "trim.cancel",
+    "label": "Cancel Trim",
+    "menu": [
+      "Sequence",
+      "Trim Mode"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
     "aliases": [],
     "category": "Sequence",
     "id": "timeline.add_clip",
@@ -1780,6 +2290,190 @@
     "since": "0.1.0",
     "uiOnly": false,
     "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "settings"
+    ],
+    "category": "Edit",
+    "id": "prefs.get",
+    "label": "Read Preferences",
+    "menu": [],
+    "mutating": false,
+    "params": "{\"key\":str?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "prefs.set",
+    "label": "Write Preferences",
+    "menu": [],
+    "mutating": false,
+    "params": "{\"values\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "prefs.reset",
+    "label": "Reset Preferences",
+    "menu": [],
+    "mutating": false,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.list",
+    "label": "List Shortcut Overrides",
+    "menu": [],
+    "mutating": false,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.set",
+    "label": "Write Shortcut Overrides",
+    "menu": [],
+    "mutating": false,
+    "params": "{\"shortcuts\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.reset",
+    "label": "Reset Shortcut Overrides",
+    "menu": [],
+    "mutating": false,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.import",
+    "label": "Import Shortcut Overrides",
+    "menu": [],
+    "mutating": false,
+    "params": "{\"shortcuts\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.list",
+    "label": "List Layout Presets",
+    "menu": [],
+    "mutating": false,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.save",
+    "label": "Save Layout Preset",
+    "menu": [],
+    "mutating": false,
+    "params": "{\"preset\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.save_as",
+    "label": "Save Layout Preset As",
+    "menu": [],
+    "mutating": false,
+    "params": "{\"preset\":obj}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.rename",
+    "label": "Rename Layout Preset",
+    "menu": [],
+    "mutating": false,
+    "params": "{\"id\":str,\"label\":str}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.delete",
+    "label": "Delete Layout Preset",
+    "menu": [],
+    "mutating": false,
+    "params": "{\"id\":str}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
+    "id": "workspace.reset",
+    "label": "Reset Layout Presets",
+    "menu": [],
+    "mutating": false,
+    "params": "{}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
   },
   {
     "aliases": [],

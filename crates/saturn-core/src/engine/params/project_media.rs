@@ -110,6 +110,39 @@ pub(in crate::engine) enum TrimEdge {
     End,
 }
 
+/// Shared payload for three-point insert/overwrite edits.
+#[derive(Deserialize)]
+pub(in crate::engine) struct ThreePointParams {
+    pub(in crate::engine) media_id: u64,
+    #[serde(default)]
+    pub(in crate::engine) track_id: Option<u64>,
+    /// Timeline insertion point; defaults to the end of the chosen track.
+    #[serde(default)]
+    pub(in crate::engine) at: Option<Tick>,
+    #[serde(default)]
+    pub(in crate::engine) source_in: Tick,
+    /// Source mark-out minus mark-in; defaults to the rest of the media.
+    #[serde(default)]
+    pub(in crate::engine) duration: Option<Tick>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct InspectParams {
+    #[serde(default)]
+    pub(in crate::engine) track_id: Option<u64>,
+    #[serde(default)]
+    pub(in crate::engine) clip_index: Option<usize>,
+    #[serde(default)]
+    pub(in crate::engine) at: Option<Tick>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct TrimInspectParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) clip_index: usize,
+    pub(in crate::engine) edge: TrimEdge,
+}
+
 #[derive(Deserialize)]
 pub(in crate::engine) struct TrimClipParams {
     pub(in crate::engine) track_id: u64,

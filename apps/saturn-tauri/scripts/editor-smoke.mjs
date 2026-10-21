@@ -115,6 +115,42 @@ try {
         return { split: true };
       }
       if (id === 'edit.begin_gesture' || id === 'edit.end_gesture') return { gesture: true };
+      if (id === 'timeline.insert_clip' || id === 'timeline.overwrite_clip') {
+        push();
+        const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
+        const at = params.at;
+        if (id === 'timeline.insert_clip') {
+          for (const clip of track.clips) {
+            if (clip.timeline_start >= at) clip.timeline_start += params.duration;
+          }
+        } else {
+          track.clips = track.clips.filter(clip => {
+            const end = clip.timeline_start + clip.duration;
+            return end <= at || clip.timeline_start >= at + params.duration;
+          });
+        }
+        track.clips.push({
+          media_id: params.media_id,
+          timeline_start: at,
+          source_in: params.source_in,
+          duration: params.duration,
+          color: { exposure: 0, contrast: 1, saturation: 1 },
+          effects: [],
+          keyframes: [],
+        });
+        track.clips.sort((a, b) => a.timeline_start - b.timeline_start);
+        return { track_id: track.id, clip_index: track.clips.findIndex(clip => clip.timeline_start === at), mode: id.includes('insert') ? 'insert' : 'overwrite' };
+      }
+      if (id === 'timeline.inspect') {
+        const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
+        const clip = track.clips[params.clip_index];
+        return { track_id: track.id, clip_index: params.clip_index, start: clip.timeline_start, end: clip.timeline_start + clip.duration, duration: clip.duration, source_in: clip.source_in };
+      }
+      if (id === 'trim.inspect') {
+        const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
+        const clip = track.clips[params.clip_index];
+        return { track_id: track.id, clip_index: params.clip_index, edge: params.edge, head_room: clip.source_in, tail_room: second * 10, cut: clip.timeline_start + clip.duration };
+      }
       if (id === 'timeline.trim_clip') {
         push();
         const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
@@ -196,7 +232,7 @@ try {
   // Menus are generated from the Rust command catalogue: every top-level menu
   // must list commands, and Window must expose the workspace switcher.
   const menuBar = page.locator('.menu-bar');
-  for (const menu of ['File', 'Edit', 'Clip', 'Markers', 'View', 'Window', 'Help']) {
+  for (const menu of ['File', 'Edit', 'Clip', 'Sequence', 'Markers', 'View', 'Window', 'Help']) {
     await menuBar.getByRole('button', { name: menu, exact: true }).click();
     const popover = page.locator('.menu-popover').last();
     await popover.waitFor();
@@ -205,7 +241,7 @@ try {
     await page.keyboard.press('Escape');
     await popover.waitFor({ state: 'detached' });
   }
-  for (const emptyMenu of ['Sequence', 'Graphics', 'Audio', 'Effects']) {
+  for (const emptyMenu of ['Graphics', 'Audio', 'Effects']) {
     assert.equal(
       await menuBar.getByRole('button', { name: emptyMenu, exact: true }).count(),
       0,
@@ -455,12 +491,66 @@ try {
     width => Math.abs((document.querySelector('.timeline-clip')?.getBoundingClientRect().width ?? 0) - width) <= 1,
     widthBeforeTrim,
   );
+
+  // Keyboard Trim Mode: enter on the selected clip, shuttle back with J, stop
+  // with K, then commit one undoable trim with Enter.
+  const trimsBeforeDynamic = await page.evaluate(() =>
+    window.__commandRequests.filter(request => request.id === 'timeline.trim_clip').length
+  );
+  await page.locator('.app-shell').press('Control+Alt+E');
+  await page.locator('.trim-monitor-actions').waitFor();
+  await page.locator('.app-shell').press('j');
+  await page.waitForTimeout(250);
+  await page.locator('.app-shell').press('k');
+  await page.locator('.app-shell').press('Enter');
+  await page.waitForFunction(
+    count => window.__commandRequests.filter(request => request.id === 'timeline.trim_clip').length > count,
+    trimsBeforeDynamic,
+  );
+  const dynamicTrim = await page.evaluate(() =>
+    window.__commandRequests.filter(request => request.id === 'timeline.trim_clip').pop()
+  );
+  assert.ok(dynamicTrim.params.delta < 0, 'J should shuttle the trim backwards');
+  await page.locator('.app-shell').press('Control+z');
+  await page.waitForFunction(
+    width => Math.abs((document.querySelector('.timeline-clip')?.getBoundingClientRect().width ?? 0) - width) <= 1,
+    widthBeforeTrim,
+  );
+
   await page.locator('.timeline-tool-rail').getByRole('button', { name: 'Selection Tool', exact: true }).click();
+  // Three-point edit from the Source monitor: click the clip to focus the
+  // source tab, then send its marked range to the playhead.
+  await page.mouse.click(
+    restoredBox.x + restoredBox.width * 0.5,
+    restoredBox.y + restoredBox.height / 2,
+  );
+  await page.locator('.source-edit-bar').waitFor();
+  await page.locator('.source-edit-bar').getByRole('button', { name: 'Insert source range', exact: true }).click();
+  await page.waitForFunction(() =>
+    window.__commandRequests.some(request => request.id === 'timeline.insert_clip')
+  );
+  const insertRequest = await page.evaluate(() =>
+    window.__commandRequests.filter(request => request.id === 'timeline.insert_clip').pop()
+  );
+  assert.equal(typeof insertRequest.params.media_id, 'number', 'insert should carry a media id');
+  assert.ok(insertRequest.params.duration > 0, 'insert should carry a positive source duration');
+  await page.locator('.app-shell').press('Control+z');
+
   // Clicking a clip focuses the Source tab; the playhead checks below want Program.
   await page
     .locator('.monitor-unified .panel-tabs')
     .getByText('Program Timeline', { exact: true })
     .click();
+  // Catalogue-bound playhead commands: End jumps to the sequence end, Home
+  // returns to zero, and the transport timecode follows both.
+  await page.locator('.app-shell').press('End');
+  await page.waitForFunction(
+    () => document.querySelector('.transport code')?.textContent !== '00:00:00'
+  );
+  await page.locator('.app-shell').press('Home');
+  await page.waitForFunction(
+    () => document.querySelector('.transport code')?.textContent === '00:00:00'
+  );
   const initialLeft = Number.parseFloat(await clip.evaluate(element => element.style.left));
   assert.ok(initialLeft > 30, `pointer drop should place the clip at the pointer position; got ${initialLeft}px`);
 

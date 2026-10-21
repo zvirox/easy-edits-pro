@@ -24,6 +24,10 @@ type Options = {
   switchMulticamAngle: (angle: number) => void | Promise<void>;
   handleShuttleKey: (key: "j" | "k" | "l") => void;
   stepProgramFrame: (direction: -1 | 1) => void;
+  trimActive: boolean;
+  handleTrimShuttle: (key: "j" | "k" | "l") => void;
+  commitTrim: () => void | Promise<void>;
+  cancelTrim: () => void | Promise<void>;
   seekProgramTo: (time: number) => void;
   removeSelectedTransition: () => void | Promise<void>;
   removeSelectedClip: () => void | Promise<void>;
@@ -47,6 +51,13 @@ export function useShortcuts(options: Options) {
   return useCallback((event: KeyboardEvent<HTMLDivElement>) => {
     const target = event.target;
     if (target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
+    if (options.trimActive) {
+      if (["j", "k", "l"].includes(event.key.toLowerCase()) && !(event.ctrlKey || event.metaKey || event.altKey)) {
+        event.preventDefault(); options.handleTrimShuttle(event.key.toLowerCase() as "j" | "k" | "l"); return;
+      }
+      if (event.key === "Enter") { event.preventDefault(); void options.commitTrim(); return; }
+      if (event.key === "Escape") { event.preventDefault(); void options.cancelTrim(); return; }
+    }
     if (event.key === " " || event.code === "Space") { event.preventDefault(); options.toggleProgramPlayback(); return; }
     if (options.multicamMode && ["1", "2", "3", "4"].includes(event.key) && !(event.ctrlKey || event.metaKey || event.altKey)) {
       event.preventDefault(); void options.switchMulticamAngle(Number(event.key)); return;
@@ -56,12 +67,6 @@ export function useShortcuts(options: Options) {
     }
     if (event.key === "ArrowLeft" && !(event.ctrlKey || event.metaKey || event.altKey)) { event.preventDefault(); options.stepProgramFrame(-1); return; }
     if (event.key === "ArrowRight" && !(event.ctrlKey || event.metaKey || event.altKey)) { event.preventDefault(); options.stepProgramFrame(1); return; }
-    if (event.key === "Home") { event.preventDefault(); options.seekProgramTo(0); return; }
-    if (event.key === "End") {
-      event.preventDefault();
-      const duration = Math.max(0, ...(options.project?.sequence.tracks ?? []).flatMap((track) => track.clips.map((clip) => clip.timeline_start + clip.duration)));
-      options.seekProgramTo(duration); return;
-    }
     if ((event.key === "Delete" || event.key === "Backspace") && options.selectedTransition) {
       event.preventDefault(); void options.removeSelectedTransition(); return;
     }
@@ -88,7 +93,7 @@ export function useShortcuts(options: Options) {
     if ((event.ctrlKey || event.metaKey) && event.key === "+") { event.preventDefault(); options.zoomTimeline(1.2); return; }
     if ((event.ctrlKey || event.metaKey) && event.key === "-") { event.preventDefault(); options.zoomTimeline(1 / 1.2); return; }
     if ((event.ctrlKey || event.metaKey) && event.key === "0") { event.preventDefault(); options.zoomTimeline(72 / options.timelineZoom); return; }
-    const pressed = `${event.ctrlKey || event.metaKey ? "Ctrl+" : ""}${event.shiftKey ? "Shift+" : ""}${event.key.length === 1 ? event.key.toUpperCase() : event.key}`;
+    const pressed = `${event.ctrlKey || event.metaKey ? "Ctrl+" : ""}${event.altKey ? "Alt+" : ""}${event.shiftKey ? "Shift+" : ""}${event.key.length === 1 ? event.key.toUpperCase() : event.key}`;
     const command = options.commands.find((item) => item.shortcut?.toLowerCase() === pressed.toLowerCase());
     if (!command) return;
     event.preventDefault();
