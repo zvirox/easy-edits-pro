@@ -10,5 +10,10 @@ export {
 } from "./TimelineSection";
 export { TimelineToolbar, type TimelineToolbarProps, TimelineToolRail, type TimelineToolRailProps } from "./TimelineToolbar";
 export { SequenceTabs, type SequenceTab, type SequenceTabsProps } from "./SequenceTabs";
+export {
+  ClipContextMenu,
+  type ClipContextMenuProps,
+  type ClipMenuCommand,
+} from "./ClipContextMenu";
 export { TimelineTrackRow, type TimelineTrackRowProps } from "./TimelineTrackRow";
 export { TrimMonitorPanel, type TrimMonitorPanelProps } from "./TrimMonitorPanel";

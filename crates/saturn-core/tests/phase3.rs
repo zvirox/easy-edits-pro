@@ -260,6 +260,73 @@ fn duplicate_and_delete_work_on_inactive_sequences() {
 }
 
 #[test]
+fn speed_change_can_follow_linked_audio_in_one_undo_entry() {
+    let mut engine = EditorEngine::default();
+    let video_media = setup(&mut engine);
+    let audio_media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "scene.wav",
+                "path": "/assets/scene.wav",
+                "kind": "audio",
+                "duration": TICKS_PER_SECOND * 20
+            }),
+        ))
+        .unwrap()["media_id"]
+        .as_u64()
+        .unwrap();
+
+    let video_track = active_track_id(&mut engine, "video");
+    let audio_track = active_track_id(&mut engine, "audio");
+    add_clip(&mut engine, video_media, video_track);
+    add_clip(&mut engine, audio_media, audio_track);
+    engine
+        .execute(CommandRequest::new(
+            "timeline.link_clips",
+            json!({
+                "clips": [
+                    {"track_id": video_track, "clip_index": 0},
+                    {"track_id": audio_track, "clip_index": 0}
+                ]
+            }),
+        ))
+        .unwrap();
+
+    let stretched = engine
+        .execute(CommandRequest::new(
+            "timeline.rate_stretch",
+            json!({
+                "track_id": video_track,
+                "clip_index": 0,
+                "speed": 2.0,
+                "linked": true
+            }),
+        ))
+        .unwrap();
+    assert_eq!(stretched["affected"], 2);
+
+    let doc = document(&mut engine);
+    let tracks = doc["project"]["sequence"]["tracks"].as_array().unwrap();
+    for kind in ["video", "audio"] {
+        let clip = &tracks.iter().find(|track| track["kind"] == kind).unwrap()["clips"][0];
+        assert_eq!(clip["duration"].as_i64().unwrap(), TICKS_PER_SECOND);
+        assert_eq!(clip["speed"].as_f64().unwrap(), 2.0);
+    }
+
+    engine
+        .execute(CommandRequest::new("edit.undo", Value::Null))
+        .unwrap();
+    let doc = document(&mut engine);
+    let tracks = doc["project"]["sequence"]["tracks"].as_array().unwrap();
+    for kind in ["video", "audio"] {
+        let clip = &tracks.iter().find(|track| track["kind"] == kind).unwrap()["clips"][0];
+        assert_eq!(clip["duration"].as_i64().unwrap(), TICKS_PER_SECOND * 2);
+        assert_eq!(clip["speed"].as_f64().unwrap(), 1.0);
+    }
+}
+
+#[test]
 fn deleting_active_sequence_activates_a_remaining_one() {
     let mut engine = EditorEngine::default();
     setup(&mut engine);

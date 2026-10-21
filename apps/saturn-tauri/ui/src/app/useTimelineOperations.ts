@@ -32,6 +32,12 @@ type ClipPointerDrag = {
 
 export type { TrimSession };
 
+export type SpeedDurationApply = {
+  speed?: number;
+  new_duration?: number;
+  linked: boolean;
+};
+
 type TimelineScrub = {
   pointerId: number;
   axis: HTMLElement;
@@ -286,6 +292,21 @@ export function useTimelineOperations({
     setSelectedClip(null);
     setSelectedClips([]);
   }, [selectedClip, perform]);
+
+  const applySpeedDuration = useCallback(
+    async (patch: SpeedDurationApply) => {
+      if (!selectedClip) {
+        setNotice("Select a timeline clip first");
+        return false;
+      }
+      return perform(
+        "timeline.rate_stretch",
+        { ...selectedClip, ...patch },
+        "Clip speed and duration updated"
+      );
+    },
+    [selectedClip, perform, setNotice]
+  );
 
   const linkSelectedClips = useCallback(async () => {
     if (selectedClips.length < 2) return;
@@ -729,6 +750,7 @@ export function useTimelineOperations({
     removeSelectedClip,
     splitSelectedClip,
     rippleDeleteSelectedClip,
+    applySpeedDuration,
     linkSelectedClips,
     unlinkSelectedClips,
     createCompoundClip,

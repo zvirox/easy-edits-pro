@@ -366,20 +366,25 @@
     "undoGroup": "transaction"
   },
   {
-    "aliases": [],
+    "aliases": [
+      "speed",
+      "duration",
+      "rate stretch",
+      "time stretch"
+    ],
     "category": "Sequence",
     "id": "timeline.rate_stretch",
-    "label": "Rate Stretch",
+    "label": "Speed/Duration…",
     "menu": [
       "Clip"
     ],
     "mutating": true,
-    "params": "{\"track_id\":int,\"clip_index\":int,\"new_duration\":obj?,\"speed\":num?}",
-    "shipped": false,
-    "shortcut": "X",
+    "params": "{\"track_id\":int,\"clip_index\":int,\"new_duration\":obj?,\"speed\":num?,\"linked\":bool?}",
+    "shipped": true,
+    "shortcut": null,
     "since": "0.1.0",
     "uiOnly": false,
-    "undoGroup": "gesture"
+    "undoGroup": "transaction"
   },
   {
     "aliases": [],

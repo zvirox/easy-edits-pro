@@ -1,5 +1,5 @@
 import { InteriorButton } from "../../components/interior/interior-button";
-import type { Dispatch, SetStateAction, PointerEvent } from "react";
+import type { Dispatch, MouseEvent, SetStateAction, PointerEvent } from "react";
 import { formatTime, formatPan, formatDb, getClipWaveform } from "../../utils/formatters";
 import type {
   Clip,
@@ -183,6 +183,11 @@ interface TimelineTrackLaneProps {
   finishTimelineClipTrim: (e: PointerEvent<HTMLSpanElement>) => void;
   mediaDropTargetTrackId: number | null;
   switchSequence: (seqId: number) => Promise<void>;
+  onClipContextMenu: (
+    event: MouseEvent<HTMLDivElement>,
+    trackId: number,
+    clipIndex: number,
+  ) => void;
 }
 
 export function TimelineTrackLane({
@@ -210,6 +215,7 @@ export function TimelineTrackLane({
   finishTimelineClipTrim,
   mediaDropTargetTrackId,
   switchSequence,
+  onClipContextMenu,
 }: TimelineTrackLaneProps) {
   return (
     <div
@@ -323,6 +329,9 @@ export function TimelineTrackLane({
               onPointerMove={moveTimelineClipPointer}
               onPointerUp={handleTimelineClipPointerCancel}
               onPointerCancel={handleTimelineClipPointerCancel}
+              onContextMenu={(event) =>
+                onClipContextMenu(event, track.id, index)
+              }
             >
               {/* Left Trim Handle */}
               <span

@@ -273,6 +273,8 @@ pub(in crate::engine) struct RateStretchParams {
     pub(in crate::engine) new_duration: Option<Tick>,
     #[serde(default)]
     pub(in crate::engine) speed: Option<f64>,
+    #[serde(default)]
+    pub(in crate::engine) linked: bool,
 }
 
 #[derive(Deserialize)]

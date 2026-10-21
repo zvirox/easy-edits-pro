@@ -3,6 +3,7 @@ export { TranscriptionModal, type TranscriptionModalProps } from "./Transcriptio
 export { SilenceRemovalModal, type SilenceRemovalModalProps } from "./SilenceRemovalModal";
 export { InteropModal, type InteropModalProps } from "./InteropModal";
 export { CompoundClipModal, type CompoundClipModalProps } from "./CompoundClipModal";
+export { SpeedDurationModal, type SpeedDurationModalProps } from "./SpeedDurationModal";
 export { GpuTelemetryModal, type GpuTelemetryModalProps, type GpuMetrics } from "./GpuTelemetryModal";
 export { MediaBinModal, type MediaBinModalProps } from "./MediaBinModal";
 export { MediaPropsModal, type MediaPropsModalProps } from "./MediaPropsModal";

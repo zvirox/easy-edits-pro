@@ -148,6 +148,9 @@ export function useProjectOperations({
   const [compoundClipModalOpen, setCompoundClipModalOpen] = useState(false);
   const [compoundClipNameDraft, setCompoundClipNameDraft] = useState("");
 
+  // Clip speed and duration
+  const [speedDurationOpen, setSpeedDurationOpen] = useState(false);
+
   // GPU Telemetry
   const [gpuTelemetryOpen, setGpuTelemetryOpen] = useState(false);
   const [gpuMetrics, setGpuMetrics] = useState<GpuMetrics | null>(null);
@@ -552,6 +555,14 @@ export function useProjectOperations({
         case "view.fullscreen":
           await toggleFullscreen();
           return;
+        case "timeline.rate_stretch": {
+          if (!getMenuContext().selectedClip) {
+            setNotice("Select a timeline clip first");
+            return;
+          }
+          setSpeedDurationOpen(true);
+          return;
+        }
       }
 
       let params = explicitParams;
@@ -678,6 +689,8 @@ export function useProjectOperations({
     setCompoundClipModalOpen,
     compoundClipNameDraft,
     setCompoundClipNameDraft,
+    speedDurationOpen,
+    setSpeedDurationOpen,
     gpuTelemetryOpen,
     setGpuTelemetryOpen,
     gpuMetrics,

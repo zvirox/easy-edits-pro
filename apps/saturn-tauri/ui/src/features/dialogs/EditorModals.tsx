@@ -3,6 +3,7 @@ import { TranscriptionModal } from "./TranscriptionModal";
 import { SilenceRemovalModal } from "./SilenceRemovalModal";
 import { InteropModal } from "./InteropModal";
 import { CompoundClipModal } from "./CompoundClipModal";
+import { SpeedDurationModal } from "./SpeedDurationModal";
 import { GpuTelemetryModal } from "./GpuTelemetryModal";
 import { MediaBinModal } from "./MediaBinModal";
 import { MediaPropsModal } from "./MediaPropsModal";
@@ -32,6 +33,16 @@ export function EditorModals({
   refreshProject,
   setNotice,
 }: EditorModalsProps) {
+  const selected = timelineOps.selectedClip;
+  const selectedClip = selected
+    ? (project?.sequence.tracks
+        .find((track) => track.id === selected.track_id)
+        ?.clips[selected.clip_index] ?? null)
+    : null;
+  const selectedClipMediaName = selectedClip
+    ? (media.find((asset) => asset.id === selectedClip.media_id)?.name ?? "")
+    : "";
+
   return (
     <>
       <NewProjectModal
@@ -100,6 +111,14 @@ export function EditorModals({
         compoundClipNameDraft={projectOps.compoundClipNameDraft}
         setCompoundClipNameDraft={projectOps.setCompoundClipNameDraft}
         createCompoundClip={timelineOps.createCompoundClip}
+      />
+
+      <SpeedDurationModal
+        isOpen={projectOps.speedDurationOpen}
+        onClose={() => projectOps.setSpeedDurationOpen(false)}
+        clip={selectedClip}
+        mediaName={selectedClipMediaName}
+        onApply={timelineOps.applySpeedDuration}
       />
 
       <GpuTelemetryModal

@@ -114,6 +114,30 @@ try {
         track.clips.splice(params.clip_index + 1, 0, right);
         return { split: true };
       }
+      if (id === 'timeline.rate_stretch') {
+        push();
+        const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
+        const clip = track.clips[params.clip_index];
+        const oldDuration = clip.duration;
+        const oldSpeed = clip.speed > 0 ? clip.speed : 1;
+        let newSpeed = params.speed ?? oldSpeed;
+        let newDuration = params.new_duration ??
+          Math.round((oldDuration * oldSpeed) / newSpeed);
+        if (!params.new_duration) {
+          newSpeed = params.speed;
+        } else {
+          newSpeed = (oldDuration * oldSpeed) / newDuration;
+        }
+        clip.duration = Math.max(1, newDuration);
+        clip.speed = Math.round(newSpeed * 1000) / 1000;
+        return {
+          stretched: true,
+          duration: clip.duration,
+          speed: clip.speed,
+          linked: Boolean(params.linked),
+          affected: 1,
+        };
+      }
       if (id === 'sequence.create' || id === 'sequence.duplicate' || id === 'sequence.rename' || id === 'sequence.delete' || id === 'project.switch_sequence') {
         const allocId = () => {
           const value = doc.project.next_id ?? 1;
@@ -562,6 +586,59 @@ try {
   await page.mouse.up();
   await page.getByText('Added editor-smoke.webm to timeline').waitFor();
   const clip = page.locator('.timeline-clip').first();
+  // Clip ▸ Speed/Duration changes the clip in place and undoes as one step.
+  await clip.click();
+  await menuBar.getByRole('button', { name: 'Clip', exact: true }).click();
+  await page.locator('.menu-popover').getByText(/Speed\/Duration/).click();
+  const speedDialog = page.locator('.speed-duration-dialog');
+  await speedDialog.waitFor();
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: '/tmp/easy-edits-pro-speed-duration.png' });
+  await speedDialog.getByLabel('Speed percent').fill('200');
+  await speedDialog.getByRole('button', { name: 'Apply', exact: true }).click();
+  await page.waitForFunction(() =>
+    window.__commandRequests.some(request => request.id === 'timeline.rate_stretch')
+  );
+  const speedRequest = await page.evaluate(() =>
+    window.__commandRequests.filter(request => request.id === 'timeline.rate_stretch').pop()
+  );
+  assert.equal(speedRequest.params.speed, 2, 'the dialog should send 2x speed');
+  assert.equal(speedRequest.params.linked, false, 'an ungrouped clip has no linked audio');
+  await page.locator('.clip-speed-badge').first().waitFor();
+  assert.match(
+    (await page.locator('.clip-speed-badge').first().textContent()) ?? '',
+    /200%/,
+    'the clip should show its new speed badge',
+  );
+  await page.locator('.app-shell').press('Control+z');
+  await page.waitForFunction(() => !document.querySelector('.clip-speed-badge'));
+
+  // The clip context menu is generated from the shipped Clip catalogue.
+  await clip.click({ button: 'right' });
+  const clipMenu = page.locator('.clip-context-menu');
+  await clipMenu.waitFor();
+  assert.equal(await clipMenu.getByRole('menuitem').count(), 4);
+  const splitMenuItem = clipMenu.getByRole('menuitem', { name: /Split Clip at Playhead/ });
+  assert.equal(
+    await splitMenuItem.isDisabled(),
+    true,
+    'split should be disabled while the playhead is outside the clip',
+  );
+  assert.match(
+    (await splitMenuItem.getAttribute('title')) ?? '',
+    /outside this clip/,
+    'the disabled split should explain why',
+  );
+  await clipMenu.getByRole('menuitem', { name: /Speed\/Duration/ }).click();
+  const contextSpeedDialog = page.locator('.speed-duration-dialog');
+  await contextSpeedDialog.waitFor();
+  await contextSpeedDialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await clip.click({ button: 'right' });
+  await page.locator('.clip-context-menu').getByRole('menuitem', { name: /Remove Clip/ }).click();
+  await page.waitForFunction(() => document.querySelectorAll('.timeline-clip').length === 0);
+  await page.locator('.app-shell').press('Control+z');
+  await page.locator('.timeline-clip').first().waitFor();
+
   // Every tool stamps its cursor class onto the clips it can act on.
   await page.locator('.timeline-tool-rail').getByRole('button', { name: 'Razor Tool', exact: true }).click();
   assert.ok(

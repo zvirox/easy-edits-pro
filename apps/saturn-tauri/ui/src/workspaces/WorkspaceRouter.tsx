@@ -11,8 +11,10 @@ import { TICKS_PER_SECOND, type Clip, type MediaAsset, type ProjectDocument } fr
 import type { CommandStatus } from "../app/ProjectProvider";
 import type { AudioClockMaster } from "../engine/playbackEngine";
 import type { SourcePreviewFocus } from "../features/preview";
+import type { CommandSpec } from "../features/menubar/AppHeader";
 
 export interface WorkspaceRouterProps {
+  commands: CommandSpec[];
   davinciWorkspace: string;
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
@@ -39,6 +41,7 @@ export interface WorkspaceRouterProps {
 }
 
 export function WorkspaceRouter({
+  commands,
   davinciWorkspace,
   project,
   media,
@@ -511,6 +514,7 @@ export function WorkspaceRouter({
         undoStatus,
         redoStatus,
         perform,
+        commands,
         selectedClip: timelineOps.selectedClip,
         splitSelectedClip: timelineOps.splitSelectedClip,
         rippleDeleteSelectedClip: timelineOps.rippleDeleteSelectedClip,

@@ -676,6 +676,7 @@ function EditorApp() {
 
       <ErrorBoundary fallbackTitle="Workspace Rendering Issue" onReset={() => projectOps.setDavinciWorkspace("edit")}>
         <WorkspaceRouter
+          commands={commands}
           davinciWorkspace={projectOps.davinciWorkspace}
           project={project} media={media} getMediaUrl={getMediaUrl}
           selectedTimelineClip={selectedTimelineClip}

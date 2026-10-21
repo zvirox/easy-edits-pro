@@ -180,7 +180,12 @@ export function AppHeader({
     if (id === "edit.undo") return undoStatus.enabled ? null : undoStatus.reason ?? "Nothing to undo";
     if (id === "edit.redo") return redoStatus.enabled ? null : redoStatus.reason ?? "Nothing to redo";
     if (
-      ["timeline.split_clip", "timeline.ripple_delete", "timeline.remove_clip"].includes(id) &&
+      [
+        "timeline.split_clip",
+        "timeline.ripple_delete",
+        "timeline.remove_clip",
+        "timeline.rate_stretch",
+      ].includes(id) &&
       !selectedClip
     ) {
       return "Select a timeline clip first";

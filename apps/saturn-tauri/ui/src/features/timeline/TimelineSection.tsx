@@ -26,6 +26,8 @@ import {
 import { rulerSteps } from "./ruler";
 import { TimelineToolbar } from "./TimelineToolbar";
 import { SequenceTabs } from "./SequenceTabs";
+import { ClipContextMenu, type ClipMenuCommand } from "./ClipContextMenu";
+import { useClipContextMenu } from "./useClipContextMenu";
 import { useSequenceTabs } from "./useSequenceTabs";
 
 export {
@@ -36,6 +38,8 @@ export {
   getTrackGaps,
   rulerSteps,
 };
+
+
 
 export interface TimelineSectionProps {
   timelineTool: TimelineTool;
@@ -57,6 +61,7 @@ export interface TimelineSectionProps {
   undoStatus: CommandStatus;
   redoStatus: CommandStatus;
   perform: (id: string, params?: unknown, successNotice?: string) => Promise<unknown>;
+  commands: ClipMenuCommand[];
   selectedClip: SelectedClip | null;
   splitSelectedClip: () => Promise<void>;
   rippleDeleteSelectedClip: () => Promise<void>;
@@ -144,6 +149,7 @@ export function TimelineSection({
   undoStatus,
   redoStatus,
   perform,
+  commands,
   selectedClip,
   splitSelectedClip,
   rippleDeleteSelectedClip,
@@ -214,6 +220,24 @@ export function TimelineSection({
     setSelectedClips,
     setSelectedTransition,
     busy,
+  });
+
+  const {
+    clipMenu,
+    clipMenuCommands,
+    disabledReasons: clipMenuDisabledReasons,
+    openClipContextMenu,
+    selectClipCommand: handleClipMenuSelect,
+    closeClipMenu,
+  } = useClipContextMenu({
+    tracks,
+    commands,
+    busy,
+    playhead,
+    invokeMenuCommand,
+    setSelectedClip,
+    setSelectedClips,
+    setSelectedTransition,
   });
 
   // Calculate playhead position in pixels
@@ -638,6 +662,7 @@ export function TimelineSection({
                   finishTimelineClipTrim={finishTimelineClipTrim}
                   mediaDropTargetTrackId={mediaDropTargetTrackId}
                   switchSequence={switchSequence}
+                  onClipContextMenu={openClipContextMenu}
                 />
               );
             })}
@@ -676,6 +701,7 @@ export function TimelineSection({
                   finishTimelineClipTrim={finishTimelineClipTrim}
                   mediaDropTargetTrackId={mediaDropTargetTrackId}
                   switchSequence={switchSequence}
+                  onClipContextMenu={openClipContextMenu}
                 />
               );
             })}
@@ -715,6 +741,16 @@ export function TimelineSection({
         </div>
       </div>
     </div>
+      {clipMenu && (
+        <ClipContextMenu
+          x={clipMenu.x}
+          y={clipMenu.y}
+          commands={clipMenuCommands}
+          disabledReasons={clipMenuDisabledReasons}
+          onSelect={handleClipMenuSelect}
+          onClose={closeClipMenu}
+        />
+      )}
   </section>
 );
 }

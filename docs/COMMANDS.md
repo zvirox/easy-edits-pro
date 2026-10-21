@@ -60,7 +60,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Update Clip Effect | `clip.update_effect` | planned |  | `{"track_id":int,"clip_index":int,"effect_id":int,"payload":obj}` |
 | Toggle Clip Effect | `clip.toggle_effect` | planned |  | `{"track_id":int,"clip_index":int,"effect_id":int,"enabled":bool?}` |
 | Reorder Clip Effects | `clip.reorder_effects` | planned |  | `{"track_id":int,"clip_index":int,"from_index":int,"to_index":int}` |
-| Rate Stretch | `timeline.rate_stretch` | planned | X | `{"track_id":int,"clip_index":int,"new_duration":obj?,"speed":num?}` |
+| Speed/Duration… | `timeline.rate_stretch` | shipped |  | `{"track_id":int,"clip_index":int,"new_duration":obj?,"speed":num?,"linked":bool?}` |
 | Link Clips | `timeline.link_clips` | planned | Ctrl+L | `{"clips":[obj]}` |
 | Unlink Clips | `timeline.unlink_clips` | planned | Ctrl+Shift+L | `{"clips":[obj]}` |
 | Set Color Wheels | `clip.set_color_wheels` | planned |  | `{"track_id":int,"clip_index":int,"wheels":obj}` |

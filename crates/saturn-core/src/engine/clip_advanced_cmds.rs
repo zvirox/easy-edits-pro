@@ -336,51 +336,112 @@ impl EditorEngine {
                 if self.document.project.sequence.tracks[track_index].locked {
                     return Err(DispatchError::Operation("Track is locked".into()));
                 }
-                let clip = find_clip(&self.document, track_index, params.clip_index)?;
-                let old_dur = clip.duration.0 as f64;
-                let old_speed = if clip.speed > 0.0 { clip.speed } else { 1.0 };
-
-                let (new_duration, new_speed) = if let Some(speed) = params.speed {
-                    if speed < 0.05 || speed > 20.0 {
-                        return Err(DispatchError::InvalidParameters(
-                            "Speed must be between 0.05x and 20.0x".into(),
-                        ));
-                    }
-                    let new_dur = ((old_dur * old_speed) / speed).round() as i64;
-                    (Tick(new_dur.max(1)), (speed * 1000.0).round() / 1000.0)
-                } else if let Some(new_dur) = params.new_duration {
-                    if new_dur.0 <= 0 {
-                        return Err(DispatchError::InvalidParameters(
-                            "Duration must be positive".into(),
-                        ));
-                    }
-                    let calc_speed = (old_dur * old_speed) / (new_dur.0 as f64);
-                    let clamped = calc_speed.clamp(0.05, 20.0);
-                    (new_dur, (clamped * 1000.0).round() / 1000.0)
-                } else {
-                    return Err(DispatchError::InvalidParameters(
-                        "Either duration or speed must be specified".into(),
+                let selected = find_clip(&self.document, track_index, params.clip_index)?.clone();
+                let selected_old_dur = selected.duration.0 as f64;
+                if selected_old_dur <= 0.0 {
+                    return Err(DispatchError::Operation(
+                        "Clip duration must be positive".into(),
                     ));
+                }
+                let selected_old_speed = if selected.speed > 0.0 {
+                    selected.speed
+                } else {
+                    1.0
                 };
 
-                self.checkpoint();
-                let clip = &mut self.document.project.sequence.tracks[track_index].clips
-                    [params.clip_index];
-                if old_dur > 0.0 {
-                    let ratio = new_duration.0 as f64 / old_dur;
-                    for key in &mut clip.keyframes {
-                        key.time.0 = ((key.time.0 as f64) * ratio).round() as i64;
+                let (selected_new_duration, selected_new_speed, duration_ratio) =
+                    if let Some(speed) = params.speed {
+                        if speed < 0.05 || speed > 20.0 {
+                            return Err(DispatchError::InvalidParameters(
+                                "Speed must be between 0.05x and 20.0x".into(),
+                            ));
+                        }
+                        let new_dur =
+                            ((selected_old_dur * selected_old_speed) / speed).round() as i64;
+                        (Tick(new_dur.max(1)), speed, None)
+                    } else if let Some(new_dur) = params.new_duration {
+                        if new_dur.0 <= 0 {
+                            return Err(DispatchError::InvalidParameters(
+                                "Duration must be positive".into(),
+                            ));
+                        }
+                        let calc_speed =
+                            (selected_old_dur * selected_old_speed) / (new_dur.0 as f64);
+                        let clamped = calc_speed.clamp(0.05, 20.0);
+                        (new_dur, clamped, Some(new_dur.0 as f64 / selected_old_dur))
+                    } else {
+                        return Err(DispatchError::InvalidParameters(
+                            "Either duration or speed must be specified".into(),
+                        ));
+                    };
+
+                let mut targets = vec![(track_index, params.clip_index)];
+                if params.linked {
+                    if let Some(group_id) = selected.group_id {
+                        for (candidate_track_index, track) in
+                            self.document.project.sequence.tracks.iter().enumerate()
+                        {
+                            for (candidate_clip_index, clip) in track.clips.iter().enumerate() {
+                                if clip.group_id == Some(group_id)
+                                    && (candidate_track_index != track_index
+                                        || candidate_clip_index != params.clip_index)
+                                {
+                                    targets.push((candidate_track_index, candidate_clip_index));
+                                }
+                            }
+                        }
                     }
                 }
-                clip.duration = new_duration;
-                clip.speed = new_speed;
+
+                for (candidate_track_index, _) in &targets {
+                    if self.document.project.sequence.tracks[*candidate_track_index].locked {
+                        return Err(DispatchError::Operation(format!(
+                            "Track `{}` is locked",
+                            self.document.project.sequence.tracks[*candidate_track_index].name
+                        )));
+                    }
+                }
+
+                self.checkpoint();
+                let mut affected = 0usize;
+                for (candidate_track_index, candidate_clip_index) in targets {
+                    let clip = &mut self.document.project.sequence.tracks[candidate_track_index]
+                        .clips[candidate_clip_index];
+                    let old_dur = clip.duration.0 as f64;
+                    let old_speed = if clip.speed > 0.0 { clip.speed } else { 1.0 };
+                    let (new_duration, new_speed) = if let Some(ratio) = duration_ratio {
+                        let duration = (old_dur * ratio).round() as i64;
+                        let duration = Tick(duration.max(1));
+                        let speed = if duration.0 > 0 {
+                            (old_dur * old_speed / duration.0 as f64).clamp(0.05, 20.0)
+                        } else {
+                            selected_new_speed
+                        };
+                        (duration, speed)
+                    } else {
+                        let duration = ((old_dur * old_speed) / selected_new_speed).round() as i64;
+                        (Tick(duration.max(1)), selected_new_speed)
+                    };
+
+                    if old_dur > 0.0 {
+                        let ratio = new_duration.0 as f64 / old_dur;
+                        for key in &mut clip.keyframes {
+                            key.time.0 = ((key.time.0 as f64) * ratio).round() as i64;
+                        }
+                    }
+                    clip.duration = new_duration;
+                    clip.speed = (new_speed * 1000.0).round() / 1000.0;
+                    affected += 1;
+                }
 
                 Ok(json!({
                     "stretched": true,
                     "track_id": params.track_id,
                     "clip_index": params.clip_index,
-                    "duration": new_duration,
-                    "speed": new_speed,
+                    "duration": selected_new_duration,
+                    "speed": (selected_new_speed * 1000.0).round() / 1000.0,
+                    "linked": params.linked,
+                    "affected": affected,
                 }))
             })()),
             "timeline.link_clips" => Some((|| {
