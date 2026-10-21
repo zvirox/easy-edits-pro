@@ -6,9 +6,11 @@ import { ColorWorkspace } from "./ColorWorkspace";
 import { KeyframesWorkspace } from "./KeyframesWorkspace";
 import { EffectsWorkspace } from "./EffectsWorkspace";
 import { EditWorkspace } from "./EditWorkspace";
-import type { Clip, MediaAsset, ProjectDocument } from "../app/projectTypes";
+import { useEffect, useRef, useState } from "react";
+import { TICKS_PER_SECOND, type Clip, type MediaAsset, type ProjectDocument } from "../app/projectTypes";
 import type { CommandStatus } from "../app/ProjectProvider";
 import type { AudioClockMaster } from "../engine/playbackEngine";
+import type { SourcePreviewFocus } from "../features/preview";
 
 export interface WorkspaceRouterProps {
   davinciWorkspace: string;
@@ -59,6 +61,73 @@ export function WorkspaceRouter({
   audioClockMaster,
   audioOps,
 }: WorkspaceRouterProps) {
+  // Unified monitor Source-tab focus: a click (pointer down→up without drag)
+  // on a media-pool item or a timeline clip loads it in the Source tab.
+  // Automated selections — media drops, add-to-timeline — must not steal
+  // the monitor, so the switch is driven by gestures, not selection state.
+  const [sourcePreview, setSourcePreview] = useState<SourcePreviewFocus | null>(null);
+  const mediaRef = useRef(media);
+  useEffect(() => {
+    mediaRef.current = media;
+  }, [media]);
+
+  useEffect(() => {
+    const gesture = { kind: "none" as "none" | "clip" | "media", startX: 0, startY: 0, moved: false };
+
+    const onPointerDown = (event: globalThis.PointerEvent) => {
+      const target = event.target as Element | null;
+      gesture.kind = target?.closest?.(".timeline-clip[data-media-id]")
+        ? "clip"
+        : target?.closest?.(".media-item[data-media-id]")
+          ? "media"
+          : "none";
+      gesture.startX = event.clientX;
+      gesture.startY = event.clientY;
+      gesture.moved = false;
+    };
+
+    const onPointerMove = (event: globalThis.PointerEvent) => {
+      if (gesture.kind === "none") return;
+      if (Math.abs(event.clientX - gesture.startX) > 6 || Math.abs(event.clientY - gesture.startY) > 6) {
+        gesture.moved = true;
+      }
+    };
+
+    const onPointerUp = (event: globalThis.PointerEvent) => {
+      if (gesture.kind === "none" || gesture.moved) return;
+      const target = event.target as Element | null;
+      if (gesture.kind === "clip") {
+        const clipEl = target?.closest?.(".timeline-clip[data-media-id]") as HTMLElement | null;
+        if (!clipEl) return;
+        const mediaId = Number(clipEl.dataset.mediaId);
+        const asset = mediaRef.current.find((item) => item.id === mediaId);
+        if (!asset) return;
+        const sourceInTicks = Number(clipEl.dataset.sourceIn ?? "0");
+        setSourcePreview({
+          asset,
+          startSeconds: sourceInTicks / TICKS_PER_SECOND,
+          key: `clip-${mediaId}-${clipEl.dataset.timelineStart}-${sourceInTicks}`,
+        });
+      } else {
+        const itemEl = target?.closest?.(".media-item[data-media-id]") as HTMLElement | null;
+        if (!itemEl) return;
+        const mediaId = Number(itemEl.dataset.mediaId);
+        const asset = mediaRef.current.find((item) => item.id === mediaId);
+        if (!asset) return;
+        setSourcePreview({ asset, startSeconds: 0, key: `media-${asset.id}-${asset.name}` });
+      }
+    };
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("pointermove", onPointerMove, true);
+    document.addEventListener("pointerup", onPointerUp, true);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("pointermove", onPointerMove, true);
+      document.removeEventListener("pointerup", onPointerUp, true);
+    };
+  }, []);
+
   if (davinciWorkspace === "media") {
     return (
       <MediaWorkspace
@@ -383,6 +452,7 @@ export function WorkspaceRouter({
       }}
       previewSectionProps={{
         selectedMedia,
+        sourcePreview,
         getMediaUrl,
         sourcePreviewError: null,
         setSourcePreviewError: () => {},

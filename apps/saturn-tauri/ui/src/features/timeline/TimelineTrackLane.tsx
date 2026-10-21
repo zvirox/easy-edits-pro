@@ -179,11 +179,6 @@ interface TimelineTrackLaneProps {
   beginTimelineClipTrim: (e: PointerEvent<HTMLSpanElement>, trackId: number, clipIdx: number, clip: Clip, handle: "start" | "end") => void;
   moveTimelineClipTrim: (e: PointerEvent<HTMLSpanElement>) => void;
   finishTimelineClipTrim: (e: PointerEvent<HTMLSpanElement>) => void;
-  playhead: number;
-  timelineEndSeconds: number;
-  beginTimelineScrub: (e: PointerEvent<HTMLDivElement>) => void;
-  moveTimelineScrub: (e: PointerEvent<HTMLDivElement>) => void;
-  finishTimelineScrub: (e: PointerEvent<HTMLDivElement>) => void;
   mediaDropTargetTrackId: number | null;
   switchSequence: (seqId: number) => Promise<void>;
 }
@@ -210,11 +205,6 @@ export function TimelineTrackLane({
   beginTimelineClipTrim,
   moveTimelineClipTrim,
   finishTimelineClipTrim,
-  playhead,
-  timelineEndSeconds,
-  beginTimelineScrub,
-  moveTimelineScrub,
-  finishTimelineScrub,
   mediaDropTargetTrackId,
   switchSequence,
 }: TimelineTrackLaneProps) {
@@ -309,19 +299,23 @@ export function TimelineTrackLane({
             clipDragOffset.trackId === track.id &&
             clipDragOffset.clipIndex === index;
           const isCompound = clip.compound_sequence_id != null || item?.kind === "compound_sequence";
+          const isAudioLike = track.kind === "audio" || item?.kind === "audio";
 
           const clipLeft = (clip.timeline_start / TICKS_PER_SECOND) * timelineZoom;
           const clipWidth = Math.max(24, (clip.duration / TICKS_PER_SECOND) * timelineZoom);
 
           return (
             <div
-              className={`timeline-clip ${isSelected || isMultiSelected ? "selected" : ""} ${isMissing ? "is-missing" : ""} ${isPointerDragging ? "pointer-dragging" : ""} ${isCompound ? "is-compound-clip" : ""}`}
+              className={`timeline-clip ${isAudioLike ? "audio" : "video"} ${isSelected || isMultiSelected ? "selected" : ""} ${isMissing ? "is-missing" : ""} ${isPointerDragging ? "pointer-dragging" : ""} ${isCompound ? "is-compound-clip" : ""}`}
               style={{
                 left: `${clipLeft}px`,
                 width: `${clipWidth}px`,
                 borderLeftColor: item?.color_tag || undefined,
               }}
               key={`${clip.media_id}-${clip.timeline_start}-${index}`}
+              data-media-id={clip.media_id}
+              data-source-in={clip.source_in}
+              data-timeline-start={clip.timeline_start}
               onPointerDown={(event) => beginTimelineClipPointer(event, track.id, index, clip)}
               onPointerMove={moveTimelineClipPointer}
               onPointerUp={handleTimelineClipPointerCancel}
@@ -350,7 +344,7 @@ export function TimelineTrackLane({
               {/* Audio Waveform visualization */}
               {(() => {
                 const gradId = `wf-grad-edit-${track.id}-${clip.media_id}-${index}`;
-                const isAudio = track.kind === "audio" || item?.kind === "audio";
+                const isAudio = isAudioLike;
                 const activeColor = isAudio ? "#34d399" : "#be185d";
                 const inactiveColor = isAudio ? "rgba(52, 211, 153, 0.42)" : "rgba(159, 18, 73, 0.42)";
 
@@ -410,21 +404,6 @@ export function TimelineTrackLane({
             </div>
           );
         })}
-        <div
-          className="playhead-grip"
-          style={{ left: `${(playhead / TICKS_PER_SECOND) * timelineZoom}px` }}
-          role="slider"
-          aria-label="Timeline playhead"
-          aria-valuenow={playhead / TICKS_PER_SECOND}
-          aria-valuemin={0}
-          aria-valuemax={timelineEndSeconds}
-          onPointerDown={beginTimelineScrub}
-          onPointerMove={moveTimelineScrub}
-          onPointerUp={finishTimelineScrub}
-          onPointerCancel={finishTimelineScrub}
-        >
-          <i className="playhead" />
-        </div>
       </div>
     </div>
   );

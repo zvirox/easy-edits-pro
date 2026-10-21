@@ -1,0 +1,140 @@
+/* ============================================================================
+   150-timeline-refresh.css
+   Timeline + preview monitor redesign modelled on FilmCraft's timeline panel:
+   blue playhead, adaptive ruler with minor/major ticks, filmstrip clips,
+   compact track headers, one unified preview monitor.
+   Token-only colors (raw colours live in styles/01-editor.css).
+   ============================================================================ */
+
+/* ------------------------------------------------------------------
+   Unified preview monitor: Program | Multi-Cam | Source tabs.
+   One full-width monitor replaces the old Source/Program side-by-side pair.
+   ------------------------------------------------------------------ */
+.monitors { grid-template-columns: 1fr; }
+
+.monitor-tab-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.monitor-tab-panel[hidden] { display: none; }
+
+/* ------------------------------------------------------------------
+   Playhead: one continuous blue stroke from ruler bottom to content end.
+   The grip (aria + scrubbing) lives in the sticky ruler; this line is
+   anchored to .timeline-content so lanes and ruler share one x-axis.
+   Must never animate (styles gate: playhead selectors).
+   ------------------------------------------------------------------ */
+.timeline-content { position: relative; }
+.timeline-playhead-line {
+  position: absolute;
+  z-index: 4;
+  top: 30px;
+  bottom: 0;
+  width: 1px;
+  margin-left: -1px;
+  background: var(--playhead);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------
+   Ruler (FilmCraft): fixed 30px band, labels on top, minor/major ticks
+   anchored to the bottom edge, no "Time" spacer so coordinates line up.
+   ------------------------------------------------------------------ */
+.timeline-ruler {
+  height: 30px;
+  min-height: 30px;
+  align-items: stretch;
+  background: var(--bg-subpanel);
+  border-bottom: 1px solid var(--border-color);
+}
+.ruler-lane { min-height: 0; }
+.ruler-lane span { top: 2px; }
+.ruler-tick {
+  position: absolute;
+  top: 25px;
+  width: 1px;
+  height: 4px;
+  background: var(--tl-tick, var(--neutral-500));
+  pointer-events: none;
+}
+.ruler-tick.major { top: 20px; height: 9px; }
+
+/* Playhead grip inside the ruler keeps the head triangle at the ruler's
+   bottom edge, tip pointing down at the line start (FilmCraft look). */
+.timeline-ruler .playhead-grip::before {
+  top: auto;
+  bottom: 0;
+  left: 1px;
+  width: 11px;
+  height: 9px;
+}
+
+/* ------------------------------------------------------------------
+   Clips: FilmCraft-style flat clip body with a name plate pinned
+   top-left, filmstrip frame lines over the picture area, and the
+   waveform riding over everything. Audio clips keep their green body.
+   ------------------------------------------------------------------ */
+.timeline-clip { align-items: flex-start; padding-top: 3px; }
+.timeline-clip.video {
+  border-color: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-white) 11%, var(--bg-elevated)) 0 14px,
+    color-mix(in srgb, var(--color-black) 38%, var(--bg-elevated)) 14px
+  );
+}
+.timeline-clip.video::before {
+  content: "";
+  position: absolute;
+  inset: 17px 0 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-white) 10%, transparent) 0 1px,
+    transparent 1px 12px
+  );
+  opacity: 0.5;
+}
+.timeline-clip strong {
+  height: 13px;
+  padding: 0 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--color-black) 55%, transparent);
+  font-size: 8.5px;
+  line-height: 13px;
+}
+.timeline-clip small {
+  position: absolute;
+  z-index: 1;
+  left: 7px;
+  bottom: 3px;
+  max-width: calc(100% - 14px);
+  overflow: hidden;
+  color: color-mix(in srgb, var(--color-white) 72%, transparent);
+  font-size: 8px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ------------------------------------------------------------------
+   Track rows: subtle alternating banding (FilmCraft even-row tint).
+   ------------------------------------------------------------------ */
+.track-row:nth-child(even) > .track-lane:not(.media-drop-target) {
+  background: color-mix(in srgb, var(--color-white) 2%, transparent);
+}
+
+/* ------------------------------------------------------------------
+   Track headers: compact FilmCraft headers with kind-tinted badges.
+   ------------------------------------------------------------------ */
+.track-label { background: var(--bg-subpanel); }
+.track-kind-badge.video {
+  color: var(--accent-text);
+  border-color: color-mix(in srgb, var(--accent-primary) 60%, transparent);
+}
+.track-kind-badge.audio {
+  color: var(--status-success-text);
+  border-color: color-mix(in srgb, var(--status-success) 60%, transparent);
+}
+.track-mini-btn { border-radius: 2px; letter-spacing: 0.03em; }

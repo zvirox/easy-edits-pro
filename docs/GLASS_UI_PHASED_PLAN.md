@@ -1,8 +1,36 @@
 # Easy Edits Pro — Glass UI Phased Implementation Plan v2.1
 
 > **Source:** `glass-ui-plan-v2.md` + skill analysis (glassmorphism, progressive-blur, baseline-ui, reverse-engineer-anything) + risk mitigation strategies
-> **Status:** Phases 1–3 complete; Phase 4 core shipped (see the Phase 4 "Shipped this pass" note below)
+> **Status:** Phases 1–3 complete; Phase 4 core shipped (see the Phase 4 "Shipped this pass" note below); timeline & monitor redesign shipped (see "Timeline + monitor refresh" below)
 > **Total estimated effort:** 2.5–3 weeks (13–18 work days)
+
+---
+
+## Timeline + monitor refresh (shipped 2026-10-21)
+
+Modelled on a FilmCraft (`/home/zvirox/Downloads/filmcraft-main`) timeline
+analysis. Rails: preview/timeline/scopes/waveforms stay glass- and
+animation-free; all new colour goes through token files.
+
+- **Playhead fix:** the ruler's 114px "Time" spacer made the unified playhead
+  ~114px right of the clips (the "divided in two, unaligned" symptom), and each
+  lane drew a second partial line. Now the ruler lane shares the track lanes'
+  x-origin, per-lane grips are gone, and a single `.timeline-playhead-line`
+  (content-anchored) spans ruler → content bottom while the grip+triangle stay
+  in the sticky ruler. `--playhead` retokened to FilmCraft blue (`#5895ec`
+  dark / `#1668b3` light).
+- **Ruler:** adaptive minor/major ticks via `features/timeline/ruler.ts`
+  (FilmCraft `ruler_steps` port: labels ≥110px apart, ticks ≥12px; unit tested).
+- **Clips & headers:** `.timeline-clip` now carries `audio`/`video` classes;
+  video clips get a filmstrip pattern + name-plate look; alternating row
+  banding; kind-tinted track badges (`styles/150-timeline-refresh.css`).
+- **Monitor:** the standalone Source Monitor is gone — one full-width monitor
+  with `Program Timeline | 🎥 Multi-Cam | Source` tabs. Clicking a media-pool
+  item or a timeline clip (pointer down→up without drag, so drops/adds don't
+  steal the monitor) loads it in the Source tab; timeline picks land on the
+  clip's In point. Program keeps playing while other tabs are shown.
+- **Deferred:** real video thumbnails in timeline clips (needs a Rust
+  frame-capture command + a `thumbnail_url` field on `MediaAsset`).
 
 ---
 

@@ -23,6 +23,7 @@ import {
   TICKS_PER_SECOND,
   getTrackGaps,
 } from "./types";
+import { rulerSteps } from "./ruler";
 import { TimelineToolbar, TimelineToolRail } from "./TimelineToolbar";
 
 export {
@@ -31,6 +32,7 @@ export {
   TRACK_LABEL_WIDTH,
   TICKS_PER_SECOND,
   getTrackGaps,
+  rulerSteps,
 };
 
 export interface TimelineSectionProps {
@@ -479,9 +481,13 @@ export function TimelineSection({
           onPointerCancel={handleTimelinePanEnd}
         >
           <div className="timeline-content" style={{ width: `${timelineWidth}px`, minWidth: `${timelineWidth}px` }}>
-            {/* Unified Ruler with Playhead */}
+            {/* Single full-height playhead line (content-anchored so it spans
+                ruler + all lanes on one continuous stroke). */}
+            <i className="timeline-playhead-line" style={{ left: `${playheadX}px` }} />
+            {/* FilmCraft-style ruler: adaptive labels + minor/major ticks.
+                No spacer here — the ruler lane shares the track lanes' origin so
+                the playhead, ruler labels and clips all line up on one x-axis. */}
             <div className="timeline-ruler">
-              <span className="track-spacer">Time</span>
               <div
                 className="ruler-lane"
                 onPointerDown={beginTimelineScrub}
@@ -507,12 +513,35 @@ export function TimelineSection({
                     <Icon name="markOut" />
                   </i>
                 )}
-                {Array.from({ length: Math.ceil(timelineWidth / (timelineZoom * 5)) + 1 }, (_, index) => (
-                  <span key={index} style={{ left: `${index * timelineZoom * 5}px` }}>
-                    {formatTime(index * TICKS_PER_SECOND * 5)}
-                  </span>
-                ))}
-                {/* Unified Playhead - spans all tracks */}
+                {(() => {
+                  const { major: labelStep, minor: tickStep } = rulerSteps(timelineZoom);
+                  const tickCount = Math.min(
+                    Math.ceil(timelineWidth / (timelineZoom * tickStep)) + 1,
+                    2000
+                  );
+                  const labelCount = Math.min(
+                    Math.ceil(timelineWidth / (timelineZoom * labelStep)) + 1,
+                    2000
+                  );
+                  return (
+                    <>
+                      {Array.from({ length: tickCount }, (_, index) => (
+                        <i
+                          key={`tick-${index}`}
+                          className={`ruler-tick${(index * tickStep) % labelStep === 0 ? " major" : ""}`}
+                          style={{ left: `${index * tickStep * timelineZoom}px` }}
+                        />
+                      ))}
+                      {Array.from({ length: labelCount }, (_, index) => (
+                        <span key={`label-${index}`} style={{ left: `${index * labelStep * timelineZoom}px` }}>
+                          {formatTime(index * labelStep * TICKS_PER_SECOND)}
+                        </span>
+                      ))}
+                    </>
+                  );
+                })()}
+                {/* Unified Playhead - one grip in the ruler, its line spans the
+                    whole timeline content (containing block: .timeline-content). */}
                 <div
                   className="playhead-grip ruler-playhead-grip unified-playhead"
                   style={{ left: `${playheadX}px` }}
@@ -527,7 +556,6 @@ export function TimelineSection({
                   onPointerCancel={finishTimelineScrub}
                 >
                   <i className="playhead" />
-                  <div className="playhead-line" style={{ height: "100%" }} />
                 </div>
               </div>
             </div>
@@ -624,11 +652,6 @@ export function TimelineSection({
                   beginTimelineClipTrim={beginTimelineClipTrim}
                   moveTimelineClipTrim={moveTimelineClipTrim}
                   finishTimelineClipTrim={finishTimelineClipTrim}
-                  playhead={playhead}
-                  timelineEndSeconds={timelineEndSeconds}
-                  beginTimelineScrub={beginTimelineScrub}
-                  moveTimelineScrub={moveTimelineScrub}
-                  finishTimelineScrub={finishTimelineScrub}
                   mediaDropTargetTrackId={mediaDropTargetTrackId}
                   switchSequence={switchSequence}
                 />
@@ -666,11 +689,6 @@ export function TimelineSection({
                   beginTimelineClipTrim={beginTimelineClipTrim}
                   moveTimelineClipTrim={moveTimelineClipTrim}
                   finishTimelineClipTrim={finishTimelineClipTrim}
-                  playhead={playhead}
-                  timelineEndSeconds={timelineEndSeconds}
-                  beginTimelineScrub={beginTimelineScrub}
-                  moveTimelineScrub={moveTimelineScrub}
-                  finishTimelineScrub={finishTimelineScrub}
                   mediaDropTargetTrackId={mediaDropTargetTrackId}
                   switchSequence={switchSequence}
                 />

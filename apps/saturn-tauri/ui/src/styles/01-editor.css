@@ -275,8 +275,8 @@
   --status-danger-border-soft: #6b394b;
   --status-danger-text-soft: #f1d2c8;
   --status-danger-text-dim: #d5a89d;
-  --playhead: #f29b45;
-  --playhead-hover: #ffc078;
+  --playhead: #5895ec;
+  --playhead-hover: #7facf2;
   --drop-target: #f2a24d;
   --marker-in: #79c896;
   --marker-out: #e7a264;
@@ -360,8 +360,8 @@
   --status-danger-border-soft: #b91c1c;
   --status-danger-text-soft: #be123c;
   --status-danger-text-dim: #9f1239;
-  --playhead: #d97706;
-  --playhead-hover: #f59e0b;
+  --playhead: #1668b3;
+  --playhead-hover: #1f7ed6;
   --drop-target: #d97706;
   --marker-in: #059669;
   --marker-out: #d97706;

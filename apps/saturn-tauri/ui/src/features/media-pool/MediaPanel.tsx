@@ -346,6 +346,7 @@ export function MediaPanel({
                     <div className="media-row" key={item.id} style={{ position: "relative" }}>
                       <InteriorButton
                         className={`media-item ${isSelected ? "selected" : ""} ${isMissing ? "is-missing" : ""}`}
+                        data-media-id={item.id}
                         onClick={() => setSelectedMediaId(item.id)}
                         onPointerDown={(event) => beginMediaPointer(event, item.id)}
                         onPointerMove={moveMediaPointer}
@@ -412,6 +413,7 @@ export function MediaPanel({
                         <tr
                           key={item.id}
                           className={`media-table-row ${isSelected ? "selected" : ""}`}
+                          data-media-id={item.id}
                           draggable={true}
                           onDragStart={(e) => {
                             e.dataTransfer.setData("application/json", JSON.stringify({ media_id: item.id }));
@@ -541,6 +543,7 @@ export function MediaPanel({
                   <div className="media-row" key={item.id}>
                     <InteriorButton
                       className={`media-item ${selectedMediaId === item.id ? "selected" : ""}`}
+                      data-media-id={item.id}
                       onClick={() => setSelectedMediaId(item.id)}
                       data-tooltip={`Audio track · ${item.duration ? formatTime(item.duration) : "Audio"}`}
                       data-tooltip-pos="right"

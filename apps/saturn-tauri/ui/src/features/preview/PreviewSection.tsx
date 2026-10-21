@@ -1,5 +1,6 @@
 import { InteriorButton } from "../../components/interior/interior-button";
 import type { CSSProperties, RefObject, MutableRefObject } from "react";
+import { useEffect, useState } from "react";
 import { formatTime } from "../../utils/formatters";
 import { audioClockMaster, type MultiCamClip } from "../../engine/playbackEngine";
 import type { MediaAsset, ProjectDocument, TitleProperties } from "../../app/projectTypes";
@@ -7,8 +8,20 @@ import { SourceAudioVisualizer } from "../../components/SourceAudioVisualizer";
 import { LiveMulticamSwitcher } from "../../components/LiveMulticamSwitcher";
 import type { TimelinePlaybackSnapshot as DeckSnapshot, ActiveAudioClip } from "../../engine/playbackEngine";
 
+/** What the unified monitor's Source tab should currently show. */
+export interface SourcePreviewFocus {
+  asset: MediaAsset;
+  /** Seconds into the source to land on (clip In point for timeline picks). */
+  startSeconds: number;
+  /** Changes whenever the source focus changes; drives video remount/seek. */
+  key: string;
+}
+
+export type MonitorMode = "program" | "multicam" | "source";
+
 export interface PreviewSectionProps {
   selectedMedia: MediaAsset | null;
+  sourcePreview: SourcePreviewFocus | null;
   getMediaUrl: (path: string) => string;
   sourcePreviewError: string | null;
   setSourcePreviewError: (error: string | null) => void;
@@ -40,6 +53,7 @@ export interface PreviewSectionProps {
 
 export function PreviewSection({
   selectedMedia,
+  sourcePreview,
   getMediaUrl,
   sourcePreviewError,
   setSourcePreviewError,
@@ -61,13 +75,20 @@ export function PreviewSection({
   playhead,
   project,
   media,
-  multicamMode,
   setMulticamMode,
   multicamActiveAngle,
   setMulticamActiveAngle,
   switchMulticamAngle,
   syncMulticamWaveforms,
 }: PreviewSectionProps) {
+  const [monitorMode, setMonitorMode] = useState<MonitorMode>("program");
+
+  // Clicking a clip in the timeline or an item in the media pool bumps the
+  // shared sourcePreview focus — jump the monitor to its Source tab.
+  useEffect(() => {
+    if (sourcePreview) setMonitorMode("source");
+  }, [sourcePreview?.key]);
+
   const renderTitleOverlay = (titleProps: TitleProperties | undefined) => {
     if (!titleProps) return null;
     return (
@@ -271,12 +292,12 @@ export function PreviewSection({
     );
   };
 
-  const renderPreview = (item: MediaAsset | null) => {
+  const renderPreview = (item: MediaAsset | null, startSeconds = 0) => {
     if (!item) {
       return (
         <div className="monitor-stage">
           <strong>Source monitor</strong>
-          <small>Select imported media to preview it here</small>
+          <small>Select imported media or click a timeline clip to preview it here</small>
         </div>
       );
     }
@@ -289,7 +310,7 @@ export function PreviewSection({
     const isAudioFile = item.kind === "audio" || /\.(mp3|wav|m4a|flac|aac|ogg|wma)$/i.test(item.path || item.name);
     if (isAudioFile) {
       return (
-        <div className="preview-stage audio-preview" style={{ width: "100%", height: "100%", background: "#050505" }}>
+        <div className="preview-stage audio-preview" style={{ width: "100%", height: "100%", background: "var(--bg-canvas)" }}>
           <SourceAudioVisualizer item={item} src={source} />
         </div>
       );
@@ -298,7 +319,7 @@ export function PreviewSection({
       return (
         <div className="preview-stage">
           <video
-            key={`source-${item.id}-${sourcePath}`}
+            key={`source-${item.id}-${sourcePath}-${startSeconds}`}
             src={mediaServerPort > 0 ? source : undefined}
             style={visualStyle}
             controls
@@ -306,6 +327,14 @@ export function PreviewSection({
             preload="auto"
             crossOrigin="anonymous"
             onCanPlay={() => setCurrentError(null)}
+            onLoadedMetadata={(event) => {
+              // Timeline picks land on the clip's In point, like FilmCraft's source viewer.
+              if (startSeconds > 0.01) {
+                try {
+                  event.currentTarget.currentTime = startSeconds;
+                } catch {}
+              }
+            }}
             onError={() => {
               if (previewPreparationErrors[item.id]) {
                 setCurrentError(`Preview unavailable: ${previewPreparationErrors[item.id]}`);
@@ -341,70 +370,87 @@ export function PreviewSection({
     return null;
   };
 
+  const sourceName = sourcePreview?.asset.name ?? selectedMedia?.name;
+
   return (
     <div className="monitors">
-      <section className="monitor">
-        <div className="panel-tabs">
-          <span className="selected">Source Monitor</span>
-        </div>
-        <div className="monitor-name">{selectedMedia?.name ?? "No source selected"}</div>
-        {renderPreview(selectedMedia)}
-      </section>
-      <section className="monitor">
+      <section className="monitor monitor-unified">
         <div className="panel-tabs">
           <span
-            className={!multicamMode ? "selected" : ""}
-            onClick={() => setMulticamMode(false)}
+            className={monitorMode === "program" ? "selected" : ""}
+            onClick={() => {
+              setMonitorMode("program");
+              setMulticamMode(false);
+            }}
             style={{ cursor: "pointer" }}
           >
             Program Timeline
           </span>
           <span
-            className={multicamMode ? "selected" : ""}
-            onClick={() => setMulticamMode(true)}
+            className={monitorMode === "multicam" ? "selected" : ""}
+            onClick={() => {
+              setMonitorMode("multicam");
+              setMulticamMode(true);
+            }}
             style={{ cursor: "pointer" }}
           >
             🎥 Multi-Cam Quad (4 Angles)
           </span>
+          <span
+            className={monitorMode === "source" ? "selected" : ""}
+            onClick={() => setMonitorMode("source")}
+            style={{ cursor: "pointer" }}
+          >
+            Source{sourceName ? ` · ${sourceName}` : ""}
+          </span>
         </div>
         <div className="monitor-name">
-          {multicamMode
-            ? `Multi-Cam Quad · Live Angle ${multicamActiveAngle}`
-            : project?.sequence.name ?? "Sequence 1"}
+          {monitorMode === "source"
+            ? sourcePreview?.asset.name ?? "No source selected"
+            : monitorMode === "multicam"
+              ? `Multi-Cam Quad · Live Angle ${multicamActiveAngle}`
+              : project?.sequence.name ?? "Sequence 1"}
         </div>
-        {multicamMode ? renderMulticamMonitor() : renderProgramMonitor()}
-        <div className="transport">
-          <InteriorButton
-            aria-label="Previous frame"
-            data-tooltip="Previous Frame (Left Arrow)"
-            data-tooltip-pos="top"
-            onClick={() => stepProgramFrame(-1)}
-          >
-            ◀
-          </InteriorButton>
-          <InteriorButton
-            className={programPlaying ? "active-toggle" : ""}
-            aria-label={programPlaying ? "Pause playback" : "Play clip"}
-            data-tooltip={programPlaying ? "Pause Playback (Space / K)" : "Play Timeline (Space / L)"}
-            data-tooltip-pos="top"
-            onClick={() => toggleProgramPlayback()}
-          >
-            {programPlaying ? "Ⅱ" : "▶"}
-          </InteriorButton>
-          <InteriorButton
-            aria-label="Next frame"
-            data-tooltip="Next Frame (Right Arrow)"
-            data-tooltip-pos="top"
-            onClick={() => stepProgramFrame(1)}
-          >
-            ▶|
-          </InteriorButton>
-          {shuttleSpeed !== 1 && programPlaying && (
-            <span className="transport-shuttle" title="Shuttle speed">
-              {shuttleSpeed}x
-            </span>
-          )}
-          <code>{formatTime(playhead)}</code>
+        {/* Program/Multi-Cam stay mounted while the Source tab is shown so
+            playback keeps running behind the tab switch. */}
+        <div className="monitor-tab-panel" hidden={monitorMode === "source"}>
+          {monitorMode === "multicam" ? renderMulticamMonitor() : renderProgramMonitor()}
+          <div className="transport">
+            <InteriorButton
+              aria-label="Previous frame"
+              data-tooltip="Previous Frame (Left Arrow)"
+              data-tooltip-pos="top"
+              onClick={() => stepProgramFrame(-1)}
+            >
+              ◀
+            </InteriorButton>
+            <InteriorButton
+              className={programPlaying ? "active-toggle" : ""}
+              aria-label={programPlaying ? "Pause playback" : "Play clip"}
+              data-tooltip={programPlaying ? "Pause Playback (Space / K)" : "Play Timeline (Space / L)"}
+              data-tooltip-pos="top"
+              onClick={() => toggleProgramPlayback()}
+            >
+              {programPlaying ? "Ⅱ" : "▶"}
+            </InteriorButton>
+            <InteriorButton
+              aria-label="Next frame"
+              data-tooltip="Next Frame (Right Arrow)"
+              data-tooltip-pos="top"
+              onClick={() => stepProgramFrame(1)}
+            >
+              ▶|
+            </InteriorButton>
+            {shuttleSpeed !== 1 && programPlaying && (
+              <span className="transport-shuttle" title="Shuttle speed">
+                {shuttleSpeed}x
+              </span>
+            )}
+            <code>{formatTime(playhead)}</code>
+          </div>
+        </div>
+        <div className="monitor-tab-panel" hidden={monitorMode !== "source"}>
+          {renderPreview(sourcePreview?.asset ?? null, sourcePreview?.startSeconds ?? 0)}
         </div>
       </section>
     </div>
