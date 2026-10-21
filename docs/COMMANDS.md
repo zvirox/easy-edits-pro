@@ -174,7 +174,7 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
-| Keyboard Shortcuts | `help.shortcuts` | shipped |  | `{}` |
+| Keyboard Shortcuts | `help.shortcuts` | shipped | Ctrl+/ | `{}` |
 | Copy System Diagnostics | `help.diagnostics` | shipped |  | `{}` |
 | Report Issue / Support | `help.support` | shipped |  | `{}` |
 | About Easy Edits Pro | `help.about` | shipped |  | `{}` |

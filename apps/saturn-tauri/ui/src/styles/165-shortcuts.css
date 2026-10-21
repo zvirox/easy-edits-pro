@@ -1,0 +1,180 @@
+/* Keyboard shortcuts reference and rebinding surface. Tokens only. */
+.shortcuts-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 760px;
+  max-height: min(80vh, 760px);
+  padding: 18px 20px;
+}
+
+.shortcuts-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shortcuts-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.shortcuts-header p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.shortcuts-header .close-btn {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  flex: none;
+}
+
+.shortcuts-header .close-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.shortcuts-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-input);
+  color: var(--text-muted);
+}
+
+.shortcuts-search svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+}
+
+.shortcuts-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 12px;
+}
+
+.shortcuts-list {
+  flex: 1;
+  min-height: 0;
+  padding: 2px 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-subpanel);
+}
+
+.shortcuts-group h3 {
+  position: sticky;
+  top: -2px;
+  z-index: 1;
+  margin: 0;
+  padding: 8px 0 4px;
+  background: var(--bg-subpanel);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shortcuts-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 128px;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 2px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-color) 40%, transparent);
+}
+
+.shortcuts-group .shortcuts-row:last-child {
+  border-bottom: 0;
+}
+
+.shortcuts-row-label {
+  overflow: hidden;
+  color: var(--text-main);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shortcuts-key {
+  justify-self: end;
+  min-width: 104px;
+  padding: 3px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-button);
+  color: var(--accent-text);
+  font: 11px ui-monospace, monospace;
+  text-align: center;
+}
+
+.shortcuts-key.listening {
+  border-color: var(--accent-primary);
+  background: var(--bg-selected);
+}
+
+.shortcuts-key.static {
+  display: block;
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-sub);
+}
+
+.shortcuts-error {
+  margin: 0;
+  color: var(--status-danger);
+  font-size: 11px;
+}
+
+.shortcuts-empty {
+  padding: 18px 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.shortcuts-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.shortcuts-reset {
+  padding: 4px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--bg-button);
+  color: var(--text-main);
+  font-size: 11px;
+}

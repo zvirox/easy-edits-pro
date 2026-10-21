@@ -189,11 +189,62 @@ try {
       `the ${emptyMenu} menu has no shipped commands yet and must not render`,
     );
   }
+  // The tool rail exposes every editing and graphics tool in named groups.
+  const toolRail = page.locator('.timeline-tool-rail');
+  assert.equal(
+    await toolRail.locator('.timeline-tool-button').count(),
+    17,
+    'the tool rail should expose all 17 tools',
+  );
+  assert.equal(
+    await toolRail.locator('.timeline-tool-group-label').count(),
+    5,
+    'the tool rail should group tools into five named segments',
+  );
+  await toolRail.getByRole('button', { name: 'Type Tool', exact: true }).click();
+  await page.locator('.status-bar-tool').getByText('Type Tool').waitFor();
+  await page.locator('.app-shell').press('Shift+A');
+  await page.locator('.status-bar-tool').getByText('Track Select Backward').waitFor();
+  await page.locator('.app-shell').press('v');
+  await page.locator('.status-bar-tool').getByText('Selection Tool').waitFor();
+
   // The command palette reads the same catalogue.
   await page.keyboard.press('Control+k');
   await page.locator('#command-palette-search').fill('ripple');
-  await page.locator('.command-palette-result-label', { hasText: 'Ripple Delete' }).first().waitFor();
+  const firstPaletteResult = page.locator('.command-palette-result-label').first();
+  await firstPaletteResult.waitFor();
+  assert.equal(
+    await firstPaletteResult.textContent(),
+    'Ripple Delete',
+    'the palette should rank Ripple Delete first for "ripple"',
+  );
   await page.keyboard.press('Escape');
+
+  // The shortcuts editor rebinds a command and the new key dispatches it.
+  await menuBar.getByRole('button', { name: 'Help', exact: true }).click();
+  await page.locator('.menu-popover').getByText('Keyboard Shortcuts', { exact: true }).click();
+  const shortcutsDialog = page.locator('.shortcuts-dialog');
+  await shortcutsDialog.waitFor();
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: '/tmp/easy-edits-pro-shortcuts.png' });
+  const undoRow = shortcutsDialog
+    .locator('.shortcuts-row')
+    .filter({ has: page.getByText('Undo', { exact: true }) })
+    .first();
+  await undoRow.getByRole('button').click();
+  await page.keyboard.press('Control+Shift+U');
+  await undoRow.locator('.shortcuts-key').getByText('Ctrl+Shift+U').waitFor();
+  await shortcutsDialog.getByRole('button', { name: 'Close' }).click();
+  await page.locator('.app-shell').press('Control+Shift+U');
+  const undoRequests = await page.evaluate(() => window.__commandRequests);
+  assert.ok(
+    undoRequests.some((request) => request.id === 'edit.undo'),
+    'a rebound shortcut should dispatch its command',
+  );
+  await menuBar.getByRole('button', { name: 'Help', exact: true }).click();
+  await page.locator('.menu-popover').getByText('Keyboard Shortcuts', { exact: true }).click();
+  await page.locator('.shortcuts-dialog').getByRole('button', { name: 'Reset all to defaults' }).click();
+  await page.locator('.shortcuts-dialog').getByRole('button', { name: 'Close' }).click();
 
   // UI-only commands dispatch locally instead of hitting the engine.
   await menuBar.getByRole('button', { name: 'View', exact: true }).click();

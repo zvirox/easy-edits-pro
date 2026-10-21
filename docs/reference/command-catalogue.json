@@ -1355,7 +1355,7 @@
     "mutating": false,
     "params": "{}",
     "shipped": true,
-    "shortcut": null,
+    "shortcut": "Ctrl+/",
     "since": "0.1.0",
     "uiOnly": true,
     "undoGroup": "none"

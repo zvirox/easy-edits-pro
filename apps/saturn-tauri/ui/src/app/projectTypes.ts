@@ -198,15 +198,21 @@ export type OpenverseAsset = {
 export type TimelineTool =
   | "select"
   | "trackForward"
+  | "trackBackward"
   | "ripple"
   | "rolling"
   | "razor"
   | "slip"
   | "slide"
   | "rateStretch"
+  | "remix"
   | "pen"
   | "hand"
-  | "zoom";
+  | "zoom"
+  | "rectangle"
+  | "ellipse"
+  | "type"
+  | "verticalType";
 
 export const TRACK_LABEL_WIDTH = 114;
 export const TICKS_PER_SECOND = 254_016_000_000;

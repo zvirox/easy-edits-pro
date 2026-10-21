@@ -136,17 +136,32 @@ export function AppHeader({
   const motionPreset = useMotionPreset();
   const matchingCommands = useMemo(() => {
     const query = commandQuery.trim().toLowerCase();
-    return commands
-      .filter((command) => command.shipped)
-      .filter((command) => {
-        if (!query) return true;
-        return (
-          command.id.toLowerCase().includes(query) ||
-          command.label.toLowerCase().includes(query) ||
-          command.menu.join(" ").toLowerCase().includes(query)
-        );
+    const shipped = commands.filter((command) => command.shipped);
+    if (!query) return shipped.slice(0, 12);
+    // Rank prefix matches above substring and menu-path matches so that
+    // "ripple" surfaces Ripple Delete before longer compound commands.
+    return shipped
+      .map((command) => {
+        const label = command.label.toLowerCase();
+        const id = command.id.toLowerCase();
+        const menu = command.menu.join(" ").toLowerCase();
+        const score = label === query
+          ? 0
+          : label.startsWith(query)
+            ? 1
+            : label.includes(query)
+              ? 2
+              : id.includes(query)
+                ? 3
+                : menu.includes(query)
+                  ? 4
+                  : -1;
+        return { command, score };
       })
-      .slice(0, 12);
+      .filter((entry) => entry.score >= 0)
+      .sort((a, b) => a.score - b.score || a.command.label.length - b.command.label.length)
+      .slice(0, 12)
+      .map((entry) => entry.command);
   }, [commandQuery, commands]);
 
   useEffect(() => {

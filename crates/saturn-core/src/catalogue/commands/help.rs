@@ -5,7 +5,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         id: "help.shortcuts",
         label: "Keyboard Shortcuts",
         menu: &["Help"],
-        shortcut: None,
+        shortcut: Some("Ctrl+/"),
         params: "{}",
         category: Category::Help,
         mutating: false,

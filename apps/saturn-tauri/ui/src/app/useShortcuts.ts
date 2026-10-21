@@ -79,7 +79,8 @@ export function useShortcuts(options: Options) {
     }
     if ((event.ctrlKey || event.metaKey) && event.altKey && event.key.toLowerCase() === "t") { event.preventDefault(); options.toggleTheme(); return; }
     if (!(event.ctrlKey || event.metaKey || event.altKey)) {
-      const tool = options.timelineTools.find((item) => item.shortcut.toLowerCase() === event.key.toLowerCase());
+      const toolKey = `${event.shiftKey ? "shift+" : ""}${event.key.toLowerCase()}`;
+      const tool = options.timelineTools.find((item) => item.shortcut.toLowerCase() === toolKey);
       if (tool) { event.preventDefault(); options.setTimelineTool(tool.id); return; }
       if (event.key.toLowerCase() === "s") { event.preventDefault(); options.setSnapEnabled((enabled) => !enabled); return; }
     }

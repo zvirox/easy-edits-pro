@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { ProjectProvider, runCommand } from "./app/ProjectProvider";
 import { useProject } from "./app/useProject";
@@ -20,6 +20,7 @@ import { EditorModals } from "./features/dialogs";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { TICKS_PER_SECOND, timelineTools } from "./features/timeline/types";
 import { audioClockMaster } from "./engine/playbackEngine";
+import { ShortcutsDialog } from "./features/shortcuts/ShortcutsDialog";
 import type { CommandSpec, SelectedClip } from "./types";
 
 function EditorApp() {
@@ -49,6 +50,31 @@ function EditorApp() {
   }, []);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [shortcutOverrides, setShortcutOverrides] = useState<Record<string, string>>(() => {
+    try {
+      const raw = localStorage.getItem("easy-edits-pro.shortcuts.v1");
+      const parsed = raw ? JSON.parse(raw) : null;
+      return parsed && typeof parsed === "object" ? (parsed as Record<string, string>) : {};
+    } catch {
+      return {};
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem("easy-edits-pro.shortcuts.v1", JSON.stringify(shortcutOverrides));
+    } catch {}
+  }, [shortcutOverrides]);
+  const effectiveCommands = useMemo(
+    () =>
+      commands.map((command) => {
+        const override = shortcutOverrides[command.id];
+        return override === undefined
+          ? command
+          : { ...command, shortcut: override || null };
+      }),
+    [commands, shortcutOverrides]
+  );
 
   const {
     projectState, setProjectState, undoStatus, redoStatus,
@@ -126,6 +152,8 @@ function EditorApp() {
   }, [timelineOps.selectedClip, playback.playhead]);
 
   const audioOps = useAudioWorkspace(project, perform, playback.programPlaying);
+
+  const activeTool = timelineTools.find((tool) => tool.id === timelineOps.timelineTool);
 
   const selectedTimelineClip =
     timelineOps.selectedClip && project
@@ -209,7 +237,7 @@ function EditorApp() {
           return;
         }
         case "help.shortcuts":
-          setNotice("Every shortcut is listed beside its menu item.");
+          setShortcutsOpen(true);
           return;
         case "help.diagnostics":
           setNotice("Diagnostics are available from the status bar.");
@@ -231,7 +259,7 @@ function EditorApp() {
   );
 
   const shortcuts = useShortcuts({
-    commands: commands.filter((command) => command.shipped),
+    commands: effectiveCommands.filter((command) => command.shipped),
     timelineTools: timelineTools.map((t) => ({ id: t.id, shortcut: t.shortcut })),
     project,
     multicamMode: false,
@@ -301,7 +329,7 @@ function EditorApp() {
       <AppHeader
         project={project}
         projectState={projectState}
-        commands={commands}
+        commands={effectiveCommands}
         busy={busy}
         undoStatus={undoStatus}
         redoStatus={redoStatus}
@@ -354,8 +382,25 @@ function EditorApp() {
 
       <StatusBar
         busy={busy} notice={notice} connection={connection}
+        toolLabel={activeTool?.label}
         onFetchGpuTelemetry={projectOps.handleFetchGpuTelemetry}
         onToggleGpuTelemetry={() => projectOps.setGpuTelemetryOpen((v) => !v)}
+      />
+
+      <ShortcutsDialog
+        open={shortcutsOpen}
+        onClose={() => setShortcutsOpen(false)}
+        commands={effectiveCommands}
+        tools={timelineTools.map((tool) => ({
+          id: tool.id,
+          label: tool.label,
+          shortcut: tool.shortcut,
+        }))}
+        overrides={shortcutOverrides}
+        onChange={(id, shortcut) =>
+          setShortcutOverrides((current) => ({ ...current, [id]: shortcut }))
+        }
+        onResetAll={() => setShortcutOverrides({})}
       />
 
       <EditorModals

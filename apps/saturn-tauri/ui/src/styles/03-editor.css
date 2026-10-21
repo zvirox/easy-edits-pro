@@ -90,11 +90,13 @@
   font-family: monospace;
 }
 .timeline { display: flex; flex-direction: row; flex: none; height: var(--timeline-height, clamp(230px, 36vh, 440px)); min-height: 0; padding: 0; overflow: hidden; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; }
-.timeline-tool-rail { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 0; padding: 8px 2px 8px 4px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--border-color); background: var(--bg-subpanel); }
+.timeline-tool-rail { display: flex; flex-direction: column; align-items: stretch; gap: 2px; min-height: 0; padding: 6px 4px 8px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--border-color); background: var(--bg-subpanel); }
+.timeline-tool-group { display: flex; flex: none; flex-direction: column; gap: 2px; }
+.timeline-tool-group-label { padding: 3px 2px 1px; color: var(--text-muted); font-size: 8px; font-weight: 700; letter-spacing: 0.09em; line-height: 10px; text-transform: uppercase; white-space: nowrap; }
+.timeline-tool-grid { display: grid; grid-template-columns: repeat(2, 28px); gap: 2px; }
 .timeline-tool-button, .timeline-icon-button { display: grid; place-items: center; flex: none; padding: 4px; border: 1px solid transparent; border-radius: 5px; color: var(--text-sub); background: transparent; cursor: pointer; transition: border-color var(--transition-base), color var(--transition-base), background var(--transition-base), box-shadow var(--transition-base); }
-.timeline-tool-button { grid-template-rows: 20px 12px; gap: 1px; width: 48px; height: 42px; }
+.timeline-tool-button { width: 28px; height: 28px; }
 .timeline-icon-button { width: 30px; height: 30px; }
-.timeline-tool-button span { max-width: 100%; overflow: hidden; color: inherit; font-size: 9.5px; line-height: 11px; text-overflow: ellipsis; white-space: nowrap; font-weight: 550; }
 .timeline-tool-button:hover, .timeline-icon-button:hover:not(:disabled) { border-color: var(--border-strong); color: var(--text-main); background: var(--bg-hover); }
 .timeline-tool-button.active { border-color: var(--accent-primary); color: var(--color-white); background: var(--accent-primary); box-shadow: 0 0 10px var(--border-glow); }
 .timeline-icon-button.active-toggle { border-color: var(--accent-primary); color: var(--accent-text); background: var(--bg-selected); }
@@ -411,6 +413,7 @@ button:active:not(:disabled) { transform: scale(0.96); transition: transform 0.0
 .render-progress progress { width: 100%; }
 .status-bar { display: flex; justify-content: space-between; padding: 7px 14px; border-top: 1px solid var(--border-status); background: var(--bg-status); }
 .status-bar span, .status-bar strong { color: var(--text-primary); }
+.status-bar .status-bar-tool { color: var(--text-sub); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dialog-backdrop { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--color-black) 60%, transparent); }
 .new-project-dialog { width: min(360px, calc(100vw - 40px)); padding: 18px; border: 1px solid var(--neutral-600); border-radius: 8px; background: var(--neutral-750); box-shadow: 0 18px 60px color-mix(in srgb, var(--color-black) 73.33%, transparent); }
 .new-project-dialog h2 { margin: 0 0 16px; font-size: 15px; }

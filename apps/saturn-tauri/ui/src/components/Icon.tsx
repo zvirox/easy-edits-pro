@@ -10,6 +10,12 @@ export type IconName =
   | "redo"
   | "select"
   | "trackForward"
+  | "trackBackward"
+  | "remix"
+  | "rectangle"
+  | "ellipse"
+  | "type"
+  | "verticalType"
   | "ripple"
   | "rolling"
   | "razor"
@@ -62,6 +68,12 @@ export function Icon({ name }: { name: IconName }) {
     redo: <path d="m15 14 5-5-5-5m5 5h-9a6 6 0 0 0 0 12h2" />,
     select: <path d="m5 3 10 9-5 .7L8 18z" />,
     trackForward: <><path d="M3 4h8v4H3zM3 10h8v4H3zM3 16h8v2H3z" /><path d="M13 10h5m-2-2 2 2-2 2" /></>,
+    trackBackward: <><path d="M9 4h8v4H9zM9 10h8v4H9zM9 16h8v2H9z" /><path d="M7 10H2m2-2-2 2 2 2" /></>,
+    remix: <><path d="M4 8a6 6 0 0 1 10-2m2-2v4h-4M16 12a6 6 0 0 1-10 2m-2 2v-4h4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>,
+    rectangle: <rect x="3" y="5" width="14" height="10" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />,
+    ellipse: <ellipse cx="10" cy="10" rx="7" ry="5" fill="none" stroke="currentColor" strokeWidth="1.5" />,
+    type: <path d="M4 5h12M10 5v11m-3 0h6" />,
+    verticalType: <g transform="rotate(90 10 10)"><path d="M4 5h12M10 5v11m-3 0h6" /></g>,
     ripple: <><path d="m8 5-4 5 4 5M16 5l4 5-4 5M10 10h4" /><path d="M3 18h14" /></>,
     rolling: <><path d="M7 4v12m6-12v12M4 8l3 3-3 3m12-6-3 3 3 3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></>,
     razor: <><circle cx="6" cy="6" r="2" /><circle cx="6" cy="14" r="2" /><path d="m8 7 9 9M8 13l9-9" /></>,

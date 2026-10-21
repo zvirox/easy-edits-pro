@@ -4,9 +4,11 @@ import { Icon } from "../../components/Icon";
 import { formatTime } from "../../utils/formatters";
 import type { MediaAsset, ProjectDocument, SelectedClip, TimelineTool } from "../../app/projectTypes";
 import type { CommandStatus } from "../../app/ProjectProvider";
-import { timelineTools } from "./types";
+import { timelineTools, type TimelineToolGroup } from "./types";
 export type { TimelineTool };
 export { timelineTools };
+
+const TOOL_GROUPS: TimelineToolGroup[] = ["Select", "Trim", "Cut & Key", "Navigate", "Graphics"];
 
 // Timeline Tool Rail (vertical strip on the left)
 export interface TimelineToolRailProps {
@@ -17,20 +19,30 @@ export interface TimelineToolRailProps {
 export function TimelineToolRail({ timelineTool, setTimelineTool }: TimelineToolRailProps) {
   return (
     <aside className="timeline-tool-rail" aria-label="Timeline editing tools">
-      {timelineTools.map((tool) => (
-        <InteriorButton
-          key={tool.id}
-          className={`timeline-tool-button ${timelineTool === tool.id ? "active" : ""}`}
-          onClick={() => setTimelineTool(tool.id)}
-          aria-label={tool.label}
-          aria-pressed={timelineTool === tool.id}
-          data-tooltip={`${tool.label} (${tool.shortcut})`}
-          data-tooltip-pos="right"
-        >
-          <Icon name={tool.icon} />
-          <span>{tool.shortLabel}</span>
-        </InteriorButton>
-      ))}
+      {TOOL_GROUPS.map((group) => {
+        const tools = timelineTools.filter((tool) => tool.group === group);
+        if (!tools.length) return null;
+        return (
+          <section key={group} className="timeline-tool-group" aria-label={`${group} tools`}>
+            <span className="timeline-tool-group-label" aria-hidden="true">{group}</span>
+            <div className="timeline-tool-grid">
+              {tools.map((tool) => (
+                <InteriorButton
+                  key={tool.id}
+                  className={`timeline-tool-button ${timelineTool === tool.id ? "active" : ""}`}
+                  onClick={() => setTimelineTool(tool.id)}
+                  aria-label={tool.label}
+                  aria-pressed={timelineTool === tool.id}
+                  data-tooltip={`${tool.label} (${tool.shortcut})`}
+                  data-tooltip-pos="right"
+                >
+                  <Icon name={tool.icon} />
+                </InteriorButton>
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </aside>
   );
 }

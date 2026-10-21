@@ -3,6 +3,8 @@ export interface StatusBarProps {
   busy: boolean;
   notice: string | null;
   connection: string;
+  /** Active timeline tool, shown so the icon-only rail stays discoverable. */
+  toolLabel?: string;
   onFetchGpuTelemetry: () => Promise<void>;
   onToggleGpuTelemetry: () => void;
 }
@@ -11,6 +13,7 @@ export function StatusBar({
   busy,
   notice,
   connection,
+  toolLabel,
   onFetchGpuTelemetry,
   onToggleGpuTelemetry,
 }: StatusBarProps) {
@@ -18,6 +21,7 @@ export function StatusBar({
     <footer className="status-bar glass" data-elev="1">
       <span>{busy ? "Working…" : notice || "Autosave recovery enabled · saves every 30 seconds"}</span>
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {toolLabel ? <span className="status-bar-tool">Tool · {toolLabel}</span> : null}
         <InteriorButton
           type="button"
           className="gpu-status-pill"

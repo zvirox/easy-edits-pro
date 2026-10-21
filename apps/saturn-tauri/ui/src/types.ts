@@ -99,7 +99,24 @@ export interface JobInfo {
 }
 
 export type Workspace = "edit" | "color" | "effects" | "audio" | "keyframes" | "export" | "library" | "ai";
-export type TimelineTool = "select" | "trackForward" | "ripple" | "rolling" | "razor" | "slip" | "slide" | "rateStretch" | "pen" | "hand" | "zoom";
+export type TimelineTool =
+  | "select"
+  | "trackForward"
+  | "trackBackward"
+  | "ripple"
+  | "rolling"
+  | "razor"
+  | "slip"
+  | "slide"
+  | "rateStretch"
+  | "remix"
+  | "pen"
+  | "hand"
+  | "zoom"
+  | "rectangle"
+  | "ellipse"
+  | "type"
+  | "verticalType";
 export type DavinciWorkspace = "media" | "edit" | "fusion" | "color" | "audio" | "effects" | "keyframes" | "deliver";
 export type FilmoraTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
 export type MediaKind = "video" | "audio" | "image" | "title" | "compound_sequence" | "unknown";
