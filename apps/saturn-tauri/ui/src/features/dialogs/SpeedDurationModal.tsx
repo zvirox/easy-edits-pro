@@ -163,6 +163,14 @@ export function SpeedDurationModal({
         </span>
       </div>
 
+      {!valid && (
+        <p className="speed-duration-error" role="status">
+          {clip
+            ? "Speed must stay between 0.05× and 20×."
+            : "Select a timeline clip first."}
+        </p>
+      )}
+
       <label
         className={`speed-duration-linked ${hasLinkedGroup ? "" : "is-disabled"}`}
         title={hasLinkedGroup ? undefined : "This clip is not in a linked group"}

@@ -91,6 +91,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+.speed-duration-error {
+  margin: 0 0 10px;
+  color: var(--status-danger-text);
+  font-size: 11px;
+}
+
 .speed-duration-linked {
   display: flex;
   align-items: center;
