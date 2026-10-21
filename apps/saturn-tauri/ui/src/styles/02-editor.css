@@ -130,9 +130,9 @@
 .file-actions { display: flex; align-items: center; gap: 4px; }
 .menu-bar { display: flex; align-items: center; gap: 2px; min-width: 0; }
 .app-menu { position: relative; font-size: 12px; }
-.app-menu summary { list-style: none; cursor: pointer; padding: 6px 9px; border-radius: 4px; color: var(--text-sub); transition: background 0.15s, color 0.15s; }
+.app-menu-trigger { list-style: none; cursor: pointer; padding: 6px 9px; border: 0; border-radius: 4px; background: transparent; font: inherit; color: var(--text-sub); transition: background 0.15s, color 0.15s; }
 .app-menu summary::-webkit-details-marker { display: none; }
-.app-menu[open] summary, .app-menu summary:hover { background: var(--bg-hover); color: var(--text-main); }
+.app-menu-trigger[aria-expanded="true"], .app-menu-trigger:hover { background: var(--bg-hover); color: var(--text-main); }
 .menu-popover { position: absolute; z-index: 200; top: calc(100% + 4px); left: 0; min-width: 220px; padding: 5px; background: var(--bg-panel); border: 1px solid var(--border-strong); border-radius: 6px; box-shadow: var(--shadow-popup); }
 .menu-popover button { display: flex; justify-content: space-between; width: 100%; border: 0; background: transparent; text-align: left; font-size: 11px; padding: 6px 10px; border-radius: 4px; color: var(--text-main); }
 .menu-popover button:hover:not(:disabled) { background: var(--bg-hover); color: var(--accent-text); }

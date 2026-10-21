@@ -163,7 +163,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   fontWeight: 600,
                   fontSize: "13px",
                   cursor: "pointer",
-                  transition: "all 0.15s ease",
+                  transition: "background 0.15s ease, border 0.15s ease, box-shadow 0.15s ease",
                 }}
               >
                 Try Again
@@ -180,7 +180,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   fontSize: "13px",
                   fontWeight: 500,
                   cursor: "pointer",
-                  transition: "all 0.15s ease",
+                  transition: "background 0.15s ease, border 0.15s ease, box-shadow 0.15s ease",
                 }}
               >
                 Reload Studio

@@ -1,4 +1,5 @@
 import { InteriorButton } from "../../components/interior/interior-button";
+import { GlassDialog } from "../../motion/GlassDialog";
 export interface TranscriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -28,11 +29,12 @@ export function TranscriptionModal({
   isTranscribing,
   handleAutoTranscribe,
 }: TranscriptionModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="dialog-backdrop" role="presentation">
-      <div className="modal-dialog-card glass speech-modal" data-elev="4" style={{ maxWidth: "520px" }}>
+    <GlassDialog
+      open={isOpen}
+      cardClassName="modal-dialog-card glass speech-modal"
+      cardProps={{ style: { maxWidth: "520px" } }}
+    >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>🎙️ Auto-Speech Transcription (Whisper AI)</h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
@@ -97,7 +99,6 @@ export function TranscriptionModal({
             {isTranscribing ? "Transcribing Audio…" : "🎙️ Generate Subtitles"}
           </InteriorButton>
         </div>
-      </div>
-    </div>
+    </GlassDialog>
   );
 }

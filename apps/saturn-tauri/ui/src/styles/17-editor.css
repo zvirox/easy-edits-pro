@@ -225,7 +225,6 @@
 
 .vu-ch-bar {
   height: 100%;
-  transition: width 0.05s linear;
   border-radius: 2px;
   background: linear-gradient(to right, var(--status-success) 0%, var(--status-success) 70%, var(--status-warning) 85%, var(--status-danger-bright) 100%);
 }

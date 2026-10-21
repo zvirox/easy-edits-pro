@@ -124,7 +124,6 @@
   min-height: 0;
   background: linear-gradient(0deg, var(--status-success) 0%, var(--status-success) 65%, var(--status-warning) 82%, var(--status-danger-bright) 100%);
   border-radius: 1px;
-  transition: height 0.05s linear;
 }
 
 .vu-bar-fill.master {

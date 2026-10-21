@@ -1,4 +1,5 @@
 import { InteriorButton } from "../../components/interior/interior-button";
+import { GlassDialog } from "../../motion/GlassDialog";
 export interface MediaBinModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,19 +19,19 @@ export function MediaBinModal({
   setNewBinColor,
   createMediaBin,
 }: MediaBinModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="dialog-backdrop" role="presentation">
-      <form
-        className="modal-dialog-card glass"
-        data-elev="4"
-        style={{ maxWidth: "420px" }}
-        onSubmit={(e) => {
+    <GlassDialog
+      as="form"
+      open={isOpen}
+      cardClassName="modal-dialog-card glass"
+      cardProps={{
+        style: { maxWidth: "420px" },
+        onSubmit: (e) => {
           e.preventDefault();
           void createMediaBin(newBinName, newBinColor);
-        }}
-      >
+        },
+      }}
+    >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>📁 Create New Media Bin</h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
@@ -74,7 +75,6 @@ export function MediaBinModal({
           <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
           <InteriorButton className="primary" type="submit" disabled={!newBinName.trim()}>Create Bin</InteriorButton>
         </div>
-      </form>
-    </div>
+    </GlassDialog>
   );
 }

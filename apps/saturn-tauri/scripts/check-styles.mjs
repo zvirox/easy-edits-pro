@@ -4,6 +4,10 @@
  *
  * - No `transition: all` (layout/unknown-property animation is banned).
  * - No CSS file over 1,000 lines.
+ * - No transition or keyframe animation of layout properties (width, height,
+ *   inset, margin, padding, backdrop-filter). Phase 3: compositor-only motion.
+ * - No transition or animation declarations on playhead selectors: the
+ *   timeline playhead must never be animated behind the editor's back.
  * - `backdrop-filter` only lives in 00-tokens-glass.css and 120-glass.css.
  *   Media components may not carry glass classes or inline backdrop filters.
  * - Raw colours: token files are the only place a literal hex/rgb/hsl value may
@@ -32,6 +36,70 @@ const MEDIA_COMPONENTS = new Set([
 ]);
 const MAX_LINES = 1000;
 const WARN_LINES = 700;
+
+/** Properties whose transition/animation forces layout work in WebKit. */
+function isLayoutProperty(name) {
+  return (
+    name === "all" ||
+    name === "width" ||
+    name === "height" ||
+    name === "top" ||
+    name === "right" ||
+    name === "bottom" ||
+    name === "left" ||
+    name.startsWith("inset") ||
+    name.startsWith("margin") ||
+    name.startsWith("padding") ||
+    name === "backdrop-filter"
+  );
+}
+
+/** First token of every comma-separated transition target, e.g. `width` in `transition: width 0.2s` */
+function transitionTargets(declarationValue) {
+  return declarationValue
+    .split(",")
+    .map((part) => part.trim().split(/\s+/)[0] ?? "")
+    .filter((name) => /^[a-z-]+$/i.test(name));
+}
+
+/**
+ * Walks a CSS source and returns flat rules: { kind: "rule" | "keyframes",
+ * selector/name, body }. Nested at-rules (@media/@supports/@layer) are
+ * flattened so their inner rules are also checked.
+ */
+function collectCssRules(source) {
+  const css = source.replace(/\/\*[\s\S]*?\*\//g, "");
+  const rules = [];
+  function walk(chunk) {
+    let position = 0;
+    while (position < chunk.length) {
+      const open = chunk.indexOf("{", position);
+      if (open === -1) break;
+      const prelude = chunk.slice(position, open).trim().replace(/[\n;]+/g, " ");
+      let depth = 1;
+      let end = open + 1;
+      while (end < chunk.length && depth > 0) {
+        const character = chunk[end];
+        if (character === "{") depth += 1;
+        else if (character === "}") depth -= 1;
+        end += 1;
+      }
+      const body = chunk.slice(open + 1, end - 1);
+      if (prelude.startsWith("@keyframes")) {
+        rules.push({ kind: "keyframes", name: prelude.split(/\s+/)[1] ?? "", body });
+      } else if (prelude.startsWith("@media") || prelude.startsWith("@supports") || prelude.startsWith("@layer") || prelude.startsWith("@container")) {
+        walk(body);
+      } else {
+        for (const selector of prelude.split(",")) {
+          if (selector.trim()) rules.push({ kind: "rule", selector: selector.trim(), body });
+        }
+      }
+      position = end;
+    }
+  }
+  walk(css);
+  return rules;
+}
 
 function walk(directory, extension = ".css") {
   const files = [];
@@ -67,9 +135,47 @@ function collect() {
     const transitionAll = (source.match(/transition:\s*all\b/g) ?? []).length;
     const backdropFilters = (source.match(/backdrop-filter\s*:/g) ?? []).length;
     const rawColours = TOKEN_FILES.has(key) ? 0 : countRawColours(source);
+    const layoutTransitions = [];
+    const layoutKeyframes = [];
+    const playheadMotion = [];
+
+    for (const rule of collectCssRules(source)) {
+      if (rule.kind === "keyframes") {
+        // Keyframe steps carry declarations inside nested { } blocks.
+        for (const step of rule.body.match(/\{([^{}]*)\}/g) ?? []) {
+          for (const [, property] of step.matchAll(/[{;]\s*([-\w]+)\s*:/g)) {
+            const name = property.toLowerCase();
+            if (name.startsWith("--") || !isLayoutProperty(name)) continue;
+            layoutKeyframes.push(`${rule.name} (${name})`);
+          }
+        }
+        continue;
+      }
+      if (/playhead/i.test(rule.selector)) {
+        if (/transition(-property)?\s*:/.test(rule.body) || /(^|[^-\w])animation(-name|-duration)?\s*:/.test(rule.body)) {
+          playheadMotion.push(rule.selector);
+        }
+      }
+      for (const match of rule.body.matchAll(/transition(-property)?\s*:\s*([^;{}]+)/g)) {
+        for (const name of transitionTargets(match[2])) {
+          if (isLayoutProperty(name.toLowerCase())) {
+            layoutTransitions.push(`${rule.selector} (${name})`);
+          }
+        }
+      }
+    }
 
     if (transitionAll > 0) {
       violations.push(`${key}: ${transitionAll} \`transition: all\` declaration(s)`);
+    }
+    for (const target of layoutTransitions) {
+      violations.push(`${key}: layout-property transition ${target}`);
+    }
+    for (const target of layoutKeyframes) {
+      violations.push(`${key}: layout-property keyframe animation ${target}`);
+    }
+    for (const selector of playheadMotion) {
+      violations.push(`${key}: playhead must not animate \`${selector}\``);
     }
     if (backdropFilters > 0 && !GLASS_FILES.has(key)) {
       violations.push(`${key}: ${backdropFilters} ad-hoc \`backdrop-filter\` declaration(s)`);
@@ -82,8 +188,15 @@ function collect() {
 
   for (const path of walk(UI_SRC, ".tsx")) {
     const key = relative(UI_SRC, path).replaceAll("\\", "/");
-    if (!MEDIA_COMPONENTS.has(key)) continue;
     const source = readFileSync(path, "utf8");
+    for (const value of source.matchAll(/transition:\s*(["'])([^"']+)\1/g)) {
+      for (const name of transitionTargets(value[2])) {
+        if (isLayoutProperty(name.toLowerCase())) {
+          violations.push(`${key}: layout-property transition (inline style, ${name})`);
+        }
+      }
+    }
+    if (!MEDIA_COMPONENTS.has(key)) continue;
     if (/\bglass\b|data-elev|backdropFilter|backdrop-filter/.test(source)) {
       violations.push(`${key}: glass/backdrop effects are not allowed on media components`);
     }
@@ -149,7 +262,7 @@ function main() {
     process.exitCode = 1;
     return;
   }
-  console.log(`✓ styles: no transition:all, no oversized files, ${total} raw colours outside token files`);
+  console.log(`✓ styles: no transition:all, no layout-property animation, no playhead animation, no oversized files, ${total} raw colours outside token files`);
 }
 
 main();

@@ -1,5 +1,7 @@
 import { InteriorButton } from "../../components/interior/interior-button";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { backdropVariants, dialogVariants, menuVariants, useMotionPreset } from "../../motion/variants";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Icon } from "../../components/Icon";
 import { ThemeToggle } from "../../components/interior/theme-toggle";
@@ -114,8 +116,11 @@ export function AppHeader({
   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const menuBarRef = useRef<HTMLElement | null>(null);
   const jobDrawerRef = useRef<HTMLDivElement | null>(null);
   const commandSearchRef = useRef<HTMLInputElement | null>(null);
+  const motionPreset = useMotionPreset();
   const matchingCommands = useMemo(() => {
     const query = commandQuery.trim().toLowerCase();
     return commands
@@ -140,6 +145,22 @@ export function AppHeader({
   useEffect(() => {
     if (commandPaletteOpen) commandSearchRef.current?.focus();
   }, [commandPaletteOpen]);
+
+  useEffect(() => {
+    if (openMenu === null) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenMenu(null);
+    };
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (menuBarRef.current && !menuBarRef.current.contains(event.target as Node)) setOpenMenu(null);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("pointerdown", closeOnOutsidePointer);
+    return () => {
+      window.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("pointerdown", closeOnOutsidePointer);
+    };
+  }, [openMenu]);
 
   function renderMenu(menu: string) {
     const commandItems = commands
@@ -192,24 +213,47 @@ export function AppHeader({
     const items = [...commandItems, ...extraItems];
 
     return (
-      <details className="app-menu" key={menu}>
-        <summary>{menu}</summary>
-        <div className="menu-popover glass" data-elev="3">
-          {items.map((item) => (
-            <InteriorButton
-              key={item.id}
-              onClick={(event) => {
-                void invokeMenuCommand(item.id).catch((error: unknown) => setNotice(String(error)));
-                event.currentTarget.closest("details")?.removeAttribute("open");
-              }}
-              disabled={item.disabled}
+      <div className="app-menu" key={menu}>
+        <button
+          type="button"
+          className="app-menu-trigger"
+          aria-haspopup="menu"
+          aria-expanded={openMenu === menu}
+          onClick={() => setOpenMenu((current) => (current === menu ? null : menu))}
+        >
+          {menu}
+        </button>
+        <AnimatePresence>
+          {openMenu === menu && (
+            <motion.div
+              className="menu-popover glass"
+              data-elev="3"
+              role="menu"
+              initial={motionPreset.initial}
+              animate="animate"
+              exit="exit"
+              variants={menuVariants}
+              transition={motionPreset.transition}
+              style={{ transformOrigin: "top left" }}
             >
-              <span>{item.label}</span>
-              {item.shortcut && <small>{item.shortcut.replace("Ctrl", "⌘/Ctrl")}</small>}
-            </InteriorButton>
-          ))}
-        </div>
-      </details>
+              {items.map((item) => (
+                <InteriorButton
+                  key={item.id}
+                  onClick={(event) => {
+                    void invokeMenuCommand(item.id).catch((error: unknown) => setNotice(String(error)));
+                    setOpenMenu(null);
+                    event.currentTarget.blur();
+                  }}
+                  disabled={item.disabled}
+                >
+                  <span>{item.label}</span>
+                  {item.shortcut && <small>{item.shortcut.replace("Ctrl", "⌘/Ctrl")}</small>}
+                </InteriorButton>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     );
   }
 
@@ -237,7 +281,7 @@ export function AppHeader({
             <span>Find command</span>
             <kbd>Ctrl K</kbd>
           </InteriorButton>
-          <nav className="menu-bar" aria-label="Application menus">
+          <nav className="menu-bar" aria-label="Application menus" ref={menuBarRef}>
             {["File", "Edit", "Clip", "Sequence", "Markers", "View", "Window", "Help"].map(renderMenu)}
           </nav>
           <nav className="file-actions" aria-label="Project actions" style={{ display: "flex", gap: "2px" }}>
@@ -333,8 +377,18 @@ export function AppHeader({
               )}
             </InteriorButton>
 
-            {jobDrawerOpen && (
-              <div className="job-drawer-popover glass" data-elev="3">
+            <AnimatePresence>
+              {jobDrawerOpen && (
+                <motion.div
+                  className="job-drawer-popover glass"
+                  data-elev="3"
+                  initial={motionPreset.initial}
+                  animate="animate"
+                  exit="exit"
+                  variants={menuVariants}
+                  transition={motionPreset.transition}
+                  style={{ transformOrigin: "top right" }}
+                >
                 <header className="job-drawer-header">
                   <div>
                     <strong>Background Tasks</strong>
@@ -390,7 +444,7 @@ export function AppHeader({
                           <div className="job-progress-bar-wrapper">
                             <div
                               className="job-progress-bar-fill"
-                              style={{ width: `${Math.round((job.state.progress || 0) * 100)}%` }}
+                              style={{ transform: `scaleX(${Math.max(0, Math.min(1, job.state.progress || 0))})` }}
                             />
                             <div className="job-progress-text-row">
                               <small>{job.state.phase || "Processing…"}</small>
@@ -406,8 +460,9 @@ export function AppHeader({
                     ))
                   )}
                 </div>
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <InteriorButton
@@ -468,12 +523,30 @@ export function AppHeader({
         />
       </div>
     </header>
+    <AnimatePresence>
     {commandPaletteOpen && (
-      <div
+      <motion.div
         className="command-palette-backdrop"
         onMouseDown={(event) => { if (event.target === event.currentTarget) setCommandPaletteOpen(false); }}
+        initial={motionPreset.initial}
+        animate="animate"
+        exit="exit"
+        variants={backdropVariants}
+        transition={motionPreset.transition}
       >
-        <section className="command-palette glass" data-elev="4" role="dialog" aria-modal="true" aria-labelledby="command-palette-title">
+        <motion.section
+          className="command-palette glass"
+          data-elev="4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="command-palette-title"
+          initial={motionPreset.initial}
+          animate="animate"
+          exit="exit"
+          variants={dialogVariants}
+          transition={motionPreset.transition}
+          style={{ transformOrigin: "top center" }}
+        >
           <label id="command-palette-title" className="sr-only" htmlFor="command-palette-search">Find an editor command</label>
           <div className="command-palette-search">
             <Icon name="search" />
@@ -506,9 +579,10 @@ export function AppHeader({
             )) : <p className="command-palette-empty">No matching commands.</p>}
           </div>
           <footer><span>Search by tool name or command id</span><span><kbd>Ctrl K</kbd> to toggle</span></footer>
-        </section>
-      </div>
+        </motion.section>
+      </motion.div>
     )}
+    </AnimatePresence>
     </>
   );
 }

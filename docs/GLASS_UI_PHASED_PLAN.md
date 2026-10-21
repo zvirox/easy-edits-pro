@@ -1,7 +1,7 @@
 # Easy Edits Pro — Glass UI Phased Implementation Plan v2.1
 
 > **Source:** `glass-ui-plan-v2.md` + skill analysis (glassmorphism, progressive-blur, baseline-ui, reverse-engineer-anything) + risk mitigation strategies
-> **Status:** Phase 1 complete — Phase 0's DMA-BUF condition is resolved and the real editor has been re-measured (see [`glass-spike.md`](./glass-spike.md))
+> **Status:** Phases 1–3 complete — Phase 2 shipped the glass surface system, Phase 3 shipped the animation foundation (see [`glass-spike.md`](./glass-spike.md))
 > **Total estimated effort:** 2.5–3 weeks (13–18 work days)
 
 ---
@@ -285,6 +285,26 @@ Apply single `.glass` system; remove all ad-hoc glass; establish elevation scale
 ---
 
 ## Phase 3 — Animation Foundation (1–2 days) ✨
+
+> **Shipped:** `feat(glass-phase-3)` on `main`. Discovery found `transition: all`
+> already at zero, so G3a converted the 6 layout-property transitions that did
+> remain: job/batch progress fills now animate `transform: scaleX()` and the five
+> live audio meters (VU, VU-channel, GR track, GR meter, loudness) carry no
+> transition at all; JS progress writers feed `scaleX` directly. G3b added
+> `ui/src/motion/variants.ts` (opacity/scale/x-only variants + `useMotionPreset`)
+> and `ui/src/motion/GlassDialog.tsx`; `AnimatePresence` now owns mount/unmount
+> for all nine dialogs, both drawers (batch queue + AI chat), the command
+> palette, the job popover, and the menubar (converted from `<details>` to a
+> controlled popover with outside-click/Escape close). G3c extended
+> `scripts/check-styles.mjs` to reject layout-property transitions, layout
+> keyframes, any animation on playhead selectors, and layout-property inline
+> transitions in TSX. `130-animations.css` adds a global reduced-motion reset.
+> Reduced motion is verified twice: `editor-smoke.mjs` emulates
+> `prefers-reduced-motion: reduce` and asserts the CSS reset collapses
+> animations, and a motion-QA harness reads palette opacity mid-flight in each
+> glass mode (animated) versus reduced (instant). Note: Motion 14's
+> `useReducedMotion` snapshots the OS preference once at mount, so Phase 3 owns
+> a reactive hook (`useReducedMotionPreference`) instead.
 
 ### Objective
 Eliminate layout animation; use motion/react for all transitions; respect reduced-motion.

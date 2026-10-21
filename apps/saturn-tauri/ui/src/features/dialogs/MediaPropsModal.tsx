@@ -1,4 +1,5 @@
 import { InteriorButton } from "../../components/interior/interior-button";
+import { GlassDialog } from "../../motion/GlassDialog";
 import type { MediaAsset, ProjectDocument } from "../../app/projectTypes";
 
 export interface MediaPropsModalProps {
@@ -35,20 +36,21 @@ export function MediaPropsModal({
   moveMediaToBin,
   updateMediaProperties,
 }: MediaPropsModalProps) {
-  if (mediaEditPropsId === null) return null;
-
   return (
-    <div className="dialog-backdrop" role="presentation">
-      <form
-        className="modal-dialog-card glass"
-        data-elev="4"
-        style={{ maxWidth: "460px" }}
-        onSubmit={(e) => {
+    <GlassDialog
+      as="form"
+      open={mediaEditPropsId !== null}
+      cardClassName="modal-dialog-card glass"
+      cardProps={{
+        style: { maxWidth: "460px" },
+        onSubmit: (e) => {
           e.preventDefault();
+          if (mediaEditPropsId === null) return;
           const tags = mediaEditPropsTags.split(",").map((t) => t.trim()).filter(Boolean);
           void updateMediaProperties(mediaEditPropsId, mediaEditPropsName, mediaEditPropsColor || undefined, tags);
-        }}
-      >
+        },
+      }}
+    >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>🏷️ Edit Asset Properties</h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
@@ -106,6 +108,7 @@ export function MediaPropsModal({
             value={media.find((m) => m.id === mediaEditPropsId)?.bin_id ?? ""}
             onChange={(e) => {
               const val = e.target.value ? Number(e.target.value) : null;
+              if (mediaEditPropsId === null) return;
               void moveMediaToBin(mediaEditPropsId, val);
             }}
             style={{ padding: "8px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
@@ -120,7 +123,6 @@ export function MediaPropsModal({
           <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
           <InteriorButton className="primary" type="submit">Save Properties</InteriorButton>
         </div>
-      </form>
-    </div>
+    </GlassDialog>
   );
 }

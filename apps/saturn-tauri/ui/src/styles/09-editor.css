@@ -260,7 +260,6 @@
   width: 100%;
   background: var(--status-warning);
   border-radius: 2px;
-  transition: height 0.05s linear;
 }
 
 /* ==========================================================================

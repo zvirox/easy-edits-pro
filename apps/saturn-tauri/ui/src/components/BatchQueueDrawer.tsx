@@ -1,5 +1,7 @@
 import { InteriorButton } from "./interior/interior-button";
 import React, { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { backdropVariants, drawerVariants, useMotionPreset } from "../motion/variants";
 import { invoke } from "@tauri-apps/api/core";
 
 export interface BatchJobItem {
@@ -48,7 +50,7 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
     },
   ]);
 
-  if (!isOpen) return null;
+  const motionPreset = useMotionPreset();
 
   const handleTogglePause = async () => {
     try {
@@ -107,22 +109,38 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
   ];
 
   return (
-    <div className="modal-backdrop" onClick={onClose} style={{ zIndex: 9999 }}>
-      <div
-        className="batch-queue-drawer glass"
-        data-elev="3"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: "fixed",
-          right: 0,
-          top: 0,
-          bottom: 0,
-          width: 480,
-          display: "flex",
-          flexDirection: "column",
-          zIndex: 10000,
-        }}
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="modal-backdrop"
+          onClick={onClose}
+          style={{ zIndex: 9999 }}
+          initial={motionPreset.initial}
+          animate="animate"
+          exit="exit"
+          variants={backdropVariants}
+          transition={motionPreset.transition}
+        >
+          <motion.div
+            className="batch-queue-drawer glass"
+            data-elev="3"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "fixed",
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: 480,
+              display: "flex",
+              flexDirection: "column",
+              zIndex: 10000,
+            }}
+            initial={motionPreset.initial}
+            animate="animate"
+            exit="exit"
+            variants={drawerVariants}
+            transition={motionPreset.transition}
+          >
         {/* Drawer Header */}
         <header
           className="batch-queue-drawer-header"
@@ -307,10 +325,12 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
                       <div style={{ height: 5, background: "var(--border-default)", borderRadius: 3, overflow: "hidden" }}>
                         <div
                           style={{
-                            width: `${job.progress}%`,
+                            width: "100%",
                             height: "100%",
                             background: "var(--accent-primary)",
-                            transition: "width 0.3s ease",
+                            transform: `scaleX(${Math.max(0, Math.min(1, job.progress / 100))})`,
+                            transformOrigin: "left center",
+                            transition: "transform var(--dur-med) var(--ease-out)",
                           }}
                         />
                       </div>
@@ -376,7 +396,9 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
             </InteriorButton>
           </div>
         </footer>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

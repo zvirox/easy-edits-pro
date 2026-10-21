@@ -133,7 +133,7 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
                 borderRadius: 6,
                 padding: "10px 12px",
                 cursor: "pointer",
-                transition: "all 0.15s ease",
+                transition: "background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease",
                 boxShadow: isPgm
                   ? "0 0 12px rgba(229, 62, 62, 0.4)"
                   : isPvw

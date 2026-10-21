@@ -1,4 +1,5 @@
 import { InteriorButton } from "../../components/interior/interior-button";
+import { GlassDialog } from "../../motion/GlassDialog";
 export interface SilenceRemovalModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,11 +33,12 @@ export function SilenceRemovalModal({
   handleRippleDeleteSilence,
   busy,
 }: SilenceRemovalModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="dialog-backdrop" role="presentation">
-      <div className="modal-dialog-card glass speech-modal" data-elev="4" style={{ maxWidth: "540px" }}>
+    <GlassDialog
+      open={isOpen}
+      cardClassName="modal-dialog-card glass speech-modal"
+      cardProps={{ style: { maxWidth: "540px" } }}
+    >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>✂️ Automated Silence &amp; Filler Word Removal</h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
@@ -115,7 +117,6 @@ export function SilenceRemovalModal({
             ✂️ Ripple Delete Pauses ({silenceIntervalsLength})
           </InteriorButton>
         </div>
-      </div>
-    </div>
+    </GlassDialog>
   );
 }

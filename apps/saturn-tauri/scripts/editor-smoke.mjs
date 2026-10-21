@@ -271,9 +271,34 @@ try {
   const movedLeft = Number.parseFloat(await page.locator('.timeline-clip').first().evaluate(element => element.style.left));
   assert.ok(movedLeft > initialLeft + 80, `clip pointer move should update its timeline start; ${initialLeft}px -> ${movedLeft}px`);
 
+  // Phase 3: reduced-motion is a hard contract. Emulating `prefers-reduced-motion:
+  // reduce` must match the media query and collapse every CSS animation to an
+  // instant frame, while mount/unmount surfaces (command palette) still work.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const reducedMotion = await page.evaluate(() => {
+    const probe = document.createElement('div');
+    probe.className = 'preview-preparing-dot';
+    document.body.appendChild(probe);
+    const raw = getComputedStyle(probe).animationDuration;
+    probe.remove();
+    const seconds = raw.endsWith('ms') ? Number.parseFloat(raw) / 1000 : Number.parseFloat(raw);
+    return {
+      mediaQueryMatched: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+      probeAnimationSeconds: seconds,
+      raw,
+    };
+  });
+  assert.equal(reducedMotion.mediaQueryMatched, true, 'emulated reduced motion should match the media query');
+  assert.ok(reducedMotion.probeAnimationSeconds <= 0.05, `reduced motion should collapse CSS animations; ${reducedMotion.raw}`);
+  await page.keyboard.press('ControlOrMeta+k');
+  await page.locator('.command-palette').waitFor();
+  await page.keyboard.press('Escape');
+  await page.locator('.command-palette').waitFor({ state: 'detached' });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+
   assert.deepEqual(pageErrors, [], `the app should not produce browser errors: ${pageErrors.join('\n')}`);
   await page.screenshot({ path: '/tmp/easy-edits-pro-editor-smoke.png', fullPage: false });
-  console.log(JSON.stringify({ page: await page.url(), viewport: page.viewportSize(), welcome: 'passed', importWorkspace: 'passed', importMediaSelection: 'passed', audioWorkspace: 'passed', audioDspCommand: audioCommand, exportWorkspace: 'passed', hardwareEncoderFormatToggle: 'passed', mediaPointerDropPx: initialLeft, zoomWidth: { before: widthBefore, after: widthAfter }, scrubSeekSeconds: seekTime, playbackAdvancedToSeconds: playingTime, nextFrameSeconds: nextFrameTime, previousFrameSeconds: previousFrameTime, movedClipLeftPx: movedLeft, editorScreenshot: '/tmp/easy-edits-pro-editor-smoke.png', importScreenshot: '/tmp/easy-edits-pro-import-workspace.png', exportScreenshot: '/tmp/easy-edits-pro-export-workspace.png', browserErrors: pageErrors.length }, null, 2));
+  console.log(JSON.stringify({ page: await page.url(), viewport: page.viewportSize(), welcome: 'passed', importWorkspace: 'passed', importMediaSelection: 'passed', audioWorkspace: 'passed', audioDspCommand: audioCommand, exportWorkspace: 'passed', hardwareEncoderFormatToggle: 'passed', mediaPointerDropPx: initialLeft, zoomWidth: { before: widthBefore, after: widthAfter }, scrubSeekSeconds: seekTime, playbackAdvancedToSeconds: playingTime, nextFrameSeconds: nextFrameTime, previousFrameSeconds: previousFrameTime, movedClipLeftPx: movedLeft, reducedMotion, editorScreenshot: '/tmp/easy-edits-pro-editor-smoke.png', importScreenshot: '/tmp/easy-edits-pro-import-workspace.png', exportScreenshot: '/tmp/easy-edits-pro-export-workspace.png', browserErrors: pageErrors.length }, null, 2));
 } finally {
   await browser.close();
   server.kill('SIGTERM');

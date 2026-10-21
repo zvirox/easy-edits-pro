@@ -205,7 +205,7 @@ export function ExportWorkspace({
                   <div className="batch-queue-progress-bar">
                     <div
                       className="batch-queue-progress-fill"
-                      style={{ width: `${Math.round(item.progress * 100)}%` }}
+                      style={{ transform: `scaleX(${Math.max(0, Math.min(1, item.progress))})` }}
                     />
                   </div>
                 </div>

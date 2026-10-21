@@ -1,4 +1,5 @@
 import { InteriorButton } from "../../components/interior/interior-button";
+import { GlassDialog } from "../../motion/GlassDialog";
 export interface CompoundClipModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -14,20 +15,20 @@ export function CompoundClipModal({
   setCompoundClipNameDraft,
   createCompoundClip,
 }: CompoundClipModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="dialog-backdrop" role="presentation">
-      <form
-        className="modal-dialog-card glass compound-modal"
-        data-elev="4"
-        style={{ maxWidth: "440px" }}
-        onSubmit={(e) => {
+    <GlassDialog
+      as="form"
+      open={isOpen}
+      cardClassName="modal-dialog-card glass compound-modal"
+      cardProps={{
+        style: { maxWidth: "440px" },
+        onSubmit: (e) => {
           e.preventDefault();
           onClose();
           void createCompoundClip(compoundClipNameDraft);
-        }}
-      >
+        },
+      }}
+    >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>⧉ New Compound Clip</h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
@@ -50,7 +51,6 @@ export function CompoundClipModal({
           <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
           <InteriorButton className="primary" type="submit" disabled={!compoundClipNameDraft.trim()}>Create Compound Clip</InteriorButton>
         </div>
-      </form>
-    </div>
+    </GlassDialog>
   );
 }

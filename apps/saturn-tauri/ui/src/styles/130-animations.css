@@ -1,0 +1,22 @@
+/* ==========================================================================
+   Animation foundation (Phase 3)
+   JS variants live in ui/src/motion/variants.ts. This file owns the global
+   reduced-motion contract and any CSS-only fallback animation.
+   ========================================================================== */
+
+/*
+ * Reduced motion is a hard contract: every CSS transition and keyframe
+ * animation collapses to a single instant frame. Motion/react components read
+ * useReducedMotion separately, so JS-driven presence animations also skip.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}

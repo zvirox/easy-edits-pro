@@ -1,4 +1,5 @@
 import { InteriorButton } from "../../components/interior/interior-button";
+import { GlassDialog } from "../../motion/GlassDialog";
 import { invoke } from "@tauri-apps/api/core";
 
 export interface InteropModalProps {
@@ -36,11 +37,12 @@ export function InteropModal({
   refreshProject,
   setNotice,
 }: InteropModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="dialog-backdrop" role="presentation">
-      <div className="modal-dialog-card glass interop-modal" data-elev="4" style={{ maxWidth: "600px" }}>
+    <GlassDialog
+      open={isOpen}
+      cardClassName="modal-dialog-card glass interop-modal"
+      cardProps={{ style: { maxWidth: "600px" } }}
+    >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>
             {interopMode === "export" ? "📤 Export Timeline Interchange" : "📥 Import Timeline Interchange"}
@@ -172,7 +174,6 @@ export function InteropModal({
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </GlassDialog>
   );
 }

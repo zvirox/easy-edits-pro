@@ -129,7 +129,7 @@
 @keyframes welcome-progress { 0% { transform: translateX(-110%); } 100% { transform: translateX(410%); } }
 @media (max-width: 1080px) { .welcome-layout { grid-template-columns: minmax(0, 1fr) minmax(360px, 0.95fr); gap: 28px; padding-inline: 28px; } .welcome-panel { padding: 24px; } .welcome-hero-copy h1 { font-size: 50px; } }
 @media (max-width: 860px) { body { min-width: 360px; min-height: 580px; } .welcome-shell { min-height: 100vh; } .welcome-topbar { height: 62px; padding-inline: 20px; } .welcome-layout { display: block; padding: 28px 20px; } .welcome-hero { display: none; } .welcome-panel { max-width: 520px; margin: 0 auto; padding: 24px; } }
-@media (prefers-reduced-motion: reduce) { .loading-orbit, .loading-track i { animation-duration: 8s; } .welcome-action-card, .welcome-editor-art { transition: none; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .welcome-action-card, .welcome-editor-art { transition: none; transform: none; } }
 
 /* ==========================================================================
    Background Job Queue & Drawer Styles (Phase 2.1)
@@ -167,7 +167,7 @@
 .job-item-cancel { padding: 2px 6px; font-size: 10px; border: 1px solid var(--status-danger-darkest); background: transparent; color: var(--status-danger-text); border-radius: 3px; cursor: pointer; flex-shrink: 0; }
 .job-item-cancel:hover { background: color-mix(in srgb, var(--status-danger-bright) 20%, transparent); }
 .job-progress-bar-wrapper { display: flex; flex-direction: column; gap: 3px; }
-.job-progress-bar-fill { height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--accent-bright), var(--accent-violet-bright)); transition: width 0.2s ease; box-shadow: 0 0 6px color-mix(in srgb, var(--accent-bright) 40%, transparent); }
+.job-progress-bar-fill { width: 100%; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--accent-bright), var(--accent-violet-bright)); transform-origin: left center; transition: transform var(--dur-med) var(--ease-out); box-shadow: 0 0 6px color-mix(in srgb, var(--accent-bright) 40%, transparent); }
 .job-progress-text-row { display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-muted); }
 .job-error-text { font-size: 10px; color: var(--status-danger-text); word-break: break-word; line-height: 1.35; padding: 4px 6px; background: color-mix(in srgb, var(--status-danger-bright) 8%, transparent); border-radius: 4px; }
 

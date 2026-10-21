@@ -1,4 +1,5 @@
 import { InteriorButton } from "./interior/interior-button";
+import { GlassDialog } from "../motion/GlassDialog";
 import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -18,8 +19,6 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progressText, setProgressText] = useState("");
-
-  if (!isOpen) return null;
 
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,17 +58,21 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
   ];
 
   return (
-    <div className="modal-backdrop" onClick={onClose} style={{ zIndex: 10000 }}>
-      <div
-        className="modal-card network-import-modal glass"
-        data-elev="4"
-        onClick={(e) => e.stopPropagation()}
-        style={{
+    <GlassDialog
+      open={isOpen}
+      backdropClassName="modal-backdrop"
+      backdropStyle={{ zIndex: 10000 }}
+      onBackdropClick={onClose}
+      cardClassName="modal-card network-import-modal glass"
+      cardProps={{
+        onClick: (e) => e.stopPropagation(),
+        style: {
           width: 540,
           borderRadius: 8,
           overflow: "hidden",
-        }}
-      >
+        },
+      }}
+    >
         <header
           style={{
             padding: "16px 20px",
@@ -254,7 +257,6 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
             </InteriorButton>
           </div>
         </form>
-      </div>
-    </div>
+    </GlassDialog>
   );
 };
