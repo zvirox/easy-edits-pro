@@ -11,6 +11,7 @@ import type {
 import {
   TICKS_PER_SECOND,
   getTrackGaps,
+  type TimelineTool,
 } from "./types";
 import { audioClockMaster } from "../../engine/playbackEngine";
 
@@ -160,6 +161,7 @@ export function TimelineTrackLabel({
 interface TimelineTrackLaneProps {
   track: Track;
   timelineTrackHeight: "compact" | "normal" | "expanded";
+  timelineTool: TimelineTool;
   parentGroup?: { id: number; name: string; color?: string; collapsed?: boolean } | null;
   timelineZoom: number;
   perform: (id: string, params?: unknown) => Promise<unknown>;
@@ -186,6 +188,7 @@ interface TimelineTrackLaneProps {
 export function TimelineTrackLane({
   track,
   timelineTrackHeight,
+  timelineTool,
   parentGroup,
   timelineZoom,
   perform,
@@ -306,7 +309,7 @@ export function TimelineTrackLane({
 
           return (
             <div
-              className={`timeline-clip ${isAudioLike ? "audio" : "video"} ${isSelected || isMultiSelected ? "selected" : ""} ${isMissing ? "is-missing" : ""} ${isPointerDragging ? "pointer-dragging" : ""} ${isCompound ? "is-compound-clip" : ""}`}
+              className={`timeline-clip tool-${timelineTool} ${isAudioLike ? "audio" : "video"} ${isSelected || isMultiSelected ? "selected" : ""} ${isMissing ? "is-missing" : ""} ${isPointerDragging ? "pointer-dragging" : ""} ${isCompound ? "is-compound-clip" : ""}`}
               style={{
                 left: `${clipLeft}px`,
                 width: `${clipWidth}px`,

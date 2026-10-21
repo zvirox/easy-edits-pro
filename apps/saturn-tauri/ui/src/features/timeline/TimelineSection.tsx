@@ -474,7 +474,7 @@ export function TimelineSection({
         {/* Timeline Content Area (horizontal scroll) */}
         <div
           ref={attachTimelineScroller}
-          className={`timeline-scroller ${timelineTool === "hand" ? "hand-mode" : ""}`}
+          className={`timeline-scroller tool-${timelineTool} ${timelineTool === "hand" ? "hand-mode" : ""}`}
           onPointerDown={handleTimelinePanStart}
           onPointerMove={handleTimelinePanMove}
           onPointerUp={handleTimelinePanEnd}
@@ -633,6 +633,7 @@ export function TimelineSection({
                   key={`video-${track.id}`}
                   track={track}
                   timelineTrackHeight={timelineTrackHeight}
+                  timelineTool={timelineTool}
                   parentGroup={parentGroup}
                   timelineZoom={timelineZoom}
                   perform={perform}
@@ -670,6 +671,7 @@ export function TimelineSection({
                   key={`audio-${track.id}`}
                   track={track}
                   timelineTrackHeight={timelineTrackHeight}
+                  timelineTool={timelineTool}
                   parentGroup={parentGroup}
                   timelineZoom={timelineZoom}
                   perform={perform}

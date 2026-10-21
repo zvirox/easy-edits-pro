@@ -364,6 +364,13 @@ try {
   await page.mouse.up();
   await page.getByText('Added editor-smoke.webm to timeline').waitFor();
   const clip = page.locator('.timeline-clip').first();
+  // Every tool stamps its cursor class onto the clips it can act on.
+  await page.locator('.timeline-tool-rail').getByRole('button', { name: 'Razor Tool', exact: true }).click();
+  assert.ok(
+    (await page.locator('.timeline-clip.tool-razor').count()) > 0,
+    'the razor tool should set the razor cursor class on clips',
+  );
+  await page.locator('.timeline-tool-rail').getByRole('button', { name: 'Selection Tool', exact: true }).click();
   const initialLeft = Number.parseFloat(await clip.evaluate(element => element.style.left));
   assert.ok(initialLeft > 30, `pointer drop should place the clip at the pointer position; got ${initialLeft}px`);
 

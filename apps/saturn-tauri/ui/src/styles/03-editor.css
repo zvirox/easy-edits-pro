@@ -256,14 +256,29 @@
 .clip-waveform-svg { width: 100%; height: 100%; }
 
 .timeline-clip.tool-select { cursor: grab; }
+.timeline-clip.tool-trackSelectForward { cursor: e-resize; }
+.timeline-clip.tool-trackSelectBackward { cursor: w-resize; }
+.timeline-clip.tool-ripple { cursor: w-resize; }
+.timeline-clip.tool-rolling { cursor: col-resize; }
 .timeline-clip.tool-razor { cursor: crosshair; }
 .timeline-clip.tool-slip { cursor: ew-resize; }
-.timeline-clip.tool-rolling { cursor: col-resize; }
 .timeline-clip.tool-slide { cursor: grab; }
 .timeline-clip.tool-rateStretch { cursor: ew-resize; }
-.timeline-clip.tool-ripple { cursor: w-resize; }
-.timeline-clip.tool-trackSelectForward { cursor: e-resize; }
+.timeline-clip.tool-remix { cursor: ew-resize; }
+.timeline-clip.tool-pen { cursor: crosshair; }
 .timeline-clip.tool-hand { cursor: grab; }
+.timeline-clip.tool-zoom { cursor: zoom-in; }
+.timeline-clip.tool-rectangle,
+.timeline-clip.tool-ellipse { cursor: crosshair; }
+.timeline-clip.tool-type,
+.timeline-clip.tool-verticalType { cursor: text; }
+
+.timeline-scroller.tool-razor .ruler-lane,
+.timeline-scroller.tool-rectangle .ruler-lane,
+.timeline-scroller.tool-ellipse .ruler-lane { cursor: crosshair; }
+.timeline-scroller.tool-type .ruler-lane,
+.timeline-scroller.tool-verticalType .ruler-lane { cursor: text; }
+.timeline-scroller.tool-zoom .ruler-lane { cursor: zoom-in; }
 
 .timeline-clip.tool-rolling.dragging { cursor: col-resize !important; }
 .timeline-clip.tool-slide.dragging { cursor: grabbing !important; }
