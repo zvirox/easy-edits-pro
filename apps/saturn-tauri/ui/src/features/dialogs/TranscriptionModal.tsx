@@ -32,7 +32,7 @@ export function TranscriptionModal({
 
   return (
     <div className="dialog-backdrop" role="presentation">
-      <div className="modal-dialog-card speech-modal" style={{ maxWidth: "520px" }}>
+      <div className="modal-dialog-card glass speech-modal" data-elev="4" style={{ maxWidth: "520px" }}>
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>🎙️ Auto-Speech Transcription (Whisper AI)</h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>

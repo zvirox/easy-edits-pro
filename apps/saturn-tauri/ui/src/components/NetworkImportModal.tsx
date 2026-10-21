@@ -61,22 +61,19 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
   return (
     <div className="modal-backdrop" onClick={onClose} style={{ zIndex: 10000 }}>
       <div
-        className="modal-card network-import-modal"
+        className="modal-card network-import-modal glass"
+        data-elev="4"
         onClick={(e) => e.stopPropagation()}
         style={{
           width: 540,
-          background: "#181b22",
-          border: "1px solid #462d40",
           borderRadius: 8,
-          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)",
-          color: "#e2e8f0",
           overflow: "hidden",
         }}
       >
         <header
           style={{
             padding: "16px 20px",
-            borderBottom: "1px solid #462d40",
+            borderBottom: "1px solid var(--border-default)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -86,7 +83,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
             <span style={{ fontSize: 20 }}>🌐</span>
             <div>
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Import from Network / Cloud URL</h2>
-              <p style={{ margin: 0, fontSize: 12, color: "#a0aec0" }}>
+              <p style={{ margin: 0, fontSize: 12, color: "var(--text-secondary)" }}>
                 Directly fetch remote HTTP/HTTPS/S3 assets into the project media library
               </p>
             </div>
@@ -97,7 +94,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
             style={{
               background: "transparent",
               border: "none",
-              color: "#a0aec0",
+              color: "var(--text-secondary)",
               fontSize: 18,
               cursor: "pointer",
             }}
@@ -108,7 +105,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
 
         <form onSubmit={handleImport} style={{ padding: 20 }}>
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 500, marginBottom: 6, color: "#cbd5e0" }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 500, marginBottom: 6, color: "var(--text-secondary)" }}>
               Network Asset URL (HTTP / HTTPS / Cloud Storage)
             </label>
             <input
@@ -121,10 +118,10 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                background: "#100810",
-                border: "1px solid #5a4053",
+                background: "var(--bg-input)",
+                border: "1px solid var(--border-default)",
                 borderRadius: 4,
-                color: "#f7fafc",
+                color: "var(--text-primary)",
                 fontSize: 13,
                 boxSizing: "border-box",
               }}
@@ -132,7 +129,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 500, marginBottom: 6, color: "#cbd5e0" }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 500, marginBottom: 6, color: "var(--text-secondary)" }}>
               Custom Asset Name (Optional)
             </label>
             <input
@@ -144,10 +141,10 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               style={{
                 width: "100%",
                 padding: "8px 12px",
-                background: "#100810",
-                border: "1px solid #5a4053",
+                background: "var(--bg-input)",
+                border: "1px solid var(--border-default)",
                 borderRadius: 4,
-                color: "#f7fafc",
+                color: "var(--text-primary)",
                 fontSize: 13,
                 boxSizing: "border-box",
               }}
@@ -155,7 +152,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <span style={{ fontSize: 11, color: "#8b7284", display: "block", marginBottom: 6 }}>
+            <span style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>
               Quick Presets / Testing Streams:
             </span>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -169,9 +166,9 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
                   }}
                   disabled={downloading}
                   style={{
-                    background: "#462d40",
+                    background: "var(--bg-elevated)",
                     border: "none",
-                    color: "#cbd5e0",
+                    color: "var(--text-secondary)",
                     fontSize: 11,
                     padding: "4px 8px",
                     borderRadius: 4,
@@ -188,10 +185,10 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
             <div
               style={{
                 padding: "10px 14px",
-                background: "rgba(229, 62, 62, 0.2)",
-                border: "1px solid #e53e3e",
+                background: "color-mix(in srgb, var(--status-danger) 20%, transparent)",
+                border: "1px solid var(--status-danger)",
                 borderRadius: 6,
-                color: "#fc8181",
+                color: "var(--status-danger)",
                 fontSize: 12,
                 marginBottom: 16,
               }}
@@ -202,16 +199,16 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
 
           {downloading && (
             <div style={{ marginBottom: 16 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#d9468f", marginBottom: 4 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--accent-text)", marginBottom: 4 }}>
                 <span>{progressText}</span>
                 <span>Downloading…</span>
               </div>
-              <div style={{ height: 4, background: "#462d40", borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ height: 4, background: "var(--border-default)", borderRadius: 2, overflow: "hidden" }}>
                 <div
                   style={{
                     height: "100%",
                     width: "100%",
-                    background: "#9f1249",
+                    background: "var(--accent-primary)",
                     animation: "pulse 1.5s infinite",
                   }}
                 />
@@ -226,10 +223,10 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               disabled={downloading}
               style={{
                 padding: "8px 16px",
-                background: "#462d40",
+                background: "var(--bg-elevated)",
                 border: "none",
                 borderRadius: 4,
-                color: "#e2e8f0",
+                color: "var(--text-primary)",
                 fontSize: 13,
                 cursor: "pointer",
               }}
@@ -241,10 +238,10 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               disabled={downloading || !url.trim()}
               style={{
                 padding: "8px 18px",
-                background: downloading ? "#5a4053" : "#9f1249",
+                background: downloading ? "var(--bg-elevated)" : "var(--accent-primary)",
                 border: "none",
                 borderRadius: 4,
-                color: "#ffffff",
+                color: "var(--text-on-accent)",
                 fontWeight: 600,
                 fontSize: 13,
                 cursor: downloading ? "not-allowed" : "pointer",

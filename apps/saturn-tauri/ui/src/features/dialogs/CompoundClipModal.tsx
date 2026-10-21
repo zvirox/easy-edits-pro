@@ -19,7 +19,8 @@ export function CompoundClipModal({
   return (
     <div className="dialog-backdrop" role="presentation">
       <form
-        className="modal-dialog-card compound-modal"
+        className="modal-dialog-card glass compound-modal"
+        data-elev="4"
         style={{ maxWidth: "440px" }}
         onSubmit={(e) => {
           e.preventDefault();

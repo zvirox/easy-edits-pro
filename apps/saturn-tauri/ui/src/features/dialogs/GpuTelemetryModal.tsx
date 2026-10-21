@@ -23,7 +23,7 @@ export function GpuTelemetryModal({
 
   return (
     <div className="dialog-backdrop" role="presentation" onClick={onClose}>
-      <div className="modal-dialog-card gpu-telemetry-hud" style={{ maxWidth: "560px" }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal-dialog-card glass gpu-telemetry-hud" data-elev="4" style={{ maxWidth: "560px" }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>⚡ Native wgpu Preview Surface Telemetry</h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>

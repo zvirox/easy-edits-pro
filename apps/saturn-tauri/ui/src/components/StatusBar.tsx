@@ -15,7 +15,7 @@ export function StatusBar({
   onToggleGpuTelemetry,
 }: StatusBarProps) {
   return (
-    <footer className="status-bar">
+    <footer className="status-bar glass" data-elev="1">
       <span>{busy ? "Working…" : notice || "Autosave recovery enabled · saves every 30 seconds"}</span>
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
         <InteriorButton

@@ -23,7 +23,8 @@ export function MediaBinModal({
   return (
     <div className="dialog-backdrop" role="presentation">
       <form
-        className="modal-dialog-card"
+        className="modal-dialog-card glass"
+        data-elev="4"
         style={{ maxWidth: "420px" }}
         onSubmit={(e) => {
           e.preventDefault();

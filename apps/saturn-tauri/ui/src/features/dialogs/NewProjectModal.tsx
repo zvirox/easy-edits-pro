@@ -19,7 +19,8 @@ export function NewProjectModal({
   return (
     <div className="dialog-backdrop" role="presentation">
       <form
-        className="new-project-dialog"
+        className="new-project-dialog glass"
+        data-elev="4"
         onSubmit={(event) => {
           event.preventDefault();
           void onCreate();

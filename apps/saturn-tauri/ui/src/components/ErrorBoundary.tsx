@@ -79,6 +79,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           />
 
           <div
+            className="glass"
+            data-elev="4"
             style={{
               position: "relative",
               zIndex: 1,
@@ -86,11 +88,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               width: "100%",
               padding: "32px 28px",
               borderRadius: "18px",
-              background: "var(--color-bg-surface, #121216)",
-              border: "1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08))",
-              boxShadow: "0 24px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
             }}
           >
             <div

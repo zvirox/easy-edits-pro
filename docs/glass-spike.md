@@ -282,5 +282,8 @@ The spike is development-only: `main.tsx` mounts it only when
 3. **Done — three safety layers kept:** `VITE_GLASS_ENABLED`,
    `data-glass="lite|off"`, and `[data-webkit-gtk-slow]` (GPU class + DMA-BUF
    state).
-4. **Next — Phase 2** (`120-glass.css`, `.glass` elevation system), preserving
-   the measured ≥30 fps headroom.
+4. **Done — Phase 2** (`120-glass.css`, `.glass` elevation system). The real
+   editor held **60.1 fps video-only**, **60.2 fps with the L4 command palette
+   open**, and **58.6 fps while dragging a clip**, with **0 dropped video
+   frames** in all three runs. The 36-state dark/light × Full/Lite/Off visual
+   baseline was captured at 1600×900.

@@ -2,7 +2,7 @@
 .welcome-shell { position: relative; width: 100vw; height: 100vh; min-height: 650px; display: flex; flex-direction: column; overflow: auto; color: var(--color-text-primary, var(--text-primary)); background: var(--color-bg-base, var(--bg-canvas)); }
 .welcome-ambient-glow { position: fixed; top: -120px; left: 50%; transform: translateX(-50%); width: clamp(520px, 65vw, 960px); height: clamp(360px, 46vh, 580px); background: radial-gradient(ellipse at 50% 30%, var(--accent-glow) 0%, var(--accent-purple-glow) 38%, transparent 72%); pointer-events: none; z-index: 0; }
 .welcome-grid-pattern { position: fixed; inset: 0; background-image: linear-gradient(color-mix(in srgb, var(--color-white) 2%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-white) 2%, transparent) 1px, transparent 1px); background-size: 48px 48px; mask-image: radial-gradient(ellipse at 50% 35%, black 25%, transparent 75%); -webkit-mask-image: radial-gradient(ellipse at 50% 35%, black 25%, transparent 75%); pointer-events: none; z-index: 0; }
-.welcome-topbar { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; flex: none; height: 68px; padding: 0 clamp(24px, 5vw, 80px); border-bottom: 1px solid var(--color-border-subtle, color-mix(in srgb, var(--color-white) 8%, transparent)); background: color-mix(in srgb, var(--bg-canvas) 75%, transparent); backdrop-filter: var(--blur-xl); -webkit-backdrop-filter: var(--blur-xl); }
+.welcome-topbar { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; flex: none; height: 68px; padding: 0 clamp(24px, 5vw, 80px); border-bottom: 1px solid var(--color-border-subtle, color-mix(in srgb, var(--color-white) 8%, transparent)); background: color-mix(in srgb, var(--bg-canvas) 75%, transparent); }
 .welcome-brand { display: flex; align-items: center; gap: 12px; }
 .welcome-brand img { width: 36px; height: 36px; object-fit: contain; filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent-secondary) 30%, transparent)); }
 .welcome-brand strong { display: block; color: var(--color-text-primary, var(--text-primary)); font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
@@ -39,7 +39,7 @@
 .welcome-hero-foot { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; color: var(--color-text-muted, var(--text-muted)); font-size: 11px; font-weight: 500; }
 .welcome-hero-foot span { display: flex; align-items: center; gap: 8px; }
 .welcome-hero-foot i { width: 18px; height: 1px; background: var(--color-border-subtle, color-mix(in srgb, var(--color-white) 8%, transparent)); }
-.welcome-panel { width: 100%; max-width: 490px; justify-self: end; padding: 32px; border: 1px solid var(--color-border-subtle, color-mix(in srgb, var(--color-white) 8%, transparent)); border-radius: 18px; background: var(--color-bg-surface, var(--bg-surface)); box-shadow: 0 24px 60px color-mix(in srgb, var(--color-black) 55%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-white) 6%, transparent); backdrop-filter: var(--blur-2xl); -webkit-backdrop-filter: var(--blur-2xl); }
+.welcome-panel { width: 100%; max-width: 490px; justify-self: end; padding: 32px; border: 1px solid var(--color-border-subtle, color-mix(in srgb, var(--color-white) 8%, transparent)); border-radius: 18px; background: var(--color-bg-surface, var(--bg-surface)); box-shadow: 0 24px 60px color-mix(in srgb, var(--color-black) 55%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-white) 6%, transparent); }
 .welcome-panel-heading h2 { margin: 10px 0 6px; color: var(--color-text-primary, var(--text-primary)); font-size: 26px; font-weight: 600; letter-spacing: -0.03em; }
 .welcome-panel-heading > p:last-child { margin: 0; color: var(--color-text-secondary, var(--text-secondary)); font-size: 13px; line-height: 1.5; }
 .welcome-actions { display: grid; gap: 12px; margin-top: 24px; }
@@ -143,7 +143,7 @@
 .job-pill-count { font-weight: 700; color: var(--accent-text); font-size: 11px; }
 .job-pill-label { font-size: 10px; color: var(--text-soft); font-family: monospace; font-weight: 600; }
 .job-pill-idle { font-size: 11px; font-weight: 500; }
-.job-drawer-popover { position: absolute; top: calc(100% + 8px); right: 0; width: 340px; max-height: 420px; display: flex; flex-direction: column; background: var(--bg-panel); border: 1px solid var(--border-strong); border-radius: 8px; box-shadow: 0 12px 32px color-mix(in srgb, var(--color-black) 70%, transparent); z-index: 1000; overflow: hidden; backdrop-filter: var(--blur-xl); -webkit-backdrop-filter: var(--blur-xl); }
+.job-drawer-popover { position: absolute; top: calc(100% + 8px); right: 0; width: 340px; max-height: 420px; display: flex; flex-direction: column; background: var(--bg-panel); border: 1px solid var(--border-strong); border-radius: 8px; box-shadow: 0 12px 32px color-mix(in srgb, var(--color-black) 70%, transparent); z-index: 1000; overflow: hidden; }
 .job-drawer-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--border-color); background: var(--bg-subpanel); }
 .job-drawer-header strong { font-size: 12px; color: var(--text-main); }
 .job-drawer-header small { display: block; font-size: 10px; color: var(--text-muted); margin-top: 2px; }

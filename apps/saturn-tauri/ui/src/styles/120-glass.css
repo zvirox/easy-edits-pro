@@ -1,0 +1,181 @@
+/* ==========================================================================
+   Glass surface system (Phase 2)
+   One primitive for every non-media glass surface. Media surfaces (preview,
+   timeline, scopes, waveforms) are excluded by design and protected below.
+   ========================================================================== */
+
+.glass {
+  --glass-bg: var(--glass-l1);
+  --glass-blur: var(--blur-l1);
+  --glass-depth: var(--glass-shadow);
+
+  position: relative;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--glass-depth);
+  color: var(--text-primary);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+}
+
+.glass[data-elev="2"] {
+  --glass-bg: var(--glass-l2);
+  --glass-blur: var(--blur-l2);
+}
+
+.glass[data-elev="3"] {
+  --glass-bg: var(--glass-l3);
+  --glass-blur: var(--blur-l3);
+  --glass-depth: var(--shadow-popup);
+}
+
+.glass[data-elev="4"] {
+  --glass-bg: var(--glass-l4);
+  --glass-blur: var(--blur-l4);
+  --glass-depth: var(--glass-shadow);
+}
+
+/* Full-window chrome is flush against the viewport. */
+.app-header.glass {
+  border-width: 0 0 1px;
+  border-radius: 0;
+  box-shadow: 0 1px 0 var(--glass-highlight);
+}
+
+.app-header.glass .system-bar-tier1,
+.app-header.glass .workspace-bar-tier2 {
+  background: transparent;
+}
+
+.app-header.glass .workspace-bar-tier2 {
+  border-bottom: 0;
+}
+
+.status-bar.glass {
+  border-width: 1px 0 0;
+  border-radius: 0;
+  box-shadow: 0 -1px 0 var(--glass-highlight);
+}
+
+/* Docked studio panels: the glass belongs to the panel, not to its contents. */
+.studio-panel.glass {
+  background: var(--glass-l1);
+}
+
+.studio-panel.glass > .studio-panel-header {
+  background: transparent;
+  border-bottom-color: var(--glass-border);
+}
+
+.studio-panel.glass > .studio-panel-body {
+  background: transparent;
+}
+
+/* Floating surfaces. */
+.menu-popover.glass,
+.job-drawer-popover.glass,
+.command-palette.glass,
+.modal-dialog-card.glass,
+.new-project-dialog.glass,
+.batch-queue-drawer.glass,
+.ai-chat-drawer.glass {
+  border-color: var(--glass-border);
+}
+
+.command-palette.glass {
+  background: var(--glass-l4);
+}
+
+.batch-queue-drawer.glass,
+.ai-chat-drawer.glass {
+  border-width: 0 0 0 1px;
+  border-radius: 0;
+  color: var(--text-primary);
+}
+
+.batch-queue-drawer.glass .batch-queue-drawer-header,
+.ai-chat-drawer.glass .ai-chat-drawer-header {
+  background: transparent;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Tooltips are generated content, so they cannot carry the .glass class.
+   They use the same tokens and are disabled by the global fallbacks. */
+[data-tooltip]::after {
+  background: var(--glass-l4);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--blur-sm)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--blur-sm)) saturate(var(--glass-saturate));
+}
+
+/* --------------------------------------------------------------------------
+   Stage background and panel gaps (G2c)
+   Docked workspaces are transparent so the stage glows show through the
+   8px gutters. Surfaces that must stay readable paint themselves.
+   -------------------------------------------------------------------------- */
+
+.app-shell,
+.welcome-shell {
+  background: var(--bg-stage);
+}
+
+.editor,
+.workspace-page,
+.export-workspace,
+.keyframes-workspace-page,
+.fusion-workspace-page {
+  background: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   Media surface protection (G2d)
+   Preview, timeline, scopes and waveforms never receive glass or blur.
+   -------------------------------------------------------------------------- */
+
+.program-stage,
+.preview-stage,
+.timeline,
+.timeline-section,
+.timeline-track-area,
+.clip-waveform-container,
+.clip-waveform-svg,
+.scope-canvas,
+.scope-stage,
+.color-monitor-stage,
+.color-scopes-stage,
+.video-scopes,
+.source-audio-waveform-wrapper,
+.source-audio-waveform-svg,
+.audio-meter-waveform-strip,
+.meter-waveform-visual,
+.fusion-canvas-container {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.program-stage,
+.preview-stage,
+.timeline,
+.timeline-section,
+.scope-stage,
+.color-monitor-stage,
+.color-scopes-stage,
+.video-scopes {
+  isolation: isolate;
+}
+
+/* If a glass primitive is ever nested in a media surface, remove the blur. */
+.program-stage .glass,
+.preview-stage .glass,
+.timeline .glass,
+.timeline-section .glass,
+.scope-stage .glass,
+.color-monitor-stage .glass,
+.color-scopes-stage .glass,
+.video-scopes .glass {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: var(--bg-elevated);
+  box-shadow: none;
+}

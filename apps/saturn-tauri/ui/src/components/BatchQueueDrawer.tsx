@@ -109,7 +109,8 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
   return (
     <div className="modal-backdrop" onClick={onClose} style={{ zIndex: 9999 }}>
       <div
-        className="batch-queue-drawer"
+        className="batch-queue-drawer glass"
+        data-elev="3"
         onClick={(e) => e.stopPropagation()}
         style={{
           position: "fixed",
@@ -117,10 +118,6 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
           top: 0,
           bottom: 0,
           width: 480,
-          background: "#180d17",
-          borderLeft: "1px solid #462d40",
-          boxShadow: "-10px 0 25px rgba(0, 0, 0, 0.6)",
-          color: "#e2e8f0",
           display: "flex",
           flexDirection: "column",
           zIndex: 10000,
@@ -128,13 +125,14 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
       >
         {/* Drawer Header */}
         <header
+          className="batch-queue-drawer-header"
           style={{
             padding: "16px 20px",
-            borderBottom: "1px solid #462d40",
+            borderBottom: "1px solid var(--border-default)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            background: "#221220",
+            background: "transparent",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -148,14 +146,14 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
                     padding: "2px 6px",
                     borderRadius: 4,
                     fontWeight: 700,
-                    background: isDaemonPaused ? "#744210" : "#22543d",
-                    color: isDaemonPaused ? "#f6e05e" : "#68d391",
+                    background: isDaemonPaused ? "color-mix(in srgb, var(--status-warning) 22%, transparent)" : "color-mix(in srgb, var(--status-success) 22%, transparent)",
+                    color: isDaemonPaused ? "var(--status-warning)" : "var(--status-success)",
                   }}
                 >
                   {isDaemonPaused ? "⏸️ DAEMON PAUSED" : "🟢 DAEMON RUNNING"}
                 </span>
               </div>
-              <span style={{ fontSize: 11, color: "#a0aec0" }}>
+              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
                 Multi-job headless background render executor
               </span>
             </div>
@@ -165,7 +163,7 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
             style={{
               background: "transparent",
               border: "none",
-              color: "#a0aec0",
+              color: "var(--text-secondary)",
               fontSize: 18,
               cursor: "pointer",
             }}
@@ -178,8 +176,8 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
         <div
           style={{
             padding: "10px 16px",
-            background: "#180d17",
-            borderBottom: "1px solid #462d40",
+            background: "var(--bg-surface)",
+            borderBottom: "1px solid var(--border-default)",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -193,8 +191,8 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
                 padding: "5px 10px",
                 fontSize: 11,
                 fontWeight: 600,
-                background: "#462d40",
-                color: "#e2e8f0",
+                background: "var(--border-default)",
+                color: "var(--text-primary)",
                 border: "none",
                 borderRadius: 4,
                 cursor: "pointer",
@@ -208,9 +206,9 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
               style={{
                 padding: "5px 10px",
                 fontSize: 11,
-                background: "#100810",
-                color: "#a0aec0",
-                border: "1px solid #462d40",
+                background: "var(--bg-input)",
+                color: "var(--text-secondary)",
+                border: "1px solid var(--border-default)",
                 borderRadius: 4,
                 cursor: "pointer",
               }}
@@ -218,13 +216,13 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
               🧹 Clear Completed
             </InteriorButton>
           </div>
-          <span style={{ fontSize: 11, color: "#8b7284" }}>{jobs.length} jobs in queue</span>
+          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{jobs.length} jobs in queue</span>
         </div>
 
         {/* Job List */}
         <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
           {jobs.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px 20px", color: "#8b7284" }}>
+            <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-muted)" }}>
               <span style={{ fontSize: 32, display: "block", marginBottom: 8 }}>📭</span>
               <strong>Render Queue is Empty</strong>
               <p style={{ fontSize: 12, margin: "4px 0 0" }}>
@@ -237,18 +235,18 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
                 <div
                   key={job.id}
                   style={{
-                    background: "#221220",
-                    border: "1px solid #462d40",
+                    background: "var(--bg-elevated)",
+                    border: "1px solid var(--border-default)",
                     borderRadius: 6,
                     padding: 12,
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "#f7fafc" }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
                         {job.label}
                       </div>
-                      <div style={{ fontSize: 11, color: "#d9468f", marginTop: 2 }}>
+                      <div style={{ fontSize: 11, color: "var(--accent-text)", marginTop: 2 }}>
                         🏷️ {job.preset}
                       </div>
                     </div>
@@ -262,13 +260,20 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
                           textTransform: "uppercase",
                           background:
                             job.status === "running"
-                              ? "#6b21a8"
+                              ? "var(--accent-secondary)"
                               : job.status === "completed"
-                              ? "#22543d"
+                              ? "color-mix(in srgb, var(--status-success) 22%, transparent)"
                               : job.status === "cancelled"
-                              ? "#742a2a"
-                              : "#462d40",
-                          color: "#ffffff",
+                              ? "color-mix(in srgb, var(--status-danger) 20%, transparent)"
+                              : "var(--border-default)",
+                          color:
+                            job.status === "running"
+                              ? "var(--text-on-accent)"
+                              : job.status === "completed"
+                              ? "var(--status-success)"
+                              : job.status === "cancelled"
+                              ? "var(--status-danger)"
+                              : "var(--text-secondary)",
                         }}
                       >
                         {job.status}
@@ -281,7 +286,7 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
                           style={{
                             background: "transparent",
                             border: "none",
-                            color: "#e53e3e",
+                            color: "var(--status-danger)",
                             cursor: "pointer",
                             fontSize: 13,
                           }}
@@ -295,16 +300,16 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
                   {/* Progress Bar */}
                   {job.status === "running" && (
                     <div style={{ margin: "8px 0 4px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#a0aec0", marginBottom: 3 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-secondary)", marginBottom: 3 }}>
                         <span>{job.phase}</span>
                         <span>{job.progress}%</span>
                       </div>
-                      <div style={{ height: 5, background: "#462d40", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ height: 5, background: "var(--border-default)", borderRadius: 3, overflow: "hidden" }}>
                         <div
                           style={{
                             width: `${job.progress}%`,
                             height: "100%",
-                            background: "#9f1249",
+                            background: "var(--accent-primary)",
                             transition: "width 0.3s ease",
                           }}
                         />
@@ -312,7 +317,7 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
                     </div>
                   )}
 
-                  <div style={{ fontSize: 10, color: "#8b7284", marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     Destination: {job.outputPath}
                   </div>
                 </div>
@@ -325,11 +330,11 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
         <footer
           style={{
             padding: 16,
-            background: "#221220",
-            borderTop: "1px solid #462d40",
+            background: "var(--bg-elevated)",
+            borderTop: "1px solid var(--border-default)",
           }}
         >
-          <div style={{ fontSize: 11, fontWeight: 600, color: "#cbd5e0", marginBottom: 6 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>
             Quick Enqueue Timeline:
           </div>
           <div style={{ display: "flex", gap: 8 }}>
@@ -338,10 +343,10 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
               onChange={(e) => setSelectedPreset(e.target.value)}
               style={{
                 flex: 1,
-                background: "#100810",
-                border: "1px solid #5a4053",
+                background: "var(--bg-input)",
+                border: "1px solid var(--text-muted)",
                 borderRadius: 4,
-                color: "#f7fafc",
+                color: "var(--text-primary)",
                 fontSize: 12,
                 padding: "6px 8px",
               }}
@@ -357,10 +362,10 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
               onClick={handleAddJob}
               style={{
                 padding: "6px 14px",
-                background: "#9f1249",
+                background: "var(--accent-primary)",
                 border: "none",
                 borderRadius: 4,
-                color: "#ffffff",
+                color: "var(--text-on-accent)",
                 fontWeight: 600,
                 fontSize: 12,
                 cursor: "pointer",

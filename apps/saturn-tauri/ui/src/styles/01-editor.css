@@ -425,8 +425,6 @@
   visibility: hidden;
   transition: opacity var(--transition-smooth), transform var(--transition-smooth);
   z-index: 10000;
-  backdrop-filter: var(--blur-md);
-  -webkit-backdrop-filter: var(--blur-md);
   letter-spacing: 0.01em;
 }
 [data-tooltip]:hover::after {

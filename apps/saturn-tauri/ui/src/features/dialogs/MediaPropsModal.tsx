@@ -40,7 +40,8 @@ export function MediaPropsModal({
   return (
     <div className="dialog-backdrop" role="presentation">
       <form
-        className="modal-dialog-card"
+        className="modal-dialog-card glass"
+        data-elev="4"
         style={{ maxWidth: "460px" }}
         onSubmit={(e) => {
           e.preventDefault();

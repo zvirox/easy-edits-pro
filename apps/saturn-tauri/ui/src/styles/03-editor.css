@@ -49,8 +49,7 @@
   gap: 6px;
   padding: 3px 8px;
   border-radius: 9999px;
-  background: color-mix(in srgb, var(--bg-canvas) 75%, transparent);
-  backdrop-filter: var(--blur-md);
+  background: var(--bg-elevated);
   border: 1px solid color-mix(in srgb, var(--accent-bright) 30%, transparent);
   color: var(--text-muted);
   font-size: 10px;
@@ -293,14 +292,14 @@
 }
 
 /* Transitions */
-.timeline-transition-badge { position: absolute; top: 9px; height: 26px; z-index: 3; display: flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 4px; background: linear-gradient(135deg, color-mix(in srgb, var(--bg-elevated) 95%, transparent), color-mix(in srgb, var(--bg-base) 95%, transparent)); border: 1px solid var(--accent-primary); color: var(--text-on-accent); font-size: 8.5px; font-weight: 600; cursor: pointer; user-select: none; overflow: hidden; box-shadow: 0 2px 8px color-mix(in srgb, var(--color-black) 50%, transparent), 0 0 6px var(--accent-glow); backdrop-filter: var(--blur-sm); transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base); }
+.timeline-transition-badge { position: absolute; top: 9px; height: 26px; z-index: 3; display: flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 4px; background: linear-gradient(135deg, color-mix(in srgb, var(--bg-elevated) 95%, transparent), color-mix(in srgb, var(--bg-base) 95%, transparent)); border: 1px solid var(--accent-primary); color: var(--text-on-accent); font-size: 8.5px; font-weight: 600; cursor: pointer; user-select: none; overflow: hidden; box-shadow: 0 2px 8px color-mix(in srgb, var(--color-black) 50%, transparent), 0 0 6px var(--accent-glow); transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base); }
 .timeline-transition-badge:hover { border-color: var(--accent-bright); box-shadow: 0 0 10px color-mix(in srgb, var(--accent-bright) 40%, transparent); transform: translateY(-1px); }
 .timeline-transition-badge.selected { border-color: var(--accent-bright); outline: 2px solid var(--accent-bright); outline-offset: 1px; background: linear-gradient(135deg, color-mix(in srgb, var(--accent-secondary) 95%, transparent), color-mix(in srgb, var(--accent-primary) 95%, transparent)); color: var(--color-white); }
 .timeline-transition-badge .transition-icon svg { width: 11px; height: 11px; stroke: currentColor; fill: none; }
 .timeline-transition-badge .transition-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize; }
 
 /* Title & Lower-Third Overlays */
-.title-overlay-box { position: absolute; z-index: 5; display: flex; align-items: center; gap: 12px; border-radius: 6px; padding: 10px 16px; backdrop-filter: var(--blur-lg); box-shadow: 0 8px 32px color-mix(in srgb, var(--color-black) 65%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-white) 12%, transparent); pointer-events: none; transition: transform var(--transition-slow), box-shadow var(--transition-slow); }
+.title-overlay-box { position: absolute; z-index: 5; display: flex; align-items: center; gap: 12px; border-radius: 6px; padding: 10px 16px; background: var(--bg-elevated); box-shadow: 0 8px 32px color-mix(in srgb, var(--color-black) 65%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-white) 12%, transparent); pointer-events: none; transition: transform var(--transition-slow), box-shadow var(--transition-slow); }
 .title-overlay-box.style-lower_third { left: 8%; bottom: 12%; max-width: 68%; border-left: 4px solid var(--accent-bright); }
 .title-overlay-box.style-center_title { left: 50%; top: 50%; transform: translate(-50%, -50%); text-align: center; flex-direction: column; border: 1px solid color-mix(in srgb, var(--color-white) 20%, transparent); max-width: 82%; }
 .title-overlay-box.style-minimal_pill { left: 8%; bottom: 10%; border-radius: 9999px; padding: 8px 18px; border: 1px solid var(--accent-violet-bright); box-shadow: 0 4px 20px color-mix(in srgb, var(--accent-violet-bright) 35%, transparent); }

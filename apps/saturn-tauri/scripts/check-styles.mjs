@@ -4,6 +4,8 @@
  *
  * - No `transition: all` (layout/unknown-property animation is banned).
  * - No CSS file over 1,000 lines.
+ * - `backdrop-filter` only lives in 00-tokens-glass.css and 120-glass.css.
+ *   Media components may not carry glass classes or inline backdrop filters.
  * - Raw colours: token files are the only place a literal hex/rgb/hsl value may
  *   live. Every other file must use a token or color-mix() with a token.
  *   scripts/style-baseline.json is intentionally empty; any new literal fails.
@@ -18,18 +20,28 @@ const APP_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const UI_SRC = join(APP_ROOT, "ui/src");
 const BASELINE_PATH = join(APP_ROOT, "scripts/style-baseline.json");
 const TOKEN_FILES = new Set(["styles/00-tokens-glass.css", "styles/01-editor.css"]);
+const GLASS_FILES = new Set(["styles/00-tokens-glass.css", "styles/120-glass.css"]);
+const MEDIA_COMPONENTS = new Set([
+  "features/preview/PreviewSection.tsx",
+  "features/timeline/TimelineSection.tsx",
+  "features/timeline/TimelineTrackLane.tsx",
+  "components/VideoScopes.tsx",
+  "components/AudioMonitorMixer.tsx",
+  "components/SourceAudioVisualizer.tsx",
+  "workspaces/ColorWorkspace.tsx",
+]);
 const MAX_LINES = 1000;
 const WARN_LINES = 700;
 
-function walk(directory) {
+function walk(directory, extension = ".css") {
   const files = [];
   for (const entry of readdirSync(directory)) {
     const path = join(directory, entry);
     const stat = statSync(path);
     if (stat.isDirectory()) {
       if (entry === "node_modules" || entry === "spike") continue;
-      files.push(...walk(path));
-    } else if (entry.endsWith(".css")) {
+      files.push(...walk(path, extension));
+    } else if (entry.endsWith(extension)) {
       files.push(path);
     }
   }
@@ -53,15 +65,28 @@ function collect() {
     const source = readFileSync(path, "utf8");
     const lines = source.split("\n").length;
     const transitionAll = (source.match(/transition:\s*all\b/g) ?? []).length;
+    const backdropFilters = (source.match(/backdrop-filter\s*:/g) ?? []).length;
     const rawColours = TOKEN_FILES.has(key) ? 0 : countRawColours(source);
 
     if (transitionAll > 0) {
       violations.push(`${key}: ${transitionAll} \`transition: all\` declaration(s)`);
     }
+    if (backdropFilters > 0 && !GLASS_FILES.has(key)) {
+      violations.push(`${key}: ${backdropFilters} ad-hoc \`backdrop-filter\` declaration(s)`);
+    }
     if (lines > MAX_LINES) {
       violations.push(`${key}: ${lines} lines (max ${MAX_LINES})`);
     }
     files[key] = { lines, rawColours };
+  }
+
+  for (const path of walk(UI_SRC, ".tsx")) {
+    const key = relative(UI_SRC, path).replaceAll("\\", "/");
+    if (!MEDIA_COMPONENTS.has(key)) continue;
+    const source = readFileSync(path, "utf8");
+    if (/\bglass\b|data-elev|backdropFilter|backdrop-filter/.test(source)) {
+      violations.push(`${key}: glass/backdrop effects are not allowed on media components`);
+    }
   }
   return { files, violations };
 }

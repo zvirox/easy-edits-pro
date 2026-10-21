@@ -133,16 +133,17 @@
 .app-menu summary { list-style: none; cursor: pointer; padding: 6px 9px; border-radius: 4px; color: var(--text-sub); transition: background 0.15s, color 0.15s; }
 .app-menu summary::-webkit-details-marker { display: none; }
 .app-menu[open] summary, .app-menu summary:hover { background: var(--bg-hover); color: var(--text-main); }
-.menu-popover { position: absolute; z-index: 200; top: calc(100% + 4px); left: 0; min-width: 220px; padding: 5px; background: var(--bg-panel); border: 1px solid var(--border-strong); border-radius: 6px; box-shadow: var(--shadow-popup); backdrop-filter: var(--blur-lg); }
+.menu-popover { position: absolute; z-index: 200; top: calc(100% + 4px); left: 0; min-width: 220px; padding: 5px; background: var(--bg-panel); border: 1px solid var(--border-strong); border-radius: 6px; box-shadow: var(--shadow-popup); }
 .menu-popover button { display: flex; justify-content: space-between; width: 100%; border: 0; background: transparent; text-align: left; font-size: 11px; padding: 6px 10px; border-radius: 4px; color: var(--text-main); }
 .menu-popover button:hover:not(:disabled) { background: var(--bg-hover); color: var(--accent-text); }
 .menu-popover small { color: var(--text-muted); margin-left: 20px; }
 
 .command-search-trigger { display: inline-flex; align-items: center; gap: 7px; min-height: 26px; padding: 0 8px; color: var(--text-secondary); font-size: 11px; white-space: nowrap; }
 .command-search-trigger kbd, .command-palette kbd { border: 1px solid var(--border-default); border-radius: 4px; padding: 1px 5px; color: var(--text-muted); font: inherit; font-size: 10px; }
-.command-palette-backdrop { position: fixed; inset: 0; z-index: 1000; display: flex; justify-content: center; align-items: flex-start; padding: min(18vh, 150px) 20px 20px; background: color-mix(in srgb, var(--bg-canvas) 72%, transparent); backdrop-filter: blur(8px); }
+.command-palette-backdrop { position: fixed; inset: 0; z-index: 1000; display: flex; justify-content: center; align-items: flex-start; padding: min(18vh, 150px) 20px 20px; background: color-mix(in srgb, var(--bg-canvas) 72%, transparent); }
 .command-palette { width: min(560px, 100%); overflow: hidden; border: 1px solid var(--border-active); border-radius: 12px; background: var(--bg-elevated); box-shadow: 0 22px 80px color-mix(in srgb, var(--color-black) 55%, transparent); }
 .command-palette-search { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border-default); color: var(--text-muted); }
+.command-palette-search > svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .command-palette-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: 14px; }
 .command-palette-search input::placeholder { color: var(--text-muted); }
 .command-palette-results { max-height: min(420px, 55vh); overflow-y: auto; padding: 6px; }
@@ -361,7 +362,7 @@
 .preview-stage audio { width: min(90%, 360px); }
 .preview-preparing { padding: 18px; text-align: center; }
 .preview-preparing small { max-width: 360px; color: var(--neutral-400); }
-.preview-preparing-banner { position: absolute; inset: auto 12px 12px; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--accent-primary) 40%, transparent); border-radius: 6px; color: var(--text-muted); background: color-mix(in srgb, var(--bg-base) 92%, transparent); backdrop-filter: var(--blur-md); font-size: 11px; font-weight: 500; box-shadow: 0 4px 12px color-mix(in srgb, var(--color-black) 30%, transparent); z-index: 10; }
+.preview-preparing-banner { position: absolute; inset: auto 12px 12px; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--accent-primary) 40%, transparent); border-radius: 6px; color: var(--text-muted); background: var(--bg-elevated); font-size: 11px; font-weight: 500; box-shadow: 0 4px 12px color-mix(in srgb, var(--color-black) 30%, transparent); z-index: 10; }
 .preview-preparing-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-primary); animation: preview-pulse 1.2s infinite ease-in-out; }
 @keyframes preview-pulse { 0%, 100% { transform: scale(0.85); opacity: 0.5; } 50% { transform: scale(1.15); opacity: 1; } }
 .preview-error { position: absolute; inset: auto 12px 12px; display: grid; gap: 4px; padding: 9px 11px; border: 1px solid var(--status-danger-border-soft); border-radius: 4px; color: var(--status-danger-text-soft); background: color-mix(in srgb, var(--bg-elevated) 92.94%, transparent); text-align: left; }

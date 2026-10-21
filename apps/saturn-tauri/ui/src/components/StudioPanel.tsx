@@ -24,7 +24,7 @@ export function StudioPanel({
   style,
 }: StudioPanelProps) {
   return (
-    <section className={`studio-panel ${className}`} style={style}>
+    <section className={`studio-panel glass ${className}`} data-elev="1" style={style}>
       {(title != null || actions != null) && (
         <header className={`studio-panel-header ${headerClassName}`}>
           <div className="studio-panel-title">

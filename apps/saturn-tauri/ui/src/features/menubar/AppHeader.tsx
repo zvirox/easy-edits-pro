@@ -194,7 +194,7 @@ export function AppHeader({
     return (
       <details className="app-menu" key={menu}>
         <summary>{menu}</summary>
-        <div className="menu-popover">
+        <div className="menu-popover glass" data-elev="3">
           {items.map((item) => (
             <InteriorButton
               key={item.id}
@@ -215,7 +215,7 @@ export function AppHeader({
 
   return (
     <>
-    <header className="app-header">
+    <header className="app-header glass" data-elev="1">
       {/* Tier 1 (32px System Menu & Global Utilities) */}
       <div className="system-bar-tier1">
         <div className="system-bar-left">
@@ -334,7 +334,7 @@ export function AppHeader({
             </InteriorButton>
 
             {jobDrawerOpen && (
-              <div className="job-drawer-popover">
+              <div className="job-drawer-popover glass" data-elev="3">
                 <header className="job-drawer-header">
                   <div>
                     <strong>Background Tasks</strong>
@@ -473,7 +473,7 @@ export function AppHeader({
         className="command-palette-backdrop"
         onMouseDown={(event) => { if (event.target === event.currentTarget) setCommandPaletteOpen(false); }}
       >
-        <section className="command-palette" role="dialog" aria-modal="true" aria-labelledby="command-palette-title">
+        <section className="command-palette glass" data-elev="4" role="dialog" aria-modal="true" aria-labelledby="command-palette-title">
           <label id="command-palette-title" className="sr-only" htmlFor="command-palette-search">Find an editor command</label>
           <div className="command-palette-search">
             <Icon name="search" />
