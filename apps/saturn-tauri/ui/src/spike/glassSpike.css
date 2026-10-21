@@ -1,0 +1,231 @@
+/* Phase 0 glass feasibility spike - self-contained, throwaway styles. */
+
+.glass-spike {
+  --spike-canvas: #0b060a;
+  --spike-ink: #f6edf3;
+  --spike-muted: #bda6b6;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--spike-canvas);
+  color: var(--spike-ink);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  isolation: isolate;
+}
+
+.spike-stage {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(48vw 42vh at 18% 22%, rgba(255, 92, 148, 0.32), transparent 62%),
+    radial-gradient(42vw 46vh at 82% 74%, rgba(88, 132, 255, 0.28), transparent 64%),
+    radial-gradient(36vw 32vh at 62% 18%, rgba(255, 184, 92, 0.16), transparent 60%),
+    linear-gradient(160deg, #170c16 0%, #0b060a 54%, #120a14 100%);
+}
+
+.spike-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(70% 62% at 50% 46%, #000 30%, transparent 100%);
+}
+
+.spike-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(66vw, 1120px);
+  aspect-ratio: 16 / 9;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  border-radius: 20px;
+  opacity: 0.88;
+  filter: saturate(1.15) contrast(1.05);
+  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.55);
+}
+
+.glass {
+  background: rgba(24, 13, 23, 0.5);
+  border: 1px solid rgba(246, 228, 240, 0.14);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28),
+    0 22px 54px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(var(--spike-blur, 14px)) saturate(145%);
+  -webkit-backdrop-filter: blur(var(--spike-blur, 14px)) saturate(145%);
+}
+
+.glass[data-elev="1"] {
+  --spike-blur: 8px;
+}
+.glass[data-elev="2"] {
+  --spike-blur: 14px;
+}
+.glass[data-elev="3"] {
+  --spike-blur: 20px;
+}
+
+.spike-panel {
+  position: fixed;
+  z-index: 4;
+  padding: 18px 20px;
+  box-sizing: border-box;
+}
+
+.spike-panel h2 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.spike-panel p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--spike-muted);
+}
+
+.spike-l1 {
+  top: 12vh;
+  left: 4vw;
+  width: clamp(220px, 23vw, 330px);
+  height: 178px;
+}
+
+.spike-l2 {
+  top: 15vh;
+  right: 4vw;
+  width: clamp(240px, 25vw, 360px);
+  height: 218px;
+}
+
+.spike-l3 {
+  right: 9vw;
+  bottom: 9vh;
+  width: clamp(230px, 24vw, 340px);
+  height: 196px;
+}
+
+.spike-drag {
+  top: 0;
+  left: 0;
+  width: clamp(300px, 30vw, 400px);
+  height: 238px;
+  z-index: 8;
+  will-change: transform;
+  transform: translate3d(12px, 12px, 0);
+}
+
+/* Scene isolation: measure the app shell and the video pipeline separately. */
+.glass-spike[data-scene="video"] .spike-panel {
+  display: none;
+}
+
+.glass-spike[data-scene="empty"] .spike-panel,
+.glass-spike[data-scene="empty"] .spike-video {
+  display: none;
+}
+
+.glass-spike[data-scene="empty"] .spike-stage {
+  background: #0b060a;
+}
+
+.glass-spike[data-scene="empty"] .spike-stage::after {
+  display: none;
+}
+
+/* Lite: no blur, opaque-ish gradient + shadow. Same geometry, different paint. */
+.glass-spike[data-glass="lite"] .glass {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: linear-gradient(140deg, rgba(48, 27, 44, 0.94), rgba(20, 11, 19, 0.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 18px 44px rgba(0, 0, 0, 0.5);
+}
+
+/* Off: the flat baseline. */
+.glass-spike[data-glass="off"] .glass {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: #1b0f1a;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.5);
+}
+
+.spike-drag2 {
+  display: none;
+  top: 0;
+  left: 0;
+  width: clamp(260px, 26vw, 340px);
+  height: 210px;
+  z-index: 7;
+  will-change: transform;
+  transform: translate3d(60px, 60px, 0);
+}
+
+.glass-spike[data-scene="stress"] .spike-drag2 {
+  display: block;
+}
+
+.spike-hud {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 20;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border: 1px solid rgba(246, 228, 240, 0.16);
+  border-radius: 12px;
+  background: rgba(6, 4, 8, 0.86);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--spike-muted);
+}
+
+.spike-hud-title {
+  margin-bottom: 4px;
+  color: var(--spike-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.spike-result strong {
+  color: var(--spike-ink);
+}
+
+.spike-error {
+  color: #ff9bb4;
+}
+
+.spike-path {
+  color: #9fd6b3;
+  overflow-wrap: anywhere;
+}
+
+.spike-button {
+  margin-top: 10px;
+  padding: 6px 12px;
+  border: 1px solid rgba(246, 228, 240, 0.22);
+  border-radius: 8px;
+  background: rgba(246, 228, 240, 0.08);
+  color: var(--spike-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.spike-button:hover {
+  background: rgba(246, 228, 240, 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spike-drag {
+    will-change: auto;
+  }
+}

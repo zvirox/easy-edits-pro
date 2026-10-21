@@ -495,6 +495,42 @@ pub fn glass_environment() -> RuntimeEnvironment {
     runtime_environment()
 }
 
+fn report_directory() -> PathBuf {
+    let state = std::env::var_os("XDG_STATE_HOME")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".local/state")))
+        .unwrap_or_else(std::env::temp_dir);
+    state.join("easy-edits-pro").join("glass-spike")
+}
+
+fn safe_label(label: &str) -> Result<&str, String> {
+    let trimmed = label.trim();
+    if trimmed.is_empty() || trimmed.len() > 64 {
+        return Err("report label must be 1-64 characters".into());
+    }
+    if !trimmed
+        .chars()
+        .all(|character| character.is_ascii_alphanumeric() || matches!(character, '-' | '_' | '.'))
+    {
+        return Err("report label may only contain letters, digits, '-', '_' and '.'".into());
+    }
+    Ok(trimmed)
+}
+
+/// Persist one benchmark report in the user's state directory, never in the repo.
+#[tauri::command]
+pub fn save_glass_report(label: String, report: String) -> Result<String, String> {
+    let label = safe_label(&label)?;
+    let directory = report_directory();
+    std::fs::create_dir_all(&directory)
+        .map_err(|error| format!("could not create {}: {error}", directory.display()))?;
+
+    let path = directory.join(format!("{label}.json"));
+    std::fs::write(&path, report)
+        .map_err(|error| format!("could not write {}: {error}", path.display()))?;
+    Ok(path.to_string_lossy().into_owned())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

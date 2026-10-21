@@ -88,6 +88,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             execute_command,
             gpu_detect::glass_environment,
+            gpu_detect::save_glass_report,
             prepare_video_preview,
             get_media_server_port,
             get_media_server_token,
