@@ -256,8 +256,8 @@
 .clip-waveform-svg { width: 100%; height: 100%; }
 
 .timeline-clip.tool-select { cursor: grab; }
-.timeline-clip.tool-trackSelectForward { cursor: e-resize; }
-.timeline-clip.tool-trackSelectBackward { cursor: w-resize; }
+.timeline-clip.tool-trackForward { cursor: e-resize; }
+.timeline-clip.tool-trackBackward { cursor: w-resize; }
 .timeline-clip.tool-ripple { cursor: w-resize; }
 .timeline-clip.tool-rolling { cursor: col-resize; }
 .timeline-clip.tool-razor { cursor: crosshair; }

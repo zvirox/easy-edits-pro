@@ -306,8 +306,42 @@ export function useTimelineOperations({
   const beginTimelineClipPointer = useCallback(
     (event: PointerEvent<HTMLDivElement>, trackId: number, clipIndex: number, clip: Clip) => {
       const track = project?.sequence.tracks.find((t) => t.id === trackId);
-      if (track?.locked) {
+      if (!track) return;
+      if (track.locked) {
         setNotice(`Track "${track.name}" is locked`);
+        return;
+      }
+      if (timelineTool === "razor") {
+        event.preventDefault();
+        event.stopPropagation();
+        const bounds = event.currentTarget.getBoundingClientRect();
+        const ratio = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+        const at = Math.round(clip.timeline_start + clip.duration * ratio);
+        void perform(
+          "timeline.split_clip",
+          { track_id: trackId, clip_index: clipIndex, at },
+          "Clip split at pointer"
+        );
+        return;
+      }
+      if (timelineTool === "trackForward" || timelineTool === "trackBackward") {
+        event.preventDefault();
+        event.stopPropagation();
+        const forward = timelineTool === "trackForward";
+        const selection = track.clips
+          .map((entry, entryIndex) => ({ entry, entryIndex }))
+          .filter(({ entry }) =>
+            forward
+              ? entry.timeline_start >= clip.timeline_start
+              : entry.timeline_start <= clip.timeline_start
+          )
+          .map(({ entryIndex }) => ({ track_id: trackId, clip_index: entryIndex }));
+        setSelectedClips(selection);
+        setSelectedClip({ track_id: trackId, clip_index: clipIndex });
+        setSelectedTransition(null);
+        setNotice(
+          `${selection.length} clip${selection.length === 1 ? "" : "s"} selected on ${track.name}`
+        );
         return;
       }
       if (timelineTool === "select" || timelineTool === "ripple") {
@@ -327,7 +361,7 @@ export function useTimelineOperations({
         setSelectedTransition(null);
       }
     },
-    [project, timelineTool, setNotice]
+    [project, timelineTool, setNotice, perform]
   );
 
   const moveTimelineClipPointer = useCallback(

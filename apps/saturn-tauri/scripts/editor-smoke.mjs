@@ -370,7 +370,41 @@ try {
     (await page.locator('.timeline-clip.tool-razor').count()) > 0,
     'the razor tool should set the razor cursor class on clips',
   );
+  // Razor splits at the pointer, not just the playhead.
+  const clipBox = await clip.boundingBox();
+  await page.mouse.click(clipBox.x + clipBox.width * 0.5, clipBox.y + clipBox.height * 0.5);
+  const razorRequests = await page.evaluate(() => window.__commandRequests);
+  const razorSplit = razorRequests.filter((request) => request.id === 'timeline.split_clip').pop();
+  assert.ok(
+    razorSplit && typeof razorSplit.params?.at === 'number',
+    'the razor tool should split at a numeric tick under the pointer',
+  );
+  assert.equal(
+    await page.locator('.timeline-clip').count(),
+    2,
+    'the razor tool should split the clicked clip in two',
+  );
+  await page.locator('.app-shell').press('Control+z');
+  await page.locator('.timeline-clip').first().waitFor();
+  assert.equal(await page.locator('.timeline-clip').count(), 1, 'undo should restore the split clip');
+
+  // Track select forward selects the clicked clip and everything after it.
+  await page
+    .locator('.timeline-tool-rail')
+    .getByRole('button', { name: 'Track Select Forward', exact: true })
+    .click();
+  const restoredBox = await clip.boundingBox();
+  await page.mouse.click(
+    restoredBox.x + restoredBox.width * 0.5,
+    restoredBox.y + restoredBox.height / 2,
+  );
+  await page.locator('.timeline-clip.tool-trackForward.selected').first().waitFor();
   await page.locator('.timeline-tool-rail').getByRole('button', { name: 'Selection Tool', exact: true }).click();
+  // Clicking a clip focuses the Source tab; the playhead checks below want Program.
+  await page
+    .locator('.monitor-unified .panel-tabs')
+    .getByText('Program Timeline', { exact: true })
+    .click();
   const initialLeft = Number.parseFloat(await clip.evaluate(element => element.style.left));
   assert.ok(initialLeft > 30, `pointer drop should place the clip at the pointer position; got ${initialLeft}px`);
 
