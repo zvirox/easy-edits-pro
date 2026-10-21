@@ -35,6 +35,8 @@ mod collab;
 pub use collab::{acquire_collaboration_lock, get_collaboration_state, release_collaboration_lock};
 mod interop;
 pub use interop::{export_timeline_interop, import_timeline_interop};
+mod panels;
+pub use panels::{load_panel_layout, save_panel_layout};
 mod ai;
 pub use ai::{ask_local_ai, run_background_matting};
 mod diagnostics;

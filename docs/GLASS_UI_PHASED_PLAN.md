@@ -1,7 +1,7 @@
 # Easy Edits Pro — Glass UI Phased Implementation Plan v2.1
 
 > **Source:** `glass-ui-plan-v2.md` + skill analysis (glassmorphism, progressive-blur, baseline-ui, reverse-engineer-anything) + risk mitigation strategies
-> **Status:** Phases 1–3 complete — Phase 2 shipped the glass surface system, Phase 3 shipped the animation foundation (see [`glass-spike.md`](./glass-spike.md))
+> **Status:** Phases 1–3 complete; Phase 4 core shipped (see the Phase 4 "Shipped this pass" note below)
 > **Total estimated effort:** 2.5–3 weeks (13–18 work days)
 
 ---
@@ -351,6 +351,22 @@ Eliminate layout animation; use motion/react for all transitions; respect reduce
 ---
 
 ## Phase 4 — Floating Panel Engine (3–5 days) 📦 **HIGHEST COMPLEXITY**
+
+> **Shipped this pass (core):** `ui/src/features/panels/` engine is live — `PanelHost` (portals + z-manager with
+> click-to-raise), `FloatingPanel` (glass shell, drag header, 8-direction resize, collapse-to-chip, presence
+> animations from the Phase 3 presets), `usePanelDrag` / `usePanelResize` / `usePanelLayout`, `snapping.ts`
+> (edge + panel snap, 12px, region-local pixels) and `layouts.ts` (fraction-based defaults mirroring the old
+> dock). The media pool and inspector in the Edit workspace are engine-managed floating panels; they position
+> against the editor region below the app chrome so they can never cover the menu bar or status bar, and the
+> docked grid keeps preview/timeline in their old columns. Persistence goes through the new
+> `save_panel_layout` / `load_panel_layout` Tauri commands (`src/commands/panels.rs`, per-workspace JSON in the
+> app data dir, atomic write) with a localStorage fallback for collapse/closed state. The dock rail reopens
+> closed panels and hosts "Reset layout". Verified in Chromium QA (drag, snap-to-edge and neighbour, resize,
+> collapse/restore, close/reopen, reduced-motion instant restore, layout survives workspace switches, light
+> theme) plus a Playwright run of `editor-smoke.mjs`; 10 new node:test units cover snapping/clamping/sanitising.
+> **Deferred:** dock zones with ghost preview, pin semantics beyond the flag, `panelStore` (React state in
+> `usePanelLayout` was enough — no Zustand dependency added), per-workspace migration beyond Edit,
+> Window-menu reopen commands, stryker mutation testing.
 
 ### Objective
 Build production-ready floating panel system with persist, snap, dock, responsiveness.
