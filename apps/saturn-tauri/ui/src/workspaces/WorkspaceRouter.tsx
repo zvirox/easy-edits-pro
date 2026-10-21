@@ -673,6 +673,12 @@ export function WorkspaceRouter({
         audioClockMaster: audioClockMaster as AudioClockMaster,
         activeClip: null,
       }}
+      trimMonitorProps={{
+        session: timelineOps.trimSession,
+        project,
+        media,
+        getMediaUrl,
+      }}
     />
   );
 }

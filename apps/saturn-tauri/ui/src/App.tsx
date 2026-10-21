@@ -29,11 +29,25 @@ import {
   type Preferences,
 } from "./features/preferences/preferences";
 import { setReducedMotionOverride } from "./motion/variants";
+import { formatTrimStatus } from "./app/timelineTrim";
 import {
   PANEL_LAYOUT_EVENT,
   PANEL_LAYOUT_STORAGE_PREFIX,
+  PANEL_RESET_EVENT,
+  PANEL_TOGGLE_EVENT,
   workspacePresets,
 } from "./features/panels/presets";
+import {
+  captureWorkspaceLayout,
+  createCustomPreset,
+  loadCustomPresets,
+  saveCustomPresets,
+  type CustomWorkspacePreset,
+} from "./features/panels/presetStore";
+import {
+  LayoutPresetsDialog,
+  type AnyWorkspacePreset,
+} from "./features/panels/LayoutPresetsDialog";
 import type { CommandSpec, SelectedClip } from "./types";
 
 function EditorApp() {
@@ -85,6 +99,8 @@ function EditorApp() {
   const [busy, setBusy] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [presetsOpen, setPresetsOpen] = useState(false);
+  const [customPresets, setCustomPresets] = useState<CustomWorkspacePreset[]>(loadCustomPresets);
   const [shortcutOverrides, setShortcutOverrides] = useState<Record<string, string>>(() => {
     try {
       const raw = localStorage.getItem("easy-edits-pro.shortcuts.v1");
@@ -172,7 +188,7 @@ function EditorApp() {
   const timelineOps = useTimelineOperations({
     project, media, playhead: playback.playhead,
     seekProgramTo: playback.seekProgramTo, timelineEndSeconds,
-    perform, setNotice, busy, refreshProject,
+    perform, runCommand, setNotice, busy, refreshProject,
     setCompoundClipModalOpen: projectOps.setCompoundClipModalOpen,
     setCompoundClipNameDraft: projectOps.setCompoundClipNameDraft,
     keyframeProperty: "opacity", keyframeValue: "1",
@@ -244,6 +260,26 @@ function EditorApp() {
     else if (ws === "keyframes") projectOps.setWorkspace("keyframes");
   }, [projectOps]);
 
+  const applyWorkspacePreset = useCallback(
+    (preset: AnyWorkspacePreset) => {
+      for (const [workspace, layout] of Object.entries(preset.layouts)) {
+        const payload = { rects: layout.rects, hidden: layout.hidden };
+        try {
+          localStorage.setItem(
+            `${PANEL_LAYOUT_STORAGE_PREFIX}.${workspace}`,
+            JSON.stringify(payload)
+          );
+        } catch {}
+        void invoke("save_panel_layout", { workspace, layout: payload }).catch(() => {});
+      }
+      window.dispatchEvent(new Event(PANEL_LAYOUT_EVENT));
+      selectDavinciWorkspace(preset.workspace as DavinciWorkspace);
+      setNotice(`Layout preset · ${preset.label}`);
+      setPresetsOpen(false);
+    },
+    [selectDavinciWorkspace]
+  );
+
   /**
    * Single entry point for menus, the command palette, keyboard shortcuts, and
    * workspace toolbars. UI-only commands are handled here; everything else goes
@@ -256,19 +292,17 @@ function EditorApp() {
           (entry) => `workspace.preset_${entry.id}` === id
         );
         if (!preset) return;
-        for (const [workspace, layout] of Object.entries(preset.layouts)) {
-          const payload = { rects: layout.rects, hidden: layout.hidden };
-          try {
-            localStorage.setItem(
-              `${PANEL_LAYOUT_STORAGE_PREFIX}.${workspace}`,
-              JSON.stringify(payload)
-            );
-          } catch {}
-          void invoke("save_panel_layout", { workspace, layout: payload }).catch(() => {});
-        }
-        window.dispatchEvent(new Event(PANEL_LAYOUT_EVENT));
-        selectDavinciWorkspace(preset.workspace as DavinciWorkspace);
-        setNotice(`Layout preset · ${preset.label}`);
+        applyWorkspacePreset(preset);
+        return;
+      }
+      if (id === "workspace.manage_presets") {
+        setPresetsOpen(true);
+        return;
+      }
+      if (id === "window.reset_layout") {
+        setPresetsOpen(false);
+        window.dispatchEvent(new Event(PANEL_RESET_EVENT));
+        setNotice("Panel layout reset");
         return;
       }
       if (id.startsWith("workspace.")) {
@@ -308,6 +342,14 @@ function EditorApp() {
               current.reducedMotion === null ? true : current.reducedMotion ? false : null,
           }));
           return;
+        case "view.panel_media":
+        case "view.panel_inspector":
+          window.dispatchEvent(
+            new CustomEvent(PANEL_TOGGLE_EVENT, {
+              detail: { id: id === "view.panel_media" ? "media" : "inspector" },
+            }),
+          );
+          return;
         case "edit.preferences":
           setPreferencesOpen(true);
           return;
@@ -331,7 +373,7 @@ function EditorApp() {
       }
       await projectOps.invokeMenuCommand(id);
     },
-    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps]
+    [selectDavinciWorkspace, applyWorkspacePreset, projectOps, mediaOps, timelineOps]
   );
 
   const shortcuts = useShortcuts({
@@ -364,6 +406,46 @@ function EditorApp() {
     invokeMenuCommand: dispatchCommand,
     setNotice,
   });
+
+  const saveCurrentPreset = useCallback(
+    (label: string) => {
+      const target = captureWorkspaceLayout(projectOps.workspace)
+        ? projectOps.workspace
+        : "edit";
+      const layout = captureWorkspaceLayout(target);
+      if (!layout) {
+        setNotice("Arrange the floating panels first, then save the layout.");
+        return;
+      }
+      const preset = createCustomPreset(label, target, layout, customPresets);
+      const next = [...customPresets, preset];
+      setCustomPresets(next);
+      saveCustomPresets(next);
+      setNotice(`Saved layout · ${preset.label}`);
+    },
+    [projectOps.workspace, customPresets]
+  );
+
+  const renameCustomPreset = useCallback(
+    (id: string, label: string) => {
+      const next = customPresets.map((preset) =>
+        preset.id === id ? { ...preset, label } : preset
+      );
+      setCustomPresets(next);
+      saveCustomPresets(next);
+    },
+    [customPresets]
+  );
+
+  const deleteCustomPreset = useCallback(
+    (id: string) => {
+      const next = customPresets.filter((preset) => preset.id !== id);
+      setCustomPresets(next);
+      saveCustomPresets(next);
+      setNotice("Layout preset deleted");
+    },
+    [customPresets]
+  );
 
   if (projectOps.appStage === "welcome") {
     return (
@@ -459,6 +541,11 @@ function EditorApp() {
       <StatusBar
         busy={busy} notice={notice} connection={connection}
         toolLabel={activeTool?.label}
+        editDetail={
+          timelineOps.trimSession
+            ? formatTrimStatus(timelineOps.trimSession)
+            : undefined
+        }
         onFetchGpuTelemetry={projectOps.handleFetchGpuTelemetry}
         onToggleGpuTelemetry={() => projectOps.setGpuTelemetryOpen((v) => !v)}
       />
@@ -481,6 +568,22 @@ function EditorApp() {
         onTrackHeightChange={timelineOps.setTimelineTrackHeight}
       />
 
+      <LayoutPresetsDialog
+        open={presetsOpen}
+        onClose={() => setPresetsOpen(false)}
+        activeWorkspace={projectOps.workspace}
+        customPresets={customPresets}
+        onApply={applyWorkspacePreset}
+        onSaveCurrent={saveCurrentPreset}
+        onRename={renameCustomPreset}
+        onDelete={deleteCustomPreset}
+        onResetActive={() => {
+          window.dispatchEvent(new Event(PANEL_RESET_EVENT));
+          setNotice(`Reset the ${projectOps.workspace} panel layout`);
+          setPresetsOpen(false);
+        }}
+      />
+
       <ShortcutsDialog
         open={shortcutsOpen}
         onClose={() => setShortcutsOpen(false)}
@@ -494,6 +597,7 @@ function EditorApp() {
         onChange={(id, shortcut) =>
           setShortcutOverrides((current) => ({ ...current, [id]: shortcut }))
         }
+        onImport={(next) => setShortcutOverrides(next)}
         onResetAll={() => setShortcutOverrides({})}
       />
 

@@ -178,3 +178,73 @@
   color: var(--text-main);
   font-size: 11px;
 }
+
+.shortcuts-footer span {
+  margin-right: auto;
+}
+
+.shortcuts-import {
+  padding: 4px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--bg-button);
+  color: var(--text-main);
+  font-size: 11px;
+}
+
+.shortcuts-transfer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-inset);
+}
+
+.shortcuts-transfer-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shortcuts-transfer-head h3 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.shortcuts-transfer-head span {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.shortcuts-transfer textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  padding: 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  background: var(--bg-panel);
+  color: var(--text-main);
+  font: 11px/1.5 ui-monospace, monospace;
+}
+
+.shortcuts-transfer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.shortcuts-transfer-actions button {
+  padding: 4px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--bg-button);
+  color: var(--text-main);
+  font-size: 11px;
+}

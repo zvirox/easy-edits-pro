@@ -1,8 +1,9 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { FloatingPanel } from "./FloatingPanel.tsx";
 import { usePanelLayout } from "./usePanelLayout.ts";
+import { PANEL_OPEN_EVENT, PANEL_RESET_EVENT, PANEL_TOGGLE_EVENT } from "./presets.ts";
 import {
   DEFAULT_CONSTRAINTS,
   type PanelConstraints,
@@ -53,6 +54,34 @@ export function PanelHost({ workspace, entries }: PanelHostProps) {
     regionRef,
   });
   const region: PanelRegion = layout.region;
+
+  // Gestures (Trim Monitor) and View ▸ Panels talk to the host by event so the
+  // menu and timeline hooks stay independent of the layout store.
+  const setClosed = layout.setClosed;
+  const hidden = layout.hidden;
+  useEffect(() => {
+    const panelIdOf = (event: Event): string | null => {
+      const detail = (event as CustomEvent<{ id?: string }>).detail;
+      return detail && typeof detail.id === "string" ? detail.id : null;
+    };
+    const open = (event: Event) => {
+      const id = panelIdOf(event);
+      if (id && panelIds.includes(id)) setClosed(id, false);
+    };
+    const toggle = (event: Event) => {
+      const id = panelIdOf(event);
+      if (id && panelIds.includes(id)) setClosed(id, !hidden[id]);
+    };
+    const reset = () => layout.resetLayout();
+    window.addEventListener(PANEL_OPEN_EVENT, open);
+    window.addEventListener(PANEL_TOGGLE_EVENT, toggle);
+    window.addEventListener(PANEL_RESET_EVENT, reset);
+    return () => {
+      window.removeEventListener(PANEL_OPEN_EVENT, open);
+      window.removeEventListener(PANEL_TOGGLE_EVENT, toggle);
+      window.removeEventListener(PANEL_RESET_EVENT, reset);
+    };
+  }, [panelIds, setClosed, hidden]);
 
   const activeRects = entries
     .filter((entry) => !layout.hidden[entry.id])

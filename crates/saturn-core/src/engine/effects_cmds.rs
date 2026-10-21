@@ -200,6 +200,53 @@ impl EditorEngine {
                 track.transitions.retain(|t| t.id != params.transition_id);
                 Ok(json!({"removed": track.transitions.len() < initial_count}))
             })()),
+            "timeline.update_transition" => Some((|| {
+                let params: UpdateTransitionParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                if self.document.project.sequence.tracks[track_index].locked {
+                    return Err(DispatchError::Operation("Track is locked".into()));
+                }
+                let track = &self.document.project.sequence.tracks[track_index];
+                let position = track
+                    .transitions
+                    .iter()
+                    .position(|item| item.id == params.transition_id)
+                    .ok_or_else(|| {
+                        DispatchError::InvalidParameters(format!(
+                            "Transition {} does not exist",
+                            params.transition_id
+                        ))
+                    })?;
+                if params.duration.is_some_and(|duration| duration.0 <= 0) {
+                    return Err(DispatchError::InvalidParameters(
+                        "Transition duration must be positive".into(),
+                    ));
+                }
+                if params.cut_at.is_some_and(|cut| cut.0 < 0) {
+                    return Err(DispatchError::InvalidParameters(
+                        "Transition position cannot be negative".into(),
+                    ));
+                }
+                self.checkpoint();
+                let transition =
+                    &mut self.document.project.sequence.tracks[track_index].transitions[position];
+                if let Some(kind) = params.kind {
+                    transition.kind = kind;
+                }
+                if let Some(duration) = params.duration {
+                    transition.duration = duration;
+                }
+                if let Some(cut_at) = params.cut_at {
+                    transition.cut_at = cut_at;
+                }
+                Ok(json!({
+                    "updated": true,
+                    "transition_id": transition.id,
+                    "kind": transition.kind,
+                    "duration": transition.duration,
+                    "cut_at": transition.cut_at,
+                }))
+            })()),
             "timeline.add_title" => Some((|| {
                 let params: AddTitleParams = parse_params(params)?;
                 let track_id = params.track_id.unwrap_or(1);

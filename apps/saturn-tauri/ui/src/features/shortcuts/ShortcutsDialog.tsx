@@ -1,8 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { GlassDialog } from "../../motion/GlassDialog";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { Icon } from "../../components/Icon";
 import type { CommandSpec } from "../../types";
+import {
+  comboFromEvent,
+  findShortcutConflict,
+  formatShortcut,
+  parseShortcutImport,
+  serializeShortcuts,
+} from "./shortcuts.ts";
 
 export interface ToolShortcut {
   id: string;
@@ -18,6 +25,7 @@ export interface ShortcutsDialogProps {
   /** Command id → shortcut. An empty string removes the binding. */
   overrides: Record<string, string>;
   onChange: (id: string, shortcut: string) => void;
+  onImport: (overrides: Record<string, string>) => void;
   onResetAll: () => void;
 }
 
@@ -28,19 +36,6 @@ type Row = {
   shortcut: string;
   editable: boolean;
 };
-
-const MODIFIER_KEYS = new Set(["Shift", "Control", "Alt", "Meta", "CapsLock", "Tab"]);
-
-function comboFromEvent(event: KeyboardEvent): string | null {
-  if (MODIFIER_KEYS.has(event.key) || event.key === "Escape") return null;
-  const parts: string[] = [];
-  if (event.ctrlKey || event.metaKey) parts.push("Ctrl");
-  if (event.altKey) parts.push("Alt");
-  if (event.shiftKey) parts.push("Shift");
-  const key = event.key === " " ? "Space" : event.key.length === 1 ? event.key.toUpperCase() : event.key;
-  parts.push(key);
-  return parts.join("+");
-}
 
 /**
  * Searchable shortcut reference with conflict-checked rebinding for menu
@@ -53,11 +48,16 @@ export function ShortcutsDialog({
   tools,
   overrides,
   onChange,
+  onImport,
   onResetAll,
 }: ShortcutsDialogProps) {
   const [query, setQuery] = useState("");
   const [listening, setListening] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [transferText, setTransferText] = useState("");
+  const [copied, setCopied] = useState(false);
+  const transferRef = useRef<HTMLTextAreaElement>(null);
 
   const rows = useMemo<Row[]>(() => {
     const commandRows = commands
@@ -91,6 +91,38 @@ export function ShortcutsDialog({
     );
   }, [rows, query]);
 
+  const editableIds = useMemo(
+    () => new Set(rows.filter((row) => row.editable).map((row) => row.id)),
+    [rows],
+  );
+
+  const openTransfer = () => {
+    setTransferText(serializeShortcuts(overrides));
+    setCopied(false);
+    setTransferOpen((value) => !value);
+  };
+
+  const applyTransfer = () => {
+    const result = parseShortcutImport(transferText, editableIds);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    onImport(result.overrides);
+    setError(null);
+    setTransferOpen(false);
+  };
+
+  const copyTransfer = async () => {
+    try {
+      await navigator.clipboard.writeText(transferText);
+      setCopied(true);
+    } catch {
+      transferRef.current?.select();
+      setError("Clipboard is unavailable; the JSON is selected so you can copy it.");
+    }
+  };
+
   const grouped = useMemo(() => {
     const groups = new Map<string, Row[]>();
     for (const row of visible) {
@@ -106,6 +138,8 @@ export function ShortcutsDialog({
       setListening(null);
       setError(null);
       setQuery("");
+      setTransferOpen(false);
+      setCopied(false);
     }
   }, [open]);
 
@@ -122,9 +156,7 @@ export function ShortcutsDialog({
           return;
         }
         if (!combo) return;
-        const conflict = rows.find(
-          (row) => row.id !== listening && row.shortcut.toLowerCase() === combo.toLowerCase(),
-        );
+        const conflict = findShortcutConflict(rows, listening, combo);
         if (conflict) {
           setError(`${combo} is already assigned to ${conflict.label}.`);
           return;
@@ -197,14 +229,16 @@ export function ShortcutsDialog({
                       }}
                       aria-label={`Change shortcut for ${row.label}`}
                     >
-                      {listening === row.id ? "Press keys…" : row.shortcut || "Unassigned"}
+                      {listening === row.id
+                        ? "Press keys…"
+                        : formatShortcut(row.shortcut) || "Unassigned"}
                     </InteriorButton>
                   ) : (
                     <span
                       className="shortcuts-key static"
                       title="Timeline tool keys ship with the build"
                     >
-                      {row.shortcut}
+                      {formatShortcut(row.shortcut)}
                     </span>
                   )}
                 </div>
@@ -216,8 +250,38 @@ export function ShortcutsDialog({
         )}
       </div>
 
+      {transferOpen ? (
+        <section className="shortcuts-transfer" aria-label="Import or export shortcuts">
+          <div className="shortcuts-transfer-head">
+            <h3>Import / Export</h3>
+            <span>JSON keyed by command id. Paste a file’s contents to import.</span>
+          </div>
+          <textarea
+            ref={transferRef}
+            value={transferText}
+            spellCheck={false}
+            aria-label="Shortcut JSON"
+            onChange={(event) => {
+              setTransferText(event.target.value);
+              setCopied(false);
+            }}
+          />
+          <div className="shortcuts-transfer-actions">
+            <InteriorButton type="button" onClick={() => void copyTransfer()}>
+              {copied ? "Copied" : "Copy JSON"}
+            </InteriorButton>
+            <InteriorButton type="button" onClick={applyTransfer}>
+              Apply pasted JSON
+            </InteriorButton>
+          </div>
+        </section>
+      ) : null}
+
       <footer className="shortcuts-footer">
         <span>{visible.length} entries</span>
+        <InteriorButton type="button" className="shortcuts-import" onClick={openTransfer}>
+          {transferOpen ? "Hide import / export" : "Import / export"}
+        </InteriorButton>
         <InteriorButton type="button" className="shortcuts-reset" onClick={onResetAll}>
           Reset all to defaults
         </InteriorButton>

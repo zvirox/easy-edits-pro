@@ -91,6 +91,36 @@ pub(in crate::engine) struct RemoveTransitionParams {
 }
 
 #[derive(Deserialize)]
+pub(in crate::engine) struct UpdateTransitionParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) transition_id: u64,
+    #[serde(default)]
+    pub(in crate::engine) kind: Option<TransitionKind>,
+    #[serde(default)]
+    pub(in crate::engine) duration: Option<Tick>,
+    #[serde(default)]
+    pub(in crate::engine) cut_at: Option<Tick>,
+}
+
+/// Which edge of a clip a trim gesture is moving.
+#[derive(Deserialize, serde::Serialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub(in crate::engine) enum TrimEdge {
+    Start,
+    End,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct TrimClipParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) clip_index: usize,
+    pub(in crate::engine) edge: TrimEdge,
+    pub(in crate::engine) delta: Tick,
+    #[serde(default)]
+    pub(in crate::engine) ripple: bool,
+}
+
+#[derive(Deserialize)]
 pub(in crate::engine) struct AddTitleParams {
     pub(in crate::engine) text: String,
     #[serde(default)]

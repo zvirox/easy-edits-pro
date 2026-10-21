@@ -11,6 +11,7 @@ export const EDIT_WORKSPACE_PANELS = ["media", "inspector"] as const;
 export const EDIT_DEFAULT_RECTS: Record<string, PanelRect> = {
   media: { x: 0.008, y: 0.012, width: 0.24, height: 0.97 },
   inspector: { x: 0.772, y: 0.012, width: 0.22, height: 0.97 },
+  "trim-monitor": { x: 0.3, y: 0.5, width: 0.4, height: 0.34 },
 };
 
 export const EDIT_CONSTRAINTS: Record<string, PanelConstraints> = {
@@ -20,6 +21,12 @@ export const EDIT_CONSTRAINTS: Record<string, PanelConstraints> = {
     minHeight: 0.24,
     maxWidth: 0.36,
     maxHeight: 0.92,
+  },
+  "trim-monitor": {
+    minWidth: 0.22,
+    minHeight: 0.2,
+    maxWidth: 0.6,
+    maxHeight: 0.5,
   },
 };
 

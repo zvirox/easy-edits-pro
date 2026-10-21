@@ -114,6 +114,29 @@ try {
         track.clips.splice(params.clip_index + 1, 0, right);
         return { split: true };
       }
+      if (id === 'edit.begin_gesture' || id === 'edit.end_gesture') return { gesture: true };
+      if (id === 'timeline.trim_clip') {
+        push();
+        const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
+        const clip = track.clips[params.clip_index];
+        const delta = params.delta;
+        if (params.edge === 'start') {
+          clip.timeline_start += delta;
+          clip.source_in += delta;
+          clip.duration -= delta;
+        } else {
+          clip.duration += delta;
+        }
+        if (params.ripple) {
+          const shift = params.edge === 'start' ? -delta : delta;
+          for (const later of track.clips) {
+            if (later !== clip && later.timeline_start >= clip.timeline_start + clip.duration) {
+              later.timeline_start += shift;
+            }
+          }
+        }
+        return { trimmed: true };
+      }
       if (id === 'timeline.remove_clip' || id === 'timeline.ripple_delete') {
         push();
         const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
@@ -399,6 +422,39 @@ try {
     restoredBox.y + restoredBox.height / 2,
   );
   await page.locator('.timeline-clip.tool-trackForward.selected').first().waitFor();
+  // Phase 2: the Ripple tool's tail drag trims through the engine, opens the
+  // Trim Monitor, and commits as a single undoable gesture.
+  await page.locator('.timeline-tool-rail').getByRole('button', { name: 'Ripple Edit Tool', exact: true }).click();
+  const widthBeforeTrim = await clip.evaluate(element => element.getBoundingClientRect().width);
+  const trimHandle = clip.locator('.clip-trim-right');
+  const handleBounds = await trimHandle.boundingBox();
+  await page.mouse.move(handleBounds.x + handleBounds.width / 2, handleBounds.y + handleBounds.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(
+    handleBounds.x + handleBounds.width / 2 - 48,
+    handleBounds.y + handleBounds.height / 2,
+    { steps: 8 },
+  );
+  await page.locator('.trim-monitor').waitFor();
+  await page.mouse.up();
+  await page.waitForFunction(() =>
+    window.__commandRequests.some(request => request.id === 'timeline.trim_clip')
+  );
+  const trimRequest = await page.evaluate(() =>
+    window.__commandRequests.filter(request => request.id === 'timeline.trim_clip').pop()
+  );
+  assert.equal(trimRequest.params.edge, 'end', 'the right handle should trim the tail');
+  assert.equal(trimRequest.params.ripple, true, 'the Ripple tool should request a ripple trim');
+  assert.ok(trimRequest.params.delta < 0, 'dragging left should shorten the tail');
+  await page.waitForFunction(
+    width => document.querySelector('.timeline-clip')?.getBoundingClientRect().width < width - 1,
+    widthBeforeTrim,
+  );
+  await page.locator('.app-shell').press('Control+z');
+  await page.waitForFunction(
+    width => Math.abs((document.querySelector('.timeline-clip')?.getBoundingClientRect().width ?? 0) - width) <= 1,
+    widthBeforeTrim,
+  );
   await page.locator('.timeline-tool-rail').getByRole('button', { name: 'Selection Tool', exact: true }).click();
   // Clicking a clip focuses the Source tab; the playhead checks below want Program.
   await page

@@ -8,6 +8,8 @@ import { ThemeToggle } from "../../components/interior/theme-toggle";
 import { SegmentedControl } from "../../components/interior/segmented-control";
 import type { JobInfo } from "../../app/useJobs";
 import type { CommandStatus } from "../../app/ProjectProvider";
+import { formatShortcut } from "../shortcuts/shortcuts.ts";
+import { rankCommands } from "./ranking.ts";
 import type {
   DavinciWorkspace,
   MediaAsset,
@@ -134,35 +136,10 @@ export function AppHeader({
   const jobDrawerRef = useRef<HTMLDivElement | null>(null);
   const commandSearchRef = useRef<HTMLInputElement | null>(null);
   const motionPreset = useMotionPreset();
-  const matchingCommands = useMemo(() => {
-    const query = commandQuery.trim().toLowerCase();
-    const shipped = commands.filter((command) => command.shipped);
-    if (!query) return shipped.slice(0, 12);
-    // Rank prefix matches above substring and menu-path matches so that
-    // "ripple" surfaces Ripple Delete before longer compound commands.
-    return shipped
-      .map((command) => {
-        const label = command.label.toLowerCase();
-        const id = command.id.toLowerCase();
-        const menu = command.menu.join(" ").toLowerCase();
-        const score = label === query
-          ? 0
-          : label.startsWith(query)
-            ? 1
-            : label.includes(query)
-              ? 2
-              : id.includes(query)
-                ? 3
-                : menu.includes(query)
-                  ? 4
-                  : -1;
-        return { command, score };
-      })
-      .filter((entry) => entry.score >= 0)
-      .sort((a, b) => a.score - b.score || a.command.label.length - b.command.label.length)
-      .slice(0, 12)
-      .map((entry) => entry.command);
-  }, [commandQuery, commands]);
+  const matchingCommands = useMemo(
+    () => rankCommands(commands, commandQuery),
+    [commandQuery, commands],
+  );
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -209,7 +186,6 @@ export function AppHeader({
       return "Select a timeline clip first";
     }
     if (id === "timeline.add_clip" && !selectedMedia) return "Select a media item first";
-    if (id === "window.reset_layout") return "Panel layouts are not open yet";
     return null;
   }
 
@@ -279,7 +255,7 @@ export function AppHeader({
                       }}
                     >
                       <span>{item.label}</span>
-                      {item.shortcut && <small>{item.shortcut.replace("Ctrl", "⌘/Ctrl")}</small>}
+                      {item.shortcut && <small>{formatShortcut(item.shortcut)}</small>}
                     </InteriorButton>
                   ))}
                 </div>
@@ -612,7 +588,7 @@ export function AppHeader({
               >
                 <span className="command-palette-result-label">{command.label}</span>
                 <span className="command-palette-result-meta">{command.menu.join(" › ") || command.id}</span>
-                {command.shortcut && <kbd>{command.shortcut}</kbd>}
+                {command.shortcut && <kbd>{formatShortcut(command.shortcut)}</kbd>}
               </InteriorButton>
             )) : <p className="command-palette-empty">No matching commands.</p>}
           </div>

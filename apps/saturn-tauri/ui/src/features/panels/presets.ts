@@ -93,3 +93,9 @@ export const workspacePresets: WorkspacePreset[] = [
 
 export const PANEL_LAYOUT_EVENT = "eep:panel-layout-changed";
 export const PANEL_LAYOUT_STORAGE_PREFIX = "easy-edits-pro.panel-layout.v1";
+/** Opens a panel by id; used when a gesture needs the Trim Monitor. */
+export const PANEL_OPEN_EVENT = "eep:panel-open";
+/** Toggles a panel's hidden state from View ▸ Panels. */
+export const PANEL_TOGGLE_EVENT = "eep:panel-toggle";
+/** Restores the active workspace's default floating layout. */
+export const PANEL_RESET_EVENT = "eep:panel-reset";

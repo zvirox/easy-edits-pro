@@ -1,0 +1,116 @@
+/* Workspace layout preset manager (Phase 1). */
+
+.layout-presets-dialog {
+  width: min(640px, 92vw);
+  max-height: 82vh;
+}
+
+.layout-preset-save {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-inset);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.layout-preset-save > div {
+  display: flex;
+  gap: 8px;
+}
+
+.layout-preset-save input,
+.layout-preset-copy input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  background: var(--bg-panel);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 12px;
+}
+
+.layout-preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.layout-preset-list h3 {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.layout-preset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.layout-preset-row:last-child {
+  border-bottom: 0;
+}
+
+.layout-preset-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.layout-preset-copy strong {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.layout-preset-copy span {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.layout-preset-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.layout-preset-actions button,
+.layout-preset-footer button {
+  padding: 3px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-button);
+  color: var(--text-main);
+  font-size: 11px;
+}
+
+.layout-preset-actions .layout-preset-delete {
+  color: var(--status-danger);
+}
+
+.layout-preset-empty {
+  margin: 0;
+  padding: 8px 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.layout-preset-footer {
+  display: flex;
+  justify-content: flex-end;
+}

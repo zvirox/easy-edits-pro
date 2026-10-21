@@ -10,3 +10,4 @@ export {
 } from "./TimelineSection";
 export { TimelineToolbar, type TimelineToolbarProps, TimelineToolRail, type TimelineToolRailProps } from "./TimelineToolbar";
 export { TimelineTrackRow, type TimelineTrackRowProps } from "./TimelineTrackRow";
+export { TrimMonitorPanel, type TrimMonitorPanelProps } from "./TrimMonitorPanel";

@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-135 commands.
+140 commands.
 
 ## File
 
@@ -77,6 +77,8 @@ Generated from the command catalogue. Do not edit by hand.
 |---|---|---|---|---|
 | Add Clip to Timeline | `timeline.add_clip` | planned |  | `{"media_id":int,"track_id":int?,"timeline_start":obj?,"source_in":obj?,"duration":obj?}` |
 | Move Clip | `timeline.move_clip` | planned |  | `{"track_id":int,"clip_index":int,"target_track_id":int?,"timeline_start":obj}` |
+| Trim Clip Edge | `timeline.trim_clip` | planned |  | `{"track_id":int,"clip_index":int,"edge":"start"\|"end","delta":obj,"ripple":bool?}` |
+| Update Transition | `timeline.update_transition` | planned |  | `{"track_id":int,"transition_id":int,"kind":obj?,"duration":obj?,"cut_at":obj?}` |
 | Set Track Locked | `track.set_locked` | planned |  | `{"track_id":int,"locked":bool}` |
 | Add Transition | `timeline.add_transition` | planned | Ctrl+D | `{"track_id":int,"cut_at":obj,"duration":obj?,"kind":obj?}` |
 | Remove Transition | `timeline.remove_transition` | planned |  | `{"track_id":int,"transition_id":int}` |
@@ -152,7 +154,9 @@ Generated from the command catalogue. Do not edit by hand.
 | Appearance: No Glass | `view.glass_off` | shipped |  | `{}` |
 | Theme: Dark | `view.theme_dark` | shipped |  | `{}` |
 | Theme: Light | `view.theme_light` | shipped |  | `{}` |
-| Reduce Motion | `view.reduced_motion` | planned |  | `{}` |
+| Reduce Motion | `view.reduced_motion` | shipped |  | `{}` |
+| Media Pool | `view.panel_media` | shipped |  | `{}` |
+| Inspector | `view.panel_inspector` | shipped |  | `{}` |
 
 ## Window
 
@@ -174,7 +178,8 @@ Generated from the command catalogue. Do not edit by hand.
 | Layout Preset: Review | `workspace.preset_review` | shipped |  | `{}` |
 | Layout Preset: Learning | `workspace.preset_learning` | shipped |  | `{}` |
 | Layout Preset: All Panels | `workspace.preset_all_panels` | shipped |  | `{}` |
-| Reset Panel Layout | `window.reset_layout` | planned |  | `{}` |
+| Manage Layout Presets… | `workspace.manage_presets` | shipped |  | `{}` |
+| Reset Panel Layout | `window.reset_layout` | shipped |  | `{}` |
 
 ## Help
 

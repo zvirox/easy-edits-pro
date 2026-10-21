@@ -1511,6 +1511,39 @@
   {
     "aliases": [],
     "category": "Sequence",
+    "id": "timeline.trim_clip",
+    "label": "Trim Clip Edge",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"edge\":\"start\"|\"end\",\"delta\":obj,\"ripple\":bool?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.update_transition",
+    "label": "Update Transition",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"transition_id\":int,\"kind\":obj?,\"duration\":obj?,\"cut_at\":obj?}",
+    "shipped": false,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
     "id": "track.set_locked",
     "label": "Set Track Locked",
     "menu": [
@@ -1924,7 +1957,41 @@
     ],
     "mutating": false,
     "params": "{}",
-    "shipped": false,
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.panel_media",
+    "label": "Media Pool",
+    "menu": [
+      "View",
+      "Panels"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "View",
+    "id": "view.panel_inspector",
+    "label": "Inspector",
+    "menu": [
+      "View",
+      "Panels"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
     "uiOnly": true,
@@ -2205,6 +2272,23 @@
   {
     "aliases": [],
     "category": "Window",
+    "id": "workspace.manage_presets",
+    "label": "Manage Layout Presets…",
+    "menu": [
+      "Window",
+      "Layout Presets"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Window",
     "id": "window.reset_layout",
     "label": "Reset Panel Layout",
     "menu": [
@@ -2212,7 +2296,7 @@
     ],
     "mutating": false,
     "params": "{}",
-    "shipped": false,
+    "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
     "uiOnly": true,

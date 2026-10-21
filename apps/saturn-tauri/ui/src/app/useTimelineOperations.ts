@@ -15,6 +15,8 @@ import type {
 } from "./projectTypes";
 import { TICKS_PER_SECOND } from "../engine/playback/constants";
 import type { KeyframeProperty } from "../engine/playback/types";
+import { PANEL_OPEN_EVENT } from "../features/panels/presets.ts";
+import { planTrim, type TrimEdge, type TrimSession } from "./timelineTrim.ts";
 
 type ClipPointerDrag = {
   pointerId: number;
@@ -24,7 +26,10 @@ type ClipPointerDrag = {
   startY: number;
   startTime: number;
   duration: number;
+  tool: TimelineTool;
 };
+
+export type { TrimSession };
 
 type TimelineScrub = {
   pointerId: number;
@@ -38,6 +43,7 @@ export type UseTimelineOperationsOptions = {
   seekProgramTo: (ticks: number) => void;
   timelineEndSeconds: number;
   perform: (id: string, params?: unknown, msg?: string) => Promise<boolean>;
+  runCommand: <T = unknown>(id: string, params?: unknown) => Promise<T>;
   setNotice: (msg: string) => void;
   busy: boolean;
   refreshProject: () => Promise<unknown>;
@@ -51,14 +57,15 @@ export type UseTimelineOperationsOptions = {
 
 export function useTimelineOperations({
   project,
-  media: _media,
+  media,
   playhead,
   seekProgramTo,
   timelineEndSeconds: _timelineEndSeconds,
   perform,
+  runCommand,
   setNotice,
   busy: _busy,
-  refreshProject: _refreshProject,
+  refreshProject,
   setCompoundClipModalOpen: _setCompoundClipModalOpen,
   setCompoundClipNameDraft: _setCompoundClipNameDraft,
   keyframeProperty: _keyframeProperty,
@@ -81,6 +88,8 @@ export function useTimelineOperations({
   const [mediaDropTargetTrackId, setMediaDropTargetTrackId] = useState<number | null>(null);
   const [clipDragOffset, setClipDragOffset] = useState<{ trackId: number; clipIndex: number; x: number; y: number } | null>(null);
 
+  const [trimSession, setTrimSession] = useState<TrimSession | null>(null);
+
   const clipDrag = useRef<ClipPointerDrag | null>(null);
   const suppressClipClick = useRef(false);
   const trimDrag = useRef<{
@@ -88,11 +97,43 @@ export function useTimelineOperations({
     trackId: number;
     clipIndex: number;
     startX: number;
-    handle: "start" | "end";
-    initialStart: number;
-    initialDur: number;
-    sourceIn: number;
+    edge: TrimEdge;
   } | null>(null);
+  const gesturePending = useRef<Promise<unknown> | null>(null);
+
+  const beginGesture = useCallback(() => {
+    gesturePending.current = runCommand("edit.begin_gesture").catch(() => null);
+  }, [runCommand]);
+
+  const endGesture = useCallback(async () => {
+    try {
+      await gesturePending.current;
+    } finally {
+      gesturePending.current = null;
+      await runCommand("edit.end_gesture").catch(() => null);
+    }
+  }, [runCommand]);
+
+  /** Build the pure trim input from the project snapshot at gesture time. */
+  const trimInput = useCallback(
+    (trackId: number, clipIndex: number, edge: TrimEdge, deltaTicks: number) => {
+      const track = project?.sequence.tracks.find((item) => item.id === trackId);
+      const clip = track?.clips[clipIndex];
+      if (!track || !clip) return null;
+      return {
+        trackId,
+        tool: timelineTool,
+        edge,
+        deltaTicks,
+        clipIndex,
+        clip,
+        previous: track.clips[clipIndex - 1] ?? null,
+        next: track.clips[clipIndex + 1] ?? null,
+        mediaDuration: media.find((item) => item.id === clip.media_id)?.duration ?? null,
+      };
+    },
+    [project, media, timelineTool]
+  );
   const handPan = useRef<{ startX: number; scrollLeft: number } | null>(null);
   const timelineScrollerRef = useRef<HTMLDivElement | null>(null);
   const activeTimelineScrub = useRef<TimelineScrub | null>(null);
@@ -168,12 +209,12 @@ export function useTimelineOperations({
     if (!name?.trim()) return;
     const colors = ["#be185d", "#10b981", "#f59e0b", "#ec4899", "#6b21a8", "#6b21a8"];
     const color = colors[Math.floor(Math.random() * colors.length)];
-    await perform("track_group.create", { name: name.trim(), color }, `Folder group "${name}" created`);
+    await perform("timeline.create_track_group", { name: name.trim(), color }, `Folder group "${name}" created`);
   }, [perform]);
 
   const handleToggleGroupCollapse = useCallback(
     async (groupId: number) => {
-      await perform("track_group.toggle_collapse", { group_id: groupId });
+      await perform("timeline.toggle_track_group_collapsed", { group_id: groupId });
     },
     [perform]
   );
@@ -184,14 +225,14 @@ export function useTimelineOperations({
       if (!group) return;
       const newName = window.prompt("Rename track folder:", group.name);
       if (!newName?.trim()) return;
-      await perform("track_group.set_properties", { group_id: groupId, name: newName.trim(), color: group.color }, `Renamed folder to "${newName}"`);
+      await perform("timeline.set_track_group_properties", { group_id: groupId, name: newName.trim(), color: group.color }, `Renamed folder to "${newName}"`);
     },
     [perform, project]
   );
 
   const switchSequence = useCallback(
     async (sequenceId: number) => {
-      await perform("sequence.switch", { sequence_id: sequenceId }, "Switched active sequence");
+      await perform("project.switch_sequence", { sequence_id: sequenceId }, "Switched active sequence");
       setSelectedClip(null);
       setSelectedClips([]);
       setSelectedTransition(null);
@@ -344,7 +385,12 @@ export function useTimelineOperations({
         );
         return;
       }
-      if (timelineTool === "select" || timelineTool === "ripple") {
+      if (
+        timelineTool === "select" ||
+        timelineTool === "slip" ||
+        timelineTool === "slide" ||
+        timelineTool === "rateStretch"
+      ) {
         event.preventDefault();
         event.stopPropagation();
         event.currentTarget.setPointerCapture(event.pointerId);
@@ -356,12 +402,63 @@ export function useTimelineOperations({
           startY: event.clientY,
           startTime: clip.timeline_start,
           duration: clip.duration,
+          tool: timelineTool,
         };
         setSelectedClip({ track_id: trackId, clip_index: clipIndex });
         setSelectedTransition(null);
+        if (timelineTool !== "select") {
+          beginGesture();
+          setTrimSession({ trackId, clipIndex, tool: timelineTool, edge: "end", deltaTicks: 0 });
+          window.setTimeout(() => {
+            window.dispatchEvent(
+              new CustomEvent(PANEL_OPEN_EVENT, { detail: { id: "trim-monitor" } }),
+            );
+          }, 0);
+        }
+        return;
+      }
+      if (timelineTool === "ripple" || timelineTool === "rolling") {
+        event.preventDefault();
+        event.stopPropagation();
+        setSelectedClip({ track_id: trackId, clip_index: clipIndex });
+        setSelectedTransition(null);
+        setNotice(`Drag a clip edge with the ${timelineTool === "ripple" ? "Ripple" : "Rolling"} tool`);
       }
     },
-    [project, timelineTool, setNotice, perform]
+    [project, timelineTool, setNotice, perform, beginGesture]
+  );
+
+  const commitTrim = useCallback(
+    async (trackId: number, clipIndex: number, edge: TrimEdge, deltaTicks: number) => {
+      const input = trimInput(trackId, clipIndex, edge, deltaTicks);
+      if (!input) {
+        setNotice("That clip is no longer available");
+        await endGesture();
+        setTrimSession(null);
+        return;
+      }
+      const result = planTrim(input);
+      if (!result.ok) {
+        setNotice(result.reason);
+        await endGesture();
+        setTrimSession(null);
+        return;
+      }
+      try {
+        await gesturePending.current;
+        for (const command of result.plan.commands) {
+          await runCommand(command.id, command.params);
+        }
+        await refreshProject();
+        setNotice(result.plan.notice);
+      } catch (error) {
+        setNotice(String(error));
+      } finally {
+        await endGesture();
+        setTrimSession(null);
+      }
+    },
+    [trimInput, endGesture, runCommand, refreshProject, setNotice]
   );
 
   const moveTimelineClipPointer = useCallback(
@@ -372,43 +469,76 @@ export function useTimelineOperations({
       if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
         suppressClipClick.current = true;
       }
-      setClipDragOffset({
+      if (clipDrag.current.tool === "select") {
+        setClipDragOffset({
+          trackId: clipDrag.current.trackId,
+          clipIndex: clipDrag.current.clipIndex,
+          x: deltaX,
+          y: deltaY,
+        });
+        return;
+      }
+      const deltaTicks = Math.round((deltaX / timelineZoom) * TICKS_PER_SECOND);
+      const input = trimInput(
+        clipDrag.current.trackId,
+        clipDrag.current.clipIndex,
+        "end",
+        deltaTicks,
+      );
+      if (!input) return;
+      const result = planTrim(input);
+      if (!result.ok) {
+        setNotice(result.reason);
+        return;
+      }
+      setTrimSession({
         trackId: clipDrag.current.trackId,
         clipIndex: clipDrag.current.clipIndex,
-        x: deltaX,
-        y: deltaY,
+        tool: clipDrag.current.tool,
+        edge: "end",
+        deltaTicks: result.plan.deltaTicks,
       });
+      setNotice(result.plan.notice);
     },
-    []
+    [timelineZoom, trimInput, setNotice]
   );
 
   const handleTimelineClipPointerCancel = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
-      if (clipDrag.current && clipDrag.current.pointerId === event.pointerId) {
-        const drag = clipDrag.current;
-        clipDrag.current = null;
-        setClipDragOffset(null);
-        try {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        } catch {}
-        const deltaX = event.clientX - drag.startX;
-        if (Math.abs(deltaX) > 4) {
-          const deltaTicks = Math.round((deltaX / timelineZoom) * TICKS_PER_SECOND);
-          const newStart = Math.max(0, drag.startTime + deltaTicks);
-          void perform(
-            "timeline.move_clip",
-            {
-              track_id: drag.trackId,
-              clip_index: drag.clipIndex,
-              target_track_id: drag.trackId,
-              timeline_start: newStart,
-            },
-            "Moved clip"
-          );
+      if (!clipDrag.current || clipDrag.current.pointerId !== event.pointerId) return;
+      const drag = clipDrag.current;
+      clipDrag.current = null;
+      setClipDragOffset(null);
+      try {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      } catch {}
+      const deltaX = event.clientX - drag.startX;
+      if (drag.tool !== "select") {
+        if (Math.abs(deltaX) <= 4) {
+          void endGesture();
+          setTrimSession(null);
+          return;
         }
+        const deltaTicks = Math.round((deltaX / timelineZoom) * TICKS_PER_SECOND);
+        void commitTrim(drag.trackId, drag.clipIndex, "end", deltaTicks);
+        return;
+      }
+      if (Math.abs(deltaX) > 4) {
+        const deltaTicks = Math.round((deltaX / timelineZoom) * TICKS_PER_SECOND);
+        const newStart = Math.max(0, drag.startTime + deltaTicks);
+        void perform(
+          "timeline.move_clip",
+          {
+            track_id: drag.trackId,
+            clip_index: drag.clipIndex,
+            target_track_id: drag.trackId,
+            timeline_start: newStart,
+          },
+          "Moved clip"
+        );
       }
     },
-    [timelineZoom, perform]
+    [timelineZoom, perform, commitTrim, endGesture]
   );
 
   const beginTimelineClipTrim = useCallback(
@@ -416,8 +546,8 @@ export function useTimelineOperations({
       event: PointerEvent<HTMLSpanElement>,
       trackId: number,
       clipIndex: number,
-      clip: Clip,
-      handle: "start" | "end"
+      _clip: Clip,
+      edge: TrimEdge
     ) => {
       event.preventDefault();
       event.stopPropagation();
@@ -427,15 +557,19 @@ export function useTimelineOperations({
         trackId,
         clipIndex,
         startX: event.clientX,
-        handle,
-        initialStart: clip.timeline_start,
-        initialDur: clip.duration,
-        sourceIn: clip.source_in,
+        edge,
       };
       setSelectedClip({ track_id: trackId, clip_index: clipIndex });
       setSelectedTransition(null);
+      beginGesture();
+      setTrimSession({ trackId, clipIndex, tool: timelineTool, edge, deltaTicks: 0 });
+      window.setTimeout(() => {
+        window.dispatchEvent(
+          new CustomEvent(PANEL_OPEN_EVENT, { detail: { id: "trim-monitor" } }),
+        );
+      }, 0);
     },
-    []
+    [timelineTool, beginGesture]
   );
 
   const moveTimelineClipTrim = useCallback(
@@ -443,15 +577,28 @@ export function useTimelineOperations({
       if (!trimDrag.current || trimDrag.current.pointerId !== event.pointerId) return;
       const deltaX = event.clientX - trimDrag.current.startX;
       const deltaTicks = Math.round((deltaX / timelineZoom) * TICKS_PER_SECOND);
-      if (trimDrag.current.handle === "start") {
-        const newDur = Math.max(TICKS_PER_SECOND / 30, trimDrag.current.initialDur - deltaTicks);
-        setNotice(`Trimming Start: ${(newDur / TICKS_PER_SECOND).toFixed(2)}s`);
-      } else {
-        const newDur = Math.max(TICKS_PER_SECOND / 30, trimDrag.current.initialDur + deltaTicks);
-        setNotice(`Trimming End: ${(newDur / TICKS_PER_SECOND).toFixed(2)}s`);
+      const input = trimInput(
+        trimDrag.current.trackId,
+        trimDrag.current.clipIndex,
+        trimDrag.current.edge,
+        deltaTicks,
+      );
+      if (!input) return;
+      const result = planTrim(input);
+      if (!result.ok) {
+        setNotice(result.reason);
+        return;
       }
+      setTrimSession({
+        trackId: trimDrag.current.trackId,
+        clipIndex: trimDrag.current.clipIndex,
+        tool: timelineTool,
+        edge: trimDrag.current.edge,
+        deltaTicks: result.plan.deltaTicks,
+      });
+      setNotice(result.plan.notice);
     },
-    [timelineZoom, setNotice]
+    [timelineZoom, trimInput, timelineTool, setNotice]
   );
 
   const finishTimelineClipTrim = useCallback(
@@ -463,38 +610,15 @@ export function useTimelineOperations({
         event.currentTarget.releasePointerCapture(event.pointerId);
       } catch {}
       const deltaX = event.clientX - drag.startX;
-      const deltaTicks = Math.round((deltaX / timelineZoom) * TICKS_PER_SECOND);
-      if (drag.handle === "start") {
-        const proposedStart = Math.max(0, drag.initialStart + deltaTicks);
-        const proposedDur = Math.max(TICKS_PER_SECOND / 30, drag.initialDur - deltaTicks);
-        const proposedIn = Math.max(0, drag.sourceIn + deltaTicks);
-        void perform(
-          "timeline.trim_clip",
-          {
-            track_id: drag.trackId,
-            clip_index: drag.clipIndex,
-            timeline_start: proposedStart,
-            source_in: proposedIn,
-            duration: proposedDur,
-          },
-          "Trimmed clip head"
-        );
-      } else {
-        const proposedDur = Math.max(TICKS_PER_SECOND / 30, drag.initialDur + deltaTicks);
-        void perform(
-          "timeline.trim_clip",
-          {
-            track_id: drag.trackId,
-            clip_index: drag.clipIndex,
-            timeline_start: drag.initialStart,
-            source_in: drag.sourceIn,
-            duration: proposedDur,
-          },
-          "Trimmed clip tail"
-        );
+      if (Math.abs(deltaX) <= 2) {
+        void endGesture();
+        setTrimSession(null);
+        return;
       }
+      const deltaTicks = Math.round((deltaX / timelineZoom) * TICKS_PER_SECOND);
+      void commitTrim(drag.trackId, drag.clipIndex, drag.edge, deltaTicks);
     },
-    [timelineZoom, perform]
+    [timelineZoom, commitTrim, endGesture]
   );
 
   return {
@@ -522,6 +646,8 @@ export function useTimelineOperations({
     setMediaDropTargetTrackId,
     clipDragOffset,
     setClipDragOffset,
+    trimSession,
+    setTrimSession,
     zoomTimeline,
     attachTimelineScroller,
     handleTimelinePanStart,
