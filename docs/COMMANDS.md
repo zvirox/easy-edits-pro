@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-181 commands.
+185 commands.
 
 ## File
 
@@ -114,6 +114,10 @@ Generated from the command catalogue. Do not edit by hand.
 | Rolling Edit | `timeline.roll_edit` | planned | N | `{"track_id":int,"left_clip_index":int,"delta":obj}` |
 | Slide Edit | `timeline.slide_clip` | planned | U | `{"track_id":int,"clip_index":int,"delta":obj}` |
 | Move Clips Batch | `timeline.move_clips_batch` | planned |  | `{"moves":[obj]}` |
+| New Sequence | `sequence.create` | shipped |  | `{"name":str?}` |
+| Duplicate Sequence | `sequence.duplicate` | shipped |  | `{"sequence_id":int?,"name":str?}` |
+| Rename Sequence… | `sequence.rename` | shipped |  | `{"sequence_id":int?,"name":str}` |
+| Delete Sequence | `sequence.delete` | shipped |  | `{"sequence_id":int?}` |
 | Switch Active Sequence | `project.switch_sequence` | planned |  | `{"sequence_id":int}` |
 | Add Timeline Track | `timeline.add_track` | planned | Ctrl+Shift+T | `{"kind":obj?,"name":str?}` |
 | Remove Timeline Track | `timeline.remove_track` | planned |  | `{"track_id":int}` |

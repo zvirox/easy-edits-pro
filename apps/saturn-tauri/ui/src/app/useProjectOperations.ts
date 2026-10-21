@@ -557,7 +557,31 @@ export function useProjectOperations({
       let params = explicitParams;
       if (params === undefined) {
         const { selectedClip, playhead } = getMenuContext();
-        if (id === "timeline.set_mark_in" || id === "timeline.set_mark_out") {
+        if (id === "sequence.create") {
+          const fallback = `Sequence ${(project?.sequences?.length ?? 0) + 2}`;
+          const requested = window.prompt("New sequence name", fallback);
+          if (requested === null) return;
+          params = requested.trim() ? { name: requested.trim() } : {};
+        } else if (id === "sequence.rename") {
+          const requested = window.prompt(
+            "Rename sequence",
+            project?.sequence.name ?? "Sequence",
+          );
+          if (requested === null || !requested.trim()) return;
+          params = {
+            sequence_id: project?.sequence.id,
+            name: requested.trim(),
+          };
+        } else if (id === "sequence.delete") {
+          if (
+            !window.confirm(
+              `Delete “${project?.sequence.name ?? "this sequence"}”? This can be undone.`,
+            )
+          ) {
+            return;
+          }
+          params = { sequence_id: project?.sequence.id };
+        } else if (id === "timeline.set_mark_in" || id === "timeline.set_mark_out") {
           params = { at: Math.round(playhead * TICKS_PER_SECOND) };
         } else if (selectedClip && id === "timeline.split_clip") {
           params = { ...selectedClip, at: Math.round(playhead * TICKS_PER_SECOND) };
@@ -570,7 +594,7 @@ export function useProjectOperations({
       }
       await perform(id, params ?? null);
     },
-    [openProject, saveProject, toggleFullscreen, perform, getMenuContext]
+    [openProject, saveProject, toggleFullscreen, perform, getMenuContext, project]
   );
 
   return {

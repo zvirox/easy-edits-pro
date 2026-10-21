@@ -29,6 +29,7 @@ mod media_cmds;
 mod nodegraph_cmds;
 mod params;
 mod project_cmds;
+mod sequence_cmds;
 mod settings_cmds;
 mod subtitles_cmds;
 mod timeline_cmds;
@@ -164,6 +165,9 @@ impl EditorEngine {
         }
 
         if let Some(result) = self.dispatch_project(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_sequence(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_media(command.id, request.params.clone()) {

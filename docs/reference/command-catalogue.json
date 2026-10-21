@@ -2164,6 +2164,78 @@
     "undoGroup": "gesture"
   },
   {
+    "aliases": [
+      "add sequence"
+    ],
+    "category": "Sequence",
+    "id": "sequence.create",
+    "label": "New Sequence",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"name\":str?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "copy sequence"
+    ],
+    "category": "Sequence",
+    "id": "sequence.duplicate",
+    "label": "Duplicate Sequence",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"sequence_id\":int?,\"name\":str?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "rename timeline"
+    ],
+    "category": "Sequence",
+    "id": "sequence.rename",
+    "label": "Rename Sequence…",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"sequence_id\":int?,\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "remove sequence"
+    ],
+    "category": "Sequence",
+    "id": "sequence.delete",
+    "label": "Delete Sequence",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"sequence_id\":int?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
     "aliases": [],
     "category": "File",
     "id": "project.switch_sequence",

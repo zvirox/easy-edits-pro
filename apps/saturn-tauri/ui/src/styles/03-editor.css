@@ -89,7 +89,7 @@
   font-weight: 600;
   font-family: monospace;
 }
-.timeline { display: flex; flex-direction: row; flex: none; height: var(--timeline-height, clamp(230px, 36vh, 440px)); min-height: 0; padding: 0; overflow: hidden; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; }
+.timeline { display: flex; flex-direction: column; flex: none; height: var(--timeline-height, clamp(230px, 36vh, 440px)); min-height: 0; padding: 0; overflow: hidden; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 6px; }
 .timeline-tool-rail { display: flex; flex-direction: column; align-items: stretch; gap: 2px; min-height: 0; padding: 6px 4px 8px; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--border-color); background: var(--bg-subpanel); }
 .timeline-tool-group { display: flex; flex: none; flex-direction: column; gap: 2px; }
 .timeline-tool-group-label { padding: 3px 2px 1px; color: var(--text-muted); font-size: 8px; font-weight: 700; letter-spacing: 0.09em; line-height: 10px; text-transform: uppercase; white-space: nowrap; }

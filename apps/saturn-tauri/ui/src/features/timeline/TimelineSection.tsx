@@ -25,6 +25,8 @@ import {
 } from "./types";
 import { rulerSteps } from "./ruler";
 import { TimelineToolbar } from "./TimelineToolbar";
+import { SequenceTabs } from "./SequenceTabs";
+import { useSequenceTabs } from "./useSequenceTabs";
 
 export {
   type TimelineTool,
@@ -54,12 +56,13 @@ export interface TimelineSectionProps {
   addTransitionToTimeline: () => Promise<void>;
   undoStatus: CommandStatus;
   redoStatus: CommandStatus;
-  perform: (id: string, params?: unknown) => Promise<unknown>;
+  perform: (id: string, params?: unknown, successNotice?: string) => Promise<unknown>;
   selectedClip: SelectedClip | null;
   splitSelectedClip: () => Promise<void>;
   rippleDeleteSelectedClip: () => Promise<void>;
   removeSelectedClip: () => void;
   selectedClips: SelectedClip[];
+  setSelectedClips: Dispatch<SetStateAction<SelectedClip[]>>;
   linkSelectedClips: () => Promise<void>;
   unlinkSelectedClips: () => Promise<void>;
   setCompoundClipNameDraft: (name: string) => void;
@@ -146,6 +149,7 @@ export function TimelineSection({
   rippleDeleteSelectedClip,
   removeSelectedClip,
   selectedClips,
+  setSelectedClips,
   linkSelectedClips,
   unlinkSelectedClips,
   setCompoundClipNameDraft,
@@ -201,9 +205,16 @@ export function TimelineSection({
   const tracks = project?.sequence.tracks ?? [];
   const videoTracks = tracks.filter((t) => t.kind === "video");
   const audioTracks = tracks.filter((t) => t.kind === "audio");
-  const allSequences = project?.sequences ?? [];
-  const hasSequences = allSequences.length > 1;
-  const currentSequenceId = project?.sequence.id;
+  const sequenceTabs = useSequenceTabs({
+    project,
+    media,
+    perform,
+    switchSequence,
+    setSelectedClip,
+    setSelectedClips,
+    setSelectedTransition,
+    busy,
+  });
 
   // Calculate playhead position in pixels
   const playheadX = (playhead / TICKS_PER_SECOND) * timelineZoom;
@@ -235,34 +246,11 @@ export function TimelineSection({
 
   return (
     <section className="timeline">
-      {/* Timeline Header with Sequence Switcher */}
-      {hasSequences && (
-        <div className="timeline-header-bar">
-          <div className="timeline-sequence-switcher">
-            <label htmlFor="sequence-select" className="visually-hidden">
-              Active Sequence
-            </label>
-            <select
-              id="sequence-select"
-              className="sequence-select"
-              value={currentSequenceId ?? ""}
-              onChange={(e) => void switchSequence(Number(e.target.value))}
-              disabled={busy}
-            >
-              {allSequences.map((seq) => (
-                <option key={seq.id ?? ""} value={seq.id ?? ""}>
-                  {(seq.id ?? 0) === 1 ? "🎬 " : "⧉ "} {seq.name || `Sequence ${seq.id}`}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      )}
+      <SequenceTabs {...sequenceTabs} />
 
       <div className="timeline-workbench">
         <TimelineToolbar
           project={project}
-          switchSequence={switchSequence}
           playhead={playhead}
           busy={busy}
           addTrackToTimeline={addTrackToTimeline}

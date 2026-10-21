@@ -301,6 +301,33 @@ pub(in crate::engine) struct MoveClipsBatchParams {
 }
 
 #[derive(Deserialize)]
+pub(in crate::engine) struct CreateSequenceParams {
+    #[serde(default)]
+    pub(in crate::engine) name: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct DuplicateSequenceParams {
+    #[serde(default)]
+    pub(in crate::engine) sequence_id: Option<u64>,
+    #[serde(default)]
+    pub(in crate::engine) name: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct RenameSequenceParams {
+    #[serde(default)]
+    pub(in crate::engine) sequence_id: Option<u64>,
+    pub(in crate::engine) name: String,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct DeleteSequenceParams {
+    #[serde(default)]
+    pub(in crate::engine) sequence_id: Option<u64>,
+}
+
+#[derive(Deserialize)]
 pub(in crate::engine) struct SetColorParams {
     pub(in crate::engine) track_id: u64,
     pub(in crate::engine) clip_index: usize,

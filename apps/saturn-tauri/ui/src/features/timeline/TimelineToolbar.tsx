@@ -50,7 +50,6 @@ export function TimelineToolRail({ timelineTool, setTimelineTool }: TimelineTool
 // Timeline Toolbar (horizontal bar at top of workbench)
 export interface TimelineToolbarProps {
   project: ProjectDocument["project"] | null;
-  switchSequence: (seqId: number) => Promise<void>;
   playhead: number;
   busy: boolean;
   addTrackToTimeline: (kind: "video" | "audio") => Promise<void>;
@@ -82,7 +81,6 @@ export interface TimelineToolbarProps {
 
 export function TimelineToolbar({
   project,
-  switchSequence,
   playhead,
   busy,
   addTrackToTimeline,
@@ -114,46 +112,6 @@ export function TimelineToolbar({
   return (
     <div className="timeline-toolbar">
         <div className="timeline-toolbar-start">
-          <div className="sequence-breadcrumbs">
-            <InteriorButton
-              type="button"
-              className={`seq-crumb-btn ${(project?.sequence.id ?? 1) === 1 ? "active" : ""}`}
-              onClick={() => void switchSequence(1)}
-              title="Switch to Master Sequence"
-            >
-              🎬 {project?.sequences?.find((s) => (s.id ?? 1) === 1)?.name || "Master Sequence"}
-            </InteriorButton>
-            {(project?.sequence.id ?? 1) !== 1 && (
-              <>
-                <span className="seq-crumb-arrow">›</span>
-                <span className="seq-crumb-btn active compound-crumb">
-                  ⧉ {project?.sequence.name}
-                </span>
-                <InteriorButton
-                  type="button"
-                  className="seq-exit-compound-btn"
-                  onClick={() => void switchSequence(1)}
-                  title="Return to Master Sequence"
-                >
-                  ↶ Exit
-                </InteriorButton>
-              </>
-            )}
-            {project?.sequences && project.sequences.length > 1 && (
-              <select
-                className="seq-dropdown-select"
-                value={project.sequence.id ?? 1}
-                onChange={(e) => void switchSequence(Number(e.target.value))}
-                title="Jump to Sequence"
-              >
-                {project.sequences.map((s) => (
-                  <option key={s.id ?? 1} value={s.id ?? 1}>
-                    {(s.id ?? 1) === 1 ? "🎬 " : "⧉ "} {s.name}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
           <code>
             {formatTime(playhead)} /{" "}
             {formatTime(

@@ -516,6 +516,7 @@ export function WorkspaceRouter({
         rippleDeleteSelectedClip: timelineOps.rippleDeleteSelectedClip,
         removeSelectedClip: timelineOps.removeSelectedClip,
         selectedClips: timelineOps.selectedClips,
+        setSelectedClips: timelineOps.setSelectedClips,
         linkSelectedClips: timelineOps.linkSelectedClips,
         unlinkSelectedClips: timelineOps.unlinkSelectedClips,
         setCompoundClipNameDraft: projectOps.setCompoundClipNameDraft,

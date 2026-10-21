@@ -73,7 +73,7 @@ try {
       if (id === 'project.new') {
         doc = { format: 'project-saturn.project', schema_version: 5, generator: 'browser-smoke-test', project: {
           name: params.name ?? 'Browser Test', settings: { width: params.width ?? 1920, height: params.height ?? 1080, frame_rate: params.frame_rate ?? { numerator: 30, denominator: 1 }, audio_sample_rate: 48000 },
-          media: [], next_id: 3, sequence: { name: params.sequence_name ?? 'Sequence 1', mark_in: null, mark_out: null, tracks: [
+          media: [], next_id: 3, sequences: [], sequence: { id: 1, name: params.sequence_name ?? 'Sequence 1', mark_in: null, mark_out: null, tracks: [
             { id: 1, kind: 'video', name: 'V1', gain_db: 0, clips: [] }, { id: 2, kind: 'audio', name: 'A1', gain_db: 0, clips: [] },
           ] },
         }, view: {} };
@@ -113,6 +113,74 @@ try {
         clip.duration = delta;
         track.clips.splice(params.clip_index + 1, 0, right);
         return { split: true };
+      }
+      if (id === 'sequence.create' || id === 'sequence.duplicate' || id === 'sequence.rename' || id === 'sequence.delete' || id === 'project.switch_sequence') {
+        const allocId = () => {
+          const value = doc.project.next_id ?? 1;
+          doc.project.next_id = value + 1;
+          return value;
+        };
+        const active = doc.project.sequence;
+        doc.project.sequences ??= [];
+        push();
+        if (id === 'sequence.create') {
+          const sequence = {
+            id: allocId(),
+            name: params.name ?? `Sequence ${doc.project.sequences.length + 2}`,
+            mark_in: null,
+            mark_out: null,
+            tracks: [
+              { id: allocId(), kind: 'video', name: 'V1', gain_db: 0, clips: [] },
+              { id: allocId(), kind: 'audio', name: 'A1', gain_db: 0, clips: [] },
+            ],
+          };
+          doc.project.sequences.push(active);
+          doc.project.sequence = sequence;
+          return { created: true, sequence_id: sequence.id, name: sequence.name, activated: true };
+        }
+        if (id === 'sequence.duplicate') {
+          const sourceId = params.sequence_id ?? active.id;
+          const source = sourceId === active.id
+            ? active
+            : doc.project.sequences.find(sequence => sequence.id === sourceId);
+          if (!source) throw new Error(`Sequence ${sourceId} not found`);
+          const copy = structuredClone(source);
+          copy.id = allocId();
+          copy.name = params.name ?? `${source.name} copy`;
+          if (sourceId === active.id) {
+            doc.project.sequences.push(active);
+            doc.project.sequence = copy;
+          } else {
+            doc.project.sequences.push(copy);
+          }
+          return { created: true, sequence_id: copy.id, name: copy.name, activated: sourceId === active.id };
+        }
+        if (id === 'sequence.rename') {
+          const targetId = params.sequence_id ?? active.id;
+          const target = targetId === active.id
+            ? active
+            : doc.project.sequences.find(sequence => sequence.id === targetId);
+          if (!target) throw new Error(`Sequence ${targetId} not found`);
+          target.name = params.name;
+          return { renamed: true, sequence_id: targetId, name: target.name };
+        }
+        if (id === 'sequence.delete') {
+          const targetId = params.sequence_id ?? active.id;
+          if (targetId === active.id) {
+            if (doc.project.sequences.length === 0) throw new Error('A project must keep one sequence');
+            doc.project.sequence = doc.project.sequences.shift();
+            return { deleted: true, sequence_id: targetId, active_sequence_id: doc.project.sequence.id };
+          }
+          doc.project.sequences = doc.project.sequences.filter(sequence => sequence.id !== targetId);
+          return { deleted: true, sequence_id: targetId };
+        }
+        const targetId = params.sequence_id;
+        const targetIndex = doc.project.sequences.findIndex(sequence => sequence.id === targetId);
+        if (targetIndex < 0) throw new Error(`Sequence ${targetId} not found`);
+        const next = doc.project.sequences.splice(targetIndex, 1)[0];
+        doc.project.sequences.push(active);
+        doc.project.sequence = next;
+        return { sequence_id: next.id, name: next.name, switched: true };
       }
       if (id === 'edit.begin_gesture' || id === 'edit.end_gesture') return { gesture: true };
       if (id === 'timeline.insert_clip' || id === 'timeline.overwrite_clip') {
@@ -284,6 +352,53 @@ try {
     mediaBox.height < viewport.height * 0.75,
     'the media pool should stop above the full-width timeline',
   );
+
+  // Sequences are created, switched, duplicated, renamed, and deleted from the
+  // timeline tab strip, with the engine keeping each sequence independent.
+  let sequencePrompt = 'B roll';
+  page.on('dialog', async (dialog) => {
+    if (dialog.type() === 'prompt') await dialog.accept(sequencePrompt);
+    else await dialog.accept();
+  });
+  const sequenceTabs = page.locator('.sequence-tabs');
+  assert.equal(
+    await sequenceTabs.getByRole('tab').count(),
+    1,
+    'a new project starts with one sequence tab',
+  );
+  await sequenceTabs.getByRole('button', { name: 'New Sequence' }).click();
+  const bRollTab = sequenceTabs.getByRole('tab', { name: /B roll/ });
+  await bRollTab.waitFor();
+  assert.equal(await bRollTab.getAttribute('aria-selected'), 'true');
+  assert.equal(await sequenceTabs.getByRole('tab').count(), 2);
+  await sequenceTabs.getByRole('tab', { name: /Sequence 1/ }).click();
+  await sequenceTabs
+    .getByRole('tab', { name: /Sequence 1/ })
+    .getAttribute('aria-selected')
+    .then((value) => assert.equal(value, 'true'));
+  await sequenceTabs.getByRole('button', { name: 'Duplicate Active Sequence' }).click();
+  await sequenceTabs.getByRole('tab', { name: /Sequence 1 copy/ }).waitFor();
+  sequencePrompt = 'Main edit';
+  await sequenceTabs.getByRole('button', { name: 'Rename Active Sequence' }).click();
+  await sequenceTabs.getByRole('tab', { name: /Main edit/ }).waitFor();
+  await sequenceTabs.getByRole('button', { name: 'Delete Active Sequence' }).click();
+  await sequenceTabs.getByRole('tab', { name: /Main edit/ }).waitFor({ state: 'detached' });
+  assert.equal(await sequenceTabs.getByRole('tab').count(), 2);
+  await sequenceTabs.getByRole('tab', { name: /B roll/ }).click();
+  const sequenceRequests = await page.evaluate(() => window.__commandRequests);
+  for (const command of [
+    'sequence.create',
+    'project.switch_sequence',
+    'sequence.duplicate',
+    'sequence.rename',
+    'sequence.delete',
+  ]) {
+    assert.ok(
+      sequenceRequests.some((request) => request.id === command),
+      `${command} should be dispatched by the sequence tab strip`,
+    );
+  }
+
   await toolRail.getByRole('button', { name: 'Type Tool', exact: true }).click();
   await page.locator('.status-bar-tool').getByText('Type Tool').waitFor();
   await page.locator('.app-shell').press('Shift+A');

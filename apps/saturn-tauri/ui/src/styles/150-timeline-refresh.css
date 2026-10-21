@@ -138,3 +138,102 @@
   border-color: color-mix(in srgb, var(--status-success) 60%, transparent);
 }
 .track-mini-btn { border-radius: 2px; letter-spacing: 0.03em; }
+
+/* ------------------------------------------------------------------
+   Sequence tabs: one authoritative strip for multi-sequence projects.
+   ------------------------------------------------------------------ */
+.sequence-tabs {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-subpanel);
+}
+.sequence-tabs-scroll {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 3px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+}
+.sequence-tab {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  max-width: 220px;
+  padding: 4px 9px 5px;
+  border: 1px solid transparent;
+  border-radius: 5px 5px 0 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+}
+.sequence-tab:hover {
+  color: var(--text-main);
+  background: var(--bg-hover);
+}
+.sequence-tab.active {
+  color: var(--accent-text);
+  background: var(--bg-selected);
+  border-color: var(--border-strong);
+}
+.sequence-tab-icon {
+  flex: none;
+  font-size: 10px;
+  opacity: 0.8;
+}
+.sequence-tab-name {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sequence-tab-active-dot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+}
+.sequence-tabs-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+}
+.sequence-tab-action {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-sub);
+  font: inherit;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+}
+.sequence-tab-action:hover:not(:disabled) {
+  color: var(--text-main);
+  background: var(--bg-hover);
+  border-color: var(--border-color);
+}
+.sequence-tab-action.is-danger:hover:not(:disabled) {
+  color: var(--status-danger-text);
+}
+.sequence-tab-action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
