@@ -1,0 +1,10 @@
+[package]
+name = "saturn-text"
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+description = "Text shaping and rasterization for Easy Edits Pro (cosmic-text foundation)"
+
+[dependencies]
+cosmic-text = "0.19"
+fontdb = "0.23"

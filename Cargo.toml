@@ -9,5 +9,6 @@ members = [
     "crates/saturn-timeline",
     "crates/saturn-graphics",
     "crates/saturn-project",
+    "crates/saturn-text",
 ]
 resolver = "3"

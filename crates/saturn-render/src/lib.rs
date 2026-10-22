@@ -14,6 +14,8 @@ use std::sync::OnceLock;
 
 pub mod compositor;
 pub mod curves;
+pub mod graphics_element;
+pub mod graphics_overlay;
 pub mod hsl;
 pub mod loudness;
 pub mod lut;
@@ -30,6 +32,8 @@ pub use compositor::{
     simulate_particle_field,
 };
 pub use curves::{apply_rgb_curves, apply_rgb_curves_buffer, evaluate_spline, generate_curve_lut};
+pub use graphics_element::{ELEMENT_NAME, SaturnGraphicsBlend, set_pending_graphics_json};
+pub use graphics_overlay::{GraphicLayer, render_graphics_overlay};
 pub use hsl::{
     apply_hsl_qualifier_buffer, calculate_matte_factor, generate_hsl_matte, hsl_to_rgb, rgb_to_hsl,
 };
@@ -65,6 +69,8 @@ pub struct HardwareEncoderInfo {
 pub fn detect_hardware_encoders() -> HardwareEncoderInfo {
     let _ = GST_INIT.get_or_init(|| {
         gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
+        graphics_element::register()
+            .map_err(|error| format!("Could not register the graphics element: {error}"))?;
         ges::init()
             .map_err(|error| format!("Could not initialize GStreamer Editing Services: {error}"))
     });
@@ -321,7 +327,9 @@ pub fn render_project_range_with_control(
             gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
             ges::init().map_err(|error| {
                 format!("Could not initialize GStreamer Editing Services: {error}")
-            })
+            })?;
+            graphics_element::register()
+                .map_err(|error| format!("Could not register the graphics element: {error}"))
         })
         .clone()?;
 
@@ -490,10 +498,7 @@ fn slice_document(
     Ok(sliced)
 }
 
-fn transition_clip_timing(
-    track: &saturn_core::Track,
-    clip: &Clip,
-) -> (Tick, Tick, Tick) {
+fn transition_clip_timing(track: &saturn_core::Track, clip: &Clip) -> (Tick, Tick, Tick) {
     let mut start = clip.timeline_start.0;
     let mut source_in = clip.source_in.0;
     let mut end = clip.timeline_start.0.saturating_add(clip.duration.0);
@@ -508,7 +513,11 @@ fn transition_clip_timing(
             source_in = source_in.saturating_sub(pre_roll);
         }
     }
-    (Tick(start), Tick(source_in), Tick(end.saturating_sub(start)))
+    (
+        Tick(start),
+        Tick(source_in),
+        Tick(end.saturating_sub(start)),
+    )
 }
 
 fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
@@ -544,6 +553,18 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
         .field("rate", document.project.settings.audio_sample_rate as i32)
         .build();
     audio_track.update_restriction_caps(&audio_caps);
+
+    // Phase 5 slice 5: compose timeline graphics into export frames through
+    // the saturngraphicsblend track effect (saturn-text rasterization).
+    if !document.project.sequence.graphics.is_empty() {
+        graphics_element::stage_graphics(&document.project.sequence.graphics)
+            .map_err(|error| format!("Could not serialize graphics overlay: {error}"))?;
+        let effect = ges::Effect::new(ELEMENT_NAME)
+            .map_err(|error| format!("Could not create the graphics overlay effect: {error}"))?;
+        video_track
+            .add_element_full(&effect)
+            .map_err(|error| format!("Could not attach the graphics overlay: {error}"))?;
+    }
 
     let any_solo = document.project.sequence.tracks.iter().any(|t| t.solo);
 

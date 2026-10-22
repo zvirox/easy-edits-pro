@@ -11,4 +11,9 @@ gstreamer = "0.25.3"
 gstreamer-editing-services = { version = "0.25.4", features = ["v1_18"] }
 gstreamer-pbutils = "0.25.3"
 saturn-core = { path = "../saturn-core" }
+saturn-text = { path = "../saturn-text" }
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+gstreamer-video = "0.25.3"
+gstreamer-app = "0.25.2"
+gstreamer-base = "0.25.3"
