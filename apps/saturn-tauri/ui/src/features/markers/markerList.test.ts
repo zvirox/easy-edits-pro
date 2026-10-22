@@ -1,0 +1,54 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import {
+  defaultMarkerRange,
+  markerLeftPx,
+  markerWidthPx,
+  nextMarker,
+  previousMarker,
+  sortedMarkers,
+} from "./markerList.ts";
+
+const marker = (id: number, start: number, duration = 0) => ({
+  id,
+  name: `M${id}`,
+  kind: "comment" as const,
+  start_ticks: start,
+  duration_ticks: duration,
+  color: "",
+});
+
+test("sortedMarkers orders by start tick then id", () => {
+  const ids = sortedMarkers([marker(3, 200), marker(1, 100), marker(2, 100)]).map(
+    (item) => item.id,
+  );
+  assert.deepEqual(ids, [1, 2, 3]);
+});
+
+test("navigation skips the marker under the playhead", () => {
+  const markers = [marker(1, 100), marker(2, 300), marker(3, 500)];
+  assert.equal(nextMarker(markers, 100)?.id, 2);
+  assert.equal(nextMarker(markers, 0)?.id, 1);
+  assert.equal(nextMarker(markers, 500), null);
+  assert.equal(previousMarker(markers, 300)?.id, 1);
+  assert.equal(previousMarker(markers, 100), null);
+});
+
+test("lane geometry converts ticks to pixels at the current zoom", () => {
+  const range = marker(1, 500, 250);
+  assert.equal(markerLeftPx(range, 100), (500 / 254_016_000_000) * 100);
+  assert.ok(markerWidthPx(range, 100) >= 4, "range markers keep a visible minimum");
+  assert.equal(markerWidthPx(marker(2, 0), 100), 0, "point markers render a pin");
+});
+
+test("default range prefers ordered in/out marks", () => {
+  assert.deepEqual(defaultMarkerRange(50, 10, 400), { start: 10, end: 400 });
+  assert.deepEqual(defaultMarkerRange(50, 400, 10), {
+    start: 50,
+    end: 50 + 254_016_000_000 * 2,
+  });
+  assert.deepEqual(defaultMarkerRange(50, null, null), {
+    start: 50,
+    end: 50 + 254_016_000_000 * 2,
+  });
+});

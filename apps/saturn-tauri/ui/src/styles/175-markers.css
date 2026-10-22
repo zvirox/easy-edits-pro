@@ -1,0 +1,272 @@
+/* ------------------------------------------------------------------
+   Phase 4 — sequence markers
+   The lane is timeline media surface: no glass, no blur, no motion.
+   ------------------------------------------------------------------ */
+
+.marker-lane {
+  position: sticky;
+  top: 0;
+  z-index: 9;
+  display: block;
+  height: 22px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* The ruler sits directly below the marker lane; both stay pinned while the
+   tracks scroll vertically. */
+.timeline-ruler {
+  top: 22px;
+}
+
+.marker-lane-hint {
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  color: var(--text-sub);
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.marker-pin {
+  position: absolute;
+  top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 16px;
+  padding: 0 4px;
+  border: 1px solid var(--marker-color);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--marker-color) 18%, transparent);
+  color: var(--text-main);
+  font: 9.5px/1 var(--font-ui, sans-serif);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.marker-pin.is-point {
+  width: 12px;
+  min-width: 12px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 2px 2px 6px 6px;
+}
+
+.marker-pin.is-selected {
+  box-shadow: 0 0 0 1px var(--marker-color);
+  background: color-mix(in srgb, var(--marker-color) 34%, transparent);
+}
+
+.marker-pin-cap {
+  flex: 0 0 auto;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--marker-color);
+}
+
+.marker-pin.is-point .marker-pin-cap {
+  width: 6px;
+  height: 6px;
+}
+
+.marker-pin-label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.marker-pin.is-point .marker-pin-label {
+  position: absolute;
+  left: 14px;
+  max-width: 140px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.marker-pin.is-point:hover .marker-pin-label,
+.marker-pin.is-point.is-selected .marker-pin-label {
+  opacity: 1;
+}
+
+/* ---------------- Markers panel ---------------- */
+
+.markers-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  min-height: 0;
+  padding: 8px;
+  color: var(--text-main);
+  font-size: 11px;
+}
+
+.markers-panel-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.markers-panel-spacer {
+  flex: 1;
+}
+
+.markers-empty {
+  margin: 8px 4px;
+  color: var(--text-sub);
+  line-height: 1.5;
+}
+
+.markers-empty kbd {
+  padding: 1px 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--bg-subpanel);
+  font-size: 10px;
+}
+
+.marker-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.marker-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.marker-row:hover {
+  background: var(--bg-hover);
+}
+
+.marker-row.is-selected {
+  border-color: var(--border-strong);
+  background: var(--bg-selected);
+}
+
+.marker-jump {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 3px;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.marker-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.marker-time {
+  font: 10px/1 monospace;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+.marker-name-input {
+  flex: 1 1 auto;
+  min-width: 40px;
+  padding: 3px 5px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-main);
+  font: inherit;
+}
+
+.marker-name-input:hover,
+.marker-name-input:focus {
+  border-color: var(--border-color);
+  background: var(--bg-subpanel);
+  outline: none;
+}
+
+.marker-kind-select {
+  flex: 0 0 auto;
+  max-width: 92px;
+  padding: 2px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--bg-subpanel);
+  color: var(--text-secondary);
+  font: 9.5px/1 var(--font-ui, sans-serif);
+}
+
+.marker-span {
+  flex: 0 0 auto;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--bg-subpanel);
+  color: var(--text-sub);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.marker-delete {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-sub);
+  cursor: pointer;
+}
+
+.marker-delete:hover {
+  background: var(--bg-hover);
+  color: var(--status-danger-text);
+}
+
+.marker-delete svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.markers-panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-sub);
+  font-size: 10px;
+}
+
+.markers-clear {
+  border: 0;
+  background: transparent;
+  color: var(--text-sub);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.markers-clear:hover {
+  color: var(--status-danger-text);
+}
