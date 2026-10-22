@@ -1,0 +1,358 @@
+/* Essential Graphics: the graphics floating panel, inspector fields, and the
+   preview overlay boxes share the glass surfaces defined here. Colours are
+   tokens only; overlay text uses --accent-text (never --accent-primary). */
+
+/* ---------------- Graphics panel ---------------- */
+
+.graphics-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
+  padding: 8px;
+  color: var(--text-main);
+  font-size: 11px;
+  overflow-y: auto;
+}
+
+.graphics-add-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.graphics-empty {
+  margin: 8px 2px;
+  color: var(--text-sub);
+  line-height: 1.5;
+}
+
+.graphics-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.graphics-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  text-align: left;
+}
+
+.graphics-item:hover {
+  background: var(--glass-highlight);
+}
+
+.graphics-item.is-selected {
+  border-color: var(--accent-primary);
+  background: var(--glass-l2);
+}
+
+.graphics-item.is-live::after {
+  content: "live";
+  margin-left: auto;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.graphics-item-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--accent-primary);
+  flex: none;
+}
+
+.graphics-item-swatch.kind-text {
+  background: transparent;
+  border: 1px solid var(--accent-text);
+  border-radius: 2px;
+}
+
+.graphics-item-swatch.kind-ellipse {
+  border-radius: 50%;
+}
+
+.graphics-item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graphics-item-kind {
+  margin-left: auto;
+  color: var(--text-sub);
+  font-size: 10px;
+}
+
+/* ---------------- Inspector ---------------- */
+
+.graphics-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.graphics-inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.graphics-name {
+  font-weight: 600;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.graphics-inspector-actions {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+
+.graphics-transform-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.graphics-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  color: var(--text-sub);
+}
+
+.graphics-field span {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.graphics-field input,
+.graphics-field select,
+.graphics-text-input {
+  width: 100%;
+  padding: 3px 5px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-main);
+  font: inherit;
+}
+
+.graphics-text-input {
+  resize: vertical;
+  min-height: 34px;
+}
+
+.graphics-font-row select {
+  text-overflow: ellipsis;
+}
+
+.graphics-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.graphics-section h4 {
+  margin: 0;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+}
+
+.graphics-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.graphics-color-row input[type="color"] {
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: transparent;
+}
+
+.graphics-color-row .graphics-field {
+  flex: 1;
+}
+
+.graphics-arrange-row,
+.graphics-align-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.graphics-mini-preview {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 4px;
+  background: var(--bg-input);
+}
+
+.graphics-mini-frame {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 4px;
+  background:
+    repeating-conic-gradient(var(--glass-highlight) 0% 25%, transparent 0% 50%) 0 0 / 16px 16px;
+}
+
+.graphics-templates ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.graphics-template-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  text-align: left;
+}
+
+.graphics-template-row:hover {
+  border-color: var(--accent-primary);
+}
+
+/* ---------------- Slice 4: item flags + canvas interaction ---------------- */
+
+.graphics-list-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.graphics-list-row .graphics-item {
+  flex: 1;
+  min-width: 0;
+}
+
+.graphics-item-flags {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}
+
+.graphics-flag {
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-sub);
+  cursor: pointer;
+  font-size: 9px;
+  letter-spacing: 0.02em;
+}
+
+.graphics-flag.is-on {
+  color: var(--accent-text);
+  border-color: var(--border-strong);
+}
+
+.graphics-overlay-layer.is-interactive[data-tool="type"],
+.graphics-overlay-layer.is-interactive[data-tool="verticalType"] {
+  cursor: text;
+}
+
+.graphics-overlay-layer.is-interactive[data-tool="rectangle"],
+.graphics-overlay-layer.is-interactive[data-tool="ellipse"] {
+  cursor: crosshair;
+}
+
+.graphics-overlay-text.is-locked,
+.graphics-overlay-shape.is-locked {
+  cursor: not-allowed;
+}
+
+.graphics-overlay-text.is-selected,
+.graphics-overlay-shape.is-selected {
+  outline: 1px dashed var(--accent-text);
+  outline-offset: 2px;
+}
+
+.graphics-overlay-text.is-dragging,
+.graphics-overlay-shape.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.graphics-overlay-text,
+.graphics-overlay-shape {
+  user-select: none;
+}
+
+.graphics-resize-handle {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--accent-text);
+  border: 1px solid var(--glass-l4);
+  cursor: nwse-resize;
+  pointer-events: auto;
+}
+
+/* ---------------- Preview overlay ---------------- */
+
+.graphics-overlay-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Container for cqh font sizing; affects only its own subtree. */
+  container-type: size;
+}
+
+.graphics-overlay-text {
+  position: absolute;
+  color: var(--accent-text);
+  overflow: hidden;
+}
+
+.graphics-overlay-shape {
+  position: absolute;
+}
