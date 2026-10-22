@@ -1,0 +1,69 @@
+/* ------------------------------------------------------------------
+   Phase 4 — media organisation
+   Asset metadata is descriptive; it never touches a media surface.
+   ------------------------------------------------------------------ */
+
+.media-metadata-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.media-metadata-grid label,
+.media-metadata-comment {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.media-metadata-comment {
+  margin-bottom: 12px;
+}
+
+.media-metadata-grid input,
+.media-metadata-comment textarea {
+  padding: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-input);
+  color: var(--text-main);
+  font: inherit;
+  resize: vertical;
+}
+
+.media-metadata-grid input:focus,
+.media-metadata-comment textarea:focus {
+  border-color: var(--border-strong);
+  outline: none;
+}
+
+.media-metadata-comment textarea {
+  min-height: 56px;
+}
+
+.bin-rename-btn,
+.bin-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 2px;
+  border-radius: 3px;
+  color: var(--text-sub);
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bin-rename-btn:hover,
+.bin-close-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-main);
+}
+
+.bin-close-btn:hover {
+  color: var(--status-danger-text);
+}
