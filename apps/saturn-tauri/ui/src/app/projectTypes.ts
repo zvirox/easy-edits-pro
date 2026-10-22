@@ -1,15 +1,17 @@
 import type {
-  AudioBus, AudioPluginInstance, AutomationMode, BusTarget, CollaborationState, EffectInstance,
-  HslQualifier, Keyframe, MotionBlurParams, MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves,
-  SpeedRamp, SubtitleItem, TrackAudioProcessing, TrackAutomation, TrackGroup,
-  SilenceInterval,
+  AudioBus, AudioPluginInstance, AutomationMode, BusTarget, CaptionStyle, CaptionTrack,
+  GraphicItem, GraphicTemplate,
+  CollaborationState, EffectInstance, HslQualifier, Keyframe, MotionBlurParams,
+  MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves, SpeedRamp, SubtitleItem,
+  TrackAudioProcessing, TrackAutomation, TrackGroup, SilenceInterval,
 } from "../engine/playbackEngine";
 
 export type {
-  AudioBus, AudioPluginInstance, AutomationMode, BusTarget, CollaborationState, EffectInstance,
-  HslQualifier, Keyframe, MotionBlurParams, MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves,
-  SpeedRamp, SubtitleItem, TrackAudioProcessing, TrackAutomation, TrackGroup,
-  SilenceInterval,
+  AudioBus, AudioPluginInstance, AutomationMode, BusTarget, CaptionStyle, CaptionTrack,
+  GraphicItem, GraphicTemplate,
+  CollaborationState, EffectInstance, HslQualifier, Keyframe, MotionBlurParams,
+  MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves, SpeedRamp, SubtitleItem,
+  TrackAudioProcessing, TrackAutomation, TrackGroup, SilenceInterval,
 };
 
 export type MediaKind = "video" | "audio" | "image" | "title" | "compound_sequence" | "unknown";
@@ -36,6 +38,16 @@ export type Transition = {
   cut_at: number;
   duration: number;
 };
+export type MarkerKind = "comment" | "chapter" | "flash_cue" | "web_link" | "segmentation";
+export type Marker = {
+  id: number;
+  name: string;
+  kind: MarkerKind;
+  start_ticks: number;
+  duration_ticks: number;
+  color: string;
+  note: string;
+};
 export type Sequence = {
   id?: number;
   name: string;
@@ -43,7 +55,9 @@ export type Sequence = {
   track_groups?: TrackGroup[];
   mark_in: number | null;
   mark_out: number | null;
-  subtitles?: SubtitleItem[];
+  markers?: Marker[];
+  caption_tracks?: CaptionTrack[];
+  graphics?: GraphicItem[];
   multicam_clips?: MultiCamClip[];
   buses?: AudioBus[];
   node_graph?: NodeGraph | null;
@@ -69,6 +83,9 @@ export type MediaAsset = {
   color_label?: string | null;
   color_tag?: string | null;
   tags?: string[] | null;
+  comment?: string | null;
+  scene?: string | null;
+  take?: string | null;
   is_missing?: boolean;
   title?: TitleProperties | null;
   waveform?: number[] | null;
@@ -151,6 +168,7 @@ export type ProjectDocument = {
     media: MediaAsset[];
     sequence: Sequence;
     sequences?: Sequence[];
+    graphic_templates?: GraphicTemplate[];
     collaboration?: CollaborationState;
     settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
   };

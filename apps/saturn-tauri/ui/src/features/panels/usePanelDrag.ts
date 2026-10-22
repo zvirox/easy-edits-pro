@@ -1,9 +1,10 @@
 import { useRef } from "react";
 import { snapRect, ALL_EDGES, type ViewportSize } from "./snapping.ts";
+import { dockZoneAt, type DockZone } from "./docking.ts";
 import { SNAP_THRESHOLD_PX, type PanelRect } from "./types.ts";
 
 interface DragOptions {
-  viewport: ViewportSize;
+  viewport: ViewportSize & { left?: number; top?: number };
   onMove: (next: PanelRect) => void;
   /** Called on drag end so persistence can settle. */
   onEnd?: () => void;
@@ -12,6 +13,14 @@ interface DragOptions {
     id: string;
     rect: { x: number; y: number; width: number; height: number };
   }[];
+  /**
+   * Dock-zone tracking (G4a deferred): the zone under the pointer is reported
+   * while dragging and at drop time so the host can preview and apply docks.
+   * Pinned panels opt out entirely.
+   */
+  dockable?: boolean;
+  onDockTarget?: (zone: DockZone | null) => void;
+  onDrop?: (zone: DockZone | null) => void;
 }
 
 interface DragStart {
@@ -26,7 +35,15 @@ interface DragStart {
  * Buttons and interactive elements inside headers opt out via `closest()`, so
  * panel actions stay clickable while the rest of the header drags.
  */
-export function usePanelDrag({ viewport, onMove, onEnd, others }: DragOptions) {
+export function usePanelDrag({
+  viewport,
+  onMove,
+  onEnd,
+  others,
+  dockable = true,
+  onDockTarget,
+  onDrop,
+}: DragOptions) {
   const dragging = useRef(false);
 
   function startDrag({ event, current }: DragStart) {
@@ -45,6 +62,7 @@ export function usePanelDrag({ viewport, onMove, onEnd, others }: DragOptions) {
       height: current.height * viewport.height,
     };
     dragging.current = true;
+    let dockTarget: DockZone | null = null;
     const handle = event.currentTarget as HTMLElement;
     handle.setPointerCapture(event.pointerId);
 
@@ -65,6 +83,18 @@ export function usePanelDrag({ viewport, onMove, onEnd, others }: DragOptions) {
         width: current.width,
         height: current.height,
       });
+      if (dockable) {
+        const zone = dockZoneAt(
+          moveEvent.clientX - (viewport.left ?? 0),
+          moveEvent.clientY - (viewport.top ?? 0),
+          viewport,
+        );
+        // Only report changes; the ghost overlay is React state downstream.
+        if (zone !== dockTarget) {
+          dockTarget = zone;
+          onDockTarget?.(zone);
+        }
+      }
     };
 
     const handleUp = () => {
@@ -75,6 +105,10 @@ export function usePanelDrag({ viewport, onMove, onEnd, others }: DragOptions) {
         handle.releasePointerCapture(event.pointerId);
       } catch {
         // The handle already unmounted; nothing to release.
+      }
+      if (dockable) {
+        onDrop?.(dockTarget);
+        if (dockTarget !== null) onDockTarget?.(null);
       }
       // The clamped set position comes from the layout layer during onMove.
       onEnd?.();

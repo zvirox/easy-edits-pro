@@ -395,6 +395,18 @@ Eliminate layout animation; use motion/react for all transitions; respect reduce
 > **Deferred:** dock zones with ghost preview, pin semantics beyond the flag, `panelStore` (React state in
 > `usePanelLayout` was enough — no Zustand dependency added), per-workspace migration beyond Edit,
 > Window-menu reopen commands, stryker mutation testing.
+> **Deferred work landed 2026-10-21:** dock zones with ghost preview
+> (`features/panels/docking.ts` — dropping a panel within 64px of a region edge reflows it onto that half;
+> `PanelHost` renders the ghost highlight, pinned panels never dock), pin semantics
+> (`features/panels/zOrder.ts` — pinned panels always render above the raise stack, unit tested), and
+> Window ▸ "Reopen Closed Panels" (`window.reopen_panels` catalogue command + `PANEL_REOPEN_EVENT`).
+> **G4c migration landed 2026-10-21:** Effects ("Effect Stack" panel, workspace
+> `effects`), Scopes ("Video Scopes" panel, workspace `color`), and Chat
+> ("AI Assistant" panel, workspace `global`, opened from the app header and
+> synced back through `PanelHost.onPanelClosed`). Docked grids keep their
+> stages full width; `.workspace-float-region` hosts each layout anchor so
+> panels stay below the app chrome. **Still deferred:** `usePanelLayout`
+> persist/load unit tests, `panelStore`, stryker mutation testing.
 
 ### Objective
 Build production-ready floating panel system with persist, snap, dock, responsiveness.
@@ -416,35 +428,35 @@ src/features/panels/
 ### Work Packets
 
 #### G4a — Core Interactions
-- [ ] Drag by header (cursor: grab/grabbing)
-- [ ] 8-handle resize (n, ne, e, se, s, sw, w, nw)
-- [ ] Bring-to-front on interaction
-- [ ] Snap to viewport edges + other panels (~12px threshold)
-- [ ] Dock zones with ghost preview (drop target highlight)
-- [ ] Collapse to chip (title only, fixed width)
-- [ ] Pin (exclude from auto-dock)
-- [ ] Close with scale-fade (motion/react)
-- [ ] Window menu → reopen closed panels
-- [ ] "Reset layout" command
+- [x] Drag by header (cursor: grab/grabbing)
+- [x] 8-handle resize (n, ne, e, se, s, sw, w, nw)
+- [x] Bring-to-front on interaction
+- [x] Snap to viewport edges + other panels (~12px threshold)
+- [x] Dock zones with ghost preview (drop target highlight)
+- [x] Collapse to chip (title only, fixed width)
+- [x] Pin (exclude from auto-dock)
+- [x] Close with scale-fade (motion/react)
+- [x] Window menu → reopen closed panels
+- [x] "Reset layout" command
 
 #### G4b — Layout Persistence
-- [ ] Store positions as **viewport fractions** (0–1) with min/max clamps
-- [ ] On window resize: recalculate pixel positions from fractions
-- [ ] Persist per workspace (Rust command `save_panel_layout` + `load_panel_layout`)
-- [ ] LocalStorage fallback for non-project state
-- [ ] Validate on load against current screen size (clamp if needed)
+- [x] Store positions as **viewport fractions** (0–1) with min/max clamps
+- [x] On window resize: recalculate pixel positions from fractions
+- [x] Persist per workspace (Rust command `save_panel_layout` + `load_panel_layout`)
+- [x] LocalStorage fallback for non-project state
+- [x] Validate on load against current screen size (clamp if needed)
 
 #### G4c — Migration Order (Low Risk → High Risk)
-1. [ ] **Inspector** (simple, read-only-ish)
-2. [ ] **Media Pool** (drag source, no internal state)
-3. [ ] **Effects** (parameter controls)
-4. [ ] **Scopes** (read-only visual)
-5. [ ] **Chat** (OllamaChatDrawer — already floating)
-- [ ] Keep Preview + Timeline **docked** (never floating)
+1. [x] **Inspector** (simple, read-only-ish)
+2. [x] **Media Pool** (drag source, no internal state)
+3. [x] **Effects** (parameter controls)
+4. [x] **Scopes** (read-only visual)
+5. [x] **Chat** (OllamaChatDrawer — already floating)
+- [x] Keep Preview + Timeline **docked** (never floating)
 
 #### G4d — Unit Tests
-- [ ] `snapping.ts`: edge cases (overlapping snaps, viewport boundaries)
-- [ ] `layouts.ts`: fraction→pixel roundtrip, clamp validation
+- [x] `snapping.ts`: edge cases (overlapping snaps, viewport boundaries)
+- [x] `layouts.ts`: fraction→pixel roundtrip, clamp validation
 - [ ] `usePanelLayout.ts`: persist/load, resize handling
 
 ### Acceptance Criteria

@@ -35,6 +35,9 @@ impl EditorEngine {
                     bin_id: params.bin_id,
                     color_label: params.color_label,
                     tags: params.tags,
+                    comment: String::new(),
+                    scene: String::new(),
+                    take: String::new(),
                     is_missing: false,
                     title: params.title,
                     waveform: params.waveform,
@@ -212,6 +215,18 @@ impl EditorEngine {
                             params.media_id
                         ))
                     })?;
+                if params.comment.as_ref().is_some_and(|value| value.len() > 4000) {
+                    return Err(DispatchError::InvalidParameters(
+                        "Asset comment is limited to 4000 characters".into(),
+                    ));
+                }
+                if params.scene.as_ref().is_some_and(|value| value.len() > 200)
+                    || params.take.as_ref().is_some_and(|value| value.len() > 200)
+                {
+                    return Err(DispatchError::InvalidParameters(
+                        "Scene and take are limited to 200 characters".into(),
+                    ));
+                }
                 self.checkpoint();
                 let media = &mut self.document.project.media[media_idx];
                 if let Some(name) = params.name {
@@ -225,12 +240,24 @@ impl EditorEngine {
                 if let Some(tags) = params.tags {
                     media.tags = tags;
                 }
+                if let Some(comment) = params.comment {
+                    media.comment = comment;
+                }
+                if let Some(scene) = params.scene {
+                    media.scene = scene.trim().to_string();
+                }
+                if let Some(take) = params.take {
+                    media.take = take.trim().to_string();
+                }
                 Ok(json!({
                     "updated": true,
                     "media_id": params.media_id,
                     "name": media.name,
                     "color_label": media.color_label,
                     "tags": media.tags,
+                    "comment": media.comment,
+                    "scene": media.scene,
+                    "take": media.take,
                 }))
             })()),
             "media.check_missing" => Some((|| {

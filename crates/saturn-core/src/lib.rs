@@ -1,9 +1,11 @@
 pub mod catalogue;
 pub mod command;
 pub mod engine;
+pub mod graphics_layout;
 pub mod interop;
 pub mod job;
 pub mod local_control;
+pub mod markers;
 pub mod project;
 pub mod speech;
 pub mod subtitles;
@@ -27,7 +29,7 @@ pub use project::{
     AudioBus, AudioPluginInstance, AutomationMode, AutomationPoint, BusTarget, ChromaKeyParams,
     Clip, ColorAdjustments, ColorCorrectionParams, ColorWheelParam, ColorWheels, CropParams,
     EffectInstance, EffectKind, EffectPayload, GaussianBlurParams, InterpolationKind, Keyframe,
-    KeyframeProperty, LutParams, MediaAsset, MediaKind, MotionTrackingData, MultiCamAngle,
+    KeyframeProperty, LutParams, Marker, MarkerKind, MediaAsset, MediaKind, MotionTrackingData, MultiCamAngle,
     MultiCamClip, MultiCamSyncMode, ProjectDocument, ProjectSettings, Sequence, SubtitleItem,
     TitleProperties, Track, TrackAudioProcessing, TrackAutomation, TrackKind, TrackPoint,
     TrackingMode, Transition, TransitionKind, VignetteParams,

@@ -6,6 +6,7 @@ import {
   useMotionPreset,
 } from "../../motion/variants";
 import { usePanelDrag } from "./usePanelDrag.ts";
+import type { DockZone } from "./docking.ts";
 import {
   usePanelResize,
   RESIZE_DIRECTIONS,
@@ -33,6 +34,10 @@ export interface FloatingPanelProps {
   onTogglePin: () => void;
   onClose: () => void;
   onOpen: () => void;
+  /** Dock-zone tracking during drags (ghost preview); null clears it. */
+  onDockTarget?: (zone: DockZone | null) => void;
+  /** Called on drag end with the drop dock zone, if any. */
+  onDropDock?: (zone: DockZone | null) => void;
 }
 
 /**
@@ -57,12 +62,18 @@ export function FloatingPanel({
   onTogglePin,
   onClose,
   onOpen,
+  onDockTarget,
+  onDropDock,
 }: FloatingPanelProps) {
   const preset = useMotionPreset();
   const { startDrag } = usePanelDrag({
     viewport: region,
     onMove: (next) => onMove(next, "drag"),
     others: otherRects,
+    // Pin semantics (G4a deferred): a pinned panel never docks.
+    dockable: !pinned,
+    onDockTarget,
+    onDrop: onDropDock,
   });
   const startResize = usePanelResize({
     viewport: region,

@@ -4,6 +4,8 @@ import { ColorWheels, type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "../comp
 import { RgbCurvesEditor } from "../components/RgbCurvesEditor";
 import { HslQualifierEditor } from "../components/HslQualifierEditor";
 import { VideoScopes } from "../components/VideoScopes";
+import { PanelHost, type PanelEntry } from "../features/panels";
+import { COLOR_CONSTRAINTS } from "../features/panels/layouts";
 import {
   type ProjectDocument,
   type MediaAsset,
@@ -184,6 +186,7 @@ export function ColorWorkspace({
         </div>
       </header>
 
+      <div className="workspace-float-region">
       <div className="color-studio-body">
         {/* Top Half: Side-by-Side Program Monitor + Video Scopes */}
         <div className="color-top-row">
@@ -211,21 +214,10 @@ export function ColorWorkspace({
             </div>
           </section>
 
-          {/* Video Scopes Stage */}
-          <section className="color-scopes-stage">
-            <VideoScopes
-              getActiveVideo={() => {
-                if (deckSnapshot?.deckB.visible && deckBRef.current) return deckBRef.current;
-                return deckARef.current;
-              }}
-              activeFilter={
-                deckSnapshot?.deckB.visible
-                  ? (deckSnapshot.deckB.style.filter as string | undefined)
-                  : (deckSnapshot?.deckA.style.filter as string | undefined)
-              }
-            />
-          </section>
         </div>
+
+        {/* Video scopes are a G4c floating panel (G4c #4); the monitor keeps
+            the top row and the scopes panel is mounted below. */}
 
         {/* Bottom Half: 4 Primary Color Wheels Dock + Sliders & Presets */}
         <div className="color-bottom-row">
@@ -450,6 +442,36 @@ export function ColorWorkspace({
             </div>
           </aside>
         </div>
+      </div>
+
+      <div className="editor-panel-layer">
+        <PanelHost
+          workspace="color"
+          entries={
+            [
+              {
+                id: "scopes",
+                title: "Video Scopes",
+                constraints: COLOR_CONSTRAINTS["scopes"],
+                render: () => (
+                  <section className="color-scopes-stage">
+                    <VideoScopes
+                      getActiveVideo={() => {
+                        if (deckSnapshot?.deckB.visible && deckBRef.current) return deckBRef.current;
+                        return deckARef.current;
+                      }}
+                      activeFilter={
+                        deckSnapshot?.deckB.visible
+                          ? (deckSnapshot.deckB.style.filter as string | undefined)
+                          : (deckSnapshot?.deckA.style.filter as string | undefined)
+                      }
+                    />
+                  </section>
+                ),
+              },
+          ] as PanelEntry[]}
+        />
+      </div>
       </div>
 
       {/* Bottom Clips Reel Tray */}

@@ -169,7 +169,14 @@ pub async fn transcribe_audio_speech(
         ))
         .map_err(|e| e.to_string())?;
 
-    Ok(engine.document().project.sequence.subtitles.clone())
+    Ok(engine
+        .document()
+        .project
+        .sequence
+        .caption_tracks
+        .first()
+        .map(|track| track.cues.clone())
+        .unwrap_or_default())
 }
 
 #[tauri::command]

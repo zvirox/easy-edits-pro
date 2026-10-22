@@ -146,6 +146,12 @@ export function EditorModals({
         setMediaEditPropsColor={mediaOps.setMediaEditPropsColor}
         mediaEditPropsTags={mediaOps.mediaEditPropsTags}
         setMediaEditPropsTags={mediaOps.setMediaEditPropsTags}
+        mediaEditPropsComment={mediaOps.mediaEditPropsComment}
+        setMediaEditPropsComment={mediaOps.setMediaEditPropsComment}
+        mediaEditPropsScene={mediaOps.mediaEditPropsScene}
+        setMediaEditPropsScene={mediaOps.setMediaEditPropsScene}
+        mediaEditPropsTake={mediaOps.mediaEditPropsTake}
+        setMediaEditPropsTake={mediaOps.setMediaEditPropsTake}
         media={media}
         project={project}
         moveMediaToBin={mediaOps.moveMediaToBin}
@@ -166,6 +172,8 @@ export function EditorModals({
         }}
       />
 
+      {/* The AI Assistant is a G4c floating panel; EditorModals sits inside the
+          app workspace region, so the panel never covers the chrome. */}
       <OllamaChatDrawer
         isOpen={mediaOps.aiChatDrawerOpen}
         onClose={() => mediaOps.setAiChatDrawerOpen(false)}

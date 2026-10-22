@@ -1,8 +1,9 @@
 import { InteriorButton } from "./interior/interior-button";
 import React, { useState, useRef, useEffect } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { backdropVariants, drawerVariants, useMotionPreset } from "../motion/variants";
 import { invoke } from "@tauri-apps/api/core";
+import { PanelHost, type PanelEntry } from "../features/panels";
+import { GLOBAL_CONSTRAINTS } from "../features/panels/layouts";
+import { PANEL_OPEN_EVENT } from "../features/panels/presets";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -100,7 +101,15 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
     }
   }, [isOpen, messages]);
 
-  const motionPreset = useMotionPreset();
+  // The AI Assistant is an engine-managed floating panel (G4c #5): the App
+  // header's open flag drives it through the panel-open event, and engine
+  // closes (shell ✕ or header ✕) flow back through onPanelClosed.
+  useEffect(() => {
+    if (!isOpen) return;
+    window.dispatchEvent(
+      new CustomEvent(PANEL_OPEN_EVENT, { detail: { id: "ai-chat" } }),
+    );
+  }, [isOpen]);
 
   const activeModelName = showCustomModel && customModel.trim() ? customModel.trim() : model;
 
@@ -197,47 +206,22 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="ai-chat-scrim"
-          style={{
-            position: "fixed",
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            zIndex: 1050,
-            display: "flex",
-            justifyContent: "flex-end",
-            backgroundColor: "color-mix(in srgb, var(--color-black) 45%, transparent)",
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) onClose();
-          }}
-          initial={motionPreset.initial}
-          animate="animate"
-          exit="exit"
-          variants={backdropVariants}
-          transition={motionPreset.transition}
-        >
-          <motion.div
-            className="ai-chat-drawer glass"
-            data-elev="3"
-            style={{
-              width: 520,
-              maxWidth: "92vw",
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              fontFamily: "system-ui, -apple-system, sans-serif",
-            }}
-            initial={motionPreset.initial}
-            animate="animate"
-            exit="exit"
-            variants={drawerVariants}
-            transition={motionPreset.transition}
-          >
+    <div className="editor-panel-layer">
+      <PanelHost
+        workspace="global"
+        defaultHidden={["ai-chat"]}
+        showRail={false}
+        onPanelClosed={() => {
+          if (isOpen) onClose();
+        }}
+        entries={
+          [
+            {
+              id: "ai-chat",
+              title: "AI Assistant",
+              constraints: GLOBAL_CONSTRAINTS["ai-chat"],
+              render: ({ close }) => (
+                <div className="ai-chat-drawer">
         {/* Header */}
         <header
           className="ai-chat-drawer-header"
@@ -293,7 +277,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
             </InteriorButton>
             <InteriorButton
               type="button"
-              onClick={onClose}
+              onClick={close}
               style={{
                 background: "transparent",
                 border: "none",
@@ -647,9 +631,11 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
             </span>
           </div>
         </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+                </div>
+              ),
+            },
+        ] as PanelEntry[]}
+      />
+    </div>
   );
 };

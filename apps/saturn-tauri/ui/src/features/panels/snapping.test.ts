@@ -10,6 +10,9 @@ import {
   defaultLayout,
   EDIT_DEFAULT_RECTS,
   EDIT_CONSTRAINTS,
+  EFFECTS_CONSTRAINTS,
+  COLOR_CONSTRAINTS,
+  GLOBAL_CONSTRAINTS,
 } from "./layouts.ts";
 import { DEFAULT_CONSTRAINTS } from "./types.ts";
 
@@ -39,6 +42,33 @@ test("default edit layout rects are valid on a 1280x720 viewport", () => {
       true,
       `${id} stays inside the viewport vertically`,
     );
+  }
+});
+
+test("effects, color, and global layouts survive the smallest viewport", () => {
+  const suites = [
+    { workspace: "effects", constraints: EFFECTS_CONSTRAINTS },
+    { workspace: "color", constraints: COLOR_CONSTRAINTS },
+    { workspace: "global", constraints: GLOBAL_CONSTRAINTS },
+  ] as const;
+  for (const { workspace, constraints } of suites) {
+    const layout = defaultLayout(workspace);
+    assert.ok(layout, `${workspace} has a default layout`);
+    for (const [id, rect] of Object.entries(layout)) {
+      const clamped = clampPanelRect(rect, viewport1280, constraints[id]);
+      assert.ok(
+        clamped.width >= constraints[id].minWidth,
+        `${workspace}/${id} keeps min width`,
+      );
+      assert.ok(
+        clamped.height >= constraints[id].minHeight,
+        `${workspace}/${id} keeps min height`,
+      );
+      assert.ok(
+        clamped.x + clamped.width <= 1 && clamped.y + clamped.height <= 1,
+        `${workspace}/${id} stays inside the viewport`,
+      );
+    }
   }
 });
 

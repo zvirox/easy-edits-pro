@@ -3,6 +3,7 @@ import {
   type PointerEvent,
   type SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -104,6 +105,10 @@ export function useMediaOperations({
   const [mediaEditPropsId, setMediaEditPropsId] = useState<number | null>(null);
   const [mediaEditPropsName, setMediaEditPropsName] = useState("");
   const [mediaEditPropsColor, setMediaEditPropsColor] = useState("");
+  const [mediaEditPropsComment, setMediaEditPropsComment] = useState("");
+  const [mediaEditPropsScene, setMediaEditPropsScene] = useState("");
+  const [mediaEditPropsTake, setMediaEditPropsTake] = useState("");
+  const populatedEditProps = useRef<number | null>(null);
   const [mediaEditPropsTags, setMediaEditPropsTags] = useState("");
 
   const [newBinName, setNewBinName] = useState("");
@@ -288,16 +293,27 @@ export function useMediaOperations({
   const createMediaBin = useCallback(
     async (name: string, color?: string) => {
       if (!name.trim()) return;
-      await perform("bin.create", { name: name.trim(), color: color || "#be185d" }, `Media bin "${name}" created`);
+      await perform("media.create_bin", { name: name.trim(), color: color || undefined }, `Media bin "${name}" created`);
       setCreateBinModalOpen(false);
       setNewBinName("");
     },
     [perform]
   );
 
+  const renameMediaBin = useCallback(
+    async (binId: number) => {
+      const bin = project?.bins?.find((item) => item.id === binId);
+      if (!bin) return;
+      const name = window.prompt("Rename bin", bin.name);
+      if (name === null || !name.trim() || name.trim() === bin.name) return;
+      await perform("media.rename_bin", { bin_id: binId, name: name.trim() }, `Bin renamed to "${name.trim()}"`);
+    },
+    [perform, project]
+  );
+
   const deleteMediaBin = useCallback(
     async (binId: number) => {
-      await perform("bin.delete", { bin_id: binId }, "Media bin deleted");
+      await perform("media.delete_bin", { bin_id: binId }, "Media bin deleted");
       if (activeBinId === binId) setActiveBinId(null);
     },
     [perform, activeBinId]
@@ -305,18 +321,46 @@ export function useMediaOperations({
 
   const moveMediaToBin = useCallback(
     async (mediaId: number, binId: number | null) => {
-      await perform("bin.move_media", { media_id: mediaId, bin_id: binId }, "Moved media to bin");
+      await perform("media.move_to_bin", { media_id: mediaId, bin_id: binId }, "Moved media to bin");
     },
     [perform]
   );
 
+  // The properties dialog is opened by id; fill the form from the asset the
+  // first time that id is shown so editing never starts from stale values.
+  useEffect(() => {
+    if (mediaEditPropsId === null) {
+      populatedEditProps.current = null;
+      return;
+    }
+    if (populatedEditProps.current === mediaEditPropsId) return;
+    const asset = project?.media?.find((item) => item.id === mediaEditPropsId);
+    if (!asset) return;
+    populatedEditProps.current = mediaEditPropsId;
+    setMediaEditPropsName(asset.name ?? "");
+    setMediaEditPropsColor(asset.color_label ?? "");
+    setMediaEditPropsTags((asset.tags ?? []).join(", "));
+    setMediaEditPropsComment(asset.comment ?? "");
+    setMediaEditPropsScene(asset.scene ?? "");
+    setMediaEditPropsTake(asset.take ?? "");
+  }, [mediaEditPropsId, project]);
+
   const updateMediaProperties = useCallback(
-    async (mediaId: number, name?: string, colorLabel?: string, tags?: string[]) => {
+    async (
+      mediaId: number,
+      name?: string,
+      colorLabel?: string,
+      tags?: string[],
+      metadata?: { comment?: string; scene?: string; take?: string },
+    ) => {
       await perform("media.update_properties", {
         media_id: mediaId,
         name: name || undefined,
         color_label: colorLabel || undefined,
         tags: tags || undefined,
+        comment: metadata?.comment,
+        scene: metadata?.scene,
+        take: metadata?.take,
       }, "Asset properties updated");
       setMediaEditPropsId(null);
     },
@@ -615,6 +659,12 @@ export function useMediaOperations({
     setMediaEditPropsColor,
     mediaEditPropsTags,
     setMediaEditPropsTags,
+    mediaEditPropsComment,
+    setMediaEditPropsComment,
+    mediaEditPropsScene,
+    setMediaEditPropsScene,
+    mediaEditPropsTake,
+    setMediaEditPropsTake,
     newBinName,
     setNewBinName,
     newBinColor,
@@ -644,6 +694,7 @@ export function useMediaOperations({
     importMedia,
     relinkMedia,
     createMediaBin,
+    renameMediaBin,
     deleteMediaBin,
     moveMediaToBin,
     updateMediaProperties,

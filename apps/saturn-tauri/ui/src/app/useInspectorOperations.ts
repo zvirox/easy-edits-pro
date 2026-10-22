@@ -19,6 +19,7 @@ import type {
 } from "../engine/playbackEngine";
 import { type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "../components/ColorWheels";
 import { TICKS_PER_SECOND } from "../engine/playback/constants";
+import { defaultCaptionCues } from "./captions";
 
 export interface UseInspectorOperationsOptions {
   selectedClip: SelectedClip | null;
@@ -263,7 +264,7 @@ export function useInspectorOperations({
   }, [setNotice, setBusy, runCommand, refreshProject]);
 
   const exportSubtitlesDialog = useCallback(async () => {
-    const subtitles = project?.sequence.subtitles ?? [];
+    const subtitles = defaultCaptionCues(project?.sequence);
     if (subtitles.length === 0) {
       setNotice("No subtitles in sequence to export");
       return;

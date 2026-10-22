@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-185 commands.
+225 commands.
 
 ## File
 
@@ -74,7 +74,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Create Compound Clip | `timeline.create_compound_clip` | planned | Ctrl+G | `{"name":str?,"target_track_id":int?,"clips":[obj]}` |
 | Decompose Compound Clip in Place | `timeline.decompose_compound_clip` | planned | Ctrl+Shift+G | `{"track_id":int,"clip_index":int}` |
 | Move Media to Bin | `media.move_to_bin` | planned |  | `{"media_id":int,"bin_id":int?}` |
-| Update Media Properties | `media.update_properties` | planned |  | `{"media_id":int,"name":str?,"color_label":str?,"tags":[str]?}` |
+| Update Media Properties | `media.update_properties` | planned |  | `{"media_id":int,"name":str?,"color_label":str?,"tags":[str]?,"comment":str?,"scene":str?,"take":str?}` |
 | Update Clip RGB Curves | `clip.update_rgb_curves` | planned |  | `{"track_id":int,"clip_index":int,"curves":obj}` |
 | Update Clip HSL Qualifier | `clip.update_hsl_qualifier` | planned |  | `{"track_id":int,"clip_index":int,"qualifier":obj}` |
 | Add Custom GLSL Shader | `clip.add_custom_shader` | planned |  | `{"track_id":int,"clip_index":int,"name":str?,"shader_code":str?,"preset_id":str?,"uniforms":obj?}` |
@@ -131,6 +131,17 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Add Marker | `marker.add` | shipped | M | `{"at":ticks,"duration":ticks?,"name":str?,"kind":str?,"color":str?,"note":str?}` |
+| Add Range Marker | `marker.add_range` | shipped | Shift+M | `{"start":ticks,"end":ticks,"name":str?,"kind":str?,"color":str?,"note":str?}` |
+| Edit Marker | `marker.update` | shipped |  | `{"id":int,"at":ticks?,"duration":ticks?,"name":str?,"kind":str?,"color":str?,"note":str?}` |
+| Delete Marker | `marker.remove` | shipped |  | `{"id":int}` |
+| Clear All Markers | `marker.clear` | shipped |  | `{}` |
+| Go to Next Marker | `marker.next` | shipped | Shift+Right | `{"from":ticks}` |
+| Go to Previous Marker | `marker.previous` | shipped | Shift+Left | `{"from":ticks}` |
+| Split Markers at Playhead | `marker.split` | shipped |  | `{"at":ticks}` |
+| Markers Panel | `marker.panel` | shipped |  | `{}` |
+| Export Markers (CSV) | `marker.export_csv` | shipped |  | `{}` |
+| Import Markers (CSV) | `marker.import_csv` | shipped |  | `{"csv":str,"replace":bool?}` |
 | Set In Point | `timeline.set_mark_in` | shipped | I | `{"at":obj}` |
 | Set Out Point | `timeline.set_mark_out` | shipped | O | `{"at":obj}` |
 | Clear In/Out Points | `timeline.clear_marks` | shipped |  | `{}` |
@@ -139,11 +150,38 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Add Caption Track | `caption.track_add` | planned |  | `{"name":str?,"language":str?}` |
+| Remove Caption Track | `caption.track_remove` | planned |  | `{"id":int}` |
+| Rename Caption Track | `caption.track_rename` | planned |  | `{"id":int,"name":str}` |
+| Add Caption Cue | `caption.cue_add` | shipped |  | `{"track_id":int?,"start_ticks":obj,"end_ticks":obj,"text":str,"speaker":str?,"style_id":int?}` |
+| Edit Caption Cue | `caption.cue_update` | shipped |  | `{"track_id":int,"id":int,"start_ticks":obj?,"end_ticks":obj?,"text":str?,"speaker":str?,"style_id":int?}` |
+| Delete Caption Cue | `caption.cue_remove` | shipped |  | `{"track_id":int,"id":int}` |
+| Nudge Caption Timing | `caption.cue_nudge` | shipped |  | `{"track_id":int,"id":int,"delta_ticks":int}` |
+| Import Captions (SRT/VTT) | `caption.import` | shipped |  | `{"track_id":int?,"content":str}` |
+| Export Captions (SRT/VTT) | `caption.export` | shipped |  | `{"track_id":int?,"format":str?}` |
+| Set Caption Style | `caption.style_set` | planned |  | `{"track_id":int,"id":int?,"name":str?,"font_family":str?,"font_size":num?,"fill_color":str?,"stroke_color":str?,"stroke_width":num?,"background_color":str?}` |
+| Captions Panel | `caption.panel` | shipped |  | `{}` |
 | Update Title Properties | `title.update` | planned |  | `{"media_id":int,"text":str?,"subtitle":str?,"style":str?,"font_size":num?,"color":str?,"bg_color":str?}` |
 | Add Subtitle | `subtitle.add` | planned |  | `{"start_ticks":obj,"end_ticks":obj,"text":str}` |
 | Remove Subtitle | `subtitle.remove` | planned |  | `{"id":int}` |
 | Update Subtitle | `subtitle.update` | planned |  | `{"id":int,"start_ticks":obj?,"end_ticks":obj?,"text":str?}` |
 | Clear Subtitles | `subtitle.clear` | planned |  | `{}` |
+| Essential Graphics Panel | `graphic.panel` | shipped |  | `{}` |
+| List Fonts | `fonts.list` | shipped |  | `{}` |
+| Add Graphic | `graphic.add` | shipped |  | `{"kind":"text\|rectangle\|ellipse\|polygon\|adjustment","name":str?,"start_ticks":obj?,"duration_ticks":obj?,"text":str?}` |
+| Remove Graphic | `graphic.remove` | shipped |  | `{"id":int}` |
+| Duplicate Graphic | `graphic.duplicate` | shipped |  | `{"id":int}` |
+| Set Graphic Flags | `graphic.set_flags` | shipped |  | `{"id":int,"visible":bool?,"locked":bool?}` |
+| Set Graphic Transform | `graphic.set_transform` | shipped |  | `{"id":int,"x":num?,"y":num?,"width":num?,"height":num?,"scale":num?,"rotation":num?,"anchor_x":num?,"anchor_y":num?,"opacity":num?}` |
+| Set Graphic Text | `graphic.set_text` | shipped |  | `{"id":int,"text":str?,"font_family":str?,"font_size":num?,"tracking":num?,"leading":num?,"align":str?,"vertical":bool?}` |
+| Set Graphic Fill | `graphic.set_fill` | shipped |  | `{"id":int,"color":str?,"opacity":num?}` |
+| Set Graphic Stroke | `graphic.set_stroke` | shipped |  | `{"id":int,"color":str?,"width":num?}` |
+| Set Graphic Shadow | `graphic.set_shadow` | shipped |  | `{"id":int,"color":str?,"blur":num?,"offset_x":num?,"offset_y":num?}` |
+| Align Graphics | `graphic.align` | shipped |  | `{"ids":[int],"mode":"left\|hcenter\|right\|top\|vcenter\|bottom"}` |
+| Distribute Graphics | `graphic.distribute` | shipped |  | `{"ids":[int],"axis":"horizontal\|vertical"}` |
+| Arrange Graphic Order | `graphic.arrange` | shipped |  | `{"id":int,"order":"front\|back\|forward\|backward"}` |
+| Save Graphic Template | `graphic.template_save` | shipped |  | `{"graphic_id":int,"name":str}` |
+| Apply Graphic Template | `graphic.template_apply` | shipped |  | `{"template_id":int,"start_ticks":obj?}` |
 
 ## Audio
 
@@ -212,6 +250,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Layout Preset: All Panels | `workspace.preset_all_panels` | shipped |  | `{}` |
 | Manage Layout Presets… | `workspace.manage_presets` | shipped |  | `{}` |
 | Reset Panel Layout | `window.reset_layout` | shipped |  | `{}` |
+| Reopen Closed Panels | `window.reopen_panels` | shipped |  | `{}` |
 
 ## Help
 

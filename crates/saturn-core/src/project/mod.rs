@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 pub const PROJECT_FORMAT: &str = "easy-edits-pro.project";
 pub const LEGACY_PROJECT_FORMAT: &str = "project-saturn.project";
-pub const PROJECT_SCHEMA_VERSION: u32 = 10;
+pub const PROJECT_SCHEMA_VERSION: u32 = 14;
 
 mod io;
 mod migrate;
@@ -36,12 +36,15 @@ impl ProjectDocument {
                 },
                 media: Vec::new(),
                 bins: Vec::new(),
+                graphic_templates: Vec::new(),
                 sequence: Sequence {
                     id: 1,
                     name: "Sequence 1".into(),
                     mark_in: None,
                     mark_out: None,
-                    subtitles: Vec::new(),
+                    caption_tracks: Vec::new(),
+                    graphics: Vec::new(),
+                    markers: Vec::new(),
                     multicam_clips: Vec::new(),
                     buses: default_audio_buses(),
                     node_graph: None,
@@ -114,6 +117,9 @@ impl ProjectDocument {
         for item in &self.project.media {
             if !ids.insert(item.id) {
                 return Err(format!("Duplicate media id {}", item.id));
+            }
+            if item.comment.len() > 4000 || item.scene.len() > 200 || item.take.len() > 200 {
+                return Err(format!("Media {} has oversized metadata", item.name));
             }
         }
         for track in &self.project.sequence.tracks {
@@ -253,12 +259,65 @@ impl ProjectDocument {
                 }
             }
         }
-        for sub in &self.project.sequence.subtitles {
-            if sub.start_ticks.0 < 0
-                || sub.end_ticks.0 <= sub.start_ticks.0
-                || sub.text.trim().is_empty()
-            {
-                return Err("Project contains an invalid subtitle item".into());
+        for track in self
+            .project
+            .sequence
+            .caption_tracks
+            .iter()
+            .chain(
+                self.project
+                    .sequences
+                    .iter()
+                    .flat_map(|sequence| &sequence.caption_tracks),
+            )
+        {
+            for sub in &track.cues {
+                if sub.start_ticks.0 < 0
+                    || sub.end_ticks.0 <= sub.start_ticks.0
+                    || sub.text.trim().is_empty()
+                {
+                    return Err("Project contains an invalid caption cue".into());
+                }
+            }
+            if track.name.trim().is_empty() {
+                return Err("Project contains a caption track without a name".into());
+            }
+        }
+        for sequence in std::iter::once(&self.project.sequence).chain(&self.project.sequences) {
+            for graphic in &sequence.graphics {
+                if graphic.duration_ticks.0 <= 0 || graphic.start_ticks.0 < 0 {
+                    return Err("Project contains a graphic with invalid timing".into());
+                }
+                if graphic.transform.width < 0.0 || graphic.transform.height < 0.0 {
+                    return Err("Project contains a graphic with negative size".into());
+                }
+                if !(0.0..=1.0).contains(&graphic.transform.opacity) {
+                    return Err("Project contains a graphic with out-of-range opacity".into());
+                }
+                if graphic.kind == crate::project::GraphicKind::Text
+                    && graphic
+                        .text
+                        .as_ref()
+                        .is_some_and(|text| text.content.trim().is_empty())
+                {
+                    return Err("Project contains a text graphic without content".into());
+                }
+            }
+            for marker in &sequence.markers {
+                if marker.name.trim().is_empty() {
+                    return Err("Project contains a marker without a name".into());
+                }
+                if marker.start_ticks.0 < 0 || marker.duration_ticks.0 < 0 {
+                    return Err("Project contains a marker with invalid timing".into());
+                }
+                if marker
+                    .start_ticks
+                    .0
+                    .checked_add(marker.duration_ticks.0)
+                    .is_none()
+                {
+                    return Err("Project contains a marker that overflows the timebase".into());
+                }
             }
         }
         Ok(())

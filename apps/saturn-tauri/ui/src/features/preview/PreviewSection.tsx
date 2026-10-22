@@ -7,6 +7,7 @@ import { audioClockMaster, type MultiCamClip } from "../../engine/playbackEngine
 import type { MediaAsset, ProjectDocument, TitleProperties } from "../../app/projectTypes";
 import { SourceAudioVisualizer } from "../../components/SourceAudioVisualizer";
 import { LiveMulticamSwitcher } from "../../components/LiveMulticamSwitcher";
+import { CanvasGraphicsLayer, type GraphicsEditing } from "../graphics/CanvasGraphicsLayer";
 import type { TimelinePlaybackSnapshot as DeckSnapshot, ActiveAudioClip } from "../../engine/playbackEngine";
 
 /** What the unified monitor's Source tab should currently show. */
@@ -21,8 +22,7 @@ export interface SourcePreviewFocus {
 export type MonitorMode = "program" | "multicam" | "source";
 export type ThreePointMode = "insert" | "overwrite";
 
-export interface PreviewSectionProps {
-  selectedMedia: MediaAsset | null;
+export interface PreviewSectionProps {  selectedMedia: MediaAsset | null;
   sourcePreview: SourcePreviewFocus | null;
   getMediaUrl: (path: string) => string;
   sourcePreviewError: string | null;
@@ -58,6 +58,8 @@ export interface PreviewSectionProps {
     sourceInTicks: number,
     durationTicks: number,
   ) => void | Promise<void>;
+  /** On-canvas graphics editing (slice 4); absent = passive overlay only. */
+  graphicsEditing?: GraphicsEditing;
 }
 
 export function PreviewSection({
@@ -90,6 +92,7 @@ export function PreviewSection({
   switchMulticamAngle,
   syncMulticamWaveforms,
   onThreePointEdit,
+  graphicsEditing,
 }: PreviewSectionProps) {
   const [monitorMode, setMonitorMode] = useState<MonitorMode>("program");
   const sourceVideoRef = useRef<HTMLVideoElement>(null);
@@ -278,6 +281,18 @@ export function PreviewSection({
 
           {/* Title Overlay */}
           {renderTitleOverlay(deckSnapshot?.activeTitleClip?.title)}
+
+          {/* Essential Graphics overlay (Phase 5): timeline graphics active
+              at the playhead. Slice 4 adds canvas tools and drag/resize when
+              the program is paused. The export path rasterizes them through
+              saturn-text in a later slice. */}
+          <CanvasGraphicsLayer
+            graphics={project?.sequence.graphics ?? []}
+            playhead={playhead}
+            frame={project?.settings ?? { width: 1920, height: 1080 }}
+            editing={graphicsEditing}
+            programPlaying={programPlaying}
+          />
 
           {/* On-Screen Subtitle / Closed Caption Overlay */}
           {deckSnapshot?.activeSubtitle && (

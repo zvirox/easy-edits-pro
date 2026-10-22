@@ -1,5 +1,16 @@
 use super::super::*;
 
+/// Read a caption file (SRT/WebVTT) so the frontend can hand the raw text to
+/// `caption.import`. Parsing lives in the engine so the UI, CLI, and MCP
+/// share one validator.
+#[tauri::command]
+pub async fn read_text_file(app: AppHandle, path: String) -> Result<String, String> {
+    let validated_path = validate_read_path(&app, &path, Some(10 * 1024 * 1024))
+        .map_err(|error| format!("Invalid caption file path: {error}"))?;
+    std::fs::read_to_string(&validated_path)
+        .map_err(|error| format!("Could not read caption file: {error}"))
+}
+
 #[tauri::command]
 pub async fn import_subtitles_file(
     app: AppHandle,
@@ -23,7 +34,15 @@ pub async fn export_subtitles_file(
         .0
         .lock()
         .map_err(|_| "Editor state is unavailable".to_string())?;
-    let subtitles = &engine.document().project.sequence.subtitles;
+    // Cues come from the default (first) caption track (schema v13).
+    let subtitles = engine
+        .document()
+        .project
+        .sequence
+        .caption_tracks
+        .first()
+        .map(|track| &track.cues[..])
+        .unwrap_or(&[]);
     let text = if format.eq_ignore_ascii_case("vtt") || path.ends_with(".vtt") {
         saturn_core::subtitles::export_vtt(subtitles)
     } else {

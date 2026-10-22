@@ -82,6 +82,117 @@ try {
         return { created: true };
       }
       if (id === 'file.save') { currentPath = params.path; return { saved: true }; }
+      if (id === 'media.create_bin') {
+        push();
+        doc.project.bins ??= [];
+        const binId = (doc.project.next_id = (doc.project.next_id ?? 1) + 1);
+        const bin = { id: binId, name: params.name, parent_id: params.parent_id ?? null, color: params.color ?? '#38bdf8' };
+        doc.project.bins.push(bin);
+        return { created: true, bin };
+      }
+      if (id === 'media.rename_bin') {
+        push();
+        const bin = (doc.project.bins ?? []).find(item => item.id === params.bin_id);
+        if (!bin) throw new Error(`Bin ${params.bin_id} not found`);
+        bin.name = params.name;
+        return { renamed: true, bin_id: bin.id, name: bin.name };
+      }
+      if (id === 'media.delete_bin') {
+        push();
+        doc.project.bins = (doc.project.bins ?? []).filter(item => item.id !== params.bin_id);
+        for (const item of doc.project.media ?? []) {
+          if (item.bin_id === params.bin_id) item.bin_id = null;
+        }
+        return { deleted: true, bin_id: params.bin_id };
+      }
+      if (id === 'media.move_to_bin') {
+        push();
+        const item = doc.project.media.find(entry => entry.id === params.media_id);
+        if (!item) throw new Error(`Media ${params.media_id} not found`);
+        item.bin_id = params.bin_id ?? null;
+        return { moved: true, media_id: item.id, bin_id: item.bin_id };
+      }
+      if (id === 'media.update_properties') {
+        push();
+        const item = doc.project.media.find(entry => entry.id === params.media_id);
+        if (!item) throw new Error(`Media ${params.media_id} not found`);
+        if (params.name) item.name = params.name;
+        if (params.color_label !== undefined) item.color_label = params.color_label;
+        if (params.tags !== undefined) item.tags = params.tags;
+        for (const field of ['comment', 'scene', 'take']) {
+          if (params[field] !== undefined) item[field] = params[field];
+        }
+        return { updated: true, media_id: item.id, name: item.name, scene: item.scene ?? '', take: item.take ?? '', comment: item.comment ?? '' };
+      }
+      if (id === 'marker.add' || id === 'marker.add_range') {
+        push();
+        doc.project.sequence.markers ??= [];
+        const markerId = (doc.project.next_id = (doc.project.next_id ?? 1) + 1);
+        const start = id === 'marker.add' ? (params.at ?? 0) : params.start;
+        const duration = id === 'marker.add' ? (params.duration ?? 0) : params.end - params.start;
+        doc.project.sequence.markers.push({
+          id: markerId,
+          name: params.name ?? `Marker ${doc.project.sequence.markers.length + 1}`,
+          kind: params.kind ?? 'comment',
+          start_ticks: start,
+          duration_ticks: duration,
+          color: params.color ?? '',
+          note: params.note ?? '',
+        });
+        doc.project.sequence.markers.sort((a, b) => a.start_ticks - b.start_ticks);
+        return { added: true, id: markerId, range: duration > 0 };
+      }
+      if (id === 'marker.next' || id === 'marker.previous') {
+        const ordered = [...(doc.project.sequence.markers ?? [])].sort((a, b) => a.start_ticks - b.start_ticks);
+        const marker = id === 'marker.next'
+          ? ordered.find(item => item.start_ticks > params.from)
+          : [...ordered].reverse().find(item => item.start_ticks < params.from);
+        return marker ? { target: marker.start_ticks, id: marker.id, name: marker.name } : { target: null };
+      }
+      if (id === 'marker.update') {
+        push();
+        const marker = (doc.project.sequence.markers ?? []).find(item => item.id === params.id);
+        if (!marker) throw new Error(`Marker ${params.id} does not exist`);
+        for (const key of ['name', 'kind', 'color', 'note']) {
+          if (params[key] !== undefined) marker[key] = params[key];
+        }
+        return { updated: true, id: marker.id };
+      }
+      if (id === 'marker.remove') {
+        push();
+        const markers = doc.project.sequence.markers ?? [];
+        const index = markers.findIndex(item => item.id === params.id);
+        if (index >= 0) markers.splice(index, 1);
+        return { removed: index >= 0, id: params.id };
+      }
+      if (id === 'marker.clear') {
+        push();
+        const cleared = (doc.project.sequence.markers ?? []).length;
+        doc.project.sequence.markers = [];
+        return { cleared };
+      }
+      if (id === 'marker.split') {
+        push();
+        let split = 0;
+        const markers = doc.project.sequence.markers ?? [];
+        for (const marker of [...markers]) {
+          if (marker.duration_ticks <= 0) continue;
+          if (params.at <= marker.start_ticks || params.at >= marker.start_ticks + marker.duration_ticks) continue;
+          const tail = { ...marker, id: (doc.project.next_id = (doc.project.next_id ?? 1) + 1), start_ticks: params.at, duration_ticks: marker.start_ticks + marker.duration_ticks - params.at };
+          marker.duration_ticks = params.at - marker.start_ticks;
+          markers.push(tail);
+          split += 1;
+        }
+        return { split };
+      }
+      if (id === 'marker.export_csv') {
+        const markers = doc.project.sequence.markers ?? [];
+        return { csv: 'name,kind,start_ticks,duration_ticks,color,note\n', count: markers.length };
+      }
+      if (id === 'marker.import_csv') {
+        push();
+        return { imported: 0, replaced: Boolean(params.replace) };
+      }
       if (id === 'timeline.add_clip') {
         push();
         const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
@@ -333,7 +444,9 @@ try {
     await page.keyboard.press('Escape');
     await popover.waitFor({ state: 'detached' });
   }
-  for (const emptyMenu of ['Graphics', 'Audio', 'Effects']) {
+  // Graphics now ships the Phase 5 caption commands, so it must render; Audio
+  // and Effects stay unshipped for now.
+  for (const emptyMenu of ['Audio', 'Effects']) {
     assert.equal(
       await menuBar.getByRole('button', { name: emptyMenu, exact: true }).count(),
       0,
@@ -456,7 +569,9 @@ try {
   await undoRow.getByRole('button').click();
   await page.keyboard.press('Control+Shift+U');
   await undoRow.locator('.shortcuts-key').getByText('Ctrl+Shift+U').waitFor();
-  await shortcutsDialog.getByRole('button', { name: 'Close' }).click();
+  // exact: the dialog also renders "Change shortcut for Reopen Closed Panels",
+  // and a non-exact match would resolve to two buttons.
+  await shortcutsDialog.getByRole('button', { name: 'Close', exact: true }).click();
   await page.locator('.app-shell').press('Control+Shift+U');
   const undoRequests = await page.evaluate(() => window.__commandRequests);
   assert.ok(
@@ -466,7 +581,7 @@ try {
   await menuBar.getByRole('button', { name: 'Help', exact: true }).click();
   await page.locator('.menu-popover').getByText('Keyboard Shortcuts', { exact: true }).click();
   await page.locator('.shortcuts-dialog').getByRole('button', { name: 'Reset all to defaults' }).click();
-  await page.locator('.shortcuts-dialog').getByRole('button', { name: 'Close' }).click();
+  await page.locator('.shortcuts-dialog').getByRole('button', { name: 'Close', exact: true }).click();
 
   // Preferences apply theme, glass, motion, and timeline defaults immediately.
   await page.locator('.app-shell').press('Control+,');
@@ -841,6 +956,86 @@ try {
   const movedLeft = Number.parseFloat(await page.locator('.timeline-clip').first().evaluate(element => element.style.left));
   assert.ok(movedLeft > initialLeft + 80, `clip pointer move should update its timeline start; ${initialLeft}px -> ${movedLeft}px`);
 
+  // Phase 4 slice 2: bins and asset metadata. Bins used to call command ids
+  // that did not exist, so this asserts the whole create→rename→assign→delete
+  // path reaches the engine.
+  await page.locator('[data-tooltip="Create new media bin / folder"]').click();
+  const binModal = page.locator('.modal-dialog-card').filter({ hasText: 'Create New Media Bin' });
+  await binModal.locator('input[type="text"]').fill('Selects');
+  await binModal.getByRole('button', { name: 'Create Bin' }).click();
+  await page.locator('.media-bin-pill', { hasText: 'Selects' }).waitFor();
+
+  sequencePrompt = 'Selects 4K';
+  await page.locator('.bin-rename-btn').first().click();
+  await page.waitForFunction(() =>
+    document.querySelector('.media-bins-strip')?.textContent?.includes('Selects 4K'),
+  );
+
+  await page.locator('.media-edit-meta-btn').first().click();
+  const propsModal = page.locator('.modal-dialog-card').filter({ hasText: 'Edit Asset Properties' });
+  await propsModal.locator('input[placeholder="12B"]').fill('12B');
+  await propsModal.locator('input[placeholder="3"]').fill('4');
+  await propsModal
+    .locator('textarea')
+    .fill('Checked the rooftop audio; clean take.');
+  await propsModal.locator('select').selectOption({ label: '📁 Selects 4K' });
+  await propsModal.getByRole('button', { name: 'Save Properties' }).click();
+  await page.waitForFunction(() =>
+    document.querySelector('.media-list')?.textContent?.includes('Selects 4K'),
+  );
+
+  const mediaOrganisation = await page.evaluate(() => ({
+    binCreate: window.__commandRequests.some(request => request.id === 'media.create_bin'),
+    binRename: window.__commandRequests.some(request => request.id === 'media.rename_bin'),
+    binMove: window.__commandRequests.some(request => request.id === 'media.move_to_bin'),
+    properties: window.__commandRequests.filter(request => request.id === 'media.update_properties').at(-1)?.params ?? null,
+  }));
+  assert.equal(mediaOrganisation.binCreate, true, 'creating a bin must reach media.create_bin');
+  assert.equal(mediaOrganisation.binRename, true, 'renaming a bin must reach media.rename_bin');
+  assert.equal(mediaOrganisation.binMove, true, 'assigning media must reach media.move_to_bin');
+  assert.equal(mediaOrganisation.properties?.scene, '12B', 'scene metadata should be sent');
+  assert.equal(mediaOrganisation.properties?.take, '4', 'take metadata should be sent');
+  assert.match(mediaOrganisation.properties?.comment ?? '', /rooftop audio/);
+
+  await page.locator('.bin-close-btn').first().click();
+  await page.waitForFunction(() =>
+    !document.querySelector('.media-bins-strip')?.textContent?.includes('Selects 4K'),
+  );
+  assert.equal(
+    await page.evaluate(() => window.__commandRequests.some(request => request.id === 'media.delete_bin')),
+    true,
+    'deleting a bin must reach media.delete_bin',
+  );
+
+  // Phase 4 slice 1: markers. M adds at the playhead, Shift+M marks a range,
+  // the lane renders both, Shift+Right jumps to the next marker, and the
+  // Markers panel lists them without leaving the editor.
+  await page.locator('.timeline-ruler').click({ position: { x: 320, y: 12 } });
+  await page.keyboard.press('m');
+  await page.locator('.marker-pin').first().waitFor();
+  assert.equal(await page.locator('.marker-pin').count(), 1, 'M should add one marker');
+  await page.keyboard.press('Shift+M');
+  await page.locator('.marker-pin.is-range').waitFor();
+  assert.equal(await page.locator('.marker-pin').count(), 2, 'Shift+M should add a range marker');
+  assert.equal(await page.locator('.marker-pin.is-range').count(), 1, 'range markers render as bars');
+  await page.keyboard.press('Shift+ArrowRight');
+  await page.keyboard.press('ControlOrMeta+k');
+  await page.locator('.command-palette').waitFor();
+  await page.locator('#command-palette-search').fill('markers panel');
+  await page.locator('.command-palette-result', { hasText: 'Markers Panel' }).first().click();
+  await page.locator('.markers-panel').waitFor();
+  assert.equal(await page.locator('.marker-row').count(), 2, 'the panel lists every marker');
+  const markerRequests = await page.evaluate(() =>
+    window.__commandRequests.filter(request => request.id.startsWith('marker.')).map(request => request.id),
+  );
+  assert.ok(markerRequests.includes('marker.add'), 'marker.add should reach the engine');
+  assert.ok(markerRequests.includes('marker.add_range'), 'marker.add_range should reach the engine');
+  assert.ok(markerRequests.includes('marker.next'), 'Shift+Right should dispatch marker.next');
+  const markerCount = await page.locator('.marker-row').count();
+  await page.locator('.marker-row .marker-delete').first().click();
+  await page.waitForFunction(() => document.querySelectorAll('.marker-row').length === 1);
+  assert.equal(await page.locator('.marker-row').count(), 1, 'deleting from the panel removes the marker');
+
   // Phase 3: reduced-motion is a hard contract. Emulating `prefers-reduced-motion:
   // reduce` must match the media query and collapse every CSS animation to an
   // instant frame, while mount/unmount surfaces (command palette) still work.
@@ -868,7 +1063,7 @@ try {
 
   assert.deepEqual(pageErrors, [], `the app should not produce browser errors: ${pageErrors.join('\n')}`);
   await page.screenshot({ path: '/tmp/easy-edits-pro-editor-smoke.png', fullPage: false });
-  console.log(JSON.stringify({ page: await page.url(), viewport: page.viewportSize(), welcome: 'passed', importWorkspace: 'passed', importMediaSelection: 'passed', audioWorkspace: 'passed', audioDspCommand: audioCommand, exportWorkspace: 'passed', hardwareEncoderFormatToggle: 'passed', mediaPointerDropPx: initialLeft, zoomWidth: { before: widthBefore, after: widthAfter }, scrubSeekSeconds: seekTime, playbackAdvancedToSeconds: playingTime, nextFrameSeconds: nextFrameTime, previousFrameSeconds: previousFrameTime, movedClipLeftPx: movedLeft, reducedMotion, editorScreenshot: '/tmp/easy-edits-pro-editor-smoke.png', importScreenshot: '/tmp/easy-edits-pro-import-workspace.png', exportScreenshot: '/tmp/easy-edits-pro-export-workspace.png', browserErrors: pageErrors.length }, null, 2));
+  console.log(JSON.stringify({ page: await page.url(), viewport: page.viewportSize(), welcome: 'passed', importWorkspace: 'passed', importMediaSelection: 'passed', audioWorkspace: 'passed', audioDspCommand: audioCommand, exportWorkspace: 'passed', hardwareEncoderFormatToggle: 'passed', mediaPointerDropPx: initialLeft, zoomWidth: { before: widthBefore, after: widthAfter }, scrubSeekSeconds: seekTime, playbackAdvancedToSeconds: playingTime, nextFrameSeconds: nextFrameTime, previousFrameSeconds: previousFrameTime, movedClipLeftPx: movedLeft, markerRequests, markerCount, mediaOrganisation, reducedMotion, editorScreenshot: '/tmp/easy-edits-pro-editor-smoke.png', importScreenshot: '/tmp/easy-edits-pro-import-workspace.png', exportScreenshot: '/tmp/easy-edits-pro-export-workspace.png', browserErrors: pageErrors.length }, null, 2));
 } finally {
   await browser.close();
   server.kill('SIGTERM');

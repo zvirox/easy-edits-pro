@@ -19,6 +19,8 @@ type SetRectReason = "drag" | "resize" | "reset";
 interface PanelLayoutOptions {
   workspace: string;
   panelIds: readonly string[];
+  /** Panels that start closed until the user opens them from a menu. */
+  initialHidden?: readonly string[];
   getConstraints: (panelId: string) => PanelConstraints;
   /** Hidden anchor inside the workspace region; its parent is the floating area. */
   regionRef: React.RefObject<HTMLElement | null>;
@@ -83,6 +85,7 @@ function writeLocalStorage(
 export function usePanelLayout({
   workspace,
   panelIds,
+  initialHidden = [],
   getConstraints,
   regionRef,
 }: PanelLayoutOptions): PanelLayoutApi {
@@ -92,7 +95,9 @@ export function usePanelLayout({
     () => defaultLayout(workspace) ?? {},
   );
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [hidden, setHidden] = useState<Record<string, boolean>>({});
+  const [hidden, setHidden] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(initialHidden.map((id) => [id, true])),
+  );
   const [pinned, setPinned] = useState<Record<string, boolean>>({});
   const [zIndex, setZIndex] = useState<Record<string, number>>({});
   const zCounter = useRef(1);

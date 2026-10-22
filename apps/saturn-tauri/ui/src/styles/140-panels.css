@@ -207,6 +207,90 @@
   border: 1px solid var(--border-default);
 }
 
+/* Dock-zone ghost preview (Phase 4 G4a): translucent drop-target highlight
+   shown while a panel drag is near a region edge. Sits just below the floating
+   panels (base z 500) so it never covers the dragged panel; the accent border
+   plus fill reads through the empty parts of the region. */
+.panel-dock-ghost {
+  position: fixed;
+  z-index: 499;
+  border: 1px solid var(--accent-text);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent-text) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-text) 24%, transparent);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   G4c migration: Effects (3), Scopes (4), Chat (5) as engine panels.
+   A .workspace-float-region wraps a workspace's docked content and hosts the
+   hidden layout anchor; its box is the region floating panels are measured
+   against, so panels never drift over app chrome.
+   ========================================================================== */
+.workspace-float-region {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.workspace-float-region > .editor-panel-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.editor-panel-layer {
+  pointer-events: none;
+}
+
+.editor-panel-layer > .panel-rail {
+  pointer-events: auto;
+}
+
+/* App-level float region for the AI Assistant panel: the box between the
+   menu bar and the status bar. */
+.app-workspace-region {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.app-workspace-region > .editor-panel-layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* Effects: the stack sidebar column is gone from the docked grid; the effect
+   stack lives in its floating panel. */
+.effects-workspace-page .effects-studio-body {
+  grid-template-columns: 1fr;
+}
+
+/* Color: the scopes stage column is gone; the scopes live in their panel. */
+.color-workspace-page .color-top-row {
+  grid-template-columns: 1fr;
+}
+
+/* Inside a floating shell the glass belongs to the shell, not to the nested
+   docked boxes (same treatment as .floating-panel .studio-panel). */
+.floating-panel .effects-stack-box,
+.floating-panel .color-scopes-stage {
+  background: transparent;
+  border: 0;
+}
+
+/* AI Assistant panel content fills the floating shell. */
+.floating-panel .ai-chat-drawer {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* Edit workspace: top row is media pool · toolbox · preview, and the timeline
    owns the full-width bottom row so it reaches the app borders. Floating panels
    are measured against the top row only, which keeps them from covering the

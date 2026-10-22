@@ -979,9 +979,9 @@ fn subtitles_crud_and_undo_workflow() {
         ))
         .unwrap();
     let sub1_id = res1["id"].as_u64().unwrap();
-    assert_eq!(engine.document().project.sequence.subtitles.len(), 1);
+    assert_eq!(engine.document().project.sequence.caption_tracks[0].cues.len(), 1);
     assert_eq!(
-        engine.document().project.sequence.subtitles[0].text,
+        engine.document().project.sequence.caption_tracks[0].cues[0].text,
         "First caption line"
     );
 
@@ -997,10 +997,10 @@ fn subtitles_crud_and_undo_workflow() {
         ))
         .unwrap();
     let sub2_id = res2["id"].as_u64().unwrap();
-    assert_eq!(engine.document().project.sequence.subtitles.len(), 2);
+    assert_eq!(engine.document().project.sequence.caption_tracks[0].cues.len(), 2);
     // Intro should be first after sort
-    assert_eq!(engine.document().project.sequence.subtitles[0].id, sub2_id);
-    assert_eq!(engine.document().project.sequence.subtitles[1].id, sub1_id);
+    assert_eq!(engine.document().project.sequence.caption_tracks[0].cues[0].id, sub2_id);
+    assert_eq!(engine.document().project.sequence.caption_tracks[0].cues[1].id, sub1_id);
 
     // 3. Update subtitle 1 text
     engine
@@ -1013,7 +1013,7 @@ fn subtitles_crud_and_undo_workflow() {
         ))
         .unwrap();
     assert_eq!(
-        engine.document().project.sequence.subtitles[1].text,
+        engine.document().project.sequence.caption_tracks[0].cues[1].text,
         "Updated caption text"
     );
 
@@ -1022,7 +1022,7 @@ fn subtitles_crud_and_undo_workflow() {
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
     assert_eq!(
-        engine.document().project.sequence.subtitles[1].text,
+        engine.document().project.sequence.caption_tracks[0].cues[1].text,
         "First caption line"
     );
 
@@ -1031,7 +1031,7 @@ fn subtitles_crud_and_undo_workflow() {
         .execute(CommandRequest::new("edit.redo", serde_json::Value::Null))
         .unwrap();
     assert_eq!(
-        engine.document().project.sequence.subtitles[1].text,
+        engine.document().project.sequence.caption_tracks[0].cues[1].text,
         "Updated caption text"
     );
 
@@ -1042,20 +1042,20 @@ fn subtitles_crud_and_undo_workflow() {
             json!({ "id": sub2_id }),
         ))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.subtitles.len(), 1);
-    assert_eq!(engine.document().project.sequence.subtitles[0].id, sub1_id);
+    assert_eq!(engine.document().project.sequence.caption_tracks[0].cues.len(), 1);
+    assert_eq!(engine.document().project.sequence.caption_tracks[0].cues[0].id, sub1_id);
 
     // 7. Clear subtitles
     engine
         .execute(CommandRequest::new("subtitle.clear", json!({})))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.subtitles.len(), 0);
+    assert_eq!(engine.document().project.sequence.caption_tracks[0].cues.len(), 0);
 
     // Undo clear
     engine
         .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
         .unwrap();
-    assert_eq!(engine.document().project.sequence.subtitles.len(), 1);
+    assert_eq!(engine.document().project.sequence.caption_tracks[0].cues.len(), 1);
 }
 
 #[test]
@@ -2028,7 +2028,7 @@ fn speech_to_subtitles_and_ripple_deletion_workflow_with_undo() {
         .unwrap();
     assert_eq!(res["transcribed"], true);
     assert_eq!(res["subtitles_count"], 3);
-    assert_eq!(engine.document().project.sequence.subtitles.len(), 3);
+    assert_eq!(engine.document().project.sequence.caption_tracks[0].cues.len(), 3);
 
     // 2. Ripple delete filler words (removes 4s..5s interval = 1s duration)
     let res = engine
@@ -2741,4 +2741,430 @@ fn track_groups_curves_qualifier_and_custom_shader_workflow_with_undo() {
         .unwrap();
     assert_eq!(engine.document().project.sequence.track_groups.len(), 0);
     assert_eq!(engine.document().project.sequence.tracks[0].group_id, None);
+}
+
+#[test]
+fn graphics_crud_transform_and_undo() {
+    let mut engine = EditorEngine::default();
+
+    // 1. Add a text graphic
+    let res = engine
+        .execute(CommandRequest::new(
+            "graphic.add",
+            json!({
+                "kind": "text",
+                "name": "Lower third",
+                "start_ticks": 0,
+                "duration_ticks": 5 * 254_016_000_000i64,
+                "text": "Jane Doe"
+            }),
+        ))
+        .unwrap();
+    let text_id = res["id"].as_u64().unwrap();
+    assert_eq!(engine.document().project.sequence.graphics.len(), 1);
+    let graphic = &engine.document().project.sequence.graphics[0];
+    assert_eq!(graphic.kind, saturn_core::project::GraphicKind::Text);
+    assert_eq!(graphic.text.as_ref().unwrap().content, "Jane Doe");
+    assert!(graphic.fill.is_some(), "text graphics default to a fill");
+
+    // 2. Transform updates validate and mutate
+    engine
+        .execute(CommandRequest::new(
+            "graphic.set_transform",
+            json!({
+                "id": text_id,
+                "x": 120.0,
+                "y": 820.0,
+                "opacity": 0.8
+            }),
+        ))
+        .unwrap();
+    let transform = &engine.document().project.sequence.graphics[0].transform;
+    assert_eq!((transform.x, transform.y), (120.0, 820.0));
+    assert_eq!(transform.opacity, 0.8);
+
+    // 3. Out-of-range opacity is rejected without touching state and without
+    //    pushing a history entry
+    let error = engine
+        .execute(CommandRequest::new(
+            "graphic.set_transform",
+            json!({ "id": text_id, "opacity": 1.5 }),
+        ))
+        .unwrap_err();
+    assert!(error.to_string().contains("opacity"), "{error}");
+    assert_eq!(
+        engine.document().project.sequence.graphics[0].transform.opacity,
+        0.8
+    );
+
+    // 4. Text edits land on the text payload only
+    engine
+        .execute(CommandRequest::new(
+            "graphic.set_text",
+            json!({ "id": text_id, "text": "Jane Doe, Editor", "font_size": 64.0 }),
+        ))
+        .unwrap();
+    let graphic = &engine.document().project.sequence.graphics[0];
+    assert_eq!(graphic.text.as_ref().unwrap().content, "Jane Doe, Editor");
+    assert_eq!(graphic.text.as_ref().unwrap().font_size, 64.0);
+    assert_eq!(graphic.transform.x, 120.0, "text edits must not move the box");
+
+    // 5. Undo rolls the text edit back
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    let graphic = &engine.document().project.sequence.graphics[0];
+    assert_eq!(graphic.text.as_ref().unwrap().content, "Jane Doe");
+    assert_eq!(graphic.text.as_ref().unwrap().font_size, 42.0);
+
+    // 6. Duplicate copies with a fresh id
+    let res = engine
+        .execute(CommandRequest::new(
+            "graphic.duplicate",
+            json!({ "id": text_id }),
+        ))
+        .unwrap();
+    let copy_id = res["id"].as_u64().unwrap();
+    assert_ne!(copy_id, text_id);
+    assert_eq!(engine.document().project.sequence.graphics.len(), 2);
+
+    // 7. Remove both
+    engine
+        .execute(CommandRequest::new("graphic.remove", json!({ "id": text_id })))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new("graphic.remove", json!({ "id": copy_id })))
+        .unwrap();
+    assert!(engine.document().project.sequence.graphics.is_empty());
+}
+
+#[test]
+fn graphics_fill_stroke_shadow_and_shape_kinds() {
+    let mut engine = EditorEngine::default();
+
+    let res = engine
+        .execute(CommandRequest::new(
+            "graphic.add",
+            json!({ "kind": "rectangle", "name": "Backdrop" }),
+        ))
+        .unwrap();
+    let rect_id = res["id"].as_u64().unwrap();
+    let graphic = &engine.document().project.sequence.graphics[0];
+    assert_eq!(graphic.kind, saturn_core::project::GraphicKind::Rectangle);
+    assert!(graphic.text.is_none(), "shapes carry no text payload");
+
+    engine
+        .execute(CommandRequest::new(
+            "graphic.set_fill",
+            json!({ "id": rect_id, "color": "#204060", "opacity": 0.9 }),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "graphic.set_stroke",
+            json!({ "id": rect_id, "color": "#ffffff", "width": 3.0 }),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "graphic.set_shadow",
+            json!({ "id": rect_id, "blur": 12.0, "offset_y": 4.0 }),
+        ))
+        .unwrap();
+    let graphic = &engine.document().project.sequence.graphics[0];
+    assert_eq!(graphic.fill.as_ref().unwrap().color, "#204060");
+    assert_eq!(graphic.stroke.as_ref().unwrap().width, 3.0);
+    assert_eq!(graphic.shadow.as_ref().unwrap().blur, 12.0);
+
+    // Each property command checkpoints separately, so one undo reverts only
+    // the shadow.
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    let graphic = &engine.document().project.sequence.graphics[0];
+    assert!(graphic.shadow.is_none());
+    assert_eq!(graphic.stroke.as_ref().unwrap().width, 3.0);
+
+    // Negative stroke width is rejected
+    let error = engine
+        .execute(CommandRequest::new(
+            "graphic.set_stroke",
+            json!({ "id": rect_id, "width": -1.0 }),
+        ))
+        .unwrap_err();
+    assert!(error.to_string().contains("negative"), "{error}");
+}
+
+#[test]
+fn graphics_align_distribute_and_arrange() {
+    let mut engine = EditorEngine::default();
+
+    let mut ids = Vec::new();
+    for x in [10.0, 300.0, 800.0] {
+        let res = engine
+            .execute(CommandRequest::new(
+                "graphic.add",
+                json!({ "kind": "rectangle" }),
+            ))
+            .unwrap();
+        let id = res["id"].as_u64().unwrap();
+        engine
+            .execute(CommandRequest::new(
+                "graphic.set_transform",
+                json!({ "id": id, "x": x, "y": 100.0, "width": 100.0, "height": 50.0 }),
+            ))
+            .unwrap();
+        ids.push(id);
+    }
+
+    // Align left: every box starts at x = 10.
+    engine
+        .execute(CommandRequest::new(
+            "graphic.align",
+            json!({ "ids": ids, "mode": "left" }),
+        ))
+        .unwrap();
+    for graphic in &engine.document().project.sequence.graphics {
+        assert_eq!(graphic.transform.x, 10.0);
+    }
+
+    // Distribute horizontal from the stacked state: span 10..110, each box
+    // width 100, so equal gaps of 0 keep extremities anchored — boxes fan out
+    // only when there is room. Reset positions first.
+    let spread = [10.0, 400.0, 900.0];
+    for (id, x) in ids.iter().zip(spread) {
+        engine
+            .execute(CommandRequest::new(
+                "graphic.set_transform",
+                json!({ "id": id, "x": x }),
+            ))
+            .unwrap();
+    }
+    engine
+        .execute(CommandRequest::new(
+            "graphic.distribute",
+            json!({ "ids": ids, "axis": "horizontal" }),
+        ))
+        .unwrap();
+    // Total extent 300, span 10..1000, gap = (990 - 300) / 2 = 345: positions
+    // land at 10, 455, 900.
+    let xs: Vec<f64> = engine
+        .document()
+        .project
+        .sequence
+        .graphics
+        .iter()
+        .map(|graphic| graphic.transform.x)
+        .collect();
+    let sorted = {
+        let mut sorted = xs.clone();
+        sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        sorted
+    };
+    assert_eq!(sorted, vec![10.0, 455.0, 900.0]);
+    assert_eq!(xs[0], 10.0, "first extremity stays anchored");
+
+    // Aligning a single graphic is rejected
+    let error = engine
+        .execute(CommandRequest::new(
+            "graphic.align",
+            json!({ "ids": [ids[0]], "mode": "left" }),
+        ))
+        .unwrap_err();
+    assert!(error.to_string().contains("two"), "{error}");
+
+    // Arrange: move first to front, check its layer wins
+    engine
+        .execute(CommandRequest::new(
+            "graphic.arrange",
+            json!({ "id": ids[0], "order": "front" }),
+        ))
+        .unwrap();
+    let front_layer = engine.document().project.sequence.graphics[0].layer;
+    let others = engine.document().project.sequence.graphics[1].layer;
+    assert!(front_layer > others, "front must raise the layer");
+
+    engine
+        .execute(CommandRequest::new(
+            "graphic.arrange",
+            json!({ "id": ids[0], "order": "backward" }),
+        ))
+        .unwrap();
+    let lowered = engine.document().project.sequence.graphics[0].layer;
+    assert!(lowered < front_layer, "backward must lower the layer");
+}
+
+#[test]
+fn graphics_templates_save_apply_and_survive_reload() {
+    let folder = tempfile::tempdir().unwrap();
+    let path = folder.path().join("graphics.saturn");
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name": "Graphics"})))
+        .unwrap();
+
+    let res = engine
+        .execute(CommandRequest::new(
+            "graphic.add",
+            json!({ "kind": "text", "name": "Title style", "text": "S1 E1" }),
+        ))
+        .unwrap();
+    let graphic_id = res["id"].as_u64().unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "graphic.set_text",
+            json!({ "id": graphic_id, "font_family": "Inter", "leading": 1.4 }),
+        ))
+        .unwrap();
+
+    let res = engine
+        .execute(CommandRequest::new(
+            "graphic.template_save",
+            json!({ "graphic_id": graphic_id, "name": "Episode title" }),
+        ))
+        .unwrap();
+    let template_id = res["id"].as_u64().unwrap();
+
+    // Apply creates a new graphic from the template body
+    engine
+        .execute(CommandRequest::new(
+            "graphic.set_transform",
+            json!({ "id": graphic_id, "x": 42.0 }),
+        ))
+        .unwrap();
+    let res = engine
+        .execute(CommandRequest::new(
+            "graphic.template_apply",
+            json!({ "template_id": template_id }),
+        ))
+        .unwrap();
+    let applied_id = res["id"].as_u64().unwrap();
+    assert_ne!(applied_id, graphic_id);
+    assert_eq!(engine.document().project.sequence.graphics.len(), 2);
+
+    // Save and reopen: templates and graphics persist
+    engine
+        .execute(CommandRequest::new("file.save", json!({"path": path})))
+        .unwrap();
+    let mut reopened = EditorEngine::default();
+    reopened
+        .execute(CommandRequest::new("file.open", json!({"path": path})))
+        .unwrap();
+    assert_eq!(reopened.document().project.graphic_templates.len(), 1);
+    assert_eq!(
+        reopened.document().project.graphic_templates[0].name,
+        "Episode title"
+    );
+    // Template body froze the pre-move transform (x=0), not live state.
+    let res = reopened
+        .execute(CommandRequest::new(
+            "graphic.template_apply",
+            json!({ "template_id": template_id, "start_ticks": 5 * 254_016_000_000i64 }),
+        ))
+        .unwrap();
+    let applied = res["id"].as_u64().unwrap();
+    let graphic = reopened
+        .document()
+        .project
+        .sequence
+        .graphics
+        .iter()
+        .find(|graphic| graphic.id == applied)
+        .unwrap();
+    assert_eq!(graphic.transform.x, 0.0, "template freezes the saved look");
+    assert_eq!(graphic.start_ticks.0, 5 * 254_016_000_000i64);
+}
+
+#[test]
+fn fonts_list_returns_sorted_families_from_the_shared_context() {
+    let mut engine = EditorEngine::default();
+    let res = engine
+        .execute(CommandRequest::new("fonts.list", serde_json::Value::Null))
+        .unwrap();
+    let fonts: Vec<String> = res["fonts"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|name| name.as_str().unwrap().to_owned())
+        .collect();
+    assert!(!fonts.is_empty(), "fonts.list must expose system families");
+    for window in fonts.windows(2) {
+        assert!(
+            window[0].to_lowercase() <= window[1].to_lowercase(),
+            "fonts.list must be case-insensitively sorted: {window:?}"
+        );
+    }
+    // A second call must succeed (shared, lazily-built TextContext).
+    let again = engine
+        .execute(CommandRequest::new("fonts.list", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(again["count"], serde_json::json!(fonts.len()));
+}
+
+#[test]
+fn graphics_flags_lock_blocks_property_mutations_but_not_unlock() {
+    let mut engine = EditorEngine::default();
+    let res = engine
+        .execute(CommandRequest::new(
+            "graphic.add",
+            json!({ "kind": "text", "text": "Locked title" }),
+        ))
+        .unwrap();
+    let id = res["id"].as_u64().unwrap();
+
+    // Hide the graphic and lock it.
+    engine
+        .execute(CommandRequest::new(
+            "graphic.set_flags",
+            json!({ "id": id, "visible": false, "locked": true }),
+        ))
+        .unwrap();
+    let graphic = &engine.document().project.sequence.graphics[0];
+    assert!(!graphic.visible);
+    assert!(graphic.locked);
+
+    // Property mutations are rejected while locked...
+    for (command, params) in [
+        ("graphic.set_transform", json!({ "id": id, "x": 50.0 })),
+        ("graphic.set_text", json!({ "id": id, "text": "no" })),
+        ("graphic.set_fill", json!({ "id": id, "color": "#000000" })),
+        ("graphic.set_stroke", json!({ "id": id, "width": 1.0 })),
+        ("graphic.set_shadow", json!({ "id": id, "blur": 4.0 })),
+    ] {
+        let error = engine
+            .execute(CommandRequest::new(command, params))
+            .unwrap_err();
+        assert!(error.to_string().contains("locked"), "{command}: {error}");
+    }
+
+    // ...and the locked graphic's data is untouched.
+    let graphic = &engine.document().project.sequence.graphics[0];
+    assert_eq!(graphic.transform.x, 0.0);
+
+    // Unlocking itself must still work, then edits flow again.
+    engine
+        .execute(CommandRequest::new(
+            "graphic.set_flags",
+            json!({ "id": id, "locked": false }),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "graphic.set_transform",
+            json!({ "id": id, "x": 50.0 }),
+        ))
+        .unwrap();
+    assert_eq!(engine.document().project.sequence.graphics[0].transform.x, 50.0);
+
+    // Undo rolls the whole gesture chain: the last checkpoint was the unlock,
+    // then the transform. Two undos land back at locked + x=0.
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    let graphic = &engine.document().project.sequence.graphics[0];
+    assert_eq!(graphic.transform.x, 0.0);
+    assert!(graphic.locked);
 }

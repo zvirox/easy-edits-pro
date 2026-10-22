@@ -9,6 +9,9 @@ import {
 import { InspectorPanel, type InspectorPanelProps } from "../features/inspector";
 import { PanelHost, type PanelEntry } from "../features/panels";
 import { EDIT_CONSTRAINTS } from "../features/panels/layouts";
+import { MarkersPanel, type MarkersPanelProps } from "../features/markers";
+import { CaptionsPanel, type CaptionsPanelProps } from "../features/captions";
+import { GraphicsPanel, type GraphicOperations } from "../features/graphics";
 import type { TrimSession } from "../app/timelineTrim";
 import type { MediaAsset, ProjectDocument } from "../app/projectTypes";
 
@@ -27,6 +30,13 @@ export interface EditWorkspaceProps {
   timelineSectionProps: TimelineSectionProps;
   inspectorPanelProps: InspectorPanelProps;
   trimMonitorProps: TrimMonitorEntryProps;
+  markersPanelProps: MarkersPanelProps;
+  captionsPanelProps: CaptionsPanelProps;
+  graphicsPanelProps: {
+    ops: GraphicOperations;
+    playhead: number;
+    frame: { width: number; height: number };
+  };
 }
 
 /**
@@ -39,10 +49,31 @@ export function EditWorkspace({
   timelineSectionProps,
   inspectorPanelProps,
   trimMonitorProps,
+  markersPanelProps,
+  captionsPanelProps,
+  graphicsPanelProps,
 }: EditWorkspaceProps) {
   const entries: PanelEntry[] = [
     { id: "media", title: "Media pool", render: () => <MediaPanel {...mediaPanelProps} /> },
     { id: "inspector", title: "Inspector", render: () => <InspectorPanel {...inspectorPanelProps} /> },
+    {
+      id: "markers",
+      title: "Markers",
+      constraints: EDIT_CONSTRAINTS.markers,
+      render: () => <MarkersPanel {...markersPanelProps} />,
+    },
+    {
+      id: "captions",
+      title: "Captions",
+      constraints: EDIT_CONSTRAINTS.captions,
+      render: () => <CaptionsPanel {...captionsPanelProps} />,
+    },
+    {
+      id: "graphics",
+      title: "Essential Graphics",
+      constraints: EDIT_CONSTRAINTS.graphics,
+      render: () => <GraphicsPanel ops={graphicsPanelProps.ops} playhead={graphicsPanelProps.playhead} frame={graphicsPanelProps.frame} />,
+    },
   ];
   if (trimMonitorProps.session) {
     entries.push({
@@ -65,7 +96,11 @@ export function EditWorkspace({
   return (
     <main className="editor is-floating-panels">
       <div className="editor-panel-layer">
-        <PanelHost workspace="edit" entries={entries} />
+        <PanelHost
+          workspace="edit"
+          entries={entries}
+          defaultHidden={["markers", "captions", "graphics"]}
+        />
       </div>
       <aside className="editor-toolbox" aria-label="Editing toolbox">
         <TimelineToolRail

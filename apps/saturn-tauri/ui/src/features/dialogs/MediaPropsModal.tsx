@@ -11,6 +11,12 @@ export interface MediaPropsModalProps {
   setMediaEditPropsColor: (color: string) => void;
   mediaEditPropsTags: string;
   setMediaEditPropsTags: (tags: string) => void;
+  mediaEditPropsComment: string;
+  setMediaEditPropsComment: (comment: string) => void;
+  mediaEditPropsScene: string;
+  setMediaEditPropsScene: (scene: string) => void;
+  mediaEditPropsTake: string;
+  setMediaEditPropsTake: (take: string) => void;
   media: MediaAsset[];
   project: ProjectDocument["project"] | null;
   moveMediaToBin: (id: number, binId: number | null) => Promise<void>;
@@ -18,7 +24,8 @@ export interface MediaPropsModalProps {
     id: number,
     name: string,
     color?: string,
-    tags?: string[]
+    tags?: string[],
+    metadata?: { comment?: string; scene?: string; take?: string }
   ) => Promise<void>;
 }
 
@@ -31,6 +38,12 @@ export function MediaPropsModal({
   setMediaEditPropsColor,
   mediaEditPropsTags,
   setMediaEditPropsTags,
+  mediaEditPropsComment,
+  setMediaEditPropsComment,
+  mediaEditPropsScene,
+  setMediaEditPropsScene,
+  mediaEditPropsTake,
+  setMediaEditPropsTake,
   media,
   project,
   moveMediaToBin,
@@ -47,7 +60,17 @@ export function MediaPropsModal({
           e.preventDefault();
           if (mediaEditPropsId === null) return;
           const tags = mediaEditPropsTags.split(",").map((t) => t.trim()).filter(Boolean);
-          void updateMediaProperties(mediaEditPropsId, mediaEditPropsName, mediaEditPropsColor || undefined, tags);
+          void updateMediaProperties(
+            mediaEditPropsId,
+            mediaEditPropsName,
+            mediaEditPropsColor || undefined,
+            tags,
+            {
+              comment: mediaEditPropsComment,
+              scene: mediaEditPropsScene,
+              take: mediaEditPropsTake,
+            },
+          );
         },
       }}
     >
@@ -100,6 +123,35 @@ export function MediaPropsModal({
             value={mediaEditPropsTags}
             onChange={(e) => setMediaEditPropsTags(e.target.value)}
             style={{ padding: "8px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
+          />
+        </label>
+        <div className="media-metadata-grid">
+          <label>
+            Scene
+            <input
+              type="text"
+              placeholder="12B"
+              value={mediaEditPropsScene}
+              onChange={(e) => setMediaEditPropsScene(e.target.value)}
+            />
+          </label>
+          <label>
+            Take
+            <input
+              type="text"
+              placeholder="3"
+              value={mediaEditPropsTake}
+              onChange={(e) => setMediaEditPropsTake(e.target.value)}
+            />
+          </label>
+        </div>
+        <label className="media-metadata-comment">
+          Comment
+          <textarea
+            rows={3}
+            placeholder="Notes that travel with the asset (never rendered)"
+            value={mediaEditPropsComment}
+            onChange={(e) => setMediaEditPropsComment(e.target.value)}
           />
         </label>
         <label style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "16px" }}>

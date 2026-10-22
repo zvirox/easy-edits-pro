@@ -34,6 +34,8 @@ pub struct Project {
     pub sequence: Sequence,
     #[serde(default)]
     pub sequences: Vec<Sequence>,
+    #[serde(default)]
+    pub graphic_templates: Vec<crate::project::GraphicTemplate>,
     pub next_id: u64,
     #[serde(default)]
     pub collaboration: CollaborationState,
@@ -128,6 +130,14 @@ pub struct MediaAsset {
     pub color_label: Option<String>,
     #[serde(default)]
     pub tags: Vec<String>,
+    /// Free-form production notes. Metadata is descriptive only: it never
+    /// affects playback or rendering.
+    #[serde(default)]
+    pub comment: String,
+    #[serde(default)]
+    pub scene: String,
+    #[serde(default)]
+    pub take: String,
     #[serde(default)]
     pub is_missing: bool,
     #[serde(default)]
@@ -154,6 +164,9 @@ impl Default for MediaAsset {
             bin_id: None,
             color_label: None,
             tags: Vec::new(),
+            comment: String::new(),
+            scene: String::new(),
+            take: String::new(),
             is_missing: false,
             title: None,
             waveform: None,

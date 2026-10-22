@@ -153,15 +153,32 @@ impl EditorEngine {
                 self.checkpoint();
                 let new_subs = crate::speech::speech_segments_to_subtitles(&params.segments);
                 let count = new_subs.len();
+                {
+                    let sequence = &mut self.document.project.sequence;
+                    if sequence.caption_tracks.is_empty() {
+                        let track_id = self.document.project.next_id;
+                        self.document.project.next_id = track_id.saturating_add(1);
+                        sequence.caption_tracks.push(crate::project::CaptionTrack {
+                            id: track_id,
+                            name: "Captions".into(),
+                            language: "en".into(),
+                            cues: Vec::new(),
+                            styles: Vec::new(),
+                        });
+                    }
+                }
+                let track = self
+                    .document
+                    .project
+                    .sequence
+                    .caption_tracks
+                    .first_mut()
+                    .expect("just ensured");
                 if params.replace_existing.unwrap_or(true) {
-                    self.document.project.sequence.subtitles = new_subs;
+                    track.cues = new_subs;
                 } else {
-                    self.document.project.sequence.subtitles.extend(new_subs);
-                    self.document
-                        .project
-                        .sequence
-                        .subtitles
-                        .sort_by_key(|s| s.start_ticks);
+                    track.cues.extend(new_subs);
+                    track.cues.sort_by_key(|s| s.start_ticks);
                 }
                 Ok(json!({"transcribed": true, "subtitles_count": count}))
             })()),

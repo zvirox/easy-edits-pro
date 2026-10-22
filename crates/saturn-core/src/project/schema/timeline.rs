@@ -33,7 +33,11 @@ pub struct Sequence {
     #[serde(default)]
     pub mark_out: Option<Tick>,
     #[serde(default)]
-    pub subtitles: Vec<SubtitleItem>,
+    pub caption_tracks: Vec<CaptionTrack>,
+    #[serde(default)]
+    pub graphics: Vec<Graphic>,
+    #[serde(default)]
+    pub markers: Vec<Marker>,
     #[serde(default)]
     pub multicam_clips: Vec<MultiCamClip>,
     #[serde(default = "default_audio_buses")]

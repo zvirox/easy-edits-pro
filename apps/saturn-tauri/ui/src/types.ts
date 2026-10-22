@@ -37,6 +37,10 @@ import type {
   CustomShaderParams,
   EffectInstance,
   EffectKind,
+  CaptionTrack,
+  CaptionStyle,
+  GraphicItem,
+  GraphicTemplate,
 } from "./engine/playbackEngine";
 
 export type {
@@ -44,6 +48,10 @@ export type {
   LutParams,
   InterpolationKind,
   SubtitleItem,
+  CaptionTrack,
+  CaptionStyle,
+  GraphicItem,
+  GraphicTemplate,
   Keyframe,
   KeyframeProperty,
   MultiCamClip,
@@ -256,7 +264,8 @@ export type Sequence = {
   track_groups?: TrackGroup[];
   mark_in: number | null;
   mark_out: number | null;
-  subtitles?: SubtitleItem[];
+  caption_tracks?: CaptionTrack[];
+  graphics?: GraphicItem[];
   multicam_clips?: MultiCamClip[];
   buses?: AudioBus[];
   node_graph?: NodeGraph | null;
@@ -269,6 +278,7 @@ export type ProjectDocument = {
     media: MediaAsset[];
     sequence: Sequence;
     sequences?: Sequence[];
+    graphic_templates?: GraphicTemplate[];
     collaboration?: CollaborationState;
     settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
   };

@@ -1,9 +1,16 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { FloatingPanel } from "./FloatingPanel.tsx";
 import { usePanelLayout } from "./usePanelLayout.ts";
-import { PANEL_OPEN_EVENT, PANEL_RESET_EVENT, PANEL_TOGGLE_EVENT } from "./presets.ts";
+import {
+  PANEL_OPEN_EVENT,
+  PANEL_REOPEN_EVENT,
+  PANEL_RESET_EVENT,
+  PANEL_TOGGLE_EVENT,
+} from "./presets.ts";
+import { zonePixels, zoneRect, type DockZone } from "./docking.ts";
+import { effectiveZIndex } from "./zOrder.ts";
 import {
   DEFAULT_CONSTRAINTS,
   type PanelConstraints,
@@ -14,6 +21,19 @@ import {
 export interface PanelHostProps {
   workspace: string;
   entries: PanelEntry[];
+  /** Panels that stay closed until the user opens them from a menu. */
+  defaultHidden?: readonly string[];
+  /**
+   * Called when a panel becomes hidden through an engine close action (shell
+   * ✕, entry close, or a close toggle) so a parent can keep its own open state
+   * in sync (the AI chat drawer owns its open flag at App level).
+   */
+  onPanelClosed?: (panelId: string) => void;
+  /**
+   * Hosts whose panels are opened from menus (the AI Assistant) rather than
+   * from a dock rail can suppress the rail entirely.
+   */
+  showRail?: boolean;
 }
 
 export interface PanelEntry {
@@ -32,7 +52,13 @@ const PANEL_BASE_Z = 500;
  * document.body so z-index never fights the editor grid. The dock rail lets a
  * closed panel be reopened; "Reset layout" restores workspace defaults.
  */
-export function PanelHost({ workspace, entries }: PanelHostProps) {
+export function PanelHost({
+  workspace,
+  entries,
+  defaultHidden,
+  onPanelClosed,
+  showRail = true,
+}: PanelHostProps) {
   // Hidden anchor inside the workspace markup; the layout hook measures the
   // anchor's parent (the editor region) so panels never cover the app chrome.
   const regionRef = useRef<HTMLDivElement>(null);
@@ -50,6 +76,7 @@ export function PanelHost({ workspace, entries }: PanelHostProps) {
   const layout = usePanelLayout({
     workspace,
     panelIds,
+    initialHidden: defaultHidden,
     getConstraints,
     regionRef,
   });
@@ -59,6 +86,17 @@ export function PanelHost({ workspace, entries }: PanelHostProps) {
   // menu and timeline hooks stay independent of the layout store.
   const setClosed = layout.setClosed;
   const hidden = layout.hidden;
+  /** Engine-side close; also notifies the parent so its state stays in sync. */
+  const closePanel = useCallback(
+    (panelId: string) => {
+      setClosed(panelId, true);
+      onPanelClosed?.(panelId);
+    },
+    [setClosed, onPanelClosed],
+  );
+  const reopen = useCallback(() => {
+    for (const id of panelIds) setClosed(id, false);
+  }, [panelIds, setClosed]);
   useEffect(() => {
     const panelIdOf = (event: Event): string | null => {
       const detail = (event as CustomEvent<{ id?: string }>).detail;
@@ -70,18 +108,38 @@ export function PanelHost({ workspace, entries }: PanelHostProps) {
     };
     const toggle = (event: Event) => {
       const id = panelIdOf(event);
-      if (id && panelIds.includes(id)) setClosed(id, !hidden[id]);
+      if (id && panelIds.includes(id)) {
+        if (hidden[id]) setClosed(id, false);
+        else closePanel(id);
+      }
     };
     const reset = () => layout.resetLayout();
     window.addEventListener(PANEL_OPEN_EVENT, open);
+    window.addEventListener(PANEL_REOPEN_EVENT, reopen);
     window.addEventListener(PANEL_TOGGLE_EVENT, toggle);
     window.addEventListener(PANEL_RESET_EVENT, reset);
     return () => {
       window.removeEventListener(PANEL_OPEN_EVENT, open);
+      window.removeEventListener(PANEL_REOPEN_EVENT, reopen);
       window.removeEventListener(PANEL_TOGGLE_EVENT, toggle);
       window.removeEventListener(PANEL_RESET_EVENT, reset);
     };
-  }, [panelIds, setClosed, hidden]);
+  }, [panelIds, setClosed, hidden, reopen, closePanel, layout.resetLayout]);
+
+  // Dock zones (G4a deferred): track the zone under a drag so a ghost preview
+  // can highlight it, then reflow the panel on drop.
+  const [dockTarget, setDockTarget] = useState<DockZone | null>(null);
+  const handleDockTarget = useCallback((zone: DockZone | null) => {
+    setDockTarget(zone);
+  }, []);
+  const handleDropDock = useCallback(
+    (panelId: string, zone: DockZone | null) => {
+      setDockTarget(null);
+      if (!zone) return;
+      layout.setRect(panelId, zoneRect(zone, layout.region), "drag");
+    },
+    [layout],
+  );
 
   const activeRects = entries
     .filter((entry) => !layout.hidden[entry.id])
@@ -98,9 +156,28 @@ export function PanelHost({ workspace, entries }: PanelHostProps) {
       };
     });
 
+  // Pin semantics: derive z-order so pinned panels always render above.
+  const zIndexMap = useMemo(
+    () => effectiveZIndex(layout.zIndex, layout.pinned),
+    [layout.zIndex, layout.pinned],
+  );
+
   return (
     <>
       <div ref={regionRef} hidden aria-hidden="true" />
+      {dockTarget !== null && region.width > 0 &&
+        createPortal(
+          <div
+            className="panel-dock-ghost"
+            style={{
+              left: `${(region.left + zonePixels(dockTarget, region).x).toFixed(2)}px`,
+              top: `${(region.top + zonePixels(dockTarget, region).y).toFixed(2)}px`,
+              width: `${zonePixels(dockTarget, region).width.toFixed(2)}px`,
+              height: `${zonePixels(dockTarget, region).height.toFixed(2)}px`,
+            }}
+          />,
+          document.body,
+        )}
       {entries.map((entry, index) => {
         if (layout.hidden[entry.id]) return null;
         const rect = layout.rects[entry.id] ?? DEFAULT_RECT;
@@ -113,7 +190,7 @@ export function PanelHost({ workspace, entries }: PanelHostProps) {
             rect={rect}
             region={region}
             constraints={constraints[entry.id]}
-            zIndex={layout.zIndex[entry.id] ?? PANEL_BASE_Z + index}
+            zIndex={zIndexMap[entry.id] ?? PANEL_BASE_Z + index}
             collapsed={collapsed}
             pinned={Boolean(layout.pinned[entry.id])}
             otherRects={activeRects.filter((item) => item.id !== entry.id)}
@@ -121,15 +198,17 @@ export function PanelHost({ workspace, entries }: PanelHostProps) {
             onRaise={() => layout.bringToFront(entry.id)}
             onToggleCollapse={() => layout.toggleCollapse(entry.id)}
             onTogglePin={() => layout.togglePin(entry.id)}
-            onClose={() => layout.setClosed(entry.id, true)}
+            onClose={() => closePanel(entry.id)}
             onOpen={() => layout.toggleCollapse(entry.id)}
+            onDockTarget={handleDockTarget}
+            onDropDock={(zone) => handleDropDock(entry.id, zone)}
           >
-            {entry.render({ close: () => layout.setClosed(entry.id, true) })}
+            {entry.render({ close: () => closePanel(entry.id) })}
           </FloatingPanel>,
           document.body,
         );
       })}
-      {entries.some((entry) => layout.hidden[entry.id]) && (
+      {showRail && entries.some((entry) => layout.hidden[entry.id]) && (
         <div className="panel-rail" data-workspace={workspace}>
           <span className="panel-rail-label">Panels</span>
           {entries

@@ -402,6 +402,8 @@ export interface Sequence {
   mark_out: number | null;
   subtitles?: SubtitleItem[];
   multicam_clips?: MultiCamClip[];
+  caption_tracks?: CaptionTrack[];
+  graphics?: GraphicItem[];
   buses?: AudioBus[];
   node_graph?: NodeGraph | null;
 }
@@ -438,6 +440,102 @@ export interface SubtitleItem {
   start_ticks: number;
   end_ticks: number;
   text: string;
+  /** Speaker label (Phase 5 captions); `undefined` = unlabelled. */
+  speaker?: string | null;
+  /** Reference to a `CaptionStyle` on the owning track. */
+  style_id?: number | null;
+}
+
+/** A reusable caption look stored on the track (Phase 5 captions). */
+export interface CaptionStyle {
+  id: number;
+  name: string;
+  font_family: string;
+  font_size: number;
+  fill_color: string;
+  stroke_color?: string | null;
+  stroke_width?: number;
+  background_color?: string | null;
+}
+
+/** One caption track; cues are sorted by `start_ticks`. */
+export interface CaptionTrack {
+  id: number;
+  name: string;
+  language: string;
+  cues: SubtitleItem[];
+  styles: CaptionStyle[];
+}
+
+export type GraphicKind = "text" | "rectangle" | "ellipse" | "polygon" | "adjustment";
+
+export interface GraphicTransform {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  scale: number;
+  /** Degrees, clockwise. */
+  rotation: number;
+  /** Normalized pivot, 0..1 (0.5,0.5 = center). */
+  anchor_x: number;
+  anchor_y: number;
+  /** 0..1. */
+  opacity: number;
+}
+
+export interface GraphicFill {
+  color: string;
+  opacity: number;
+}
+
+export interface GraphicStroke {
+  color: string;
+  width: number;
+}
+
+export interface GraphicShadow {
+  color: string;
+  blur: number;
+  offset_x: number;
+  offset_y: number;
+}
+
+export interface GraphicText {
+  content: string;
+  font_family: string;
+  font_size: number;
+  /** Letter spacing in project pixels. */
+  tracking: number;
+  /** Line height multiplier. */
+  leading: number;
+  align: string;
+  vertical: boolean;
+}
+
+/** A saved graphic look project-wide (Phase 5 templates). */
+export interface GraphicTemplate {
+  id: number;
+  name: string;
+  body: GraphicItem;
+}
+
+/** One editable graphic on the timeline (Phase 5 Essential Graphics). */
+export interface GraphicItem {
+  id: number;
+  name: string;
+  kind: GraphicKind;
+  start_ticks: number;
+  duration_ticks: number;
+  layer: number;
+  visible: boolean;
+  locked: boolean;
+  transform: GraphicTransform;
+  fill?: GraphicFill | null;
+  stroke?: GraphicStroke | null;
+  shadow?: GraphicShadow | null;
+  text?: GraphicText | null;
+  points?: [number, number][] | null;
 }
 
 export interface ProjectDocument {
@@ -447,6 +545,7 @@ export interface ProjectDocument {
     bins?: MediaBin[];
     sequence: Sequence;
     sequences?: Sequence[];
+    graphic_templates?: GraphicTemplate[];
     settings: {
       width: number;
       height: number;

@@ -28,7 +28,9 @@ pub use preview::{
     synthesize_speed_ramp_frames,
 };
 mod subtitles;
-pub use subtitles::{export_subtitles_file, import_subtitles_file};
+pub use subtitles::{export_subtitles_file, import_subtitles_file, read_text_file};
+mod markers;
+pub use markers::{read_markers_file, write_markers_file};
 mod color;
 pub use color::{get_lut_preset_cube, load_lut_cube_file};
 mod collab;

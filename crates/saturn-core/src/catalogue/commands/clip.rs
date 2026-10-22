@@ -356,7 +356,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         label: "Update Media Properties",
         menu: &["Clip"],
         shortcut: None,
-        params: "{\"media_id\":int,\"name\":str?,\"color_label\":str?,\"tags\":[str]?}",
+        params: "{\"media_id\":int,\"name\":str?,\"color_label\":str?,\"tags\":[str]?,\"comment\":str?,\"scene\":str?,\"take\":str?}",
         category: Category::File,
         mutating: true,
         undo_group: UndoGroup::Transaction,

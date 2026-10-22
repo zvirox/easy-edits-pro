@@ -12,6 +12,11 @@ import { useTimelineOperations } from "./app/useTimelineOperations";
 import { useInspectorOperations } from "./app/useInspectorOperations";
 import { useProjectOperations } from "./app/useProjectOperations";
 import { useAudioWorkspace } from "./app/useAudioWorkspace";
+import { useMarkers } from "./app/useMarkers";
+import { useCaptions } from "./app/useCaptions";
+import { useGraphics } from "./app/useGraphics";
+import { useShortcutsSync } from "./app/useShortcutsSync";
+import { applyViewCommand } from "./app/viewCommands";
 
 import { AppHeader } from "./features/menubar";
 import { WorkspaceRouter } from "./workspaces/WorkspaceRouter";
@@ -39,8 +44,7 @@ import {
 import {
   PANEL_LAYOUT_EVENT,
   PANEL_LAYOUT_STORAGE_PREFIX,
-  PANEL_RESET_EVENT,
-  PANEL_TOGGLE_EVENT,
+  panelWindowCommand,
   workspacePresets,
 } from "./features/panels/presets";
 import {
@@ -60,7 +64,6 @@ import type { CommandSpec, SelectedClip } from "./types";
 function EditorApp() {
   const [preferences, setPreferences] = useState<Preferences>(loadPreferences);
   const preferencesHydrated = useRef(false);
-  const shortcutsHydrated = useRef(false);
   const theme = preferences.theme;
   const setTheme = useCallback((next: Preferences["theme"]) => {
     setPreferences((current) => ({ ...current, theme: next }));
@@ -136,46 +139,8 @@ function EditorApp() {
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [presetsOpen, setPresetsOpen] = useState(false);
   const [customPresets, setCustomPresets] = useState<CustomWorkspacePreset[]>(loadCustomPresets);
-  const [shortcutOverrides, setShortcutOverrides] = useState<Record<string, string>>(() => {
-    try {
-      const raw = localStorage.getItem("easy-edits-pro.shortcuts.v1");
-      const parsed = raw ? JSON.parse(raw) : null;
-      return parsed && typeof parsed === "object" ? (parsed as Record<string, string>) : {};
-    } catch {
-      return {};
-    }
-  });
-  useEffect(() => {
-    try {
-      localStorage.setItem("easy-edits-pro.shortcuts.v1", JSON.stringify(shortcutOverrides));
-    } catch {}
-    if (!shortcutsHydrated.current) return;
-    void runCommand("shortcuts.set", { shortcuts: shortcutOverrides }).catch(() => {});
-  }, [shortcutOverrides]);
+  const { shortcutOverrides, setShortcutOverrides } = useShortcutsSync();
 
-  useEffect(() => {
-    let active = true;
-    void runCommand<{ shortcuts: Record<string, unknown> }>("shortcuts.list")
-      .then(({ shortcuts }) => {
-        if (!active) return;
-        const overrides = Object.fromEntries(
-          Object.entries(shortcuts ?? {}).filter(([, value]) => typeof value === "string"),
-        ) as Record<string, string>;
-        if (Object.keys(overrides).length) {
-          setShortcutOverrides(overrides);
-        } else if (Object.keys(shortcutOverrides).length) {
-          // Migrate the localStorage cache into settings.json once.
-          void runCommand("shortcuts.set", { shortcuts: shortcutOverrides }).catch(() => {});
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        shortcutsHydrated.current = true;
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
   useEffect(() => {
     let active = true;
     void runCommand<{ presets: unknown[] }>("workspace.list")
@@ -279,6 +244,32 @@ function EditorApp() {
     keyframeProperty: "opacity", keyframeValue: "1",
     initialSnapEnabled: preferences.snap,
     initialTrackHeight: preferences.trackHeight,
+  });
+
+  const markerOps = useMarkers({
+    project,
+    playhead: playback.playhead,
+    runCommand,
+    refreshProject,
+    setNotice,
+    seek: playback.seekProgramTo,
+  });
+
+  const captionsOps = useCaptions({
+    project,
+    playhead: playback.playhead,
+    runCommand,
+    refreshProject,
+    setNotice,
+    seek: playback.seekProgramTo,
+  });
+
+  const graphicsOps = useGraphics({
+    project,
+    playhead: playback.playhead,
+    runCommand,
+    refreshProject,
+    setNotice,
   });
 
   useEffect(() => {
@@ -385,6 +376,24 @@ function EditorApp() {
    */
   const dispatchCommand = useCallback(
     async (id: string) => {
+      if (id === "marker.panel" || id === "caption.panel" || id === "graphic.panel") {
+        // The docked-adjacent panels live in the Edit workspace; switching
+        // there and announcing the panel keeps the gesture one step.
+        selectDavinciWorkspace("edit");
+        if (id === "marker.panel") markerOps.openPanel();
+        else if (id === "caption.panel") captionsOps.openPanel();
+        else graphicsOps.openPanel();
+        return;
+      }
+      if (id.startsWith("caption.") && (await captionsOps.handleMenuCommand(id))) {
+        return;
+      }
+      if (id.startsWith("graphic.") && (await graphicsOps.handleMenuCommand(id))) {
+        return;
+      }
+      if (id.startsWith("marker.") && (await markerOps.handleMenuCommand(id))) {
+        return;
+      }
       if (id.startsWith("workspace.preset_")) {
         const preset = workspacePresets.find(
           (entry) => `workspace.preset_${entry.id}` === id
@@ -397,10 +406,9 @@ function EditorApp() {
         setPresetsOpen(true);
         return;
       }
-      if (id === "window.reset_layout") {
+      if (id === "window.reset_layout" || id === "window.reopen_panels") {
         setPresetsOpen(false);
-        window.dispatchEvent(new Event(PANEL_RESET_EVENT));
-        setNotice("Panel layout reset");
+        setNotice(panelWindowCommand(id) ?? "");
         return;
       }
       if ((EDIT_CLIPBOARD_COMMANDS as string[]).includes(id)) {
@@ -463,64 +471,30 @@ function EditorApp() {
         case "project.add_media":
           await mediaOps.importMedia();
           return;
-        case "view.toggle_snap":
-          timelineOps.setSnapEnabled((value) => !value);
-          return;
-        case "view.zoom_in":
-          timelineOps.zoomTimeline(1.25);
-          return;
-        case "view.zoom_out":
-          timelineOps.zoomTimeline(0.8);
-          return;
-        case "view.zoom_reset":
-          timelineOps.setTimelineZoom(72);
-          return;
-        case "view.theme_dark":
-        case "view.theme_light":
-          setPreferences((current) => ({
-            ...current,
-            theme: id === "view.theme_dark" ? "dark" : "light",
-          }));
-          return;
-        case "view.reduced_motion":
-          setPreferences((current) => ({
-            ...current,
-            reducedMotion:
-              current.reducedMotion === null ? true : current.reducedMotion ? false : null,
-          }));
-          return;
-        case "view.panel_media":
-        case "view.panel_inspector":
-          window.dispatchEvent(
-            new CustomEvent(PANEL_TOGGLE_EVENT, {
-              detail: { id: id === "view.panel_media" ? "media" : "inspector" },
-            }),
-          );
-          return;
         case "edit.preferences":
           setPreferencesOpen(true);
           return;
         case "help.shortcuts":
           setShortcutsOpen(true);
           return;
-        case "help.diagnostics":
-          setNotice("Diagnostics are available from the status bar.");
-          return;
-        case "help.support":
-          setNotice("Report issues from the project repository.");
-          return;
-        case "help.about":
-          setNotice("Easy Edits Pro — glass NLE built on the Saturn engine.");
-          return;
       }
-      if (id.startsWith("view.glass_")) {
-        const glass = id.slice("view.glass_".length) as Preferences["glass"];
-        setPreferences((current) => ({ ...current, glass }));
+      if (
+        applyViewCommand(id, {
+          preferences,
+          setPreferences,
+          setPreferencesOpen,
+          setShortcutsOpen,
+          setNotice,
+          setSnapEnabled: timelineOps.setSnapEnabled,
+          zoomTimeline: timelineOps.zoomTimeline,
+          setTimelineZoom: timelineOps.setTimelineZoom,
+        })
+      ) {
         return;
       }
       await projectOps.invokeMenuCommand(id);
     },
-    [selectDavinciWorkspace, applyWorkspacePreset, projectOps, mediaOps, timelineOps, project, playback, runEditClipboard]
+    [selectDavinciWorkspace, applyWorkspacePreset, projectOps, mediaOps, timelineOps, markerOps, project, playback, runEditClipboard]
   );
 
   const shortcuts = useShortcuts({
@@ -674,7 +648,8 @@ function EditorApp() {
         toggleFullscreen={projectOps.toggleFullscreen}
       />
 
-      <ErrorBoundary fallbackTitle="Workspace Rendering Issue" onReset={() => projectOps.setDavinciWorkspace("edit")}>
+      <div className="app-workspace-region">
+        <ErrorBoundary fallbackTitle="Workspace Rendering Issue" onReset={() => projectOps.setDavinciWorkspace("edit")}>
         <WorkspaceRouter
           commands={commands}
           davinciWorkspace={projectOps.davinciWorkspace}
@@ -690,8 +665,21 @@ function EditorApp() {
           perform={perform} undoStatus={undoStatus} redoStatus={redoStatus}
           programPreviewError={programPreviewError} audioClockMaster={audioClockMaster}
           audioOps={audioOps}
+          markerOps={markerOps}
+          captionsOps={captionsOps}
+          graphicsOps={graphicsOps}
         />
-      </ErrorBoundary>
+        </ErrorBoundary>
+
+        {/* EditorModals hosts the AI Assistant floating panel; it lives inside
+            the workspace region so the panel can never cover app chrome. */}
+        <EditorModals
+          projectOps={projectOps} mediaOps={mediaOps}
+          timelineOps={timelineOps} project={project}
+          media={media} busy={busy}
+          refreshProject={refreshProject} setNotice={setNotice}
+        />
+      </div>
 
       <StatusBar
         busy={busy} notice={notice} connection={connection}
@@ -733,8 +721,7 @@ function EditorApp() {
         onRename={renameCustomPreset}
         onDelete={deleteCustomPreset}
         onResetActive={() => {
-          window.dispatchEvent(new Event(PANEL_RESET_EVENT));
-          setNotice(`Reset the ${projectOps.workspace} panel layout`);
+          setNotice(panelWindowCommand("window.reset_layout") ?? "");
           setPresetsOpen(false);
         }}
       />
@@ -754,13 +741,6 @@ function EditorApp() {
         }
         onImport={(next) => setShortcutOverrides(next)}
         onResetAll={() => setShortcutOverrides({})}
-      />
-
-      <EditorModals
-        projectOps={projectOps} mediaOps={mediaOps}
-        timelineOps={timelineOps} project={project}
-        media={media} busy={busy}
-        refreshProject={refreshProject} setNotice={setNotice}
       />
     </div>
   );

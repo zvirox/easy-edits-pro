@@ -129,6 +129,8 @@ pub fn parse_srt(content: &str) -> Result<Vec<SubtitleItem>, String> {
                 start_ticks,
                 end_ticks,
                 text,
+                speaker: None,
+                style_id: None,
             });
             auto_id = auto_id.saturating_add(1);
         }
@@ -227,6 +229,8 @@ pub fn parse_vtt(content: &str) -> Result<Vec<SubtitleItem>, String> {
                 start_ticks,
                 end_ticks,
                 text,
+                speaker: None,
+                style_id: None,
             });
             auto_id = auto_id.saturating_add(1);
         }

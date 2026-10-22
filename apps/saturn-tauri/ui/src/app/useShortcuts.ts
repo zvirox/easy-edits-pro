@@ -65,8 +65,10 @@ export function useShortcuts(options: Options) {
     if (["j", "k", "l"].includes(event.key.toLowerCase()) && !(event.ctrlKey || event.metaKey || event.altKey)) {
       event.preventDefault(); options.handleShuttleKey(event.key.toLowerCase() as "j" | "k" | "l"); return;
     }
-    if (event.key === "ArrowLeft" && !(event.ctrlKey || event.metaKey || event.altKey)) { event.preventDefault(); options.stepProgramFrame(-1); return; }
-    if (event.key === "ArrowRight" && !(event.ctrlKey || event.metaKey || event.altKey)) { event.preventDefault(); options.stepProgramFrame(1); return; }
+    // Shift+Arrow belongs to the catalogue (marker previous/next), so frame
+    // stepping must not swallow the modified chord.
+    if (event.key === "ArrowLeft" && !(event.ctrlKey || event.metaKey || event.altKey || event.shiftKey)) { event.preventDefault(); options.stepProgramFrame(-1); return; }
+    if (event.key === "ArrowRight" && !(event.ctrlKey || event.metaKey || event.altKey || event.shiftKey)) { event.preventDefault(); options.stepProgramFrame(1); return; }
     if ((event.key === "Delete" || event.key === "Backspace") && options.selectedTransition) {
       event.preventDefault(); void options.removeSelectedTransition(); return;
     }
@@ -93,7 +95,12 @@ export function useShortcuts(options: Options) {
     if ((event.ctrlKey || event.metaKey) && event.key === "+") { event.preventDefault(); options.zoomTimeline(1.2); return; }
     if ((event.ctrlKey || event.metaKey) && event.key === "-") { event.preventDefault(); options.zoomTimeline(1 / 1.2); return; }
     if ((event.ctrlKey || event.metaKey) && event.key === "0") { event.preventDefault(); options.zoomTimeline(72 / options.timelineZoom); return; }
-    const pressed = `${event.ctrlKey || event.metaKey ? "Ctrl+" : ""}${event.altKey ? "Alt+" : ""}${event.shiftKey ? "Shift+" : ""}${event.key.length === 1 ? event.key.toUpperCase() : event.key}`;
+    // Catalogue shortcuts use the short arrow names ("Left", "Down") while
+    // the DOM reports "ArrowLeft"/"ArrowDown"; normalise so both match.
+    const keyName = event.key.length === 1
+      ? event.key.toUpperCase()
+      : event.key.replace(/^Arrow/, "");
+    const pressed = `${event.ctrlKey || event.metaKey ? "Ctrl+" : ""}${event.altKey ? "Alt+" : ""}${event.shiftKey ? "Shift+" : ""}${keyName}`;
     const command = options.commands.find((item) => item.shortcut?.toLowerCase() === pressed.toLowerCase());
     if (!command) return;
     event.preventDefault();

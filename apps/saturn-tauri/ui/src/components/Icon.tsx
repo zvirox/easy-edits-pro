@@ -31,6 +31,7 @@ export type IconName =
   | "remove"
   | "markIn"
   | "markOut"
+  | "marker"
   | "zoomIn"
   | "zoomOut"
   | "clearMarks"
@@ -88,6 +89,7 @@ export function Icon({ name }: { name: IconName }) {
     split: <><path d="M4 4h12v12H4zM10 4v12" /><path d="m7 8 3 2-3 2m6-4-3 2 3 2" /></>,
     remove: <><path d="M4 6h12m-10 0 1 11h6l1-11M8 6V4h4v2m-3 3v5m2-5v5" /></>,
     markIn: <path d="M6 3H4v14h2m10-14h-2m-2 0h-2" />,
+    marker: <path d="M5 19V3m0 1h10l-2.5 4L15 12H5" />,
     markOut: <path d="M14 3h2v14h-2M4 3h2m2 0h2" />,
     zoomIn: <><circle cx="8.5" cy="8.5" r="5.5" /><path d="m13 13 4 4M8.5 6v5m-2.5-2.5h5" /></>,
     zoomOut: <><circle cx="8.5" cy="8.5" r="5.5" /><path d="m13 13 4 4M6 8.5h5" /></>,

@@ -116,6 +116,7 @@ export interface MediaPanelProps {
   project: ProjectDocument["project"] | null;
   missingMediaIds: Set<number>;
   setMediaEditPropsId: (id: number | null) => void;
+  renameBin: (id: number) => Promise<void>;
   deleteBin: (id: number) => Promise<void>;
   beginMediaPointer: (event: PointerEvent<HTMLButtonElement>, mediaId: number) => void;
   moveMediaPointer: (event: PointerEvent<HTMLButtonElement>) => void;
@@ -163,6 +164,7 @@ export function MediaPanel({
   project,
   missingMediaIds,
   setMediaEditPropsId,
+  renameBin,
   deleteBin,
   beginMediaPointer,
   moveMediaPointer,
@@ -321,6 +323,18 @@ export function MediaPanel({
                   >
                     <span>{bin.name}</span>
                     <span className="bin-count">({binCount})</span>
+                    <span
+                      className="bin-rename-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void renameBin(bin.id);
+                      }}
+                      title="Rename Bin"
+                      role="button"
+                      aria-label={`Rename bin ${bin.name}`}
+                    >
+                      ✎
+                    </span>
                     <span
                       className="bin-close-btn"
                       onClick={(e) => {

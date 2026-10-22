@@ -97,6 +97,10 @@ pub(in crate::engine) struct AddSubtitleParams {
     pub(in crate::engine) start_ticks: Tick,
     pub(in crate::engine) end_ticks: Tick,
     pub(in crate::engine) text: String,
+    #[serde(default)]
+    pub(in crate::engine) speaker: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) style_id: Option<u64>,
 }
 
 #[derive(Deserialize)]
@@ -113,6 +117,109 @@ pub(in crate::engine) struct UpdateSubtitleParams {
     pub(in crate::engine) end_ticks: Option<Tick>,
     #[serde(default)]
     pub(in crate::engine) text: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) speaker: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionTrackAddParams {
+    #[serde(default)]
+    pub(in crate::engine) name: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) language: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionTrackRemoveParams {
+    pub(in crate::engine) id: u64,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionTrackRenameParams {
+    pub(in crate::engine) id: u64,
+    pub(in crate::engine) name: String,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionCueAddParams {
+    #[serde(default)]
+    pub(in crate::engine) track_id: Option<u64>,
+    pub(in crate::engine) start_ticks: Tick,
+    pub(in crate::engine) end_ticks: Tick,
+    pub(in crate::engine) text: String,
+    #[serde(default)]
+    pub(in crate::engine) speaker: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) style_id: Option<u64>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionCueUpdateParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) id: u64,
+    #[serde(default)]
+    pub(in crate::engine) start_ticks: Option<Tick>,
+    #[serde(default)]
+    pub(in crate::engine) end_ticks: Option<Tick>,
+    #[serde(default)]
+    pub(in crate::engine) text: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) speaker: Option<Option<String>>,
+    #[serde(default)]
+    pub(in crate::engine) style_id: Option<u64>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionCueRemoveParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) id: u64,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionCueNudgeParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) id: u64,
+    pub(in crate::engine) delta_ticks: i64,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionStyleSetParams {
+    pub(in crate::engine) track_id: u64,
+    #[serde(default)]
+    pub(in crate::engine) id: Option<u64>,
+    #[serde(default)]
+    pub(in crate::engine) name: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) font_family: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) font_size: Option<f32>,
+    #[serde(default)]
+    pub(in crate::engine) fill_color: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) stroke_color: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) stroke_width: Option<f32>,
+    #[serde(default)]
+    pub(in crate::engine) background_color: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionImportParams {
+    #[serde(default)]
+    pub(in crate::engine) track_id: Option<u64>,
+    pub(in crate::engine) content: String,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionExportParams {
+    #[serde(default)]
+    pub(in crate::engine) track_id: Option<u64>,
+    #[serde(default = "default_caption_export_format")]
+    pub(in crate::engine) format: String,
+}
+
+fn default_caption_export_format() -> String {
+    "srt".into()
 }
 
 #[derive(Deserialize)]
@@ -439,6 +546,12 @@ pub(in crate::engine) struct UpdateMediaPropertiesParams {
     pub(in crate::engine) name: Option<String>,
     pub(in crate::engine) color_label: Option<String>,
     pub(in crate::engine) tags: Option<Vec<String>>,
+    #[serde(default)]
+    pub(in crate::engine) comment: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) scene: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) take: Option<String>,
 }
 
 #[derive(Deserialize)]

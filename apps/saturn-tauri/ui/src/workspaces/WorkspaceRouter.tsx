@@ -12,6 +12,9 @@ import type { CommandStatus } from "../app/ProjectProvider";
 import type { AudioClockMaster } from "../engine/playbackEngine";
 import type { SourcePreviewFocus } from "../features/preview";
 import type { CommandSpec } from "../features/menubar/AppHeader";
+import type { MarkerOperations } from "../app/useMarkers";
+import type { CaptionOperations } from "../app/useCaptions";
+import type { GraphicOperations } from "../features/graphics";
 
 export interface WorkspaceRouterProps {
   commands: CommandSpec[];
@@ -38,6 +41,9 @@ export interface WorkspaceRouterProps {
   programPreviewError: string | null;
   audioClockMaster: any;
   audioOps: any;
+  markerOps: MarkerOperations;
+  captionsOps: CaptionOperations;
+  graphicsOps: GraphicOperations;
 }
 
 export function WorkspaceRouter({
@@ -65,6 +71,9 @@ export function WorkspaceRouter({
   programPreviewError,
   audioClockMaster,
   audioOps,
+  markerOps,
+  captionsOps,
+  graphicsOps,
 }: WorkspaceRouterProps) {
   // Unified monitor Source-tab focus: a click (pointer down→up without drag)
   // on a media-pool item or a timeline clip loads it in the Source tab.
@@ -448,6 +457,7 @@ export function WorkspaceRouter({
         setMediaViewMode: mediaOps.setMediaViewMode,
         activeBinId: mediaOps.activeBinId,
         setActiveBinId: mediaOps.setActiveBinId,
+        renameBin: mediaOps.renameMediaBin,
         deleteBin: mediaOps.deleteMediaBin,
         beginMediaPointer: mediaOps.beginMediaPointer,
         moveMediaPointer: mediaOps.moveMediaPointer,
@@ -493,6 +503,14 @@ export function WorkspaceRouter({
             duration,
             playback.playhead,
           ),
+        graphicsEditing: {
+          activeTool: timelineOps.timelineTool,
+          selectedId: graphicsOps.selectedId,
+          onSelect: graphicsOps.setSelectedId,
+          onCreate: (kind, xNorm, yNorm, vertical) =>
+            graphicsOps.createAt(kind, xNorm, yNorm, vertical),
+          onTransform: (id, patch) => graphicsOps.updateTransform(id, patch),
+        },
       }}
       timelineSectionProps={{
         timelineTool: timelineOps.timelineTool,
@@ -544,6 +562,9 @@ export function WorkspaceRouter({
         exportSubtitlesDialog: inspectorOps.exportSubtitlesDialog,
         selectedSubtitle: inspectorOps.selectedSubtitle,
         setSelectedSubtitle: inspectorOps.setSelectedSubtitle,
+        selectedMarkerId: markerOps.selectedMarkerId,
+        onSelectMarker: markerOps.selectMarker,
+        onOpenMarkerPanel: markerOps.openPanel,
         setSelectedClipId: timelineOps.setSelectedClipId,
         setSelectedClip: timelineOps.setSelectedClip,
         handleToggleGroupCollapse: timelineOps.handleToggleGroupCollapse,
@@ -693,6 +714,41 @@ export function WorkspaceRouter({
         getMediaUrl,
         onCommit: () => void timelineOps.commitTrimMode(),
         onCancel: timelineOps.cancelTrimMode,
+      }}
+      markersPanelProps={{
+        markers: markerOps.markers,
+        selectedMarkerId: markerOps.selectedMarkerId,
+        frameRate: project?.settings.frame_rate ?? { numerator: 30, denominator: 1 },
+        onSelect: markerOps.setSelectedMarkerId,
+        onSeek: (tick: number) => playback.seekProgramTo(tick),
+        onRename: markerOps.renameMarker,
+        onUpdateKind: markerOps.setMarkerKind,
+        onDelete: markerOps.removeMarker,
+        onClear: markerOps.clearMarkers,
+        onAdd: markerOps.addMarker,
+        onAddRange: markerOps.addRangeMarker,
+        onImport: markerOps.importMarkers,
+        onExport: markerOps.exportMarkers,
+      }}
+      captionsPanelProps={{
+        track: captionsOps.track,
+        cues: captionsOps.cues,
+        playhead: playback.playhead,
+        frameRate: project?.settings.frame_rate ?? { numerator: 30, denominator: 1 },
+        selectedCueId: captionsOps.selectedCueId,
+        onSelect: captionsOps.selectCue,
+        onAdd: captionsOps.addCue,
+        onEditText: captionsOps.updateCueText,
+        onEditSpeaker: captionsOps.updateCueSpeaker,
+        onNudge: captionsOps.nudgeCue,
+        onDelete: captionsOps.removeCue,
+        onImport: captionsOps.importCues,
+        onExport: captionsOps.exportCues,
+      }}
+      graphicsPanelProps={{
+        ops: graphicsOps,
+        playhead: playback.playhead,
+        frame: project?.settings ?? { width: 1920, height: 1080 },
       }}
     />
   );

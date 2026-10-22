@@ -7,6 +7,7 @@ import { formatTime } from "../../utils/formatters";
 import type { AudioClockMaster } from "../../engine/playbackEngine";
 import type {
   Clip,
+  Marker,
   MediaAsset,
   ProjectDocument,
   SubtitleItem,
@@ -29,6 +30,8 @@ import { SequenceTabs } from "./SequenceTabs";
 import { ClipContextMenu, type ClipMenuCommand } from "./ClipContextMenu";
 import { useClipContextMenu } from "./useClipContextMenu";
 import { useSequenceTabs } from "./useSequenceTabs";
+import { MarkerLane } from "./MarkerLane";
+import { defaultCaptionCues } from "../../app/captions";
 
 export {
   type TimelineTool,
@@ -93,6 +96,9 @@ export interface TimelineSectionProps {
   exportSubtitlesDialog: () => Promise<void>;
   selectedSubtitle: SubtitleItem | null;
   setSelectedSubtitle: Dispatch<SetStateAction<SubtitleItem | null>>;
+  selectedMarkerId: number | null;
+  onSelectMarker: (marker: Marker) => void;
+  onOpenMarkerPanel: () => void;
   setSelectedClipId: Dispatch<SetStateAction<number | null>>;
   setSelectedClip: Dispatch<SetStateAction<SelectedClip | null>>;
 
@@ -179,6 +185,9 @@ export function TimelineSection({
   exportSubtitlesDialog,
   selectedSubtitle,
   setSelectedSubtitle,
+  selectedMarkerId,
+  onSelectMarker,
+  onOpenMarkerPanel,
   setSelectedClipId,
   setSelectedClip,
   handleToggleGroupCollapse,
@@ -491,6 +500,13 @@ export function TimelineSection({
             {/* Single full-height playhead line (content-anchored so it spans
                 ruler + all lanes on one continuous stroke). */}
             <i className="timeline-playhead-line" style={{ left: `${playheadX}px` }} />
+            <MarkerLane
+              markers={project?.sequence.markers ?? []}
+              selectedMarkerId={selectedMarkerId}
+              pixelsPerSecond={timelineZoom}
+              onSelect={onSelectMarker}
+              onOpenPanel={onOpenMarkerPanel}
+            />
             {/* FilmCraft-style ruler: adaptive labels + minor/major ticks.
                 No spacer here — the ruler lane shares the track lanes' origin so
                 the playhead, ruler labels and clips all line up on one x-axis. */}
@@ -579,7 +595,7 @@ export function TimelineSection({
                 onDragOver={handleDragOverEmptySpace}
                 onDrop={handleDropOnEmptySpace}
               >
-                {(project?.sequence.subtitles ?? []).map((sub) => {
+                {(defaultCaptionCues(project?.sequence)).map((sub) => {
                   const left = (sub.start_ticks / TICKS_PER_SECOND) * timelineZoom;
                   const width = Math.max(34, ((sub.end_ticks - sub.start_ticks) / TICKS_PER_SECOND) * timelineZoom);
                   const isSelected = selectedSubtitle?.id === sub.id;

@@ -253,4 +253,18 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         shipped: true,
         ui_only: true,
     },
+    CommandSpec {
+        id: "window.reopen_panels",
+        label: "Reopen Closed Panels",
+        menu: &["Window"],
+        shortcut: None,
+        params: "{}",
+        category: Category::Window,
+        mutating: false,
+        undo_group: UndoGroup::None,
+        aliases: &[],
+        since: "0.1.0",
+        shipped: true,
+        ui_only: true,
+    },
 ];

@@ -226,6 +226,8 @@ pub fn speech_segments_to_subtitles(segments: &[SpeechSegment]) -> Vec<SubtitleI
             start_ticks: seg.start_ticks,
             end_ticks: seg.end_ticks,
             text: clean_text.to_string(),
+            speaker: None,
+            style_id: None,
         });
         id = id.saturating_add(1);
     }
@@ -463,61 +465,66 @@ pub fn ripple_delete_time_ranges(
         track.clips = new_clips;
     }
 
-    // Shift and trim subtitles accordingly so subtitles stay in sync with spoken video
-    let mut new_subtitles = Vec::new();
-    let mut subtitles_adjusted = 0;
+    // Shift and trim caption cues so captions stay in sync with spoken video
+    let mut subtitles_adjusted = 0usize;
 
-    for sub in std::mem::take(&mut sequence.subtitles) {
-        let sub_start = sub.start_ticks.0;
-        let sub_end = sub.end_ticks.0;
+    for track in &mut sequence.caption_tracks {
+        let mut new_cues = Vec::with_capacity(track.cues.len());
 
-        // Check if subtitle lies completely inside a deleted range
-        let inside_deleted = merged
-            .iter()
-            .any(|(s, e)| sub_start >= s.0 && sub_end <= e.0);
-        if inside_deleted {
-            subtitles_adjusted += 1;
-            continue;
-        }
+        for sub in std::mem::take(&mut track.cues) {
+            let sub_start = sub.start_ticks.0;
+            let sub_end = sub.end_ticks.0;
 
-        let mut shift_start = 0i64;
-        let mut shift_end = 0i64;
-
-        for &(range_start, range_end) in &merged {
-            let r_start = range_start.0;
-            let r_end = range_end.0;
-            let r_dur = r_end - r_start;
-
-            if sub_start >= r_end {
-                shift_start += r_dur;
-            } else if sub_start > r_start {
-                shift_start += sub_start - r_start;
-            }
-
-            if sub_end >= r_end {
-                shift_end += r_dur;
-            } else if sub_end > r_start {
-                shift_end += sub_end - r_start;
-            }
-        }
-
-        let new_start = (sub_start - shift_start).max(0);
-        let new_end = (sub_end - shift_end).max(new_start + 1);
-
-        if new_end > new_start {
-            if shift_start > 0 || shift_end > 0 {
+            // Check if the cue lies completely inside a deleted range
+            let inside_deleted = merged
+                .iter()
+                .any(|(s, e)| sub_start >= s.0 && sub_end <= e.0);
+            if inside_deleted {
                 subtitles_adjusted += 1;
+                continue;
             }
-            new_subtitles.push(SubtitleItem {
-                id: sub.id,
-                start_ticks: Tick(new_start),
-                end_ticks: Tick(new_end),
-                text: sub.text,
-            });
-        }
-    }
 
-    sequence.subtitles = new_subtitles;
+            let mut shift_start = 0i64;
+            let mut shift_end = 0i64;
+
+            for &(range_start, range_end) in &merged {
+                let r_start = range_start.0;
+                let r_end = range_end.0;
+                let r_dur = r_end - r_start;
+
+                if sub_start >= r_end {
+                    shift_start += r_dur;
+                } else if sub_start > r_start {
+                    shift_start += sub_start - r_start;
+                }
+
+                if sub_end >= r_end {
+                    shift_end += r_dur;
+                } else if sub_end > r_start {
+                    shift_end += sub_end - r_start;
+                }
+            }
+
+            let new_start = (sub_start - shift_start).max(0);
+            let new_end = (sub_end - shift_end).max(new_start + 1);
+
+            if new_end > new_start {
+                if shift_start > 0 || shift_end > 0 {
+                    subtitles_adjusted += 1;
+                }
+                new_cues.push(SubtitleItem {
+                    id: sub.id,
+                    start_ticks: Tick(new_start),
+                    end_ticks: Tick(new_end),
+                    text: sub.text,
+                    speaker: sub.speaker,
+                    style_id: sub.style_id,
+                });
+            }
+        }
+
+        track.cues = new_cues;
+    }
 
     Ok(RippleDeleteReport {
         deleted_ranges_count: merged.len(),
@@ -531,7 +538,7 @@ pub fn ripple_delete_time_ranges(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::project::{Track, TrackKind};
+    use crate::project::{CaptionTrack, Track, TrackKind};
 
     #[test]
     fn test_silence_detection_from_peaks() {
@@ -646,26 +653,40 @@ mod tests {
             }],
             mark_in: None,
             mark_out: None,
-            subtitles: vec![
-                SubtitleItem {
-                    id: 1,
-                    start_ticks: Tick::from_millis(1000),
-                    end_ticks: Tick::from_millis(2500),
-                    text: "Opening speech".to_string(),
-                },
-                SubtitleItem {
-                    id: 2,
-                    start_ticks: Tick::from_millis(4000),
-                    end_ticks: Tick::from_millis(4500),
-                    text: "Um...".to_string(), // In silence / filler range
-                },
-                SubtitleItem {
-                    id: 3,
-                    start_ticks: Tick::from_millis(8000),
-                    end_ticks: Tick::from_millis(9500),
-                    text: "Closing remarks".to_string(),
-                },
-            ],
+            graphics: Vec::new(),
+            caption_tracks: vec![CaptionTrack {
+                id: 1,
+                name: "Captions".into(),
+                language: "en".into(),
+                cues: vec![
+                    SubtitleItem {
+                        id: 1,
+                        start_ticks: Tick::from_millis(1000),
+                        end_ticks: Tick::from_millis(2500),
+                        text: "Opening speech".to_string(),
+                        speaker: None,
+                        style_id: None,
+                    },
+                    SubtitleItem {
+                        id: 2,
+                        start_ticks: Tick::from_millis(4000),
+                        end_ticks: Tick::from_millis(4500),
+                        text: "Um...".to_string(), // In silence / filler range
+                        speaker: None,
+                        style_id: None,
+                    },
+                    SubtitleItem {
+                        id: 3,
+                        start_ticks: Tick::from_millis(8000),
+                        end_ticks: Tick::from_millis(9500),
+                        text: "Closing remarks".to_string(),
+                        speaker: None,
+                        style_id: None,
+                    },
+                ],
+                styles: Vec::new(),
+            }],
+            markers: Vec::new(),
             multicam_clips: Vec::new(),
             buses: Vec::new(),
             node_graph: None,
@@ -704,12 +725,13 @@ mod tests {
         // Total sequence duration should now be 7000ms (10000 - 3000)
         assert_eq!(seq.duration().as_millis(), 7000);
 
-        // Subtitle 2 (4000..4500) was inside the first deleted range (3000..5000) and removed!
-        // Subtitle 3 (8000..9500) was shifted left by 3000ms -> now 5000..6500!
-        assert_eq!(seq.subtitles.len(), 2);
-        assert_eq!(seq.subtitles[0].text, "Opening speech");
-        assert_eq!(seq.subtitles[1].text, "Closing remarks");
-        assert_eq!(seq.subtitles[1].start_ticks.as_millis(), 5000);
-        assert_eq!(seq.subtitles[1].end_ticks.as_millis(), 6500);
+        // Cue 2 (4000..4500) was inside the first deleted range (3000..5000) and removed!
+        // Cue 3 (8000..9500) was shifted left by 3000ms -> now 5000..6500!
+        let cues = &seq.caption_tracks[0].cues;
+        assert_eq!(cues.len(), 2);
+        assert_eq!(cues[0].text, "Opening speech");
+        assert_eq!(cues[1].text, "Closing remarks");
+        assert_eq!(cues[1].start_ticks.as_millis(), 5000);
+        assert_eq!(cues[1].end_ticks.as_millis(), 6500);
     }
 }

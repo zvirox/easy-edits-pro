@@ -3,7 +3,7 @@ use crate::project::{
     AudioPluginInstance, BusTarget, ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams,
     ColorWheels, CompositingNode, CompositingNodeKind, CropParams, CustomShaderParams,
     EffectInstance, EffectKind, EffectPayload, GaussianBlurParams, InterpolationKind, Keyframe,
-    KeyframeProperty, LockTargetKind, LutParams, MediaAsset, MediaKind, MotionBlurParams,
+    KeyframeProperty, LockTargetKind, LutParams, Marker, MediaAsset, MediaKind, MotionBlurParams,
     MotionTrackingData, MultiCamAngle, MultiCamClip, MultiCamSyncMode, NodeConnection, NodeGraph,
     ProjectDocument, RotoSplineMask, Sequence, SpeedRamp, SubtitleItem, TimelineChangeEntry,
     TitleProperties, Track, TrackAudioProcessing, TrackAutomation, TrackGroup, TrackKind,
@@ -25,13 +25,15 @@ mod effects_cmds;
 mod helpers;
 mod history;
 mod keyframe_cmds;
+mod markers_cmds;
 mod media_cmds;
 mod nodegraph_cmds;
 mod params;
 mod project_cmds;
 mod sequence_cmds;
 mod settings_cmds;
-mod subtitles_cmds;
+mod captions_cmds;
+mod graphics_cmds;
 mod timeline_cmds;
 use helpers::*;
 use params::*;
@@ -72,6 +74,11 @@ pub struct EditorEngine {
     gesture_depth: u32,
     gesture_checkpointed: bool,
     settings: settings_cmds::SettingsStore,
+    /// Lazily-built shaping context (system font scan is expensive); shared
+    /// so engine clones keep one font database.
+    text: std::sync::Arc<
+        std::sync::Mutex<Option<saturn_text::TextContext>>,
+    >,
 }
 
 impl Default for EditorEngine {
@@ -87,6 +94,7 @@ impl Default for EditorEngine {
             gesture_depth: 0,
             gesture_checkpointed: false,
             settings: settings_cmds::SettingsStore::default(),
+            text: std::sync::Arc::new(std::sync::Mutex::new(None)),
         }
     }
 }
@@ -188,6 +196,9 @@ impl EditorEngine {
         if let Some(result) = self.dispatch_clip_advanced(command.id, request.params.clone()) {
             return result;
         }
+        if let Some(result) = self.dispatch_markers(command.id, request.params.clone()) {
+            return result;
+        }
         if let Some(result) = self.dispatch_timeline(command.id, request.params.clone()) {
             return result;
         }
@@ -206,7 +217,10 @@ impl EditorEngine {
         if let Some(result) = self.dispatch_nodegraph(command.id, request.params.clone()) {
             return result;
         }
-        if let Some(result) = self.dispatch_subtitles(command.id, request.params.clone()) {
+        if let Some(result) = self.dispatch_captions(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_graphics(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_collab(command.id, request.params.clone()) {

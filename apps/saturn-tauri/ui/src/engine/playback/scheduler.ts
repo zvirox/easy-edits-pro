@@ -188,7 +188,7 @@ if (!project) return emptyResult;
 const tracks = project.project.sequence.tracks;
 const projectWidth = project.project.settings.width || 1920;
 const projectHeight = project.project.settings.height || 1080;
-const subtitles = project.project.sequence.subtitles;
+const subtitles = project.project.sequence.caption_tracks?.[0]?.cues;
 const activeSubtitle = getActiveSubtitle(subtitles, playhead);
 
 // Compute sequence duration across all tracks
