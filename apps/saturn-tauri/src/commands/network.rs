@@ -101,7 +101,7 @@ pub async fn import_network_media(
     let discoverer = Discoverer::new(gstreamer::ClockTime::from_seconds(30))
         .map_err(|error| format!("Could not create media scanner: {error}"))?;
 
-    let (kind, duration, width, height, fps, audio_channels, codec) =
+    let (kind, duration, width, height, fps, audio_channels, codec, _probe_ok) =
         probe_media_file(&discoverer, &target_file);
     let waveform = if matches!(kind, MediaKind::Audio | MediaKind::Video) {
         generate_waveform_peaks(&target_file)

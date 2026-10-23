@@ -28,6 +28,7 @@ pub(super) fn probe_media_file(
     Option<f64>,
     Option<u32>,
     Option<String>,
+    bool,
 ) {
     gstreamer::glib::filename_to_uri(path, None)
         .ok()
@@ -72,9 +73,24 @@ pub(super) fn probe_media_file(
                             .and_then(|c| c.structure(0).map(|s| s.name().to_string()))
                     })
                 });
-            (kind, duration, width, height, fps, audio_channels, codec)
+            (kind, duration, width, height, fps, audio_channels, codec, true)
         })
-        .unwrap_or((MediaKind::Unknown, None, None, None, None, None, None))
+        .unwrap_or((MediaKind::Unknown, None, None, None, None, None, None, false))
+}
+
+/// Why a discovered-but-unplayable file must be reported to the user rather
+/// than silently imported. `None` when the file imported normally.
+pub(super) fn import_problem_reason(
+    discovered: bool,
+    kind: &MediaKind,
+) -> Option<&'static str> {
+    if !discovered {
+        Some("GStreamer could not decode this file")
+    } else if kind == &MediaKind::Unknown {
+        Some("No playable audio or video streams (unsupported or corrupt file)")
+    } else {
+        None
+    }
 }
 
 #[tauri::command]
@@ -304,14 +320,26 @@ pub async fn import_media(
         let discoverer = Discoverer::new(gstreamer::ClockTime::from_seconds(30))
             .map_err(|error| format!("Could not create media scanner: {error}"))?;
         let mut discovered = Vec::new();
+        let mut problems: Vec<Value> = Vec::new();
 
         for selected_path in paths {
             let path = PathBuf::from(&selected_path);
             // Canonicalize to resolve any .. components and symlinks
-            let canonical_path = path
-                .canonicalize()
-                .map_err(|e| format!("Invalid media path `{}'`: {}", selected_path, e))?;
+            let canonical_path = match path.canonicalize() {
+                Ok(resolved) => resolved,
+                Err(error) => {
+                    problems.push(json!({
+                        "path": selected_path,
+                        "reason": format!("Cannot read path: {error}"),
+                    }));
+                    continue;
+                }
+            };
             if !canonical_path.is_file() {
+                problems.push(json!({
+                    "path": selected_path,
+                    "reason": "File not found",
+                }));
                 continue;
             }
             let name = canonical_path
@@ -319,14 +347,24 @@ pub async fn import_media(
                 .map(|part| part.to_string_lossy().into_owned())
                 .unwrap_or_else(|| selected_path.clone());
 
-            let metadata = probe_media_file(&discoverer, &canonical_path);
-            discovered.push((name, canonical_path, metadata));
+            let (kind, duration, width, height, fps, audio_channels, codec, discovered_ok) =
+                probe_media_file(&discoverer, &canonical_path);
+            if let Some(reason) = import_problem_reason(discovered_ok, &kind) {
+                problems.push(json!({ "path": selected_path, "reason": reason }));
+            }
+            discovered.push((
+                name,
+                canonical_path,
+                (kind, duration, width, height, fps, audio_channels, codec, discovered_ok),
+            ));
         }
 
         let mut engine_guard = engine
             .lock()
             .map_err(|_| "Editor state is unavailable".to_string())?;
-        for (name, path, (kind, duration, width, height, fps, audio_channels, codec)) in discovered
+        let imported_count = discovered.len();
+        for (name, path, (kind, duration, width, height, fps, audio_channels, codec, _)) in
+            discovered
         {
             let waveform = if matches!(kind, MediaKind::Audio | MediaKind::Video) {
                 generate_waveform_peaks(&path)
@@ -352,10 +390,17 @@ pub async fn import_media(
             let _ = app.asset_protocol_scope().allow_file(&path);
         }
 
-        let status = engine_guard
+        let mut status = engine_guard
             .execute(CommandRequest::new("project.status", Value::Null))
             .map_err(|error| error.to_string())?;
         drop(engine_guard);
+        // The import report rides on the status value: imported count plus a
+        // problem entry per file that was skipped or imported as unknown, so
+        // the UI can state exactly what happened instead of a bare count.
+        if let Some(report) = status.as_object_mut() {
+            report.insert("imported".into(), json!(imported_count));
+            report.insert("problems".into(), json!(problems));
+        }
         if let Err(error) = autosave_once(
             &app,
             &AppState(Arc::clone(&engine), Arc::clone(&jobs), Arc::clone(&preview)),
@@ -366,4 +411,25 @@ pub async fn import_media(
     })
     .await
     .map_err(|error| format!("Media import task failed: {error}"))?
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::super::MediaKind;
+    use super::import_problem_reason;
+
+    #[test]
+    fn import_problems_are_stated_not_silent() {
+        assert_eq!(
+            import_problem_reason(false, &MediaKind::Video),
+            Some("GStreamer could not decode this file")
+        );
+        assert_eq!(
+            import_problem_reason(true, &MediaKind::Unknown),
+            Some("No playable audio or video streams (unsupported or corrupt file)")
+        );
+        assert_eq!(import_problem_reason(true, &MediaKind::Video), None);
+        assert_eq!(import_problem_reason(true, &MediaKind::Audio), None);
+        assert_eq!(import_problem_reason(true, &MediaKind::Image), None);
+    }
 }

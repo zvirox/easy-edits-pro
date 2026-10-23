@@ -260,7 +260,19 @@ export function useMediaOperations({
       if (lastItem) setSelectedMediaId(lastItem.id);
       setSelectedClip(null);
       setSelectedClips([]);
-      setNotice(`${paths.length} media file${paths.length === 1 ? "" : "s"} imported`);
+      // The report enumerates exactly what happened; never reduce an import
+      // with unreadable or undecodable files to a bare success count.
+      const report = status as ProjectStatus & { imported?: number; problems?: { path: string; reason: string }[] };
+      const importedCount = report.imported ?? paths.length;
+      const base = `${importedCount} media file${importedCount === 1 ? "" : "s"} imported`;
+      const problems = report.problems ?? [];
+      setNotice(
+        problems.length > 0
+          ? `${base}; skipped: ${problems
+              .map((item) => `${item.path.split("/").pop() ?? item.path} (${item.reason})`)
+              .join("; ")}`
+          : base,
+      );
       const [undo, redo] = await Promise.all([
         invoke<CommandStatus>("command_status", { id: "edit.undo" }),
         invoke<CommandStatus>("command_status", { id: "edit.redo" }),
