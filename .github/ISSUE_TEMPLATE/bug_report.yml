@@ -51,6 +51,30 @@ body:
       placeholder: e.g. NVIDIA RTX 3070 (driver 550.54), Intel Iris Xe (Mesa 24.0), AMD Radeon 6800XT (RADV)
     validations:
       required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      description: Which part of the app does this report belong to? (Used to route and triage the report.)
+      options:
+        - Import (media import / codecs)
+        - Preview (source / program monitors)
+        - Timeline (clips, tracks, trimming, tools)
+        - Audio (Fairlight, mixer, automation)
+        - Export / Render (export queue, codecs, output files)
+        - MCP (bridge, external agents)
+        - Package installation / launch
+        - UI / Other
+    validations:
+      required: true
+  - type: input
+    id: media_codec
+    attributes:
+      label: Imported Media Codec (if relevant)
+      description: ffprobe the file if unsure, e.g. "H.264 High, AAC" — needed for import, preview, and export bugs.
+      placeholder: e.g. H.264 High / AAC, VP9 / Opus
+    validations:
+      required: false
   - type: textarea
     id: diagnostics
     attributes:

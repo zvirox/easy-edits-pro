@@ -79,11 +79,11 @@ Work is ordered to make each release more trustworthy before expanding the featu
 
 **Goal:** turn user reports into well-scoped fixes without inventing hardware compatibility claims.
 
-1. Ship a new alpha only after M0 gates are green and a release note lists tested workflow, package limitations, and known gaps.
-2. Ask testers to attach the app's diagnostics, codec details, reproduction steps, and the release version to GitHub issues. Categorise reports by import, preview, timeline, audio, export, MCP, or package installation.
-3. Triage reports on a fixed cadence. Reproduce what is possible on this laptop, add a regression test, then publish the fix in the next alpha.
-4. Record package **install + launch** results only when a real result is supplied. Do not infer compatibility from a successful package build.
-5. Prepare the Flatpak manifest and CI artifact only after the app's normal laptop workflow is reliable. Its first install and launch result is required before it becomes the supported release artifact.
+1. Ship a new alpha only after M0 gates are green and a release note lists tested workflow, package limitations, and known gaps. — **release note drafted** (`docs/release-notes/v0.1.0-alpha.2-draft.md`); tagging waits for a green run on the exact release commit and a passing laptop workflow at that commit
+2. Ask testers to attach the app's diagnostics, codec details, reproduction steps, and the release version to GitHub issues. Categorise reports by import, preview, timeline, audio, export, MCP, or package installation. — **done**: template had diagnostics/repro/version fields; area dropdown + codec field added
+3. Triage reports on a fixed cadence. Reproduce what is possible on this laptop, add a regression test, then publish the fix in the next alpha. — **done**: cadence + routing table in [alpha-triage.md](alpha-triage.md)
+4. Record package **install + launch** results only when a real result is supplied. Do not infer compatibility from a successful package build. — **standing rule; recording table in** [distribution.md](distribution.md)
+5. Prepare the Flatpak manifest and CI artifact only after the app's normal laptop workflow is reliable. Its first install and launch result is required before it becomes the supported release artifact. — **deferred until M1 reliability items land**
 
 **Exit evidence:** a release has a green CI run, attached checksums, a verified laptop workflow, actionable feedback instructions, and an honest known-issues section. Beta candidacy requires several alphas without a data-loss or unrecoverable-edit regression.
 
@@ -153,6 +153,8 @@ For media, MCP, packaging, or native-window changes, add the focused laptop work
 | [COMMANDS.md](COMMANDS.md) | generated command reference |
 | [distribution.md](distribution.md) | package and release evidence |
 | [native-workflow.md](native-workflow.md) | real-engine laptop workflow evidence (M0.3) |
+| [alpha-triage.md](alpha-triage.md) | alpha feedback triage cadence and routing (M2.3) |
+| [release-notes/](release-notes/) | per-alpha release note drafts (M2.1) |
 | [glass-spike.md](glass-spike.md) | measured single-laptop rendering evidence |
 | [design-qa.md](design-qa.md) | UI quality evidence and open UI work |
 
