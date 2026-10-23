@@ -1129,10 +1129,12 @@
     "category": "File",
     "id": "project.relink_media",
     "label": "Relink Missing Media",
-    "menu": [],
+    "menu": [
+      "File"
+    ],
     "mutating": true,
     "params": "{\"media_id\":int,\"path\":path}",
-    "shipped": false,
+    "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
     "uiOnly": false,
@@ -1463,7 +1465,7 @@
     ],
     "mutating": true,
     "params": "{}",
-    "shipped": false,
+    "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
     "uiOnly": false,

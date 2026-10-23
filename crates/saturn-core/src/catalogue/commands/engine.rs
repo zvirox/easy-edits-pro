@@ -18,7 +18,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
         id: "project.relink_media",
         label: "Relink Missing Media",
-        menu: &[],
+        menu: &["File"],
         shortcut: None,
         params: "{\"media_id\":int,\"path\":path}",
         category: Category::File,
@@ -26,7 +26,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         undo_group: UndoGroup::Transaction,
         aliases: &[],
         since: "0.1.0",
-        shipped: false,
+        shipped: true,
         ui_only: false,
     },
     CommandSpec {

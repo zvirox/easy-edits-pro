@@ -251,3 +251,75 @@ fn v13_projects_reopen_with_graphics_arrays_and_captions_intact() {
     assert_eq!(reloaded.project.sequence.caption_tracks.len(), 1);
     assert_eq!(reloaded.project.sequence.caption_tracks[0].cues[0].text, "Hi");
 }
+
+#[test]
+fn relink_rejects_a_missing_target_without_mutating_or_checkpointing() {
+    let (mut engine, media_id) = engine_with_media();
+    let undo_before = engine.command_status("edit.undo").unwrap().enabled;
+    assert!(undo_before, "setup media should be undoable");
+
+    let error = engine
+        .execute(CommandRequest::new(
+            "project.relink_media",
+            json!({"media_id": media_id, "path": "/definitely/not/here.mp4"}),
+        ))
+        .unwrap_err();
+    assert!(
+        error.to_string().contains("does not exist"),
+        "error must cite the missing file: {error}"
+    );
+
+    // The project is untouched and no undo checkpoint was taken for the
+    // rejected relink.
+    let media_path = project(&mut engine)["media"][0]["path"].clone();
+    assert_eq!(media_path, json!("/assets/interview.mp4"));
+    let undo_after = engine.command_status("edit.undo").unwrap().enabled;
+    assert_eq!(undo_before, undo_after);
+}
+
+#[test]
+fn relink_updates_the_path_is_undoable_and_check_missing_tracks_disk() {
+    let (mut engine, media_id) = engine_with_media();
+    // The setup path does not exist on disk, so the scanner must flag it.
+    let report = run(&mut engine, "media.check_missing", json!({}));
+    assert_eq!(report["missing_count"], 1);
+    assert_eq!(report["missing_ids"], json!([media_id]));
+    assert_eq!(project(&mut engine)["media"][0]["is_missing"], json!(true));
+
+    // Relinking to a real file succeeds and is an undoable mutation.
+    let folder = tempfile::tempdir().unwrap();
+    let target = folder.path().join("rescued.mp4");
+    std::fs::write(&target, b"placeholder").unwrap();
+    let relinked = run(
+        &mut engine,
+        "project.relink_media",
+        json!({"media_id": media_id, "path": target.to_string_lossy()}),
+    );
+    assert_eq!(relinked["relinked"], json!(true));
+    assert_eq!(
+        project(&mut engine)["media"][0]["path"],
+        json!(target.to_string_lossy())
+    );
+
+    // The scan reads the disk each time - it never caches a stale answer.
+    let report = run(&mut engine, "media.check_missing", json!({}));
+    assert_eq!(report["missing_count"], 0);
+    assert_eq!(report["missing_ids"], json!([]));
+    assert_eq!(project(&mut engine)["media"][0]["is_missing"], json!(false));
+
+    std::fs::remove_file(&target).unwrap();
+    let report = run(&mut engine, "media.check_missing", json!({}));
+    assert_eq!(report["missing_count"], 1);
+
+    // A missing-media scan changes flags, not undo history.
+    let undo_before = engine.command_status("edit.undo").unwrap().enabled;
+    run(&mut engine, "media.check_missing", json!({}));
+    assert_eq!(engine.command_status("edit.undo").unwrap().enabled, undo_before);
+
+    // Undo restores the original (missing) path.
+    run(&mut engine, "edit.undo", Value::Null);
+    assert_eq!(
+        project(&mut engine)["media"][0]["path"],
+        json!("/assets/interview.mp4")
+    );
+}

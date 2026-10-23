@@ -96,18 +96,25 @@ pub fn get_command_catalogue() -> Vec<saturn_core::CommandSpec> {
 pub fn check_media_availability(
     state: State<'_, AppState>,
 ) -> Result<Vec<MediaAvailability>, String> {
-    let engine = state
+    let mut engine = state
         .0
         .lock()
         .map_err(|_| "Editor state is unavailable".to_string())?;
+    // The engine owns missing-media truth; the shell only reshapes it.
+    // Re-running the check keeps the stored `is_missing` flags in step with
+    // the disk before the flags are read.
+    engine
+        .execute(CommandRequest::new("media.check_missing", Value::Null))
+        .map_err(|error| error.to_string())?;
     Ok(engine
         .document()
         .project
         .media
         .iter()
+        .filter(|media| media.kind != MediaKind::Title && media.kind != MediaKind::CompoundSequence)
         .map(|media| MediaAvailability {
             media_id: media.id,
-            missing: !media.path.is_file(),
+            missing: media.is_missing,
         })
         .collect())
 }

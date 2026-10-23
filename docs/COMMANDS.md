@@ -8,6 +8,7 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Relink Missing Media | `project.relink_media` | shipped |  | `{"media_id":int,"path":path}` |
 | New Project | `project.new` | shipped | Ctrl+N | `{"name":str?,"sequence_name":str?,"width":int?,"height":int?,"frame_rate":str?}` |
 | Open Project | `file.open` | shipped | Ctrl+O | `{"path":path}` |
 | Save Project | `file.save` | shipped | Ctrl+S | `{"path":path}` |
@@ -21,7 +22,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Create Media Bin | `media.create_bin` | planned |  | `{"name":str,"parent_id":int?,"color":str?}` |
 | Rename Media Bin | `media.rename_bin` | planned |  | `{"bin_id":int,"name":str}` |
 | Delete Media Bin | `media.delete_bin` | planned |  | `{"bin_id":int}` |
-| Check Missing Media | `media.check_missing` | planned |  | `{}` |
+| Check Missing Media | `media.check_missing` | shipped |  | `{}` |
 | Import OpenTimelineIO | `interop.import_otio` | planned |  | `{"content":str,"project_name":str?}` |
 
 ## Edit
