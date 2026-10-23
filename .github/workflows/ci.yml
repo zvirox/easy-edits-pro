@@ -120,6 +120,10 @@ jobs:
         working-directory: apps/saturn-tauri
         run: pnpm catalogue:check
 
+      - name: Check parity report drift
+        working-directory: apps/saturn-tauri
+        run: pnpm check:parity --check
+
       - name: Check Tauri desktop backend
         working-directory: apps/saturn-tauri
         run: cargo check --verbose

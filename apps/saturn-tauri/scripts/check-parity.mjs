@@ -1,64 +1,190 @@
 #!/usr/bin/env node
 /**
- * FilmCraft parity report.
+ * FilmCraft parity report (packet D1).
  *
  * Compares the checked-in EEP catalogue with the inventory recorded from the
  * installed FilmCraft 0.8.0 (`filmcraft-cli describe`) on 2026-10-21.
- * Informational: prints per-family coverage and exits non-zero only when the
- * reference files are malformed.
+ *
+ * - A family alias map maps EEP family prefixes onto the canonical FilmCraft
+ *   family names they serve (`graphic` -> `graphics`, `subtitle` -> `captions`,
+ *   `speech` -> `tts`, ...).
+ * - Ships vs planned (catalogue entry that exists but is not `shipped`) are
+ *   reported separately; gaps are computed against the shipped count.
+ * - Families are grouped by parity tier (see the plan, section 5.2).
+ * - The report is written to `docs/PARITY.md`. Run with `--check` to verify
+ *   the committed report is not stale (used by CI); exits non-zero on drift.
+ *
+ * Informational: without `--check` it exits non-zero only when the reference
+ * files are malformed.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const root = resolve(import.meta.dirname, "../../..");
+const appRoot = resolve(import.meta.dirname, "..");
 const eep = JSON.parse(
   readFileSync(resolve(root, "docs/reference/command-catalogue.json"), "utf8"),
 );
 const filmcraft = JSON.parse(
   readFileSync(resolve(root, "docs/reference/filmcraft-commands.json"), "utf8"),
 );
+const reportPath = resolve(root, "docs/PARITY.md");
+const checkOnly = process.argv.includes("--check");
 
 if (!Array.isArray(eep) || !Array.isArray(filmcraft)) {
   console.error("Parity check failed: reference files must be arrays");
   process.exit(1);
 }
 
-const family = (id) => String(id).split(".")[0];
-const count = (items) => {
+// EEP family prefix -> canonical FilmCraft family. Families that do not map
+// to a FilmCraft family (workspace plumbing, node graph, interop, ...) stay
+// as-is and land under "app-only" in the report.
+const familyAlias = {
+  graphic: "graphics",
+  title: "graphics",
+  marker: "markers",
+  caption: "captions",
+  subtitle: "captions",
+  speech: "tts",
+};
+
+// Tier assignment per FilmCraft family (plan section 5.2). Anything unlisted
+// is app plumbing and is reported outside the tiers.
+const tierByFamily = {
+  1: ["file", "project", "sequence", "clip", "timeline", "edit", "trim", "playhead", "markers", "captions", "export", "media", "shortcuts", "prefs", "history"],
+  2: ["graphics", "effects", "masks", "lumetri", "lut", "presets", "color", "mixer", "clipMixer", "audio", "multicam", "transcript"],
+  3: ["tts", "mediaBrowser", "collab"],
+};
+const familyTier = new Map();
+for (const [tier, families] of Object.entries(tierByFamily)) {
+  for (const family of families) familyTier.set(family, Number(tier));
+}
+
+const familyOf = (id) => {
+  const raw = String(id).split(".")[0];
+  return familyAlias[raw] ?? raw;
+};
+
+const tally = (items) => {
   const map = new Map();
-  for (const item of items) map.set(family(item.id), (map.get(family(item.id)) ?? 0) + 1);
+  for (const item of items) {
+    const family = familyOf(item.id);
+    const entry = map.get(family) ?? { shipped: 0, planned: 0 };
+    entry[String(item.shipped) === "true" ? "shipped" : "planned"] += 1;
+    map.set(family, entry);
+  }
   return map;
 };
 
-const eepCounts = count(eep);
-const fcCounts = count(filmcraft);
-const eepIds = new Set(eep.map((item) => item.id));
-const overlap = filmcraft.filter((item) => eepIds.has(item.id));
-
-const families = [...new Set([...fcCounts.keys(), ...eepCounts.keys()])].sort(
-  (a, b) => (fcCounts.get(b) ?? 0) - (fcCounts.get(a) ?? 0),
-);
-
-const rows = families.map((name) => ({
-  family: name,
-  filmcraft: fcCounts.get(name) ?? 0,
-  eep: eepCounts.get(name) ?? 0,
-}));
-
-const width = Math.max(...rows.map((row) => row.family.length), 6);
-console.log(
-  `${"family".padEnd(width)}  ${"filmcraft".padStart(9)}  ${"eep".padStart(5)}  gap`,
-);
-for (const row of rows) {
-  const gap = Math.max(0, row.filmcraft - row.eep);
-  console.log(
-    `${row.family.padEnd(width)}  ${String(row.filmcraft).padStart(9)}  ${String(row.eep).padStart(5)}  ${gap || ""}`,
-  );
+const fcCounts = new Map();
+for (const item of filmcraft) {
+  const family = familyOf(item.id);
+  fcCounts.set(family, (fcCounts.get(family) ?? 0) + 1);
 }
+const eepTally = tally(eep);
+const families = [...new Set([...fcCounts.keys(), ...eepTally.keys()])].sort((a, b) => {
+  const tierDelta = (familyTier.get(a) ?? 9) - (familyTier.get(b) ?? 9);
+  if (tierDelta !== 0) return tierDelta;
+  return (fcCounts.get(b) ?? 0) - (fcCounts.get(a) ?? 0);
+});
 
-console.log("");
-console.log(`FilmCraft commands: ${filmcraft.length}`);
-console.log(`EEP commands:       ${eep.length}`);
-console.log(`Exact id overlap:   ${overlap.length}`);
-console.log("");
-console.log("Informational report. Missing families are scheduled in the phase plan.");
+const rows = families.map((family) => {
+  const tally = eepTally.get(family) ?? { shipped: 0, planned: 0 };
+  const filmcraftCount = fcCounts.get(family) ?? 0;
+  return {
+    family,
+    tier: familyTier.get(family) ?? null,
+    filmcraft: filmcraftCount,
+    shipped: tally.shipped,
+    planned: tally.planned,
+    gap: Math.max(0, filmcraftCount - tally.shipped),
+  };
+});
+
+const tierSummary = [1, 2, 3].map((tier) => {
+  const tierRows = rows.filter((row) => row.tier === tier);
+  const fc = tierRows.reduce((sum, row) => sum + row.filmcraft, 0);
+  const shipped = tierRows.reduce((sum, row) => sum + row.shipped, 0);
+  const percent = fc === 0 ? 100 : Math.round((shipped / fc) * 100);
+  return { tier, fc, shipped, percent };
+});
+
+// --- Markdown report -------------------------------------------------------
+const lines = [
+  "# FilmCraft parity report",
+  "",
+  "<!-- Generated by apps/saturn-tauri/scripts/check-parity.mjs from",
+  "     docs/reference/command-catalogue.json and",
+  "     docs/reference/filmcraft-commands.json. Regenerate with",
+  "     `pnpm check:parity`; CI verifies this file with `--check`. -->",
+  "",
+  "Verified-before-done rule: a command counts as shipped only with a UI",
+  "affordance, a test, and `shipped: true` in the catalogue; `planned`",
+  "entries exist in the catalogue but are not yet shipped.",
+  "",
+  "## Tier coverage",
+  "",
+  "| Tier | FilmCraft | EEP shipped | Coverage |",
+  "|---|---:|---:|---:|",
+  ...tierSummary.map((entry) =>
+    `| Tier ${entry.tier} | ${entry.fc} | ${entry.shipped} | ${entry.percent}% |`,
+  ),
+  "",
+  "Tier 1 targets Beta 1; Tier 2 comes after Beta 1; Tier 3 is later.",
+  "Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.",
+  "",
+  "## Per-family coverage",
+  "",
+  "| Family | Tier | FilmCraft | EEP shipped | EEP planned | Gap |",
+  "|---|---|---:|---:|---:|---:|",
+  ...rows.map((row) =>
+    `| ${row.family} | ${row.tier ?? "-"} | ${row.filmcraft} | ${row.shipped} | ${row.planned} | ${row.gap || ""} |`,
+  ),
+  "",
+  "## Totals",
+  "",
+  `FilmCraft commands: ${filmcraft.length}`,
+  "",
+  `EEP commands: ${eep.length} (${eep.filter((item) => item.shipped).length} shipped, ${eep.filter((item) => !item.shipped).length} planned)`,
+  "",
+  "App-only families (no FilmCraft counterpart): " +
+    rows.filter((row) => row.tier === null && row.filmcraft === 0).map((row) => row.family).sort().join(", "),
+  "",
+];
+const report = lines.join("\n");
+
+if (checkOnly) {
+  const committed = readFileSync(reportPath, "utf8");
+  if (committed !== report) {
+    console.error(
+      "Parity report drift: docs/PARITY.md does not match the catalogue.",
+    );
+    console.error("Run `pnpm check:parity` to regenerate it, then commit.");
+    process.exit(1);
+  }
+  console.log("Parity report is up to date.");
+} else {
+  writeFileSync(reportPath, report);
+  const width = Math.max(...rows.map((row) => row.family.length), 6);
+  console.log(
+    `${"family".padEnd(width)}  ${"tier".padStart(4)}  ${"filmcraft".padStart(9)}  ${"shipped".padStart(7)}  ${"planned".padStart(7)}  gap`,
+  );
+  for (const row of rows) {
+    console.log(
+      `${row.family.padEnd(width)}  ${String(row.tier ?? "-").padStart(4)}  ${String(row.filmcraft).padStart(9)}  ${String(row.shipped).padStart(7)}  ${String(row.planned).padStart(7)}  ${row.gap || ""}`,
+    );
+  }
+  console.log("");
+  console.log(`FilmCraft commands: ${filmcraft.length}`);
+  console.log(
+    `EEP commands:       ${eep.length} (${eep.filter((item) => item.shipped).length} shipped, ${eep.filter((item) => !item.shipped).length} planned)`,
+  );
+  for (const entry of tierSummary) {
+    console.log(
+      `Tier ${entry.tier} coverage:      ${entry.shipped}/${entry.fc} (${entry.percent}%)`,
+    );
+  }
+  console.log("");
+  console.log(`Wrote ${reportPath}`);
+}
