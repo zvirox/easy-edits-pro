@@ -57,9 +57,9 @@ export async function run(ctx) {
   // moves.
   const viewport = page.viewportSize();
   const mediaBox = await page
-    .locator('.editor-dock-library')
+    .locator('.shell-dock-left')
     .boundingBox();
-  const inspectorDockBox = await page.locator('.editor-dock-inspector').boundingBox();
+  const inspectorDockBox = await page.locator('.shell-dock-right').boundingBox();
   const previewBox = await page.locator('.monitor-unified').boundingBox();
   const railBox = await toolRail.boundingBox();
   const timelineBox = await page.locator('.timeline').boundingBox();

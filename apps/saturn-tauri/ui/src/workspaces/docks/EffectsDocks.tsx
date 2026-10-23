@@ -1,16 +1,12 @@
-import { InteriorButton } from "../components/interior/interior-button";
-import type { ReactNode } from "react";
-import { CustomShaderEditor } from "../components/CustomShaderEditor";
-import { BackgroundMattingCard } from "../components/BackgroundMattingCard";
+import { InteriorButton } from "../../components/interior/interior-button";
+import { CustomShaderEditor } from "../../components/CustomShaderEditor";
+import { BackgroundMattingCard } from "../../components/BackgroundMattingCard";
 import {
-  type ProjectDocument,
-  type MediaAsset,
   type SelectedClip,
   type Clip,
   type EffectInstance,
   type EffectKind,
-  type DavinciWorkspace,
-} from "../types";
+} from "../../types";
 import {
   type EffectPayload,
   type ColorCorrectionParams,
@@ -20,67 +16,58 @@ import {
   type ChromaKeyParams,
   type LutParams,
   type CustomShaderParams,
-} from "../engine/playbackEngine";
-import { LUT_PRESETS } from "./ColorWorkspace";
-import { formatTime } from "../utils/formatters";
-import { DockCard } from "../features/dock/DockCard";
+} from "../../engine/playbackEngine";
+import { LUT_PRESETS } from "./ColorDocks";
+import { DockCard, type DockTab } from "../../features/dock/DockCard";
+import { MediaPanel, type MediaPanelProps } from "../../features/media-pool";
 
-export interface EffectsWorkspaceProps {
-  project: ProjectDocument["project"] | null;
-  media: MediaAsset[];
+export interface EffectDockProps {
   selectedClip: SelectedClip | null;
   selectedTimelineClip: Clip | null;
-  setSelectedClip: (clip: SelectedClip | null) => void;
-  setSelectedClips: (clips: SelectedClip[]) => void;
   addEffect: (kind: EffectKind, name?: string) => Promise<unknown> | unknown;
   removeEffect: (id: number) => Promise<void> | void;
   toggleEffect: (id: number, enabled?: boolean) => Promise<void> | void;
   reorderEffect: (fromIndex: number, toIndex: number) => Promise<void> | void;
   updateEffectPayload: (id: number, payload: EffectPayload) => Promise<void> | void;
   loadLutCubeDialog: (effectId?: number) => Promise<void> | void;
-  selectDavinciWorkspace: (ws: DavinciWorkspace) => void;
-  playhead: number;
-  renderProgramMonitor: () => ReactNode;
-  programPlaying: boolean;
-  toggleProgramPlayback: () => void;
-  stepProgramFrame: (direction: -1 | 1) => void;
-  seekProgramTo: (ticks: number) => void;
+  mediaPanelProps: MediaPanelProps;
 }
 
-export function EffectsWorkspace({
-  project,
-  media,
+/**
+ * Effects-mode dock tabs for the WorkspaceShell (plan v4 G3): the effect
+ * stack card sits right of the persistent program monitor; the timeline and
+ * its clip selection replace the retired SEQUENCE CLIPS REEL.
+ */
+export function EffectDockLeft({
+  mediaPanelProps,
+}: Pick<EffectDockProps, "mediaPanelProps">) {
+  const tabs: DockTab[] = [
+    { id: "media", title: "Media pool", render: () => <MediaPanel {...mediaPanelProps} /> },
+  ];
+  return <DockCard className="shell-dock shell-dock-left" tabs={tabs} ariaLabel="Media dock" />;
+}
+
+export function EffectDockRight({
   selectedClip,
   selectedTimelineClip,
-  setSelectedClip,
-  setSelectedClips,
   addEffect,
   removeEffect,
   toggleEffect,
   reorderEffect,
   updateEffectPayload,
   loadLutCubeDialog,
-  selectDavinciWorkspace,
-  playhead,
-  renderProgramMonitor,
-  programPlaying,
-  toggleProgramPlayback,
-  stepProgramFrame,
-  seekProgramTo,
-}: EffectsWorkspaceProps) {
-  const allClips = (project?.sequence.tracks ?? []).flatMap((track) =>
-    track.clips.map((clip, index) => ({ track, clip, index, mediaItem: media.find((m) => m.id === clip.media_id) }))
-  );
+}: Omit<EffectDockProps, "mediaPanelProps">) {
   const effects: EffectInstance[] = selectedTimelineClip?.effects ?? [];
 
   return (
-    <main className="workspace-page effects-workspace-page">
-      <header className="workspace-sub-header effects-workspace-header">
-        <div className="workspace-header-title">
-          <h1>Visual Effects Lab</h1>
-          <p>Compound visual effects stack, blur, crop, vignette, chroma keying, and motion transforms.</p>
-        </div>
-        <div className="effects-header-actions">
+    <DockCard
+      className="shell-dock shell-dock-right"
+      tabs={[
+        {
+          id: "effects-stack",
+          title: "Effect Stack",
+          render: () => (
+            <div className="effects-stack-sidebar">
           {selectedClip && (
             <div className="add-effect-control">
               <select
@@ -104,49 +91,6 @@ export function EffectsWorkspace({
               </select>
             </div>
           )}
-          <InteriorButton
-            className="btn-primary-subtle"
-            onClick={() => selectDavinciWorkspace("edit")}
-          >
-            ← Back to Edit
-          </InteriorButton>
-        </div>
-      </header>
-
-      <div className="effects-studio-body">
-        {/* Main Stage: Large Program Monitor Viewer + Transport Controls */}
-        <section className="effects-monitor-stage">
-          <div className="effects-viewer-container">
-            <div className="effects-viewer-header">
-              <span className="viewer-title">PROGRAM MONITOR &amp; FX COMPOSITE</span>
-              <code>{formatTime(playhead)}</code>
-            </div>
-            <div className="effects-monitor-wrapper">
-              {renderProgramMonitor()}
-            </div>
-            <div className="effects-transport-bar">
-              <InteriorButton aria-label="Previous frame" onClick={() => stepProgramFrame(-1)}>◀</InteriorButton>
-              <InteriorButton
-                className={programPlaying ? "active-toggle" : ""}
-                aria-label={programPlaying ? "Pause playback" : "Play clip"}
-                onClick={() => toggleProgramPlayback()}
-              >
-                {programPlaying ? "⏸ Pause" : "▶ Play"}
-              </InteriorButton>
-              <InteriorButton aria-label="Next frame" onClick={() => stepProgramFrame(1)}>▶|</InteriorButton>
-              <code>{formatTime(playhead)}</code>
-            </div>
-          </div>
-        </section>
-
-        <DockCard
-          className="workspace-dock effects-dock-stack"
-          tabs={[
-            {
-              id: "effects-stack",
-              title: "Effect Stack",
-              render: () => (
-                <div className="effects-stack-sidebar">
           <div className="effects-stack-box">
             <div className="effects-section-header">
               <h3>Active Effect Stack</h3>
@@ -155,7 +99,7 @@ export function EffectsWorkspace({
 
             {!selectedTimelineClip ? (
               <div className="effect-empty-card">
-                <p>Select a clip in the sequence reel below to inspect and configure its effects.</p>
+                <p>Select a clip in the timeline to inspect and configure its effects.</p>
               </div>
             ) : effects.length === 0 ? (
               <div className="effect-empty-card">
@@ -570,44 +514,11 @@ export function EffectsWorkspace({
           <div style={{ marginTop: "16px" }}>
             <BackgroundMattingCard clipId={selectedTimelineClip?.media_id} />
           </div>
-                  </div>
-                ),
-              },
+            </div>
+          ),
+          },
         ]}
+        ariaLabel="Effects dock"
       />
-      </div>
-
-      {/* Bottom Clips Reel Tray */}
-      <section className="clips-reel-tray">
-        <div className="reel-tray-header">
-          <strong>SEQUENCE CLIPS REEL</strong>
-          <small>{allClips.length} clips on timeline · Click any clip to apply or edit effects</small>
-        </div>
-        <div className="reel-clips-strip">
-          {allClips.map(({ track, clip, index, mediaItem }) => {
-            const isSelected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
-            const clipFxCount = clip.effects?.length ?? 0;
-            return (
-              <InteriorButton
-                key={`reel-fx-${track.id}-${clip.media_id}-${index}`}
-                className={`reel-clip-card ${isSelected ? "selected" : ""}`}
-                onClick={() => {
-                  setSelectedClip({ track_id: track.id, clip_index: index });
-                  setSelectedClips([{ track_id: track.id, clip_index: index }]);
-                  seekProgramTo(clip.timeline_start);
-                }}
-              >
-                <div className="reel-clip-badge">
-                  <span className={`reel-track-kind ${track.kind}`}>{track.name}</span>
-                  {clipFxCount > 0 && <span className="reel-fx-count-pill">{clipFxCount} FX</span>}
-                </div>
-                <strong className="reel-clip-name">{mediaItem?.name ?? "Clip"}</strong>
-                <span className="reel-clip-dur">{formatTime(clip.duration)}</span>
-              </InteriorButton>
-            );
-          })}
-        </div>
-      </section>
-    </main>
   );
 }

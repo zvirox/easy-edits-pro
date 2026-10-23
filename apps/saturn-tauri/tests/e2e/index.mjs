@@ -9,6 +9,7 @@ import { createHarness } from './harness.mjs';
 import { installMockBackend } from './mock-backend.mjs';
 import * as shell from './shell.mjs';
 import * as panels from './panels.mjs';
+import * as geometry from './geometry.mjs';
 import * as timeline from './timeline.mjs';
 import * as audio from './audio.mjs';
 import * as deliver from './deliver.mjs';
@@ -21,6 +22,7 @@ import * as motion from './motion.mjs';
 const areaModules = [
   ['shell', shell],
   ['panels', panels],
+  ['geometry', geometry],
   ['timeline', timeline],
   ['audio', audio],
   ['deliver', deliver],

@@ -1,11 +1,26 @@
 import { MediaWorkspace } from "./MediaWorkspace";
+import type { MediaPanelProps } from "../features/media-pool";
+import type { InspectorPanelProps } from "../features/inspector";
+import type { MarkersPanelProps } from "../features/markers";
+import type { CaptionsPanelProps } from "../features/captions";
 import { ExportWorkspace } from "./ExportWorkspace";
 import { FairlightWorkspace } from "./FairlightWorkspace";
 import { FusionWorkspace } from "./FusionWorkspace";
-import { ColorWorkspace } from "./ColorWorkspace";
 import { KeyframesWorkspace } from "./KeyframesWorkspace";
-import { EffectsWorkspace } from "./EffectsWorkspace";
-import { EditWorkspace } from "./EditWorkspace";
+import { WorkspaceShell } from "./WorkspaceShell";
+import {
+  EditDockLeft,
+  EditDockRight,
+  type TrimMonitorEntryProps,
+} from "./docks/EditDocks";
+import { ColorDockLeft, ColorDockRight } from "./docks/ColorDocks";
+import { EffectDockLeft, EffectDockRight } from "./docks/EffectsDocks";
+import { PreviewSection, type PreviewSectionProps } from "../features/preview";
+import {
+  TimelineSection,
+  TimelineToolRail,
+  type TimelineSectionProps,
+} from "../features/timeline";
 import { useEffect, useRef, useState } from "react";
 import { TICKS_PER_SECOND, type Clip, type MediaAsset, type ProjectDocument } from "../app/projectTypes";
 import type { CommandStatus } from "../app/ProjectProvider";
@@ -297,128 +312,7 @@ export function WorkspaceRouter({
     );
   }
 
-  if (davinciWorkspace === "color") {
-    return (
-      <ColorWorkspace
-        project={project}
-        media={media}
-        selectedClip={timelineOps.selectedClip}
-        selectedTimelineClip={selectedTimelineClip}
-        setSelectedClip={timelineOps.setSelectedClip}
-        setSelectedClips={timelineOps.setSelectedClips}
-        colorDraft={inspectorOps.colorDraft}
-        setColorDraft={inspectorOps.setColorDraft}
-        colorWheelsDraft={inspectorOps.colorWheelsDraft}
-        setColorWheelsDraft={inspectorOps.setColorWheelsDraft}
-        rgbCurvesDraft={{ master: [], red: [], green: [], blue: [] }}
-        hslQualifierDraft={{
-          enabled: true,
-          hue_center: 0,
-          hue_width: 30,
-          hue_softness: 5,
-          sat_center: 0.5,
-          sat_width: 0.5,
-          sat_softness: 0.1,
-          luma_center: 0.5,
-          luma_width: 0.5,
-          luma_softness: 0.1,
-          invert: false,
-          blur_radius: 0,
-          hue_shift: 0,
-          sat_boost: 0,
-          exposure_shift: 0,
-        }}
-        showMatteDraft={false}
-        setShowMatteDraft={() => {}}
-        colorStudioTab="wheels"
-        setColorStudioTab={() => {}}
-        updateColorWheels={inspectorOps.setColorWheelsDraft}
-        updateRgbCurves={() => {}}
-        updateHslQualifier={() => {}}
-        applyColorPreset={() => {}}
-        applyLutPreset={() => {}}
-        loadLutCubeDialog={() => {}}
-        saveColor={inspectorOps.saveColor}
-        runCommand={async () => {}}
-        selectDavinciWorkspace={selectDavinciWorkspace}
-        playhead={playback.playhead}
-        renderProgramMonitor={() => null}
-        programPlaying={playback.programPlaying}
-        toggleProgramPlayback={playback.toggleProgramPlayback}
-        stepProgramFrame={playback.stepProgramFrame}
-        seekProgramTo={playback.seekProgramTo}
-        deckSnapshot={playback.deckSnapshot}
-        deckARef={playback.deckARef}
-        deckBRef={playback.deckBRef}
-      />
-    );
-  }
-
-  if (davinciWorkspace === "effects") {
-    return (
-      <EffectsWorkspace
-        project={project}
-        media={media}
-        selectedClip={timelineOps.selectedClip}
-        selectedTimelineClip={selectedTimelineClip}
-        setSelectedClip={timelineOps.setSelectedClip}
-        setSelectedClips={timelineOps.setSelectedClips}
-        addEffect={inspectorOps.addEffect}
-        removeEffect={inspectorOps.removeEffect}
-        toggleEffect={inspectorOps.toggleEffect}
-        reorderEffect={() => {}}
-        updateEffectPayload={() => {}}
-        loadLutCubeDialog={() => {}}
-        selectDavinciWorkspace={selectDavinciWorkspace}
-        playhead={playback.playhead}
-        renderProgramMonitor={() => null}
-        programPlaying={playback.programPlaying}
-        toggleProgramPlayback={playback.toggleProgramPlayback}
-        stepProgramFrame={playback.stepProgramFrame}
-        seekProgramTo={playback.seekProgramTo}
-      />
-    );
-  }
-
-  if (davinciWorkspace === "keyframes") {
-    return (
-      <KeyframesWorkspace
-        project={project}
-        media={media}
-        selectedClip={timelineOps.selectedClip}
-        selectedTimelineClip={selectedTimelineClip}
-        setSelectedClip={timelineOps.setSelectedClip}
-        setSelectedClips={timelineOps.setSelectedClips}
-        keyframeProperty={inspectorOps.keyframeProperty}
-        setKeyframeProperty={inspectorOps.setKeyframeProperty}
-        keyframeValue={inspectorOps.keyframeValue}
-        setKeyframeValue={inspectorOps.setKeyframeValue}
-        keyframeInterpDraft={inspectorOps.keyframeInterpDraft}
-        setKeyframeInterpDraft={inspectorOps.setKeyframeInterpDraft}
-        keyframeHandleInX={inspectorOps.keyframeHandleInX}
-        setKeyframeHandleInX={() => {}}
-        keyframeHandleInY={inspectorOps.keyframeHandleInY}
-        setKeyframeHandleInY={() => {}}
-        keyframeHandleOutX={inspectorOps.keyframeHandleOutX}
-        setKeyframeHandleOutX={() => {}}
-        keyframeHandleOutY={inspectorOps.keyframeHandleOutY}
-        setKeyframeHandleOutY={() => {}}
-        selectedKeyframeTime={inspectorOps.selectedKeyframeTime}
-        setSelectedKeyframeTime={inspectorOps.setSelectedKeyframeTime}
-        playhead={playback.playhead}
-        seekProgramTo={playback.seekProgramTo}
-        programPlaying={playback.programPlaying}
-        toggleProgramPlayback={playback.toggleProgramPlayback}
-        saveKeyframe={inspectorOps.saveKeyframe}
-        deleteKeyframe={inspectorOps.deleteKeyframe}
-        selectDavinciWorkspace={selectDavinciWorkspace}
-      />
-    );
-  }
-
-  return (
-    <EditWorkspace
-      mediaPanelProps={{
+  const mediaPanelProps: MediaPanelProps = {
         filmoraTab: mediaOps.filmoraTab,
         setFilmoraTab: mediaOps.setFilmoraTab,
         search: mediaOps.search,
@@ -464,8 +358,7 @@ export function WorkspaceRouter({
         cancelMediaPointer: mediaOps.cancelMediaPointer,
         finishMediaPointer: mediaOps.finishMediaPointer,
         playhead: playback.playhead,
-      }}
-      previewSectionProps={{
+  };  const previewSectionProps: PreviewSectionProps = {
         selectedMedia,
         sourcePreview,
         getMediaUrl,
@@ -511,8 +404,7 @@ export function WorkspaceRouter({
             graphicsOps.createAt(kind, xNorm, yNorm, vertical),
           onTransform: (id, patch) => graphicsOps.updateTransform(id, patch),
         },
-      }}
-      timelineSectionProps={{
+  };  const timelineSectionProps: TimelineSectionProps = {
         timelineTool: timelineOps.timelineTool,
         setTimelineTool: timelineOps.setTimelineTool,
         project,
@@ -606,8 +498,7 @@ export function WorkspaceRouter({
           // After adding track, we need to refresh to get the new track ID
           // The actual drop handling will be done by the track lane
         },
-      }}
-      inspectorPanelProps={{
+  };  const inspectorPanelProps: InspectorPanelProps = {
         workspace: projectOps.workspace,
         selectedSubtitle: inspectorOps.selectedSubtitle,
         setSelectedSubtitle: inspectorOps.setSelectedSubtitle,
@@ -706,16 +597,14 @@ export function WorkspaceRouter({
         toggleTrackSolo: timelineOps.toggleTrackSolo,
         audioClockMaster: audioClockMaster as AudioClockMaster,
         activeClip: null,
-      }}
-      trimMonitorProps={{
+  };  const trimMonitorProps: TrimMonitorEntryProps = {
         session: timelineOps.trimSession,
         project,
         media,
         getMediaUrl,
         onCommit: () => void timelineOps.commitTrimMode(),
         onCancel: timelineOps.cancelTrimMode,
-      }}
-      markersPanelProps={{
+  };  const markersPanelProps: MarkersPanelProps = {
         markers: markerOps.markers,
         selectedMarkerId: markerOps.selectedMarkerId,
         frameRate: project?.settings.frame_rate ?? { numerator: 30, denominator: 1 },
@@ -729,8 +618,7 @@ export function WorkspaceRouter({
         onAddRange: markerOps.addRangeMarker,
         onImport: markerOps.importMarkers,
         onExport: markerOps.exportMarkers,
-      }}
-      captionsPanelProps={{
+  };  const captionsPanelProps: CaptionsPanelProps = {
         track: captionsOps.track,
         cues: captionsOps.cues,
         playhead: playback.playhead,
@@ -744,12 +632,145 @@ export function WorkspaceRouter({
         onDelete: captionsOps.removeCue,
         onImport: captionsOps.importCues,
         onExport: captionsOps.exportCues,
-      }}
-      graphicsPanelProps={{
+  };  const graphicsPanelProps: { ops: GraphicOperations; playhead: number; frame: { width: number; height: number } } = {
         ops: graphicsOps,
         playhead: playback.playhead,
         frame: project?.settings ?? { width: 1920, height: 1080 },
-      }}
+  };  if (davinciWorkspace === "keyframes") {
+    return (
+      <KeyframesWorkspace
+        project={project}
+        media={media}
+        selectedClip={timelineOps.selectedClip}
+        selectedTimelineClip={selectedTimelineClip}
+        setSelectedClip={timelineOps.setSelectedClip}
+        setSelectedClips={timelineOps.setSelectedClips}
+        keyframeProperty={inspectorOps.keyframeProperty}
+        setKeyframeProperty={inspectorOps.setKeyframeProperty}
+        keyframeValue={inspectorOps.keyframeValue}
+        setKeyframeValue={inspectorOps.setKeyframeValue}
+        keyframeInterpDraft={inspectorOps.keyframeInterpDraft}
+        setKeyframeInterpDraft={inspectorOps.setKeyframeInterpDraft}
+        keyframeHandleInX={inspectorOps.keyframeHandleInX}
+        setKeyframeHandleInX={() => {}}
+        keyframeHandleInY={inspectorOps.keyframeHandleInY}
+        setKeyframeHandleInY={() => {}}
+        keyframeHandleOutX={inspectorOps.keyframeHandleOutX}
+        setKeyframeHandleOutX={() => {}}
+        keyframeHandleOutY={inspectorOps.keyframeHandleOutY}
+        setKeyframeHandleOutY={() => {}}
+        selectedKeyframeTime={inspectorOps.selectedKeyframeTime}
+        setSelectedKeyframeTime={inspectorOps.setSelectedKeyframeTime}
+        playhead={playback.playhead}
+        seekProgramTo={playback.seekProgramTo}
+        programPlaying={playback.programPlaying}
+        toggleProgramPlayback={playback.toggleProgramPlayback}
+        saveKeyframe={inspectorOps.saveKeyframe}
+        deleteKeyframe={inspectorOps.deleteKeyframe}
+      />
+    );
+  }
+
+  const shellToolbox = (
+    <TimelineToolRail
+      timelineTool={timelineSectionProps.timelineTool}
+      setTimelineTool={timelineSectionProps.setTimelineTool}
+    />
+  );
+  const shellTimeline = <TimelineSection {...timelineSectionProps} />;
+  const shellCenter = <PreviewSection {...previewSectionProps} />;
+
+  if (davinciWorkspace === "color" || davinciWorkspace === "effects") {
+    const isColor = davinciWorkspace === "color";
+    return (
+      <WorkspaceShell
+        mode={davinciWorkspace}
+        left={
+          isColor ? (
+            <ColorDockLeft
+              deckSnapshot={playback.deckSnapshot}
+              deckARef={playback.deckARef}
+              deckBRef={playback.deckBRef}
+              mediaPanelProps={mediaPanelProps}
+            />
+          ) : (
+            <EffectDockLeft mediaPanelProps={mediaPanelProps} />
+          )
+        }
+        right={
+          isColor ? (
+            <ColorDockRight
+              selectedClip={timelineOps.selectedClip}
+              colorDraft={inspectorOps.colorDraft}
+              setColorDraft={inspectorOps.setColorDraft}
+              colorWheelsDraft={inspectorOps.colorWheelsDraft}
+              setColorWheelsDraft={inspectorOps.setColorWheelsDraft}
+              rgbCurvesDraft={{ master: [], red: [], green: [], blue: [] }}
+              hslQualifierDraft={{
+                enabled: true,
+                hue_center: 0,
+                hue_width: 30,
+                hue_softness: 5,
+                sat_center: 0.5,
+                sat_width: 0.5,
+                sat_softness: 0.1,
+                luma_center: 0.5,
+                luma_width: 0.5,
+                luma_softness: 0.1,
+                invert: false,
+                blur_radius: 0,
+                hue_shift: 0,
+                sat_boost: 0,
+                exposure_shift: 0,
+              }}
+              showMatteDraft={false}
+              setShowMatteDraft={() => {}}
+              updateColorWheels={inspectorOps.setColorWheelsDraft}
+              updateRgbCurves={() => {}}
+              updateHslQualifier={() => {}}
+              applyColorPreset={() => {}}
+              applyLutPreset={() => {}}
+              loadLutCubeDialog={() => {}}
+              saveColor={inspectorOps.saveColor}
+              runCommand={async () => {}}
+            />
+          ) : (
+            <EffectDockRight
+              selectedClip={timelineOps.selectedClip}
+              selectedTimelineClip={selectedTimelineClip}
+              addEffect={inspectorOps.addEffect}
+              removeEffect={inspectorOps.removeEffect}
+              toggleEffect={inspectorOps.toggleEffect}
+              reorderEffect={() => {}}
+              updateEffectPayload={() => {}}
+              loadLutCubeDialog={() => {}}
+            />
+          )
+        }
+        center={shellCenter}
+        toolbox={shellToolbox}
+        timeline={shellTimeline}
+      />
+    );
+  }
+
+  return (
+    <WorkspaceShell
+      mode="edit"
+      left={
+        <EditDockLeft mediaPanelProps={mediaPanelProps} trimMonitorProps={trimMonitorProps} />
+      }
+      right={
+        <EditDockRight
+          inspectorPanelProps={inspectorPanelProps}
+          markersPanelProps={markersPanelProps}
+          captionsPanelProps={captionsPanelProps}
+          graphicsPanelProps={graphicsPanelProps}
+        />
+      }
+      center={shellCenter}
+      toolbox={shellToolbox}
+      timeline={shellTimeline}
     />
   );
 }

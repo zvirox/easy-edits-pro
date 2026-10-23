@@ -95,7 +95,7 @@ export async function run(ctx) {
   // Window > Workspaces switches the routed workspace.
   await menuBar.getByRole('button', { name: 'Window', exact: true }).click();
   await page.locator('.menu-popover').getByText('Workspace: Color', { exact: true }).click();
-  await page.locator('.color-workspace-page').waitFor();
+  await page.locator('.workspace-shell[data-workspace="color"]').waitFor();
   await menuBar.getByRole('button', { name: 'Window', exact: true }).click();
   await page.locator('.menu-popover').getByText('Workspace: Edit', { exact: false }).click();
   await page.locator('.app-shell').waitFor();
@@ -104,12 +104,12 @@ export async function run(ctx) {
   // glass dock cards, no floats or rail, and the Window menu carries no
   // layout presets. Panel gestures now focus dock tabs.
   assert.equal(
-    await page.locator('.editor-dock-library').count(),
+    await page.locator('.shell-dock-left').count(),
     1,
     'the Edit page keeps a library dock',
   );
   assert.equal(
-    await page.locator('.editor-dock-inspector').count(),
+    await page.locator('.shell-dock-right').count(),
     1,
     'the Edit page keeps an inspector dock',
   );
@@ -129,7 +129,7 @@ export async function run(ctx) {
   await page.locator('#command-palette-search').fill('markers panel');
   await page.locator('.command-palette-result', { hasText: 'Markers Panel' }).first().click();
   const markersTab = page
-    .locator('.editor-dock-inspector')
+    .locator('.shell-dock-right')
     .getByRole('tab', { name: 'Markers', exact: true });
   await markersTab.waitFor();
   assert.equal(

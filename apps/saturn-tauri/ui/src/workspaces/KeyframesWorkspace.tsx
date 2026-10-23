@@ -6,7 +6,6 @@ import {
   type Clip,
   type KeyframeProperty,
   type InterpolationKind,
-  type DavinciWorkspace,
 } from "../types";
 import { formatTime } from "../utils/formatters";
 import { keyframeOptions, computeCurveGeometry } from "./keyframes/curveGeometry";
@@ -53,7 +52,6 @@ export interface KeyframesWorkspaceProps {
     hOutY?: number
   ) => Promise<void>;
   deleteKeyframe: (property: KeyframeProperty, time: number) => Promise<void>;
-  selectDavinciWorkspace: (ws: DavinciWorkspace) => void;
 }
 
 export function KeyframesWorkspace({
@@ -85,7 +83,6 @@ export function KeyframesWorkspace({
   toggleProgramPlayback,
   saveKeyframe,
   deleteKeyframe,
-  selectDavinciWorkspace,
 }: KeyframesWorkspaceProps) {
   const allClips = (project?.sequence.tracks ?? []).flatMap((track) =>
     track.clips.map((clip, index) => ({ track, clip, index, mediaItem: media.find((m) => m.id === clip.media_id) }))
@@ -143,12 +140,6 @@ export function KeyframesWorkspace({
               <span className="keyframes-hint-text">Select a clip in the reel below to edit curves</span>
             )}
           </span>
-          <InteriorButton
-            className="btn-primary-subtle"
-            onClick={() => selectDavinciWorkspace("edit")}
-          >
-            ← Back to Edit
-          </InteriorButton>
         </div>
       </header>
 

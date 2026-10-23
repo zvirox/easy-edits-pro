@@ -1,0 +1,95 @@
+/* G3 WorkspaceShell (docs/eep-glass-cards-mock.html): the persistent 2-row
+   NLE skeleton. Row 1: dock L | program monitor | dock R. Row 2: one
+   full-width NLE strip — toolbox | timeline. Only the dock-tab content
+   changes per workspace mode; the program monitor, toolbox, and timeline
+   are mounted once by the router and never move (plan v4 directive 5). */
+.workspace-shell {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px;
+  overflow: hidden;
+  background: var(--bg-app);
+}
+
+.shell-top {
+  display: grid;
+  grid-template-columns: minmax(260px, 24%) minmax(0, 1fr) minmax(260px, 24%);
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.shell-dock.shell-dock-left {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.shell-dock.shell-dock-right {
+  grid-column: 3;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.shell-center {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* One monitor in the shell center: the unified monitor owns the column. */
+.shell-center .monitors {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Bottom row: toolbox | timeline, spanning all three top columns. */
+.shell-nle-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.shell-toolbox {
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-panel);
+}
+
+.shell-toolbox .timeline-tool-rail {
+  height: 100%;
+  border-right: 0;
+  background: transparent;
+}
+
+.shell-timeline {
+  min-width: 0;
+  min-height: 0;
+}
+
+.shell-timeline .timeline {
+  height: 100%;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+}
+
+@media (max-width: 1280px) {
+  .shell-top {
+    grid-template-columns: minmax(200px, 22vw) minmax(0, 1fr) minmax(200px, 22vw);
+  }
+}
