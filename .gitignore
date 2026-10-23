@@ -26,6 +26,11 @@ rustc-ice-*.txt
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 # Local Agent Skills
 .agents/
+.claude/
+.codex/
+.cursor/
+.opencode/
+.mcp.json
 
 # Generated Python package and test artifacts
 __pycache__/

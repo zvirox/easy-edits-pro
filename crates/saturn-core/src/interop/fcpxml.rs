@@ -169,7 +169,6 @@ pub fn import_fcpxml(xml: &str) -> Result<ProjectDocument, String> {
         audio_processing: Default::default(),
         bus: Default::default(),
         automation: Default::default(),
-        plugins: Vec::new(),
         clips,
         transitions: Vec::new(),
     };

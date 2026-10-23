@@ -25,6 +25,7 @@ export class AudioClockMaster {
   private trackDenoiseFilters = new Map<number, BiquadFilterNode>();
   private trackLowShelfs = new Map<number, BiquadFilterNode>();
   private trackMidPeaks = new Map<number, BiquadFilterNode>();
+  private trackHimidPeaks = new Map<number, BiquadFilterNode>();
   private trackHighShelfs = new Map<number, BiquadFilterNode>();
   private trackCompressors = new Map<number, DynamicsCompressorNode>();
   private trackPans = new Map<number, number>();
@@ -135,7 +136,7 @@ export class AudioClockMaster {
       denoise.Q.setValueAtTime(0.707, ctx.currentTime);
       this.trackDenoiseFilters.set(trackId, denoise);
 
-      // 2. 3-Band Parametric Equalizer
+      // 2. 4-Band Parametric Equalizer
       const lowShelf = ctx.createBiquadFilter();
       lowShelf.type = "lowshelf";
       lowShelf.frequency.setValueAtTime(80, ctx.currentTime);
@@ -148,6 +149,13 @@ export class AudioClockMaster {
       midPeak.Q.setValueAtTime(1.0, ctx.currentTime);
       midPeak.gain.setValueAtTime(0, ctx.currentTime);
       this.trackMidPeaks.set(trackId, midPeak);
+
+      const himidPeak = ctx.createBiquadFilter();
+      himidPeak.type = "peaking";
+      himidPeak.frequency.setValueAtTime(2500, ctx.currentTime);
+      himidPeak.Q.setValueAtTime(1.0, ctx.currentTime);
+      himidPeak.gain.setValueAtTime(0, ctx.currentTime);
+      this.trackHimidPeaks.set(trackId, himidPeak);
 
       const highShelf = ctx.createBiquadFilter();
       highShelf.type = "highshelf";
@@ -180,11 +188,12 @@ export class AudioClockMaster {
       analyser.smoothingTimeConstant = 0.4;
       this.trackAnalysers.set(trackId, analyser);
 
-      // Connect DSP chain: input -> denoise -> lowShelf -> midPeak -> highShelf -> compressor -> gainNode -> panner -> analyser -> masterGain
+      // Connect DSP chain: input -> denoise -> lowShelf -> midPeak -> himidPeak -> highShelf -> compressor -> gainNode -> panner -> analyser -> masterGain
       inputNode.connect(denoise);
       denoise.connect(lowShelf);
       lowShelf.connect(midPeak);
-      midPeak.connect(highShelf);
+      midPeak.connect(himidPeak);
+      himidPeak.connect(highShelf);
       highShelf.connect(compressor);
       compressor.connect(gainNode);
 
@@ -264,6 +273,12 @@ export class AudioClockMaster {
     if (midPeak) {
       const g = proc?.eq_enabled ? (proc.eq_mid_gain ?? 0) : 0;
       midPeak.gain.setTargetAtTime(g, ctx.currentTime, 0.02);
+    }
+
+    const himidPeak = this.trackHimidPeaks.get(trackId);
+    if (himidPeak) {
+      const g = proc?.eq_enabled ? (proc.eq_highmid_gain ?? 0) : 0;
+      himidPeak.gain.setTargetAtTime(g, ctx.currentTime, 0.02);
     }
 
     const highShelf = this.trackHighShelfs.get(trackId);

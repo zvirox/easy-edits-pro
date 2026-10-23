@@ -148,15 +148,6 @@ export interface TrackAutomation {
   pan_points: AutomationPoint[];
 }
 
-export interface AudioPluginInstance {
-  id: number;
-  name: string;
-  plugin_format: string;
-  enabled: boolean;
-  preset: string;
-  params: Record<string, number>;
-}
-
 export interface AudioBus {
   target: BusTarget;
   name: string;
@@ -329,6 +320,7 @@ export interface TrackAudioProcessing {
   eq_enabled?: boolean;
   eq_low_gain?: number;
   eq_mid_gain?: number;
+  eq_highmid_gain?: number;
   eq_high_gain?: number;
   comp_enabled?: boolean;
   comp_threshold?: number;
@@ -354,7 +346,6 @@ export interface Track {
   audio_bus?: string;
   linked_group_id?: number | null;
   automation?: TrackAutomation;
-  plugins?: AudioPluginInstance[];
   clips: Clip[];
   transitions?: Transition[];
 }

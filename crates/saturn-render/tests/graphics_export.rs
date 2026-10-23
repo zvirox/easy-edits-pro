@@ -121,7 +121,6 @@ fn document_with_title_and_graphic() -> ProjectDocument {
         audio_processing: Default::default(),
         bus: Default::default(),
         automation: Default::default(),
-        plugins: vec![],
         clips: vec![Clip {
             media_id: 1,
             timeline_start: Tick(0),

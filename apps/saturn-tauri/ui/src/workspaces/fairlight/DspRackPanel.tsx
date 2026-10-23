@@ -29,11 +29,25 @@ export function DspRackPanel({
 
   const lowGain = activeDsp.eq_low_gain ?? 0;
   const midGain = activeDsp.eq_mid_gain ?? 0;
+  const himidGain = activeDsp.eq_highmid_gain ?? 0;
   const highGain = activeDsp.eq_high_gain ?? 0;
-  const dyLow = (lowGain / 15) * 22;
-  const dyMid = (midGain / 15) * 22;
-  const dyHigh = (highGain / 15) * 22;
-  const eqCurvePath = `M 0 ${(35 - dyLow).toFixed(1)} C 40 ${(35 - dyLow).toFixed(1)}, 70 ${(35 - dyMid).toFixed(1)}, 120 ${(35 - dyMid).toFixed(1)} C 170 ${(35 - dyMid).toFixed(1)}, 200 ${(35 - dyHigh).toFixed(1)}, 240 ${(35 - dyHigh).toFixed(1)}`;
+  const toDy = (gain: number) => (gain / 15) * 22;
+  const dyLow = toDy(lowGain);
+  const dyMid = toDy(midGain);
+  const dyHimid = toDy(himidGain);
+  const dyHigh = toDy(highGain);
+  // Piecewise curve through the four band anchors (80 Hz, 1 kHz, 2.5 kHz,
+  // 8 kHz) laid across the 240-unit viewBox at x = 0/80/160/240.
+  const bandCurve = (
+    y0: number, y1: number, y2: number, y3: number,
+  ) => {
+    const a = (35 - y0).toFixed(1);
+    const b = (35 - y1).toFixed(1);
+    const c = (35 - y2).toFixed(1);
+    const d = (35 - y3).toFixed(1);
+    return `M 0 ${a} C 27 ${a}, 53 ${b}, 80 ${b} C 107 ${b}, 133 ${c}, 160 ${c} C 187 ${c}, 213 ${d}, 240 ${d}`;
+  };
+  const eqCurvePath = bandCurve(dyLow, dyMid, dyHimid, dyHigh);
   const eqFillPath = `${eqCurvePath} L 240 70 L 0 70 Z`;
 
   const activeTrackGr = trackGr[activeTrackId] || 0;
@@ -67,7 +81,7 @@ export function DspRackPanel({
             <div className="module-title-box">
               <span className="module-badge eq">EQ</span>
               <strong>4-Band Parametric Equalizer</strong>
-              <small>Low Shelf · Mid Peak · High Shelf</small>
+              <small>Low Shelf · Mid Bell · High-Mid Bell · High Shelf</small>
             </div>
             <InteriorButton
               type="button"
@@ -91,12 +105,14 @@ export function DspRackPanel({
               <path d={eqFillPath} fill="url(#eqGrad)" />
               <path d={eqCurvePath} fill="none" stroke={activeDsp.eq_enabled ? "#d9468f" : "#7d6377"} strokeWidth="2.2" strokeLinecap="round" />
               <circle cx="20" cy={35 - dyLow} r="3.5" fill="#be185d" />
-              <circle cx="120" cy={35 - dyMid} r="3.5" fill="#a78bfa" />
+              <circle cx="80" cy={35 - dyMid} r="3.5" fill="#a78bfa" />
+              <circle cx="160" cy={35 - dyHimid} r="3.5" fill="#f59e0b" />
               <circle cx="220" cy={35 - dyHigh} r="3.5" fill="#34d399" />
             </svg>
             <div className="eq-freq-labels">
               <span>80 Hz (Low)</span>
               <span>1.0 kHz (Mid)</span>
+              <span>2.5 kHz (Hi-Mid)</span>
               <span>8.0 kHz (High)</span>
             </div>
           </div>
@@ -141,6 +157,27 @@ export function DspRackPanel({
                 }}
                 onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_mid_gain: Number(e.currentTarget.value) })}
                 onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_mid_gain: Number(e.currentTarget.value) })}
+              />
+            </div>
+
+            <div className="eq-band-item">
+              <div className="band-header">
+                <span>High-Mid Bell (2.5 kHz)</span>
+                <b>{himidGain > 0 ? `+${himidGain.toFixed(1)}` : himidGain.toFixed(1)} dB</b>
+              </div>
+              <input
+                type="range"
+                min="-15"
+                max="15"
+                step="0.5"
+                value={himidGain}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_highmid_gain: val } }));
+                  audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, eq_highmid_gain: val });
+                }}
+                onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_highmid_gain: Number(e.currentTarget.value) })}
+                onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_highmid_gain: Number(e.currentTarget.value) })}
               />
             </div>
 

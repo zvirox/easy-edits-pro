@@ -1063,16 +1063,11 @@ fn apply_clip_effects(
         clip.add_top_effect(&effect, -1)
             .map_err(|error| format!("Could not apply track gain effect: {error}"))?;
     }
-    if audio_proc.eq_enabled {
-        let eq_str = format!(
-            "equalizer-3bands band1={:.1} band2={:.1} band3={:.1}",
-            audio_proc.eq_low_gain.clamp(-24.0, 12.0),
-            audio_proc.eq_mid_gain.clamp(-24.0, 12.0),
-            audio_proc.eq_high_gain.clamp(-24.0, 12.0)
-        );
-        if let Ok(effect) = ges::Effect::new(&eq_str) {
-            let _ = clip.add_top_effect(&effect, -1);
-        }
+    for effect_str in eq_effect_strings(audio_proc) {
+        let effect = ges::Effect::new(&effect_str)
+            .map_err(|error| format!("Could not create the track EQ effect ({effect_str}): {error}"))?;
+        clip.add_top_effect(&effect, -1)
+            .map_err(|error| format!("Could not apply the track EQ effect: {error}"))?;
     }
     if audio_proc.denoise_enabled {
         if let Ok(effect) = ges::Effect::new("audiocheblimit mode=1 cutoff=80.0") {
@@ -1080,6 +1075,30 @@ fn apply_clip_effects(
         }
     }
     Ok(())
+}
+
+/// GStreamer effect strings backing the 4-band track EQ. `equalizer-3bands`
+/// carries the low shelf / mid bell / high shelf (its properties are exactly
+/// `band0`/`band1`/`band2`); the high-mid bell rides
+/// `equalizer-10bands band6` (nearest fixed band to 2.5 kHz) and is skipped
+/// when the band rests at 0 dB.
+fn eq_effect_strings(proc: &saturn_core::TrackAudioProcessing) -> Vec<String> {
+    if !proc.eq_enabled {
+        return Vec::new();
+    }
+    let mut strings = vec![format!(
+        "equalizer-3bands band0={:.1} band1={:.1} band2={:.1}",
+        proc.eq_low_gain.clamp(-24.0, 12.0),
+        proc.eq_mid_gain.clamp(-24.0, 12.0),
+        proc.eq_high_gain.clamp(-24.0, 12.0),
+    )];
+    if proc.eq_highmid_gain.abs() > 1e-9 {
+        strings.push(format!(
+            "equalizer-10bands band6={:.1}",
+            proc.eq_highmid_gain.clamp(-24.0, 12.0),
+        ));
+    }
+    strings
 }
 
 fn parse_hex_color(hex: &str) -> (u8, u8, u8) {
@@ -1167,6 +1186,32 @@ fn encoding_profile(format: OutputFormat) -> Result<gst_pbutils::EncodingContain
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn eq_effect_strings_cover_all_four_bands() {
+        let mut proc = saturn_core::TrackAudioProcessing::default();
+        assert!(eq_effect_strings(&proc).is_empty(), "bypassed EQ emits nothing");
+
+        proc.eq_enabled = true;
+        proc.eq_low_gain = 3.5;
+        proc.eq_mid_gain = -2.0;
+        proc.eq_high_gain = 4.0;
+        assert_eq!(
+            eq_effect_strings(&proc),
+            vec!["equalizer-3bands band0=3.5 band1=-2.0 band2=4.0".to_string()],
+            "shelf bands stay on the 3-band element at zero high-mid"
+        );
+
+        proc.eq_highmid_gain = 1.5;
+        assert_eq!(
+            eq_effect_strings(&proc),
+            vec![
+                "equalizer-3bands band0=3.5 band1=-2.0 band2=4.0".to_string(),
+                "equalizer-10bands band6=1.5".to_string(),
+            ],
+            "a non-zero high-mid bell chains the 10-band bell"
+        );
+    }
 
     #[test]
     fn output_format_is_selected_from_extension() {

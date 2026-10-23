@@ -181,27 +181,6 @@ pub fn clamp_automation_value(lane: AutomationLane, value: f64) -> f64 {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct AudioPluginInstance {
-    pub id: u64,
-    pub name: String,
-    #[serde(default = "default_plugin_format")]
-    pub plugin_format: String,
-    #[serde(default = "default_plugin_enabled")]
-    pub enabled: bool,
-    #[serde(default)]
-    pub preset: String,
-    #[serde(default)]
-    pub params: std::collections::HashMap<String, f64>,
-}
-
-fn default_plugin_format() -> String {
-    "builtin".into()
-}
-fn default_plugin_enabled() -> bool {
-    true
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct AudioBus {
     pub target: BusTarget,
     pub name: String,
@@ -256,9 +235,10 @@ pub fn default_audio_buses() -> Vec<AudioBus> {
 #[serde(default)]
 pub struct TrackAudioProcessing {
     pub eq_enabled: bool,
-    pub eq_low_gain: f64,  // -15.0 to +15.0 dB
-    pub eq_mid_gain: f64,  // -15.0 to +15.0 dB
-    pub eq_high_gain: f64, // -15.0 to +15.0 dB
+    pub eq_low_gain: f64,     // -15.0 to +15.0 dB (low shelf, 80 Hz)
+    pub eq_mid_gain: f64,     // -15.0 to +15.0 dB (mid bell, 1 kHz)
+    pub eq_highmid_gain: f64, // -15.0 to +15.0 dB (high-mid bell, 2.5 kHz)
+    pub eq_high_gain: f64,    // -15.0 to +15.0 dB (high shelf, 8 kHz)
     pub comp_enabled: bool,
     pub comp_threshold: f64, // -60.0 to 0.0 dB
     pub comp_ratio: f64,     // 1.0 to 20.0
@@ -274,6 +254,7 @@ impl Default for TrackAudioProcessing {
             eq_enabled: false,
             eq_low_gain: 0.0,
             eq_mid_gain: 0.0,
+            eq_highmid_gain: 0.0,
             eq_high_gain: 0.0,
             comp_enabled: false,
             comp_threshold: -24.0,

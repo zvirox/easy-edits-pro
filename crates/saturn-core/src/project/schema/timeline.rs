@@ -151,8 +151,6 @@ pub struct Track {
     pub bus: BusTarget,
     #[serde(default)]
     pub automation: TrackAutomation,
-    #[serde(default)]
-    pub plugins: Vec<AudioPluginInstance>,
     pub clips: Vec<Clip>,
     #[serde(default)]
     pub transitions: Vec<Transition>,

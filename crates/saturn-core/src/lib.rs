@@ -27,7 +27,7 @@ pub use job::{
     JobState,
 };
 pub use project::{
-    AudioBus, AudioPluginInstance, AutomationInterpolation, AutomationLane, AutomationMode,
+    AudioBus, AutomationInterpolation, AutomationLane, AutomationMode,
     AutomationPoint, BusTarget, ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams,
     ColorWheelParam, ColorWheels, CropParams, EffectInstance, EffectKind, EffectPayload,
     GaussianBlurParams, InterpolationKind, Keyframe, KeyframeProperty, LutParams, Marker,

@@ -76,6 +76,7 @@ impl EditorEngine {
                         eq_enabled: params.eq_enabled,
                         eq_low_gain: params.eq_low_gain,
                         eq_mid_gain: params.eq_mid_gain,
+                        eq_highmid_gain: params.eq_highmid_gain,
                         eq_high_gain: params.eq_high_gain,
                         comp_enabled: params.comp_enabled,
                         comp_threshold: params.comp_threshold,
@@ -160,28 +161,6 @@ impl EditorEngine {
                     }
                 };
                 Ok(json!({"cleared": cleared}))
-            })()),
-            "track.add_audio_plugin" => Some((|| {
-                let params: AddAudioPluginParams = parse_params(params)?;
-                let track_index = find_track_index(&self.document, params.track_id)?;
-                self.checkpoint();
-                self.document.project.sequence.tracks[track_index]
-                    .plugins
-                    .push(params.plugin);
-                Ok(json!({"added": true}))
-            })()),
-            "track.toggle_audio_plugin" => Some((|| {
-                let params: ToggleAudioPluginParams = parse_params(params)?;
-                let track_index = find_track_index(&self.document, params.track_id)?;
-                self.checkpoint();
-                if let Some(p) = self.document.project.sequence.tracks[track_index]
-                    .plugins
-                    .iter_mut()
-                    .find(|p| p.id == params.plugin_id)
-                {
-                    p.enabled = params.enabled;
-                }
-                Ok(json!({"updated": true}))
             })()),
             "bus.set_gain_db" => Some((|| {
                 let params: SetBusGainParams = parse_params(params)?;

@@ -176,8 +176,6 @@ export function specialModeDocks({
         toggleTrackLock={timelineOps.toggleTrackLock}
         setTrackBusRoute={audioOps.setTrackBusRoute}
         setTrackAutomationMode={audioOps.setTrackAutomationMode}
-        addTrackPlugin={audioOps.addTrackPlugin}
-        toggleTrackPlugin={audioOps.toggleTrackPlugin}
         audioClockMaster={audioClockMaster}
         perform={async (cmd, payload) => perform(cmd, payload)}
         mediaPanelProps={panelProps.media}

@@ -295,7 +295,6 @@ pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument,
             audio_processing: Default::default(),
             bus: Default::default(),
             automation: Default::default(),
-            plugins: Vec::new(),
             clips,
             transitions: Vec::new(),
         });

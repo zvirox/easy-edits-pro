@@ -558,7 +558,6 @@ mod tests {
                 audio_processing: Default::default(),
                 bus: Default::default(),
                 automation: Default::default(),
-                plugins: Vec::new(),
                 clips: vec![clip],
                 transitions: Vec::new(),
             }],

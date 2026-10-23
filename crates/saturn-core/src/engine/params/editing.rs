@@ -10,6 +10,8 @@ pub(in crate::engine) struct SetTrackAudioProcessingParams {
     #[serde(default)]
     pub(in crate::engine) eq_mid_gain: f64,
     #[serde(default)]
+    pub(in crate::engine) eq_highmid_gain: f64,
+    #[serde(default)]
     pub(in crate::engine) eq_high_gain: f64,
     #[serde(default)]
     pub(in crate::engine) comp_enabled: bool,
@@ -358,19 +360,6 @@ pub(in crate::engine) struct RemoveAutomationPointParams {
 pub(in crate::engine) struct ClearAutomationParams {
     pub(in crate::engine) track_id: u64,
     pub(in crate::engine) lane: Option<AutomationLane>,
-}
-
-#[derive(Deserialize)]
-pub(in crate::engine) struct AddAudioPluginParams {
-    pub(in crate::engine) track_id: u64,
-    pub(in crate::engine) plugin: AudioPluginInstance,
-}
-
-#[derive(Deserialize)]
-pub(in crate::engine) struct ToggleAudioPluginParams {
-    pub(in crate::engine) track_id: u64,
-    pub(in crate::engine) plugin_id: u64,
-    pub(in crate::engine) enabled: bool,
 }
 
 #[derive(Deserialize)]

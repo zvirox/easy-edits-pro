@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-215 commands.
+213 commands.
 
 ## File
 
@@ -199,8 +199,6 @@ Generated from the command catalogue. Do not edit by hand.
 | Add Track Automation Point | `track.add_automation_point` | shipped |  | `{"track_id":int,"lane":"volume\|pan","time":ticks,"value":num}` |
 | Remove Track Automation Point | `track.remove_automation_point` | shipped |  | `{"track_id":int,"lane":"volume\|pan","time":ticks}` |
 | Clear Track Automation | `track.clear_automation` | shipped |  | `{"track_id":int,"lane":"volume\|pan"?}` |
-| Add Audio Plugin | `track.add_audio_plugin` | planned |  | `{"track_id":int,"plugin":obj}` |
-| Toggle Audio Plugin | `track.toggle_audio_plugin` | planned |  | `{"track_id":int,"plugin_id":int,"enabled":bool}` |
 | Set Audio Bus Gain | `bus.set_gain_db` | planned |  | `{"target":obj,"gain_db":num}` |
 | Transcribe Speech to Subtitles | `speech.transcribe_to_subtitles` | planned |  | `{"segments":[obj],"replace_existing":bool?}` |
 

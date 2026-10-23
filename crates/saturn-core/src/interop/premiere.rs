@@ -197,7 +197,6 @@ pub fn import_premiere_xml(xml: &str) -> Result<ProjectDocument, String> {
         audio_processing: Default::default(),
         bus: Default::default(),
         automation: Default::default(),
-        plugins: Vec::new(),
         clips,
         transitions: Vec::new(),
     };

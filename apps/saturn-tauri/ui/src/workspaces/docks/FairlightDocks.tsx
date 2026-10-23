@@ -56,8 +56,6 @@ export interface FairlightDockProps {
   toggleTrackLock: (track: Track) => Promise<void> | void;
   setTrackBusRoute: (trackId: number, bus: BusTarget) => Promise<void> | void;
   setTrackAutomationMode: (trackId: number, mode: AutomationMode) => Promise<void> | void;
-  addTrackPlugin: (trackId: number, pluginName: string) => Promise<void> | void;
-  toggleTrackPlugin: (trackId: number, pluginId: number, enabled: boolean) => Promise<void> | void;
   audioClockMaster: AudioClockMaster;
   perform: (command: string, payload: Record<string, unknown>) => Promise<unknown>;
   mediaPanelProps: MediaPanelProps;
@@ -96,8 +94,6 @@ export function FairlightDockLeft({
   saveTrackAudioProcessing,
   setTrackBusRoute,
   setTrackAutomationMode,
-  addTrackPlugin,
-  toggleTrackPlugin,
   toggleTrackMute,
   toggleTrackSolo,
   toggleTrackLock,
@@ -164,8 +160,6 @@ export function FairlightDockLeft({
             saveTrackAudioProcessing={saveTrackAudioProcessing}
             setTrackBusRoute={setTrackBusRoute}
             setTrackAutomationMode={setTrackAutomationMode}
-            addTrackPlugin={addTrackPlugin}
-            toggleTrackPlugin={toggleTrackPlugin}
             toggleTrackMute={toggleTrackMute}
             toggleTrackSolo={toggleTrackSolo}
             toggleTrackLock={toggleTrackLock}

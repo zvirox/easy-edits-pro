@@ -920,6 +920,7 @@ fn audio_processing_and_color_hue_workflow_with_undo() {
                 "eq_enabled": true,
                 "eq_low_gain": 3.5,
                 "eq_mid_gain": -2.0,
+                "eq_highmid_gain": 1.5,
                 "eq_high_gain": 4.0,
                 "comp_enabled": true,
                 "comp_threshold": -18.0,
@@ -936,6 +937,7 @@ fn audio_processing_and_color_hue_workflow_with_undo() {
     assert!(ap.eq_enabled);
     assert_eq!(ap.eq_low_gain, 3.5);
     assert_eq!(ap.eq_mid_gain, -2.0);
+    assert_eq!(ap.eq_highmid_gain, 1.5);
     assert_eq!(ap.eq_high_gain, 4.0);
     assert!(ap.comp_enabled);
     assert_eq!(ap.comp_threshold, -18.0);
@@ -1492,53 +1494,7 @@ fn fairlight_bus_routing_and_automation_workflow() {
     assert_eq!(auto.volume_points.len(), 2);
     assert_eq!(auto.pan_points.len(), 2);
 
-    // 3. Add Audio Plugin (Parametric EQ / VST3)
-    engine
-        .execute(CommandRequest::new(
-            "track.add_audio_plugin",
-            json!({
-                "track_id": 2,
-                "plugin": {
-                    "id": 101,
-                    "name": "Fairlight 4-Band Studio EQ",
-                    "plugin_format": "vst3",
-                    "enabled": true,
-                    "preset": "Warm Dialogue",
-                    "params": {
-                        "gain_low": 2.0,
-                        "gain_high": -1.5
-                    }
-                }
-            }),
-        ))
-        .unwrap();
-
-    assert_eq!(
-        engine.document().project.sequence.tracks[1].plugins.len(),
-        1
-    );
-    assert_eq!(
-        engine.document().project.sequence.tracks[1].plugins[0].name,
-        "Fairlight 4-Band Studio EQ"
-    );
-
-    // 4. Toggle plugin
-    engine
-        .execute(CommandRequest::new(
-            "track.toggle_audio_plugin",
-            json!({
-                "track_id": 2,
-                "plugin_id": 101,
-                "enabled": false
-            }),
-        ))
-        .unwrap();
-    assert_eq!(
-        engine.document().project.sequence.tracks[1].plugins[0].enabled,
-        false
-    );
-
-    // 5. Set Audio Bus Gain
+    // 3. Set Audio Bus Gain
     engine
         .execute(CommandRequest::new(
             "bus.set_gain_db",

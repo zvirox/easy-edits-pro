@@ -338,6 +338,24 @@ flowchart TD
     vs. the CPU fallback list) is live. Unit-tested: the cache runs the
     probe exactly once.
 * **F6 — Fairlight Plugin Host Cleanup:** Clean up placeholder slots; ensure active audio tracks bind directly to 4-band parametric EQ and compressor.
+  * **Done (2026-10-23):** The fake "PLUGIN SLOTS · BUILT-IN EFFECT HOST
+    PENDING" rack (four named saved-slot plugins with empty `params: {}`
+    that bound to no DSP) is removed from the Fairlight channel strips, and
+    the dead plumbing behind it — `track.add_audio_plugin` /
+    `track.toggle_audio_plugin` commands (both unshipped), the
+    `AudioPluginInstance` schema type, the `Track.plugins` field, and the
+    `addTrackPlugin`/`toggleTrackPlugin` UI wiring — is gone (catalogue now
+    213 commands / 115 shipped). Active audio tracks bind directly to a real
+    4-band parametric EQ end-to-end: the schema gains the high-mid bell
+    (`eq_highmid_gain`, 2.5 kHz, serde-defaulted so older projects keep
+    their sound), the preview chain gains a fourth WebAudio peaking node,
+    the DSP rack gains the fourth band plus a 4-anchor response curve, and
+    the export path now honors all four bands. That export fix also repairs
+    a latent bug: `equalizer-3bands` was driven with a nonexistent `band3`
+    property, so GES silently dropped the whole track EQ from every export;
+    the effect strings are now a unit-tested pure helper (`band0/band1/
+    band2` on equalizer-3bands plus `equalizer-10bands band6` for the
+    bell), and EQ attach failures propagate instead of vanishing.
 
 ---
 

@@ -1,6 +1,6 @@
 use crate::command::{find_command, status, CommandRequest, CommandStatus};
 use crate::project::{
-    AudioPluginInstance, AutomationInterpolation, AutomationLane, AutomationMode, BusTarget,
+    AutomationInterpolation, AutomationLane, AutomationMode, BusTarget,
     ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams, ColorWheels, CompositingNode,
     CompositingNodeKind, CropParams, CustomShaderParams, EffectInstance, EffectKind, EffectPayload,
     GaussianBlurParams, InterpolationKind, Keyframe, KeyframeProperty, LutParams,

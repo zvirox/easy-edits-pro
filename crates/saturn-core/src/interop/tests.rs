@@ -3,8 +3,6 @@ use crate::project::{Clip, MediaAsset, MediaKind, ProjectDocument, Track, TrackK
 use crate::time::{FrameRate, Tick};
 use std::path::PathBuf;
 
-use super::*;
-
 fn sample_project() -> ProjectDocument {
     let fps = FrameRate::FPS_24;
     let clip = Clip {
@@ -52,7 +50,6 @@ fn sample_project() -> ProjectDocument {
         audio_processing: Default::default(),
         bus: Default::default(),
         automation: Default::default(),
-        plugins: Vec::new(),
         clips: vec![clip],
         transitions: Vec::new(),
     }];

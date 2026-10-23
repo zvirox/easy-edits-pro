@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ProjectDocument, TrackAudioProcessing, BusTarget, AutomationMode, AudioPluginInstance, LoudnessStandard, LoudnessReport } from "./projectTypes";
+import type { ProjectDocument, TrackAudioProcessing, BusTarget, AutomationMode, LoudnessStandard, LoudnessReport } from "./projectTypes";
 import { audioClockMaster } from "../engine/playbackEngine";
 
 const DEFAULT_DSP: TrackAudioProcessing = {
@@ -124,18 +124,6 @@ export function useAudioWorkspace(
     });
   }, [tracks, perform]);
 
-  const addTrackPlugin = useCallback(async (trackId: number, pluginName: string) => {
-    const plugin: AudioPluginInstance = {
-      id: Date.now(), name: pluginName, plugin_format: "builtin", enabled: true,
-      preset: "Default", params: {},
-    };
-    await perform("track.add_audio_plugin", { track_id: trackId, plugin });
-  }, [perform]);
-
-  const toggleTrackPlugin = useCallback(async (trackId: number, pluginId: number, enabled: boolean) => {
-    await perform("track.toggle_audio_plugin", { track_id: trackId, plugin_id: pluginId, enabled });
-  }, [perform]);
-
   const autoTrimLoudness = useCallback(() => {
     const target = audioClockMaster.applyLoudnessAutoTrim(loudnessStandard);
     if (target !== 0) void saveMasterGain(target);
@@ -153,8 +141,8 @@ export function useAudioWorkspace(
     masterGainDraft, setMasterGainDraft: setMasterGain, saveMasterGain,
     busGainDrafts, setBusGainDrafts, setBusGain,
     loudnessStandard, setLoudnessStandard, loudnessReport, autoTrimLoudness, resetLoudness,
-    clearAllSolos, muteAllTracks, setTrackBusRoute, setTrackAutomationMode, addTrackPlugin, toggleTrackPlugin,
+    clearAllSolos, muteAllTracks, setTrackBusRoute, setTrackAutomationMode,
   }), [selectedFairlightTrackId, audioProcessingDrafts, saveTrackAudioProcessing, trackGr, masterGr, vuLevels, masterVu,
     masterGainDraft, setMasterGain, saveMasterGain, busGainDrafts, setBusGain, loudnessStandard, loudnessReport,
-    autoTrimLoudness, resetLoudness, clearAllSolos, muteAllTracks, setTrackBusRoute, setTrackAutomationMode, addTrackPlugin, toggleTrackPlugin]);
+    autoTrimLoudness, resetLoudness, clearAllSolos, muteAllTracks, setTrackBusRoute, setTrackAutomationMode]);
 }

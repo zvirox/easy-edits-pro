@@ -20,8 +20,6 @@ interface FairlightMixerRackProps {
   saveTrackAudioProcessing: (trackId: number, patch: Partial<TrackAudioProcessing>) => Promise<void>;
   setTrackBusRoute: (trackId: number, bus: BusTarget) => Promise<void> | void;
   setTrackAutomationMode: (trackId: number, mode: AutomationMode) => Promise<void> | void;
-  addTrackPlugin: (trackId: number, name: string) => Promise<void> | void;
-  toggleTrackPlugin: (trackId: number, pluginId: number, enabled: boolean) => Promise<void> | void;
   toggleTrackMute: (track: Track) => Promise<void> | void;
   toggleTrackSolo: (track: Track) => Promise<void> | void;
   toggleTrackLock: (track: Track) => Promise<void> | void;
@@ -34,7 +32,7 @@ export function FairlightMixerRack({
   tracks, activeTrackId, setSelectedFairlightTrackId,
   trackGr, vuLevels, gainDrafts, setGainDrafts, saveTrackGain,
   panDrafts, setPanDrafts, saveTrackPan, saveTrackAudioProcessing,
-  setTrackBusRoute, setTrackAutomationMode, addTrackPlugin, toggleTrackPlugin,
+  setTrackBusRoute, setTrackAutomationMode,
   toggleTrackMute, toggleTrackSolo, toggleTrackLock, audioClockMaster,
   writeTrackAutomation, commitTrackAutomation,
 }: FairlightMixerRackProps) {
@@ -144,41 +142,6 @@ export function FairlightMixerRack({
                           </InteriorButton>
                         ))}
                       </div>
-                    </div>
-
-                    {/* Audio Plugins VST3 Slot with Stacked Header to Prevent Clipping */}
-                    <div className="strip-plugins-rack" onClick={(e) => e.stopPropagation()}>
-                      <div className="strip-plugins-header">
-                        <span>PLUGIN SLOTS · BUILT-IN EFFECT HOST PENDING</span>
-                        <select
-                          className="strip-add-plugin-select"
-                          value=""
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              void addTrackPlugin(track.id, e.target.value);
-                              e.target.value = "";
-                            }
-                          }}
-                        >
-                          <option value="" disabled>+ Plugin…</option>
-                          <option value="Saturn Dynamics">Saturn Dynamics (saved slot)</option>
-                          <option value="Saturn Reverb">Studio Reverb (saved slot)</option>
-                          <option value="Saturn De-Esser">De-Esser Pro (saved slot)</option>
-                          <option value="Saturn Chorus">Chorus &amp; Widener (saved slot)</option>
-                        </select>
-                      </div>
-                      {(track.plugins ?? []).map((plugin) => (
-                        <div key={plugin.id} className={`plugin-rack-item ${plugin.enabled ? "enabled" : "bypassed"}`}>
-                          <InteriorButton
-                            type="button"
-                            className={`plugin-power-dot ${plugin.enabled ? "active" : ""}`}
-                            title={plugin.enabled ? "Bypass Plugin" : "Enable Plugin"}
-                            onClick={() => void toggleTrackPlugin(track.id, plugin.id, !plugin.enabled)}
-                          />
-                          <span className="plugin-name-label" title={plugin.name}>{plugin.name}</span>
-                          <span className="plugin-format-badge">SLOT</span>
-                        </div>
-                      ))}
                     </div>
 
                     {/* Pan Section */}

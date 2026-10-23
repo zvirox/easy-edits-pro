@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Removed
+- **Fairlight placeholder plugin slots:** Removed the fake "PLUGIN SLOTS ·
+  BUILT-IN EFFECT HOST PENDING" rack from the Fairlight channel strips, and
+  the dead `track.add_audio_plugin` / `track.toggle_audio_plugin` commands
+  plus the `Track.plugins` schema field behind them (catalogue is now 213
+  commands; the real track DSP rack — 4-band parametric EQ, dynamics
+  compressor, denoise — is the binding).
 - **Collaborative multi-user "Lead Editor" subsystem:** Removed the header
   collab pill and identity, the dead Phase 12.1 modal state, the collab CSS,
   the `collab.acquire_lock` / `collab.release_lock` / `collab.record_change`
@@ -18,6 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `*_collaboration_lock` handlers. Catalogue is now 213 commands (113 shipped).
 
 ### Added
+- **True 4-band track EQ (F6):** The Fairlight track EQ is a real 4-band
+  parametric end-to-end — low shelf (80 Hz), mid bell (1 kHz), a new
+  high-mid bell (2.5 kHz), and high shelf (8 kHz) — with the fourth band in
+  the schema (backward-compatible default), the preview WebAudio chain, the
+  DSP rack UI, and MP4 exports. Export now actually applies track EQ at all
+  (a silent invalid-property bug previously dropped it), with failures
+  surfaced instead of swallowed.
 - **Async hardware encoder probe (F5):** GStreamer hardware-encoder detection
   now runs once at startup on a background job and is cached process-wide;
   the Deliver workspace reads the cached result (or the follow-up event) and

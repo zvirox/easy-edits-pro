@@ -140,7 +140,6 @@ impl EditorEngine {
                     audio_processing: crate::project::TrackAudioProcessing::default(),
                     bus: crate::project::BusTarget::Master,
                     automation: crate::project::TrackAutomation::default(),
-                    plugins: Vec::new(),
                     clips: Vec::new(),
                     transitions: Vec::new(),
                 };

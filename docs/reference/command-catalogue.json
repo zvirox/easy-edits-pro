@@ -200,40 +200,6 @@
   },
   {
     "aliases": [],
-    "category": "Sequence",
-    "id": "track.add_audio_plugin",
-    "label": "Add Audio Plugin",
-    "menu": [
-      "Audio",
-      "Plugins"
-    ],
-    "mutating": true,
-    "params": "{\"track_id\":int,\"plugin\":obj}",
-    "shipped": false,
-    "shortcut": null,
-    "since": "0.1.0",
-    "uiOnly": false,
-    "undoGroup": "transaction"
-  },
-  {
-    "aliases": [],
-    "category": "Sequence",
-    "id": "track.toggle_audio_plugin",
-    "label": "Toggle Audio Plugin",
-    "menu": [
-      "Audio",
-      "Plugins"
-    ],
-    "mutating": true,
-    "params": "{\"track_id\":int,\"plugin_id\":int,\"enabled\":bool}",
-    "shipped": false,
-    "shortcut": null,
-    "since": "0.1.0",
-    "uiOnly": false,
-    "undoGroup": "transaction"
-  },
-  {
-    "aliases": [],
     "category": "Audio",
     "id": "bus.set_gain_db",
     "label": "Set Audio Bus Gain",

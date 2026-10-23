@@ -14,7 +14,6 @@ import type {
   AutomationInterpolation,
   AutomationPoint,
   TrackAutomation,
-  AudioPluginInstance,
   AudioBus,
   CompositingNode,
   CompositingNodeKind,
@@ -61,7 +60,6 @@ export type {
   AutomationInterpolation,
   AutomationPoint,
   TrackAutomation,
-  AudioPluginInstance,
   AudioBus,
   CompositingNode,
   CompositingNodeKind,
@@ -227,7 +225,6 @@ export type Track = {
   audio_processing?: TrackAudioProcessing;
   bus?: BusTarget;
   automation?: TrackAutomation;
-  plugins?: AudioPluginInstance[];
   clips: Clip[];
   transitions?: Transition[];
 };

@@ -1,5 +1,5 @@
 import type {
-  AudioBus, AudioPluginInstance, AutomationMode, BusTarget, CaptionStyle, CaptionTrack,
+  AudioBus, AutomationMode, BusTarget, CaptionStyle, CaptionTrack,
   GraphicItem, GraphicTemplate,
   EffectInstance, HslQualifier, Keyframe, MotionBlurParams,
   MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves, SpeedRamp, SubtitleItem,
@@ -7,7 +7,7 @@ import type {
 } from "../engine/playbackEngine";
 
 export type {
-  AudioBus, AudioPluginInstance, AutomationMode, BusTarget, CaptionStyle, CaptionTrack,
+  AudioBus, AutomationMode, BusTarget, CaptionStyle, CaptionTrack,
   GraphicItem, GraphicTemplate,
   EffectInstance, HslQualifier, Keyframe, MotionBlurParams,
   MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves, SpeedRamp, SubtitleItem,
@@ -139,7 +139,6 @@ export type Track = {
   audio_bus?: string;
   linked_group_id?: number | null;
   automation?: TrackAutomation;
-  plugins?: AudioPluginInstance[];
   clips: Clip[];
   transitions?: Transition[];
 };
