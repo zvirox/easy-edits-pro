@@ -8,6 +8,7 @@ import { KeyframesInspector } from "./KeyframesInspector";
 import { TransitionInspector } from "./TransitionInspector";
 import { TitleInspector } from "./TitleInspector";
 import { ClipInspector } from "./ClipInspector";
+import { useClipSelection } from "../../app/selectionStore";
 import { LoadingButton } from "../../components/interior/loading-button";
 import { formatTime } from "../../utils/formatters";
 import type {
@@ -20,7 +21,6 @@ import type {
   Transition,
   TransitionKind,
   Track,
-  SelectedClip,
 } from "../../app/projectTypes";
 import type {
   AudioClockMaster,
@@ -50,7 +50,6 @@ export interface InspectorPanelProps {
   handleDetectSilence: () => Promise<void>;
 
   selectedTimelineClip: Clip | null;
-  selectedClip: SelectedClip | null;
   colorDraft: ColorAdjustments;
   setColorDraft: Dispatch<SetStateAction<ColorAdjustments>>;
   saveColor: (adjustments: ColorAdjustments) => Promise<void>;
@@ -164,6 +163,8 @@ export interface InspectorPanelProps {
 }
 
 export function InspectorPanel(props: InspectorPanelProps) {
+  // F1: selection comes from the shared store; the prop is gone.
+  const { clip: selectedClip } = useClipSelection();
   function renderInspectorContent() {
     if (props.selectedSubtitle) {
       return (
@@ -203,7 +204,7 @@ export function InspectorPanel(props: InspectorPanelProps) {
                 min="-5"
                 max="5"
                 step="0.1"
-                disabled={!props.selectedClip}
+                disabled={!selectedClip}
                 value={props.colorDraft.exposure}
                 onChange={(event) => props.setColorDraft((val) => ({ ...val, exposure: Number(event.target.value) }))}
                 onPointerUp={(event) => updateColorField("exposure", Number(event.currentTarget.value))}
@@ -217,7 +218,7 @@ export function InspectorPanel(props: InspectorPanelProps) {
                 min="0"
                 max="2"
                 step="0.01"
-                disabled={!props.selectedClip}
+                disabled={!selectedClip}
                 value={props.colorDraft.contrast}
                 onChange={(event) => props.setColorDraft((val) => ({ ...val, contrast: Number(event.target.value) }))}
                 onPointerUp={(event) => updateColorField("contrast", Number(event.currentTarget.value))}
@@ -231,7 +232,7 @@ export function InspectorPanel(props: InspectorPanelProps) {
                 min="0"
                 max="2"
                 step="0.01"
-                disabled={!props.selectedClip}
+                disabled={!selectedClip}
                 value={props.colorDraft.saturation}
                 onChange={(event) => props.setColorDraft((val) => ({ ...val, saturation: Number(event.target.value) }))}
                 onPointerUp={(event) => updateColorField("saturation", Number(event.currentTarget.value))}
@@ -246,7 +247,7 @@ export function InspectorPanel(props: InspectorPanelProps) {
         return (
           <EffectsInspector
             selectedTimelineClip={props.selectedTimelineClip}
-            selectedClip={props.selectedClip}
+            selectedClip={selectedClip}
             addEffect={props.addEffect}
             toggleEffect={async (id) => props.toggleEffectEnabled(String(id))}
             reorderEffect={async () => {}}
@@ -259,7 +260,7 @@ export function InspectorPanel(props: InspectorPanelProps) {
         return (
           <KeyframesInspector
             selectedTimelineClip={props.selectedTimelineClip}
-            selectedClip={props.selectedClip}
+            selectedClip={selectedClip}
             playhead={props.playhead}
             keyframeProperty={props.keyframeProperty}
             setKeyframeProperty={props.setKeyframeProperty}
@@ -427,7 +428,7 @@ export function InspectorPanel(props: InspectorPanelProps) {
             />
           );
         }
-        if (props.selectedTimelineClip && props.selectedClip) {
+        if (props.selectedTimelineClip && selectedClip) {
           const mediaForClip = props.media.find((item) => item.id === props.selectedTimelineClip!.media_id);
           if (mediaForClip?.kind === "title") {
             return (
@@ -445,7 +446,7 @@ export function InspectorPanel(props: InspectorPanelProps) {
         return (
           <ClipInspector
             selectedTimelineClip={props.selectedTimelineClip}
-            selectedClip={props.selectedClip}
+            selectedClip={selectedClip}
             selectedMedia={props.selectedMedia}
             media={props.media}
             project={props.project}
