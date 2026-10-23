@@ -17,7 +17,7 @@ from typing import Optional, List, Dict, Any
 
 # Import command groups
 from cli_anything_eep.commands import (
-    audio, clip, collab, color, command, daemon, interop, mcp, media, multicam,
+    audio, clip, color, command, daemon, interop, mcp, media, multicam,
     nodegraph, project, render, speech, subtitle, template, timeline, title, track,
 )
 
@@ -235,7 +235,6 @@ cli.add_command(title.title_group)
 cli.add_command(multicam.multicam_group)
 cli.add_command(nodegraph.nodegraph_group)
 cli.add_command(interop.interop_group)
-cli.add_command(collab.collab_group)
 cli.add_command(speech.speech_group)
 
 

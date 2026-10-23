@@ -106,17 +106,9 @@ def test_media_bins_and_subtitles(project):
     assert payload(invoke("subtitle", "clear"))["cleared"] is True
 
 
-def test_nodes_collab_and_titles(project):
+def test_nodes_and_titles(project):
     node = payload(invoke("nodegraph", "add-node", "--kind", "merge", "--title", "Merge"))
     assert node["added"] is True
-
-    lock = payload(
-        invoke("collab", "acquire-lock", "--user-id", "u1", "--user-name", "Alice", "--target-kind", "clip", "--target-id", "1")
-    )
-    assert lock["acquired"] is True
-    assert payload(
-        invoke("collab", "record-change", "--user-id", "u1", "--user-name", "Alice", "--action", "edit", "--summary", "moved clip")
-    )["recorded"] is True
 
     title = payload(invoke("timeline", "add-title", "--text", "Intro", "--duration", str(TICK), "--track", str(project["track"]), "--at", "0"))
     updated = payload(invoke("title", "update", "--media-id", str(title["media_id"]), "--text", "Opening", "--font-size", "48"))
