@@ -63,6 +63,27 @@ fn main() {
             let state = state.clone();
             move |app| {
                 setup_crash_logging(&app.handle());
+                // F5: probe hardware encoders on a background job so the
+                // Deliver workspace never stalls on GStreamer initialization.
+                // The result is cached process-wide and pushed to the UI.
+                {
+                    let manager = Arc::clone(&state.1);
+                    let handle = app.handle().clone();
+                    manager.submit_detached(
+                        "Hardware encoder probe",
+                        JobKind::Custom {
+                            name: "encoder-probe".to_string(),
+                        },
+                        JobPriority::Background,
+                        move |_ctx| {
+                            let info = crate::gpu_detect::cached_encoder_info(
+                                saturn_render::detect_hardware_encoders,
+                            );
+                            let _ = handle.emit("encoder_capabilities_ready", &info);
+                            Ok(Some(info.preferred_encoder))
+                        },
+                    );
+                }
                 if let Ok(data_dir) = app.path().app_data_dir() {
                     set_app_data_dir(data_dir.clone());
                     if let Ok(mut guard) = state.0.lock() {

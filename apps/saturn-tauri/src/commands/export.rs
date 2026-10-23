@@ -75,7 +75,9 @@ pub async fn start_export(
 
 #[tauri::command]
 pub fn detect_encoder_capabilities() -> saturn_render::HardwareEncoderInfo {
-    saturn_render::detect_hardware_encoders()
+    // F5: startup pre-seeds the cache on a background job, so callers get a
+    // warm answer whenever possible; a cold cache computes inline as before.
+    crate::gpu_detect::cached_encoder_info(saturn_render::detect_hardware_encoders)
 }
 
 #[tauri::command]

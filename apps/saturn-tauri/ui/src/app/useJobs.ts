@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import type { HardwareEncoderInfo } from "../types";
 
 export type JobState =
   | { status: "queued" }
@@ -65,4 +66,30 @@ export function useJobs() {
   }, []);
 
   return { jobs, setJobs, jobDrawerOpen, setJobDrawerOpen, jobDrawerRef, activeJobs, cancelJob, cancelAllJobs, clearJobHistory };
+}
+
+/**
+ * Hardware-encoder probe capabilities (F5). Startup probes on a background
+ * job and caches the result process-wide, so this hook never blocks the UI:
+ * it reads the cached answer through the existing command and follows the
+ * `encoder_capabilities_ready` event in case the probe is still running.
+ */
+export function useEncoderCapabilities(): HardwareEncoderInfo | null {
+  const [info, setInfo] = useState<HardwareEncoderInfo | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    invoke<HardwareEncoderInfo>("detect_encoder_capabilities")
+      .then((data) => {
+        if (!cancelled && data) setInfo(data);
+      })
+      .catch((error: unknown) => console.warn("Encoder probe failed:", error));
+    const unlisten = listen<HardwareEncoderInfo>("encoder_capabilities_ready", ({ payload }) => {
+      if (!cancelled && payload) setInfo(payload);
+    });
+    return () => {
+      cancelled = true;
+      void unlisten.then((stop) => stop());
+    };
+  }, []);
+  return info;
 }

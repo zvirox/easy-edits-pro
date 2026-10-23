@@ -326,6 +326,17 @@ flowchart TD
     corners transparent, translate moves the source window, and identity
     payloads stay an opaque pass-through.
 * **F5 — Hardware Encoder Probe Optimization:** Run GStreamer hardware encoder detection asynchronously at startup, caching results so the Deliver workspace never stalls.
+  * **Done (2026-10-23):** `detect_hardware_encoders()` now probes once per
+    process through a `gpu_detect.rs` cache. Startup submits the probe as a
+    background job on the existing JobManager (visible in the job drawer,
+    kind `encoder-probe`), so GStreamer initialization never runs on the UI
+    path; the result is pushed to the UI over `encoder_capabilities_ready`
+    and `detect_encoder_capabilities` returns the cached answer once warm.
+    The new `useEncoderCapabilities` hook replaces the hardcoded
+    `encoderInfo={null}` that kept the Deliver workspace on its "Probing..."
+    placeholder forever, so the hardware-encoder readout (VA-API/NVENC/QSV
+    vs. the CPU fallback list) is live. Unit-tested: the cache runs the
+    probe exactly once.
 * **F6 — Fairlight Plugin Host Cleanup:** Clean up placeholder slots; ensure active audio tracks bind directly to 4-band parametric EQ and compressor.
 
 ---

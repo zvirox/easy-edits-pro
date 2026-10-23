@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `*_collaboration_lock` handlers. Catalogue is now 213 commands (113 shipped).
 
 ### Added
+- **Async hardware encoder probe (F5):** GStreamer hardware-encoder detection
+  now runs once at startup on a background job and is cached process-wide;
+  the Deliver workspace reads the cached result (or the follow-up event) and
+  shows the real encoder readout instead of a permanent "Probing..." placeholder.
 - **Keyframes baked into exports (F4):** Clip position, scale, rotation, and
   opacity keyframes now appear in exported MP4s, matching the preview. The
   preview's cubic-bezier evaluator is ported 1:1 to Rust and a new

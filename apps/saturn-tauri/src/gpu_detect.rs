@@ -16,10 +16,34 @@
 //! start, and the result is exposed to the UI through `glass_environment` so the
 //! `[data-webkit-gtk-slow]` fallback can be applied without a benchmark.
 
+use saturn_render::HardwareEncoderInfo;
 use serde::Serialize;
 use std::path::PathBuf;
 use std::process::Command;
 use std::sync::OnceLock;
+
+/// Process-wide cache of the hardware-encoder probe result (F5). Startup
+/// seeds this on a background job so the Deliver workspace can read it
+/// without ever triggering GStreamer initialization on the UI path.
+static ENCODER_INFO_CACHE: OnceLock<HardwareEncoderInfo> = OnceLock::new();
+
+/// Returns the cached hardware-encoder probe result, running `probe` exactly
+/// once per process when the cache is still empty.
+pub fn cached_encoder_info(probe: impl FnOnce() -> HardwareEncoderInfo) -> HardwareEncoderInfo {
+    cached_encoder_info_with(&ENCODER_INFO_CACHE, probe)
+}
+
+fn cached_encoder_info_with(
+    cache: &OnceLock<HardwareEncoderInfo>,
+    probe: impl FnOnce() -> HardwareEncoderInfo,
+) -> HardwareEncoderInfo {
+    if let Some(info) = cache.get() {
+        return info.clone();
+    }
+    let info = probe();
+    let _ = cache.set(info.clone());
+    info
+}
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -534,6 +558,30 @@ pub fn save_glass_report(label: String, report: String) -> Result<String, String
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn encoder_probe_cache_runs_the_probe_once() {
+        let calls = std::cell::Cell::new(0_u32);
+        let cache = OnceLock::new();
+        let first = cached_encoder_info_with(&cache, || {
+            calls.set(calls.get() + 1);
+            HardwareEncoderInfo {
+                has_hardware_encoder: false,
+                preferred_encoder: "x264enc".to_string(),
+                encoder_type: "software".to_string(),
+                description: "software fallback".to_string(),
+                available_encoders: vec!["x264enc".to_string()],
+            }
+        });
+        assert!(!first.has_hardware_encoder, "cold cache probes");
+        // A second read must come from the cache; the probe closure panics to
+        // prove it never runs again.
+        let second = cached_encoder_info_with(&cache, || {
+            panic!("cached probe ran twice");
+        });
+        assert_eq!(second.preferred_encoder, "x264enc");
+        assert_eq!(calls.get(), 1);
+    }
 
     fn decide(disable: Option<&str>, keep: Option<&str>, webkit: Option<&str>) -> DmabufDecision {
         decide_dmabuf(

@@ -1,3 +1,4 @@
+import type { HardwareEncoderInfo } from "../types";
 import type { MediaPanelProps } from "../features/media-pool";
 import type { InspectorPanelProps } from "../features/inspector";
 import type { MarkersPanelProps } from "../features/markers";
@@ -30,6 +31,7 @@ import type { GraphicOperations } from "../features/graphics";
 
 export interface WorkspaceRouterProps {
   commands: CommandSpec[];
+  encoderInfo: HardwareEncoderInfo | null;
   davinciWorkspace: string;
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
@@ -90,6 +92,7 @@ export function WorkspaceRouter({
   markerOps,
   captionsOps,
   graphicsOps,
+  encoderInfo,
 }: WorkspaceRouterProps) {
   // Unified monitor Source-tab focus: a click (pointer down→up without drag)
   // on a media-pool item or a timeline clip loads it in the Source tab.
@@ -176,7 +179,7 @@ export function WorkspaceRouter({
         isInteropBusy={projectOps.isInteropBusy}
         interopContent={projectOps.interopContent}
         setNotice={projectOps.setNotice}
-        encoderInfo={null}
+        encoderInfo={encoderInfo}
         selectedExportPreset="source"
         setSelectedExportPreset={() => {}}
         exportResolution={projectOps.exportResolution}

@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { ProjectProvider, runCommand } from "./app/ProjectProvider";
 import { useProject } from "./app/useProject";
 import { usePlayback } from "./features/preview";
-import { useJobs } from "./app/useJobs";
+import { useEncoderCapabilities, useJobs } from "./app/useJobs";
 import { useRecovery, ProjectWelcomeScreen } from "./features/welcome";
 import { useMediaServer } from "./features/media-pool";
 import { useShortcuts, type DavinciWorkspace } from "./app/useShortcuts";
@@ -153,6 +153,7 @@ function EditorApp() {
   const media = project?.media ?? [];
   const recoveryStatus = useRecovery();
   const jobsHook = useJobs();
+  const encoderInfo = useEncoderCapabilities();
   const { mediaServerPort, mediaServerToken, mediaServerReady, getMediaUrl } = useMediaServer();
   const [programPreviewError, setProgramPreviewError] = useState<string | null>(null);
   const [preparedPreviews] = useState<Record<number, string>>({});
@@ -568,6 +569,7 @@ function EditorApp() {
         <ErrorBoundary fallbackTitle="Workspace Rendering Issue" onReset={() => projectOps.setDavinciWorkspace("edit")}>
         <WorkspaceRouter
           commands={commands}
+          encoderInfo={encoderInfo}
           davinciWorkspace={projectOps.davinciWorkspace}
           project={project} media={media} getMediaUrl={getMediaUrl}
           selectedTimelineClip={selectedTimelineClip}
