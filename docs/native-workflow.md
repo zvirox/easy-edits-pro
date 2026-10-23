@@ -51,3 +51,24 @@ Notes and limits, stated honestly:
   against the preview.
 - Single-fixture (VP8 640x360 -> 1080p render), single laptop; no
   cross-hardware claim is made or implied.
+
+## Render-cancel evidence (2026-10-23, dev laptop)
+
+`cargo test -p saturn-render --lib -- --ignored render_cancel_midway`
+(`tests::render_cancel_midway_removes_partial_output`, marked
+`#[ignore]` because CI runners lack the GES runtime plugins):
+
+```
+test tests::render_cancel_midway_removes_partial_output ... ok
+test result: ok. 1 passed; finished in 3.26s
+```
+
+What it proves on the real pipeline: a 12-clip timeline built from the
+maintained fixture is rendered through GES with software H.264; the render
+is cancelled two seconds in from the render crate's cancellation callback;
+the result is `Err("Render cancelled")` and **the partial `.mp4` is gone**.
+The CI-level unit (`render_cancellation_is_checked_before_pipeline_setup`)
+pins the complementary boundary: a cancel before the pipeline starts never
+touches a pre-existing file at the output path. Failed (non-cancel) renders
+also remove their partial output, enforced inside
+`render_project_range_with_control`.

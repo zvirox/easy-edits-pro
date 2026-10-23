@@ -17,3 +17,6 @@ serde_json = "1"
 gstreamer-video = "0.25.3"
 gstreamer-app = "0.25.2"
 gstreamer-base = "0.25.3"
+
+[dev-dependencies]
+tempfile = "3"

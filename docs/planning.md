@@ -1,161 +1,309 @@
-# Easy Edits Pro — Delivery Plan
+# Easy Edits Pro — Master Delivery & UI Overhaul Plan
 
-**Updated:** 2026-10-23
+**Updated:** 2026-10-23  
+**Status source:** Command catalogue generates [PARITY.md](PARITY.md); GitHub Actions is the source for CI and packaging status.
 
-**Status source:** the command catalogue generates [PARITY.md](PARITY.md);
-GitHub Actions and the release page are the source for remote build and package
-status.
+This document serves as the authoritative, forward-looking plan for Easy Edits Pro (EEP). It incorporates the **Executive Architectural Diagnosis**, the **Motrix + FilmCraft Target Hybrid Architecture**, the **UI Correction Plan v4 (Fixed Glass Cards & Persistent 2-Row Viewport)**, and the **Functional Reliability Workstreams (F1–F6)** while resolving all prior roadmap and styling conflicts.
 
-This is the single forward-looking plan for Easy Edits Pro. It replaces the former roadmap, Glass phase plan, and FilmCraft-parity roadmap. Architecture, spike evidence, generated command data, and release notes remain in their own documents.
+---
 
-## 1. Scope and decisions
+## 1. Scope, Design Decisions & Conflict Resolutions
 
-Easy Edits Pro is an alpha Linux desktop video editor. The work now focuses on making a reliable import → edit → save → render workflow on the development laptop, then using alpha and beta releases to collect real-world feedback.
+### Core Architectural Decisions
 
-### Decisions
-
-| Decision | Rationale |
-|---|---|
-| Validate on this laptop only | No other hardware is available. A compatibility matrix would create unverified work and claims. |
-| Release early alpha and beta builds | Releases provide a controlled way to receive reports from systems we cannot test locally. |
-| Treat hardware encoding as optional | The verified host path is software H.264. Encoder detection must retain a software fallback and never be described as verified without an output check. |
-| Keep the Rust core authoritative | UI, CLI, MCP, and control-server actions execute the same project commands; client code renders snapshots rather than owning a competing project model. |
-| Keep the command catalogue truthful | A command is shipped only with a UI affordance, a focused test, and `shipped: true`. Unfinished actions return a real error. |
-
-### Explicit exclusions
-
-- No new cross-GPU, cross-compositor, or cross-distribution testing plan.
-- No hardware-encoding certification work.
-- No claim that a package or workflow works beyond the evidence recorded for it.
-
-Feedback from future alpha and beta users is evidence for prioritisation. It is not a substitute for a local regression test when the reported issue can be reproduced on this laptop.
-
-## 2. Current baseline
-
-### Delivered foundations
-
-- The Tauri shell, Rust command bridge, project persistence, recovery path, media server, and split frontend feature/workspace structure are present.
-- The editor has project creation/opening, media import, timeline placement and editing interactions, source/program preview controls, project save/reopen, MP4/WebM export controls, and the main Media, Edit, Color, Fairlight, Keyframes, Fusion, and Deliver surfaces.
-- `saturn-mcp` can inspect and mutate the engine, search project media, inspect placements, and start, observe, or cancel render jobs. The running-desktop bridge is a same-user Unix socket.
-- The first alpha, [`v0.1.0-alpha.1`](https://github.com/zvirox/easy-edits-pro/releases/tag/v0.1.0-alpha.1), published `.deb`, `.rpm`, and SHA-256 assets successfully.
-- The generated catalogue currently records **230 commands**, **119 shipped**, and **111 planned**. FilmCraft coverage is **64/443 Tier 1**, **15/207 Tier 2**, and **0/17 Tier 3** commands. See [PARITY.md](PARITY.md).
-
-### Evidence and limits
-
-- A native workflow on this laptop exercised a saved project, real media, editing commands, MCP desktop-bridge operations, cancellation, and a small H.264/AAC render. That output used the x264 software encoder.
-- Local UI build, unit, command, contrast, and source-size checks have passed in the latest recorded verification. The local browser E2E runner is blocked by this environment's Chromium sandbox, so it is not native-desktop proof.
-- At the time this plan was updated, [GitHub Actions run #21](https://github.com/zvirox/easy-edits-pro/actions/runs/39909028312) had passed its Rust, frontend build/unit, style, catalogue, parity, size, and Tauri-backend steps. Its Python harness job had failed in `test_media_bins_and_subtitles`; its Playwright step was still running. Main is therefore **not green**. Treat the Actions page as newer evidence than this dated snapshot.
-- `.deb` and `.rpm` assets have been built and published, but no package install and launch result is yet recorded. Flatpak is the intended supported delivery route, not a completed artifact.
-
-## 3. Delivery sequence
-
-Work is ordered to make each release more trustworthy before expanding the feature surface. Each item should land as a small, independently reviewable change with its own regression evidence.
-
-### M0 — Restore a reproducible baseline
-
-**Goal:** make `main` green and make documentation reflect only current facts.
-
-1. Reproduce and fix the Python harness media-bin/subtitle `IndexError`. Verify the command returns data or a structured backend error; it must never turn missing state into a success or an internal error. — **done** (`24e876e`)
-2. Stabilise the Playwright smoke selector and make its waiting conditions explicit. Keep browser smoke tests mocked; do not represent them as a native-engine or codec check. — **done** (`30e2b5b`)
-3. Add a native workflow test script for this laptop: create/open a project, import the maintained local fixture, make a timeline edit, save/reopen, render, and inspect the output with `ffprobe`. — **done** (`af2089c`; evidence in [native-workflow.md](native-workflow.md))
-4. Clear the existing source-size warning backlog: split the files above the 800-line hard limit by domain, beginning with `interop.rs`, Fairlight, and Keyframes. Do not raise the limit. — **done** (`25f725f`, `cbce9db`)
-5. Keep generated command and parity material in sync after catalogue changes. — **standing rule; current docs in sync** (`39917362806` green)
-
-**Exit evidence:** CI is green; the laptop workflow script passes; generated documents have no drift; the source-size gate passes without warnings.
-
-### M1 — Make the editor workflow dependable
-
-**Goal:** a creator can complete a small edit on the development laptop without guessing which controls work.
-
-1. **Project and media reliability:** missing-media relink behaviour, recovery restore, error states for unsupported codecs, proxy lifecycle, and clear import status.
-2. **Timeline and preview:** preserve pointer drag/drop, playhead scrubbing, zoom, trimming, split, move, ripple, transitions, selection, and undo/redo through save/reopen tests. — **done**: engine round-trip test proves trim (plain + ripple head), razor split, move, ripple delete, transitions, and in/out points persist exactly through save/reopen with a clean post-reopen history (`crates/saturn-core/tests/timeline_reopen.rs`, whole-sequence JSON equality); pointer drop, razor, ripple, trim, marks, playhead, zoom, and scrub are exercised by the browser e2e contract (`tests/e2e/timeline.mjs`), and the laptop workflow verifies save/reopen on the real engine
-3. **Export truthfulness:** connect the visible export queue to real job state, expose honest preset/range/codec errors, and verify cancellation removes partial output. Retain software H.264 as the tested path.
-4. **MCP lifecycle:** finish reconnect and desktop-lifecycle coverage for the Unix bridge; add still-frame preview only when the tool returns a real image payload rather than a source-path placeholder.
-5. **Safety:** cover recovery, media allow-listing, SSRF protection, and bridge permission/error cases with focused tests.
-
-**Exit evidence:** the laptop workflow passes from a clean project directory; MCP performs the same workflow against the running app; expected errors are visible in the UI and structured for automation.
-
-### M2 — Alpha feedback loop and release readiness
-
-**Goal:** turn user reports into well-scoped fixes without inventing hardware compatibility claims.
-
-1. Ship a new alpha only after M0 gates are green and a release note lists tested workflow, package limitations, and known gaps. — **release note drafted** (`docs/release-notes/v0.1.0-alpha.2-draft.md`); tagging waits for a green run on the exact release commit and a passing laptop workflow at that commit
-2. Ask testers to attach the app's diagnostics, codec details, reproduction steps, and the release version to GitHub issues. Categorise reports by import, preview, timeline, audio, export, MCP, or package installation. — **done**: template had diagnostics/repro/version fields; area dropdown + codec field added
-3. Triage reports on a fixed cadence. Reproduce what is possible on this laptop, add a regression test, then publish the fix in the next alpha. — **done**: cadence + routing table in [alpha-triage.md](alpha-triage.md)
-4. Record package **install + launch** results only when a real result is supplied. Do not infer compatibility from a successful package build. — **standing rule; recording table in** [distribution.md](distribution.md)
-5. Prepare the Flatpak manifest and CI artifact only after the app's normal laptop workflow is reliable. Its first install and launch result is required before it becomes the supported release artifact. — **deferred until M1 reliability items land**
-
-**Exit evidence:** a release has a green CI run, attached checksums, a verified laptop workflow, actionable feedback instructions, and an honest known-issues section. Beta candidacy requires several alphas without a data-loss or unrecoverable-edit regression.
-
-### M3 — Tier 1 editing parity for Beta 1
-
-**Goal:** finish the practical core before pursuing breadth.
-
-| Family | Work still needed | Completion evidence |
+| Decision | Rationale | Resolution / Conflict Elimination |
 |---|---|---|
-| Project, file, sequence | project manager, relink, preferences, sequence lifecycle | save/open/migrate and recovery fixtures |
-| Media | bins, labels/metadata, proxy states, search, missing-media handling | import/relink/bin regression set |
-| Timeline, clip, edit, trim, playhead | complete the remaining catalogue gaps and robust pointer workflows | real-media edit/save/reopen/render scenario |
-| Markers and captions | marker navigation/CSV paths and caption editing/import/export gaps | round-trip fixture and UI interaction test |
-| History and shortcuts | command-to-UI coverage, grouped undo/redo, preference persistence | engine + shortcut/UI tests |
-| Export and interchange | queue/presets, EDL/FCPXML/OTIO project fidelity | verified output and round-trip fixtures |
+| **Fixed Glass Cards; Zero Window Dragging** | "Floating" is purely visual glass elevation (borders, inner highlight, soft shadows over a frosted, tinted stage). Prior automated development mistakenly implemented a free-floating Multiple Document Interface (MDI) window manager. | **Delete the MDI floating engine** (`FloatingPanel.tsx`, `PanelHost.tsx`, `docking.ts`, `snapping.ts`, `zOrder.ts`, restore pill bar). Panels never detach, drag, pin, minimize, or close. |
+| **Existing Colors Are Final & Locked** | The existing plum/magenta glass palette, ambient stage gradients, text, and accent tokens are fully locked and calibrated to WCAG AA contrast gates. | **Reject the PDF's proposed slate color shift** (`rgba(22, 22, 28, 0.78)` / `#110d18`). All surfaces use existing tokens from `00-tokens-glass.css`. Only shape, gap, and elevation tokens are added (`--gap: 12px`, `--radius: 16px`, `--radius-sm: 10px`, `--card-inset`). |
+| **Persistent 2-Row NLE Skeleton Across Workspaces** | Switching workspace tabs previously unmounted the editor and mounted isolated full-screen pages with synthetic "SEQUENCE CLIPS REEL" boxes, breaking timeline context. | **Implement a single unified `WorkspaceShell`**. Top-Center Program Monitor, Bottom-Left Toolbox, Bottom-Center Multi-Track Timeline, and Bottom-Right Audio Meter stay permanently locked across all workspaces. Workspaces only swap contextual dock tabs (Dock L / Dock R) and column ratio presets. |
+| **Compact 44px Track Headers** | Track headers were bloated to 150px height by horizontal VOL and PAN range sliders, restricting the timeline to a single visible track. | **Standardize on FilmCraft's compact 44px track headers** (Source Patch pill, Lock, Target pill, Name, M/S, Visibility eye). Move per-track gain/pan sliders into the Inspector and Audio Mixer. |
+| **Validate on Development Laptop First** | Local testing on the development laptop is the only verified baseline. Avoid cross-hardware claims without local reproduction. | Host path uses software H.264/x264 fallback as ground truth; hardware acceleration detection (nvenc, vaapi, videotoolbox, qsv) is cached asynchronously. |
+| **Authoritative Rust Engine Core** | Project state, history, undo/redo, timeline mutations, and export pipelines remain strictly in Rust (`crates/saturn-*`). | React UI and MCP services submit structured commands and render snapshots; client state is never forked. |
 
-**Exit evidence:** Tier 1 commands reported as shipped have UI affordances, focused tests, and an end-to-end real-media test where applicable. The exact percentage is generated, never hand-written.
+---
 
-### M4 — Quality and advanced editing after Beta 1
+## 2. Locked Design System & Token Architecture
 
-**Goal:** improve creative controls once core editing is dependable.
+All UI components must consume the existing design tokens in `00-tokens-glass.css` and `01-editor.css`. **No color value may be modified or added.**
 
-1. **Fairlight:** validate Read-mode volume/pan playback end to end; complete other automation modes plus clip gain/fades, essential-sound/ducking workflow, and insert DSP. Keep plugin slots explicitly metadata-only until a tested native host exists.
-2. **Color and effects:** finish advanced curves, HSL, LUT/preset integration, scopes, effect parameter editing/reordering, and keyframe handle editing.
-3. **Fusion and graphics:** replace stub actions with real node graph edits, text/title workflow, and export-aware rendering.
-4. **Multicam and speech:** source monitor workflow, sync/switch/flatten, transcript editing, and proxies, each backed by fixtures.
-5. **Glass/UI quality:** finish panel layout tests, responsive behaviour, keyboard accessibility, contrast, and visual baselines. Media surfaces remain unblurred and styling uses design tokens.
+### 2.1 Final Surface & Color Tokens
 
-**Exit evidence:** each advanced control changes the Rust project model, persists, previews or renders where promised, and fails visibly when unsupported.
+```css
+:root {
+  /* STAGE BACKGROUND: Locked radial glow + linear backdrop */
+  --bg-stage:
+    radial-gradient(48vw 42vh at 18% 22%, rgba(255, 92, 148, 0.2), transparent 62%),
+    radial-gradient(42vw 46vh at 82% 74%, rgba(88, 132, 255, 0.18), transparent 64%),
+    radial-gradient(36vw 32vh at 62% 18%, rgba(255, 184, 92, 0.1), transparent 60%),
+    linear-gradient(160deg, #170c16 0%, #0b060a 54%, #120a14 100%);
 
-### M5 — Later capabilities
+  /* GLASS SURFACES: Locked existing tokens */
+  --glass-l1: rgba(24, 13, 23, 0.56);
+  --glass-border: rgba(244, 215, 235, 0.14);
+  --glass-highlight: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --blur-l2: 14px;
+  --glass-saturate: 145%;
 
-TTS, media browsing, collaboration, scripting, richer interchange, VST3 hosting, and non-Unix desktop bridge support remain later work. They need a separate proposal with scope, file-format compatibility, security constraints, and test evidence before they enter an alpha milestone.
+  /* TYPOGRAPHY: Locked existing text tokens */
+  --text-primary: #faf2f7;
+  --text-secondary: #d4bccf;
+  --text-muted: #a890a0;
 
-## 4. Engineering rules for every work item
+  /* ACCENT TOKENS */
+  --accent-text: #f472b6;
+  --accent-primary: #9f1249;
+  --accent-text-violet: #c084fc;
+  --ring: rgba(244, 114, 182, 0.55);
 
-1. Preserve public Tauri `invoke` names and the project-file format unless a migration plus fixture proves compatibility.
-2. Keep project state in Rust. UI, CLI, MCP, and control-server layers submit commands and render returned state.
-3. Keep source files at or below 800 lines. Split by domain, not by arbitrary helper extraction.
-4. Use design tokens, named transition properties, and the shared `.glass` surfaces. Never blur video or audio-render surfaces.
-5. Do not turn an unfinished handler into a pretend success. Return a typed, actionable error.
-6. Update documentation in the same change as the verified behaviour. Generated files are updated by their scripts, never edited by hand.
+  /* TRACK & STEM TOKENS */
+  --video: #7ad0ff;
+  --audio: #6be0a8;
+  --gfx: #ffb35c;
 
-## 5. Required verification
+  /* SHAPE & ELEVATION: New structural tokens only (No new colors) */
+  --gap: 12px;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --card-inset: rgba(255, 255, 255, 0.045);
+}
 
-Run the relevant checks before a feature is described as complete:
+/* Glass Card Primitive (Desktop-Kit Pattern) */
+.glass {
+  background: var(--glass-l1);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), var(--glass-shadow);
+  backdrop-filter: blur(var(--blur-l2)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--blur-l2)) saturate(var(--glass-saturate));
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+```
+
+> [!IMPORTANT]
+> **GPU Compositor Safety Rule:** `backdrop-filter` is applied strictly to non-overlapping `.glass` cards over the static root stage. It must **never** be placed over the active `<video>` canvas or wgpu preview surface, ensuring zero blur-kernel re-evaluations during 60 FPS playback.
+
+---
+
+## 3. Persistent 2-Row NLE Viewport Architecture
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                AppHeader & Global Menus (46px)                                         │
+├───────────────────────────────┬────────────────────────────────────────┬───────────────────────────────┤
+│   Top-Left Contextual Dock    │   Top-Center Persistent Program        │   Right Contextual Dock       │
+│   minmax(260px, 24% - 28%)    │   Monitor (1fr)                        │   minmax(260px, 24%)          │
+│   (Swappable Tabs)            │   (GPU Canvas + Scrub + Transport)     │   (Swappable Tabs)            │
+├─────┬─────────────────────────┴────────────────────────────────────────┴───────────────────────┬───────┤
+│Tool │  Bottom-Center Multi-Track Timeline (1fr)                                                │Master │
+│Strip│  (Compact 44px Track Headers, Sequence Tabs, Grouped Toolbar, Playhead, Lanes)          │Meter  │
+│52px │                                                                                          │92px   │
+├─────┴──────────────────────────────────────────────────────────────────────────────────────────┴───────┤
+│                                StatusBar & Telemetry (30px)                                            │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Contextual Dock Tab Mapping per Workspace
+
+The 4-zone lower row (Toolbox, Timeline, Audio Meter, Status Bar) and the Top-Center Program Monitor **never move or unmount**. Clicking workspace tabs changes only the docked tabs in Dock L and Dock R, along with column width presets:
+
+| Workspace Mode | Top-Left Contextual Dock | Top-Center Monitor | Right Contextual Dock | Bottom Row (Tools + Timeline + Meter) |
+|---|---|---|---|---|
+| **Edit** | Project · Media Browser · Effects | Persistent Program Monitor | Inspector · Titles · Markers | Persistent 4-Zone Bottom Row |
+| **Assembly** | Project · Markers | Persistent Program Monitor | Source Monitor · Inspector | Persistent 4-Zone Bottom Row |
+| **Color** | Scopes · Project Media | Persistent Program Monitor | Color Wheels · Curves · HSL · Primary Sliders | Persistent 4-Zone Bottom Row |
+| **Audio (Fairlight)** | Track DSP Mixer (4-Band EQ, Comp) · Project | Persistent Program Monitor (Picture Sync) | Essential Sound · Channel Strip Rack | Persistent Bottom Row + Expanded Automation Lanes |
+| **Captions & Graphics** | Text (Transcript, Captions, Graphics) · Effect Controls | Persistent Program Monitor + Live `CanvasGraphicsLayer` | Essential Graphics Template Browser · Title/Subtitle Inspector | Persistent 4-Zone Bottom Row |
+| **Effects** | Effect Controls (Active Stack, AI Matting) · Source | Persistent Program Monitor | Effects Library (Presets, Audio FX, Video FX) · Essential Graphics | Persistent 4-Zone Bottom Row |
+| **Curves (Keyframes)**| Keyframe Bezier Curve Editor · Source | Persistent Program Monitor | Interpolation Style & Tangent Handles (Linear, Ease, Bezier) | Persistent 4-Zone Bottom Row |
+| **Fusion** | Node Graph Palette & Node Inspector | Fusion Node Graph Canvas (Tabbed with Program Monitor) | Node Parameters & Routing Sockets | Persistent 4-Zone Bottom Row |
+| **Deliver (Export)** | 1-Click Delivery Presets · Export Settings | Program Monitor (In/Out Render Range Scrub) | Batch Render Queue · Timeline Interchange (FCPXML, EDL, OTIO) | Persistent 4-Zone Bottom Row |
+
+---
+
+## 4. Teardown of MDI Window Manager
+
+The following legacy window-management files, state stores, and styles are to be completely removed:
+
+* `apps/saturn-tauri/ui/src/features/panels/FloatingPanel.tsx`
+* `apps/saturn-tauri/ui/src/features/panels/PanelHost.tsx`
+* `apps/saturn-tauri/ui/src/features/panels/docking.ts` (and `docking.test.ts`)
+* `apps/saturn-tauri/ui/src/features/panels/snapping.ts` (and `snapping.test.ts`)
+* `apps/saturn-tauri/ui/src/features/panels/layouts.ts`
+* `apps/saturn-tauri/ui/src/features/panels/presets.ts`
+* `apps/saturn-tauri/ui/src/features/panels/presetStore.ts` (and `presetStore.test.ts`)
+* `apps/saturn-tauri/ui/src/features/panels/usePanelLayout.ts`
+* `apps/saturn-tauri/ui/src/features/panels/usePanelDrag.ts`
+* `apps/saturn-tauri/ui/src/features/panels/usePanelResize.ts`
+* `apps/saturn-tauri/ui/src/features/panels/zOrder.ts` (and `zOrder.test.ts`)
+* `apps/saturn-tauri/ui/src/features/panels/LayoutPresetsDialog.tsx`
+* `apps/saturn-tauri/ui/src/styles/140-panels.css` and `171-layout-presets.css`
+
+### Replacement: Stationary `<DockCard>` Primitive
+
+```tsx
+export interface TabDefinition {
+  id: string;
+  title: string;
+  render: () => React.ReactNode;
+}
+
+export function DockCard({ id, tabs, activeTabId, onSelectTab }: DockCardProps) {
+  const active = tabs.find(t => t.id === activeTabId) ?? tabs[0];
+  return (
+    <section className="glass" id={id}>
+      <div className="card-h">
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={tab.id === active.id}
+            className="tab"
+            onClick={() => onSelectTab(tab.id)}
+          >
+            {tab.title}
+          </button>
+        ))}
+      </div>
+      <div className="card-b">{active.render()}</div>
+    </section>
+  );
+}
+```
+
+* All 📌 (Pin), - (Minimize), and X (Close) buttons are deleted from panel headers.
+* The bottom-right floating restore pill bar (`PANELS | Markers | Video Scopes | Reset layout`) is removed.
+* Stale localStorage keys (`easy-edits-pro.panel-layout.*`) are pruned on startup.
+
+---
+
+## 5. Timeline, Track Headers & Toolbox Specification
+
+### 5.1 Compact 44px Track Headers
+
+* Track header height is locked to **44px** (eliminating the 150px bloat).
+* **Video Row Anatomy (44px):** `[Source Patch V1] [Lock 🔒] [Target V1] [Track Name] [Sync Lock] [Visibility 👁]`
+* **Audio Row Anatomy (44px):** `[Source Patch A1] [Lock 🔒] [Target A1] [Track Name] [Sync Lock] [Mute M] [Solo S] [Voiceover 🎙] [Keyframe ◆]`
+* Master Mix footer terminates the audio block with `Mix 0.0`.
+* Horizontal VOL and PAN sliders are completely removed from the track header and relocated to the Inspector and Audio Clip Mixer.
+
+### 5.2 Grouped Timeline Toolbar (40px)
+
+Divided by hairlines into 4 clear functional groups:
+1. **Edit Modes:** Snap (🧲) · Linked Selection · Ripple Edit
+2. **Marking:** Add Marker (M) · Mark In (I) · Mark Out (O)
+3. **Tracks:** Add Track (+)
+4. **Zoom Navigation:** Zoom Out · Zoom Range Slider · Zoom In
+
+### 5.3 Vertical Tool Strip (52px Card)
+
+Single-column vertical card positioned between the Media Browser and Timeline:
+* **Group 1:** Selection (`V`) · Track Select Forward (`A`)
+* **Group 2:** Ripple Edit (`B`) · Razor / Blade (`C`) · Slip (`Y`)
+* **Group 3:** Hand / Pan (`H`) · Text (`T`)
+
+### 5.4 Master Audio Meter (92px Card)
+
+Flanks the timeline on the far right:
+* Dual-channel vertical peak level bars (0 to -57 dB) with green/amber/red grading.
+* Live EBU R128 loudness telemetry: Momentary (M), Short-Term (S), Integrated (I), True Peak (TP).
+
+---
+
+## 6. Phase-Wise Implementation Roadmap
+
+Work is organized into two concurrent tracks: **UI Overhaul (Workstream G)** and **Functional Dependability (Workstream F)**.
+
+```mermaid
+flowchart TD
+  G0[G0: Workspace Freeze & Tag] --> G1[G1: Token Audit & Glass Primitives]
+  G0 --> G2[G2: Teardown MDI Engine & DockCard]
+  G0 --> F1[F1: Unified Clip Selection Store]
+  G0 --> F2[F2: Offline Media Relinking]
+  
+  G1 --> G3[G3: WorkspaceShell Implementation]
+  G2 --> G3
+  F1 --> G3
+  
+  G3 --> G4[G4: Timeline, 44px Headers & Tool Strip]
+  G3 --> F3[F3: Program Monitor Transport & Scrub]
+  
+  G4 --> G5[G5: Contextual Docks Consolidation]
+  F3 --> G5
+  F2 --> G5
+  
+  G5 --> G6[G6: Polish, Motion & Bug Fixes]
+  G5 --> F5[F5: Hardware Encoder Probe Caching]
+  G5 --> F6[F6: Fairlight DSP Cleanup]
+  
+  G6 --> G7[G7: Geometry Invariance & E2E Acceptance]
+  F5 --> F4[F4: Keyframes Baked into Render Loop]
+  F6 --> F4
+  F4 --> G7
+```
+
+### UI Workstream G
+
+* **G0 — Codebase Freeze & Safety Tag:** Tag current commit `pre-glass-cards`.
+* **G1 — Token Verification & Glass Card Primitives:** Register `--gap`, `--radius`, `--radius-sm`, and `--card-inset` in `00-tokens-glass.css` without modifying any color value. Verify against `pnpm check:contrast` and `pnpm check:tokens`.
+* **G2 — MDI Engine Teardown:** Remove all 12 floating panel engine files, purge `save_panel_layout` commands, and establish `<DockCard>`.
+* **G3 — Unified `WorkspaceShell` Grid:** Implement the persistent 2-row CSS grid in `WorkspaceShell.tsx`. Route Edit, Assembly, Color, Audio, Captions, Effects, Curves, Fusion, and Deliver as dock tab presets. Delete "SEQUENCE CLIPS REEL" and "Back to Edit" buttons.
+* **G4 — Timeline, 44px Track Headers & Tool Strip:** Implement compact track rows in `TimelineTrackLane.tsx`, 52px single-column vertical toolbox, grouped 40px timeline toolbar, and 92px master meter.
+* **G5 — Contextual Workspaces Docking:** Mount Color Scopes, Fairlight DSP racks, Fusion Canvas tab, and Deliver Export Settings into Dock L and Dock R without unmounting the Program Monitor or Timeline.
+* **G6 — UI Polish & Bug Fixes:** 
+  1. Fix top menu overflow below 1300px.
+  2. Resolve all missing SVG icons in `Icon.tsx`.
+  3. Ensure status bar is never obscured.
+  4. Implement smooth 220ms card mount transitions respecting `prefers-reduced-motion`.
+* **G7 — Invariance Tests & E2E Validation:** Execute Geometry Invariance tests and Playwright smoke verification.
+
+### Functional Workstream F
+
+* **F1 — Single Reactive Clip Selection Store:** Unify selection across Timeline, Inspector, Effects, Color, and Curves. Auto-select the first clip on V1 upon sequence load.
+* **F2 — Media Ingestion & Offline Relinking:** Correct local range stream URLs in `mediaUrl.ts`, ensure `useMediaServer.ts` initializes prior to project recovery, and add a one-click "Relink Media" action in `MediaPanel.tsx`.
+* **F3 — Program Monitor Transport & Telemetry:** Align transport bar (10 buttons: Add Marker, Mark In/Out, Step, Play, Lift, Extract, Export Frame), blue playhead timecode, Fit zoom dropdown, and resolution divider.
+* **F4 — Keyframe Render Baking:** Wire `interpolation.ts` keyframe evaluator into `crates/saturn-render/src/lib.rs` export loop, baking transform, opacity, and audio automation into MP4 output.
+* **F5 — Hardware Encoder Probe Optimization:** Run GStreamer hardware encoder detection asynchronously at startup, caching results so the Deliver workspace never stalls.
+* **F6 — Fairlight Plugin Host Cleanup:** Clean up placeholder slots; ensure active audio tracks bind directly to 4-band parametric EQ and compressor.
+
+---
+
+## 7. Master Agentic Execution Rules
+
+All coding agents working on Easy Edits Pro must strictly adhere to these six execution directives:
+
+1. **Sequential Phase Locking:** Execute phases in strict dependency order. Every phase must pass `cargo test --workspace` and `pnpm --dir apps/saturn-tauri build` before advancing.
+2. **Zero MDI Window Controls:** Never render 📌, -, or X buttons on workspace panel headers. All panels must mount inside stationary `DockCard` containers.
+3. **Zero Overlapping Popups:** Never use `position: absolute` or `position: fixed` to float feature panels over the Program Monitor or Timeline. Only modal dialogs in `features/dialogs/` may center as overlays.
+4. **GPU-Safe Frosted Glass:** Apply `.glass` only to fixed cards over the root ambient stage. Never apply `backdrop-filter` or blur shaders over the active video preview canvas.
+5. **Persistent Core NLE Skeleton:** Never unmount the Top-Center Program Monitor, Bottom-Left Tool Strip, Bottom-Center Timeline, or Master Audio Meter when switching workspace modes.
+6. **Compact 44px Track Headers:** Never place horizontal volume or pan range sliders inside timeline track headers. Enforce FilmCraft's 44px micro-icon row standard.
+
+---
+
+## 8. Verification & Acceptance Gates
+
+Before claiming completion of any phase, run and pass all gates:
 
 ```bash
 cargo test --workspace
 pnpm --dir apps/saturn-tauri build
 pnpm --dir apps/saturn-tauri test
-pnpm --dir apps/saturn-tauri check:glass
+pnpm --dir apps/saturn-tauri check:contrast
+pnpm --dir apps/saturn-tauri check:styles
+pnpm --dir apps/saturn-tauri check:tokens
 pnpm --dir apps/saturn-tauri check:commands
 pnpm --dir apps/saturn-tauri check:source-size --max-lines=800
 pnpm --dir apps/saturn-tauri test:e2e
 ```
 
-For media, MCP, packaging, or native-window changes, add the focused laptop workflow evidence. A mocked browser test does not prove the desktop bridge, GStreamer decoding, file dialogs, rendering, or installed package behaviour.
+### Specialized Acceptance Tests
 
-## 6. Documentation ownership
-
-| Document | Purpose |
-|---|---|
-| This file | priorities, scope boundaries, milestones, and completion rules |
-| [architecture.md](architecture.md) | current module and data-flow map |
-| [PARITY.md](PARITY.md) | generated command coverage |
-| [COMMANDS.md](COMMANDS.md) | generated command reference |
-| [distribution.md](distribution.md) | package and release evidence |
-| [native-workflow.md](native-workflow.md) | real-engine laptop workflow evidence (M0.3) |
-| [alpha-triage.md](alpha-triage.md) | alpha feedback triage cadence and routing (M2.3) |
-| [release-notes/](release-notes/) | per-alpha release note drafts (M2.1) |
-| [glass-spike.md](glass-spike.md) | measured single-laptop rendering evidence |
-| [design-qa.md](design-qa.md) | UI quality evidence and open UI work |
-
-The former `ROADMAP.md`, `GLASS_UI_PHASED_PLAN.md`, and `filmcraft-parity-roadmap.md` were removed because their timelines and hardware plans conflicted with this plan. `phase5-text-stack.md` remains a technical decision record, not a roadmap.
+* **Geometry Invariance Test:** Measure bounding boxes of Top Bar, Program Monitor, Tool Strip, Timeline, Audio Meter, and Status Bar across all workspace tabs at 1280×720, 1600×900, and 1920×1080. Assert bounding box deviations are $\le 1\text{px}$.
+* **No-Overlap Test:** Assert no two `.glass` card bounding boxes intersect under any layout state.
+* **Zero Color Token Drift:** Assert `git diff` on `styles/00-tokens-glass.css` shows 0 modified or added color hex/rgba values.
+* **Source Size Ceiling:** All new and modified `.ts`, `.tsx`, `.rs`, and `.css` files must strictly remain $\le 800$ lines.

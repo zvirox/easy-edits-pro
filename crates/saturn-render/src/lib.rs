@@ -393,7 +393,12 @@ pub fn render_project_range_with_control(
         let _ = std::fs::remove_file(&output_path);
         return Err("Render cancelled".into());
     }
-    result?;
+    if let Err(error) = result {
+        // A failed render must not leave a partial output behind either: a
+        // half-written MP4 is worse than no file at all.
+        let _ = std::fs::remove_file(&output_path);
+        return Err(error);
+    }
     on_progress(RenderProgress {
         fraction_percent: 100,
         phase: "Complete",
@@ -982,14 +987,115 @@ mod tests {
     #[test]
     fn render_cancellation_is_checked_before_pipeline_setup() {
         let document = saturn_core::EditorEngine::default().document().clone();
+        // A pre-existing file at the output path belongs to the caller: a
+        // cancel that happens before the pipeline starts must not delete it.
+        let decoy = std::env::temp_dir().join("eep-cancel-before-start.mp4");
+        std::fs::write(&decoy, b"not a render").unwrap();
         let result = render_project_range_with_control(
             &document,
-            Path::new("/tmp/eep-cancel-before-start.mp4"),
+            &decoy,
             None,
             RenderSettings::from_project(&document),
             |_| {},
             || true,
         );
         assert_eq!(result.unwrap_err(), "Render cancelled");
+        assert!(decoy.is_file(), "pre-existing output must be untouched");
+        let _ = std::fs::remove_file(&decoy);
+    }
+
+    /// Laptop-native evidence for planning.md M1.3: cancelling an in-flight
+    /// render removes the partial output. Runs the real GES/GStreamer pipeline
+    /// and cancels it two seconds in, so it is `#[ignore]`d for CI (runners
+    /// have no GES runtime plugins). Execute with:
+    ///   cargo test -p saturn-render --lib -- --ignored render_cancel_midway
+    #[test]
+    #[ignore = "laptop-native: drives the real GES pipeline; CI runners lack the GES runtime plugins"]
+    fn render_cancel_midway_removes_partial_output() {
+        let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../apps/saturn-tauri/tests/fixtures/editor-smoke.webm");
+        assert!(fixture.is_file(), "maintained fixture missing: {fixture:?}");
+
+        // Real fixture length via ffprobe, so the appended clips use true
+        // media duration (same policy as tests/native/laptop_workflow.py).
+        let probe = std::process::Command::new("ffprobe")
+            .args(["-v", "quiet", "-print_format", "json", "-show_format"])
+            .arg(&fixture)
+            .output()
+            .expect("ffprobe must be on PATH for laptop-native tests");
+        let probe: serde_json::Value = serde_json::from_slice(&probe.stdout).unwrap();
+        let seconds: f64 = probe["format"]["duration"]
+            .as_str()
+            .unwrap()
+            .parse()
+            .unwrap();
+        let duration_ticks = (seconds * saturn_core::TICKS_PER_SECOND as f64) as u64;
+
+        let mut engine = saturn_core::EditorEngine::default();
+        engine
+            .execute(saturn_core::CommandRequest::new(
+                "project.new",
+                serde_json::json!({"name": "Cancel evidence"}),
+            ))
+            .unwrap();
+        engine
+            .execute(saturn_core::CommandRequest::new(
+                "project.add_media",
+                serde_json::json!({
+                    "name": fixture.file_name().unwrap().to_string_lossy(),
+                    "path": fixture.to_string_lossy(),
+                    "kind": "video",
+                    "duration": duration_ticks
+                }),
+            ))
+            .unwrap();
+        let media_id = engine.document().project.media[0].id;
+        let video_track_id = engine
+            .document()
+            .project
+            .sequence
+            .tracks
+            .iter()
+            .find(|track| matches!(track.kind, saturn_core::TrackKind::Video))
+            .unwrap()
+            .id;
+        // A dozen back-to-back full-length clips: far longer than any machine
+        // renders inside the two-second cancel window.
+        for _ in 0..12 {
+            engine
+                .execute(saturn_core::CommandRequest::new(
+                    "timeline.add_clip",
+                    serde_json::json!({"media_id": media_id, "track_id": video_track_id}),
+                ))
+                .unwrap();
+        }
+        let document = engine.document().clone();
+
+        let folder = tempfile::tempdir().unwrap();
+        let output = folder.path().join("cancelled-evidence.mp4");
+        let started = std::time::Instant::now();
+        let result = render_project_range_with_control(
+            &document,
+            &output,
+            None,
+            RenderSettings::from_project(&document),
+            |_| {},
+            || started.elapsed() > std::time::Duration::from_secs(2),
+        );
+
+        match result {
+            Err(error) => {
+                assert_eq!(error, "Render cancelled");
+                assert!(
+                    !output.exists(),
+                    "cancelled render left a partial output at {output:?}"
+                );
+            }
+            Ok(()) => panic!(
+                "a ~12-clip software-H264 render finished inside the 2s cancel window; \
+                 lengthen the timeline before trusting this test"
+            ),
+            Err(_) => unreachable!(),
+        }
     }
 }

@@ -46,7 +46,7 @@ pub async fn start_export(
     let (_job_id, _cancel, rx) = state
         .1
         .submit(label, kind, JobPriority::Immediate, move |ctx| {
-            saturn_render::render_project_range_with_settings(
+            saturn_render::render_project_range_with_control(
                 &document,
                 &target_path,
                 range,
@@ -59,6 +59,7 @@ pub async fn start_export(
                         phase: progress.phase.to_string(),
                     });
                 },
+                || ctx.is_cancelled(),
             )?;
             Ok(Some(target_path.to_string_lossy().into_owned()))
         });
@@ -119,7 +120,7 @@ pub async fn queue_export(
     let (job_id, _cancel) = state
         .1
         .submit_detached(label, kind, JobPriority::Normal, move |ctx| {
-            saturn_render::render_project_range_with_settings(
+            saturn_render::render_project_range_with_control(
                 &document,
                 &target_path,
                 range,
@@ -136,6 +137,7 @@ pub async fn queue_export(
                         }),
                     );
                 },
+                || ctx.is_cancelled(),
             )?;
             Ok(Some(target_path.to_string_lossy().into_owned()))
         });
