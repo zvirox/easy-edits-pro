@@ -1,4 +1,4 @@
-import { useCallback, type KeyboardEvent } from "react";
+import { useCallback, useEffect, type KeyboardEvent } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type {
   DavinciWorkspace,
@@ -48,7 +48,7 @@ type Options = {
 };
 
 export function useShortcuts(options: Options) {
-  return useCallback((event: KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
     const target = event.target;
     if (target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) return;
     if (options.trimActive) {
@@ -106,4 +106,15 @@ export function useShortcuts(options: Options) {
     event.preventDefault();
     void options.invokeMenuCommand(command.id).catch((error: unknown) => options.setNotice(String(error)));
   }, [options]);
+
+  useEffect(() => {
+    const fallback = (event: globalThis.KeyboardEvent) => {
+      if (document.activeElement && document.activeElement !== document.body) return;
+      handleKeyDown(event as unknown as KeyboardEvent<HTMLDivElement>);
+    };
+    window.addEventListener("keydown", fallback);
+    return () => window.removeEventListener("keydown", fallback);
+  }, [handleKeyDown]);
+
+  return handleKeyDown;
 }
