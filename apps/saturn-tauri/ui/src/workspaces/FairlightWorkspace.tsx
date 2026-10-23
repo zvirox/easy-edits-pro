@@ -17,20 +17,12 @@ import type { AudioClockMaster } from "../engine/playbackEngine";
 import { FairlightMixerRack } from "./FairlightMixerRack";
 import { FairlightTimelineTray } from "./FairlightTimelineTray";
 import { AutomationLane } from "../features/audio/AutomationLane";
-import { useAutomationRecording } from "../features/audio/useAutomationRecording";
-import type { AutomationLaneName } from "../engine/playback/audioAutomation";
-import type { AutomationInterpolation } from "../types";
+import { LoudnessPanel, type LoudnessReport } from "./fairlight/LoudnessPanel";
+import { MasterBusPanel } from "./fairlight/MasterBusPanel";
+import { DspRackPanel } from "./fairlight/DspRackPanel";
+import { useAutomationWriters } from "./fairlight/useAutomationWriters";
 
-export interface LoudnessReport {
-  integratedLufs: number;
-  shortTermLufs: number;
-  momentaryLufs: number;
-  loudnessRangeLu: number;
-  truePeakDbtp: number;
-  targetLufs: number;
-  isCompliant: boolean;
-  gainRecommendationDb: number;
-}
+export type { LoudnessReport };
 
 export interface FairlightWorkspaceProps {
   project: ProjectDocument["project"] | null;
@@ -146,65 +138,16 @@ export function FairlightWorkspace({
   const audioTracks = tracks.filter((t) => t.kind === "audio");
 
   const activeTrackId = selectedFairlightTrackId ?? audioTracks[0]?.id ?? tracks[0]?.id ?? 1;
-  const activeTrack = tracks.find((t) => t.id === activeTrackId) ?? tracks[0];
-  const activeDsp: TrackAudioProcessing = audioProcessingDrafts[activeTrackId] ?? activeTrack?.audio_processing ?? {};
-
-  const lowGain = activeDsp.eq_low_gain ?? 0;
-  const midGain = activeDsp.eq_mid_gain ?? 0;
-  const highGain = activeDsp.eq_high_gain ?? 0;
-  const dyLow = (lowGain / 15) * 22;
-  const dyMid = (midGain / 15) * 22;
-  const dyHigh = (highGain / 15) * 22;
-  const eqCurvePath = `M 0 ${(35 - dyLow).toFixed(1)} C 40 ${(35 - dyLow).toFixed(1)}, 70 ${(35 - dyMid).toFixed(1)}, 120 ${(35 - dyMid).toFixed(1)} C 170 ${(35 - dyMid).toFixed(1)}, 200 ${(35 - dyHigh).toFixed(1)}, 240 ${(35 - dyHigh).toFixed(1)}`;
-  const eqFillPath = `${eqCurvePath} L 240 70 L 0 70 Z`;
-
-  const activeTrackGr = trackGr[activeTrackId] || 0;
-
-  // --- Automation recording (Phase 6 slice 1) -------------------------------
-  const { recordAutomationWrite, commitAutomationWrites, hasAutomationWrites } =
-    useAutomationRecording(perform);
   const selectedAutomationTrack = tracks.find((t) => t.id === activeTrackId);
 
-  const automationWriteActive = (track: Track): boolean => {
-    const mode = track.automation?.mode ?? "off";
-    if (mode === "write") return true;
-    return (mode === "latch" || mode === "touch") && programPlaying;
-  };
-
-  const writeTrackAutomation = (track: Track, lane: AutomationLaneName, value: number) => {
-    if (!automationWriteActive(track)) return;
-    recordAutomationWrite(track.id, lane, playhead, value);
-  };
-  const commitTrackAutomation = (track: Track, lane: AutomationLaneName) => {
-    if (!automationWriteActive(track)) return;
-    if (!hasAutomationWrites(track.id, lane)) return;
-    void commitAutomationWrites(track, lane);
-  };
-  const addAutomationLanePoint = async (
-    trackId: number,
-    lane: AutomationLaneName,
-    time: number,
-    value: number,
-  ) => {
-    await perform("track.add_automation_point", { track_id: trackId, lane, time, value });
-  };
-  const removeAutomationLanePoint = async (
-    trackId: number,
-    lane: AutomationLaneName,
-    time: number,
-  ) => {
-    await perform("track.remove_automation_point", { track_id: trackId, lane, time });
-  };
-  const clearAutomationLane = async (trackId: number, lane: AutomationLaneName) => {
-    await perform("track.clear_automation", { track_id: trackId, lane });
-  };
-  const setAutomationCurveInterpolation = async (
-    trackId: number,
-    interpolation: AutomationInterpolation,
-  ) => {
-    await perform("track.set_automation_interpolation", { track_id: trackId, interpolation });
-  };
-
+  const {
+    writeTrackAutomation,
+    commitTrackAutomation,
+    addAutomationLanePoint,
+    removeAutomationLanePoint,
+    clearAutomationLane,
+    setAutomationCurveInterpolation,
+  } = useAutomationWriters({ perform, playing: programPlaying, playhead });
 
   return (
     <main className="workspace-page audio-workspace-page">
@@ -297,258 +240,24 @@ export function FairlightWorkspace({
             </div>
           </div>
 
-          <div className="audio-master-bus-card">
-            <div className="master-bus-header">
-              <div className="master-bus-title">
-                <strong>MASTER OUTPUT BUS</strong>
-                <span className="bus-badge">Stereo Main · 48 kHz</span>
-              </div>
-              <span className={`mixer-live-badge ${programPlaying ? "playing" : "stopped"}`}>
-                {programPlaying ? "LIVE" : "STANDBY"}
-              </span>
-            </div>
-
-            <div className="master-bus-controls">
-              {/* Dual Stereo Master VU Meter */}
-              <div className="master-vu-column">
-                <div className="vu-meter-pair master-vu-pair">
-                  <div className="vu-bar-slot">
-                    <div
-                      className="vu-bar-fill left"
-                      style={{ height: `${Math.min(100, (masterVu.left || 0) * 100)}%` }}
-                    />
-                  </div>
-                  <div className="vu-bar-slot">
-                    <div
-                      className="vu-bar-fill right"
-                      style={{ height: `${Math.min(100, (masterVu.right || 0) * 100)}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="vu-db-readout">{formatDb(masterVu.peakDb)}</div>
-              </div>
-
-              {/* Master Vertical Fader */}
-              <div className="master-fader-column">
-                <div className="fader-scale-ticks">
-                  <span>+6</span>
-                  <span className="unity">0</span>
-                  <span>-6</span>
-                  <span>-12</span>
-                  <span>-24</span>
-                  <span>-48</span>
-                  <span>-∞</span>
-                </div>
-                <div className="fader-track-container">
-                  <input
-                    type="range"
-                    className="vertical-fader master-fader"
-                    min="-60"
-                    max="6"
-                    step="0.5"
-                    value={masterGainDraft}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setMasterGainDraft(val);
-                    }}
-                    onPointerUp={(e) => void perform("bus.set_gain_db", { target: "master", gain_db: Number(e.currentTarget.value) })}
-                  />
-                </div>
-                <div className="strip-fader-footer">
-                  <InteriorButton
-                    type="button"
-                    className="strip-unity-btn master-unity"
-                    title="Reset master gain to unity 0 dB"
-                    onClick={() => {
-                      setMasterGainDraft(0);
-                      void perform("bus.set_gain_db", { target: "master", gain_db: 0 });
-                    }}
-                  >
-                    0 dB
-                  </InteriorButton>
-                  <span className="strip-gain-text master-gain-text">{formatDb(masterGainDraft)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Master True Peak Limiter Module */}
-          <div className="audio-master-limiter-card">
-            <div className="limiter-card-header">
-              <div className="limiter-title">
-                <strong>TRUE PEAK LIMITER</strong>
-                <span className="limiter-badge">-0.5 dBFS CEILING</span>
-              </div>
-              <span className="limiter-active-pill">BRICKWALL</span>
-            </div>
-            <div className="limiter-card-body">
-              <div className="limiter-specs">
-                <span>Ceiling: <b>-0.5 dB</b></span>
-                <span>Ratio: <b>20:1</b></span>
-                <span>Attack: <b>1.0 ms</b></span>
-              </div>
-              <div className="limiter-gr-container">
-                <div className="gr-label-row">
-                  <span>Master GR</span>
-                  <b className={masterGr < -0.1 ? "gr-active" : ""}>
-                    {masterGr < -0.05 ? `${masterGr.toFixed(1)} dB` : "0.0 dB"}
-                  </b>
-                </div>
-                <div className="gr-meter-bar-slot">
-                  <div
-                    className="gr-meter-bar-fill master"
-                    style={{ width: `${Math.min(100, Math.max(0, -masterGr * 5))}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <MasterBusPanel
+            programPlaying={programPlaying}
+            masterVu={masterVu}
+            masterGr={masterGr}
+            masterGainDraft={masterGainDraft}
+            setMasterGainDraft={setMasterGainDraft}
+            perform={perform}
+          />
 
           {/* EBU R128 Broadcast Loudness Meter & Auto-Trim */}
-          <div className="audio-master-loudness-card">
-            <div className="loudness-card-header">
-              <div className="loudness-title">
-                <strong>EBU R128 LOUDNESS METER</strong>
-                <span className="loudness-badge">ITU-R BS.1770-4</span>
-              </div>
-              <div className="loudness-standard-tabs">
-                <InteriorButton
-                  type="button"
-                  className={`loudness-tab-btn ${loudnessStandard === "ebu_r128" ? "active" : ""}`}
-                  onClick={() => {
-                    setLoudnessStandard("ebu_r128");
-                    audioClockMaster.setLoudnessStandard("ebu_r128");
-                  }}
-                  title="EBU R128: -23.0 LUFS, Max TP -1.0 dBTP"
-                >
-                  EBU R128
-                </InteriorButton>
-                <InteriorButton
-                  type="button"
-                  className={`loudness-tab-btn ${loudnessStandard === "streaming" ? "active" : ""}`}
-                  onClick={() => {
-                    setLoudnessStandard("streaming");
-                    audioClockMaster.setLoudnessStandard("streaming");
-                  }}
-                  title="Streaming: -14.0 LUFS (YouTube, Spotify, Apple)"
-                >
-                  Streaming (-14)
-                </InteriorButton>
-                <InteriorButton
-                  type="button"
-                  className={`loudness-tab-btn ${loudnessStandard === "atsc_a85" ? "active" : ""}`}
-                  onClick={() => {
-                    setLoudnessStandard("atsc_a85");
-                    audioClockMaster.setLoudnessStandard("atsc_a85");
-                  }}
-                  title="ATSC A/85: -24.0 LUFS, Max TP -2.0 dBTP"
-                >
-                  ATSC A/85
-                </InteriorButton>
-              </div>
-            </div>
-
-            <div className="loudness-card-body">
-              {/* Big Integrated LUFS Readout + Compliance Badge */}
-              <div className="loudness-main-readout-row">
-                <div className="integrated-display">
-                  <span className="lufs-value">
-                    {loudnessReport.integratedLufs <= -69 ? "-∞" : loudnessReport.integratedLufs.toFixed(1)}
-                  </span>
-                  <span className="lufs-unit">LUFS (Int)</span>
-                </div>
-                <div className="compliance-column">
-                  <span className={`compliance-badge ${loudnessReport.isCompliant ? "compliant" : loudnessReport.integratedLufs > -60 ? "non-compliant" : "standby"}`}>
-                    {loudnessReport.isCompliant ? "✓ COMPLIANT" : loudnessReport.integratedLufs > -60 ? "✕ OUT OF SPEC" : "WAITING"}
-                  </span>
-                  <span className="target-label">
-                    Target: <b>{loudnessReport.targetLufs.toFixed(1)} LUFS</b>
-                  </span>
-                </div>
-              </div>
-
-              {/* Momentary & Short-term Visual Bars */}
-              <div className="loudness-meters-section">
-                <div className="loudness-meter-row">
-                  <span className="meter-label">M (400ms)</span>
-                  <div className="loudness-bar-track">
-                    <div
-                      className="loudness-bar-fill momentary"
-                      style={{ width: `${Math.max(0, Math.min(100, (loudnessReport.momentaryLufs + 60) * 2))}%` }}
-                    />
-                    <div
-                      className="loudness-target-marker"
-                      style={{ left: `${Math.max(0, Math.min(100, (loudnessReport.targetLufs + 60) * 2))}%` }}
-                      title={`Target: ${loudnessReport.targetLufs} LUFS`}
-                    />
-                  </div>
-                  <span className="meter-readout">
-                    {loudnessReport.momentaryLufs <= -69 ? "-∞" : `${loudnessReport.momentaryLufs.toFixed(1)}`}
-                  </span>
-                </div>
-
-                <div className="loudness-meter-row">
-                  <span className="meter-label">S (3.0s)</span>
-                  <div className="loudness-bar-track">
-                    <div
-                      className="loudness-bar-fill short-term"
-                      style={{ width: `${Math.max(0, Math.min(100, (loudnessReport.shortTermLufs + 60) * 2))}%` }}
-                    />
-                    <div
-                      className="loudness-target-marker"
-                      style={{ left: `${Math.max(0, Math.min(100, (loudnessReport.targetLufs + 60) * 2))}%` }}
-                      title={`Target: ${loudnessReport.targetLufs} LUFS`}
-                    />
-                  </div>
-                  <span className="meter-readout">
-                    {loudnessReport.shortTermLufs <= -69 ? "-∞" : `${loudnessReport.shortTermLufs.toFixed(1)}`}
-                  </span>
-                </div>
-              </div>
-
-              {/* Secondary Metrics: LRA & True Peak & Trim */}
-              <div className="loudness-metrics-grid">
-                <div className="metric-box">
-                  <span className="metric-title">LRA (Range)</span>
-                  <b className="metric-val">{loudnessReport.loudnessRangeLu.toFixed(1)} LU</b>
-                </div>
-                <div className="metric-box">
-                  <span className="metric-title">True Peak</span>
-                  <b className={`metric-val ${loudnessReport.truePeakDbtp > (loudnessStandard === "atsc_a85" ? -2.0 : -1.0) ? "tp-warn" : ""}`}>
-                    {loudnessReport.truePeakDbtp <= -59 ? "-∞" : `${loudnessReport.truePeakDbtp.toFixed(1)} dBTP`}
-                  </b>
-                </div>
-                <div className="metric-box">
-                  <span className="metric-title">Trim Rec</span>
-                  <b className="metric-val trim-val">
-                    {loudnessReport.gainRecommendationDb > 0 ? "+" : ""}
-                    {loudnessReport.gainRecommendationDb.toFixed(1)} dB
-                  </b>
-                </div>
-              </div>
-
-              {/* Actions: 1-Click Auto Trim & Reset */}
-              <div className="loudness-actions-row">
-                <InteriorButton
-                  type="button"
-                  className="loudness-autotrim-btn primary"
-                  onClick={autoTrimLoudness}
-                  disabled={loudnessReport.integratedLufs <= -60 || loudnessReport.isCompliant}
-                  title="Automatically adjust Master Fader to meet compliance target"
-                >
-                  ⚡ Auto-Trim ({loudnessReport.gainRecommendationDb > 0 ? "+" : ""}{loudnessReport.gainRecommendationDb.toFixed(1)} dB)
-                </InteriorButton>
-                <InteriorButton
-                  type="button"
-                  className="loudness-reset-btn"
-                  onClick={resetLoudness}
-                  title="Reset accumulated loudness history & gates"
-                >
-                  ↺ Reset
-                </InteriorButton>
-              </div>
-            </div>
-          </div>
+          <LoudnessPanel
+            loudnessStandard={loudnessStandard}
+            setLoudnessStandard={setLoudnessStandard}
+            loudnessReport={loudnessReport}
+            autoTrimLoudness={autoTrimLoudness}
+            resetLoudness={resetLoudness}
+            audioClockMaster={audioClockMaster}
+          />
 
           {/* Submix 1 / 2 and Aux FX Buses */}
           <div className="audio-submix-buses-row" style={{ display: "flex", gap: "8px", marginTop: "10px", justifyContent: "center" }}>
@@ -587,315 +296,16 @@ export function FairlightWorkspace({
         </section>
 
         {/* Center Column: Dedicated Fairlight Track Audio DSP Rack */}
-        <section className="audio-dsp-rack-column">
-          <div className="dsp-rack-header">
-            <div className="dsp-header-left">
-              <span className="dsp-eyebrow">TRACK DSP PROCESSOR</span>
-              <h2>{activeTrack?.name ?? "Track"} Audio Rack</h2>
-            </div>
-            <div className="dsp-track-picker">
-              <span className="picker-label">Target:</span>
-              <select
-                value={activeTrackId}
-                onChange={(e) => setSelectedFairlightTrackId(Number(e.target.value))}
-              >
-                {tracks.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.kind === "audio" ? "♪ " : "▶ "} {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="dsp-modules-scroll">
-            {/* Module 1: 4-Band Parametric Equalizer */}
-            <div className={`dsp-module-card eq-module ${activeDsp.eq_enabled ? "module-enabled" : "module-bypassed"}`}>
-              <div className="dsp-module-top">
-                <div className="module-title-box">
-                  <span className="module-badge eq">EQ</span>
-                  <strong>4-Band Parametric Equalizer</strong>
-                  <small>Low Shelf · Mid Peak · High Shelf</small>
-                </div>
-                <InteriorButton
-                  type="button"
-                  className={`dsp-power-btn ${activeDsp.eq_enabled ? "active" : ""}`}
-                  onClick={() => void saveTrackAudioProcessing(activeTrackId, { eq_enabled: !activeDsp.eq_enabled })}
-                >
-                  {activeDsp.eq_enabled ? "ACTIVE" : "BYPASS"}
-                </InteriorButton>
-              </div>
-
-              {/* Live EQ Curve Graph */}
-              <div className="eq-curve-display">
-                <svg viewBox="0 0 240 70" preserveAspectRatio="none" className="eq-curve-svg">
-                  <defs>
-                    <linearGradient id="eqGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#6b21a8" stopOpacity="0.35" />
-                      <stop offset="100%" stopColor="#6b21a8" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-                  <line x1="0" y1="35" x2="240" y2="35" stroke="#462d40" strokeDasharray="3 3" strokeWidth="1" />
-                  <path d={eqFillPath} fill="url(#eqGrad)" />
-                  <path d={eqCurvePath} fill="none" stroke={activeDsp.eq_enabled ? "#d9468f" : "#7d6377"} strokeWidth="2.2" strokeLinecap="round" />
-                  <circle cx="20" cy={35 - dyLow} r="3.5" fill="#be185d" />
-                  <circle cx="120" cy={35 - dyMid} r="3.5" fill="#a78bfa" />
-                  <circle cx="220" cy={35 - dyHigh} r="3.5" fill="#34d399" />
-                </svg>
-                <div className="eq-freq-labels">
-                  <span>80 Hz (Low)</span>
-                  <span>1.0 kHz (Mid)</span>
-                  <span>8.0 kHz (High)</span>
-                </div>
-              </div>
-
-              <div className="eq-bands-controls">
-                <div className="eq-band-item">
-                  <div className="band-header">
-                    <span>Low Shelf (80 Hz)</span>
-                    <b>{lowGain > 0 ? `+${lowGain.toFixed(1)}` : lowGain.toFixed(1)} dB</b>
-                  </div>
-                  <input
-                    type="range"
-                    min="-15"
-                    max="15"
-                    step="0.5"
-                    value={lowGain}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_low_gain: val } }));
-                      audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, eq_low_gain: val });
-                    }}
-                    onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_low_gain: Number(e.currentTarget.value) })}
-                    onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_low_gain: Number(e.currentTarget.value) })}
-                  />
-                </div>
-
-                <div className="eq-band-item">
-                  <div className="band-header">
-                    <span>Mid Bell (1 kHz)</span>
-                    <b>{midGain > 0 ? `+${midGain.toFixed(1)}` : midGain.toFixed(1)} dB</b>
-                  </div>
-                  <input
-                    type="range"
-                    min="-15"
-                    max="15"
-                    step="0.5"
-                    value={midGain}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_mid_gain: val } }));
-                      audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, eq_mid_gain: val });
-                    }}
-                    onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_mid_gain: Number(e.currentTarget.value) })}
-                    onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_mid_gain: Number(e.currentTarget.value) })}
-                  />
-                </div>
-
-                <div className="eq-band-item">
-                  <div className="band-header">
-                    <span>High Shelf (8 kHz)</span>
-                    <b>{highGain > 0 ? `+${highGain.toFixed(1)}` : highGain.toFixed(1)} dB</b>
-                  </div>
-                  <input
-                    type="range"
-                    min="-15"
-                    max="15"
-                    step="0.5"
-                    value={highGain}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_high_gain: val } }));
-                      audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, eq_high_gain: val });
-                    }}
-                    onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_high_gain: Number(e.currentTarget.value) })}
-                    onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { eq_high_gain: Number(e.currentTarget.value) })}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Module 2: Dynamics Compressor */}
-            <div className={`dsp-module-card comp-module ${activeDsp.comp_enabled ? "module-enabled" : "module-bypassed"}`}>
-              <div className="dsp-module-top">
-                <div className="module-title-box">
-                  <span className="module-badge comp">DYN</span>
-                  <strong>Dynamics Compressor</strong>
-                  <small>Threshold · Ratio · Attack · Release</small>
-                </div>
-                <InteriorButton
-                  type="button"
-                  className={`dsp-power-btn comp ${activeDsp.comp_enabled ? "active" : ""}`}
-                  onClick={() => void saveTrackAudioProcessing(activeTrackId, { comp_enabled: !activeDsp.comp_enabled })}
-                >
-                  {activeDsp.comp_enabled ? "ACTIVE" : "BYPASS"}
-                </InteriorButton>
-              </div>
-
-              {/* Real-Time Gain Reduction (GR) Meter */}
-              <div className="comp-gr-meter-row">
-                <div className="gr-meta">
-                  <span className="gr-title">GAIN REDUCTION (GR)</span>
-                  <b className={activeTrackGr < -0.1 ? "gr-active" : ""}>
-                    {activeTrackGr < -0.05 ? `${activeTrackGr.toFixed(1)} dB` : "0.0 dB"}
-                  </b>
-                </div>
-                <div className="gr-meter-bar-slot">
-                  <div
-                    className="gr-meter-bar-fill"
-                    style={{ width: `${Math.min(100, Math.max(0, -activeTrackGr * 4.16))}%` }}
-                  />
-                </div>
-                <div className="gr-scale-marks">
-                  <span>0</span>
-                  <span>-6</span>
-                  <span>-12</span>
-                  <span>-18</span>
-                  <span>-24 dB</span>
-                </div>
-              </div>
-
-              <div className="comp-params-grid">
-                <div className="comp-param-item">
-                  <div className="param-label-row">
-                    <span>Threshold</span>
-                    <b>{(activeDsp.comp_threshold ?? -24).toFixed(0)} dB</b>
-                  </div>
-                  <input
-                    type="range"
-                    min="-60"
-                    max="0"
-                    step="1"
-                    value={activeDsp.comp_threshold ?? -24}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_threshold: val } }));
-                      audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_threshold: val });
-                    }}
-                    onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_threshold: Number(e.currentTarget.value) })}
-                    onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_threshold: Number(e.currentTarget.value) })}
-                  />
-                </div>
-
-                <div className="comp-param-item">
-                  <div className="param-label-row">
-                    <span>Ratio</span>
-                    <b>{(activeDsp.comp_ratio ?? 4).toFixed(1)}:1</b>
-                  </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="20"
-                    step="0.5"
-                    value={activeDsp.comp_ratio ?? 4}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_ratio: val } }));
-                      audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_ratio: val });
-                    }}
-                    onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_ratio: Number(e.currentTarget.value) })}
-                    onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_ratio: Number(e.currentTarget.value) })}
-                  />
-                </div>
-
-                <div className="comp-param-item">
-                  <div className="param-label-row">
-                    <span>Attack</span>
-                    <b>{Math.round((activeDsp.comp_attack ?? 0.02) * 1000)} ms</b>
-                  </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="200"
-                    step="1"
-                    value={Math.round((activeDsp.comp_attack ?? 0.02) * 1000)}
-                    onChange={(e) => {
-                      const val = Number(e.target.value) / 1000;
-                      setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_attack: val } }));
-                      audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_attack: val });
-                    }}
-                    onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_attack: Number(e.currentTarget.value) / 1000 })}
-                    onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_attack: Number(e.currentTarget.value) / 1000 })}
-                  />
-                </div>
-
-                <div className="comp-param-item">
-                  <div className="param-label-row">
-                    <span>Release</span>
-                    <b>{Math.round((activeDsp.comp_release ?? 0.25) * 1000)} ms</b>
-                  </div>
-                  <input
-                    type="range"
-                    min="20"
-                    max="1000"
-                    step="10"
-                    value={Math.round((activeDsp.comp_release ?? 0.25) * 1000)}
-                    onChange={(e) => {
-                      const val = Number(e.target.value) / 1000;
-                      setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_release: val } }));
-                      audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, comp_release: val });
-                    }}
-                    onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_release: Number(e.currentTarget.value) / 1000 })}
-                    onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { comp_release: Number(e.currentTarget.value) / 1000 })}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Module 3: Vocal De-Noise & Clean-Up */}
-            <div className={`dsp-module-card denoise-module ${activeDsp.denoise_enabled ? "module-enabled" : "module-bypassed"}`}>
-              <div className="dsp-module-top">
-                <div className="module-title-box">
-                  <span className="module-badge denoise">NR</span>
-                  <strong>Vocal De-Noise &amp; Dialogue Isolation</strong>
-                  <small>80 Hz High-Pass Sub Cut · Real-Time Spectral Clean</small>
-                </div>
-                <InteriorButton
-                  type="button"
-                  className={`dsp-power-btn denoise ${activeDsp.denoise_enabled ? "active" : ""}`}
-                  onClick={() => void saveTrackAudioProcessing(activeTrackId, { denoise_enabled: !activeDsp.denoise_enabled })}
-                >
-                  {activeDsp.denoise_enabled ? "ACTIVE" : "BYPASS"}
-                </InteriorButton>
-              </div>
-
-              <div className="denoise-controls-row">
-                <div className="denoise-rumble-badge">
-                  <span className="rumble-icon">⚡</span>
-                  <div className="rumble-text">
-                    <strong>80 Hz High-Pass Rumble Filter</strong>
-                    <small>Removes low-end mic bumps &amp; sub-bass rumble</small>
-                  </div>
-                  <span className={`rumble-status ${activeDsp.denoise_enabled ? "engaged" : "off"}`}>
-                    {activeDsp.denoise_enabled ? "ENGAGED" : "OFF"}
-                  </span>
-                </div>
-
-                <div className="denoise-amount-slider-item">
-                  <div className="slider-header-row">
-                    <span>Noise Suppression Intensity</span>
-                    <b>{Math.round((activeDsp.denoise_amount ?? 0.5) * 100)}%</b>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    disabled={!activeDsp.denoise_enabled}
-                    value={activeDsp.denoise_amount ?? 0.5}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, denoise_amount: val } }));
-                      audioClockMaster.updateTrackAudioProcessing(activeTrackId, { ...activeDsp, denoise_amount: val });
-                    }}
-                    onPointerUp={(e) => void saveTrackAudioProcessing(activeTrackId, { denoise_amount: Number(e.currentTarget.value) })}
-                    onKeyUp={(e) => void saveTrackAudioProcessing(activeTrackId, { denoise_amount: Number(e.currentTarget.value) })}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <DspRackPanel
+          tracks={tracks}
+          activeTrackId={activeTrackId}
+          trackGr={trackGr}
+          audioProcessingDrafts={audioProcessingDrafts}
+          setAudioProcessingDrafts={setAudioProcessingDrafts}
+          saveTrackAudioProcessing={saveTrackAudioProcessing}
+          audioClockMaster={audioClockMaster}
+          setSelectedFairlightTrackId={setSelectedFairlightTrackId}
+        />
 
         {/* Right Column: Full-Height Channel Strip Mixer Rack */}
         <FairlightMixerRack
