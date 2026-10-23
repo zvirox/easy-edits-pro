@@ -31,12 +31,12 @@ there; the CLI needs no server and is the first choice.
 
 Auto-generated from the Prowl index, refreshed on each `overview`/`init`. Prefer retrieving from Prowl (and reading the cited files) over grepping or relying on training memory; this is the current shape of the repo.
 
-- size: 410 files, 9402 symbols, 3891 edges (resolved 2294, external deps 694, unresolved 903)
-- languages: rust:129 typescript:78 tsx:69 python:39 css:34 markdown:27 toml:12 json:9
-- subsystems: apps/saturn-tauri(172,typescript) · crates/saturn-core(116,rust) · crates/saturn-commands(12,rust) · agent-harness/cli_anything_eep(5,python) · apps/saturn-tauri(4,typescript) · apps/saturn-tauri(3,javascript) · agent-harness/cli_anything_eep(2,python)
-- entrypoints: apps/saturn-tauri/ui/src/features/timeline/TimelineSection.tsx · apps/saturn-tauri/ui/src/features/dialogs/EditorModals.tsx · apps/saturn-tauri/ui/src/features/inspector/InspectorPanel.tsx · apps/saturn-tauri/ui/src/features/preview/PreviewSection.tsx · apps/saturn-tauri/ui/src/features/media-pool/MediaPanel.tsx · apps/saturn-tauri/ui/src/features/timeline/TimelineTrackRow.tsx · apps/saturn-tauri/ui/src/engine/playback/scheduler.ts · apps/saturn-tauri/ui/src/features/panels/PanelHost.tsx · (+18 more)
-- central files (most depended-on): crates/saturn-core/src/catalogue/mod.rs · crates/saturn-core/src/catalogue/commands/mod.rs · crates/saturn-commands/src/lib.rs · apps/saturn-tauri/ui/src/engine/playbackEngine.ts · apps/saturn-tauri/ui/src/components/interior/interior-button.tsx
-- read these guides first: README.md · CONTRIBUTING.md · docs/architecture.md · docs/design-qa.md
+- size: 475 files, 10474 symbols, 4228 edges (resolved 2464, external deps 780, unresolved 984)
+- languages: rust:144 typescript:98 tsx:75 css:39 python:39 markdown:34 javascript:17 toml:13
+- subsystems: apps/saturn-tauri(203,typescript) · crates/saturn-core(131,rust) · crates/saturn-commands(12,rust) · apps/saturn-tauri(11,javascript) · agent-harness/cli_anything_eep(5,python) · apps/saturn-tauri(4,typescript) · apps/saturn-tauri(3,javascript) · agent-harness/cli_anything_eep(2,python)
+- entrypoints: apps/saturn-tauri/ui/src/features/timeline/TimelineSection.tsx · apps/saturn-tauri/ui/src/features/dialogs/EditorModals.tsx · apps/saturn-tauri/ui/src/features/inspector/InspectorPanel.tsx · apps/saturn-tauri/ui/src/features/preview/PreviewSection.tsx · apps/saturn-tauri/ui/src/features/panels/PanelHost.tsx · apps/saturn-tauri/ui/src/features/captions/CaptionsPanel.tsx · apps/saturn-tauri/ui/src/features/graphics/GraphicsPanel.tsx · apps/saturn-tauri/ui/src/features/markers/MarkersPanel.tsx · (+21 more)
+- central files (most depended-on): crates/saturn-core/src/catalogue/mod.rs · crates/saturn-core/src/catalogue/commands/mod.rs · apps/saturn-tauri/ui/src/engine/playbackEngine.ts · crates/saturn-commands/src/lib.rs · apps/saturn-tauri/ui/src/components/interior/interior-button.tsx
+- read these guides first: README.md · AGENTS.md · CONTRIBUTING.md · docs/architecture.md · docs/design-qa.md
 
 Depth on demand: `prowl find|def|outline|references <name>`, `search <text>`, `context search "<question>"`, `sketch <ui>`.
 <!-- /prowl-agent:map -->
