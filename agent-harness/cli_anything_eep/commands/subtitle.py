@@ -68,7 +68,13 @@ def subtitle_list(ctx: click.Context):
     try:
         document = backend.get_saturn_cli().execute("project.inspect", {}, record_history=False)
         sequence = (document or {}).get("project", {}).get("sequence", {})
-        format_output({"subtitles": sequence.get("subtitles", [])}, ctx.obj['output_format'])
+        # Schema v5 stores cues in caption tracks; the legacy `subtitle.*`
+        # surface reads and writes the default (first) track. Project files
+        # migrated from older versions have no `subtitles` key anymore, so
+        # read the cues instead of a removed field.
+        tracks = sequence.get("caption_tracks") or []
+        cues = tracks[0].get("cues", []) if tracks else []
+        format_output({"subtitles": cues}, ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)
