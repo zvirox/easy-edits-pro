@@ -1,6 +1,6 @@
 //! Three-point edits, edit-point inspection, and durable settings.
 
-use saturn_core::{CommandRequest, EditorEngine, TICKS_PER_SECOND};
+use saturn_core::{CommandRequest, DispatchError, EditorEngine, TICKS_PER_SECOND};
 use serde_json::{json, Value};
 
 fn setup(engine: &mut EditorEngine) -> u64 {
@@ -248,12 +248,19 @@ fn settings_round_trip_through_one_json_file() {
             json!({"shortcuts": {"playhead.end": "Ctrl+E"}}),
         ))
         .unwrap();
-    engine
+    // G2 purged the layout-preset family with the MDI panel engine; the
+    // settings file carries no `workspaces` state and the commands now
+    // resolve to the standard unknown-command error.
+    let err = engine
         .execute(CommandRequest::new(
             "workspace.save",
             json!({"preset": {"id": "custom_rough", "label": "Rough", "workspace": "edit", "layouts": {}}}),
         ))
-        .unwrap();
+        .unwrap_err();
+    assert!(
+        matches!(err, DispatchError::UnknownCommand(ref id) if id == "workspace.save"),
+        "workspace.save should be purged, got {err:?}"
+    );
 
     let mut loaded = EditorEngine::default();
     loaded.load_settings(&path);
@@ -266,9 +273,12 @@ fn settings_round_trip_through_one_json_file() {
         .execute(CommandRequest::new("shortcuts.list", Value::Null))
         .unwrap();
     assert_eq!(shortcuts["shortcuts"]["playhead.end"], "Ctrl+E");
-    let presets = loaded
+    let err = loaded
         .execute(CommandRequest::new("workspace.list", Value::Null))
-        .unwrap();
-    assert_eq!(presets["presets"][0]["label"], "Rough");
+        .unwrap_err();
+    assert!(
+        matches!(err, DispatchError::UnknownCommand(ref id) if id == "workspace.list"),
+        "workspace.list should be purged, got {err:?}"
+    );
     let _ = std::fs::remove_file(path);
 }

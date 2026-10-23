@@ -71,14 +71,13 @@ Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
 | bus | - | 0 | 0 | 1 |  |
 | nodegraph | - | 0 | 0 | 6 |  |
 | interop | - | 0 | 0 | 4 |  |
-| workspace | - | 0 | 14 | 9 |  |
 | view | - | 0 | 13 | 0 |  |
-| window | - | 0 | 2 | 0 |  |
+| workspace | - | 0 | 8 | 3 |  |
 
 ## Totals
 
 FilmCraft commands: 701
 
-EEP commands: 230 (121 shipped, 109 planned)
+EEP commands: 216 (113 shipped, 103 planned)
 
-App-only families (no FilmCraft counterpart): bus, interop, nodegraph, track, view, window, workspace
+App-only families (no FilmCraft counterpart): bus, interop, nodegraph, track, view, workspace

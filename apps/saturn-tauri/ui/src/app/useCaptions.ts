@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import type { CaptionTrack, ProjectDocument, SubtitleItem } from "./projectTypes";
-import { PANEL_OPEN_EVENT } from "../features/panels/presets";
+import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
 import { defaultCaptionCues, defaultCaptionTrack } from "./captions";
 import { TICKS_PER_SECOND } from "../utils/formatters.ts";
 

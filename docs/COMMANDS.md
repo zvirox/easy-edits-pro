@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-230 commands.
+216 commands.
 
 ## File
 
@@ -249,14 +249,6 @@ Generated from the command catalogue. Do not edit by hand.
 | Workspace: Library | `workspace.library` | planned |  | `{}` |
 | Workspace: AI Assistant | `workspace.ai` | planned |  | `{}` |
 | Workspace: Export | `workspace.export` | planned |  | `{}` |
-| Layout Preset: Assembly | `workspace.preset_assembly` | shipped |  | `{}` |
-| Layout Preset: Captions & Graphics | `workspace.preset_captions` | shipped |  | `{}` |
-| Layout Preset: Review | `workspace.preset_review` | shipped |  | `{}` |
-| Layout Preset: Learning | `workspace.preset_learning` | shipped |  | `{}` |
-| Layout Preset: All Panels | `workspace.preset_all_panels` | shipped |  | `{}` |
-| Manage Layout Presets… | `workspace.manage_presets` | shipped |  | `{}` |
-| Reset Panel Layout | `window.reset_layout` | shipped |  | `{}` |
-| Reopen Closed Panels | `window.reopen_panels` | shipped |  | `{}` |
 
 ## Help
 

@@ -152,8 +152,6 @@ fn main() {
             ripple_delete_fillers,
             export_timeline_interop,
             import_timeline_interop,
-            save_panel_layout,
-            load_panel_layout,
             get_gpu_preview_metrics,
             present_gpu_preview_frame,
             measure_ebu_r128_loudness,

@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import type { Marker, MarkerKind, ProjectDocument } from "./projectTypes";
-import { PANEL_OPEN_EVENT } from "../features/panels/presets";
+import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
 import { defaultMarkerRange } from "../features/markers/markerList";
 
 export const MARKERS_PANEL_ID = "markers";

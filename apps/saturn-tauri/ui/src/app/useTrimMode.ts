@@ -6,7 +6,7 @@ import {
   type TrimPlanInput,
   type TrimSession,
 } from "./timelineTrim.ts";
-import { PANEL_OPEN_EVENT } from "../features/panels/presets.ts";
+import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
 
 type TrimInputBuilder = (
   trackId: number,

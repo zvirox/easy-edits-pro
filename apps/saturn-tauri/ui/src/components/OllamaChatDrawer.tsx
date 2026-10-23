@@ -1,9 +1,6 @@
 import { InteriorButton } from "./interior/interior-button";
 import React, { useState, useRef, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { PanelHost, type PanelEntry } from "../features/panels";
-import { GLOBAL_CONSTRAINTS } from "../features/panels/layouts";
-import { PANEL_OPEN_EVENT } from "../features/panels/presets";
 
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -101,16 +98,6 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
     }
   }, [isOpen, messages]);
 
-  // The AI Assistant is an engine-managed floating panel (G4c #5): the App
-  // header's open flag drives it through the panel-open event, and engine
-  // closes (shell ✕ or header ✕) flow back through onPanelClosed.
-  useEffect(() => {
-    if (!isOpen) return;
-    window.dispatchEvent(
-      new CustomEvent(PANEL_OPEN_EVENT, { detail: { id: "ai-chat" } }),
-    );
-  }, [isOpen]);
-
   const activeModelName = showCustomModel && customModel.trim() ? customModel.trim() : model;
 
   const handleSendMessage = async (textToSend?: string, actionKey?: string) => {
@@ -206,22 +193,12 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
   };
 
   return (
-    <div className="editor-panel-layer">
-      <PanelHost
-        workspace="global"
-        defaultHidden={["ai-chat"]}
-        showRail={false}
-        onPanelClosed={() => {
-          if (isOpen) onClose();
-        }}
-        entries={
-          [
-            {
-              id: "ai-chat",
-              title: "AI Assistant",
-              constraints: GLOBAL_CONSTRAINTS["ai-chat"],
-              render: ({ close }) => (
-                <div className="ai-chat-drawer">
+    <aside
+      className="ai-chat-drawer glass"
+      role="complementary"
+      aria-label="AI Assistant"
+      data-open={isOpen ? "true" : "false"}
+    >
         {/* Header */}
         <header
           className="ai-chat-drawer-header"
@@ -277,7 +254,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
             </InteriorButton>
             <InteriorButton
               type="button"
-              onClick={close}
+              onClick={onClose}
               style={{
                 background: "transparent",
                 border: "none",
@@ -631,11 +608,6 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
             </span>
           </div>
         </div>
-                </div>
-              ),
-            },
-        ] as PanelEntry[]}
-      />
-    </div>
+    </aside>
   );
 };

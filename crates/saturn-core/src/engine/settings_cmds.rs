@@ -99,77 +99,8 @@ impl EditorEngine {
                 self.settings.persist()?;
                 Ok(json!({"reset": true}))
             })()),
-            "workspace.list" => Some(Ok(json!({"presets": self.workspace_presets()}))),
-            "workspace.save" | "workspace.save_as" => Some((|| {
-                let params: WorkspacePresetParams = parse_params(params)?;
-                let preset = params.preset;
-                let id = preset
-                    .get("id")
-                    .and_then(Value::as_str)
-                    .ok_or_else(|| {
-                        DispatchError::InvalidParameters("Layout preset needs an id".into())
-                    })?
-                    .to_owned();
-                let mut presets = self.workspace_presets();
-                if let Some(existing) = presets
-                    .iter_mut()
-                    .find(|entry| entry.get("id").and_then(Value::as_str) == Some(&id))
-                {
-                    *existing = preset;
-                } else {
-                    presets.push(preset);
-                }
-                self.settings
-                    .data
-                    .insert("workspaces".into(), Value::Array(presets.clone()));
-                self.settings.persist()?;
-                Ok(json!({"presets": presets}))
-            })()),
-            "workspace.rename" => Some((|| {
-                let params: WorkspaceRenameParams = parse_params(params)?;
-                let mut presets = self.workspace_presets();
-                let preset = presets
-                    .iter_mut()
-                    .find(|entry| entry.get("id").and_then(Value::as_str) == Some(&params.id))
-                    .ok_or_else(|| {
-                        DispatchError::InvalidParameters("Layout preset does not exist".into())
-                    })?;
-                let object = preset
-                    .as_object_mut()
-                    .ok_or_else(|| DispatchError::Operation("Layout preset is corrupt".into()))?;
-                object.insert("label".into(), Value::String(params.label));
-                self.settings
-                    .data
-                    .insert("workspaces".into(), Value::Array(presets.clone()));
-                self.settings.persist()?;
-                Ok(json!({"presets": presets}))
-            })()),
-            "workspace.delete" => Some((|| {
-                let params: WorkspaceIdParams = parse_params(params)?;
-                let mut presets = self.workspace_presets();
-                presets.retain(|entry| entry.get("id").and_then(Value::as_str) != Some(&params.id));
-                self.settings
-                    .data
-                    .insert("workspaces".into(), Value::Array(presets.clone()));
-                self.settings.persist()?;
-                Ok(json!({"presets": presets, "deleted": true}))
-            })()),
-            "workspace.reset" => Some((|| {
-                self.settings.data.remove("workspaces");
-                self.settings.persist()?;
-                Ok(json!({"reset": true}))
-            })()),
             _ => None,
         }
-    }
-
-    fn workspace_presets(&self) -> Vec<Value> {
-        self.settings
-            .data
-            .get("workspaces")
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default()
     }
 
     fn write_shortcuts(&mut self, params: Value, validate: bool) -> Result<Value, DispatchError> {
@@ -205,20 +136,4 @@ struct PrefSetParams {
 #[derive(Deserialize)]
 struct ShortcutsParams {
     shortcuts: serde_json::Map<String, Value>,
-}
-
-#[derive(Deserialize)]
-struct WorkspacePresetParams {
-    preset: Value,
-}
-
-#[derive(Deserialize)]
-struct WorkspaceRenameParams {
-    id: String,
-    label: String,
-}
-
-#[derive(Deserialize)]
-struct WorkspaceIdParams {
-    id: String,
 }

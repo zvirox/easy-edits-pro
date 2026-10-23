@@ -23,8 +23,7 @@ import {
 } from "../engine/playbackEngine";
 import { LUT_PRESETS } from "./ColorWorkspace";
 import { formatTime } from "../utils/formatters";
-import { PanelHost, type PanelEntry } from "../features/panels";
-import { EFFECTS_CONSTRAINTS } from "../features/panels/layouts";
+import { DockCard } from "../features/dock/DockCard";
 
 export interface EffectsWorkspaceProps {
   project: ProjectDocument["project"] | null;
@@ -114,7 +113,6 @@ export function EffectsWorkspace({
         </div>
       </header>
 
-      <div className="workspace-float-region">
       <div className="effects-studio-body">
         {/* Main Stage: Large Program Monitor Viewer + Transport Controls */}
         <section className="effects-monitor-stage">
@@ -140,19 +138,15 @@ export function EffectsWorkspace({
             </div>
           </div>
         </section>
-      </div>
 
-      <div className="editor-panel-layer">
-        <PanelHost
-          workspace="effects"
-          entries={
-            [
-              {
-                id: "effects-stack",
-                title: "Effect Stack",
-                constraints: EFFECTS_CONSTRAINTS["effects-stack"],
-                render: () => (
-                  <div className="effects-stack-sidebar">
+        <DockCard
+          className="workspace-dock effects-dock-stack"
+          tabs={[
+            {
+              id: "effects-stack",
+              title: "Effect Stack",
+              render: () => (
+                <div className="effects-stack-sidebar">
           <div className="effects-stack-box">
             <div className="effects-section-header">
               <h3>Active Effect Stack</h3>
@@ -579,9 +573,8 @@ export function EffectsWorkspace({
                   </div>
                 ),
               },
-          ] as PanelEntry[]}
-        />
-      </div>
+        ]}
+      />
       </div>
 
       {/* Bottom Clips Reel Tray */}

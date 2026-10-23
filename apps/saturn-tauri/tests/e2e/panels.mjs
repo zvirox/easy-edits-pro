@@ -1,6 +1,6 @@
 // Smoke: panels and preferences - command palette, shortcuts rebinding,
-// preferences persistence, view commands, workspace switching, layout
-// presets, and playhead-context for shortcut-dispatched commands.
+// preferences persistence, view commands, workspace switching, dock cards,
+// and playhead-context for shortcut-dispatched commands.
 import assert from 'node:assert/strict';
 
 export async function run(ctx) {
@@ -33,8 +33,8 @@ export async function run(ctx) {
   await undoRow.getByRole('button').click();
   await page.keyboard.press('Control+Shift+U');
   await undoRow.locator('.shortcuts-key').getByText('Ctrl+Shift+U').waitFor();
-  // exact: the dialog also renders "Change shortcut for Reopen Closed Panels",
-  // and a non-exact match would resolve to two buttons.
+  // exact: the dialog's default label list is unique for Undo, so a non-exact
+  // match would resolve to multiple rows if defaults ever collide.
   await shortcutsDialog.getByRole('button', { name: 'Close', exact: true }).click();
   await page.locator('.app-shell').press('Control+Shift+U');
   const undoRequests = await page.evaluate(() => window.__commandRequests);
@@ -100,30 +100,44 @@ export async function run(ctx) {
   await page.locator('.menu-popover').getByText('Workspace: Edit', { exact: false }).click();
   await page.locator('.app-shell').waitFor();
 
-  // Layout presets retract floating panels and restore them.
-  await menuBar.getByRole('button', { name: 'Window', exact: true }).click();
-  await page
-    .locator('.menu-popover')
-    .getByRole('button', { name: 'Layout Preset: Review', exact: true })
-    .click();
-  await page.waitForTimeout(350);
+  // G2 purged the floating-panel engine: the Edit page renders stationary
+  // glass dock cards, no floats or rail, and the Window menu carries no
+  // layout presets. Panel gestures now focus dock tabs.
   assert.equal(
-    await page.locator('.floating-panel').count(),
+    await page.locator('.editor-dock-library').count(),
+    1,
+    'the Edit page keeps a library dock',
+  );
+  assert.equal(
+    await page.locator('.editor-dock-inspector').count(),
+    1,
+    'the Edit page keeps an inspector dock',
+  );
+  assert.equal(await page.locator('.floating-panel').count(), 0, 'no floating panels remain');
+  assert.equal(await page.locator('.panel-rail').count(), 0, 'no panel rail remains');
+  await menuBar.getByRole('button', { name: 'Window', exact: true }).click();
+  assert.equal(
+    await page.locator('.menu-popover').getByText('Layout Preset', { exact: false }).count(),
     0,
-    'the Review preset should hide the media and inspector panels',
+    'layout presets should be gone from the Window menu',
   );
-  await page.locator('.panel-rail').waitFor();
-  await menuBar.getByRole('button', { name: 'Window', exact: true }).click();
-  await page
-    .locator('.menu-popover')
-    .getByRole('button', { name: 'Layout Preset: Learning', exact: true })
-    .click();
-  await page.waitForTimeout(350);
+  await page.keyboard.press('Escape');
+
+  // The markers panel gesture focuses the Markers tab in the inspector dock.
+  await page.keyboard.press('ControlOrMeta+k');
+  await page.locator('.command-palette').waitFor();
+  await page.locator('#command-palette-search').fill('markers panel');
+  await page.locator('.command-palette-result', { hasText: 'Markers Panel' }).first().click();
+  const markersTab = page
+    .locator('.editor-dock-inspector')
+    .getByRole('tab', { name: 'Markers', exact: true });
+  await markersTab.waitFor();
   assert.equal(
-    await page.locator('.floating-panel').count(),
-    2,
-    'the Learning preset should restore both panels',
+    await markersTab.getAttribute('aria-selected'),
+    'true',
+    'the markers gesture should focus the dock tab',
   );
+  await page.locator('.markers-panel').waitFor();
 
   // Shortcut-dispatched commands receive playhead context.
   await page.locator('.app-shell').press('i');

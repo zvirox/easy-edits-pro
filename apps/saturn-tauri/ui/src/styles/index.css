@@ -19,13 +19,12 @@
 @import "./18-editor.css";
 @import "./120-glass.css";
 @import "./130-animations.css";
-@import "./140-panels.css";
+@import "./135-dock.css";
 @import "./150-timeline-refresh.css";
 @import "./160-menu-surface.css";
 @import "./165-shortcuts.css";
 @import "./166-preferences.css";
 @import "./170-trim-monitor.css";
-@import "./171-layout-presets.css";
 @import "./172-source-edit.css";
 @import "./173-speed-duration.css";
 @import "./174-clip-context-menu.css";

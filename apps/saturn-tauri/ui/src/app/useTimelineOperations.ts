@@ -15,7 +15,7 @@ import type {
 } from "./projectTypes";
 import { TICKS_PER_SECOND } from "../engine/playback/constants";
 import type { KeyframeProperty } from "../engine/playback/types";
-import { PANEL_OPEN_EVENT } from "../features/panels/presets.ts";
+import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
 import { planTrim, type TrimEdge, type TrimSession } from "./timelineTrim.ts";
 import { useTrimMode } from "./useTrimMode.ts";
 

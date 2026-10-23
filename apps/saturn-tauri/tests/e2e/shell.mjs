@@ -52,29 +52,39 @@ export async function run(ctx) {
     5,
     'the tool rail should group tools into five named segments',
   );
-  // Layout contract: media | toolbox | preview across the top, with a
-  // full-width timeline docked at the bottom edge.
+  // Layout contract (mock skeleton): dock L | preview | dock R across the top
+  // row, and a full-width NLE strip below — toolbox | timeline — that never
+  // moves.
   const viewport = page.viewportSize();
   const mediaBox = await page
-    .locator('.floating-panel')
-    .filter({ hasText: 'Media pool' })
+    .locator('.editor-dock-library')
     .boundingBox();
+  const inspectorDockBox = await page.locator('.editor-dock-inspector').boundingBox();
   const previewBox = await page.locator('.monitor-unified').boundingBox();
   const railBox = await toolRail.boundingBox();
   const timelineBox = await page.locator('.timeline').boundingBox();
-  assert.ok(viewport && mediaBox && previewBox && railBox && timelineBox);
+  assert.ok(viewport && mediaBox && inspectorDockBox && previewBox && railBox && timelineBox);
   assert.ok(
-    timelineBox.x <= 1 && timelineBox.x + timelineBox.width >= viewport.width - 1,
-    'the timeline should span the app width',
+    railBox.x <= 9 && timelineBox.x + timelineBox.width >= viewport.width - 9,
+    'the NLE strip (toolbox + timeline) should span the app width',
   );
   assert.ok(
-    railBox.x >= mediaBox.x + mediaBox.width - 2 &&
-      railBox.x + railBox.width <= previewBox.x + 2,
-    'the toolbox should sit between the media pool and the preview',
+    timelineBox.x >= railBox.x + railBox.width - 2 &&
+      railBox.y >= mediaBox.y + mediaBox.height - 2,
+    'the toolbox should live in the bottom row, left of the timeline',
+  );
+  assert.ok(
+    previewBox.x > mediaBox.x + mediaBox.width - 2 &&
+      previewBox.x + previewBox.width <= inspectorDockBox.x + 2,
+    'the preview should sit between the two dock cards',
+  );
+  assert.ok(
+    railBox.y >= mediaBox.y + mediaBox.height - 2,
+    'the toolbox should live in the full-width bottom row',
   );
   assert.ok(
     mediaBox.height < viewport.height * 0.75,
-    'the media pool should stop above the full-width timeline',
+    'the library dock should stop above the full-width timeline',
   );
 
   // Sequences are created, switched, duplicated, renamed, and deleted from the

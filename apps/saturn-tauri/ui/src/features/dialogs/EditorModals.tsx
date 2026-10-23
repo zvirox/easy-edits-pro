@@ -172,8 +172,8 @@ export function EditorModals({
         }}
       />
 
-      {/* The AI Assistant is a G4c floating panel; EditorModals sits inside the
-          app workspace region, so the panel never covers the chrome. */}
+      {/* The AI Assistant is a direct glass drawer (G2); EditorModals sits in
+          the app workspace region, so the drawer never covers the chrome. */}
       <OllamaChatDrawer
         isOpen={mediaOps.aiChatDrawerOpen}
         onClose={() => mediaOps.setAiChatDrawerOpen(false)}

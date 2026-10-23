@@ -4,8 +4,7 @@ import { ColorWheels, type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "../comp
 import { RgbCurvesEditor } from "../components/RgbCurvesEditor";
 import { HslQualifierEditor } from "../components/HslQualifierEditor";
 import { VideoScopes } from "../components/VideoScopes";
-import { PanelHost, type PanelEntry } from "../features/panels";
-import { COLOR_CONSTRAINTS } from "../features/panels/layouts";
+import { DockCard } from "../features/dock/DockCard";
 import {
   type ProjectDocument,
   type MediaAsset,
@@ -186,7 +185,6 @@ export function ColorWorkspace({
         </div>
       </header>
 
-      <div className="workspace-float-region">
       <div className="color-studio-body">
         {/* Top Half: Side-by-Side Program Monitor + Video Scopes */}
         <div className="color-top-row">
@@ -441,18 +439,13 @@ export function ColorWorkspace({
               </InteriorButton>
             </div>
           </aside>
-        </div>
-      </div>
 
-      <div className="editor-panel-layer">
-        <PanelHost
-          workspace="color"
-          entries={
-            [
+          <DockCard
+            className="workspace-dock color-dock-scopes"
+            tabs={[
               {
                 id: "scopes",
                 title: "Video Scopes",
-                constraints: COLOR_CONSTRAINTS["scopes"],
                 render: () => (
                   <section className="color-scopes-stage">
                     <VideoScopes
@@ -469,9 +462,10 @@ export function ColorWorkspace({
                   </section>
                 ),
               },
-          ] as PanelEntry[]}
-        />
-      </div>
+            ]}
+            ariaLabel="Video scopes dock"
+          />
+        </div>
       </div>
 
       {/* Bottom Clips Reel Tray */}

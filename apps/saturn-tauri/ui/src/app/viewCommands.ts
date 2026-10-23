@@ -1,5 +1,5 @@
 import type { Preferences } from "../features/preferences/preferences";
-import { PANEL_TOGGLE_EVENT } from "../features/panels/presets";
+import { PANEL_TOGGLE_EVENT } from "../features/dock/panelEvents";
 
 export interface ViewCommandContext {
   preferences: Preferences;

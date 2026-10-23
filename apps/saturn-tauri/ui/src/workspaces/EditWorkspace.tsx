@@ -7,8 +7,7 @@ import {
   type TimelineSectionProps,
 } from "../features/timeline";
 import { InspectorPanel, type InspectorPanelProps } from "../features/inspector";
-import { PanelHost, type PanelEntry } from "../features/panels";
-import { EDIT_CONSTRAINTS } from "../features/panels/layouts";
+import { DockCard, type DockTab } from "../features/dock/DockCard";
 import { MarkersPanel, type MarkersPanelProps } from "../features/markers";
 import { CaptionsPanel, type CaptionsPanelProps } from "../features/captions";
 import { GraphicsPanel, type GraphicOperations } from "../features/graphics";
@@ -53,33 +52,16 @@ export function EditWorkspace({
   captionsPanelProps,
   graphicsPanelProps,
 }: EditWorkspaceProps) {
-  const entries: PanelEntry[] = [
+  // Plan v4 §B: the Edit page keeps two stationary dock cards — library
+  // (media pool · trim monitor) on the left of the program monitor and the
+  // inspector stack (Inspector · Markers · Captions · Graphics) on the right.
+  const libraryTabs: DockTab[] = [
     { id: "media", title: "Media pool", render: () => <MediaPanel {...mediaPanelProps} /> },
-    { id: "inspector", title: "Inspector", render: () => <InspectorPanel {...inspectorPanelProps} /> },
-    {
-      id: "markers",
-      title: "Markers",
-      constraints: EDIT_CONSTRAINTS.markers,
-      render: () => <MarkersPanel {...markersPanelProps} />,
-    },
-    {
-      id: "captions",
-      title: "Captions",
-      constraints: EDIT_CONSTRAINTS.captions,
-      render: () => <CaptionsPanel {...captionsPanelProps} />,
-    },
-    {
-      id: "graphics",
-      title: "Essential Graphics",
-      constraints: EDIT_CONSTRAINTS.graphics,
-      render: () => <GraphicsPanel ops={graphicsPanelProps.ops} playhead={graphicsPanelProps.playhead} frame={graphicsPanelProps.frame} />,
-    },
   ];
   if (trimMonitorProps.session) {
-    entries.push({
+    libraryTabs.push({
       id: "trim-monitor",
       title: "Trim Monitor",
-      constraints: EDIT_CONSTRAINTS["trim-monitor"],
       render: () => (
         <TrimMonitorPanel
           session={trimMonitorProps.session!}
@@ -92,27 +74,44 @@ export function EditWorkspace({
       ),
     });
   }
+  const inspectorTabs: DockTab[] = [
+    { id: "inspector", title: "Inspector", render: () => <InspectorPanel {...inspectorPanelProps} /> },
+    { id: "markers", title: "Markers", render: () => <MarkersPanel {...markersPanelProps} /> },
+    { id: "captions", title: "Captions", render: () => <CaptionsPanel {...captionsPanelProps} /> },
+    {
+      id: "graphics",
+      title: "Essential Graphics",
+      render: () => <GraphicsPanel ops={graphicsPanelProps.ops} playhead={graphicsPanelProps.playhead} frame={graphicsPanelProps.frame} />,
+    },
+  ];
 
   return (
-    <main className="editor is-floating-panels">
-      <div className="editor-panel-layer">
-        <PanelHost
-          workspace="edit"
-          entries={entries}
-          defaultHidden={["markers", "captions", "graphics"]}
-        />
-      </div>
-      <aside className="editor-toolbox" aria-label="Editing toolbox">
-        <TimelineToolRail
-          timelineTool={timelineSectionProps.timelineTool}
-          setTimelineTool={timelineSectionProps.setTimelineTool}
-        />
-      </aside>
+    <main className="editor">
+      <DockCard
+        className="editor-dock editor-dock-library"
+        tabs={libraryTabs}
+        ariaLabel="Library dock"
+      />
       <section className="work-area">
         <PreviewSection {...previewSectionProps} />
       </section>
-      <div className="editor-timeline-dock">
-        <TimelineSection {...timelineSectionProps} />
+      <DockCard
+        className="editor-dock editor-dock-inspector"
+        tabs={inspectorTabs}
+        ariaLabel="Inspector dock"
+      />
+      {/* Mock's NLE row: the toolbox strip travels with the timeline in the
+          full-width bottom row and never moves (persistent skeleton). */}
+      <div className="editor-nle-row">
+        <aside className="editor-toolbox" aria-label="Editing toolbox">
+          <TimelineToolRail
+            timelineTool={timelineSectionProps.timelineTool}
+            setTimelineTool={timelineSectionProps.setTimelineTool}
+          />
+        </aside>
+        <div className="editor-timeline-dock">
+          <TimelineSection {...timelineSectionProps} />
+        </div>
       </div>
     </main>
   );

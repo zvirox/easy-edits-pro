@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { GraphicItem, GraphicTemplate } from "../engine/playback/types";
-import { PANEL_OPEN_EVENT } from "../features/panels/presets";
+import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
 import { TICKS_PER_SECOND } from "../utils/formatters.ts";
 import { creationBox } from "../features/graphics/graphicsOverlay";
 

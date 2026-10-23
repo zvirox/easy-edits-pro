@@ -1,0 +1,148 @@
+/* ==========================================================================
+   Dock cards (plan v4 G2, docs/GLASS_CARDS_PLAN.md §4)
+   Stationary glass dock cards replace the floating-panel engine. Colour,
+   blur and radius come from the glass tokens via `.glass.card`; this file
+   owns placement only. The two-column page grids (color-top-row,
+   effects-studio-body) keep their pre-2024 docked shape — 140-panels.css
+   collapsed them while the panels floated.
+   ========================================================================== */
+
+.dock-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Dock bodies hold full-height content (media pool, scopes, effect stack). */
+.dock-card-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.dock-card-body > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Same treatment as the floating shells had: the glass card is the surface,
+   so nested docked boxes stop drawing their own panel chrome. */
+.dock-card .effects-stack-box,
+.dock-card .color-scopes-stage {
+  background: transparent;
+  border: 0;
+}
+
+/* --- Edit page ----------------------------------------------------------- */
+
+/* Mock skeleton (docs/eep-glass-cards-mock.html): row 1 is dock L | program |
+   dock R; row 2 is one full-width NLE strip — toolbox | timeline — that never
+   moves. G3's WorkspaceShell takes this layout over. */
+.editor {
+  grid-template-columns: minmax(260px, 24%) minmax(0, 1fr) minmax(260px, 24%);
+  grid-template-rows: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
+
+.editor > .editor-dock-library {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.editor > .work-area {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.editor > .editor-dock-inspector {
+  grid-column: 3;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Bottom row: toolbox | timeline, spanning all three top columns. */
+.editor > .editor-nle-row {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.editor-toolbox {
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-panel);
+}
+
+.editor-toolbox .timeline-tool-rail {
+  height: 100%;
+  border-right: 0;
+  background: transparent;
+}
+
+.editor-timeline-dock {
+  min-width: 0;
+  min-height: 0;
+}
+
+.editor .timeline {
+  height: 100%;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+}
+
+@media (max-width: 1280px) {
+  .editor {
+    grid-template-columns: minmax(200px, 22vw) minmax(0, 1fr) minmax(200px, 22vw);
+  }
+}
+
+/* --- Color + Effects pages ------------------------------------------------ */
+
+/* The dock cards occupy the second grid column their docked panels used to
+   own; both rows keep the pre-float proportions. */
+.color-dock-scopes,
+.effects-dock-stack {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* --- AI Assistant drawer -------------------------------------------------- */
+
+/* The drawer renders directly (no panel host); EditorModals sits inside the
+   app workspace region between menu bar and status bar. */
+.app-workspace-region {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.ai-chat-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 38vw);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ai-chat-drawer[data-open="false"] {
+  display: none;
+}
