@@ -35,7 +35,12 @@ Area modules (execution order):
 2. `panels.mjs` - command palette, shortcut rebinding, preferences
    persistence, view/theme commands, workspace switching, layout presets,
    playhead-context for shortcut commands.
-3. `timeline.mjs` - media import, pointer drop, speed/duration, clip context
+3. `geometry.mjs` - plan v4 §9 acceptance: geometry-invariance walk across all
+   eight workspace modes at 1920/1600/1280 (monitor, toolbox, timeline never
+   move or remount), the no-overlap test (no two card surfaces intersect),
+   status-bar visibility everywhere, and the sub-1300px menu-overflow
+   contract.
+4. `timeline.mjs` - media import, pointer drop, speed/duration, clip context
    menu, razor/track-select/ripple tools, keyboard trim, three-point insert,
    playhead commands, zoom, scrub, playback, frame stepping.
 4. `audio.mjs` - Fairlight channel strips and EQ DSP toggle.

@@ -2,6 +2,10 @@
 // — program monitor, toolbox, timeline — is mounted once by WorkspaceShell and
 // must never move or remount when the workspace mode changes. Only the dock
 // cards re-tab per mode.
+//
+// §9 acceptance (plan v4): the walk runs at 1920x1080, 1600x900 AND 1280x720;
+// additionally no two card surfaces may intersect in any mode ("no-overlap
+// test"), and the status bar must stay visible everywhere.
 import assert from 'node:assert/strict';
 
 const TOLERANCE_PX = 1;
@@ -55,7 +59,9 @@ async function assertStatusBarVisible(page, label) {
 
 // G6: at 1240px the tier-1 app bar must not let the menu strip paint over the
 // right-side actions (design QA §7 "Help overlapped by icons"); at 1100px the
-// menu strip scrolls instead of overflowing.
+// menu strip scrolls instead of overflowing. The bboxes only prove the boxes
+// fit, so also assert every menu trigger's right edge stays left of the file
+// actions — child overflow inside a shrunken .menu-bar must fail here too.
 async function assertMenuBarFits(page, label) {
   const menu = await page.locator('.menu-bar').boundingBox();
   const actions = await page.locator('.system-bar-right').boundingBox();
@@ -65,6 +71,76 @@ async function assertMenuBarFits(page, label) {
     `${label}: menu strip right edge (${menu.x + menu.width}) overlaps right-side actions (start ${actions.x})`,
   );
   assert.ok(menu.x + menu.width <= page.viewportSize().width, `${label}: menu strip runs past the viewport`);
+  const edges = await page.evaluate(() => {
+    const strip = document.querySelector('.menu-bar');
+    const fileActions = document.querySelector('.file-actions');
+    if (!strip || !fileActions) return null;
+    const clip = strip.getBoundingClientRect();
+    // .menu-bar scrolls (overflow-x: auto), so a trigger's layout rect can
+    // extend past the strip's visible box; only the clipped intersection is
+    // painted or clickable.
+    const visibleRights = [...document.querySelectorAll('.menu-bar .app-menu-trigger')].map((t) => {
+      const r = t.getBoundingClientRect();
+      return Math.min(r.right, clip.right);
+    });
+    return { lastRight: Math.max(0, ...visibleRights), actionsLeft: fileActions.getBoundingClientRect().x };
+  });
+  assert.ok(edges, `${label}: file actions must be mounted`);
+  assert.ok(
+    edges.lastRight <= edges.actionsLeft + TOLERANCE_PX,
+    `${label}: a menu trigger (right edge ${edges.lastRight.toFixed(1)}) paints over the file actions (start ${edges.actionsLeft.toFixed(1)})`,
+  );
+}
+
+// §9 no-overlap test: no two card surfaces may intersect (menus and modals
+// aside — menus are closed during this walk). Card surfaces are the visible
+// glass/panel blocks inside the shell plus the status bar; the 8px grid gap
+// means any pixel intersection on both axes is a real overlap.
+const CARD_SELECTORS = [
+  '.shell-dock-left',
+  '.shell-dock-right',
+  '.monitor-unified',
+  '.shell-toolbox',
+  '.shell-timeline',
+  '.shell-meter',
+  '.status-bar',
+];
+
+async function assertNoCardOverlap(page, label) {
+  // Dock cards mount with a 220ms fade+rise (G6); let the settle finish so a
+  // mid-animation transform cannot fake an overlap.
+  await page.waitForTimeout(280);
+  const boxes = await page.evaluate((selectors) => {
+    return selectors
+      .flatMap((sel) => [...document.querySelectorAll(sel)])
+      .map((el) => {
+        const r = el.getBoundingClientRect();
+        return { name: `${el.tagName.toLowerCase()}.${[...el.classList].slice(0, 2).join('.')}`, x: r.x, y: r.y, w: r.width, h: r.height };
+      })
+      .filter((b) => b.w > 0 && b.h > 0);
+  }, CARD_SELECTORS);
+  for (let i = 0; i < boxes.length; i++) {
+    for (let j = i + 1; j < boxes.length; j++) {
+      const a = boxes[i];
+      const b = boxes[j];
+      const overlapX = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+      const overlapY = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+      assert.ok(
+        overlapX <= TOLERANCE_PX || overlapY <= TOLERANCE_PX,
+        `${label}: cards overlap — ${a.name} and ${b.name} intersect by ` +
+          `${Math.max(overlapX, overlapY).toFixed(1)}px`,
+      );
+    }
+  }
+  const viewport = page.viewportSize();
+  for (const b of boxes) {
+    assert.ok(
+      b.x >= -TOLERANCE_PX && b.y >= -TOLERANCE_PX &&
+        b.x + b.w <= viewport.width + TOLERANCE_PX &&
+        b.y + b.h <= viewport.height + TOLERANCE_PX,
+      `${label}: card ${b.name} escapes the viewport (${viewport.width}x${viewport.height})`,
+    );
+  }
 }
 
 function assertSameGeometry(before, after, label) {
@@ -87,45 +163,57 @@ async function switchWorkspace(page, menu, name) {
   await page.locator('.menu-popover').waitFor({ state: 'detached' });
 }
 
+const MODE_WALK = [
+  { menu: 'Window', name: 'Workspace: Color', mode: 'color' },
+  { menu: 'Window', name: 'Workspace: Effects', mode: 'effects' },
+  // G5: all eight modes route through the same shell. Menu labels from the
+  // command catalogue: audio is "Fairlight", keyframes is "Animation".
+  { menu: 'Window', name: 'Workspace: Media', mode: 'media' },
+  { menu: 'Window', name: 'Workspace: Fusion', mode: 'fusion' },
+  { menu: 'Window', name: 'Workspace: Fairlight', mode: 'audio' },
+  { menu: 'Window', name: 'Workspace: Animation', mode: 'keyframes' },
+  { menu: 'Window', name: 'Workspace: Deliver', mode: 'deliver' },
+  { menu: 'Window', name: 'Workspace: Edit', mode: 'edit' },
+];
+
+// §9 acceptance: "read the bounding boxes of the top bar, toolbox, timeline,
+// meters and status bar. Assert they are identical across workspaces (within
+// 1px)" at every acceptance viewport. Baseline is edit mode at that viewport.
+async function sweepViewport(page, ctx, width, height) {
+  const label = `${width}x${height}`;
+  await page.setViewportSize({ width, height });
+  await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
+  const baseline = await snapshot(page);
+  for (const step of MODE_WALK) {
+    if (step.mode === 'edit') continue; // baseline mode
+    await switchWorkspace(page, step.menu, step.name);
+    await page.locator(`.workspace-shell[data-workspace="${step.mode}"]`).waitFor();
+    assertSameGeometry(baseline, await snapshot(page), `${label}: edit -> ${step.mode}`);
+    await assertStatusBarVisible(page, `${label} ${step.mode} status bar`);
+    await assertMenuBarFits(page, `${label} ${step.mode} menu bar`);
+    await assertNoCardOverlap(page, `${label} ${step.mode}`);
+  }
+  await switchWorkspace(page, 'Window', 'Workspace: Edit');
+  await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
+  assertSameGeometry(baseline, await snapshot(page), `${label}: deliver -> edit`);
+  await assertNoCardOverlap(page, `${label} edit`);
+  await assertMenuBarFits(page, `${label} edit menu bar`);
+}
+
 export async function run(ctx) {
   const page = ctx.page;
 
-  // panels.mjs leaves the app in Edit mode; verify the shell before switching.
+  // panels.mjs leaves the app in Edit mode; verify the shell before the sweep.
   await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
-  const edit = await snapshot(page);
+  await sweepViewport(page, ctx, 1920, 1080);
+  await sweepViewport(page, ctx, 1600, 900);
+  await sweepViewport(page, ctx, 1280, 720);
 
-  await switchWorkspace(page, 'Window', 'Workspace: Color');
-  await page.locator('.workspace-shell[data-workspace="color"]').waitFor();
-  assertSameGeometry(edit, await snapshot(page), 'edit -> color');
+  ctx.state.geometryInvariance = 'passed (1920/1600/1280, all eight modes)';
+  ctx.state.noCardOverlap = 'passed (all modes, three viewports)';
 
-  await switchWorkspace(page, 'Window', 'Workspace: Effects');
-  await page.locator('.workspace-shell[data-workspace="effects"]').waitFor();
-  assertSameGeometry(edit, await snapshot(page), 'color -> effects');
-
-  await switchWorkspace(page, 'Window', 'Workspace: Edit');
+  await page.setViewportSize({ width: 1920, height: 1080 });
   await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
-  assertSameGeometry(edit, await snapshot(page), 'effects -> edit');
-
-  // G5: all eight modes route through the same shell — walk the rest too.
-  // Menu labels from the command catalogue: audio is "Fairlight", keyframes is "Animation".
-  const rest = ['Media', 'Fusion', 'Fairlight', 'Animation', 'Deliver'];
-  for (const name of rest) {
-    await switchWorkspace(page, 'Window', `Workspace: ${name}`);
-    const mode = { Media: 'media', Fusion: 'fusion', Fairlight: 'audio', Animation: 'keyframes', Deliver: 'deliver' }[name];
-    await page.locator(`.workspace-shell[data-workspace="${mode}"]`).waitFor();
-    assertSameGeometry(edit, await snapshot(page), `edit -> ${mode}`);
-    await assertStatusBarVisible(page, `${mode} status bar`);
-  }
-
-  await switchWorkspace(page, 'Window', 'Workspace: Edit');
-  await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
-  assertSameGeometry(edit, await snapshot(page), 'deliver -> edit');
-
-  ctx.state.geometryInvariance = 'passed';
-
-  // G6 item 3: the status bar stays unobscured in every mode (checked above
-  // per-mode via the shared walk; assert explicitly here too).
-  await assertStatusBarVisible(page, 'edit status bar');
 
   // G6 item 1: menu bar must not overflow the app chrome below 1300px.
   await page.setViewportSize({ width: 1240, height: 900 });

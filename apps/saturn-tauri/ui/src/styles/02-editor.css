@@ -146,7 +146,10 @@
 }
 
 .file-actions { display: flex; align-items: center; gap: 4px; }
-.menu-bar { display: flex; align-items: center; gap: 2px; min-width: 0; }
+/* The menu strip scrolls in place whenever the tier-1 row is over-demanded,
+   at ANY width — it must never paint over the file actions (G6/§7.1). The
+   media queries below only shed optional chrome; scrolling is unconditional. */
+.menu-bar { display: flex; align-items: center; gap: 2px; min-width: 0; overflow-x: auto; }
 .app-menu { position: relative; font-size: 12px; }
 .app-menu-trigger { list-style: none; cursor: pointer; padding: 6px 9px; border: 0; border-radius: 4px; background: transparent; font: inherit; color: var(--text-sub); transition: background 0.15s, color 0.15s; }
 .app-menu summary::-webkit-details-marker { display: none; }

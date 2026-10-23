@@ -528,7 +528,8 @@ button:disabled { opacity: .48; cursor: not-allowed; }
 }
 
 /* G6 menu overflow: at narrow widths the tier-1 chrome sheds optional
-   elements progressively; below 1150px the menu strip scrolls in place
+   elements progressively (the menu strip itself scrolls in place at any
+   width whenever it is over-demanded — see .menu-bar in 02-editor.css),
    instead of painting over the right-side actions (design QA §7 "Help
    overlapped by icons"). */
 @media (max-width: 1400px) {
@@ -542,7 +543,6 @@ button:disabled { opacity: .48; cursor: not-allowed; }
 
 @media (max-width: 1150px) {
   .system-bar-tier1 { padding: 0 6px; }
-  .menu-bar { overflow-x: auto; }
   .file-actions { overflow: hidden; }
 }
 

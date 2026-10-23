@@ -260,6 +260,15 @@ flowchart TD
   3. Ensure status bar is never obscured.
   4. Implement smooth 220ms card mount transitions respecting `prefers-reduced-motion`.
 * **G7 — Invariance Tests & E2E Validation:** Execute Geometry Invariance tests and Playwright smoke verification.
+  * **Done (2026-10-23):** the plan-v4 §9 acceptance is closed out — the
+    geometry-invariance walk (all eight modes, remount probes) now runs at
+    **1920×1080, 1600×900 and 1280×720**, the §9 **no-overlap test** asserts no
+    two card surfaces intersect in any mode or viewport, and the status-bar +
+    menu-overflow invariants hold throughout. §7.4's bus-assign minimum width
+    is fixed; §7.4's automation pills and §7.6 were already resolved. §7.5
+    (Program "Offline media – Relink" card) is verified **missing** and folded
+    into F2. Remaining plan v4 debt: §5's 1100–1280 right-dock collapse,
+    the typed per-workspace column-ratio table, and the F workstream.
 
 ### Functional Workstream F
 
