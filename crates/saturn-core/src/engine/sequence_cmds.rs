@@ -289,6 +289,36 @@ impl EditorEngine {
                     "sequence_id": sequence_id,
                 }))
             })()),
+            "sequence.lift" => Some((|| {
+                let params: TimeRangeListParams = parse_params(params)?;
+                if params.ranges.is_empty() {
+                    return Err(DispatchError::InvalidParameters(
+                        "Provide one or more lift ranges".into(),
+                    ));
+                }
+                self.checkpoint();
+                let report = crate::speech::lift_time_ranges(
+                    &mut self.document.project.sequence,
+                    &params.ranges,
+                )
+                .map_err(DispatchError::Operation)?;
+                Ok(serde_json::to_value(&report).unwrap_or(json!({"lifted": true})))
+            })()),
+            "sequence.extract" => Some((|| {
+                let params: TimeRangeListParams = parse_params(params)?;
+                if params.ranges.is_empty() {
+                    return Err(DispatchError::InvalidParameters(
+                        "Provide one or more extract ranges".into(),
+                    ));
+                }
+                self.checkpoint();
+                let report = crate::speech::ripple_delete_time_ranges(
+                    &mut self.document.project.sequence,
+                    &params.ranges,
+                )
+                .map_err(DispatchError::Operation)?;
+                Ok(serde_json::to_value(&report).unwrap_or(json!({"extracted": true})))
+            })()),
             _ => None,
         }
     }

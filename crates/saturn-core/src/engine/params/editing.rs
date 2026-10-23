@@ -486,6 +486,11 @@ pub(in crate::engine) struct RippleDeleteRangesParams {
 }
 
 #[derive(Deserialize)]
+pub(in crate::engine) struct TimeRangeListParams {
+    pub(in crate::engine) ranges: Vec<(Tick, Tick)>,
+}
+
+#[derive(Deserialize)]
 pub(in crate::engine) struct ImportEdlParams {
     pub(in crate::engine) edl: String,
     pub(in crate::engine) project_name: Option<String>,

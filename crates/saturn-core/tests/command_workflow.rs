@@ -3084,3 +3084,95 @@ fn graphics_flags_lock_blocks_property_mutations_but_not_unlock() {
     assert_eq!(graphic.transform.x, 0.0);
     assert!(graphic.locked);
 }
+
+#[test]
+fn lift_and_extract_edit_marks_range_content() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name": "Lift Extract workflow"}),
+        ))
+        .unwrap();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name":"rocks.mov", "path":"/assets/rocks.mov", "kind":"video",
+                "duration": TICKS_PER_SECOND * 30
+            }),
+        ))
+        .unwrap();
+    let media_id = media["media_id"].as_u64().unwrap();
+
+    // Clip A: 0..3s on V1, plus one unused audio clip on A1.
+    engine
+        .execute(CommandRequest::new(
+            "timeline.insert_clip",
+            json!({
+                "media_id": media_id, "track_id": 1, "at": 0,
+                "source_in": 0, "duration": TICKS_PER_SECOND * 3
+            }),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.insert_clip",
+            json!({
+                "media_id": media_id, "track_id": 1, "at": TICKS_PER_SECOND * 5,
+                "source_in": TICKS_PER_SECOND * 10, "duration": TICKS_PER_SECOND * 3
+            }),
+        ))
+        .unwrap();
+
+    // Lift 1s..2s: clip A is cut, gaps stay open, clip B untouched.
+    let lifted = engine
+        .execute(CommandRequest::new(
+            "sequence.lift",
+            json!({"ranges": [[TICKS_PER_SECOND, TICKS_PER_SECOND * 2]]}),
+        ))
+        .unwrap();
+    assert_eq!(lifted["lifted_ranges_count"], 1);
+    assert_eq!(lifted["tracks_affected"], 1);
+
+    let clips_v1 = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips_v1.len(), 3);
+    assert_eq!(clips_v1[0].timeline_start.0, 0);
+    assert_eq!(clips_v1[0].duration.0, TICKS_PER_SECOND);
+    assert_eq!(clips_v1[1].timeline_start.0, TICKS_PER_SECOND * 2);
+    assert_eq!(clips_v1[1].duration.0, TICKS_PER_SECOND);
+    assert_eq!(clips_v1[2].timeline_start.0, TICKS_PER_SECOND * 5);
+    assert_eq!(clips_v1[2].duration.0, TICKS_PER_SECOND * 3);
+    let sequence_end = engine.document().project.sequence.duration();
+    assert_eq!(sequence_end.0, TICKS_PER_SECOND * 8);
+
+    // Undo the lift.
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    let clips_v1 = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips_v1.len(), 2);
+    assert_eq!(clips_v1[0].duration.0, TICKS_PER_SECOND * 3);
+
+    // Extract the exact gap 3s..5s: closing it ripples clip B left by 2s.
+    let extracted = engine
+        .execute(CommandRequest::new(
+            "sequence.extract",
+            json!({"ranges": [[TICKS_PER_SECOND * 3, TICKS_PER_SECOND * 5]]}),
+        ))
+        .unwrap();
+    assert_eq!(extracted["deleted_ranges_count"], 1);
+    assert_eq!(extracted["total_duration_removed_ticks"], TICKS_PER_SECOND * 2);
+
+    let clips_v1 = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips_v1.len(), 2);
+    assert_eq!(clips_v1[0].duration.0, TICKS_PER_SECOND * 3);
+    assert_eq!(clips_v1[1].timeline_start.0, TICKS_PER_SECOND * 3);
+    assert_eq!(clips_v1[1].source_in.0, TICKS_PER_SECOND * 10);
+    let sequence_end = engine.document().project.sequence.duration();
+    assert_eq!(sequence_end.0, TICKS_PER_SECOND * 6);
+
+    // Empty ranges are rejected.
+    let empty = engine.execute(CommandRequest::new("sequence.lift", json!({"ranges": []})));
+    assert!(empty.is_err());
+}
