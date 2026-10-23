@@ -9,7 +9,6 @@ use saturn_render::{analyze_pcm_loudness, LoudnessReport, LoudnessStandard, Pres
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::{json, Value};
-use std::hash::{Hash, Hasher};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -23,6 +22,7 @@ mod mcp_bridge;
 mod media_server;
 mod net;
 mod path_validation;
+mod preview_cache;
 mod recovery;
 mod state;
 
@@ -70,7 +70,23 @@ fn main() {
                     }
                 }
                 if let Ok(cache_dir) = app.path().app_cache_dir() {
-                    set_app_cache_dir(cache_dir);
+                    set_app_cache_dir(cache_dir.clone());
+                    // Orphaned preview proxies (media deleted or relinked)
+                    // cannot be invalidated precisely, so the lifecycle is
+                    // age-based: prune at startup, off the UI thread.
+                    let proxy_dir = cache_dir.join(preview_cache::CACHE_SUBDIR);
+                    std::thread::spawn(move || {
+                        let (removed, bytes) = preview_cache::prune_stale_proxies(
+                            &proxy_dir,
+                            preview_cache::MAX_AGE,
+                            std::time::SystemTime::now(),
+                        );
+                        if removed > 0 {
+                            eprintln!(
+                                "pruned {removed} stale preview proxies ({bytes} bytes)"
+                            );
+                        }
+                    });
                 }
                 if let Ok(guard) = state.0.lock() {
                     for media in &guard.document().project.media {

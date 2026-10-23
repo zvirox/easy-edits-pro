@@ -157,18 +157,14 @@ pub async fn prepare_video_preview(
             .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
             .map(|time| time.as_nanos())
             .unwrap_or_default();
-        let mut key = std::collections::hash_map::DefaultHasher::new();
-        source.hash(&mut key);
-        metadata.len().hash(&mut key);
-        modified.hash(&mut key);
         let cache_dir = app_clone
             .path()
             .app_cache_dir()
             .map_err(|error| format!("Could not locate the preview cache: {error}"))?
-            .join("video-previews");
+            .join(crate::preview_cache::CACHE_SUBDIR);
         std::fs::create_dir_all(&cache_dir)
             .map_err(|error| format!("Could not create the preview cache: {error}"))?;
-        let output = cache_dir.join(format!("{:016x}.webm", key.finish()));
+        let output = crate::preview_cache::proxy_path(&cache_dir, &source, metadata.len(), modified);
         if output.is_file() && std::fs::metadata(&output).is_ok_and(|info| info.len() > 0) {
             let _ = app_clone.asset_protocol_scope().allow_file(&output);
             register_allowed_media_path(&output);
