@@ -71,5 +71,19 @@ export async function run(ctx) {
   await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
   assertSameGeometry(edit, await snapshot(page), 'effects -> edit');
 
+  // G5: all eight modes route through the same shell — walk the rest too.
+  // Menu labels from the command catalogue: audio is "Fairlight", keyframes is "Animation".
+  const rest = ['Media', 'Fusion', 'Fairlight', 'Animation', 'Deliver'];
+  for (const name of rest) {
+    await switchWorkspace(page, 'Window', `Workspace: ${name}`);
+    const mode = { Media: 'media', Fusion: 'fusion', Fairlight: 'audio', Animation: 'keyframes', Deliver: 'deliver' }[name];
+    await page.locator(`.workspace-shell[data-workspace="${mode}"]`).waitFor();
+    assertSameGeometry(edit, await snapshot(page), `edit -> ${mode}`);
+  }
+
+  await switchWorkspace(page, 'Window', 'Workspace: Edit');
+  await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
+  assertSameGeometry(edit, await snapshot(page), 'deliver -> edit');
+
   ctx.state.geometryInvariance = 'passed';
 }

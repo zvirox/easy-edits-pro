@@ -1,4 +1,5 @@
-import { InteriorButton } from "../components/interior/interior-button";
+import { InteriorButton } from "../../components/interior/interior-button";
+import { DockCard } from "../../features/dock/DockCard";
 import { type MouseEvent } from "react";
 import {
   type ProjectDocument,
@@ -7,7 +8,7 @@ import {
   type CompositingNodeKind,
   type NodeConnection,
   type RotoSplinePoint,
-} from "../types";
+} from "../../types";
 
 export interface ConnectingSocket {
   nodeId: number;
@@ -15,7 +16,7 @@ export interface ConnectingSocket {
   isOutput: boolean;
 }
 
-export interface FusionWorkspaceProps {
+export interface FusionDockProps {
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
   selectedNodeId: number | null;
@@ -41,7 +42,7 @@ export interface FusionWorkspaceProps {
   setNotice: (msg: string) => void;
 }
 
-export function FusionWorkspace({
+export function FusionDockRight({
   project,
   media,
   selectedNodeId,
@@ -65,7 +66,7 @@ export function FusionWorkspace({
   fusionMaskPoints,
   addRotoSplineMask,
   setNotice,
-}: FusionWorkspaceProps) {
+}: FusionDockProps) {
   const graph = project?.sequence?.node_graph ?? { nodes: [], connections: [], masks: [] };
   const nodes: CompositingNode[] = graph.nodes;
   const connections: NodeConnection[] = graph.connections;
@@ -135,18 +136,19 @@ export function FusionWorkspace({
   };
 
   return (
-    <main className="workspace-page fusion-workspace-page">
-      <header className="workspace-sub-header fusion-workspace-header" style={{ height: "36px", minHeight: "36px", padding: "0 12px" }}>
-        <div className="scopes-title-group" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <strong style={{ fontSize: "11px", letterSpacing: "0.06em", color: "var(--text-secondary)" }}>FUSION NODE COMPOSITING</strong>
-          <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
-            ({nodes.length} nodes · {connections.length} links)
-          </span>
-        </div>
-
-        <div className="fusion-header-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div className="fusion-add-buttons">
-            <span className="fusion-add-label">+ Add Node:</span>
+    <DockCard
+        className="shell-dock shell-dock-right"
+        ariaLabel="Fusion dock"
+        tabs={[
+          {
+            id: "fusion-canvas",
+            title: "Fusion Canvas",
+            render: () => (
+              <div className="fusion-canvas-dock-body">
+            <div className="fusion-add-buttons" style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
+            <span className="fusion-add-label">
+              {nodes.length} nodes · {connections.length} links
+            </span>
             <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("merge")}>Merge</InteriorButton>
             <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("transform")}>Transform</InteriorButton>
             <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("keyer")}>ChromaKey</InteriorButton>
@@ -154,17 +156,12 @@ export function FusionWorkspace({
             <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("particles")}>Particles</InteriorButton>
             <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("media_source")}>MediaIn</InteriorButton>
             <InteriorButton className="fusion-tool-btn" onClick={() => void addFusionNode("output_sink")}>MediaOut</InteriorButton>
+            {nodes.length === 0 && (
+              <InteriorButton className="primary-action-btn" onClick={() => void initStarterTree()} style={{ padding: "3px 10px", fontSize: "11px" }}>
+                ✨ Init Tree
+              </InteriorButton>
+            )}
           </div>
-          {nodes.length === 0 && (
-            <InteriorButton className="primary-action-btn" onClick={() => void initStarterTree()} style={{ padding: "3px 10px", fontSize: "11px" }}>
-              ✨ Init Tree
-            </InteriorButton>
-          )}
-        </div>
-      </header>
-
-      <div className="fusion-body">
-        {/* Main Node Graph Canvas */}
         <div
           className="fusion-canvas-container"
           onMouseDown={handleCanvasMouseDown}
@@ -331,7 +328,14 @@ export function FusionWorkspace({
           })}
         </div>
 
-        {/* Right Inspector Sidebar for Selected Node */}
+              </div>
+            ),
+          },
+          {
+            id: "fusion-node-inspector",
+            title: "Node Inspector",
+            render: () => (
+              <div className="fusion-inspector-dock-body fusion-body">
         <aside className="fusion-inspector-panel">
           {selectedNode ? (
             <div className="fusion-node-inspector">
@@ -609,7 +613,10 @@ export function FusionWorkspace({
             </div>
           )}
         </aside>
-      </div>
-    </main>
+              </div>
+            ),
+          },
+        ]}
+      />
   );
 }

@@ -1,0 +1,94 @@
+/* G5 contextual workspace docking (docs/eep-glass-cards-mock.html): the
+   Fairlight, Deliver, Fusion, Keyframes, and Media suites dock around the
+   persistent shell. Each mode's dock-tab body fills the dock card and scrolls
+   its own content; the shell geometry never changes with the mode. Colours
+   and spacing come only from tokens (check:token-freeze). */
+
+.fairlight-mixer-dock-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.fairlight-master-dock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.fairlight-master-dock-body .audio-submix-buses-row {
+  flex-wrap: wrap;
+}
+
+.fairlight-automation-dock-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+
+.export-dock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.fusion-canvas-dock-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.fusion-canvas-dock-body .fusion-canvas-container {
+  flex: 1;
+  min-height: 0;
+}
+
+.fusion-inspector-dock-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.keyframes-curve-dock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.keyframes-curve-dock-body .curve-editor-stage {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.keyframes-tangent-dock-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.media-dock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+.media-dock-body .import-library-section {
+  flex: 1;
+}

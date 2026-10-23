@@ -1,5 +1,5 @@
 import { InteriorButton } from "../../components/interior/interior-button";
-import { keyframeOptions } from "../../workspaces/KeyframesWorkspace";
+import { keyframeOptions } from "../../workspaces/keyframes/curveGeometry";
 import { formatTime } from "../../utils/formatters";
 import type { KeyframeProperty, InterpolationKind } from "../../engine/playback/types";
 import type { Clip, SelectedClip } from "../../app/projectTypes";

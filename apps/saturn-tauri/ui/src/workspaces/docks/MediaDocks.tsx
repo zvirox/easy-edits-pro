@@ -1,9 +1,10 @@
-import { InteriorButton } from "../components/interior/interior-button";
-import type { SelectedClip, MediaAsset, ProjectDocument, DavinciWorkspace } from "../types";
-import { Icon } from "../components/Icon";
-import { formatTime } from "../utils/formatters";
+import { InteriorButton } from "../../components/interior/interior-button";
+import { DockCard } from "../../features/dock/DockCard";
+import type { SelectedClip, MediaAsset, ProjectDocument, DavinciWorkspace } from "../../types";
+import { Icon } from "../../components/Icon";
+import { formatTime } from "../../utils/formatters";
 
-export interface MediaWorkspaceProps {
+export interface MediaDockProps {
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
   visibleMedia: MediaAsset[];
@@ -20,7 +21,7 @@ export interface MediaWorkspaceProps {
   missingMediaIds: Set<number>;
 }
 
-export function MediaWorkspace({
+export function MediaDockLeft({
   project,
   media,
   visibleMedia,
@@ -35,9 +36,17 @@ export function MediaWorkspace({
   setSearch,
   busy,
   missingMediaIds,
-}: MediaWorkspaceProps) {
+}: MediaDockProps) {
   return (
-    <main className="workspace-page import-workspace" style={{ padding: "16px 20px", gap: "14px" }}>
+    <DockCard
+        className="shell-dock shell-dock-left"
+        ariaLabel="Project media dock"
+        tabs={[
+          {
+            id: "project-media",
+            title: "Project Media",
+            render: () => (
+              <div className="media-dock-body">
       {/* Compact Studio Header */}
       <header
         className="workspace-page-heading"
@@ -170,6 +179,10 @@ export function MediaWorkspace({
           </div>
         )}
       </section>
-    </main>
+              </div>
+            ),
+          },
+        ]}
+      />
   );
 }

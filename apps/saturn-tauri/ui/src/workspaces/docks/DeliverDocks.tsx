@@ -1,7 +1,8 @@
-import { InteriorButton } from "../components/interior/interior-button";
+import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction, ReactNode } from "react";
-import { Icon } from "../components/Icon";
-import { StudioPanel } from "../components/StudioPanel";
+import { Icon } from "../../components/Icon";
+import { StudioPanel } from "../../components/StudioPanel";
+import { DockCard } from "../../features/dock/DockCard";
 import {
   type ProjectDocument,
   type MediaAsset,
@@ -10,10 +11,10 @@ import {
   resolutionPresets,
   exportPresets,
   exportFrameRateOptions,
-} from "../types";
-import { formatTime } from "../utils/formatters";
+} from "../../types";
+import { formatTime } from "../../utils/formatters";
 
-export interface ExportWorkspaceProps {
+export interface DeliverDockProps {
   project: ProjectDocument["project"] | null;
   batchQueue: BatchQueueItem[];
   setBatchQueue: Dispatch<SetStateAction<BatchQueueItem[]>>;
@@ -54,7 +55,7 @@ export interface ExportWorkspaceProps {
   exportProject: () => Promise<void> | void;
 }
 
-export function ExportWorkspace({
+export function DeliverDockRight({
   project,
   batchQueue,
   setBatchQueue,
@@ -93,7 +94,7 @@ export function ExportWorkspace({
   renderProgress,
   addExportToQueue,
   exportProject,
-}: ExportWorkspaceProps) {
+}: DeliverDockProps) {
   const outputResolution =
     exportResolution === "source"
       ? { width: project?.settings.width ?? 1920, height: project?.settings.height ?? 1080 }
@@ -126,7 +127,15 @@ export function ExportWorkspace({
     : "Choose a destination folder";
 
   return (
-    <main className="export-workspace">
+    <DockCard
+        className="shell-dock shell-dock-right"
+        ariaLabel="Deliver dock"
+        tabs={[
+          {
+            id: "export-settings",
+            title: "Export",
+            render: () => (
+              <div className="export-dock-body">
       <StudioPanel title="Destinations" className="export-destinations" scrollable>
         <InteriorButton
           className={`export-destination ${deliverDestination === "render" ? "selected" : ""}`}
@@ -725,6 +734,10 @@ export function ExportWorkspace({
           </StudioPanel>
         </>
       )}
-    </main>
+              </div>
+            ),
+          },
+        ]}
+      />
   );
 }

@@ -7,7 +7,7 @@ export async function run(ctx) {
 
   const audioWorkspaceNav = page.getByRole('radiogroup', { name: 'Workspaces' });
   await audioWorkspaceNav.getByRole('radio', { name: 'Fairlight' }).click();
-  await page.getByText('FAIRLIGHT SOUND SUITE').waitFor();
+  await page.locator('.workspace-shell[data-workspace="audio"]').waitFor();
   await page.getByText('CHANNEL STRIP RACK').waitFor();
   await page.locator('.eq-module .dsp-power-btn').click();
   await page.waitForFunction(() => Array.from(document.querySelectorAll('.eq-module .dsp-power-btn')).some(button => button.textContent?.trim() === 'ACTIVE'));

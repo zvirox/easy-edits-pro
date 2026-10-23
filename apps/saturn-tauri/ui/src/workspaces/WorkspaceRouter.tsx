@@ -1,13 +1,9 @@
-import { MediaWorkspace } from "./MediaWorkspace";
 import type { MediaPanelProps } from "../features/media-pool";
 import type { InspectorPanelProps } from "../features/inspector";
 import type { MarkersPanelProps } from "../features/markers";
 import type { CaptionsPanelProps } from "../features/captions";
-import { ExportWorkspace } from "./ExportWorkspace";
-import { FairlightWorkspace } from "./FairlightWorkspace";
-import { FusionWorkspace } from "./FusionWorkspace";
-import { KeyframesWorkspace } from "./KeyframesWorkspace";
 import { WorkspaceShell } from "./WorkspaceShell";
+import { specialModeDocks } from "./SpecialModeShells";
 import {
   EditDockLeft,
   EditDockRight,
@@ -156,161 +152,6 @@ export function WorkspaceRouter({
       document.removeEventListener("pointerup", onPointerUp, true);
     };
   }, []);
-
-  if (davinciWorkspace === "media") {
-    return (
-      <MediaWorkspace
-        project={project}
-        media={media}
-        visibleMedia={mediaOps.visibleMedia}
-        selectedMediaId={mediaOps.selectedMediaId}
-        setSelectedMediaId={mediaOps.setSelectedMediaId}
-        setSelectedClip={timelineOps.setSelectedClip}
-        setSelectedClips={timelineOps.setSelectedClips}
-        selectDavinciWorkspace={selectDavinciWorkspace}
-        importMedia={mediaOps.importMedia}
-        setNetworkImportModalOpen={mediaOps.setNetworkImportModalOpen}
-        search={mediaOps.search}
-        setSearch={mediaOps.setSearch}
-        busy={busy}
-        missingMediaIds={missingMediaIds}
-      />
-    );
-  }
-
-  if (davinciWorkspace === "deliver") {
-    return (
-      <ExportWorkspace
-        project={project}
-        batchQueue={[]}
-        setBatchQueue={() => {}}
-        queuePaused={false}
-        toggleQueuePause={() => {}}
-        deliverDestination="render"
-        setDeliverDestination={() => {}}
-        handleExportTimelineInterop={projectOps.handleExportTimelineInterop}
-        handleImportTimelineInterop={projectOps.handleImportTimelineInterop}
-        isInteropBusy={projectOps.isInteropBusy}
-        interopContent={projectOps.interopContent}
-        setNotice={projectOps.setNotice}
-        encoderInfo={null}
-        selectedExportPreset="source"
-        setSelectedExportPreset={() => {}}
-        exportResolution={projectOps.exportResolution}
-        setExportResolution={projectOps.setExportResolution}
-        exportFrameRate={projectOps.exportFrameRate}
-        setExportFrameRate={projectOps.setExportFrameRate}
-        exportFormat={projectOps.exportFormat}
-        setExportFormat={projectOps.setExportFormat}
-        exportFileName={projectOps.exportFileName}
-        setExportFileName={projectOps.setExportFileName}
-        exportOutputPath={projectOps.exportOutputPath}
-        setExportOutputPath={projectOps.setExportOutputPath}
-        chooseExportDestination={projectOps.chooseExportDestination}
-        useHardwareEncoding={projectOps.useHardwareEncoding}
-        setUseHardwareEncoding={projectOps.setUseHardwareEncoding}
-        exportMarkedRange={projectOps.exportMarkedRange}
-        setExportMarkedRange={projectOps.setExportMarkedRange}
-        invokeMenuCommand={invokeMenuCommand}
-        activeClip={null}
-        selectedMedia={selectedMedia}
-        renderPreview={() => null}
-        rendering={projectOps.rendering}
-        renderProgress={projectOps.renderProgress}
-        addExportToQueue={() => {}}
-        exportProject={projectOps.exportProject}
-      />
-    );
-  }
-
-  if (davinciWorkspace === "fusion") {
-    return (
-      <FusionWorkspace
-        project={project}
-        media={media}
-        selectedNodeId={null}
-        setSelectedNodeId={() => {}}
-        connectingSocket={null}
-        setConnectingSocket={() => {}}
-        draggingNodeId={null}
-        setDraggingNodeId={() => {}}
-        nodeDragOffset={{ x: 0, y: 0 }}
-        setNodeDragOffset={() => {}}
-        updateFusionNodePos={async () => {}}
-        connectFusionSockets={async () => {}}
-        disconnectFusionSockets={async () => {}}
-        addFusionNode={async () => {}}
-        removeFusionNode={async () => {}}
-        updateFusionNodeParams={async () => {}}
-        fusionMaskFeather={8}
-        setFusionMaskFeather={() => {}}
-        fusionMaskInverted={false}
-        setFusionMaskInverted={() => {}}
-        fusionMaskPoints={[]}
-        addRotoSplineMask={async () => {}}
-        setNotice={() => {}}
-      />
-    );
-  }
-
-  if (davinciWorkspace === "audio") {
-    return (
-      <FairlightWorkspace
-        project={project}
-        media={media}
-        playhead={playback.playhead}
-        timelineZoom={timelineOps.timelineZoom}
-        timelineWidth={timelineWidth}
-        selectedClip={timelineOps.selectedClip}
-        setSelectedClip={timelineOps.setSelectedClip}
-        setSelectedClips={timelineOps.setSelectedClips}
-        selectedFairlightTrackId={audioOps.selectedFairlightTrackId}
-        setSelectedFairlightTrackId={audioOps.setSelectedFairlightTrackId}
-        audioProcessingDrafts={audioOps.audioProcessingDrafts}
-        setAudioProcessingDrafts={audioOps.setAudioProcessingDrafts}
-        saveTrackAudioProcessing={audioOps.saveTrackAudioProcessing}
-        trackGr={audioOps.trackGr}
-        masterGr={audioOps.masterGr}
-        vuLevels={audioOps.vuLevels}
-        masterVu={audioOps.masterVu}
-        gainDrafts={timelineOps.gainDrafts}
-        setGainDrafts={timelineOps.setGainDrafts}
-        saveTrackGain={timelineOps.saveTrackGain}
-        panDrafts={timelineOps.panDrafts}
-        setPanDrafts={timelineOps.setPanDrafts}
-        saveTrackPan={timelineOps.saveTrackPan}
-        masterGainDraft={audioOps.masterGainDraft}
-        setMasterGainDraft={audioOps.setMasterGainDraft}
-        busGainDrafts={audioOps.busGainDrafts}
-        setBusGainDrafts={audioOps.setBusGainDrafts}
-        loudnessStandard={audioOps.loudnessStandard}
-        setLoudnessStandard={audioOps.setLoudnessStandard}
-        loudnessReport={audioOps.loudnessReport}
-        autoTrimLoudness={audioOps.autoTrimLoudness}
-        resetLoudness={audioOps.resetLoudness}
-        programPlaying={playback.programPlaying}
-        toggleProgramPlayback={playback.toggleProgramPlayback}
-        stepProgramFrame={playback.stepProgramFrame}
-        handleShuttleKey={playback.handleShuttleKey}
-        clearAllSolos={audioOps.clearAllSolos}
-        muteAllTracks={audioOps.muteAllTracks}
-        toggleTrackMute={timelineOps.toggleTrackMute}
-        toggleTrackSolo={timelineOps.toggleTrackSolo}
-        toggleTrackLock={timelineOps.toggleTrackLock}
-        setTrackBusRoute={audioOps.setTrackBusRoute}
-        setTrackAutomationMode={audioOps.setTrackAutomationMode}
-        addTrackPlugin={audioOps.addTrackPlugin}
-        toggleTrackPlugin={audioOps.toggleTrackPlugin}
-        zoomTimeline={timelineOps.zoomTimeline}
-        beginTimelineScrub={timelineOps.beginTimelineScrub}
-        moveTimelineScrub={timelineOps.moveTimelineScrub}
-        finishTimelineScrub={timelineOps.finishTimelineScrub}
-        renderProgramMonitor={() => null}
-        audioClockMaster={audioClockMaster}
-        perform={async (cmd, payload) => perform(cmd, payload)}
-      />
-    );
-  }
 
   const mediaPanelProps: MediaPanelProps = {
         filmoraTab: mediaOps.filmoraTab,
@@ -630,42 +471,7 @@ export function WorkspaceRouter({
         ops: graphicsOps,
         playhead: playback.playhead,
         frame: project?.settings ?? { width: 1920, height: 1080 },
-  };  if (davinciWorkspace === "keyframes") {
-    return (
-      <KeyframesWorkspace
-        project={project}
-        media={media}
-        selectedClip={timelineOps.selectedClip}
-        selectedTimelineClip={selectedTimelineClip}
-        setSelectedClip={timelineOps.setSelectedClip}
-        setSelectedClips={timelineOps.setSelectedClips}
-        keyframeProperty={inspectorOps.keyframeProperty}
-        setKeyframeProperty={inspectorOps.setKeyframeProperty}
-        keyframeValue={inspectorOps.keyframeValue}
-        setKeyframeValue={inspectorOps.setKeyframeValue}
-        keyframeInterpDraft={inspectorOps.keyframeInterpDraft}
-        setKeyframeInterpDraft={inspectorOps.setKeyframeInterpDraft}
-        keyframeHandleInX={inspectorOps.keyframeHandleInX}
-        setKeyframeHandleInX={() => {}}
-        keyframeHandleInY={inspectorOps.keyframeHandleInY}
-        setKeyframeHandleInY={() => {}}
-        keyframeHandleOutX={inspectorOps.keyframeHandleOutX}
-        setKeyframeHandleOutX={() => {}}
-        keyframeHandleOutY={inspectorOps.keyframeHandleOutY}
-        setKeyframeHandleOutY={() => {}}
-        selectedKeyframeTime={inspectorOps.selectedKeyframeTime}
-        setSelectedKeyframeTime={inspectorOps.setSelectedKeyframeTime}
-        playhead={playback.playhead}
-        seekProgramTo={playback.seekProgramTo}
-        programPlaying={playback.programPlaying}
-        toggleProgramPlayback={playback.toggleProgramPlayback}
-        saveKeyframe={inspectorOps.saveKeyframe}
-        deleteKeyframe={inspectorOps.deleteKeyframe}
-      />
-    );
-  }
-
-  const shellToolbox = (
+  };  const shellToolbox = (
     <TimelineToolRail
       timelineTool={timelineSectionProps.timelineTool}
       setTimelineTool={timelineSectionProps.setTimelineTool}
@@ -673,6 +479,51 @@ export function WorkspaceRouter({
   );
   const shellTimeline = <TimelineSection {...timelineSectionProps} />;
   const shellCenter = <PreviewSection {...previewSectionProps} />;
+  const isShellWorkspace =
+    davinciWorkspace === "media" ||
+    davinciWorkspace === "deliver" ||
+    davinciWorkspace === "fusion" ||
+    davinciWorkspace === "audio" ||
+    davinciWorkspace === "keyframes";
+  if (isShellWorkspace) {
+    const docks = specialModeDocks({
+      davinciWorkspace,
+      project,
+      media,
+      selectedMedia,
+      selectedTimelineClip,
+      busy,
+      missingMediaIds,
+      timelineWidth,
+      selectDavinciWorkspace,
+      playback,
+      mediaOps,
+      timelineOps,
+      inspectorOps,
+      projectOps,
+      audioOps,
+      audioClockMaster,
+      invokeMenuCommand,
+      perform,
+      panelProps: {
+        media: mediaPanelProps,
+        inspector: inspectorPanelProps,
+        markers: markersPanelProps,
+        captions: captionsPanelProps,
+        graphics: graphicsPanelProps,
+      },
+    });
+    return (
+      <WorkspaceShell
+        mode={davinciWorkspace}
+        left={docks.left}
+        right={docks.right}
+        center={shellCenter}
+        toolbox={shellToolbox}
+        timeline={shellTimeline}
+      />
+    );
+  }
 
   if (davinciWorkspace === "color" || davinciWorkspace === "effects") {
     const isColor = davinciWorkspace === "color";

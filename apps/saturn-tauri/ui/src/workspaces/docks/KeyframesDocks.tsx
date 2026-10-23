@@ -1,26 +1,23 @@
-import { InteriorButton } from "../components/interior/interior-button";
+import { InteriorButton } from "../../components/interior/interior-button";
+import { DockCard } from "../../features/dock/DockCard";
 import {
-  type ProjectDocument,
   type MediaAsset,
   type SelectedClip,
   type Clip,
   type KeyframeProperty,
   type InterpolationKind,
-} from "../types";
-import { formatTime } from "../utils/formatters";
-import { keyframeOptions, computeCurveGeometry } from "./keyframes/curveGeometry";
-import { CurveCanvas } from "./keyframes/CurveCanvas";
-import { CurveSidebar } from "./keyframes/CurveSidebar";
+} from "../../types";
+import { formatTime } from "../../utils/formatters";
+import { keyframeOptions, computeCurveGeometry } from "../keyframes/curveGeometry";
+import { CurveCanvas } from "../keyframes/CurveCanvas";
+import { CurveSidebar } from "../keyframes/CurveSidebar";
 
 export { keyframeOptions };
 
-export interface KeyframesWorkspaceProps {
-  project: ProjectDocument["project"] | null;
+export interface KeyframesDockProps {
   media: MediaAsset[];
   selectedClip: SelectedClip | null;
   selectedTimelineClip: Clip | null;
-  setSelectedClip: (clip: SelectedClip | null) => void;
-  setSelectedClips: (clips: SelectedClip[]) => void;
   keyframeProperty: KeyframeProperty;
   setKeyframeProperty: (prop: KeyframeProperty) => void;
   keyframeValue: string;
@@ -54,13 +51,10 @@ export interface KeyframesWorkspaceProps {
   deleteKeyframe: (property: KeyframeProperty, time: number) => Promise<void>;
 }
 
-export function KeyframesWorkspace({
-  project,
+export function KeyframesDockRight({
   media,
   selectedClip,
   selectedTimelineClip,
-  setSelectedClip,
-  setSelectedClips,
   keyframeProperty,
   setKeyframeProperty,
   keyframeValue,
@@ -83,11 +77,7 @@ export function KeyframesWorkspace({
   toggleProgramPlayback,
   saveKeyframe,
   deleteKeyframe,
-}: KeyframesWorkspaceProps) {
-  const allClips = (project?.sequence.tracks ?? []).flatMap((track) =>
-    track.clips.map((clip, index) => ({ track, clip, index, mediaItem: media.find((m) => m.id === clip.media_id) }))
-  );
-
+}: KeyframesDockProps) {
   const geometry = computeCurveGeometry({
     clipKeyframes: selectedTimelineClip?.keyframes ?? [],
     keyframeProperty,
@@ -122,29 +112,24 @@ export function KeyframesWorkspace({
   };
 
   return (
-    <main className="workspace-page keyframes-workspace-page">
-      <header className="workspace-sub-header keyframes-workspace-header">
-        <div className="workspace-header-title">
-          <h1>Keyframe Bezier Curve Editor</h1>
-          <p>
-            Sculpt property curves with interactive cubic bezier tangents, smooth ease-in/out transitions, and live preview sync.
-          </p>
-        </div>
-        <div className="keyframes-header-actions">
-          <span className="keyframes-target-info">
-            {selectedTimelineClip ? (
-              <>
-                Target: <strong>{media.find((m) => m.id === selectedTimelineClip.media_id)?.name ?? "Clip"}</strong>
-              </>
-            ) : (
-              <span className="keyframes-hint-text">Select a clip in the reel below to edit curves</span>
-            )}
-          </span>
-        </div>
-      </header>
-
-      <div className="keyframes-studio-body">
-        {/* Main Visual Curve Editor Area */}
+    <DockCard
+        className="shell-dock shell-dock-right"
+        ariaLabel="Keyframes dock"
+        tabs={[
+          {
+            id: "keyframes-curves",
+            title: "Curves",
+            render: () => (
+              <div className="keyframes-curve-dock-body">
+                <div className="keyframes-target-info">
+                  {selectedTimelineClip ? (
+                    <>
+                      Target: <strong>{media.find((m) => m.id === selectedTimelineClip.media_id)?.name ?? "Clip"}</strong>
+                    </>
+                  ) : (
+                    <span className="keyframes-hint-text">Select a clip in the timeline to edit curves</span>
+                  )}
+                </div>
         <section className="curve-editor-stage">
           <div className="curve-editor-container">
             <div className="curve-editor-toolbar">
@@ -275,9 +260,15 @@ export function KeyframesWorkspace({
             </div>
           </div>
         </section>
-
-        {/* Right Sidebar: Tangents & Interpolation Controls */}
-        <CurveSidebar
+              </div>
+            ),
+          },
+          {
+            id: "keyframes-tangents",
+            title: "Tangents",
+            render: () => (
+              <div className="keyframes-tangent-dock-body">
+                <CurveSidebar
           geometry={geometry}
           selectedClip={selectedClip}
           keyframeProperty={keyframeProperty}
@@ -294,42 +285,11 @@ export function KeyframesWorkspace({
           keyframeHandleOutY={keyframeHandleOutY}
           setKeyframeHandleOutY={setKeyframeHandleOutY}
           saveKeyframe={saveKeyframe}
-        />
-      </div>
-
-      {/* Bottom Clips Reel Tray */}
-      <section className="clips-reel-tray">
-        <div className="reel-tray-header">
-          <strong>SEQUENCE CLIPS REEL</strong>
-          <small>{allClips.length} clips on timeline · Click any clip to view its curves</small>
-        </div>
-        <div className="reel-clips-strip">
-          {allClips.map(({ track, clip, index, mediaItem }) => {
-            const isSelected = selectedClip?.track_id === track.id && selectedClip.clip_index === index;
-            const clipKfCount = clip.keyframes?.length ?? 0;
-            return (
-              <InteriorButton
-                key={`reel-curves-${track.id}-${clip.media_id}-${index}`}
-                className={`reel-clip-card ${isSelected ? "selected" : ""}`}
-                onClick={() => {
-                  setSelectedClip({ track_id: track.id, clip_index: index });
-                  setSelectedClips([{ track_id: track.id, clip_index: index }]);
-                  seekProgramTo(clip.timeline_start);
-                  setSelectedKeyframeTime(null);
-                }}
-              >
-                <div className="reel-clip-badge">
-                  <span className={`reel-track-kind ${track.kind}`}>{track.name}</span>
-                  <span className="reel-clip-name">{mediaItem?.name ?? "Clip"}</span>
-                </div>
-                <span className="reel-fx-count">
-                  {clipKfCount} keyframe{clipKfCount !== 1 ? "s" : ""}
-                </span>
-              </InteriorButton>
-            );
-          })}
-        </div>
-      </section>
-    </main>
+                />
+              </div>
+            ),
+          },
+        ]}
+      />
   );
 }
