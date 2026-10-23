@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { MasterMeter } from "../features/timeline/MasterMeter";
 
 export interface WorkspaceShellProps {
   /** Current workspace mode id (`edit`, `color`, `effects`, ...). */
@@ -19,11 +20,11 @@ export interface WorkspaceShellProps {
  * Persistent 2-row NLE shell (plan v4 G3, docs/eep-glass-cards-mock.html).
  *
  * Row 1: left dock card | program monitor | right dock card.
- * Row 2: one full-width NLE strip — toolbox | timeline.
+ * Row 2: one full-width NLE strip — toolbox | timeline | master meter.
  *
  * Only the dock-tab content changes per workspace mode; the program monitor,
- * toolbox, and timeline are mounted once by the router and never unmount when
- * the mode switches (directive 5, geometry invariance).
+ * toolbox, timeline, and master meter are mounted once by the router and
+ * never unmount when the mode switches (directive 5, geometry invariance).
  */
 export function WorkspaceShell({ mode, left, right, center, toolbox, timeline }: WorkspaceShellProps) {
   return (
@@ -40,6 +41,7 @@ export function WorkspaceShell({ mode, left, right, center, toolbox, timeline }:
           {toolbox}
         </aside>
         <div className="shell-timeline">{timeline}</div>
+        <MasterMeter />
       </div>
     </main>
   );

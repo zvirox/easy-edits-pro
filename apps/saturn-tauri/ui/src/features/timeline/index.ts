@@ -15,5 +15,4 @@ export {
   type ClipContextMenuProps,
   type ClipMenuCommand,
 } from "./ClipContextMenu";
-export { TimelineTrackRow, type TimelineTrackRowProps } from "./TimelineTrackRow";
 export { TrimMonitorPanel, type TrimMonitorPanelProps } from "./TrimMonitorPanel";

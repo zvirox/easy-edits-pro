@@ -410,16 +410,16 @@
 }
 
 .track-row.track-height-compact {
-  min-height: 40px;
+  min-height: 44px;
 }
 
 .track-row.track-height-compact .track-lane {
-  min-height: 40px;
+  min-height: 44px;
 }
 
 .track-row.track-height-compact .timeline-clip {
-  top: 4px;
-  height: 30px;
+  top: 5px;
+  height: 34px;
 }
 
 .track-row.track-height-normal {

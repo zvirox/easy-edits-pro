@@ -125,6 +125,7 @@ export function TimelineToolbar({
           </code>
         </div>
         <div className="timeline-toolbar-tools" aria-label="Timeline actions">
+          <div className="timeline-toolbar-group" role="group" aria-label="Track tools">
           <InteriorButton
             className="timeline-icon-button"
             disabled={busy}
@@ -145,7 +146,6 @@ export function TimelineToolbar({
           >
             <span style={{ fontWeight: 700, fontSize: "11px" }}>+A</span>
           </InteriorButton>
-          <span className="toolbar-divider" />
           <div
             className="track-height-selector"
             style={{
@@ -160,7 +160,7 @@ export function TimelineToolbar({
               type="button"
               className={`timeline-mini-toggle ${timelineTrackHeight === "compact" ? "active" : ""}`}
               onClick={() => setTimelineTrackHeight("compact")}
-              data-tooltip="Compact Track Height (40px)"
+              data-tooltip="Compact Track Height (44px)"
               data-tooltip-pos="top"
             >
               ▫
@@ -183,8 +183,9 @@ export function TimelineToolbar({
             >
               ◻
             </InteriorButton>
-          </div>
-          <span className="toolbar-divider" />
+          </div>          </div>
+
+          <div className="timeline-toolbar-group" role="group" aria-label="Insert">
           <InteriorButton
             className={`timeline-icon-button ${snapEnabled ? "active-toggle" : ""}`}
             aria-pressed={snapEnabled}
@@ -224,8 +225,9 @@ export function TimelineToolbar({
             aria-label="Add Transition"
           >
             <Icon name="transition" />
-          </InteriorButton>
-          <span className="toolbar-divider" />
+          </InteriorButton>          </div>
+
+          <div className="timeline-toolbar-group" role="group" aria-label="History">
           <InteriorButton
             className="timeline-icon-button"
             disabled={!undoStatus.enabled || busy}
@@ -245,8 +247,9 @@ export function TimelineToolbar({
             aria-label="Redo"
           >
             <Icon name="redo" />
-          </InteriorButton>
-          <span className="toolbar-divider" />
+          </InteriorButton>          </div>
+
+          <div className="timeline-toolbar-group" role="group" aria-label="Clip">
           <InteriorButton
             className="timeline-icon-button"
             disabled={!selectedClip || busy}
@@ -277,7 +280,6 @@ export function TimelineToolbar({
           >
             <Icon name="remove" />
           </InteriorButton>
-          <span className="toolbar-divider" />
           <InteriorButton
             className="timeline-icon-button"
             disabled={selectedClips.length < 2 || busy}
@@ -298,7 +300,6 @@ export function TimelineToolbar({
           >
             <Icon name="unlink" />
           </InteriorButton>
-          <span className="toolbar-divider" />
           <InteriorButton
             className="timeline-icon-button"
             disabled={(!selectedClip && selectedClips.length === 0) || busy}
@@ -321,8 +322,9 @@ export function TimelineToolbar({
             aria-label="Decompose Compound Clip"
           >
             <span style={{ fontWeight: 800, fontSize: "14px" }}>⧈</span>
-          </InteriorButton>
-          <span className="toolbar-divider" />
+          </InteriorButton>          </div>
+
+          <div className="timeline-toolbar-group" role="group" aria-label="Marks">
           <InteriorButton
             className="timeline-icon-button"
             disabled={busy}
@@ -352,8 +354,9 @@ export function TimelineToolbar({
             aria-label="Clear markers"
           >
             <Icon name="clearMarks" />
-          </InteriorButton>
-          <span className="toolbar-divider" />
+          </InteriorButton>          </div>
+
+          <div className="timeline-toolbar-group" role="group" aria-label="View">
           <InteriorButton
             className="timeline-icon-button"
             onClick={() => zoomTimeline(1 / 1.2)}
@@ -372,7 +375,6 @@ export function TimelineToolbar({
           >
             <Icon name="zoomIn" />
           </InteriorButton>
-          <span className="toolbar-divider" />
           <InteriorButton
             type="button"
             className="timeline-icon-button"
@@ -383,6 +385,7 @@ export function TimelineToolbar({
           >
             <span style={{ fontWeight: 700, fontSize: "13px" }}>[+]</span>
           </InteriorButton>
+          </div>
         </div>
     </div>
   );

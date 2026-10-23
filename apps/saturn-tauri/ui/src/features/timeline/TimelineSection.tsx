@@ -107,13 +107,7 @@ export interface TimelineSectionProps {
   toggleTrackLock: (track: Track) => Promise<void>;
   toggleTrackMute: (track: Track) => Promise<void>;
   toggleTrackSolo: (track: Track) => Promise<void>;
-  gainDrafts: Record<number, number>;
-  setGainDrafts: Dispatch<SetStateAction<Record<number, number>>>;
-  saveTrackGain: (trackId: number, val: number) => Promise<void>;
   audioClockMaster: AudioClockMaster;
-  panDrafts: Record<number, number>;
-  setPanDrafts: Dispatch<SetStateAction<Record<number, number>>>;
-  saveTrackPan: (trackId: number, val: number) => Promise<void>;
   removeTrackFromTimeline: (trackId: number) => Promise<void>;
   mediaDropTargetTrackId: number | null;
   clipDragOffset: any;
@@ -195,12 +189,6 @@ export function TimelineSection({
   toggleTrackLock,
   toggleTrackMute,
   toggleTrackSolo,
-  gainDrafts,
-  setGainDrafts,
-  saveTrackGain,
-  panDrafts,
-  setPanDrafts,
-  saveTrackPan,
   removeTrackFromTimeline,
   mediaDropTargetTrackId,
   clipDragOffset,
@@ -423,12 +411,6 @@ export function TimelineSection({
                     toggleTrackLock={toggleTrackLock}
                     toggleTrackMute={toggleTrackMute}
                     toggleTrackSolo={toggleTrackSolo}
-                    gainDrafts={gainDrafts}
-                    setGainDrafts={setGainDrafts}
-                    saveTrackGain={saveTrackGain}
-                    panDrafts={panDrafts}
-                    setPanDrafts={setPanDrafts}
-                    saveTrackPan={saveTrackPan}
                     removeTrackFromTimeline={removeTrackFromTimeline}
                     busy={busy}
                     tracksCount={tracks.length}
@@ -451,12 +433,6 @@ export function TimelineSection({
                     toggleTrackLock={toggleTrackLock}
                     toggleTrackMute={toggleTrackMute}
                     toggleTrackSolo={toggleTrackSolo}
-                    gainDrafts={gainDrafts}
-                    setGainDrafts={setGainDrafts}
-                    saveTrackGain={saveTrackGain}
-                    panDrafts={panDrafts}
-                    setPanDrafts={setPanDrafts}
-                    saveTrackPan={saveTrackPan}
                     removeTrackFromTimeline={removeTrackFromTimeline}
                     busy={busy}
                     tracksCount={tracks.length}

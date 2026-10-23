@@ -48,13 +48,13 @@ export async function run(ctx) {
     'the tool rail should expose all 17 tools',
   );
   assert.equal(
-    await toolRail.locator('.timeline-tool-group-label').count(),
+    await toolRail.locator('.timeline-tool-group').count(),
     5,
     'the tool rail should group tools into five named segments',
   );
   // Layout contract (mock skeleton): dock L | preview | dock R across the top
-  // row, and a full-width NLE strip below — toolbox | timeline — that never
-  // moves.
+  // row, and a full-width NLE strip below — toolbox | timeline | meter — that
+  // never moves.
   const viewport = page.viewportSize();
   const mediaBox = await page
     .locator('.shell-dock-left')
@@ -63,15 +63,25 @@ export async function run(ctx) {
   const previewBox = await page.locator('.monitor-unified').boundingBox();
   const railBox = await toolRail.boundingBox();
   const timelineBox = await page.locator('.timeline').boundingBox();
-  assert.ok(viewport && mediaBox && inspectorDockBox && previewBox && railBox && timelineBox);
+  const meterBox = await page.locator('.shell-meter').boundingBox();
+  assert.ok(viewport && mediaBox && inspectorDockBox && previewBox && railBox && timelineBox && meterBox);
   assert.ok(
-    railBox.x <= 9 && timelineBox.x + timelineBox.width >= viewport.width - 9,
-    'the NLE strip (toolbox + timeline) should span the app width',
+    railBox.width <= 56,
+    `the G4 toolbox should be a 52px single column (got ${railBox.width}px)`,
+  );
+  assert.ok(
+    railBox.x <= 9 && meterBox.x + meterBox.width >= viewport.width - 9,
+    'the NLE strip (toolbox + timeline + meter) should span the app width',
   );
   assert.ok(
     timelineBox.x >= railBox.x + railBox.width - 2 &&
       railBox.y >= mediaBox.y + mediaBox.height - 2,
     'the toolbox should live in the bottom row, left of the timeline',
+  );
+  assert.ok(
+    timelineBox.x + timelineBox.width <= meterBox.x + 2 &&
+      meterBox.y >= mediaBox.y + mediaBox.height - 2,
+    'the master meter should close the bottom row, right of the timeline',
   );
   assert.ok(
     previewBox.x > mediaBox.x + mediaBox.width - 2 &&

@@ -1,6 +1,6 @@
 import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, MouseEvent, SetStateAction, PointerEvent } from "react";
-import { formatTime, formatPan, formatDb, getClipWaveform } from "../../utils/formatters";
+import { formatTime, getClipWaveform } from "../../utils/formatters";
 import type {
   Clip,
   MediaAsset,
@@ -13,7 +13,6 @@ import {
   getTrackGaps,
   type TimelineTool,
 } from "./types";
-import { audioClockMaster } from "../../engine/playbackEngine";
 
 
 // Separate Track Label Component for better organization
@@ -23,12 +22,6 @@ interface TimelineTrackLabelProps {
   toggleTrackLock: (track: Track) => Promise<void>;
   toggleTrackMute: (track: Track) => Promise<void>;
   toggleTrackSolo: (track: Track) => Promise<void>;
-  gainDrafts: Record<number, number>;
-  setGainDrafts: Dispatch<SetStateAction<Record<number, number>>>;
-  saveTrackGain: (trackId: number, val: number) => Promise<void>;
-  panDrafts: Record<number, number>;
-  setPanDrafts: Dispatch<SetStateAction<Record<number, number>>>;
-  saveTrackPan: (trackId: number, val: number) => Promise<void>;
   removeTrackFromTimeline: (trackId: number) => Promise<void>;
   busy: boolean;
   tracksCount: number;
@@ -40,12 +33,6 @@ export function TimelineTrackLabel({
   toggleTrackLock,
   toggleTrackMute,
   toggleTrackSolo,
-  gainDrafts,
-  setGainDrafts,
-  saveTrackGain,
-  panDrafts,
-  setPanDrafts,
-  saveTrackPan,
   removeTrackFromTimeline,
   busy,
   tracksCount,
@@ -56,7 +43,7 @@ export function TimelineTrackLabel({
       style={parentGroup ? { borderLeft: `3px solid ${parentGroup.color || "#9f1249"}` } : undefined}
     >
       <div className="track-label-top">
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", minWidth: 0 }}>
           <span className={`track-kind-badge ${track.kind}`}>{track.kind === "audio" ? "A" : "V"}</span>
           <b>{track.name}</b>
           {track.audio_bus && track.audio_bus !== "Master" && (
@@ -64,86 +51,42 @@ export function TimelineTrackLabel({
               {track.audio_bus}
             </span>
           )}
-          {track.linked_group_id != null && (
-            <span className="track-group-pill" title={`Audio/Video Sync Group #${track.linked_group_id}`}>
-              🔗
-            </span>
-          )}
-        </div>
-        <div className="track-label-btns">
-          <InteriorButton
-            type="button"
-            className={`track-mini-btn ${track.locked ? "active lock" : ""}`}
-            onClick={() => void toggleTrackLock(track)}
-            title={track.locked ? "Unlock track" : "Lock track"}
-          >
-            {track.locked ? "🔒" : "🔓"}
-          </InteriorButton>
-          <InteriorButton
-            type="button"
-            className={`track-mini-btn ${track.muted ? "active mute" : ""}`}
-            onClick={() => void toggleTrackMute(track)}
-            title={track.muted ? "Unmute track" : "Mute track"}
-          >
-            M
-          </InteriorButton>
-          <InteriorButton
-            type="button"
-            className={`track-mini-btn ${track.solo ? "active solo" : ""}`}
-            onClick={() => void toggleTrackSolo(track)}
-            title={track.solo ? "Solo active" : "Solo track"}
-          >
-            S
-          </InteriorButton>
         </div>
       </div>
-      {/* Live dB Volume Fader Slider */}
-      <div className="track-gain-row">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "8px", color: "var(--text-sub)", letterSpacing: "0.02em" }}>VOL</span>
-          <span className="track-gain-readout">{formatDb(gainDrafts[track.id] ?? track.gain_db)}</span>
-        </div>
-        <input
-          type="range"
-          className="track-gain-slider"
-          min="-60"
-          max="6"
-          step="0.5"
-          value={gainDrafts[track.id] ?? track.gain_db}
-          onChange={(e) => {
-            const val = Number(e.target.value);
-            setGainDrafts((prev) => ({ ...prev, [track.id]: val }));
-            audioClockMaster.updateTrackGain(track.id, val);
-          }}
-          onPointerUp={(e) => void saveTrackGain(track.id, Number(e.currentTarget.value))}
-          onKeyUp={(e) => void saveTrackGain(track.id, Number(e.currentTarget.value))}
-          title={`Track Gain: ${formatDb(gainDrafts[track.id] ?? track.gain_db)}`}
-        />
-      </div>
-      {/* Track Pan Dial / Slider */}
-      <div className="track-gain-row track-pan-row" style={{ marginTop: "2px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: "8px", color: "var(--text-sub)", letterSpacing: "0.02em" }}>PAN</span>
-          <span className="track-gain-readout">{formatPan(panDrafts[track.id] ?? track.pan ?? 0)}</span>
-        </div>
-        <input
-          type="range"
-          className="track-gain-slider track-pan-slider"
-          min="-1"
-          max="1"
-          step="0.05"
-          value={panDrafts[track.id] ?? track.pan ?? 0}
-          onChange={(e) => {
-            const val = Number(e.target.value);
-            setPanDrafts((prev) => ({ ...prev, [track.id]: val }));
-            audioClockMaster.updateTrackPan(track.id, val);
-          }}
-          onPointerUp={(e) => void saveTrackPan(track.id, Number(e.currentTarget.value))}
-          onKeyUp={(e) => void saveTrackPan(track.id, Number(e.currentTarget.value))}
-          title={`Track Pan: ${formatPan(panDrafts[track.id] ?? track.pan ?? 0)}`}
-        />
-      </div>
-      <div className="track-bottom-row" style={{ display: "flex", justifyContent: "flex-end" }}>
+      {/* G4 compact header (44px): badge + name above, track state below.
+          Gain/pan faders stay in the Inspector and the Fairlight mixer —
+          the header carries no sliders (plan v4 directive). */}
+      <div className="track-label-btns">
+        <InteriorButton
+          type="button"
+          className={`track-mini-btn ${track.locked ? "active lock" : ""}`}
+          onClick={() => void toggleTrackLock(track)}
+          title={track.locked ? "Unlock track" : "Lock track"}
+        >
+          {track.locked ? "🔒" : "🔓"}
+        </InteriorButton>
+        <InteriorButton
+          type="button"
+          className={`track-mini-btn ${track.muted ? "active mute" : ""}`}
+          onClick={() => void toggleTrackMute(track)}
+          title={track.muted ? "Unmute track" : "Mute track"}
+        >
+          M
+        </InteriorButton>
+        <InteriorButton
+          type="button"
+          className={`track-mini-btn ${track.solo ? "active solo" : ""}`}
+          onClick={() => void toggleTrackSolo(track)}
+          title={track.solo ? "Solo active" : "Solo track"}
+        >
+          S
+        </InteriorButton>
+        {track.linked_group_id != null && (
+          <span className="track-group-pill" title={`Audio/Video Sync Group #${track.linked_group_id}`}>
+            🔗
+          </span>
+        )}
+        <span style={{ flex: 1 }} />
         <InteriorButton
           className="track-delete-btn"
           onClick={() => void removeTrackFromTimeline(track.id)}
