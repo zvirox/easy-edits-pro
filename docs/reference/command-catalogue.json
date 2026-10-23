@@ -3082,6 +3082,38 @@
     "undoGroup": "transaction"
   },
   {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "sequence.lift",
+    "label": "Lift",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"ranges\":obj}",
+    "shipped": false,
+    "shortcut": ";",
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "sequence.extract",
+    "label": "Extract",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"ranges\":obj}",
+    "shipped": false,
+    "shortcut": "'",
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
     "aliases": [
       "settings"
     ],
