@@ -33,6 +33,10 @@ contract, the python CLI harness covers engine commands.
 
 ## Latest recorded run (2026-10-23, dev laptop)
 
+Two runs recorded for the v0.1.0-alpha.2 / v0.1.0-alpha.3 releases:
+
+- Commit `6d5f48a` (alpha.3/G7 tag target, current main):
+
 ```
 [native] build saturn-cli (real engine)
 [native] create project
@@ -41,7 +45,25 @@ contract, the python CLI harness covers engine commands.
 [native] verify saved timeline
 [native] render MP4 (real GStreamer)
 [native] verify render output with ffprobe
-[native] PASS - h264 1920x1080, 6.06s, 1615005 bytes
+[native] PASS - h264 1920x1080, 6.06s, 1612986 bytes
+```
+
+- Commit `c9ecc2f` (alpha.2 tag target), in a clean worktree at that
+  commit: see the alpha.2 section below.
+
+### alpha.2 commit run (`c9ecc2f`)
+
+In a clean worktree at that commit:
+
+```
+[native] build saturn-cli (real engine)
+[native] create project
+[native] probe and import fixture
+[native] reopen and edit timeline
+[native] verify saved timeline
+[native] render MP4 (real GStreamer)
+[native] verify render output with ffprobe
+[native] PASS - h264 1920x1080, 6.06s, 1630599 bytes
 ```
 
 Notes and limits, stated honestly:

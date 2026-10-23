@@ -48,6 +48,8 @@ When a tester or maintainer runs an artifact, record only supplied evidence:
 | Release | Package | Environment | Install and launch | Import/edit/render | Notes |
 |---|---|---|---|---|---|
 | v0.1.0-alpha.1 | .deb/.rpm | Not yet recorded | Not yet recorded | Not yet recorded | Published build artifacts only |
+| v0.1.0-alpha.2 | .deb/.rpm | Not yet recorded | Not yet recorded | Native laptop workflow PASS at the exact release commit (`c9ecc2f`), software H.264 | Pale-glass UI overhaul part 1: tokens, MDI teardown, persistent shell, compact timeline |
+| v0.1.0-alpha.3 | .deb/.rpm | Not yet recorded | Not yet recorded | Native laptop workflow PASS at the exact release commit (`6d5f48a`), software H.264 | Pale-glass UI overhaul part 2: all eight workspaces docked, invariance across every mode, menu/status/icon/motion polish |
 
 A useful alpha report includes release version, package, desktop session,
 diagnostics, imported media codec, reproduction steps, and resulting output or
