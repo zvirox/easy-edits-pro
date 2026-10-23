@@ -1,10 +1,10 @@
 import { InteriorButton } from "../../components/interior/interior-button";
-import type { KeyframeProperty, InterpolationKind, SelectedClip } from "../../types";
+import type { KeyframeProperty, InterpolationKind } from "../../types";
+import { useClipSelection } from "../../app/selectionStore";
 import type { CurveGeometry } from "./curveGeometry";
 
 interface CurveSidebarProps {
   geometry: CurveGeometry;
-  selectedClip: SelectedClip | null;
   keyframeProperty: KeyframeProperty;
   keyframeValue: string;
   setKeyframeValue: (val: string) => void;
@@ -32,7 +32,6 @@ interface CurveSidebarProps {
 
 export function CurveSidebar({
   geometry,
-  selectedClip,
   keyframeProperty,
   keyframeValue,
   setKeyframeValue,
@@ -48,6 +47,8 @@ export function CurveSidebar({
   setKeyframeHandleOutY,
   saveKeyframe,
 }: CurveSidebarProps) {
+  // F1: selection comes from the shared store; the prop is gone.
+  const { clip: selectedClip } = useClipSelection();
   const { activeKf, option } = geometry;
   return (
     <aside className="curve-sidebar-dock">

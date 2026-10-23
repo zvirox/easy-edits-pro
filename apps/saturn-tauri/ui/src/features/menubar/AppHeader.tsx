@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { backdropVariants, dialogVariants, menuVariants, useMotionPreset } from "../../motion/variants";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Icon } from "../../components/Icon";
+import { useClipSelection } from "../../app/selectionStore";
 import { ThemeToggle } from "../../components/interior/theme-toggle";
 import { SegmentedControl } from "../../components/interior/segmented-control";
 import type { JobInfo } from "../../app/useJobs";
@@ -64,7 +65,6 @@ export interface AppHeaderProps {
   busy: boolean;
   undoStatus: CommandStatus;
   redoStatus: CommandStatus;
-  selectedClip: SelectedClip | null;
   selectedMedia: MediaAsset | null;
   snapEnabled: boolean;
   workspace: Workspace;
@@ -100,7 +100,6 @@ export function AppHeader({
   busy,
   undoStatus,
   redoStatus,
-  selectedClip,
   selectedMedia,
   snapEnabled,
   workspace,
@@ -128,6 +127,8 @@ export function AppHeader({
   fullscreen,
   toggleFullscreen,
 }: AppHeaderProps) {
+  // F1: selection comes from the shared store; the prop is gone.
+  const { clip: selectedClip } = useClipSelection();
   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");

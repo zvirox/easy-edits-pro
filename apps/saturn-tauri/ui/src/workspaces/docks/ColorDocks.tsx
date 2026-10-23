@@ -6,6 +6,7 @@ import { RgbCurvesEditor } from "../../components/RgbCurvesEditor";
 import { HslQualifierEditor } from "../../components/HslQualifierEditor";
 import { VideoScopes } from "../../components/VideoScopes";
 import { DockCard, type DockTab } from "../../features/dock/DockCard";
+import { useClipSelection } from "../../app/selectionStore";
 import { MediaPanel, type MediaPanelProps } from "../../features/media-pool";
 import {
   type ProjectDocument,
@@ -58,7 +59,6 @@ export const LUT_PRESETS: LutPresetItem[] = [
 export interface ColorDockProps {
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
-  selectedClip: SelectedClip | null;
   selectedTimelineClip: Clip | null;
   setSelectedClip: (clip: SelectedClip | null) => void;
   setSelectedClips: (clips: SelectedClip[]) => void;
@@ -123,7 +123,6 @@ export function ColorDockLeft({
 }
 
 export function ColorDockRight({
-  selectedClip,
   colorDraft,
   setColorDraft,
   colorWheelsDraft,
@@ -152,6 +151,8 @@ export function ColorDockRight({
   | "deckBRef"
   | "mediaPanelProps"
 >) {
+  // F1: selection comes from the shared store; the prop is gone.
+  const { clip: selectedClip } = useClipSelection();
   const [studioTab, setStudioTab] = useState<"wheels" | "curves" | "qualifier">("wheels");
 
   const updateColorField = (field: keyof ColorAdjustments, value: number) => {

@@ -9,6 +9,7 @@ import { useMediaServer } from "./features/media-pool";
 import { useShortcuts, type DavinciWorkspace } from "./app/useShortcuts";
 import { useMediaOperations } from "./app/useMediaOperations";
 import { useTimelineOperations } from "./app/useTimelineOperations";
+import { pickFirstTimelineClip, setPrimaryClip } from "./app/selectionStore";
 import { useInspectorOperations } from "./app/useInspectorOperations";
 import { useProjectOperations } from "./app/useProjectOperations";
 import { useAudioWorkspace } from "./app/useAudioWorkspace";
@@ -264,6 +265,20 @@ function EditorApp() {
     };
   }, [timelineOps.selectedClip, playback.playhead]);
 
+  // F1: auto-select the first V1 clip once per sequence load so the
+  // Inspector, Effects, Color, and Curves docks come up live without a
+  // manual click. Per-sequence guard avoids re-selecting after a delete.
+  const autoSelectedSequenceRef = useRef<number | null>(null);
+  useEffect(() => {
+    const sequenceId = project?.sequence.id;
+    if (sequenceId == null) return;
+    if (autoSelectedSequenceRef.current === sequenceId) return;
+    autoSelectedSequenceRef.current = sequenceId;
+    if (timelineOps.selectedClip) return;
+    const first = pickFirstTimelineClip(project ?? null);
+    if (first) setPrimaryClip(first);
+  }, [project, timelineOps.selectedClip]);
+
   const audioOps = useAudioWorkspace(project, perform, playback.programPlaying);
 
   const activeTool = timelineTools.find((tool) => tool.id === timelineOps.timelineTool);
@@ -508,7 +523,6 @@ function EditorApp() {
         busy={busy}
         undoStatus={undoStatus}
         redoStatus={redoStatus}
-        selectedClip={timelineOps.selectedClip}
         selectedMedia={selectedMedia}
         snapEnabled={timelineOps.snapEnabled}
         workspace={projectOps.workspace as any}

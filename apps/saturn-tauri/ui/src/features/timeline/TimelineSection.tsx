@@ -99,7 +99,6 @@ export interface TimelineSectionProps {
   selectedMarkerId: number | null;
   onSelectMarker: (marker: Marker) => void;
   onOpenMarkerPanel: () => void;
-  setSelectedClipId: Dispatch<SetStateAction<number | null>>;
   setSelectedClip: Dispatch<SetStateAction<SelectedClip | null>>;
 
   handleToggleGroupCollapse: (groupId: number) => Promise<void>;
@@ -182,7 +181,6 @@ export function TimelineSection({
   selectedMarkerId,
   onSelectMarker,
   onOpenMarkerPanel,
-  setSelectedClipId,
   setSelectedClip,
   handleToggleGroupCollapse,
   handleEditTrackGroup,
@@ -565,7 +563,6 @@ export function TimelineSection({
                 className="track-lane subtitle-track-lane"
                 onClick={() => {
                   setSelectedSubtitle(null);
-                  setSelectedClipId(null);
                   setSelectedClip(null);
                 }}
                 onDragOver={handleDragOverEmptySpace}
@@ -583,7 +580,6 @@ export function TimelineSection({
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedSubtitle(sub);
-                        setSelectedClipId(null);
                         setSelectedClip(null);
                       }}
                       title={`Subtitle #${sub.id}: "${sub.text}" (${formatTime(sub.start_ticks)} - ${formatTime(sub.end_ticks)})`}
@@ -639,7 +635,6 @@ export function TimelineSection({
                   rippleCloseGap={rippleCloseGap}
                   selectedTransition={selectedTransition}
                   setSelectedTransition={setSelectedTransition}
-                  setSelectedClipId={setSelectedClipId}
                   setSelectedClip={setSelectedClip}
                   media={media}
                   missingMediaIds={missingMediaIds}
@@ -678,7 +673,6 @@ export function TimelineSection({
                   rippleCloseGap={rippleCloseGap}
                   selectedTransition={selectedTransition}
                   setSelectedTransition={setSelectedTransition}
-                  setSelectedClipId={setSelectedClipId}
                   setSelectedClip={setSelectedClip}
                   media={media}
                   missingMediaIds={missingMediaIds}

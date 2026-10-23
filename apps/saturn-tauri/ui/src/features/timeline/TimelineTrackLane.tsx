@@ -111,7 +111,6 @@ interface TimelineTrackLaneProps {
   rippleCloseGap: (trackId: number, start: number, end: number) => void;
   selectedTransition: { track_id: number; transition: Transition } | null;
   setSelectedTransition: Dispatch<SetStateAction<{ track_id: number; transition: Transition } | null>>;
-  setSelectedClipId: Dispatch<SetStateAction<number | null>>;
   setSelectedClip: Dispatch<SetStateAction<SelectedClip | null>>;
   media: MediaAsset[];
   missingMediaIds: Set<number>;
@@ -143,7 +142,6 @@ export function TimelineTrackLane({
   rippleCloseGap,
   selectedTransition,
   setSelectedTransition,
-  setSelectedClipId,
   setSelectedClip,
   media,
   missingMediaIds,
@@ -228,7 +226,6 @@ export function TimelineTrackLane({
               onClick={(e) => {
                 e.stopPropagation();
                 setSelectedTransition({ track_id: track.id, transition: trans });
-                setSelectedClipId(null);
                 setSelectedClip(null);
               }}
               title={`Transition: ${label} (${(trans.duration / TICKS_PER_SECOND).toFixed(2)}s)`}

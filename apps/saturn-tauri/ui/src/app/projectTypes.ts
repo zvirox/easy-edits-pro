@@ -177,10 +177,9 @@ export type ProjectStatus = { document: ProjectDocument; path: string | null; is
 
 export type RecoveryStatus = { available: boolean; projectName?: string; savedAt?: number };
 
-export type SelectedClip = {
-  track_id: number;
-  clip_index: number;
-};
+// F1: one canonical SelectedClip (see types.ts); re-exported for the
+// app-level modules that import their UI types from here.
+export type { SelectedClip } from "../types";
 
 export type DavinciWorkspace =
   | "media"

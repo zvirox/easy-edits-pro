@@ -1,8 +1,8 @@
 import { InteriorButton } from "../../components/interior/interior-button";
 import { DockCard } from "../../features/dock/DockCard";
+import { useClipSelection } from "../../app/selectionStore";
 import {
   type MediaAsset,
-  type SelectedClip,
   type Clip,
   type KeyframeProperty,
   type InterpolationKind,
@@ -16,7 +16,6 @@ export { keyframeOptions };
 
 export interface KeyframesDockProps {
   media: MediaAsset[];
-  selectedClip: SelectedClip | null;
   selectedTimelineClip: Clip | null;
   keyframeProperty: KeyframeProperty;
   setKeyframeProperty: (prop: KeyframeProperty) => void;
@@ -53,7 +52,6 @@ export interface KeyframesDockProps {
 
 export function KeyframesDockRight({
   media,
-  selectedClip,
   selectedTimelineClip,
   keyframeProperty,
   setKeyframeProperty,
@@ -78,6 +76,8 @@ export function KeyframesDockRight({
   saveKeyframe,
   deleteKeyframe,
 }: KeyframesDockProps) {
+  // F1: selection comes from the shared store; the prop is gone.
+  const { clip: selectedClip } = useClipSelection();
   const geometry = computeCurveGeometry({
     clipKeyframes: selectedTimelineClip?.keyframes ?? [],
     keyframeProperty,
@@ -270,7 +270,6 @@ export function KeyframesDockRight({
               <div className="keyframes-tangent-dock-body">
                 <CurveSidebar
           geometry={geometry}
-          selectedClip={selectedClip}
           keyframeProperty={keyframeProperty}
           keyframeValue={keyframeValue}
           setKeyframeValue={setKeyframeValue}

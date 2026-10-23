@@ -1,9 +1,11 @@
 import {
   type PointerEvent,
+  type SetStateAction,
   useCallback,
   useRef,
   useState,
 } from "react";
+import { getClipSelection, setMultiClips, setPrimaryClip, useClipSelection } from "./selectionStore";
 import type {
   Clip,
   MediaAsset,
@@ -89,9 +91,16 @@ export function useTimelineOperations({
   const [snapEnabled, setSnapEnabled] = useState(initialSnapEnabled);
   const [timelineTrackHeight, setTimelineTrackHeight] = useState<"compact" | "normal" | "expanded">(initialTrackHeight);
 
-  const [selectedClip, setSelectedClip] = useState<SelectedClip | null>(null);
-  const [selectedClips, setSelectedClips] = useState<SelectedClip[]>([]);
-  const [selectedClipId, setSelectedClipId] = useState<number | null>(null);
+  // F1: selection lives in one reactive store (app/selectionStore). The
+  // setters keep the exact setState signatures the call sites already use;
+  // the dead selectedClipId state is gone (it had no readers).
+  const { clip: selectedClip, clips: selectedClips } = useClipSelection();
+  const setSelectedClip = useCallback((clip: SetStateAction<SelectedClip | null>) => {
+    setPrimaryClip(typeof clip === "function" ? clip(getClipSelection().clip) : clip);
+  }, []);
+  const setSelectedClips = useCallback((clips: SetStateAction<SelectedClip[]>) => {
+    setMultiClips(typeof clips === "function" ? clips(getClipSelection().clips) : clips);
+  }, []);
   const [selectedTransition, setSelectedTransition] = useState<{ track_id: number; transition: Transition } | null>(null);
 
   const [gainDrafts, setGainDrafts] = useState<Record<number, number>>({});
@@ -715,8 +724,6 @@ export function useTimelineOperations({
     setSelectedClip,
     selectedClips,
     setSelectedClips,
-    selectedClipId,
-    setSelectedClipId,
     selectedTransition,
     setSelectedTransition,
     gainDrafts,

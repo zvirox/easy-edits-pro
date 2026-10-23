@@ -257,7 +257,6 @@ export function specialModeDocks({
     right: (
       <KeyframesDockRight
         media={media}
-        selectedClip={timelineOps.selectedClip}
         selectedTimelineClip={selectedTimelineClip}
         keyframeProperty={inspectorOps.keyframeProperty}
         setKeyframeProperty={inspectorOps.setKeyframeProperty}

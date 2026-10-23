@@ -2,7 +2,6 @@ import { InteriorButton } from "../../components/interior/interior-button";
 import { CustomShaderEditor } from "../../components/CustomShaderEditor";
 import { BackgroundMattingCard } from "../../components/BackgroundMattingCard";
 import {
-  type SelectedClip,
   type Clip,
   type EffectInstance,
   type EffectKind,
@@ -19,10 +18,10 @@ import {
 } from "../../engine/playbackEngine";
 import { LUT_PRESETS } from "./ColorDocks";
 import { DockCard, type DockTab } from "../../features/dock/DockCard";
+import { useClipSelection } from "../../app/selectionStore";
 import { MediaPanel, type MediaPanelProps } from "../../features/media-pool";
 
 export interface EffectDockProps {
-  selectedClip: SelectedClip | null;
   selectedTimelineClip: Clip | null;
   addEffect: (kind: EffectKind, name?: string) => Promise<unknown> | unknown;
   removeEffect: (id: number) => Promise<void> | void;
@@ -48,7 +47,6 @@ export function EffectDockLeft({
 }
 
 export function EffectDockRight({
-  selectedClip,
   selectedTimelineClip,
   addEffect,
   removeEffect,
@@ -57,6 +55,8 @@ export function EffectDockRight({
   updateEffectPayload,
   loadLutCubeDialog,
 }: Omit<EffectDockProps, "mediaPanelProps">) {
+  // F1: selection comes from the shared store; the prop is gone.
+  const { clip: selectedClip } = useClipSelection();
   const effects: EffectInstance[] = selectedTimelineClip?.effects ?? [];
 
   return (

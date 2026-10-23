@@ -298,7 +298,6 @@ export function WorkspaceRouter({
         selectedMarkerId: markerOps.selectedMarkerId,
         onSelectMarker: markerOps.selectMarker,
         onOpenMarkerPanel: markerOps.openPanel,
-        setSelectedClipId: timelineOps.setSelectedClipId,
         setSelectedClip: timelineOps.setSelectedClip,
         handleToggleGroupCollapse: timelineOps.handleToggleGroupCollapse,
         handleEditTrackGroup: timelineOps.handleEditTrackGroup,
@@ -349,7 +348,6 @@ export function WorkspaceRouter({
         setSilenceModalOpen: projectOps.setSilenceModalOpen,
         handleDetectSilence: projectOps.handleDetectSilence,
         selectedTimelineClip,
-        selectedClip: timelineOps.selectedClip,
         colorDraft: inspectorOps.colorDraft,
         setColorDraft: inspectorOps.setColorDraft,
         saveColor: inspectorOps.saveColor,
@@ -545,7 +543,6 @@ export function WorkspaceRouter({
         right={
           isColor ? (
             <ColorDockRight
-              selectedClip={timelineOps.selectedClip}
               colorDraft={inspectorOps.colorDraft}
               setColorDraft={inspectorOps.setColorDraft}
               colorWheelsDraft={inspectorOps.colorWheelsDraft}
@@ -581,7 +578,6 @@ export function WorkspaceRouter({
             />
           ) : (
             <EffectDockRight
-              selectedClip={timelineOps.selectedClip}
               selectedTimelineClip={selectedTimelineClip}
               addEffect={inspectorOps.addEffect}
               removeEffect={inspectorOps.removeEffect}
