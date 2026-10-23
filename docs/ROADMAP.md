@@ -94,6 +94,14 @@ M1-M2 above.
 
 ## 5. What is next
 
+### Decisions recorded
+
+| Packet | Decision | Where |
+|---|---|---|
+| B1 distribution | **Flatpak** is the supported path; `.deb`/`.rpm` become secondary best-effort artifacts; AppImage stays dropped | [`docs/distribution.md`](distribution.md) |
+| C7 workspaces on the panel engine | **Fusion and Fairlight migrate to floating panels** (multi-pane colour/audio work benefits); **Export stays docked** (linear form-like surface) | decision table here; execution in M2 |
+| C1 hardware matrix | Matrix formalised in the glass-spike addendum; this machine's row (Intel Iris Xe, Wayland/niri) is filled from the phase-0 spike; NVIDIA/AMD/X11/older-WebKitGTK rows need real machines | [`docs/glass-spike.md`](glass-spike.md) |
+
 1. Finish M0: agent task-card template and hard agent rules, distribution
    decision (Flatpak vs deb/rpm), start the glass hardware matrix.
 2. M1: real-media corpus + native workflow test; Flatpak; DMA-BUF watchdog.
