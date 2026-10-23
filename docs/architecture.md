@@ -46,7 +46,7 @@
 |                                                                                                    |
 |  - Rational tick timebase (TICKS_PER_SECOND = 254,016,000,000)                                     |
 |  - Transactional project mutations & bidirectional undo/redo history stacks                        |
-|  - Schema migrations (v1 -> v10) & atomic disk persistence                                         |
+|  - Schema migrations (v1 -> v14) & atomic disk persistence                                         |
 |  - Subtitles, silence detection, speech analysis, and timeline math                                |
 +----------------------------------------------------------------------------------------------------+
                                       |
@@ -108,15 +108,17 @@ playback engine. Export work is sent to `saturn-render` through Tauri commands.
 
 ## App extraction status
 
-Phase B is complete. `App.tsx` is reduced from over 7,200 lines to a clean shell under 270 lines
-handling only providers, shell layout, keyboard shortcuts, and top-level stage/workspace routing.
-All feature components and operational logic have been decomposed into modular units under
-`features/` and `app/`.
+The former App.tsx monolith has been extracted into a thin shell, focused app
+hooks, feature components, workspaces, and playback modules. Keep the shell
+focused on providers and routing; put new behaviour in the owning feature or
+Rust command domain. File-size enforcement, rather than this historical line
+count, is the continuing guardrail.
 
 ## Source size guardrails
 
-All `.rs`, `.ts`, `.tsx`, and `.css` source files must stay strictly at or below 2000 lines.
-Run `pnpm --dir apps/saturn-tauri check:source-size` before submitting.
+All `.rs`, `.ts`, `.tsx`, and `.css` source files must stay at or below **800
+lines**. Run `pnpm --dir apps/saturn-tauri check:source-size --max-lines=800`
+before submitting.
 
 ## Adding a Tauri feature
 

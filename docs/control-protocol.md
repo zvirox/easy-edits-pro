@@ -28,8 +28,16 @@ Useful commands include `project.new`, `file.open`, `file.save`, `project.add_me
 
 ## Project files
 
-Project files use the `.saturn` extension and JSON document format `project-saturn.project` (currently schema version 3). `schema_version` is migrated on load. Project files save color adjustments, track gain, and clip keyframes. Media is referenced by path; the file does not copy source media. Saves write and sync a temporary sibling file before atomically renaming it into place.
+Desktop projects use the `.saturn` filename extension and the
+`easy-edits-pro.project` JSON format (schema version 14). The loader migrates
+supported older schemas and accepts the legacy `project-saturn.project` format.
+Media is referenced by path rather than copied into the project. Saves write
+and sync a temporary sibling file before atomically renaming it into place.
 
 ## Current limits
 
-This control interface is local stdin/stdout JSON Lines, not a network daemon or MCP server. The project model and command envelope are serializable so another adapter can call the same dispatcher later. The Tauri frontend performs GStreamer metadata discovery; CLI media import classifies common formats by extension.
+This document describes the `saturn-cli control` JSON Lines interface. It is
+distinct from `saturn-control` (HTTP/WebSocket), `saturn-mcp` (MCP stdio and an
+optional running-desktop bridge), and the Tauri invoke bridge. These adapters
+share the Rust command engine. CLI media import performs extension-based
+classification; the desktop app uses GStreamer metadata discovery.

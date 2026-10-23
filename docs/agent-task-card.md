@@ -18,7 +18,7 @@ not ready to dispatch.
 One or two sentences: what exists after this packet that does not exist now.
 
 ## Why now
-Which milestone/workstream this serves (see docs/ROADMAP.md).
+Which milestone/workstream this serves (see docs/planning.md).
 
 ## Owned paths
 - <paths this agent may create or modify>

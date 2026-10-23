@@ -2,21 +2,19 @@
 
 **Date:** 2026-10-20
 **Branch:** `feat/glass-spike`
-**Plan:** [`GLASS_UI_PHASED_PLAN.md`](./GLASS_UI_PHASED_PLAN.md)
+**Current plan:** [`planning.md`](./planning.md)
 **Raw reports:** [`docs/spikes/glass/`](./spikes/glass/)
 
 ---
 
 ## Verdict
 
-**Provisional GO for Full glass**, with one blocking condition:
+**The measured Intel Iris Xe configuration passed the local glass performance
+checks.** These results describe this laptop only. Earlier measurements found
+that the WebKitGTK DMA-BUF setting strongly affected video compositing; the
+current app uses an opt-out policy and a Lite/Off fallback.
 
-> Glass costs almost nothing on this machine once WebKitGTK's DMA-BUF renderer is
-> enabled. With the app's current default (DMA-BUF disabled), the same window
-> collapses to **1–3.5 fps even with all blur removed**. The bottleneck is the
-> video compositing path, not `backdrop-filter`.
-
-The ≥30 fps gate is met with roughly 2× headroom on integrated graphics:
+The ≥30 fps target was met with roughly 2× headroom on this integrated GPU:
 
 | Scenario | Result |
 |---|---|
@@ -26,8 +24,9 @@ The ≥30 fps gate is met with roughly 2× headroom on integrated graphics:
 | Drag one panel, Off (flat) | 60.0 fps |
 | Baseline, no video / no panels | 60.0 fps |
 
-Do not begin Phase 2 styling until the DMA-BUF default is fixed and the real
-editor preview is re-measured. Phase 1 (tokens/contrast) is not blocked.
+This was the original phase-gate note. The follow-up work below records that
+the DMA-BUF policy and production editor measurements were completed on this
+laptop; it is retained as historical spike context.
 
 ---
 
@@ -206,7 +205,10 @@ The spike ships both as `[data-glass="lite"]` (gradient + shadow, zero blur) and
 
 ## Plan vs. repository reality
 
-The plan was written against a slightly different tree. Findings:
+This table is a historical comparison from the 2026-10-20 spike, not a current
+audit of the stylesheets. Later implementation and checks are summarised in
+[design-qa.md](design-qa.md) and [planning.md](planning.md). The original plan
+was written against a slightly different tree. Findings at that time:
 
 | Plan assumption | Reality |
 |---|---|
@@ -266,10 +268,10 @@ The spike is development-only: `main.tsx` mounts it only when
 - **Panel geometry is representative, not exhaustive.** Four panels plus one
   or two moving panels cover the common editor layout; full-screen blur or
   dozens of layers would be heavier.
-- **DMA-BUF safety is validated only on Intel i915 here.** AMD, NVIDIA, older
-  Intel and software-rendered sessions still need the driver-matrix pass. The
-  opt-out policy and Lite fallback exist precisely so a bad driver can be
-  quarantined without shipping a new UI.
+- **DMA-BUF safety is validated only on Intel i915 here.** No other hardware
+  validation is planned while this is the only available development machine.
+  The opt-out policy and Lite fallback keep the known local path recoverable;
+  future alpha/beta feedback can provide evidence for other environments.
 
 ---
 
@@ -277,7 +279,7 @@ The spike is development-only: `main.tsx` mounts it only when
 
 1. **Done — preview path fixed.** DMA-BUF is opt-out (`EEP_DISABLE_DMABUF=1`)
    with a per-driver list; the real timeline preview was measured on Intel
-   i915. AMD and NVIDIA validation is still outstanding.
+   i915. Other environments are outside this spike's verified scope.
 2. **Done — real editor re-measured** with a 1080p30 source (see above).
 3. **Done — three safety layers kept:** `VITE_GLASS_ENABLED`,
    `data-glass="lite|off"`, and `[data-webkit-gtk-slow]` (GPU class + DMA-BUF
@@ -290,25 +292,9 @@ The spike is development-only: `main.tsx` mounts it only when
 
 ---
 
-## C1 addendum — hardware matrix (started 2026-10-23)
+## Evidence boundary
 
-This is the packet-C1 results table. A row is only recorded from a real
-benchmark run on that configuration (spike harness on `feat/glass-spike`,
-later the C10 in-editor `perf:glass` script). Thresholds to hold: video ≥ 30
-fps, drag p95 ≤ 25 ms, DMA-BUF on unless the row records a failure.
-
-| # | GPU / driver | Session | WebKitGTK | Video fps | Drag fps | Drag p95 | DMA-BUF | Result |
-|---|---|---|---|---|---|---|---|---|
-| 1 | Intel Iris Xe (`8086:9a49`, i915) | Wayland (niri 26.04) | 2.54.1 | 58.9 (panel-over-video, spike) | 58.9 / 54.6 stress | 21-26 ms | on | PASS (phase-0 spike + real-editor re-checks) |
-| 2 | NVIDIA proprietary | Wayland | current | - | - | - | - | open — needs machine |
-| 3 | NVIDIA proprietary | X11 | current | - | - | - | - | open — needs machine |
-| 4 | AMD (RADV) | Wayland | current | - | - | - | - | open — needs machine |
-| 5 | AMD (RADV) | X11 | current | - | - | - | - | open — needs machine |
-| 6 | Intel / software (llvmpipe) | X11, 2.4x WebKitGTK (oldest supported distro) | - | - | - | - | - | open — needs machine |
-
-Record the contributing machine's details (distro, kernel, driver version,
-WebKitGTK from `python3 -c "import gi; gi.require_version('WebKit','4.1')"`
-or `webkit2gtk-4.1` pkg-config, window size, DPR) alongside each row, mirroring
-the spike's Environment section. Rows 2-5 gate the C2 DMA-BUF defaults: any
-configuration that fails skips DMA-BUF by default via the GPU-class list, and
-the C2 first-paint watchdog covers the un-enumerated tail.
+The only recorded benchmark is the Intel Iris Xe / Wayland / niri result in
+this document. Do not extrapolate it to other GPUs, sessions, WebKitGTK
+versions, or media workloads. Future release reports may add real observations,
+but no external hardware test matrix is part of the active plan.

@@ -1,46 +1,55 @@
-# Distribution (packet B1 — decision record)
+# Distribution and releases
 
-**Decision (2026-10-23): Flatpak is the supported distribution path.**
+**Updated:** 2026-10-23
 
-## Rationale
+## Current release evidence
 
-- Bundles a known WebKitGTK 4.1 + GStreamer (incl. `libav`/H.264) inside the
-  sandbox, so version drift across distros — the single biggest
-  compatibility risk for a WebKitGTK editor — disappears.
-- One artifact works on Arch, Fedora, and Ubuntu, including the integrator's
-  Arch test machine that the existing `.deb`/`.rpm` outputs do not serve.
-- Sandbox permissions are auditable and limited to what the app needs
-  (user media folders, Wayland/X11, GPU).
+[Easy Edits Pro v0.1.0-alpha.1](https://github.com/zvirox/easy-edits-pro/releases/tag/v0.1.0-alpha.1)
+is the first public alpha. The release workflow successfully built and attached:
 
-## Alpha package releases (B4)
+- an x86_64 Debian package (.deb),
+- an x86_64 RPM package (.rpm), and
+- SHA-256 checksums.
 
-Pushing a semantic alpha tag such as `v0.1.0-alpha.1` starts the Linux package
-workflow. It builds `.deb` and `.rpm` packages using the tag's version, creates
-SHA-256 checksums, and attaches all three outputs to a GitHub prerelease. The
-packages remain best-effort alpha artifacts; Flatpak remains the supported
-distribution path until the install matrix is complete.
+These artifacts are experimental alpha packages. They prove that the GitHub
+release workflow can build and publish packages; they do **not** prove that an
+installed package launches or completes an edit on another system.
 
-Create and push an alpha tag from the commit to release:
+## Delivery policy
 
-```bash
-git tag v0.1.0-alpha.1
-git push origin v0.1.0-alpha.1
-```
+- The development laptop is the only controlled verification environment.
+- Software H.264 export is the verified local render path. Hardware encoding
+  remains optional and unverified.
+- Flatpak is the intended supported delivery route because it can bundle known
+  WebKitGTK and GStreamer versions. A Flatpak manifest, CI artifact, and
+  install-and-launch result do not yet exist, so it is not a supported artifact
+  today.
+- AppImage is not part of the current delivery plan.
+- Future alpha and beta releases gather compatibility feedback through issue
+  reports. The project does not maintain a planned external hardware matrix.
 
-## Consequences
+## Publishing an alpha
 
-- The existing `.deb`/`.rpm` CI outputs remain built, but become
-  **best-effort secondary artifacts** (not the tested path) until the
-  install matrix says otherwise.
-- AppImage stays dropped (see `ca270fd`); do not reintroduce it without a
-  new decision.
-- Follow-up packets: **B2** Flatpak manifest + CI artifact, **B3**
-  `--self-test` flag, **B5** install matrix
-  (Ubuntu 22.04/24.04, Fedora current, Arch — record WebKitGTK version,
-  GPU, result).
+Pushing a semantic alpha tag starts the Linux package workflow:
 
-## Verified install results (B5 — fill from real runs only)
+~~~bash
+git tag v0.1.0-alpha.2
+git push origin v0.1.0-alpha.2
+~~~
 
-| Distro / version | WebKitGTK | GPU | Format | Result |
-|---|---|---|---|---|
-| (none recorded yet — do not claim a row without a real install + launch) | | | | |
+The workflow creates a prerelease and uploads its packages plus checksums. Before
+creating a tag, the commit must have a green CI run and the laptop workflow in
+[planning.md](planning.md) must pass.
+
+## What to record after a real install
+
+When a tester or maintainer runs an artifact, record only supplied evidence:
+
+| Release | Package | Environment | Install and launch | Import/edit/render | Notes |
+|---|---|---|---|---|---|
+| v0.1.0-alpha.1 | .deb/.rpm | Not yet recorded | Not yet recorded | Not yet recorded | Published build artifacts only |
+
+A useful alpha report includes release version, package, desktop session,
+diagnostics, imported media codec, reproduction steps, and resulting output or
+error. Use that feedback to create a reproducible regression on the development
+laptop where possible.

@@ -34,7 +34,8 @@ search/asset inspection are implemented. `media_preview` returns asset metadata,
 the source path, and sequence placements; it does not yet extract a still frame.
 The desktop bridge currently uses a private Unix socket and is unavailable on
 Windows. UI automation and MCP resources/prompts remain future work. See the
-[FilmCraft parity roadmap](../../docs/filmcraft-parity-roadmap.md).
+[delivery plan](../../docs/planning.md) for the next MCP milestones and
+verification rules.
 
 ## Run
 

@@ -31,6 +31,14 @@ The Rust integration tests use workspace binaries when available and skip when t
 | 2026-10-20 | 62 passed | `python -m pytest -q` from `agent-harness`; includes real engine, control-server, MCP, and template integration. |
 | 2026-10-20 | 140 passed, 0 warnings | `cargo test --workspace` and `cargo check --workspace --all-targets`, including `saturn-control`, `saturn-graphics`, and `saturn-project`. |
 
+## Latest remote result
+
+GitHub Actions run #21 (2026-10-23) installed the package, built the Rust
+backends, then failed the harness verification step in the media-bin/subtitle
+test. The local result above is historical evidence, not a statement that the
+current branch is green. The next task is to reproduce and fix that failure
+before publishing another release.
+
 ## Packaging and CI
 
 The harness has a single `pyproject.toml` with a `[project]` table; `setup.py` and `requirements.txt` are gone. A clean editable install and a wheel build were verified locally in a fresh virtual environment using `--no-build-isolation` with `setuptools` installed from a local wheel cache, because the default interpreter has no `setuptools` and an isolated build cannot reach the package index. The built wheel contains the package, the console script, and `skills/cli-anything-eep.md`. CI exercises the normal isolated editable install on GitHub Actions.

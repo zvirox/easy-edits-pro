@@ -29,6 +29,12 @@ The interactive REPL accepts these commands without the executable prefix. It pr
 
 Project create/open/save/inspect; timeline list/open/inspect; track add/remove/list and supported settings; clip add/move/remove/list; media import/search/list/bins/info; audio mix/automation; color reset/wheels; command catalogue/execution; render queue/status/cancel through the running desktop bridge; and engine-backed undo/redo.
 
-Timeline creation/settings, clip trim/speed/reverse, track reorder, full color grading/LUT, audio effects/meters, template persistence/application, standalone daemon lifecycle, and MCP lifecycle/discovery are not implemented by the backend yet. Report these as unavailable; do not substitute mock success. Hardware encoding depends on the render backend and machine.
+The CLI does not expose every advanced engine parameter as a dedicated typed
+option. Use `command list` and `command execute` for supported catalogue
+operations, and expect a structured error for commands the backend cannot
+perform. Graphics-template application, reverse playback, standalone audio
+meters, and timeline options the project model does not represent remain
+unsupported. Daemon lifecycle and MCP discovery are implemented; hardware
+encoding depends on the render backend and machine.
 
 Project state is remembered between CLI sessions. Pass `--project <file>` before the command group to explicitly select a project. Use `--json` before the command group for structured output and errors.

@@ -30,13 +30,27 @@ The smoke test launches the Vite UI with a small mocked Tauri IPC layer and a sy
 
 The app starts at a project welcome screen with options to create a project, open an existing `.saturn` file, or reopen a recent project. New projects support a name, resolution preset or custom dimensions, and frame rate. Recent-project recovery can restore an interrupted editing session. The editor's primary navigation separates Import, Edit, and Export so users can find media intake, editing tools, and delivery settings directly. Import includes search, project media cards, and browse actions. Edit keeps the source/program monitors, timeline, and labeled timeline tools, alongside the Color, Audio, Keyframes, Asset Library, and AI Assistant workspaces. The Export workspace includes output name/location, MP4/H.264 or WebM/VP8 format, frame-size and frame-rate presets, hardware encoder preference, marked In/Out range, and a file summary.
 
-In Edit, the UI supports native multi-file import, GStreamer metadata discovery, a searchable media bin, source and program previews, timeline clip add/move/split/remove, video and audio transitions, title/lower-third graphic clips, real-time SVG audio waveform visualization, fullscreen and close, and Rust-backed undo/redo. Drag media from the Project panel onto a matching timeline track to place it at the drop time; drag the orange playhead or scrub the ruler to seek the program preview. Timeline clip movement, zoom, and frame snapping are supported. The program preview supports play, pause, seeking, and previous/next frame stepping. The UI features a dark obsidian aesthetic (`#080a0f`) tailored for Linux rices (Hyprland / Niri) with glowing borders and tactile button click micro-interactions. Pro keyboard shortcuts include `Space` (play/pause), `Ctrl+T` (insert title graphic), `Ctrl+D` (insert transition), and `Delete` / `Backspace` (remove clip or transition).
+In Edit, the UI supports local-media import, a searchable media bin, source and
+program preview controls, timeline placement/move/split/remove, transitions,
+graphic clips, timeline zoom, scrubbing, and Rust-backed undo/redo. Drag media
+from the Project panel onto a matching timeline track to place it at the drop
+time; drag the playhead or scrub the ruler to seek. The UI uses the shared dark
+burgundy/deep-purple token palette and the Interior-style button primitives.
 
-Video previews are decoded by GStreamer into cached WebM/VP8 proxies to avoid depending on WebKit's native MP4 codec support; original media remains the render source. Color controls, per-track gain, clip keyframes, transitions, and title clips persist in schema-versioned project files and affect both the webview program preview and GStreamer export. Native GStreamer export produces MP4/H.264 + AAC or WebM/VP8 + Vorbis, allows output dimensions and frame rate to differ from the source sequence, and applies basic clip color controls, track gain, transitions, and title clips; MP4 export prefers an installed VA-API, Quick Sync, NVENC, or V4L2 H.264 encoder, then uses GStreamer software encoders when hardware encoding is unavailable. Keyframe transforms are preview-only.
+GStreamer renders MP4/H.264 + AAC or WebM/VP8 + Vorbis. MP4 export can prefer
+an installed hardware encoder and falls back to a software encoder. On the
+development laptop, software x264 output is the verified path; hardware output
+is detected but remains unverified. Some transforms and creative controls are
+preview-only or incomplete; see the root README and delivery plan before
+describing them as export-capable.
 
 ## Current limitations and upcoming features
 
-Color grading applies to the whole clip; keyframes currently animate position, scale, rotation, and opacity in the preview only. Phase 1 added video and audio transitions (`Crossfade`, `Dip to Black/White`, `Wipe`, `Slide`), title & lower-third graphic clips with live program monitor overlays, and audio waveform peak displays. Planned Phase 2+ work includes an extensible effects stack with keyframeable parameters, Bezier curve editing, multi-track audio mixing console with parametric EQ, queued exports and advanced codec/bitrate/audio controls, more frame-accurate playback/rendering, additional asset providers, timeline-aware AI actions, and verified Linux packages.
+The editor is alpha software. The real export queue, advanced effect and Color
+parameter editing, keyframe handles, full Fusion actions, VST3 hosting, and
+hardware-output verification remain unfinished. Packages have been built but
+not yet recorded as installed and launched. The current priorities and evidence
+requirements are in [../../docs/planning.md](../../docs/planning.md).
 
 ## Interior components
 

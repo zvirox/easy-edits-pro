@@ -1,42 +1,54 @@
-# Design QA: Import, Edit, and Export workspaces
+# Design QA
 
-## Comparison setup
+**Updated:** 2026-10-23
 
-- Source visual truth: Reference UI mockups/screenshots for Edit, Import, and Export workspaces.
-- Implementation captures: Implementation screenshots for Editor, Import workspace, and Export workspace.
-- Source and implementation dimensions: 1920 × 1080 pixels each.
-- CSS viewport: 1920 × 1080; device scale factor: 1. No density normalization or crop was needed.
-- State: dark desktop editor; Edit with an imported sample clip, Import with project media visible, Export with a project clip and MP4 selected.
-- Evidence: compared each source screenshot next to its matching implementation capture at the full view. The Export settings and summary columns were also checked as a focused region. The project sample footage differs from the reference demo footage, so comparison focused on workspace layout and controls rather than video content.
+## Scope
 
-## Findings
+This document records UI evidence for the Import, Edit, and Deliver surfaces.
+It does not certify media decoding, native-window behaviour, hardware encoding,
+or installed packages.
 
-- No actionable P0, P1, or P2 issues remain. Import, Edit, and Export are visible as primary destinations; timeline tools have text labels; the Import screen has clear browse and media-library sections; and Export exposes the format, output dimensions, frame rate, hardware-encoder preference, range, preview, and output summary.
-- P3 follow-up: the reference includes more detailed encoder controls such as bitrate, profile, and keyframe interval. Those controls are not exposed because the renderer does not currently accept those settings. Add them when the render backend supports them.
-- P3 follow-up: the reference offers an export queue. The current app renders directly and shows the queue as an empty future-work area; a real queue can be added with queued render jobs and start/stop controls.
+## Current UI state
 
-## Required fidelity surfaces
+- Import, Edit, and Deliver are primary destinations. Import presents browse and
+  project-media actions; Edit groups the source/program monitors, timeline, and
+  inspector; Deliver exposes format, destination, dimensions, frame rate, range,
+  and encoder preference.
+- The timeline exposes labelled tools and supports the browser-smoke interactions
+  for pointer drop, zoom, scrubbing, transport, and clip movement.
+- The visual system uses the dark burgundy/deep-purple token palette. Blue/cyan
+  comparison language from the old reference is not a description of the
+  current design.
+- The shared panel and button system is in place, but panel persistence,
+  responsive behaviour, visual baselines, and accessibility evidence remain
+  planned work.
 
-- Typography: Inter remains consistent with the app; key editor labels, timeline tool names, export fields, and summary text are readable at the target viewport.
-- Spacing and layout: the editor preserves its three-column media/monitor/inspector layout and timeline; Import uses a clear heading, add-media callout, and media grid; Export uses destination, settings, and preview/summary columns.
-- Colors and visual tokens: dark neutral panels, blue selection/action states, and restrained borders match the reference application's editing context.
-- Image quality and assets: preview imagery comes from the sample clip; the existing application media icon is used for media cards. No screenshots or placeholder footage were baked into the UI.
-- Copy and content: workspace names, settings labels, output format, range, and summary describe the current application and supported rendering behavior.
+## Evidence and limits
 
-## Interaction and error checks
+- Earlier local verification recorded UI build, unit, contrast, command, and
+  source-size checks passing.
+- The browser smoke suite uses mocked Tauri IPC and a synthetic video. It
+  verifies only the frontend contract.
+- During the latest recorded GitHub Actions run, build/unit/style/catalogue/
+  parity/size checks had passed, while the Python harness job failed and the
+  Playwright step had not finished. This is not a final QA pass. Check Actions
+  for newer results before making a release claim.
 
-- Playwright smoke flow passed welcome/project creation, Import navigation and media selection, pointer drop to timeline, timeline zoom, playhead scrubbing, playback/frame stepping, clip movement, Export navigation, and hardware-encoder availability across MP4/WebM formats.
-- Browser console/page errors: 0.
-- Build and Rust checks: `pnpm build`, `cargo check --manifest-path apps/saturn-tauri/Cargo.toml`, and `cargo test --manifest-path apps/saturn-tauri/Cargo.toml -p saturn-render` passed.
+## Open UI work
 
-## Implementation checklist
+1. Replace the visible export queue placeholder with real queued job state and
+   clear error/cancellation feedback.
+2. Complete advanced effects and Color parameter controls, effect ordering,
+   keyframe handle editing, and Fusion actions only when they change the Rust
+   project state.
+3. Add keyboard and screen-reader coverage for workspace navigation, panels,
+   timeline tools, dialogs, and export controls.
+4. Add visual baseline coverage for the burgundy/purple theme and panel layouts.
+5. Run the native laptop workflow for preview, import, timeline, save/reopen,
+   and render after major UI changes.
 
-- [x] Add labeled Import, Edit, and Export destinations.
-- [x] Build a dedicated Import overview and searchable project-media cards.
-- [x] Improve timeline-tool labels and export-setting legibility.
-- [x] Add output size, frame rate, format, hardware-encoder preference, marked-range option, and summary controls.
-- [x] Verify workspace navigation and primary interactions in the browser.
-- [x] Update the root and app README files.
-- [x] Add advanced bitrate/profile controls and a working export queue after backend support is available.
+## Acceptance rule
 
-Final result: passed
+A UI capability is complete only when its affordance is understandable, its
+action reaches the Rust-owned project model, it has focused regression evidence,
+and it reports unsupported work as an error rather than a completed action.

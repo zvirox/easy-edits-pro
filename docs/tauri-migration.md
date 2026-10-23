@@ -13,10 +13,23 @@ Tauri uses the operating system's webview instead of shipping a separate browser
 - `crates/saturn-render` owns the native GStreamer Editing Services renderer.
 - `crates/saturn-cli` exposes headless project and command workflows.
 
-The Tauri bridge calls the shared core for project status, creation, open/save, media registration, timeline clip add/move/remove, and undo/redo. GStreamer discovers media metadata on a blocking worker. Tauri's scoped asset protocol exposes selected files to source and program previews. Timeline moves snap to project frame boundaries and reject incompatible audio/video track placements.
+The Tauri bridge calls the shared core for project status, creation, open/save,
+media registration, timeline edits, and undo/redo. GStreamer discovers media
+metadata on a blocking worker. Tauri's scoped asset protocol exposes selected
+files to source and program previews. Timeline moves snap to project frame
+boundaries and reject incompatible audio/video track placements.
 
-Project schema v3 includes per-clip exposure/contrast/saturation and keyframe data, plus per-track gain. Tauri routes these through undoable Rust commands. The webview preview applies color filters, track attenuation, and linear keyframe interpolation for position, scale, rotation, and opacity.
+The current project format is `easy-edits-pro.project`, schema version 14, with
+migrations from supported earlier versions and the legacy
+`project-saturn.project` identifier. Tauri routes edits through undoable Rust
+commands. The webview preview handles interactive playback and preview effects;
+the GStreamer renderer is a separate export path, so preview behaviour does not
+by itself prove export parity.
 
 ## Remaining work
 
-Playback and effects are still webview-based rather than a frame-accurate Rust playback/render engine. Full audio mixing, broader asset-provider APIs, timeline-aware AI actions, and Linux release packaging need further work and verification.
+Advanced Color and effect controls, full Fusion actions, Fairlight insert DSP,
+the export queue UI, and hardware-encoded output verification remain open. The
+Unix MCP bridge has no Windows implementation. Alpha packages have been
+published, but install-and-launch evidence is not recorded. The active work
+sequence and current build evidence are maintained in [planning.md](planning.md).

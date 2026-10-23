@@ -108,8 +108,9 @@ The React UI lives in `apps/saturn-tauri/ui/src`. Put reusable UI in
 screens in `workspaces/`, application context and hooks in `app/`, and pure
 logic in `utils/` or the relevant engine module. Keep CSS imports in
 `style.css` → `styles/index.css` in their listed order because order determines
-the cascade. Keep `.rs`, `.ts`, `.tsx`, and `.css` source files at or below 2000 lines.
-Run `pnpm --dir apps/saturn-tauri check:source-size` before submitting.
+the cascade. Keep `.rs`, `.ts`, `.tsx`, and `.css` source files at or below
+800 lines. Run `pnpm --dir apps/saturn-tauri check:source-size --max-lines=800`
+before submitting.
 
 See [`docs/architecture.md`](docs/architecture.md) for the current module map
 and data flow.
@@ -124,3 +125,8 @@ Before submitting a Pull Request, ensure that:
 3. `cargo check --manifest-path apps/saturn-tauri/Cargo.toml` succeeds.
 4. All commits include a DCO sign-off (`git commit -s`).
 5. New features include appropriate unit tests or regression tests.
+6. `pnpm --dir apps/saturn-tauri test`, `check:glass`, `check:commands`, and
+   `check:source-size --max-lines=800` pass when the change touches the UI or
+   command catalogue.
+7. A shipped command has a UI affordance, a test, and a catalogue entry marked
+   `shipped: true`; incomplete handlers return an error rather than success.
