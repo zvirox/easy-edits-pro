@@ -73,7 +73,7 @@ export function ProjectWelcomeScreen({
   if (appStage === "loading") {
     return (
       <main className="project-loading-screen" aria-live="polite" aria-busy="true">
-        <img src="/saturn-camera.png" alt="" />
+        <img src="/eep-icon.png" alt="" />
         <div className="loading-orbit">
           <span />
           <span />
@@ -95,7 +95,7 @@ export function ProjectWelcomeScreen({
       <div className="welcome-grid-pattern" aria-hidden="true" />
       <header className="welcome-topbar glass" data-elev="1">
         <div className="welcome-brand">
-          <img src="/saturn-camera.png" alt="" />
+          <img src="/eep-icon.png" alt="" />
           <span>
             <strong>Easy Edits Pro</strong>
             <small>VIDEO EDITING WORKSPACE</small>

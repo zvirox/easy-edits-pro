@@ -33,6 +33,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Sequence marks:** `timeline.set_mark_in` and `timeline.set_mark_out` are implemented in the engine as undoable sequence state, alongside `timeline.clear_marks`.
 
 ### Changed
+- **App icon:** Replaced the old camera icon with the EEP hummingbird mark
+  (`assets/icons/eep-icon.png`); the full Tauri desktop icon set (32–512 px,
+  `.icns`, `.ico`) is generated from it and the header/welcome logos now use
+  the same mark.
+- **Title bar:** The app-name text next to the header logo is gone — the
+  header leads with the brand mark alone (the window/Native title is
+  unchanged).
 - **CLI undo/redo:** `cli-anything-eep undo` and `redo` now delegate straight to the engine's `edit.undo`/`edit.redo` commands; the duplicate in-process undo manager and its fake inverse replay are gone.
 - **Workspace membership:** `saturn-control`, `saturn-graphics`, and `saturn-project` are compiled and tested by `cargo test --workspace` again.
 - **Python packaging:** The CLI harness now uses one `pyproject.toml` with a `[project]` table and the correct GPL-3.0-or-later license; `setup.py` and `requirements.txt` are removed, and unused `httpx`/`pydantic` dependencies are dropped.

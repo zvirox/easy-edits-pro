@@ -276,8 +276,7 @@ export function AppHeader({
       <div className="system-bar-tier1">
         <div className="system-bar-left">
           <div className="brand">
-            <img className="brand-mark" src="/saturn-camera.png" alt="Easy Edits Pro camera logo" />
-            <span className="brand-title">Easy Edits Pro</span>
+            <img className="brand-mark" src="/eep-icon.png" alt="Easy Edits Pro logo" />
           </div>
           <div className="project-badge" title="Active Project">
             <span>{project?.name ?? "Untitled project"}</span>

@@ -532,10 +532,6 @@ button:disabled { opacity: .48; cursor: not-allowed; }
    width whenever it is over-demanded — see .menu-bar in 02-editor.css),
    instead of painting over the right-side actions (design QA §7 "Help
    overlapped by icons"). */
-@media (max-width: 1400px) {
-  .brand-title { display: none; }
-}
-
 @media (max-width: 1300px) {
   .project-badge { display: none; }
   .command-search-label { display: none; }
@@ -624,13 +620,6 @@ button:disabled { opacity: .48; cursor: not-allowed; }
   height: 22px;
   object-fit: contain;
   border-radius: 4px;
-}
-.brand-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-main);
-  letter-spacing: -0.01em;
-  white-space: nowrap;
 }
 .project-badge {
   display: inline-flex;

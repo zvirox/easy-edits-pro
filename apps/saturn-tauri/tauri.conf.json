@@ -35,7 +35,14 @@
     "shortDescription": "Open source video editor for Linux",
     "longDescription": "Easy Edits Pro is an open source desktop video editor built with Rust, Tauri, and GStreamer.",
     "licenseFile": "../../LICENSE",
-    "icon": ["../../assets/icons/saturn-camera.png"],
+    "icon": [
+      "../../assets/icons/32x32.png",
+      "../../assets/icons/64x64.png",
+      "../../assets/icons/128x128.png",
+      "../../assets/icons/128x128@2x.png",
+      "../../assets/icons/icon.icns",
+      "../../assets/icons/icon.ico"
+    ],
     "linux": {
       "deb": {
         "depends": [
