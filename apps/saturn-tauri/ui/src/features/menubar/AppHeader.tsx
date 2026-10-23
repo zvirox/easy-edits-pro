@@ -293,7 +293,7 @@ export function AppHeader({
             title="Search commands (Ctrl+K)"
           >
             <Icon name="search" />
-            <span>Find command</span>
+            <span className="command-search-label">Find command</span>
             <kbd>Ctrl K</kbd>
           </InteriorButton>
           <nav className="menu-bar" aria-label="Application menus" ref={menuBarRef}>

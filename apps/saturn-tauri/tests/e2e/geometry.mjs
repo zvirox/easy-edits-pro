@@ -32,6 +32,41 @@ async function snapshot(page) {
   return { monitor, rail, timeline, probes };
 }
 
+// G6: the status bar owns the very bottom of the app chrome and must never be
+// pushed out of the viewport or covered by the workspace above it, in any
+// shell mode (plan v4 G6 item 3).
+async function assertStatusBarVisible(page, label) {
+  const status = await page.locator('.status-bar').boundingBox();
+  const shell = await page.locator('.workspace-shell').boundingBox();
+  assert.ok(status, `${label}: status bar must be mounted`);
+  const viewport = page.viewportSize();
+  assert.ok(
+    status.y + status.height <= viewport.height + TOLERANCE_PX,
+    `${label}: status bar bottom (${status.y + status.height}) runs past the viewport (${viewport.height})`,
+  );
+  assert.ok(status.y >= 0 && status.height >= 24, `${label}: status bar has zero or negative height`);
+  if (shell) {
+    assert.ok(
+      shell.y + shell.height <= status.y + TOLERANCE_PX,
+      `${label}: workspace shell bottom (${shell.y + shell.height}) overlaps the status bar (top ${status.y})`,
+    );
+  }
+}
+
+// G6: at 1240px the tier-1 app bar must not let the menu strip paint over the
+// right-side actions (design QA §7 "Help overlapped by icons"); at 1100px the
+// menu strip scrolls instead of overflowing.
+async function assertMenuBarFits(page, label) {
+  const menu = await page.locator('.menu-bar').boundingBox();
+  const actions = await page.locator('.system-bar-right').boundingBox();
+  assert.ok(menu && actions, `${label}: app bar chrome must be mounted`);
+  assert.ok(
+    menu.x + menu.width <= actions.x + TOLERANCE_PX,
+    `${label}: menu strip right edge (${menu.x + menu.width}) overlaps right-side actions (start ${actions.x})`,
+  );
+  assert.ok(menu.x + menu.width <= page.viewportSize().width, `${label}: menu strip runs past the viewport`);
+}
+
 function assertSameGeometry(before, after, label) {
   for (const key of ['monitor', 'rail', 'timeline']) {
     const a = before[key];
@@ -79,6 +114,7 @@ export async function run(ctx) {
     const mode = { Media: 'media', Fusion: 'fusion', Fairlight: 'audio', Animation: 'keyframes', Deliver: 'deliver' }[name];
     await page.locator(`.workspace-shell[data-workspace="${mode}"]`).waitFor();
     assertSameGeometry(edit, await snapshot(page), `edit -> ${mode}`);
+    await assertStatusBarVisible(page, `${mode} status bar`);
   }
 
   await switchWorkspace(page, 'Window', 'Workspace: Edit');
@@ -86,4 +122,16 @@ export async function run(ctx) {
   assertSameGeometry(edit, await snapshot(page), 'deliver -> edit');
 
   ctx.state.geometryInvariance = 'passed';
+
+  // G6 item 3: the status bar stays unobscured in every mode (checked above
+  // per-mode via the shared walk; assert explicitly here too).
+  await assertStatusBarVisible(page, 'edit status bar');
+
+  // G6 item 1: menu bar must not overflow the app chrome below 1300px.
+  await page.setViewportSize({ width: 1240, height: 900 });
+  await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
+  await assertMenuBarFits(page, '1240px menu bar');
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await assertMenuBarFits(page, '1100px menu bar');
+  await page.setViewportSize({ width: 1920, height: 1080 });
 }

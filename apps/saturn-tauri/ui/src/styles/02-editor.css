@@ -127,6 +127,24 @@
 .interior-loading-reserve > span { grid-area: 1 / 1; white-space: nowrap; }
 .interior-loading-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; }
 .interior-loading-spinner { flex: 0 0 auto; }
+/* ==========================================================================
+   Icon base (G6). Every <Icon> SVG gets .icon-svg; contextual rules in this
+   file and later files (.timeline-toolbar svg, .media-item svg, ...) refine
+   size/colour — their class+type selectors always win over this class rule.
+   Before this base existed, icons in unstyled contexts rendered as unnamed
+   300x150 black boxes (design QA "empty squares").
+   ========================================================================== */
+.icon-svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .file-actions { display: flex; align-items: center; gap: 4px; }
 .menu-bar { display: flex; align-items: center; gap: 2px; min-width: 0; }
 .app-menu { position: relative; font-size: 12px; }

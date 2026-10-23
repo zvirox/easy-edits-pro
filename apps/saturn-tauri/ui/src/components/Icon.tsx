@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, SVGAttributes } from "react";
 
 export type IconName =
   | "fullscreen"
@@ -56,7 +56,16 @@ export type IconName =
   | "subtitle"
   | "search";
 
-export function Icon({ name }: { name: IconName }) {
+/**
+ * The single icon primitive. Every rendered SVG carries the `icon-svg` class
+ * so the base CSS in 02-editor.css can size/stroke it — before G6, icons used
+ * outside a styled context rendered as unnamed 300x150 black squares.
+ */
+export function Icon({
+  name,
+  className,
+  ...rest
+}: { name: IconName; className?: string } & Omit<SVGAttributes<SVGSVGElement>, "viewBox" | "children">) {
   const paths: Record<IconName, ReactNode> = {
     search: <><circle cx="8.5" cy="8.5" r="5.5" /><path d="m13 13 4 4" /></>,
     check: <path d="m4 10 4 4 8-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
@@ -113,5 +122,14 @@ export function Icon({ name }: { name: IconName }) {
     keyframe: <><path d="M10 3l6 7-6 7-6-7z" fill="none" stroke="currentColor" strokeWidth="1.5" /><circle cx="10" cy="10" r="2" fill="currentColor" /></>,
     subtitle: <><rect x="3" y="4" width="14" height="11" rx="1.5" fill="none" stroke="currentColor" strokeWidth="1.5" /><path d="M6 8h8M6 11h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /><path d="M7 15l-2 3v-3" fill="none" stroke="currentColor" strokeWidth="1.5" /></>,
   };
-  return <svg viewBox="0 0 20 20" aria-hidden="true">{paths[name]}</svg>;
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      aria-hidden="true"
+      className={`icon-svg${className ? ` ${className}` : ""}`}
+      {...rest}
+    >
+      {paths[name]}
+    </svg>
+  );
 }

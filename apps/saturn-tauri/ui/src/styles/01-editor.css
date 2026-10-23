@@ -527,6 +527,25 @@ button:disabled { opacity: .48; cursor: not-allowed; }
   flex-shrink: 0;
 }
 
+/* G6 menu overflow: at narrow widths the tier-1 chrome sheds optional
+   elements progressively; below 1150px the menu strip scrolls in place
+   instead of painting over the right-side actions (design QA §7 "Help
+   overlapped by icons"). */
+@media (max-width: 1400px) {
+  .brand-title { display: none; }
+}
+
+@media (max-width: 1300px) {
+  .project-badge { display: none; }
+  .command-search-label { display: none; }
+}
+
+@media (max-width: 1150px) {
+  .system-bar-tier1 { padding: 0 6px; }
+  .menu-bar { overflow-x: auto; }
+  .file-actions { overflow: hidden; }
+}
+
 /* Tier 2 (36px Dedicated Workspace Bar) */
 .workspace-bar-tier2 {
   display: flex;
