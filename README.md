@@ -288,6 +288,14 @@ pnpm tauri build
 ```
 The compiled binaries, `.deb`, and `.rpm` packages will be placed in `apps/saturn-tauri/target/release/bundle/`.
 
+### Alpha releases
+
+To publish Linux `.deb` and `.rpm` packages on the GitHub Releases page, push a
+version tag such as `v0.1.0-alpha.1`. The release workflow builds packages with
+that version, marks the GitHub release as a prerelease, and attaches SHA-256
+checksums. These packages are best-effort alpha builds; Flatpak is the supported
+distribution path.
+
 ### 5. Headless CLI & Control Server
 ```bash
 # Query available engine commands
