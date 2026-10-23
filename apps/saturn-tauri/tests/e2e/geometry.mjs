@@ -145,7 +145,7 @@ async function assertNoCardOverlap(page, label) {
   }
 }
 
-function assertSameGeometry(before, after, label) {
+function assertSameGeometry(before, after, label, { expectRemount = false } = {}) {
   for (const key of ['monitor', 'rail', 'timeline']) {
     const a = before[key];
     const b = after[key];
@@ -155,6 +155,7 @@ function assertSameGeometry(before, after, label) {
         `${label}: ${key}.${dim} moved ${Math.abs(a[dim] - b[dim]).toFixed(2)}px (${a[dim]} -> ${b[dim]})`,
       );
     }
+    if (expectRemount) continue;
     assert.equal(before.probes[key], after.probes[key], `${label}: ${key} remounted (probe changed)`);
   }
 }
@@ -215,7 +216,10 @@ async function sweepViewport(page, ctx, width, height) {
 
   await switchWorkspace(page, 'Window', 'Workspace: Edit');
   await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
-  assertSameGeometry(baseline, await snapshot(page), `${label}: deliver -> edit`);
+  // Deliver unmounts the shell by design (full-page workspace, user decision
+  // 2026-10-23), so returning to Edit remounts the skeleton once — box
+  // invariance still holds, but the probe continuity check does not apply.
+  assertSameGeometry(baseline, await snapshot(page), `${label}: deliver -> edit`, { expectRemount: true });
   await assertNoCardOverlap(page, `${label} edit`);
   await assertMenuBarFits(page, `${label} edit menu bar`);
 }
