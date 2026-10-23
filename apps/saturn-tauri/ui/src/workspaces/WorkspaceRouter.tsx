@@ -4,6 +4,7 @@ import type { MarkersPanelProps } from "../features/markers";
 import type { CaptionsPanelProps } from "../features/captions";
 import { WorkspaceShell } from "./WorkspaceShell";
 import { specialModeDocks } from "./SpecialModeShells";
+import { ExportWorkspace } from "./ExportWorkspace";
 import {
   EditDockLeft,
   EditDockRight,
@@ -156,6 +157,54 @@ export function WorkspaceRouter({
       document.removeEventListener("pointerup", onPointerUp, true);
     };
   }, []);
+
+  // Deliver is a full-page workspace by user decision (2026-10-23): route it
+  // to the previous ExportWorkspace BEFORE the persistent shell. Do not dock
+  // it, do not change its layout — the shell modes above/below are unchanged.
+  if (davinciWorkspace === "deliver") {
+    return (
+      <ExportWorkspace
+        project={project}
+        batchQueue={[]}
+        setBatchQueue={() => {}}
+        queuePaused={false}
+        toggleQueuePause={() => {}}
+        deliverDestination="render"
+        setDeliverDestination={() => {}}
+        handleExportTimelineInterop={projectOps.handleExportTimelineInterop}
+        handleImportTimelineInterop={projectOps.handleImportTimelineInterop}
+        isInteropBusy={projectOps.isInteropBusy}
+        interopContent={projectOps.interopContent}
+        setNotice={projectOps.setNotice}
+        encoderInfo={null}
+        selectedExportPreset="source"
+        setSelectedExportPreset={() => {}}
+        exportResolution={projectOps.exportResolution}
+        setExportResolution={projectOps.setExportResolution}
+        exportFrameRate={projectOps.exportFrameRate}
+        setExportFrameRate={projectOps.setExportFrameRate}
+        exportFormat={projectOps.exportFormat}
+        setExportFormat={projectOps.setExportFormat}
+        exportFileName={projectOps.exportFileName}
+        setExportFileName={projectOps.setExportFileName}
+        exportOutputPath={projectOps.exportOutputPath}
+        setExportOutputPath={projectOps.setExportOutputPath}
+        chooseExportDestination={projectOps.chooseExportDestination}
+        useHardwareEncoding={projectOps.useHardwareEncoding}
+        setUseHardwareEncoding={projectOps.setUseHardwareEncoding}
+        exportMarkedRange={projectOps.exportMarkedRange}
+        setExportMarkedRange={projectOps.setExportMarkedRange}
+        invokeMenuCommand={invokeMenuCommand}
+        activeClip={null}
+        selectedMedia={selectedMedia}
+        renderPreview={() => null}
+        rendering={projectOps.rendering}
+        renderProgress={projectOps.renderProgress}
+        addExportToQueue={() => {}}
+        exportProject={projectOps.exportProject}
+      />
+    );
+  }
 
   const mediaPanelProps: MediaPanelProps = {
         filmoraTab: mediaOps.filmoraTab,
@@ -485,7 +534,6 @@ export function WorkspaceRouter({
   const shellCenter = <PreviewSection {...previewSectionProps} />;
   const isShellWorkspace =
     davinciWorkspace === "media" ||
-    davinciWorkspace === "deliver" ||
     davinciWorkspace === "fusion" ||
     davinciWorkspace === "audio" ||
     davinciWorkspace === "keyframes";

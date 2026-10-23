@@ -8,7 +8,6 @@ import type { CaptionsPanelProps } from "../features/captions";
 import type { GraphicOperations } from "../features/graphics";
 import { FairlightDockLeft, FairlightDockRight } from "./docks/FairlightDocks";
 import { FusionDockRight } from "./docks/FusionDocks";
-import { DeliverDockRight } from "./docks/DeliverDocks";
 import { KeyframesDockRight } from "./docks/KeyframesDocks";
 import { MediaDockLeft } from "./docks/MediaDocks";
 import { MediaPoolDockLeft } from "./docks/MediaPoolDock";
@@ -23,12 +22,16 @@ export interface SpecialPanelProps {
 }
 
 /**
- * Dock-tab composition for the five special modes (media, deliver, fusion,
- * audio, keyframes) inside the persistent WorkspaceShell (plan v4 G5). The
- * router keeps returning the SAME WorkspaceShell element type for every mode
+ * Dock-tab composition for the docked special modes (media, fusion, audio,
+ * keyframes) inside the persistent WorkspaceShell (plan v4 G5). The router
+ * keeps returning the SAME WorkspaceShell element type for every docked mode
  * (React reconciliation must not remount the skeleton — geometry invariance),
  * so this module only picks the left/right dock nodes per mode; the long prop
  * lists live here to keep WorkspaceRouter under the 800-line gate.
+ * Deliver is the user-directed exception: WorkspaceRouter routes it to the
+ * full-page ExportWorkspace BEFORE the shell, so it never appears here.
+ * NOTE: the Deliver page is intentionally left as its previous full-page
+ * version — do not dock it, do not modify its layout.
  */
 export interface SpecialModeDockArgs {
   davinciWorkspace: string;
@@ -56,7 +59,6 @@ export function specialModeDocks({
   davinciWorkspace,
   project,
   media,
-  selectedMedia,
   selectedTimelineClip,
   busy,
   missingMediaIds,
@@ -66,10 +68,8 @@ export function specialModeDocks({
   mediaOps,
   timelineOps,
   inspectorOps,
-  projectOps,
   audioOps,
   audioClockMaster,
-  invokeMenuCommand,
   perform,
   panelProps,
 }: SpecialModeDockArgs): { left: ReactNode; right: ReactNode } {
@@ -99,54 +99,6 @@ export function specialModeDocks({
           markersPanelProps={panelProps.markers}
           captionsPanelProps={panelProps.captions}
           graphicsPanelProps={panelProps.graphics}
-        />
-      ),
-    };
-  }
-
-  if (davinciWorkspace === "deliver") {
-    return {
-      left: <MediaPoolDockLeft mediaPanelProps={panelProps.media} ariaLabel="Deliver dock" />,
-      right: (
-        <DeliverDockRight
-          project={project}
-          batchQueue={[]}
-          setBatchQueue={() => {}}
-          queuePaused={false}
-          toggleQueuePause={() => {}}
-          deliverDestination="render"
-          setDeliverDestination={() => {}}
-          handleExportTimelineInterop={projectOps.handleExportTimelineInterop}
-          handleImportTimelineInterop={projectOps.handleImportTimelineInterop}
-          isInteropBusy={projectOps.isInteropBusy}
-          interopContent={projectOps.interopContent}
-          setNotice={projectOps.setNotice}
-          encoderInfo={null}
-          selectedExportPreset="source"
-          setSelectedExportPreset={() => {}}
-          exportResolution={projectOps.exportResolution}
-          setExportResolution={projectOps.setExportResolution}
-          exportFrameRate={projectOps.exportFrameRate}
-          setExportFrameRate={projectOps.setExportFrameRate}
-          exportFormat={projectOps.exportFormat}
-          setExportFormat={projectOps.setExportFormat}
-          exportFileName={projectOps.exportFileName}
-          setExportFileName={projectOps.setExportFileName}
-          exportOutputPath={projectOps.exportOutputPath}
-          setExportOutputPath={projectOps.setExportOutputPath}
-          chooseExportDestination={projectOps.chooseExportDestination}
-          useHardwareEncoding={projectOps.useHardwareEncoding}
-          setUseHardwareEncoding={projectOps.setUseHardwareEncoding}
-          exportMarkedRange={projectOps.exportMarkedRange}
-          setExportMarkedRange={projectOps.setExportMarkedRange}
-          invokeMenuCommand={invokeMenuCommand}
-          activeClip={null}
-          selectedMedia={selectedMedia}
-          renderPreview={() => null}
-          rendering={projectOps.rendering}
-          renderProgress={projectOps.renderProgress}
-          addExportToQueue={() => {}}
-          exportProject={projectOps.exportProject}
         />
       ),
     };

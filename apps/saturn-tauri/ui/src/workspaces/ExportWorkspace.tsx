@@ -1,8 +1,7 @@
-import { InteriorButton } from "../../components/interior/interior-button";
+import { InteriorButton } from "../components/interior/interior-button";
 import type { Dispatch, SetStateAction, ReactNode } from "react";
-import { Icon } from "../../components/Icon";
-import { StudioPanel } from "../../components/StudioPanel";
-import { DockCard } from "../../features/dock/DockCard";
+import { Icon } from "../components/Icon";
+import { StudioPanel } from "../components/StudioPanel";
 import {
   type ProjectDocument,
   type MediaAsset,
@@ -11,10 +10,10 @@ import {
   resolutionPresets,
   exportPresets,
   exportFrameRateOptions,
-} from "../../types";
-import { formatTime } from "../../utils/formatters";
+} from "../types";
+import { formatTime } from "../utils/formatters";
 
-export interface DeliverDockProps {
+export interface ExportWorkspaceProps {
   project: ProjectDocument["project"] | null;
   batchQueue: BatchQueueItem[];
   setBatchQueue: Dispatch<SetStateAction<BatchQueueItem[]>>;
@@ -55,7 +54,7 @@ export interface DeliverDockProps {
   exportProject: () => Promise<void> | void;
 }
 
-export function DeliverDockRight({
+export function ExportWorkspace({
   project,
   batchQueue,
   setBatchQueue,
@@ -94,7 +93,7 @@ export function DeliverDockRight({
   renderProgress,
   addExportToQueue,
   exportProject,
-}: DeliverDockProps) {
+}: ExportWorkspaceProps) {
   const outputResolution =
     exportResolution === "source"
       ? { width: project?.settings.width ?? 1920, height: project?.settings.height ?? 1080 }
@@ -127,15 +126,7 @@ export function DeliverDockRight({
     : "Choose a destination folder";
 
   return (
-    <DockCard
-        className="shell-dock shell-dock-right"
-        ariaLabel="Deliver dock"
-        tabs={[
-          {
-            id: "export-settings",
-            title: "Export",
-            render: () => (
-              <div className="export-dock-body">
+    <main className="export-workspace">
       <StudioPanel title="Destinations" className="export-destinations" scrollable>
         <InteriorButton
           className={`export-destination ${deliverDestination === "render" ? "selected" : ""}`}
@@ -734,10 +725,6 @@ export function DeliverDockRight({
           </StudioPanel>
         </>
       )}
-              </div>
-            ),
-          },
-        ]}
-      />
+    </main>
   );
 }

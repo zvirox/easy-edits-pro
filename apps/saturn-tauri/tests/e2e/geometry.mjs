@@ -6,6 +6,8 @@
 // §9 acceptance (plan v4): the walk runs at 1920x1080, 1600x900 AND 1280x720;
 // additionally no two card surfaces may intersect in any mode ("no-overlap
 // test"), and the status bar must stay visible everywhere.
+// Exception (user decision, 2026-10-23): Deliver is the previous full-page
+// ExportWorkspace — no persistent skeleton there, so it is asserted separately.
 import assert from 'node:assert/strict';
 
 const TOLERANCE_PX = 1;
@@ -166,13 +168,15 @@ async function switchWorkspace(page, menu, name) {
 const MODE_WALK = [
   { menu: 'Window', name: 'Workspace: Color', mode: 'color' },
   { menu: 'Window', name: 'Workspace: Effects', mode: 'effects' },
-  // G5: all eight modes route through the same shell. Menu labels from the
+  // G5: the docked modes route through the same shell. Menu labels from the
   // command catalogue: audio is "Fairlight", keyframes is "Animation".
+  // Deliver is NOT in the walk: it is a full-page workspace by user decision
+  // (2026-10-23) — it never carries the persistent shell, so geometry
+  // invariance covers the seven shell modes only (assertDeliverPage below).
   { menu: 'Window', name: 'Workspace: Media', mode: 'media' },
   { menu: 'Window', name: 'Workspace: Fusion', mode: 'fusion' },
   { menu: 'Window', name: 'Workspace: Fairlight', mode: 'audio' },
   { menu: 'Window', name: 'Workspace: Animation', mode: 'keyframes' },
-  { menu: 'Window', name: 'Workspace: Deliver', mode: 'deliver' },
   { menu: 'Window', name: 'Workspace: Edit', mode: 'edit' },
 ];
 
@@ -193,6 +197,22 @@ async function sweepViewport(page, ctx, width, height) {
     await assertMenuBarFits(page, `${label} ${step.mode} menu bar`);
     await assertNoCardOverlap(page, `${label} ${step.mode}`);
   }
+  // Deliver: full-page exception — the page mounts with no persistent
+  // skeleton, but the status bar stays visible and the menu bar stays sane.
+  // (assertStatusBarVisible would hang on its .workspace-shell lookup here,
+  // so the bare status-bar checks are inlined.)
+  await switchWorkspace(page, 'Window', 'Workspace: Deliver');
+  await page.locator('.export-workspace').waitFor();
+  const deliverStatus = await page.locator('.status-bar').boundingBox();
+  assert.ok(deliverStatus, `${label} deliver: status bar must be mounted`);
+  const deliverViewport = page.viewportSize();
+  assert.ok(
+    deliverStatus.y >= 0 &&
+      deliverStatus.y + deliverStatus.height <= deliverViewport.height + TOLERANCE_PX,
+    `${label} deliver: status bar escapes the viewport`,
+  );
+  await assertMenuBarFits(page, `${label} deliver menu bar`);
+
   await switchWorkspace(page, 'Window', 'Workspace: Edit');
   await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
   assertSameGeometry(baseline, await snapshot(page), `${label}: deliver -> edit`);
@@ -209,7 +229,7 @@ export async function run(ctx) {
   await sweepViewport(page, ctx, 1600, 900);
   await sweepViewport(page, ctx, 1280, 720);
 
-  ctx.state.geometryInvariance = 'passed (1920/1600/1280, all eight modes)';
+  ctx.state.geometryInvariance = 'passed (1920/1600/1280, seven shell modes + full-page deliver)';
   ctx.state.noCardOverlap = 'passed (all modes, three viewports)';
 
   await page.setViewportSize({ width: 1920, height: 1080 });

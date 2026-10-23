@@ -35,11 +35,13 @@ Area modules (execution order):
 2. `panels.mjs` - command palette, shortcut rebinding, preferences
    persistence, view/theme commands, workspace switching, layout presets,
    playhead-context for shortcut commands.
-3. `geometry.mjs` - plan v4 §9 acceptance: geometry-invariance walk across all
-   eight workspace modes at 1920/1600/1280 (monitor, toolbox, timeline never
-   move or remount), the no-overlap test (no two card surfaces intersect),
-   status-bar visibility everywhere, and the sub-1300px menu-overflow
-   contract.
+3. `geometry.mjs` - plan v4 §9 acceptance: geometry-invariance walk across the
+   seven shell workspace modes at 1920/1600/1280 (monitor, toolbox, timeline
+   never move or remount), the no-overlap test (no two card surfaces
+   intersect), status-bar visibility everywhere, and the sub-1300px
+   menu-overflow contract. Deliver is a full-page workspace by user decision
+   (2026-10-23, restore of ExportWorkspace) and gets its own mount/status
+   bar/menu assert instead of the shell walk.
 4. `timeline.mjs` - media import, pointer drop, speed/duration, clip context
    menu, razor/track-select/ripple tools, keyboard trim, three-point insert,
    playhead commands, zoom, scrub, playback, frame stepping.

@@ -254,6 +254,12 @@ flowchart TD
 * **G3 — Unified `WorkspaceShell` Grid:** Implement the persistent 2-row CSS grid in `WorkspaceShell.tsx`. Route Edit, Assembly, Color, Audio, Captions, Effects, Curves, Fusion, and Deliver as dock tab presets. Delete "SEQUENCE CLIPS REEL" and "Back to Edit" buttons.
 * **G4 — Timeline, 44px Track Headers & Tool Strip:** Implement compact track rows in `TimelineTrackLane.tsx`, 52px single-column vertical toolbox, grouped 40px timeline toolbar, and 92px master meter.
 * **G5 — Contextual Workspaces Docking:** Mount Color Scopes, Fairlight DSP racks, Fusion Canvas tab, and Deliver Export Settings into Dock L and Dock R without unmounting the Program Monitor or Timeline.
+  * **User decision (2026-10-23):** Deliver is REVERTED to the previous
+    full-page ExportWorkspace (as of `c9ecc2f`, restored verbatim) and routed
+    before the shell. The Deliver page is intentionally frozen — do not dock
+    it, do not modify its layout. Geometry invariance now covers the seven
+    shell modes; deliver gets its own mount/status-bar/menu assert in
+    `geometry.mjs`.
 * **G6 — UI Polish & Bug Fixes:** 
   1. Fix top menu overflow below 1300px.
   2. Resolve all missing SVG icons in `Icon.tsx`.
