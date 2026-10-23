@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `*_collaboration_lock` handlers. Catalogue is now 213 commands (113 shipped).
 
 ### Added
+- **Keyframes baked into exports (F4):** Clip position, scale, rotation, and
+  opacity keyframes now appear in exported MP4s, matching the preview. The
+  preview's cubic-bezier evaluator is ported 1:1 to Rust and a new
+  `saturnkfvid` GStreamer element warps each frame around centre with
+  keyframed opacity (straight alpha), attaching only to clips with visual
+  keyframes; verified by live-pipeline tests.
 - **Transport & frame export (F3):** The Program monitor transport now has
   Add Marker, Mark In/Out, Lift/Extract (`sequence.lift`/`sequence.extract`
   operating on the marked range — Lift keeps gaps, Extract ripples them

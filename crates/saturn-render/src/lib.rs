@@ -19,6 +19,8 @@ pub mod automation_element;
 pub mod compositor;
 pub mod curves;
 pub mod graphics_element;
+pub mod keyframe_element;
+pub mod keyframes;
 pub mod graphics_overlay;pub mod hsl;
 pub mod loudness;
 pub mod lut;
@@ -77,6 +79,8 @@ pub fn detect_hardware_encoders() -> HardwareEncoderInfo {
             .map_err(|error| format!("Could not register the graphics element: {error}"))?;
         automation_element::register()
             .map_err(|error| format!("Could not register the audio automation element: {error}"))?;
+        keyframe_element::register()
+            .map_err(|error| format!("Could not register the keyframe video element: {error}"))?;
         ges::init()
             .map_err(|error| format!("Could not initialize GStreamer Editing Services: {error}"))
     });
@@ -338,6 +342,9 @@ pub fn render_project_range_with_control(
                 .map_err(|error| format!("Could not register the graphics element: {error}"))?;
             automation_element::register().map_err(|error| {
                 format!("Could not register the audio automation element: {error}")
+            })?;
+            keyframe_element::register().map_err(|error| {
+                format!("Could not register the keyframe video element: {error}")
             })
         })
         .clone()?;
@@ -538,6 +545,9 @@ pub fn render_frame(
                 .map_err(|error| format!("Could not register the graphics element: {error}"))?;
             automation_element::register().map_err(|error| {
                 format!("Could not register the audio automation element: {error}")
+            })?;
+            keyframe_element::register().map_err(|error| {
+                format!("Could not register the keyframe video element: {error}")
             })
         })
         .clone()?;
@@ -750,11 +760,38 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
             .map_err(|error| format!("Could not serialize track automation: {error}"))?;
     }
 
+    // F4: stage per-clip visual keyframes for the saturnkfvid element. A clip
+    // gets a payload when its model has position/scale/rotation/opacity
+    // keyframes; curve times shift to timeline-absolute ticks so the element
+    // can sample them straight from the buffer PTS.
+    let keyframe_payloads: Vec<keyframes::VisualKeyframePayload> = document
+        .project
+        .sequence
+        .tracks
+        .iter()
+        .filter(|track| matches!(track.kind, TrackKind::Video))
+        .flat_map(|track| {
+            track.clips.iter().enumerate().filter_map(
+                move |(clip_index, clip)| {
+                    keyframes::build_visual_payload(
+                        keyframe_clip_key(track.id, clip_index),
+                        clip.timeline_start,
+                        &clip.keyframes,
+                    )
+                },
+            )
+        })
+        .collect();
+    if !keyframe_payloads.is_empty() {
+        keyframe_element::stage_keyframes(&keyframe_payloads)
+            .map_err(|error| format!("Could not serialize clip keyframes: {error}"))?;
+    }
+
     for track in &document.project.sequence.tracks {
         let is_audible = track.is_audible(any_solo);
         let effective_gain_db = if is_audible { track.gain_db } else { -120.0 };
         let layer = timeline.append_layer();
-        for clip in &track.clips {
+        for (clip_index, clip) in track.clips.iter().enumerate() {
             let (render_start, render_source_in, render_duration) =
                 transition_clip_timing(track, clip);
             let media = document
@@ -809,6 +846,15 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
             let track_automation_payload = audio_payloads
                 .iter()
                 .find(|payload| payload.track_id == track.id);
+            let keyframe_clip_key = if matches!(track.kind, TrackKind::Video) {
+                let key = keyframe_clip_key(track.id, clip_index);
+                keyframe_payloads
+                    .iter()
+                    .any(|payload| payload.clip_key == key)
+                    .then_some(key)
+            } else {
+                None
+            };
 
             apply_clip_effects(
                 &ges_clip,
@@ -816,6 +862,7 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
                 effective_gain_db,
                 &track.audio_processing,
                 track_automation_payload,
+                keyframe_clip_key,
                 matches!(media.kind, MediaKind::Video | MediaKind::Image),
                 document.project.settings.width,
                 document.project.settings.height,
@@ -862,17 +909,36 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
     Ok(timeline)
 }
 
+/// Stable per-clip-instance key for staged keyframe payloads: the track id
+/// in the high 32 bits, the clip index in the low 32.
+fn keyframe_clip_key(track_id: u64, clip_index: usize) -> u64 {
+    (track_id << 32) | (clip_index as u64 & 0xFFFF_FFFF)
+}
+
 fn apply_clip_effects(
     clip: &ges::UriClip,
     model: &Clip,
     gain_db: f64,
     audio_proc: &TrackAudioProcessing,
     automation_payload: Option<&automation_element::AudioAutomationPayload>,
+    keyframe_clip_key: Option<u64>,
     has_video: bool,
     project_width: u32,
     project_height: u32,
 ) -> Result<(), String> {
     if has_video {
+        // F4: clip keyframes ride saturnkfvid, which warps each frame around
+        // the centre (translate/scale/rotate) and multiplies in keyframed
+        // opacity through a straight-alpha output.
+        if let Some(clip_key) = keyframe_clip_key {
+            let effect_str = format!("{} clip-key={}", keyframe_element::ELEMENT_NAME, clip_key);
+            let effect = ges::Effect::new(&effect_str).map_err(|error| {
+                format!("Could not create the keyframe transform effect: {error}")
+            })?;
+            clip.add_top_effect(&effect, -1).map_err(|error| {
+                format!("Could not attach the keyframe transform effect: {error}")
+            })?;
+        }
         if model.effects.is_empty() {
             if model.color.exposure != 0.0
                 || model.color.contrast != 1.0

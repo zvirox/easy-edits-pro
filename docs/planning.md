@@ -309,6 +309,22 @@ flowchart TD
     module hosts the gap-preserving lift semantics (ripple cut logic split
     out of speech.rs), with unit + command-workflow tests for both ops.
 * **F4 — Keyframe Render Baking:** Wire `interpolation.ts` keyframe evaluator into `crates/saturn-render/src/lib.rs` export loop, baking transform, opacity, and audio automation into MP4 output.
+  * **Done (2026-10-23):** The preview keyframe evaluator (CSS cubic-bezier
+    `solveCubicBezier` + `interpolateKeyframe`) is ported 1:1 into Rust
+    (`keyframes.rs`, unit-tested against the TS parity values), and a new
+    `saturnkfvid` GStreamer base-transform element (`keyframe_element.rs`)
+    bakes position/scale/rotation/opacity clip keyframes into exported
+    frames: per-buffer PTS sampling over timeline-absolute curves (staged
+    per clip key the same way audio automation is), an inverse CSS warp
+    around the frame centre (`translate(px) scale(s) rotate(deg)`, origin
+    center) with bilinear sampling, transparent output outside the warped
+    source bounds, and keyframed straight-alpha output so GES's compositor
+    blends correctly. The element attaches as a top effect only on clips
+    whose model has visual keyframes, so non-keyframe renders are
+    unchanged. Live-pipeline integration tests (`tests/keyframe_video.rs`)
+    verify the opacity fade lands ~50% alpha halfway, scale-down leaves
+    corners transparent, translate moves the source window, and identity
+    payloads stay an opaque pass-through.
 * **F5 — Hardware Encoder Probe Optimization:** Run GStreamer hardware encoder detection asynchronously at startup, caching results so the Deliver workspace never stalls.
 * **F6 — Fairlight Plugin Host Cleanup:** Clean up placeholder slots; ensure active audio tracks bind directly to 4-band parametric EQ and compressor.
 
