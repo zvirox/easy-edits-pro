@@ -498,4 +498,122 @@ mod tests {
         assert!(!origin_allowed("http://localhost:1420.evil.com"));
         assert!(!origin_allowed("tauri://localhost.evil.com"));
     }
+
+    #[test]
+    fn allow_list_requires_explicit_registration() {
+        let folder = tempfile::tempdir().unwrap();
+        let inside = folder.path().join("scene.mp4");
+        std::fs::write(&inside, b"media").unwrap();
+        let outside = folder.path().join("secret.mp4");
+        std::fs::write(&outside, b"secret").unwrap();
+
+        assert!(!is_allowed_media_path(&inside), "nothing is allowed before registration");
+        register_allowed_media_path(&inside);
+        assert!(is_allowed_media_path(&inside));
+        // Canonical and as-written forms must both match.
+        let canon = inside.canonicalize().unwrap();
+        assert!(is_allowed_media_path(&canon), "canonical form must be allowed");
+        assert!(!is_allowed_media_path(&outside), "sibling file stays forbidden");
+    }
+
+    fn exchange(raw_request: &str) -> String {
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let addr = listener.local_addr().unwrap();
+        let handle = std::thread::spawn(move || {
+            let (stream, _) = listener.accept().unwrap();
+            handle_media_stream_client(stream);
+        });
+        let mut client = TcpStream::connect(addr).unwrap();
+        client.write_all(raw_request.as_bytes()).unwrap();
+        client.shutdown(std::net::Shutdown::Write).unwrap();
+        let mut response = String::new();
+        client.read_to_string(&mut response).unwrap();
+        handle.join().unwrap();
+        response
+    }
+
+    /// Sends one request through the real media-server handler and asserts
+    /// the security chain fires in order: host header, CORS origin, session
+    /// token, then the project media allow-list (planning safety packet).
+    #[test]
+    fn media_stream_request_chain_rejects_everything_untrusted() {
+        const PORT: u16 = 45987;
+        MEDIA_SERVER_PORT.store(PORT, Ordering::SeqCst);
+        let token = MEDIA_SERVER_TOKEN.get_or_init(|| "eep-test-session-token".to_owned());
+
+        let folder = tempfile::tempdir().unwrap();
+        let media = folder.path().join("allowed.bin");
+        std::fs::write(&media, b"frame-data").unwrap();
+        register_allowed_media_path(&media);
+        let secret = folder.path().join("unregistered.bin");
+        std::fs::write(&secret, b"secret").unwrap();
+
+        let get = |host: &str, origin: Option<&str>, token_param: Option<&str>, path: &str| {
+            let mut request = format!("GET /media?path={path}");
+            if let Some(token_param) = token_param {
+                request.push_str(&format!("&token={token_param}"));
+            }
+            request.push_str(&format!(" HTTP/1.1\r\nHost: {host}\r\n"));
+            if let Some(origin) = origin {
+                request.push_str(&format!("Origin: {origin}\r\n"));
+            }
+            request.push_str("\r\n");
+            exchange(&request)
+        };
+        let ok = format!("127.0.0.1:{PORT}");
+        assert!(!token.is_empty());
+
+        // 1. DNS-rebinding host is refused before anything else.
+        let response = get("rebind.example:80", Some("tauri://localhost"), Some(token), "/x");
+        assert!(response.starts_with("HTTP/1.1 403"), "bad host: {response}");
+
+        // 2. Foreign web origin is refused.
+        let response = get(&ok, Some("http://localhost:1420.evil.com"), Some(token), "/x");
+        assert!(response.starts_with("HTTP/1.1 403"), "bad origin: {response}");
+
+        // 3. Missing or wrong session token is refused.
+        for broken in [None, Some("wrong-token-value0000")] {
+            let response = get(&ok, Some("tauri://localhost"), broken, "/x");
+            assert!(
+                response.starts_with("HTTP/1.1 403") && response.contains("session token"),
+                "token {broken:?}: {response}"
+            );
+        }
+
+        // 4. A valid-looking request for a path the project never registered
+        //    is still forbidden - allow-list, not existence, decides access.
+        let response = get(
+            &ok,
+            Some("tauri://localhost"),
+            Some(token),
+            &percent_encode(&secret),
+        );
+        assert!(
+            response.starts_with("HTTP/1.1 403") && response.contains("allow-list"),
+            "unregistered path: {response}"
+        );
+
+        // 5. Registered + fully valid request streams the file.
+        let response = get(
+            &ok,
+            Some("tauri://localhost"),
+            Some(token),
+            &percent_encode(&media),
+        );
+        assert!(response.starts_with("HTTP/1.1 200"), "registered path: {response}");
+        assert!(response.contains("frame-data"), "body streamed: {response:?}");
+    }
+
+    fn percent_encode(path: &Path) -> String {
+        path.to_string_lossy()
+            .bytes()
+            .map(|byte| {
+                if byte.is_ascii_alphanumeric() || matches!(byte, b'/' | b'.' | b'_' | b'-') {
+                    (byte as char).to_string()
+                } else {
+                    format!("%{byte:02X}")
+                }
+            })
+            .collect()
+    }
 }
