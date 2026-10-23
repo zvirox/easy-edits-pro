@@ -24,10 +24,6 @@ import type {
   NodeGraph,
   SpeedRamp,
   MotionBlurParams,
-  LockTargetKind,
-  UserLock,
-  TimelineChangeEntry,
-  CollaborationState,
   SpeechSegment,
   SilenceInterval,
   RippleDeleteReport,
@@ -75,10 +71,6 @@ export type {
   NodeGraph,
   SpeedRamp,
   MotionBlurParams,
-  LockTargetKind,
-  UserLock,
-  TimelineChangeEntry,
-  CollaborationState,
   SpeechSegment,
   SilenceInterval,
   RippleDeleteReport,
@@ -283,7 +275,6 @@ export type ProjectDocument = {
     sequence: Sequence;
     sequences?: Sequence[];
     graphic_templates?: GraphicTemplate[];
-    collaboration?: CollaborationState;
     settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
   };
 };

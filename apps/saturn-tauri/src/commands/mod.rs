@@ -33,8 +33,6 @@ mod markers;
 pub use markers::{read_markers_file, write_markers_file};
 mod color;
 pub use color::{get_lut_preset_cube, load_lut_cube_file};
-mod collab;
-pub use collab::{acquire_collaboration_lock, get_collaboration_state, release_collaboration_lock};
 mod interop;
 pub use interop::{export_timeline_interop, import_timeline_interop};
 mod ai;

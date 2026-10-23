@@ -257,17 +257,9 @@ mod tests {
     fn v8_project_migrates_to_v9_schema() {
         let mut legacy = serde_json::to_value(ProjectDocument::new("V8 project")).unwrap();
         legacy["schema_version"] = 8.into();
-        legacy["project"]
-            .as_object_mut()
-            .unwrap()
-            .remove("collaboration");
         migrate_project(&mut legacy).unwrap();
         let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
         assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
-        assert_eq!(
-            loaded.project.collaboration.session_id,
-            "local-collab-session"
-        );
         assert!(loaded.project.sequence.node_graph.is_none());
     }
     #[test]

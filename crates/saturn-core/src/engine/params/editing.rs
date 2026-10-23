@@ -458,30 +458,6 @@ pub(in crate::engine) struct SetMotionBlurParams {
 }
 
 #[derive(Deserialize)]
-pub(in crate::engine) struct AcquireLockParams {
-    pub(in crate::engine) user_id: String,
-    pub(in crate::engine) user_name: String,
-    pub(in crate::engine) user_color: Option<String>,
-    pub(in crate::engine) target_kind: LockTargetKind,
-    pub(in crate::engine) target_id: u64,
-}
-
-#[derive(Deserialize)]
-pub(in crate::engine) struct ReleaseLockParams {
-    pub(in crate::engine) user_id: String,
-    pub(in crate::engine) target_kind: LockTargetKind,
-    pub(in crate::engine) target_id: u64,
-}
-
-#[derive(Deserialize)]
-pub(in crate::engine) struct RecordChangeParams {
-    pub(in crate::engine) user_id: String,
-    pub(in crate::engine) user_name: String,
-    pub(in crate::engine) action: String,
-    pub(in crate::engine) summary: String,
-}
-
-#[derive(Deserialize)]
 pub(in crate::engine) struct TranscribeToSubtitlesParams {
     pub(in crate::engine) segments: Vec<crate::speech::SpeechSegment>,
     pub(in crate::engine) replace_existing: Option<bool>,

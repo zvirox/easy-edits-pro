@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- **Collaborative multi-user "Lead Editor" subsystem:** Removed the header
+  collab pill and identity, the dead Phase 12.1 modal state, the collab CSS,
+  the `collab.acquire_lock` / `collab.release_lock` / `collab.record_change`
+  commands and their engine dispatch, the `CollaborationState` project field
+  (older projects simply drop the key on next save), and the Tauri
+  `*_collaboration_lock` handlers. Catalogue is now 213 commands (113 shipped).
+
 ### Added
 - **MCP editing workflow:** Re-enabled `saturn-mcp` in the Cargo workspace with command discovery/execution, project and sequence inspection, media search and asset-placement preview, and asynchronous render jobs with progress and cancellation.
 - **Live desktop MCP bridge:** Added a same-user Unix socket bridge so MCP edits use the open desktop project's shared editor state and undo history. Requests are size-limited and the runtime socket directory and socket use restrictive permissions.

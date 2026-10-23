@@ -1304,57 +1304,6 @@
   },
   {
     "aliases": [],
-    "category": "Other",
-    "id": "collab.acquire_lock",
-    "label": "Acquire Project Lock",
-    "menu": [
-      "File",
-      "Collaboration"
-    ],
-    "mutating": true,
-    "params": "{\"user_id\":str,\"user_name\":str,\"user_color\":str?,\"target_kind\":obj,\"target_id\":int}",
-    "shipped": false,
-    "shortcut": null,
-    "since": "0.1.0",
-    "uiOnly": false,
-    "undoGroup": "transaction"
-  },
-  {
-    "aliases": [],
-    "category": "Other",
-    "id": "collab.release_lock",
-    "label": "Release Project Lock",
-    "menu": [
-      "File",
-      "Collaboration"
-    ],
-    "mutating": true,
-    "params": "{\"user_id\":str,\"target_kind\":obj,\"target_id\":int}",
-    "shipped": false,
-    "shortcut": null,
-    "since": "0.1.0",
-    "uiOnly": false,
-    "undoGroup": "transaction"
-  },
-  {
-    "aliases": [],
-    "category": "Other",
-    "id": "collab.record_change",
-    "label": "Record Change History Entry",
-    "menu": [
-      "File",
-      "Collaboration"
-    ],
-    "mutating": true,
-    "params": "{\"user_id\":str,\"user_name\":str,\"action\":str,\"summary\":str}",
-    "shipped": false,
-    "shortcut": null,
-    "since": "0.1.0",
-    "uiOnly": false,
-    "undoGroup": "transaction"
-  },
-  {
-    "aliases": [],
     "category": "File",
     "id": "interop.import_edl",
     "label": "Import CMX 3600 EDL",

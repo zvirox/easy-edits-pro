@@ -3,12 +3,12 @@ use crate::project::{
     AudioPluginInstance, AutomationInterpolation, AutomationLane, AutomationMode, BusTarget,
     ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams, ColorWheels, CompositingNode,
     CompositingNodeKind, CropParams, CustomShaderParams, EffectInstance, EffectKind, EffectPayload,
-    GaussianBlurParams, InterpolationKind, Keyframe, KeyframeProperty, LockTargetKind, LutParams,
+    GaussianBlurParams, InterpolationKind, Keyframe, KeyframeProperty, LutParams,
     Marker, MediaAsset, MediaKind, MotionBlurParams, MotionTrackingData, MultiCamAngle,
     MultiCamClip, MultiCamSyncMode, NodeConnection, NodeGraph, ProjectDocument, RotoSplineMask,
-    Sequence, SpeedRamp, SubtitleItem, TimelineChangeEntry, TitleProperties, Track,
+    Sequence, SpeedRamp, SubtitleItem, TitleProperties, Track,
     TrackAudioProcessing, TrackAutomation, TrackGroup, TrackKind, TrackingMode, Transition,
-    TransitionKind, UserLock, VignetteParams,
+    TransitionKind, VignetteParams,
 };
 use crate::time::{FrameRate, Tick, TICKS_PER_SECOND};
 use serde::Deserialize;
@@ -18,7 +18,6 @@ use std::path::PathBuf;
 mod audio_cmds;
 mod clip_advanced_cmds;
 mod clip_cmds;
-mod collab_cmds;
 mod color_cmds;
 mod compound_cmds;
 mod edit_cmds;
@@ -222,9 +221,6 @@ impl EditorEngine {
             return result;
         }
         if let Some(result) = self.dispatch_graphics(command.id, request.params.clone()) {
-            return result;
-        }
-        if let Some(result) = self.dispatch_collab(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_compound(command.id, request.params.clone()) {

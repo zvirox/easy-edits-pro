@@ -306,33 +306,6 @@ export interface MotionBlurParams {
   samples?: number;
 }
 
-export type LockTargetKind = "bin" | "sequence" | "track" | "clip";
-
-export interface UserLock {
-  user_id: string;
-  user_name: string;
-  user_color?: string;
-  target_kind: LockTargetKind;
-  target_id: number;
-  locked_at: number;
-}
-
-export interface TimelineChangeEntry {
-  id: number;
-  user_id: string;
-  user_name: string;
-  timestamp: number;
-  action: string;
-  summary: string;
-}
-
-export interface CollaborationState {
-  session_id: string;
-  active_users: string[];
-  locks: UserLock[];
-  change_log: TimelineChangeEntry[];
-}
-
 export interface Clip {
   media_id: number;
   timeline_start: number;
@@ -555,7 +528,6 @@ export interface ProjectDocument {
       frame_rate: { numerator: number; denominator: number };
       audio_sample_rate: number;
     };
-    collaboration?: CollaborationState;
   };
 }
 

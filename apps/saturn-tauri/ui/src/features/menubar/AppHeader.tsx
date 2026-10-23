@@ -78,8 +78,6 @@ export interface AppHeaderProps {
   saveProject: () => Promise<void>;
   importMedia: () => Promise<void>;
   setNotice: (notice: string | null) => void;
-  collabUser: { id: string; name: string; color: string };
-  setCollabModalOpen: (open: boolean) => void;
   activeJobs: JobInfo[];
   jobs: JobInfo[];
   cancelJob: (id: number) => Promise<void>;
@@ -113,8 +111,6 @@ export function AppHeader({
   saveProject,
   importMedia,
   setNotice,
-  collabUser,
-  setCollabModalOpen,
   activeJobs,
   jobs,
   cancelJob,
@@ -353,18 +349,6 @@ export function AppHeader({
         </div>
 
         <div className="system-bar-right">
-          <InteriorButton
-            className="collab-pill-btn"
-            onClick={() => setCollabModalOpen(true)}
-            data-tooltip="Collaborative Multi-User Project Locking (Phase 12.1)"
-            data-tooltip-pos="bottom"
-          >
-            <span className="collab-indicator-dot" style={{ backgroundColor: collabUser.color }} />
-            <span className="collab-name">{collabUser.name}</span>
-            <span className="collab-badge">
-              🔒 {project?.collaboration?.locks?.length ?? 0}
-            </span>
-          </InteriorButton>
 
           {/* Background Job Queue Status Pill */}
           <div className="job-queue-wrapper" ref={jobDrawerRef}>

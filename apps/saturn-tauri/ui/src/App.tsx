@@ -551,8 +551,6 @@ function EditorApp() {
         saveProject={projectOps.saveProject}
         importMedia={mediaOps.importMedia}
         setNotice={setNotice}
-        collabUser={projectOps.collabUser}
-        setCollabModalOpen={projectOps.setCollabModalOpen}
         activeJobs={jobsHook.activeJobs}
         jobs={jobsHook.jobs}
         cancelJob={jobsHook.cancelJob}

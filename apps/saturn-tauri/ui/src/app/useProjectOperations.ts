@@ -155,16 +155,6 @@ export function useProjectOperations({
   const [gpuTelemetryOpen, setGpuTelemetryOpen] = useState(false);
   const [gpuMetrics, setGpuMetrics] = useState<GpuMetrics | null>(null);
 
-  // Collab
-  const [collabModalOpen, setCollabModalOpen] = useState(false);
-  const [collabUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem("eep-collab-user");
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return { id: `user-${Math.floor(Math.random() * 9000 + 1000)}`, name: "Lead Editor", color: "#be185d" };
-  });
-
   const rememberProject = useCallback((name: string, path: string) => {
     setRecentProjects((current) => {
       const next = [{ name, path }, ...current.filter((item) => item.path !== path)].slice(0, 6);
@@ -694,9 +684,6 @@ export function useProjectOperations({
     gpuTelemetryOpen,
     setGpuTelemetryOpen,
     gpuMetrics,
-    collabModalOpen,
-    setCollabModalOpen,
-    collabUser,
     ensureDiscardIsOkay,
     openProject,
     loadProjectFromPath,

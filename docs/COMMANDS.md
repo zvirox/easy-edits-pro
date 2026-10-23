@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-216 commands.
+213 commands.
 
 ## File
 
@@ -13,9 +13,6 @@ Generated from the command catalogue. Do not edit by hand.
 | Open Project | `file.open` | shipped | Ctrl+O | `{"path":path}` |
 | Save Project | `file.save` | shipped | Ctrl+S | `{"path":path}` |
 | Import Media… | `project.add_media` | shipped | Ctrl+I | `{"name":str,"path":path,"kind":str?,"duration":ticks?,"width":int?,"height":int?,"fps":num?,"audio_channels":int?,"codec":str?,"bin_id":int?,"color_label":str?,"tags":[str]?,"title":obj?,"waveform":[int]?}` |
-| Acquire Project Lock | `collab.acquire_lock` | planned |  | `{"user_id":str,"user_name":str,"user_color":str?,"target_kind":obj,"target_id":int}` |
-| Release Project Lock | `collab.release_lock` | planned |  | `{"user_id":str,"target_kind":obj,"target_id":int}` |
-| Record Change History Entry | `collab.record_change` | planned |  | `{"user_id":str,"user_name":str,"action":str,"summary":str}` |
 | Import CMX 3600 EDL | `interop.import_edl` | planned |  | `{"edl":str,"project_name":str?}` |
 | Import Final Cut Pro XML | `interop.import_fcpxml` | planned |  | `{"xml":str}` |
 | Import Premiere Pro XML | `interop.import_premiere_xml` | planned |  | `{"xml":str}` |

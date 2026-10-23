@@ -37,8 +37,6 @@ pub struct Project {
     #[serde(default)]
     pub graphic_templates: Vec<crate::project::GraphicTemplate>,
     pub next_id: u64,
-    #[serde(default)]
-    pub collaboration: CollaborationState,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

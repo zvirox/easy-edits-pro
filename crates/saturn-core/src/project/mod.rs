@@ -88,7 +88,6 @@ impl ProjectDocument {
                 },
                 sequences: Vec::new(),
                 next_id: 3,
-                collaboration: CollaborationState::default(),
             },
             view: ProjectView {
                 active_sequence: Some("Sequence 1".into()),

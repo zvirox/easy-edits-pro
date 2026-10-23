@@ -1,7 +1,7 @@
 import type {
   AudioBus, AudioPluginInstance, AutomationMode, BusTarget, CaptionStyle, CaptionTrack,
   GraphicItem, GraphicTemplate,
-  CollaborationState, EffectInstance, HslQualifier, Keyframe, MotionBlurParams,
+  EffectInstance, HslQualifier, Keyframe, MotionBlurParams,
   MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves, SpeedRamp, SubtitleItem,
   TrackAudioProcessing, TrackAutomation, TrackGroup, SilenceInterval,
 } from "../engine/playbackEngine";
@@ -9,7 +9,7 @@ import type {
 export type {
   AudioBus, AudioPluginInstance, AutomationMode, BusTarget, CaptionStyle, CaptionTrack,
   GraphicItem, GraphicTemplate,
-  CollaborationState, EffectInstance, HslQualifier, Keyframe, MotionBlurParams,
+  EffectInstance, HslQualifier, Keyframe, MotionBlurParams,
   MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves, SpeedRamp, SubtitleItem,
   TrackAudioProcessing, TrackAutomation, TrackGroup, SilenceInterval,
 };
@@ -169,7 +169,6 @@ export type ProjectDocument = {
     sequence: Sequence;
     sequences?: Sequence[];
     graphic_templates?: GraphicTemplate[];
-    collaboration?: CollaborationState;
     settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
   };
 };
