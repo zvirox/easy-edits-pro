@@ -232,11 +232,11 @@ mod imp {
                 pts_to_ticks(frame.buffer().pts().map(|pts| pts.nseconds()).unwrap_or(0));
             let width = info.width();
             let height = info.height();
-            let mut fonts = self.fonts.lock().expect("font context lock");
-            let fonts = fonts.get_or_insert_with(TextContext::new);
+            let mut font_guard = self.fonts.lock().expect("font context lock");
+            let fonts = font_guard.get_or_insert_with(TextContext::new);
             let overlay =
                 render_graphics_overlay(&payload.graphics, playhead, width, height, 1.0, fonts);
-            drop(fonts);
+            drop(font_guard);
             if overlay.iter().all(|&byte| byte == 0) {
                 return Ok(gst::FlowSuccess::Ok);
             }
