@@ -287,3 +287,28 @@ The spike is development-only: `main.tsx` mounts it only when
    open**, and **58.6 fps while dragging a clip**, with **0 dropped video
    frames** in all three runs. The 36-state dark/light × Full/Lite/Off visual
    baseline was captured at 1600×900.
+
+---
+
+## C1 addendum — hardware matrix (started 2026-10-23)
+
+This is the packet-C1 results table. A row is only recorded from a real
+benchmark run on that configuration (spike harness on `feat/glass-spike`,
+later the C10 in-editor `perf:glass` script). Thresholds to hold: video ≥ 30
+fps, drag p95 ≤ 25 ms, DMA-BUF on unless the row records a failure.
+
+| # | GPU / driver | Session | WebKitGTK | Video fps | Drag fps | Drag p95 | DMA-BUF | Result |
+|---|---|---|---|---|---|---|---|---|
+| 1 | Intel Iris Xe (`8086:9a49`, i915) | Wayland (niri 26.04) | 2.54.1 | 58.9 (panel-over-video, spike) | 58.9 / 54.6 stress | 21-26 ms | on | PASS (phase-0 spike + real-editor re-checks) |
+| 2 | NVIDIA proprietary | Wayland | current | - | - | - | - | open — needs machine |
+| 3 | NVIDIA proprietary | X11 | current | - | - | - | - | open — needs machine |
+| 4 | AMD (RADV) | Wayland | current | - | - | - | - | open — needs machine |
+| 5 | AMD (RADV) | X11 | current | - | - | - | - | open — needs machine |
+| 6 | Intel / software (llvmpipe) | X11, 2.4x WebKitGTK (oldest supported distro) | - | - | - | - | - | open — needs machine |
+
+Record the contributing machine's details (distro, kernel, driver version,
+WebKitGTK from `python3 -c "import gi; gi.require_version('WebKit','4.1')"`
+or `webkit2gtk-4.1` pkg-config, window size, DPR) alongside each row, mirroring
+the spike's Environment section. Rows 2-5 gate the C2 DMA-BUF defaults: any
+configuration that fails skips DMA-BUF by default via the GPU-class list, and
+the C2 first-paint watchdog covers the un-enumerated tail.
