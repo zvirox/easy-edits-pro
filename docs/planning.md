@@ -55,11 +55,11 @@ Work is ordered to make each release more trustworthy before expanding the featu
 
 **Goal:** make `main` green and make documentation reflect only current facts.
 
-1. Reproduce and fix the Python harness media-bin/subtitle `IndexError`. Verify the command returns data or a structured backend error; it must never turn missing state into a success or an internal error.
-2. Stabilise the Playwright smoke selector and make its waiting conditions explicit. Keep browser smoke tests mocked; do not represent them as a native-engine or codec check.
-3. Add a native workflow test script for this laptop: create/open a project, import the maintained local fixture, make a timeline edit, save/reopen, render, and inspect the output with `ffprobe`.
-4. Clear the existing source-size warning backlog: split the files above the 800-line hard limit by domain, beginning with `interop.rs`, Fairlight, and Keyframes. Do not raise the limit.
-5. Keep generated command and parity material in sync after catalogue changes.
+1. Reproduce and fix the Python harness media-bin/subtitle `IndexError`. Verify the command returns data or a structured backend error; it must never turn missing state into a success or an internal error. — **done** (`24e876e`)
+2. Stabilise the Playwright smoke selector and make its waiting conditions explicit. Keep browser smoke tests mocked; do not represent them as a native-engine or codec check. — **done** (`30e2b5b`)
+3. Add a native workflow test script for this laptop: create/open a project, import the maintained local fixture, make a timeline edit, save/reopen, render, and inspect the output with `ffprobe`. — **done** (`af2089c`; evidence in [native-workflow.md](native-workflow.md))
+4. Clear the existing source-size warning backlog: split the files above the 800-line hard limit by domain, beginning with `interop.rs`, Fairlight, and Keyframes. Do not raise the limit. — **done** (`25f725f`, `cbce9db`)
+5. Keep generated command and parity material in sync after catalogue changes. — **standing rule; current docs in sync** (`39917362806` green)
 
 **Exit evidence:** CI is green; the laptop workflow script passes; generated documents have no drift; the source-size gate passes without warnings.
 
