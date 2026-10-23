@@ -35,6 +35,36 @@ mod tests {
     };
 
     #[tokio::test]
+    async fn media_preview_never_returns_a_source_path_placeholder() {
+        let mut engine = EditorEngine::default();
+        engine
+            .execute(saturn_core::CommandRequest::new(
+                "project.new",
+                json!({"name": "MCP preview"}),
+            ))
+            .unwrap();
+        engine
+            .execute(saturn_core::CommandRequest::new(
+                "project.add_media",
+                json!({"name": "clip.mp4", "path": "/tmp/nonexistent-clip.mp4", "kind": "video"}),
+            ))
+            .unwrap();
+        let media_id = engine.document().project.media[0].id;
+
+        let mcp = EditorMcp::new(engine);
+        let result = mcp
+            .media_preview(&json!({"media_id": media_id}))
+            .await
+            .expect("media_preview on a real asset");
+        assert!(result.get("preview_path").is_none(), "no source-path placeholder");
+        assert_eq!(result["still_frame"]["available"], false);
+
+        // Unknown ids are a typed error, not a fabricated payload.
+        let missing = mcp.media_preview(&json!({"media_id": 4242})).await;
+        assert!(missing.is_err());
+    }
+
+    #[tokio::test]
     async fn bridge_client_reconnects_after_server_restart() {
         let path =
             std::env::temp_dir().join(format!("eep-mcp-reconnect-{}.sock", std::process::id()));
@@ -289,7 +319,7 @@ impl EditorMcp {
             ),
             Tool::new(
                 "media_preview",
-                "Inspect one imported media asset and its timeline placements. Returns its source path for a client-side preview.",
+                "Inspect one imported media asset and its timeline placements. Returns media metadata only: no image payload exists yet (still_frame.available is false), so clients must not treat it as a preview.",
                 schema(json!({ "type": "object", "properties": {
                     "media_id": { "type": "integer", "minimum": 0 }
                 }, "required": ["media_id"] })),
@@ -723,7 +753,7 @@ impl EditorMcp {
             }
         }
         Ok(
-            json!({"media": asset, "timeline_placements": placements, "preview_path": asset.get("path")}),
+            json!({"media": asset, "timeline_placements": placements, "still_frame": {"available": false, "reason": "still-frame extraction is not implemented; no image payload exists yet"}}),
         )
     }
 }

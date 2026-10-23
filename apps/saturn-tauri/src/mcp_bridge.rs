@@ -21,13 +21,15 @@ pub fn start(app: AppHandle, state: AppState) {
     });
 }
 
-async fn serve(app: AppHandle, state: AppState) -> io::Result<()> {
-    let path = saturn_core::local_control::mcp_socket_path();
+/// Binds the bridge's Unix socket with the desktop-lifecycle rules:
+/// a socket file nobody answers is stale (previous instance crashed) and is
+/// removed; a live listener means another editor owns the socket and startup
+/// fails; the created socket is readable only by the current user.
+async fn prepare_bridge_socket(path: &std::path::Path) -> io::Result<UnixListener> {
     let parent = path
         .parent()
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "socket path has no parent"))?;
     std::fs::create_dir_all(parent)?;
-    #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         if parent.ends_with("easy-edits-pro/runtime") {
@@ -36,23 +38,28 @@ async fn serve(app: AppHandle, state: AppState) -> io::Result<()> {
     }
 
     if path.exists() {
-        match UnixStream::connect(&path).await {
+        match UnixStream::connect(path).await {
             Ok(_) => {
                 return Err(io::Error::new(
                     io::ErrorKind::AddrInUse,
                     format!("another editor already owns MCP socket {}", path.display()),
                 ));
             }
-            Err(_) => std::fs::remove_file(&path)?,
+            Err(_) => std::fs::remove_file(path)?,
         }
     }
 
-    let listener = UnixListener::bind(&path)?;
-    #[cfg(unix)]
+    let listener = UnixListener::bind(path)?;
     {
         use std::os::unix::fs::PermissionsExt;
-        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600))?;
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))?;
     }
+    Ok(listener)
+}
+
+async fn serve(app: AppHandle, state: AppState) -> io::Result<()> {
+    let path = saturn_core::local_control::mcp_socket_path();
+    let listener = prepare_bridge_socket(&path).await?;
     eprintln!("Easy Edits Pro MCP bridge listening at {}", path.display());
 
     loop {
@@ -349,7 +356,14 @@ fn media_preview(state: &AppState, params: &Value) -> Result<Value, String> {
         .0
         .lock()
         .map_err(|_| "Editor state is unavailable".to_owned())?;
-    let document = engine.document();
+    media_preview_payload(engine.document(), id)
+}
+
+/// Shared shape for media_preview: no image payload is fabricated. Until
+/// still-frame extraction exists, the tool reports the absence honestly
+/// instead of returning a source-path placeholder that clients would mistake
+/// for a preview.
+fn media_preview_payload(document: &saturn_core::ProjectDocument, id: u64) -> Result<Value, String> {
     let asset = document
         .project
         .media
@@ -376,7 +390,83 @@ fn media_preview(state: &AppState, params: &Value) -> Result<Value, String> {
                 })
         })
         .collect::<Vec<_>>();
-    Ok(
-        json!({ "media": asset, "timeline_placements": placements, "preview_path": document.project.media.iter().find(|item| item.id == id).map(|item| item.path.to_string_lossy()) }),
-    )
+    Ok(json!({
+        "media": asset,
+        "timeline_placements": placements,
+        "still_frame": {
+            "available": false,
+            "reason": "still-frame extraction is not implemented; no image payload exists yet"
+        },
+    }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn media_preview_reports_honest_absence_of_still_frames() {
+        let mut engine = saturn_core::EditorEngine::default();
+        engine
+            .execute(saturn_core::CommandRequest::new(
+                "project.new",
+                json!({"name": "MCP preview"}),
+            ))
+            .unwrap();
+        engine
+            .execute(saturn_core::CommandRequest::new(
+                "project.add_media",
+                json!({"name": "clip.mp4", "path": "/assets/clip.mp4", "kind": "video"}),
+            ))
+            .unwrap();
+        let document = engine.document().clone();
+        let media_id = document.project.media[0].id;
+
+        let payload = media_preview_payload(&document, media_id).unwrap();
+        assert!(payload.get("preview_path").is_none(), "no source-path placeholder");
+        assert_eq!(payload["still_frame"]["available"], false);
+        assert_eq!(
+            payload["media"]["id"],
+            serde_json::to_value(media_id).unwrap()
+        );
+
+        // Unknown ids stay a typed error, never a fabricated preview.
+        assert!(media_preview_payload(&document, 999).is_err());
+    }
+
+    #[tokio::test]
+    async fn bridge_socket_prep_covers_stale_live_and_permissions() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let folder = tempfile::tempdir().unwrap();
+        let path = folder.path().join("bridge.sock");
+
+        // A stale socket file (no listener answers) is removed and replaced.
+        std::fs::write(&path, b"not a socket").unwrap();
+        let listener = prepare_bridge_socket(&path).await.expect("stale socket recovery");
+        drop(listener);
+        assert_eq!(
+            std::fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+            0o600,
+            "bridge socket is private to the user"
+        );
+        // Dropping a listener leaves its socket file behind - that stale file
+        // is exactly what the crash-recovery path must clear on next start.
+        let _ = std::fs::remove_file(&path);
+
+        // A live listener owns the socket: the second editor must refuse to
+        // start its bridge instead of stealing it.
+        let owner = std::os::unix::net::UnixListener::bind(&path).unwrap();
+        let error = prepare_bridge_socket(&path).await.unwrap_err();
+        assert_eq!(error.kind(), std::io::ErrorKind::AddrInUse);
+        drop(owner);
+        let _ = std::fs::remove_file(&path);
+
+        // Fresh bind works, creating parent directories as needed.
+        let nested = folder.path().join("deep/new/dir");
+        let fresh = prepare_bridge_socket(&nested.join("bridge.sock"))
+            .await
+            .expect("fresh bind with created parents");
+        drop(fresh);
+    }
 }
