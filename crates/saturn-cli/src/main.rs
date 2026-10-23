@@ -89,8 +89,19 @@ fn run() -> Result<(), String> {
                 "reason": status.reason,
             }))?;
         }
+        "render" => {
+            let project_path = required(&mut args, "project path")?;
+            let output_path = required(&mut args, "output path")?;
+            execute(&mut engine, "file.open", json!({ "path": project_path }))?;
+            let document = engine.document().clone();
+            let result = saturn_render::render_project(&document, &output_path, |progress| {
+                eprintln!("render: {} {}", progress.phase, progress.fraction_percent);
+            });
+            result?;
+            println!("Rendered {}", output_path.display());
+        }
         "catalogue" => run_catalogue(args.collect())?,
-        "control" => run_control()?,
+        "control" => run_control(args.collect())?,
         "template" => run_template(args.collect())?,
         "new" => {
             let path = required(&mut args, "project path")?;
@@ -140,9 +151,18 @@ fn run() -> Result<(), String> {
 }
 
 /// JSON Lines control interface: one CommandRequest per input line, one result per output line.
-fn run_control() -> Result<(), String> {
-    let stdin = io::stdin();
+/// `--project <path>` optionally opens a saved project first so edits act on
+/// real files (this is how the native workflow test drives the true engine).
+fn run_control(tokens: Vec<String>) -> Result<(), String> {
+    let mut tokens = tokens.into_iter();
     let mut engine = EditorEngine::default();
+    if tokens.next().as_deref() == Some("--project") {
+        let path = tokens
+            .next()
+            .ok_or("--project requires the path of a saved project")?;
+        execute(&mut engine, "file.open", json!({ "path": path }))?;
+    }
+    let stdin = io::stdin();
     for line in stdin.lock().lines() {
         let line = line.map_err(|error| format!("could not read control input: {error}"))?;
         if line.trim().is_empty() {
@@ -400,5 +420,5 @@ fn print_json(value: &Value) -> Result<(), String> {
 }
 
 fn usage<T>() -> Result<T, String> {
-    Err("usage: saturn-cli commands [filter] [--json] | describe <id> | catalogue <docs|json> <path> [--check] | control | new <project.saturn> [name] | inspect <project.saturn> | list-media <project.saturn> | add-media <project.saturn> <media-path> | template create|inspect|list|export".into())
+    Err("usage: saturn-cli commands [filter] [--json] | describe <id> | catalogue <docs|json> <path> [--check] | control [--project <project.saturn>] | new <project.saturn> [name] | inspect <project.saturn> | list-media <project.saturn> | add-media <project.saturn> <media-path> | render <project.saturn> <output.mp4|output.webm> | template create|inspect|list|export".into())
 }

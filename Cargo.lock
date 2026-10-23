@@ -1604,6 +1604,7 @@ version = "0.1.0"
 dependencies = [
  "saturn-core",
  "saturn-graphics",
+ "saturn-render",
  "serde_json",
 ]
 

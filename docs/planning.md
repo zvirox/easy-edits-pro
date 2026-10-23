@@ -152,6 +152,7 @@ For media, MCP, packaging, or native-window changes, add the focused laptop work
 | [PARITY.md](PARITY.md) | generated command coverage |
 | [COMMANDS.md](COMMANDS.md) | generated command reference |
 | [distribution.md](distribution.md) | package and release evidence |
+| [native-workflow.md](native-workflow.md) | real-engine laptop workflow evidence (M0.3) |
 | [glass-spike.md](glass-spike.md) | measured single-laptop rendering evidence |
 | [design-qa.md](design-qa.md) | UI quality evidence and open UI work |
 
