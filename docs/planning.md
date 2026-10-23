@@ -68,7 +68,7 @@ Work is ordered to make each release more trustworthy before expanding the featu
 **Goal:** a creator can complete a small edit on the development laptop without guessing which controls work.
 
 1. **Project and media reliability:** missing-media relink behaviour, recovery restore, error states for unsupported codecs, proxy lifecycle, and clear import status.
-2. **Timeline and preview:** preserve pointer drag/drop, playhead scrubbing, zoom, trimming, split, move, ripple, transitions, selection, and undo/redo through save/reopen tests.
+2. **Timeline and preview:** preserve pointer drag/drop, playhead scrubbing, zoom, trimming, split, move, ripple, transitions, selection, and undo/redo through save/reopen tests. — **done**: engine round-trip test proves trim (plain + ripple head), razor split, move, ripple delete, transitions, and in/out points persist exactly through save/reopen with a clean post-reopen history (`crates/saturn-core/tests/timeline_reopen.rs`, whole-sequence JSON equality); pointer drop, razor, ripple, trim, marks, playhead, zoom, and scrub are exercised by the browser e2e contract (`tests/e2e/timeline.mjs`), and the laptop workflow verifies save/reopen on the real engine
 3. **Export truthfulness:** connect the visible export queue to real job state, expose honest preset/range/codec errors, and verify cancellation removes partial output. Retain software H.264 as the tested path.
 4. **MCP lifecycle:** finish reconnect and desktop-lifecycle coverage for the Unix bridge; add still-frame preview only when the tool returns a real image payload rather than a source-path placeholder.
 5. **Safety:** cover recovery, media allow-listing, SSRF protection, and bridge permission/error cases with focused tests.
