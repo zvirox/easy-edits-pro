@@ -31,6 +31,14 @@
   --blur-l3: 20px;
   --blur-l4: 28px;
 
+  /* Plan v4 shape tokens (docs/GLASS_CARDS_PLAN.md §3): spacing and shape
+     only. --card-inset is the single sanctioned colour addition and enters
+     the token-freeze snapshot with this commit. Both themes inherit these. */
+  --gap: 12px;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --card-inset: rgba(255, 255, 255, 0.045);
+
   /* Stage background behind the glass. */
   --bg-stage:
     radial-gradient(48vw 42vh at 18% 22%, rgba(255, 92, 148, 0.2), transparent 62%),

@@ -179,3 +179,110 @@
   background: var(--bg-elevated);
   box-shadow: none;
 }
+
+/* --------------------------------------------------------------------------
+   Card primitives (Plan v4 G1, docs/GLASS_CARDS_PLAN.md §2/§3)
+   Header row, tabs, labels, chips and fields for stationary glass cards.
+   G2's DockCard and G3's WorkspaceShell consume these instead of growing
+   per-panel copies. Shape and colour come from tokens only; the card corner
+   radius uses --radius (registered with this milestone). Motion stays off
+   these primitives until G6 (one transition policy for the whole shell).
+   -------------------------------------------------------------------------- */
+
+.glass.card {
+  border-radius: var(--radius);
+}
+
+/* Header: 38px row, tabs left, hairline underneath, underline on the active tab. */
+.card-h {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  min-height: 38px;
+  padding: 0 10px;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--glass-border) 60%, transparent);
+}
+
+.tab {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  position: relative;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 500;
+}
+
+.tab:hover {
+  color: var(--text-secondary);
+}
+
+.tab[aria-selected="true"] {
+  color: var(--text-primary);
+}
+
+.tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -6px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent-text);
+}
+
+/* Body: the scrollable region of a card. */
+.card-b {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+
+/* Small-caps section labels; numbers stay tabular. */
+.label {
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Inset surfaces INSIDE a card: chips, read-only field rows. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--card-inset);
+  color: var(--text-secondary);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+  margin-bottom: 6px;
+  border-radius: var(--radius-sm);
+  background: var(--card-inset);
+  color: var(--text-secondary);
+}
+
+.field b {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}

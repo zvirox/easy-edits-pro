@@ -56,6 +56,15 @@ pairs are enforced by `pnpm check:contrast` at WCAG AA (4.5:1).
 | `--blur-l3` | `20px` | `20px` |
 | `--blur-l4` | `28px` | `28px` |
 
+## Card shape and insets (Plan v4 G1)
+
+| Token | Dark | Light |
+|---|---|---|
+| `--gap` | `12px` | `—` |
+| `--radius` | `16px` | `—` |
+| `--radius-sm` | `10px` | `—` |
+| `--card-inset` | `rgba(255, 255, 255, 0.045)` | `—` |
+
 ## Component surfaces (G1d)
 
 | Token | Dark | Light |

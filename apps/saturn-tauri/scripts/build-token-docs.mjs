@@ -57,6 +57,10 @@ const GROUPS = [
     ],
   },
   {
+    title: "Card shape and insets (Plan v4 G1)",
+    tokens: ["--gap", "--radius", "--radius-sm", "--card-inset"],
+  },
+  {
     title: "Component surfaces (G1d)",
     tokens: ROLE_SURFACE_TOKENS,
   },
