@@ -9,10 +9,20 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+# A new push to the same branch supersedes in-flight runs so stacked pushes
+# do not queue three full CI executions on top of each other.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   python-cli-harness:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # 15 minutes proved too tight when the apt mirror crawls: libges-1.0-dev
+    # pulls a large transitive tree, and a bad mirror moment ate the whole
+    # budget before pytest even started (run 39925748952). The watchdog still
+    # catches real test hangs; this only adds apt headroom.
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v4
