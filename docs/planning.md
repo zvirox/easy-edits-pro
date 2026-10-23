@@ -273,7 +273,22 @@ flowchart TD
 ### Functional Workstream F
 
 * **F1 — Single Reactive Clip Selection Store:** Unify selection across Timeline, Inspector, Effects, Color, and Curves. Auto-select the first clip on V1 upon sequence load.
+  * **Done (2026-10-23):** `app/selectionStore.ts` is the single reactive
+    source (store-backed hook; docks and the app header read it directly via
+    `useClipSelection`, the prop-drilled `selectedClip` plumbing into
+    InspectorPanel/EffectDockRight/ColorDockRight/KeyframesDockRight/
+    CurveSidebar/AppHeader is removed). The dead `selectedClipId` chain is
+    deleted, the duplicate `SelectedClip` type is unified on `types.ts`, and
+    the first V1 clip is auto-selected once per sequence load.
 * **F2 — Media Ingestion & Offline Relinking:** Correct local range stream URLs in `mediaUrl.ts`, ensure `useMediaServer.ts` initializes prior to project recovery, and add a one-click "Relink Media" action in `MediaPanel.tsx`.
+  * **Done (2026-10-23):** `useMediaServer` resolves port/token before the
+    editor stage mounts (App holds a "Preparing media engine" stage until
+    ready), and the router's hardcoded `mediaServerPort: 0` preview stub is
+    replaced by the real port - stream URLs were effectively empty for engine
+    preview proxies before both fixes. §7.5 lands here: the Program monitor
+    shows an "Offline media" card with a working Relink action (engine
+    -validated `project.relink_media`) when the visible deck's media is in
+    `missingMediaIds`. MediaPanel's one-click relink already existed (M-work).
 * **F3 — Program Monitor Transport & Telemetry:** Align transport bar (10 buttons: Add Marker, Mark In/Out, Step, Play, Lift, Extract, Export Frame), blue playhead timecode, Fit zoom dropdown, and resolution divider.
 * **F4 — Keyframe Render Baking:** Wire `interpolation.ts` keyframe evaluator into `crates/saturn-render/src/lib.rs` export loop, baking transform, opacity, and audio automation into MP4 output.
 * **F5 — Hardware Encoder Probe Optimization:** Run GStreamer hardware encoder detection asynchronously at startup, caching results so the Deliver workspace never stalls.

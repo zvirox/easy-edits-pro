@@ -45,6 +45,8 @@ export interface PreviewSectionProps {  selectedMedia: MediaAsset | null;
   playhead: number;
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
+  missingMediaIds: Set<number>;
+  relinkMedia: (mediaId: number) => Promise<void> | void;
   multicamMode: boolean;
   setMulticamMode: (mode: boolean) => void;
   multicamActiveAngle: number;
@@ -86,6 +88,8 @@ export function PreviewSection({
   playhead,
   project,
   media,
+  missingMediaIds,
+  relinkMedia,
   setMulticamMode,
   multicamActiveAngle,
   setMulticamActiveAngle,
@@ -101,6 +105,15 @@ export function PreviewSection({
     inTicks: number;
     outTicks: number;
   } | null>(null);
+
+  // §7.5: which deck the program currently shows, and whether its media is
+  // offline. Deck A is the program deck; during a transition the visible
+  // deck is whichever carries the picture (B on KO/cut-away snapshots).
+  const programDeck = deckSnapshot?.deckA.visible ? deckSnapshot.deckA : deckSnapshot?.deckB;
+  const offlineProgramMediaId =
+    programDeck?.mediaId != null && missingMediaIds.has(programDeck.mediaId)
+      ? programDeck.mediaId
+      : null;
 
   // Clicking a clip in the timeline or an item in the media pool bumps the
   // shared sourcePreview focus — jump the monitor to its Source tab.
@@ -231,6 +244,24 @@ export function PreviewSection({
         )}
 
         <div className="program-deck-canvas">
+          {/* §7.5: offline media is a card with a relink action, not a black
+              rectangle. Keyed to the visible program deck's media; the raw
+              surface stays underneath (no blur over video). */}
+          {offlineProgramMediaId != null && (
+            <div className="program-offline-card" role="alert">
+              <strong>Offline media</strong>
+              <span>This clip's file moved or is unavailable on disk.</span>
+              <InteriorButton
+                type="button"
+                className="btn-secondary"
+                onClick={() => void relinkMedia(offlineProgramMediaId)}
+                data-tooltip="Locate the file and relink this media"
+                data-tooltip-pos="bottom"
+              >
+                Relink media
+              </InteriorButton>
+            </div>
+          )}
           {/* Deck A Video Player */}
           <video
             ref={deckARef}

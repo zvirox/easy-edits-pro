@@ -153,8 +153,7 @@ function EditorApp() {
   const media = project?.media ?? [];
   const recoveryStatus = useRecovery();
   const jobsHook = useJobs();
-  const { mediaServerPort, mediaServerToken, getMediaUrl } = useMediaServer();
-
+  const { mediaServerPort, mediaServerToken, mediaServerReady, getMediaUrl } = useMediaServer();
   const [programPreviewError, setProgramPreviewError] = useState<string | null>(null);
   const [preparedPreviews] = useState<Record<number, string>>({});
 
@@ -512,6 +511,22 @@ function EditorApp() {
     );
   }
 
+  // F2: the media server port/token must resolve before the editor mounts,
+  // otherwise recovered projects build stream URLs with port 0 and every
+  // preview silently falls back to an unstreamable source. The init is a
+  // local socket probe - this gate settles in milliseconds.
+  if (!mediaServerReady) {
+    return (
+      <div className="loading-stage">
+        <div className="loading-card">
+          <div className="loading-spinner" />
+          <h2>Preparing media engine…</h2>
+          <p>Easy Edits Pro is starting the local media server.</p>
+        </div>
+      </div>
+    );
+  }
+
   const timelineWidth = Math.max(1200, timelineEndSeconds * timelineOps.timelineZoom);
 
   return (
@@ -560,6 +575,8 @@ function EditorApp() {
           selectedTimelineClip={selectedTimelineClip}
           selectedMedia={selectedMedia}
           missingMediaIds={missingMediaIds} busy={busy}
+          mediaServerPort={mediaServerPort}
+          relinkMedia={(mediaId) => mediaOps.relinkMedia(mediaId)}
           timelineWidth={timelineWidth} timelineEndSeconds={timelineEndSeconds}
           selectDavinciWorkspace={selectDavinciWorkspace} playback={playback}
           mediaOps={mediaOps} timelineOps={timelineOps}

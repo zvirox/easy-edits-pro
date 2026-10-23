@@ -50,6 +50,8 @@ export interface WorkspaceRouterProps {
   undoStatus: CommandStatus;
   redoStatus: CommandStatus;
   programPreviewError: string | null;
+  mediaServerPort: number;
+  relinkMedia: (mediaId: number) => Promise<void> | void;
   audioClockMaster: any;
   audioOps: any;
   markerOps: MarkerOperations;
@@ -80,6 +82,8 @@ export function WorkspaceRouter({
   undoStatus,
   redoStatus,
   programPreviewError,
+  mediaServerPort,
+  relinkMedia,
   audioClockMaster,
   audioOps,
   markerOps,
@@ -208,7 +212,9 @@ export function WorkspaceRouter({
         preparedPreviews: {},
         preparingPreviews: new Set(),
         previewPreparationErrors: {},
-        mediaServerPort: 0,
+        mediaServerPort,
+        missingMediaIds,
+        relinkMedia,
         deckSnapshot: playback.deckSnapshot,
         deckARef: playback.deckARef,
         deckBRef: playback.deckBRef,

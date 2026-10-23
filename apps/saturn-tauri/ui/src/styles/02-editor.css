@@ -388,6 +388,12 @@
 @keyframes preview-pulse { 0%, 100% { transform: scale(0.85); opacity: 0.5; } 50% { transform: scale(1.15); opacity: 1; } }
 .preview-error { position: absolute; inset: auto 12px 12px; display: grid; gap: 4px; padding: 9px 11px; border: 1px solid var(--status-danger-border-soft); border-radius: 4px; color: var(--status-danger-text-soft); background: color-mix(in srgb, var(--bg-elevated) 92.94%, transparent); text-align: left; }
 .preview-error strong { font-size: 10px; }
+/* §7.5: offline media is a card with a relink action, never a black
+   rectangle. Solid surface — the program canvas is a media surface, so no
+   blur goes over the video (glass rule). */
+.program-offline-card { position: absolute; inset: 0; z-index: 6; display: grid; place-content: center; justify-items: center; gap: 8px; padding: 18px 22px; text-align: center; background: var(--bg-elevated); border: 1px solid var(--border-strong); border-radius: 8px; color: var(--text-main); }
+.program-offline-card strong { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--status-danger-text-soft); }
+.program-offline-card span { font-size: 11px; color: var(--text-sub); }
 .preview-error span { color: var(--status-danger-text-dim); font-size: 9px; line-height: 1.45; }
 .audio-preview { background: radial-gradient(ellipse, var(--bg-surface) 0, var(--neutral-925) 70%); }
 
