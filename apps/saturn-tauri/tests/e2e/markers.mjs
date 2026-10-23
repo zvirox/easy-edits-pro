@@ -9,6 +9,9 @@ export async function run(ctx) {
 
   await page.locator('.timeline-ruler').click({ position: { x: 320, y: 12 } });
   await page.keyboard.press('m');
+  // CI renders slower than a desktop; wait for the pin instead of counting
+  // immediately after the keypress (a bare count raced and flaked).
+  await page.locator('.marker-pin').first().waitFor();
   assert.equal(await page.locator('.marker-pin').count(), 1, 'M should add one marker');
   await page.keyboard.press('Shift+M');
   await page.locator('.marker-pin.is-range').waitFor();

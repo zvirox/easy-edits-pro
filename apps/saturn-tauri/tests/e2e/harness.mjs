@@ -30,6 +30,9 @@ export async function createHarness() {
   );
   const server = spawn('pnpm', ['dev', '--host', '127.0.0.1', '--strictPort'], {
     cwd: appDirectory,
+    // Own process group: teardown must be able to signal pnpm AND the Vite
+    // grandchild it spawns (see teardown below).
+    detached: true,
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let serverOutput = '';
@@ -52,10 +55,29 @@ export async function createHarness() {
   harness.waitForServer = () => waitForServer(server, serverOutput, () => {});
   harness.teardown = async () => {
     if (harness.browser) await harness.browser.close();
+    // The dev server runs under `pnpm` (an extra process layer). Signal the
+    // whole process group so no grandchild keeps the stdio pipes — and this
+    // Node process — alive after the run; this is what hung the CI job.
+    if (server.pid !== undefined) {
+      try { process.kill(-server.pid, 'SIGTERM'); } catch { /* already gone */ }
+    }
     server.kill('SIGTERM');
+    const exited = await new Promise(resolve => {
+      const timer = setTimeout(() => resolve(false), 3_000);
+      server.once('exit', () => { clearTimeout(timer); resolve(true); });
+    });
+    if (!exited && server.pid !== undefined) {
+      try { process.kill(-server.pid, 'SIGKILL'); } catch { /* already gone */ }
+      server.kill('SIGKILL');
+    }
   };
 
-  harness.browser = await chromium.launch({ headless: true });
+  harness.browser = await chromium.launch({
+    headless: true,
+    // CI runners expose a small /dev/shm; the smoke suite plays video, and a
+    // shared-memory-starved Chromium stalls instead of failing. Force /tmp.
+    args: ['--disable-dev-shm-usage'],
+  });
   const page = await harness.browser.newPage({ viewport: { width: 1920, height: 1080 } });
   page.setDefaultTimeout(8_000);
   harness.page = page;

@@ -18,18 +18,40 @@ import * as motion from './motion.mjs';
 
 // Area modules run in the original smoke order; each one receives the shared
 // harness context and appends its results to `ctx.state`.
-const areaModules = [shell, panels, timeline, audio, deliver, media, markers, motion];
+const areaModules = [
+  ['shell', shell],
+  ['panels', panels],
+  ['timeline', timeline],
+  ['audio', audio],
+  ['deliver', deliver],
+  ['media', media],
+  ['markers', markers],
+  ['motion', motion],
+];
 
 const harness = await createHarness();
+
+// A CI hang is worse than a CI failure: if any area stalls for 5 minutes,
+// report the last reached area and exit non-zero instead of hanging forever.
+const WATCHDOG_MS = 5 * 60_000;
+let lastArea = 'setup';
+const watchdog = setTimeout(() => {
+  console.error(`[e2e] watchdog: stalled after area "${lastArea}"; failing the run.`);
+  process.exit(1);
+}, WATCHDOG_MS);
+
 try {
   await harness.waitForServer();
   await installMockBackend(harness.page, {
     mediaUrl: harness.mockVideoUrl,
     catalogue: harness.catalogue,
   });
-  for (const area of areaModules) {
+  for (const [name, area] of areaModules) {
+    lastArea = name;
+    console.error(`[e2e] running area: ${name}`);
     await area.run(harness);
   }
+  lastArea = 'summary';
 
   assert.deepEqual(
     harness.pageErrors,
@@ -64,6 +86,13 @@ try {
     exportScreenshot: '/tmp/easy-edits-pro-export-workspace.png',
     browserErrors: harness.pageErrors.length,
   }, null, 2));
+  clearTimeout(watchdog);
+  // Never let lingering stdio pipes to the (now killed) dev server keep this
+  // process alive after a fully green run.
+  process.exit(0);
+} catch (error) {
+  clearTimeout(watchdog);
+  throw error;
 } finally {
   await harness.teardown();
 }
