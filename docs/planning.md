@@ -1,6 +1,13 @@
 # Easy Edits Pro — Master Project Planning & Architecture Roadmap
 
-**Document Status:** Master Living Architecture & Execution Roadmap  
+> **Roadmap and status have moved.** The single roadmap is
+> [`docs/ROADMAP.md`](ROADMAP.md); generated coverage status is
+> [`docs/PARITY.md`](PARITY.md). This document remains as the *architecture
+> decision record* (Part 1) and historical increment ledger (Parts 2-3);
+> its hand-written progress chart below has been retired in favour of the
+> generated parity report.
+
+**Document Status:** Architecture Decision Record & Historical Ledger  
 **Framework:** Rust Core (`saturn-core`, `saturn-render`) + Tauri 2 (Desktop Shell) + React 19 / TypeScript + CSS (Modern Linux Rice UI)  
 **Repository:** [github.com/zvirox/easy-edits-pro](https://github.com/zvirox/easy-edits-pro)  
 
@@ -312,29 +319,13 @@ easy-edits-pro/
 
 ---
 
-# Part 2: Easy Edits Pro (EEP) Project Alignment & Current Implementation Status
+# Part 2: Easy Edits Pro (EEP) Project Alignment & Historical Ledger
 
-This section evaluates **exactly where Easy Edits Pro stands today** against the 16 phases.
-
-```
-[Phase 0: Foundations]              ████████████████████ 100% COMPLETE
-[Phase 1: Project Skeleton]         ████████████████████ 100% COMPLETE
-[Phase 2: Media Import & Library]   ████████████████████ 100% COMPLETE
-[Phase 3: Timeline Data Model & UI] ████████████████████ 100% COMPLETE
-[Phase 4: Playback Engine]          ████████████████████ 100% COMPLETE
-[Phase 5: Core Editing Tools]       ████████████████████ 100% COMPLETE
-[Phase 6: Export MVP (v0.1)]        ████████████████████ 100% COMPLETE
-[Phase 7: Adjustments & Transitions]██████████████████░░  90% NEAR COMPLETE
-[Phase 8: Color & Visual Effects]   ██████████████████░░  90% NEAR COMPLETE
-[Phase 9: Titles, Captions & Text]  ████████████████░░░░  80% ADVANCED
-[Phase 10: Professional Audio]      ████████████████████ 100% COMPLETE
-[Phase 11: Advanced Editing]        █████████████████░░░  85% ADVANCED
-[Phase 12: Pro Color Grading]       ███░░░░░░░░░░░░░░░░░  15% PLANNED
-[Phase 13: Motion & AI Features]    ███████████████░░░░░  75% NEAR COMPLETE
-[Phase 14: Native Preview & Perf]   ███████████████░░░░░  75% NEAR COMPLETE
-[Phase 15: Quality & Packaging]     ████████░░░░░░░░░░░░  40% IN PROGRESS
-[Phase 16: Beta & Launch]           ██░░░░░░░░░░░░░░░░░░  10% SCHEDULED
-```
+This section is a historical record of how the 16 phases were executed.
+Current, generated status lives in [`docs/PARITY.md`](PARITY.md); the active
+roadmap lives in [`docs/ROADMAP.md`](ROADMAP.md). The hand-written progress
+chart that used to appear here has been retired: hand-written percentages
+go stale and contradicted the generated parity report.
 
 ---
 
@@ -465,9 +456,12 @@ This section evaluates **exactly where Easy Edits Pro stands today** against the
 
 ---
 
-## 5. Next Immediate Action Plan
+## 5. Completed increments (historical ledger)
 
-To advance directly toward **Phase 2 (Playback & Render Consistency)** and **Phase 3 (Core Effects Stack & Scopes)**:
+This section records increments that were already landed; it is kept as
+history, not as forward-looking guidance. Current next steps live in
+[`docs/ROADMAP.md`](ROADMAP.md).
+
 
 1. **Phase 2.1 — Background Job Queue Manager:** ✅ **Completed**
    - Built thread-safe prioritized job engine (`saturn-core/src/job.rs`) with cooperative cancellation via `CancellationToken`.

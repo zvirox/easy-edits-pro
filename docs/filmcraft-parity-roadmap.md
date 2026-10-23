@@ -1,5 +1,9 @@
 # FilmCraft parity roadmap
 
+> Status and scheduling live in [`ROADMAP.md`](ROADMAP.md); generated
+> coverage in [`PARITY.md`](PARITY.md). This document records the evidence
+> base, the command-catalogue rules, and the limits/sequencing constraints.
+
 This roadmap uses the installed FilmCraft 0.8.0 app (Flatpak
 `ai.storyteller.filmcraft`, commit `cd3e6fe5`, installed 2026-10-14) and its
 `filmcraft-cli` as the authoritative reference for the command, menu, and tool
@@ -79,11 +83,6 @@ reference in `docs/COMMANDS.md`.
 | 6. UI clarity pass | Audit the main editor with the existing UI component and workspace structure. Reduce duplicate actions, surface tool names and state, group timeline operations by task, and clarify export configuration. | A short list of high-friction changes is prioritized from screenshots and interactions; each change is localized and keyboard/accessibility checked. |
 | 7. Parity hardening | Work through source-supported workflows and known gaps: drag/drop, playhead preview, transforms/keyframes, audio routing/mixing, titles, transitions, codec corpus, and import/export interchange. | Each workflow works on representative real media and has focused regression coverage before calling it complete. |
 
-## Immediate next step
-
-Extend Stage 4 with direct media import and still-frame extraction. Add UI
-automation and extend the codec/hardware test matrix. The opt-in desktop bridge
-currently uses a private Unix socket; Windows support remains a platform task.
 
 ## Limits and sequencing
 
