@@ -1,13 +1,14 @@
 use crate::command::{find_command, status, CommandRequest, CommandStatus};
 use crate::project::{
-    AudioPluginInstance, BusTarget, ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams,
-    ColorWheels, CompositingNode, CompositingNodeKind, CropParams, CustomShaderParams,
-    EffectInstance, EffectKind, EffectPayload, GaussianBlurParams, InterpolationKind, Keyframe,
-    KeyframeProperty, LockTargetKind, LutParams, Marker, MediaAsset, MediaKind, MotionBlurParams,
-    MotionTrackingData, MultiCamAngle, MultiCamClip, MultiCamSyncMode, NodeConnection, NodeGraph,
-    ProjectDocument, RotoSplineMask, Sequence, SpeedRamp, SubtitleItem, TimelineChangeEntry,
-    TitleProperties, Track, TrackAudioProcessing, TrackAutomation, TrackGroup, TrackKind,
-    TrackingMode, Transition, TransitionKind, UserLock, VignetteParams,
+    AudioPluginInstance, AutomationInterpolation, AutomationLane, AutomationMode, BusTarget,
+    ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams, ColorWheels, CompositingNode,
+    CompositingNodeKind, CropParams, CustomShaderParams, EffectInstance, EffectKind, EffectPayload,
+    GaussianBlurParams, InterpolationKind, Keyframe, KeyframeProperty, LockTargetKind, LutParams,
+    Marker, MediaAsset, MediaKind, MotionBlurParams, MotionTrackingData, MultiCamAngle,
+    MultiCamClip, MultiCamSyncMode, NodeConnection, NodeGraph, ProjectDocument, RotoSplineMask,
+    Sequence, SpeedRamp, SubtitleItem, TimelineChangeEntry, TitleProperties, Track,
+    TrackAudioProcessing, TrackAutomation, TrackGroup, TrackKind, TrackingMode, Transition,
+    TransitionKind, UserLock, VignetteParams,
 };
 use crate::time::{FrameRate, Tick, TICKS_PER_SECOND};
 use serde::Deserialize;

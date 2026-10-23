@@ -16,6 +16,10 @@ import type {
 import type { AudioClockMaster } from "../engine/playbackEngine";
 import { FairlightMixerRack } from "./FairlightMixerRack";
 import { FairlightTimelineTray } from "./FairlightTimelineTray";
+import { AutomationLane } from "../features/audio/AutomationLane";
+import { useAutomationRecording } from "../features/audio/useAutomationRecording";
+import type { AutomationLaneName } from "../engine/playback/audioAutomation";
+import type { AutomationInterpolation } from "../types";
 
 export interface LoudnessReport {
   integratedLufs: number;
@@ -155,6 +159,52 @@ export function FairlightWorkspace({
   const eqFillPath = `${eqCurvePath} L 240 70 L 0 70 Z`;
 
   const activeTrackGr = trackGr[activeTrackId] || 0;
+
+  // --- Automation recording (Phase 6 slice 1) -------------------------------
+  const { recordAutomationWrite, commitAutomationWrites, hasAutomationWrites } =
+    useAutomationRecording(perform);
+  const selectedAutomationTrack = tracks.find((t) => t.id === activeTrackId);
+
+  const automationWriteActive = (track: Track): boolean => {
+    const mode = track.automation?.mode ?? "off";
+    if (mode === "write") return true;
+    return (mode === "latch" || mode === "touch") && programPlaying;
+  };
+
+  const writeTrackAutomation = (track: Track, lane: AutomationLaneName, value: number) => {
+    if (!automationWriteActive(track)) return;
+    recordAutomationWrite(track.id, lane, playhead, value);
+  };
+  const commitTrackAutomation = (track: Track, lane: AutomationLaneName) => {
+    if (!automationWriteActive(track)) return;
+    if (!hasAutomationWrites(track.id, lane)) return;
+    void commitAutomationWrites(track, lane);
+  };
+  const addAutomationLanePoint = async (
+    trackId: number,
+    lane: AutomationLaneName,
+    time: number,
+    value: number,
+  ) => {
+    await perform("track.add_automation_point", { track_id: trackId, lane, time, value });
+  };
+  const removeAutomationLanePoint = async (
+    trackId: number,
+    lane: AutomationLaneName,
+    time: number,
+  ) => {
+    await perform("track.remove_automation_point", { track_id: trackId, lane, time });
+  };
+  const clearAutomationLane = async (trackId: number, lane: AutomationLaneName) => {
+    await perform("track.clear_automation", { track_id: trackId, lane });
+  };
+  const setAutomationCurveInterpolation = async (
+    trackId: number,
+    interpolation: AutomationInterpolation,
+  ) => {
+    await perform("track.set_automation_interpolation", { track_id: trackId, interpolation });
+  };
+
 
   return (
     <main className="workspace-page audio-workspace-page">
@@ -869,8 +919,27 @@ export function FairlightWorkspace({
           toggleTrackSolo={toggleTrackSolo}
           toggleTrackLock={toggleTrackLock}
           audioClockMaster={audioClockMaster}
+          writeTrackAutomation={writeTrackAutomation}
+          commitTrackAutomation={commitTrackAutomation}
         />
       </div>
+
+      {/* Automation lane editor for the selected track */}
+      {selectedAutomationTrack && (
+        <AutomationLane
+          track={selectedAutomationTrack}
+          playhead={playhead}
+          timelineZoom={timelineZoom}
+          timelineWidth={timelineWidth}
+          lane="volume"
+          onChangeLane={() => {}}
+          addPoint={addAutomationLanePoint}
+          removePoint={removeAutomationLanePoint}
+          clearLane={clearAutomationLane}
+          setInterpolation={setAutomationCurveInterpolation}
+          audioClock={audioClockMaster}
+        />
+      )}
 
       {/* Bottom Row (220px): Audio Sequence Timeline & Waveforms */}
       <FairlightTimelineTray

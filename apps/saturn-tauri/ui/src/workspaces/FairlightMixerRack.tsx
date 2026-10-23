@@ -2,6 +2,7 @@ import { InteriorButton } from "../components/interior/interior-button";
 import type { Dispatch, SetStateAction } from "react";
 import { formatDb, formatPan } from "../utils/formatters";
 import type { AutomationMode, BusTarget, Track, TrackAudioProcessing } from "../types";
+import type { AutomationLaneName } from "../engine/playback/audioAutomation";
 import type { AudioClockMaster } from "../engine/playbackEngine";
 
 interface FairlightMixerRackProps {
@@ -25,6 +26,8 @@ interface FairlightMixerRackProps {
   toggleTrackSolo: (track: Track) => Promise<void> | void;
   toggleTrackLock: (track: Track) => Promise<void> | void;
   audioClockMaster: AudioClockMaster;
+  writeTrackAutomation: (track: Track, lane: AutomationLaneName, value: number) => void;
+  commitTrackAutomation: (track: Track, lane: AutomationLaneName) => void;
 }
 
 export function FairlightMixerRack({
@@ -33,6 +36,7 @@ export function FairlightMixerRack({
   panDrafts, setPanDrafts, saveTrackPan, saveTrackAudioProcessing,
   setTrackBusRoute, setTrackAutomationMode, addTrackPlugin, toggleTrackPlugin,
   toggleTrackMute, toggleTrackSolo, toggleTrackLock, audioClockMaster,
+  writeTrackAutomation, commitTrackAutomation,
 }: FairlightMixerRackProps) {
   const audioTracks = tracks.filter((track) => track.kind === "audio");
   const videoTracks = tracks.filter((track) => track.kind === "video");
@@ -202,9 +206,16 @@ export function FairlightMixerRack({
                           const val = Number(e.target.value);
                           setPanDrafts((prev) => ({ ...prev, [track.id]: val }));
                           audioClockMaster.updateTrackPan(track.id, val);
+                          writeTrackAutomation(track, "pan", val);
                         }}
-                        onPointerUp={(e) => void saveTrackPan(track.id, Number(e.currentTarget.value))}
-                        onKeyUp={(e) => void saveTrackPan(track.id, Number(e.currentTarget.value))}
+                        onPointerUp={(e) => {
+                          void saveTrackPan(track.id, Number(e.currentTarget.value));
+                          commitTrackAutomation(track, "pan");
+                        }}
+                        onKeyUp={(e) => {
+                          void saveTrackPan(track.id, Number(e.currentTarget.value));
+                          commitTrackAutomation(track, "pan");
+                        }}
                       />
                     </div>
 
@@ -286,9 +297,16 @@ export function FairlightMixerRack({
                               const val = Number(e.target.value);
                               setGainDrafts((prev) => ({ ...prev, [track.id]: val }));
                               audioClockMaster.updateTrackGain(track.id, val);
+                              writeTrackAutomation(track, "volume", val);
                             }}
-                            onPointerUp={(e) => void saveTrackGain(track.id, Number(e.currentTarget.value))}
-                            onKeyUp={(e) => void saveTrackGain(track.id, Number(e.currentTarget.value))}
+                            onPointerUp={(e) => {
+                              void saveTrackGain(track.id, Number(e.currentTarget.value));
+                              commitTrackAutomation(track, "volume");
+                            }}
+                            onKeyUp={(e) => {
+                              void saveTrackGain(track.id, Number(e.currentTarget.value));
+                              commitTrackAutomation(track, "volume");
+                            }}
                           />
                         </div>
                       </div>

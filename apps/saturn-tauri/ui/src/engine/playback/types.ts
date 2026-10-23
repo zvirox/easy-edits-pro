@@ -134,6 +134,8 @@ export type BusTarget = "master" | "submix1" | "submix2" | "aux_fx";
 
 export type AutomationMode = "off" | "read" | "touch" | "latch" | "write";
 
+export type AutomationInterpolation = "linear" | "constant" | "smooth";
+
 export interface AutomationPoint {
   time: number;
   value: number;
@@ -141,6 +143,7 @@ export interface AutomationPoint {
 
 export interface TrackAutomation {
   mode: AutomationMode;
+  interpolation?: AutomationInterpolation;
   volume_points: AutomationPoint[];
   pan_points: AutomationPoint[];
 }

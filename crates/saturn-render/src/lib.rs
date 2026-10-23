@@ -12,11 +12,11 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
+pub mod automation_element;
 pub mod compositor;
 pub mod curves;
 pub mod graphics_element;
-pub mod graphics_overlay;
-pub mod hsl;
+pub mod graphics_overlay;pub mod hsl;
 pub mod loudness;
 pub mod lut;
 pub mod matting;
@@ -32,6 +32,7 @@ pub use compositor::{
     simulate_particle_field,
 };
 pub use curves::{apply_rgb_curves, apply_rgb_curves_buffer, evaluate_spline, generate_curve_lut};
+pub use automation_element::{AudioAutomationPayload, SaturnAudioAuto, ELEMENT_NAME as AUDIO_AUTOMATION_ELEMENT};
 pub use graphics_element::{ELEMENT_NAME, SaturnGraphicsBlend, set_pending_graphics_json};
 pub use graphics_overlay::{GraphicLayer, render_graphics_overlay};
 pub use hsl::{
@@ -71,6 +72,8 @@ pub fn detect_hardware_encoders() -> HardwareEncoderInfo {
         gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
         graphics_element::register()
             .map_err(|error| format!("Could not register the graphics element: {error}"))?;
+        automation_element::register()
+            .map_err(|error| format!("Could not register the audio automation element: {error}"))?;
         ges::init()
             .map_err(|error| format!("Could not initialize GStreamer Editing Services: {error}"))
     });
@@ -322,14 +325,17 @@ pub fn render_project_range_with_control(
     }
     let output_path = absolute_output_path(output_path)?;
 
-    GST_INIT
+        GST_INIT
         .get_or_init(|| {
             gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
             ges::init().map_err(|error| {
                 format!("Could not initialize GStreamer Editing Services: {error}")
             })?;
             graphics_element::register()
-                .map_err(|error| format!("Could not register the graphics element: {error}"))
+                .map_err(|error| format!("Could not register the graphics element: {error}"))?;
+            automation_element::register().map_err(|error| {
+                format!("Could not register the audio automation element: {error}")
+            })
         })
         .clone()?;
 
@@ -568,6 +574,31 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
 
     let any_solo = document.project.sequence.tracks.iter().any(|t| t.solo);
 
+    // Phase 6 slice 1: stage per-track automation for the saturnaudioauto
+    // element. A track gets a payload when its automation lane is active, or
+    // when it has a static pan (previously ignored by the render path).
+    let audio_payloads: Vec<automation_element::AudioAutomationPayload> = document
+        .project
+        .sequence
+        .tracks
+        .iter()
+        .filter(|track| matches!(track.kind, TrackKind::Audio))
+        .filter(|track| track.automation.plays_curve() || track.pan.abs() > 1e-9)
+        .map(|track| automation_element::AudioAutomationPayload {
+            track_id: track.id,
+            base_gain_db: track.gain_db,
+            base_pan: track.pan,
+            mute: !track.is_audible(any_solo),
+            interpolation: track.automation.interpolation,
+            volume_points: track.automation.volume_points.clone(),
+            pan_points: track.automation.pan_points.clone(),
+        })
+        .collect();
+    if !audio_payloads.is_empty() {
+        automation_element::stage_automation(&audio_payloads)
+            .map_err(|error| format!("Could not serialize track automation: {error}"))?;
+    }
+
     for track in &document.project.sequence.tracks {
         let is_audible = track.is_audible(any_solo);
         let effective_gain_db = if is_audible { track.gain_db } else { -120.0 };
@@ -624,11 +655,16 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
                 .then_some(())
                 .ok_or_else(|| format!("Could not set the duration for {}", media.name))?;
 
+            let track_automation_payload = audio_payloads
+                .iter()
+                .find(|payload| payload.track_id == track.id);
+
             apply_clip_effects(
                 &ges_clip,
                 clip,
                 effective_gain_db,
                 &track.audio_processing,
+                track_automation_payload,
                 matches!(media.kind, MediaKind::Video | MediaKind::Image),
                 document.project.settings.width,
                 document.project.settings.height,
@@ -680,6 +716,7 @@ fn apply_clip_effects(
     model: &Clip,
     gain_db: f64,
     audio_proc: &TrackAudioProcessing,
+    automation_payload: Option<&automation_element::AudioAutomationPayload>,
     has_video: bool,
     project_width: u32,
     project_height: u32,
@@ -792,7 +829,17 @@ fn apply_clip_effects(
             }
         }
     }
-    if gain_db != 0.0 {
+    if let Some(payload) = automation_payload {
+        // Automation (or static pan) rides saturnaudioauto: per-sample curve
+        // evaluation replaces the static clip volume effect entirely.
+        let effect_str = format!("{} track-id={}", automation_element::ELEMENT_NAME, payload.track_id);
+        match ges::Effect::new(&effect_str) {
+            Ok(effect) => clip
+                .add_top_effect(&effect, -1)
+                .map_err(|error| format!("Could not apply track automation effect: {error}"))?,
+            Err(error) => return Err(format!("Could not create track automation effect: {error}")),
+        }
+    } else if gain_db != 0.0 {
         let amplitude = 10_f64.powf(gain_db / 20.0);
         let effect = ges::Effect::new(&format!("volume volume={amplitude}"))
             .map_err(|error| format!("Could not create track gain effect: {error}"))?;

@@ -107,7 +107,92 @@
     ],
     "mutating": true,
     "params": "{\"track_id\":int,\"automation\":obj}",
-    "shipped": false,
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.set_automation_mode",
+    "label": "Set Track Automation Mode",
+    "menu": [
+      "Audio",
+      "Automation"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"mode\":\"off|read|touch|latch|write\"}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.set_automation_interpolation",
+    "label": "Set Track Automation Interpolation",
+    "menu": [
+      "Audio",
+      "Automation"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"interpolation\":\"linear|constant|smooth\"}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.add_automation_point",
+    "label": "Add Track Automation Point",
+    "menu": [
+      "Audio",
+      "Automation"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"lane\":\"volume|pan\",\"time\":ticks,\"value\":num}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.remove_automation_point",
+    "label": "Remove Track Automation Point",
+    "menu": [
+      "Audio",
+      "Automation"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"lane\":\"volume|pan\",\"time\":ticks}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "track.clear_automation",
+    "label": "Clear Track Automation",
+    "menu": [
+      "Audio",
+      "Automation"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"lane\":\"volume|pan\"?}",
+    "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
     "uiOnly": false,

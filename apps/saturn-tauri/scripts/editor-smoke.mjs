@@ -444,15 +444,22 @@ try {
     await page.keyboard.press('Escape');
     await popover.waitFor({ state: 'detached' });
   }
-  // Graphics now ships the Phase 5 caption commands, so it must render; Audio
-  // and Effects stay unshipped for now.
-  for (const emptyMenu of ['Audio', 'Effects']) {
-    assert.equal(
-      await menuBar.getByRole('button', { name: emptyMenu, exact: true }).count(),
-      0,
-      `the ${emptyMenu} menu has no shipped commands yet and must not render`,
-    );
+  // Graphics ships the Phase 5 caption commands and Audio ships the Phase 6
+  // automation commands, so both must render; Effects stays unshipped for now.
+  for (const menu of ['Audio', 'Graphics']) {
+    await menuBar.getByRole('button', { name: menu, exact: true }).click();
+    const popover = page.locator('.menu-popover').last();
+    await popover.waitFor();
+    const entries = await popover.locator('button').count();
+    assert.ok(entries > 0, `the ${menu} menu should list shipped commands`);
+    await page.keyboard.press('Escape');
+    await popover.waitFor({ state: 'detached' });
   }
+  assert.equal(
+    await menuBar.getByRole('button', { name: 'Effects', exact: true }).count(),
+    0,
+    'the Effects menu has no shipped commands yet and must not render',
+  );
   // The tool rail exposes every editing and graphics tool in named groups.
   const toolRail = page.locator('.timeline-tool-rail');
   assert.equal(
@@ -1012,7 +1019,6 @@ try {
   // Markers panel lists them without leaving the editor.
   await page.locator('.timeline-ruler').click({ position: { x: 320, y: 12 } });
   await page.keyboard.press('m');
-  await page.locator('.marker-pin').first().waitFor();
   assert.equal(await page.locator('.marker-pin').count(), 1, 'M should add one marker');
   await page.keyboard.press('Shift+M');
   await page.locator('.marker-pin.is-range').waitFor();

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { audioClockMaster, evaluateTimelinePlayback, type TimelinePlaybackSnapshot } from "../engine/playbackEngine";
-import { evaluateAutomation } from "../engine/playback/audioAutomation";
+import { evaluateAutomationLane } from "../engine/playback/audioAutomation";
 import type { MediaAsset, ProjectDocument, ProjectStatus } from "./projectTypes";
 
 const TICKS_PER_SECOND = 254_016_000_000;
@@ -64,10 +64,10 @@ export function usePlayback({ projectState, project, media, preparedPreviews, me
       const automation = audioItem.track.automation;
       const automationEnabled = !!automation && automation.mode !== "off";
       const gainDb = automationEnabled
-        ? evaluateAutomation(automation.volume_points, currentPlayhead, audioItem.gainDb)
+        ? evaluateAutomationLane(automation.volume_points, currentPlayhead, audioItem.gainDb, automation.interpolation)
         : audioItem.gainDb;
       const pan = automationEnabled
-        ? evaluateAutomation(automation.pan_points, currentPlayhead, audioItem.track.pan ?? 0)
+        ? evaluateAutomationLane(automation.pan_points, currentPlayhead, audioItem.track.pan ?? 0, automation.interpolation)
         : audioItem.track.pan ?? 0;
       audioClockMaster.updateTrackGain(audioItem.track.id, gainDb);
       audioClockMaster.updateTrackPan(audioItem.track.id, pan);

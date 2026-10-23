@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-225 commands.
+230 commands.
 
 ## File
 
@@ -193,7 +193,12 @@ Generated from the command catalogue. Do not edit by hand.
 | Set Track Solo | `track.set_solo` | planned |  | `{"track_id":int,"solo":bool}` |
 | Set Track Audio Processing | `track.set_audio_processing` | planned |  | `{"track_id":int,"eq_enabled":bool?,"eq_low_gain":num?,"eq_mid_gain":num?,"eq_high_gain":num?,"comp_enabled":bool?,"comp_threshold":num?,"comp_ratio":num?,"comp_attack":num?,"comp_release":num?,"denoise_enabled":bool?,"denoise_amount":num?}` |
 | Set Track Bus Route | `track.set_bus_route` | planned |  | `{"track_id":int,"bus":obj}` |
-| Set Track Automation | `track.set_automation` | planned |  | `{"track_id":int,"automation":obj}` |
+| Set Track Automation | `track.set_automation` | shipped |  | `{"track_id":int,"automation":obj}` |
+| Set Track Automation Mode | `track.set_automation_mode` | shipped |  | `{"track_id":int,"mode":"off\|read\|touch\|latch\|write"}` |
+| Set Track Automation Interpolation | `track.set_automation_interpolation` | shipped |  | `{"track_id":int,"interpolation":"linear\|constant\|smooth"}` |
+| Add Track Automation Point | `track.add_automation_point` | shipped |  | `{"track_id":int,"lane":"volume\|pan","time":ticks,"value":num}` |
+| Remove Track Automation Point | `track.remove_automation_point` | shipped |  | `{"track_id":int,"lane":"volume\|pan","time":ticks}` |
+| Clear Track Automation | `track.clear_automation` | shipped |  | `{"track_id":int,"lane":"volume\|pan"?}` |
 | Add Audio Plugin | `track.add_audio_plugin` | planned |  | `{"track_id":int,"plugin":obj}` |
 | Toggle Audio Plugin | `track.toggle_audio_plugin` | planned |  | `{"track_id":int,"plugin_id":int,"enabled":bool}` |
 | Set Audio Bus Gain | `bus.set_gain_db` | planned |  | `{"target":obj,"gain_db":num}` |

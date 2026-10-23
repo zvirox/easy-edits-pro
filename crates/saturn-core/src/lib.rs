@@ -26,13 +26,14 @@ pub use job::{
     JobState,
 };
 pub use project::{
-    AudioBus, AudioPluginInstance, AutomationMode, AutomationPoint, BusTarget, ChromaKeyParams,
-    Clip, ColorAdjustments, ColorCorrectionParams, ColorWheelParam, ColorWheels, CropParams,
-    EffectInstance, EffectKind, EffectPayload, GaussianBlurParams, InterpolationKind, Keyframe,
-    KeyframeProperty, LutParams, Marker, MarkerKind, MediaAsset, MediaKind, MotionTrackingData, MultiCamAngle,
-    MultiCamClip, MultiCamSyncMode, ProjectDocument, ProjectSettings, Sequence, SubtitleItem,
-    TitleProperties, Track, TrackAudioProcessing, TrackAutomation, TrackKind, TrackPoint,
-    TrackingMode, Transition, TransitionKind, VignetteParams,
+    AudioBus, AudioPluginInstance, AutomationInterpolation, AutomationLane, AutomationMode,
+    AutomationPoint, BusTarget, ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams,
+    ColorWheelParam, ColorWheels, CropParams, EffectInstance, EffectKind, EffectPayload,
+    GaussianBlurParams, InterpolationKind, Keyframe, KeyframeProperty, LutParams, Marker,
+    MarkerKind, MediaAsset, MediaKind, MotionTrackingData, MultiCamAngle, MultiCamClip,
+    MultiCamSyncMode, ProjectDocument, ProjectSettings, Sequence, SubtitleItem, TitleProperties,
+    Track, TrackAudioProcessing, TrackAutomation, TrackKind, TrackPoint, TrackingMode, Transition,
+    TransitionKind, VignetteParams,
 };
 pub use speech::{
     RippleDeleteReport, SilenceDetectOptions, SilenceInterval, SpeechSegment, SpeechWord,

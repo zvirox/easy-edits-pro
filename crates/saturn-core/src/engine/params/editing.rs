@@ -328,6 +328,39 @@ pub(in crate::engine) struct SetTrackAutomationParams {
 }
 
 #[derive(Deserialize)]
+pub(in crate::engine) struct SetAutomationModeParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) mode: AutomationMode,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct SetAutomationInterpolationParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) interpolation: AutomationInterpolation,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct AddAutomationPointParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) lane: AutomationLane,
+    pub(in crate::engine) time: Tick,
+    pub(in crate::engine) value: f64,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct RemoveAutomationPointParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) lane: AutomationLane,
+    pub(in crate::engine) time: Tick,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct ClearAutomationParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) lane: Option<AutomationLane>,
+}
+
+#[derive(Deserialize)]
 pub(in crate::engine) struct AddAudioPluginParams {
     pub(in crate::engine) track_id: u64,
     pub(in crate::engine) plugin: AudioPluginInstance,

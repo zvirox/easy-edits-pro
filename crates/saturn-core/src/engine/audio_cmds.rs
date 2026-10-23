@@ -101,6 +101,66 @@ impl EditorEngine {
                 self.document.project.sequence.tracks[track_index].automation = params.automation;
                 Ok(json!({"updated": true}))
             })()),
+            "track.set_automation_mode" => Some((|| {
+                let params: SetAutomationModeParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].automation.mode = params.mode;
+                Ok(json!({"updated": true, "mode": params.mode}))
+            })()),
+            "track.set_automation_interpolation" => Some((|| {
+                let params: SetAutomationInterpolationParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index].automation.interpolation =
+                    params.interpolation;
+                Ok(json!({"updated": true, "interpolation": params.interpolation}))
+            })()),
+            "track.add_automation_point" => Some((|| {
+                let params: AddAutomationPointParams = parse_params(params)?;
+                let value = crate::project::clamp_automation_value(params.lane, params.value);
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                self.document.project.sequence.tracks[track_index]
+                    .automation
+                    .upsert_point(params.lane, params.time, value);
+                Ok(json!({"added": true, "value": value}))
+            })()),
+            "track.remove_automation_point" => Some((|| {
+                let params: RemoveAutomationPointParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                let removed = self.document.project.sequence.tracks[track_index]
+                    .automation
+                    .remove_point_at(params.lane, params.time);
+                Ok(json!({"removed": removed}))
+            })()),
+            "track.clear_automation" => Some((|| {
+                let params: ClearAutomationParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                self.checkpoint();
+                let automation =
+                    &mut self.document.project.sequence.tracks[track_index].automation;
+                let cleared = match params.lane {
+                    None => {
+                        let count = automation.volume_points.len() + automation.pan_points.len();
+                        automation.volume_points.clear();
+                        automation.pan_points.clear();
+                        count
+                    }
+                    Some(AutomationLane::Volume) => {
+                        let count = automation.volume_points.len();
+                        automation.volume_points.clear();
+                        count
+                    }
+                    Some(AutomationLane::Pan) => {
+                        let count = automation.pan_points.len();
+                        automation.pan_points.clear();
+                        count
+                    }
+                };
+                Ok(json!({"cleared": cleared}))
+            })()),
             "track.add_audio_plugin" => Some((|| {
                 let params: AddAudioPluginParams = parse_params(params)?;
                 let track_index = find_track_index(&self.document, params.track_id)?;
