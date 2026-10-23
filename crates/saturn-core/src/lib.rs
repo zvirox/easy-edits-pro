@@ -8,6 +8,7 @@ pub mod local_control;
 pub mod markers;
 pub mod project;
 pub mod speech;
+pub mod timeline_edits;
 pub mod subtitles;
 pub mod time;
 

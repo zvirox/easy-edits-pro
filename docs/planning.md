@@ -296,6 +296,18 @@ flowchart TD
     -validated `project.relink_media`) when the visible deck's media is in
     `missingMediaIds`. MediaPanel's one-click relink already existed (M-work).
 * **F3 — Program Monitor Transport & Telemetry:** Align transport bar (10 buttons: Add Marker, Mark In/Out, Step, Play, Lift, Extract, Export Frame), blue playhead timecode, Fit zoom dropdown, and resolution divider.
+  * **Done (2026-10-23):** Transport grew from 3 to 10 controls: Add Marker
+    (`marker.add` at playhead), Mark In/Out (`timeline.set_mark_in/out`),
+    Prev/Play/Next, Lift (`sequence.lift`), Extract (`sequence.extract`),
+    and Export Frame (`export_frame` Tauri command rendering the frame via
+    GES + appsink to a caller-chosen PNG). Lift/Extract run on the marked
+    range, need both marks set, and are disabled otherwise. The playhead
+    timecode reads in the violet accent token, the monitor header shows a
+    resolution divider + `1920×1080 · fps` telemetry, and a Fit/50/100/
+    150/200% zoom dropdown letterboxes or scales the monitor content from
+    centre (Fit default keeps geometry invariance). New `timeline_edits.rs`
+    module hosts the gap-preserving lift semantics (ripple cut logic split
+    out of speech.rs), with unit + command-workflow tests for both ops.
 * **F4 — Keyframe Render Baking:** Wire `interpolation.ts` keyframe evaluator into `crates/saturn-render/src/lib.rs` export loop, baking transform, opacity, and audio automation into MP4 output.
 * **F5 — Hardware Encoder Probe Optimization:** Run GStreamer hardware encoder detection asynchronously at startup, caching results so the Deliver workspace never stalls.
 * **F6 — Fairlight Plugin Host Cleanup:** Clean up placeholder slots; ensure active audio tracks bind directly to 4-band parametric EQ and compressor.

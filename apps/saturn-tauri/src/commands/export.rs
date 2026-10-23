@@ -144,3 +144,23 @@ pub async fn queue_export(
 
     Ok(job_id.0)
 }
+
+#[tauri::command]
+pub async fn export_frame(
+    state: State<'_, AppState>,
+    output_path: String,
+    at_tick: i64,
+) -> Result<(), String> {
+    let document = state
+        .0
+        .lock()
+        .map_err(|_| "Editor state is unavailable".to_string())?
+        .document()
+        .clone();
+    let target_path = PathBuf::from(&output_path);
+    tauri::async_runtime::spawn_blocking(move || {
+        saturn_render::render_frame(&document, saturn_core::Tick(at_tick), &target_path)
+    })
+    .await
+    .map_err(|error| format!("Frame export task failed: {error}"))?
+}

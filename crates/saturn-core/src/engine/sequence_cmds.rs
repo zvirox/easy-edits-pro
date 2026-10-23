@@ -297,7 +297,7 @@ impl EditorEngine {
                     ));
                 }
                 self.checkpoint();
-                let report = crate::speech::lift_time_ranges(
+                let report = crate::timeline_edits::lift_time_ranges(
                     &mut self.document.project.sequence,
                     &params.ranges,
                 )

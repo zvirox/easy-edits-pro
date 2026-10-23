@@ -124,8 +124,8 @@ Generated from the command catalogue. Do not edit by hand.
 | Toggle Track Group Collapsed | `timeline.toggle_track_group_collapsed` | planned |  | `{"group_id":int}` |
 | Delete Track Group | `timeline.delete_track_group` | planned |  | `{"group_id":int}` |
 | Set Track Group Properties | `timeline.set_track_group_properties` | planned |  | `{"group_id":int,"name":str?,"color":str?,"muted":bool?,"solo":bool?,"locked":bool?}` |
-| Lift | `sequence.lift` | planned | ; | `{"ranges":obj}` |
-| Extract | `sequence.extract` | planned | ' | `{"ranges":obj}` |
+| Lift | `sequence.lift` | shipped | ; | `{"ranges":obj}` |
+| Extract | `sequence.extract` | shipped | ' | `{"ranges":obj}` |
 
 ## Markers
 

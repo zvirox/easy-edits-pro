@@ -3374,6 +3374,7 @@ dependencies = [
  "gstreamer-editing-services",
  "gstreamer-pbutils",
  "gstreamer-video",
+ "png 0.17.16",
  "saturn-core",
  "saturn-text",
  "serde",

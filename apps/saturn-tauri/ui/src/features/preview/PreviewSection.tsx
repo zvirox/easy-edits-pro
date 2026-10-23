@@ -1,8 +1,11 @@
 import { InteriorButton } from "../../components/interior/interior-button";
 import type { CSSProperties, RefObject, MutableRefObject } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { save } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 import { formatTime } from "../../utils/formatters";
 import { TICKS_PER_SECOND } from "../../engine/playback/constants";
+import { useProject } from "../../app/useProject";
 import { audioClockMaster, type MultiCamClip } from "../../engine/playbackEngine";
 import type { MediaAsset, ProjectDocument, TitleProperties } from "../../app/projectTypes";
 import { SourceAudioVisualizer } from "../../components/SourceAudioVisualizer";
@@ -21,6 +24,8 @@ export interface SourcePreviewFocus {
 
 export type MonitorMode = "program" | "multicam" | "source";
 export type ThreePointMode = "insert" | "overwrite";
+/** Monitor zoom presets: `fit` letterboxes, percentages scale beyond fit. */
+export type MonitorZoom = "fit" | "50" | "100" | "150" | "200";
 
 export interface PreviewSectionProps {  selectedMedia: MediaAsset | null;
   sourcePreview: SourcePreviewFocus | null;
@@ -105,6 +110,56 @@ export function PreviewSection({
     inTicks: number;
     outTicks: number;
   } | null>(null);
+
+  // F3: transport bar actions (markers, edit marks, lift/extract, frame
+  // export) plus the monitor zoom and resolution telemetry. Side-effect
+  // commands run through the command runner, then refresh so undo state and
+  // the marks UI stay in sync.
+  const { runCommand, refreshProject } = useProject();
+  const [monitorZoom, setMonitorZoom] = useState<MonitorZoom>("fit");
+  const [transportBusy, setTransportBusy] = useState(false);
+  const markIn = project?.sequence.mark_in ?? null;
+  const markOut = project?.sequence.mark_out ?? null;
+  const markRange = markIn != null && markOut != null && markOut > markIn;
+  const runTransportCommand = useCallback(
+    async (id: string, params: unknown) => {
+      setTransportBusy(true);
+      try {
+        await runCommand(id, params);
+        await refreshProject();
+      } catch (error) {
+        setProgramPreviewError(error instanceof Error ? error.message : String(error));
+      } finally {
+        setTransportBusy(false);
+      }
+    },
+    [runCommand, refreshProject, setProgramPreviewError],
+  );
+  const exportProgramFrame = useCallback(async () => {
+    try {
+      const safeName = project?.name.replace(/[\\/:*?"<>|]/g, "-") ?? "Frame";
+      const target = await save({
+        title: "Export Frame as PNG",
+        defaultPath: `${safeName} ${formatTime(playhead).replace(/:/g, "-")}.png`,
+        filters: [{ name: "PNG image", extensions: ["png"] }],
+      });
+      if (!target) return;
+      setTransportBusy(true);
+      await invoke("export_frame", { outputPath: target, atTick: playhead });
+      await refreshProject();
+    } catch (error) {
+      setProgramPreviewError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setTransportBusy(false);
+    }
+  }, [project?.name, playhead, refreshProject, setProgramPreviewError]);
+  const zoomFactor = monitorZoom === "fit" ? null : Number(monitorZoom) / 100;
+  const settings = project?.settings;
+  const fps =
+    settings?.frame_rate && settings.frame_rate.denominator > 0
+      ? Math.round((settings.frame_rate.numerator / settings.frame_rate.denominator) * 100) / 100
+      : null;
+  const resolutionLabel = `${settings?.width ?? 1920}×${settings?.height ?? 1080}${fps ? ` · ${fps} fps` : ""}`;
 
   // §7.5: which deck the program currently shows, and whether its media is
   // offline. Deck A is the program deck; during a transition the visible
@@ -554,17 +609,72 @@ export function PreviewSection({
           </span>
         </div>
         <div className="monitor-name">
-          {monitorMode === "source"
-            ? sourcePreview?.asset.name ?? "No source selected"
-            : monitorMode === "multicam"
-              ? `Multi-Cam Quad · Live Angle ${multicamActiveAngle}`
-              : project?.sequence.name ?? "Sequence 1"}
+          <span className="monitor-name-label">
+            {monitorMode === "source"
+              ? sourcePreview?.asset.name ?? "No source selected"
+              : monitorMode === "multicam"
+                ? `Multi-Cam Quad · Live Angle ${multicamActiveAngle}`
+                : project?.sequence.name ?? "Sequence 1"}
+          </span>
+          <span className="monitor-meta">
+            <span className="monitor-resolution" data-testid="monitor-resolution">
+              {resolutionLabel}
+            </span>
+            <span className="monitor-divider" aria-hidden="true" />
+            <label className="monitor-zoom">
+              <span className="monitor-zoom-label">Zoom</span>
+              <select
+                className="monitor-zoom-select"
+                aria-label="Monitor zoom"
+                value={monitorZoom}
+                onChange={(event) => setMonitorZoom(event.target.value as MonitorZoom)}
+              >
+                <option value="fit">Fit</option>
+                <option value="50">50%</option>
+                <option value="100">100%</option>
+                <option value="150">150%</option>
+                <option value="200">200%</option>
+              </select>
+            </label>
+          </span>
         </div>
         {/* Program/Multi-Cam stay mounted while the Source tab is shown so
             playback keeps running behind the tab switch. */}
         <div className="monitor-tab-panel" hidden={monitorMode === "source"}>
-          {monitorMode === "multicam" ? renderMulticamMonitor() : renderProgramMonitor()}
+          <div
+            className="monitor-zoom-stage"
+            style={zoomFactor == null ? undefined : { transform: `scale(${zoomFactor})` }}
+          >
+            {monitorMode === "multicam" ? renderMulticamMonitor() : renderProgramMonitor()}
+          </div>
           <div className="transport">
+            <InteriorButton
+              aria-label="Add marker at playhead"
+              data-tooltip="Add Marker (M)"
+              data-tooltip-pos="top"
+              disabled={transportBusy}
+              onClick={() => runTransportCommand("marker.add", { at: playhead })}
+            >
+              M
+            </InteriorButton>
+            <InteriorButton
+              aria-label="Mark clip In point"
+              data-tooltip="Mark In (mark range start)"
+              data-tooltip-pos="top"
+              disabled={transportBusy}
+              onClick={() => runTransportCommand("timeline.set_mark_in", { at: playhead })}
+            >
+              In
+            </InteriorButton>
+            <InteriorButton
+              aria-label="Mark clip Out point"
+              data-tooltip="Mark Out (mark range end)"
+              data-tooltip-pos="top"
+              disabled={transportBusy}
+              onClick={() => runTransportCommand("timeline.set_mark_out", { at: playhead })}
+            >
+              Out
+            </InteriorButton>
             <InteriorButton
               aria-label="Previous frame"
               data-tooltip="Previous Frame (Left Arrow)"
@@ -590,12 +700,39 @@ export function PreviewSection({
             >
               ▶|
             </InteriorButton>
+            <InteriorButton
+              aria-label="Lift marked range (leave gaps)"
+              data-tooltip={markRange ? "Lift (remove range, keep gaps)" : "Set Mark In and Out first"}
+              data-tooltip-pos="top"
+              disabled={transportBusy || !markRange}
+              onClick={() => runTransportCommand("sequence.lift", { ranges: [[markIn, markOut]] })}
+            >
+              Lift
+            </InteriorButton>
+            <InteriorButton
+              aria-label="Extract marked range (ripple close)"
+              data-tooltip={markRange ? "Extract (remove range, close gap)" : "Set Mark In and Out first"}
+              data-tooltip-pos="top"
+              disabled={transportBusy || !markRange}
+              onClick={() => runTransportCommand("sequence.extract", { ranges: [[markIn, markOut]] })}
+            >
+              Extract
+            </InteriorButton>
+            <InteriorButton
+              aria-label="Export the current frame as PNG"
+              data-tooltip="Export Frame (PNG)"
+              data-tooltip-pos="top"
+              disabled={transportBusy}
+              onClick={() => void exportProgramFrame()}
+            >
+              PNG
+            </InteriorButton>
             {shuttleSpeed !== 1 && programPlaying && (
               <span className="transport-shuttle" title="Shuttle speed">
                 {shuttleSpeed}x
               </span>
             )}
-            <code>{formatTime(playhead)}</code>
+            <code className="transport-timecode">{formatTime(playhead)}</code>
           </div>
         </div>
         <div className="monitor-tab-panel source-tab-panel" hidden={monitorMode !== "source"}>

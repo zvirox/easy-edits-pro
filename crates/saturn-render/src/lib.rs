@@ -2,7 +2,10 @@ use gstreamer as gst;
 use gstreamer::prelude::*;
 use gstreamer_editing_services as ges;
 use gstreamer_editing_services::prelude::*;
+use gstreamer_app as gst_app;
 use gstreamer_pbutils as gst_pbutils;
+use gstreamer_video as gst_video;
+use saturn_core::time::TICKS_PER_SECOND;
 use saturn_core::project::{
     Clip, EffectPayload, MediaKind, ProjectDocument, TrackAudioProcessing, TrackKind,
     TransitionKind,
@@ -469,6 +472,149 @@ fn render_timeline(
 
     let _ = pipeline.set_state(gst::State::Null);
     result?;
+    Ok(())
+}
+
+/// Renders the timeline frame at `at` to a PNG still image.
+///
+/// The document is sliced to the single frame containing `at` (one frame in
+/// duration) so GES only has to preroll a frame's worth of media. The frame is
+/// pulled from an appsink video preview sink and encoded as an 8-bit RGB PNG.
+/// GES objects are created, used, and dropped on the calling thread because
+/// its API is not Send.
+pub fn render_frame(
+    document: &ProjectDocument,
+    at: Tick,
+    output_path: &Path,
+) -> Result<(), String> {
+    document.validate().map_err(|error| error.to_string())?;
+    if output_path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .map(str::to_ascii_lowercase)
+        .as_deref()
+        != Some("png")
+    {
+        return Err("Choose a .png output file for the frame export".into());
+    }
+    if document
+        .project
+        .sequence
+        .tracks
+        .iter()
+        .all(|track| track.clips.is_empty())
+    {
+        return Err("Add at least one clip to the timeline before exporting a frame".into());
+    }
+    let frame_rate = &document.project.settings.frame_rate;
+    let numerator = i64::from(frame_rate.numerator).max(1);
+    let denominator = i64::from(frame_rate.denominator).max(1);
+    let frame_duration_ticks = (TICKS_PER_SECOND * denominator / numerator).max(1);
+    let render_document = slice_document(
+        document,
+        RenderRange {
+            start: at,
+            end: Tick(at.0 + frame_duration_ticks),
+        },
+    )?;
+    if render_document
+        .project
+        .sequence
+        .tracks
+        .iter()
+        .all(|track| track.clips.is_empty())
+    {
+        return Err("The playhead is not over any clips to export".into());
+    }
+    let output_path = absolute_output_path(output_path)?;
+
+    GST_INIT
+        .get_or_init(|| {
+            gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
+            ges::init().map_err(|error| {
+                format!("Could not initialize GStreamer Editing Services: {error}")
+            })?;
+            graphics_element::register()
+                .map_err(|error| format!("Could not register the graphics element: {error}"))?;
+            automation_element::register().map_err(|error| {
+                format!("Could not register the audio automation element: {error}")
+            })
+        })
+        .clone()?;
+
+    let timeline = build_timeline(&render_document)?;
+    let appsink = gst_app::AppSink::builder()
+        .caps(
+            &gst::Caps::builder("video/x-raw")
+                .field("format", "RGB")
+                .build(),
+        )
+        .max_buffers(1)
+        .build();
+    let pipeline = ges::Pipeline::new();
+    pipeline
+        .set_timeline(&timeline)
+        .map_err(|error| format!("Could not connect the frame timeline: {error}"))?;
+    pipeline.set_video_sink(Some(appsink.upcast_ref::<gst::Element>()));
+
+    pipeline
+        .set_state(gst::State::Paused)
+        .map_err(|error| format!("Could not preroll the frame pipeline: {error}"))?;
+    let (_, state, _) = pipeline.state(gst::ClockTime::from_seconds(15));
+    if state != gst::State::Paused {
+        let _ = pipeline.set_state(gst::State::Null);
+        return Err("Timed out while prerolling the frame pipeline".into());
+    }
+    // Flush to the first (and only) frame of the sliced timeline.
+    pipeline
+        .seek_simple(
+            gst::SeekFlags::FLUSH | gst::SeekFlags::KEY_UNIT,
+            gst::ClockTime::ZERO,
+        )
+        .map_err(|error| format!("Could not seek to the export frame: {error}"))?;
+    let _ = pipeline.state(gst::ClockTime::from_seconds(15));
+
+    let sample = match appsink.try_pull_sample(gst::ClockTime::from_seconds(15)) {
+        Some(sample) => sample,
+        None => {
+            let _ = pipeline.set_state(gst::State::Null);
+            return Err("Timed out waiting for the export frame".into());
+        }
+    };
+    let _ = pipeline.set_state(gst::State::Null);
+
+    let caps = sample
+        .caps()
+        .ok_or_else(|| "Frame sample arrived without caps".to_string())?;
+    let info = gst_video::VideoInfo::from_caps(caps)
+        .map_err(|error| format!("Frame sample caps are not raw video: {error}"))?;
+    let buffer = sample
+        .buffer()
+        .ok_or_else(|| "Frame sample arrived without a buffer".to_string())?;
+    let frame = gst_video::VideoFrameRef::from_buffer_ref_readable(buffer, &info)
+        .map_err(|error| format!("Could not map the export frame: {error}"))?;
+    let width = u32::from(info.width());
+    let height = u32::from(info.height());
+    let stride = info.stride()[0] as usize;
+    let data = frame
+        .plane_data(0)
+        .map_err(|error| format!("Could not read the export frame: {error}"))?;
+    let row_bytes = width as usize * 3;
+    let mut rows = Vec::with_capacity(row_bytes * height as usize);
+    for row in 0..height as usize {
+        let start = row * stride;
+        rows.extend_from_slice(&data[start..start + row_bytes]);
+    }
+
+    let file = std::fs::File::create(&output_path)
+        .map_err(|error| format!("Could not create {output_path:?}: {error}"))?;
+    let mut encoder = png::Encoder::new(file, width, height);
+    encoder.set_color(png::ColorType::Rgb);
+    encoder.set_depth(png::BitDepth::Eight);
+    encoder
+        .write_header()
+        .and_then(|mut writer| writer.write_image_data(&rows))
+        .map_err(|error| format!("Could not encode the PNG frame: {error}"))?;
     Ok(())
 }
 
@@ -1002,6 +1148,71 @@ mod tests {
         assert_eq!(result.unwrap_err(), "Render cancelled");
         assert!(decoy.is_file(), "pre-existing output must be untouched");
         let _ = std::fs::remove_file(&decoy);
+    }
+
+    #[test]
+    fn render_frame_rejects_bad_output_paths_and_empty_timelines() {
+        let document = saturn_core::EditorEngine::default().document().clone();
+
+        // Only PNG stills are supported.
+        let mp4_path = std::env::temp_dir().join("eep-frame-not-png.mp4");
+        let error = render_frame(&document, saturn_core::Tick(0), &mp4_path)
+            .err()
+            .expect("an .mp4 output must be rejected");
+        assert!(error.contains(".png"), "unexpected error: {error}");
+
+        // An empty timeline has nothing to grab.
+        let png_path = std::env::temp_dir().join("eep-frame-empty.png");
+        let error = render_frame(&document, saturn_core::Tick(0), &png_path)
+            .err()
+            .expect("an empty timeline must be rejected");
+        assert!(
+            error.contains("at least one clip"),
+            "unexpected error: {error}"
+        );
+        assert!(!png_path.exists(), "no output may be written on rejection");
+    }
+
+    #[test]
+    fn render_frame_playhead_off_timeline_is_rejected_before_gst() {
+        // Playhead past every clip: the sliced document has no clips.
+        let mut engine = saturn_core::EditorEngine::default();
+        engine
+            .execute(saturn_core::CommandRequest::new(
+                "project.new",
+                serde_json::json!({"name": "Frame"}),
+            ))
+            .unwrap();
+        let media = engine
+            .execute(saturn_core::CommandRequest::new(
+                "project.add_media",
+                serde_json::json!({
+                    "name":"a.mov", "path":"/assets/a.mov", "kind":"video",
+                    "duration": 254_016_000_000i64
+                }),
+            ))
+            .unwrap();
+        let media_id = media["media_id"].as_u64().unwrap();
+        engine
+            .execute(saturn_core::CommandRequest::new(
+                "timeline.insert_clip",
+                serde_json::json!({
+                    "media_id": media_id, "track_id": 1, "at": 0,
+                    "source_in": 0, "duration": 254_016_000_000i64
+                }),
+            ))
+            .unwrap();
+        let document = engine.document().clone();
+        // One second past the clip end.
+        let png_path = std::env::temp_dir().join("eep-frame-off-timeline.png");
+        let error = render_frame(&document, saturn_core::Tick(254_016_000_000i64), &png_path)
+            .err()
+            .expect("a playhead past the timeline must be rejected");
+        assert!(
+            error.contains("not over any clips"),
+            "unexpected error: {error}"
+        );
+        assert!(!png_path.exists());
     }
 
     /// Laptop-native evidence for planning.md M1.3: cancelling an in-flight

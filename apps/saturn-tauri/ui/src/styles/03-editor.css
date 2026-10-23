@@ -75,9 +75,24 @@
   box-shadow: 0 0 6px var(--accent-violet-bright);
 }
 
-.transport { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; }
+.transport { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; flex-wrap: wrap; }
 .transport button { min-width: 30px; padding: 4px 7px; }
-.transport code { margin-left: 8px; color: var(--accent-text); font: 11px monospace; }
+/* F3: the playhead timecode reads in the cool violet accent so it is
+   instantly distinguishable from transport controls. */
+.transport code, .transport code.transport-timecode { margin-left: 8px; color: var(--accent-text-violet); font: 11px monospace; }
+
+/* F3 monitor telemetry + zoom: name left, resolution · divider · zoom right. */
+.monitor-meta { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.monitor-name-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.monitor-divider { width: 1px; height: 12px; background: var(--border-color); }
+.monitor-resolution { color: var(--neutral-400); font-size: 10px; font-family: monospace; white-space: nowrap; }
+.monitor-zoom { display: inline-flex; align-items: center; gap: 4px; }
+.monitor-zoom-label { color: var(--neutral-400); font-size: 10px; }
+.monitor-zoom-select { background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 11px; padding: 1px 4px; }
+/* Zoom beyond fit scales the monitor content from centre; the panel clips
+   the overflow so geometry and neighbours stay untouched. */
+.monitor-zoom-stage { display: flex; flex: 1; min-height: 0; flex-direction: column; transform-origin: center; will-change: transform; }
+.monitor-tab-panel { overflow: hidden; }
 .transport-shuttle {
   margin-left: 6px;
   padding: 2px 6px;

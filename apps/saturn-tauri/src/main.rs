@@ -121,6 +121,7 @@ fn main() {
             import_media,
             start_export,
             detect_encoder_capabilities,
+            export_frame,
             get_active_jobs,
             get_all_jobs,
             cancel_job,

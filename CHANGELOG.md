@@ -18,6 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `*_collaboration_lock` handlers. Catalogue is now 213 commands (113 shipped).
 
 ### Added
+- **Transport & frame export (F3):** The Program monitor transport now has
+  Add Marker, Mark In/Out, Lift/Extract (`sequence.lift`/`sequence.extract`
+  operating on the marked range — Lift keeps gaps, Extract ripples them
+  closed) and Export Frame (single-frame PNG render via GES), plus monitor
+  resolution telemetry and a Fit/50–200% zoom dropdown; the playhead
+  timecode is accented violet.
 - **MCP editing workflow:** Re-enabled `saturn-mcp` in the Cargo workspace with command discovery/execution, project and sequence inspection, media search and asset-placement preview, and asynchronous render jobs with progress and cancellation.
 - **Live desktop MCP bridge:** Added a same-user Unix socket bridge so MCP edits use the open desktop project's shared editor state and undo history. Requests are size-limited and the runtime socket directory and socket use restrictive permissions.
 - **Fairlight automation playback:** Added interpolated Read-mode volume and pan automation playback, plus a dedicated audio workspace hook and regression tests.

@@ -11,7 +11,7 @@ pub use project::{
 mod media;
 pub use media::{import_media, prepare_video_preview};
 mod export;
-pub use export::{detect_encoder_capabilities, queue_export, start_export};
+pub use export::{detect_encoder_capabilities, export_frame, queue_export, start_export};
 mod jobs;
 pub use jobs::{
     cancel_all_jobs, cancel_job, clear_job_history, get_active_jobs, get_all_jobs,
