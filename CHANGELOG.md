@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.7] - 2026-10-25
+
+Seventh engineering alpha: the third FilmCraft Tier-1 parity fulfilment
+task. Twenty-eight commands across the track, bus, media, project, prefs,
+shortcuts, and edit families were verified (engine dispatch + real UI
+affordance + test) and flipped to shipped. Tier-1 coverage now 29%
+(129/443); the catalogue stands at 213 commands with 185 shipped and only
+28 planned.
+
+### Changed
+- **Mixer and Fairlight wiring is official:** `track.set_gain_db`,
+  `set_pan`, `set_muted`, `set_solo`, `set_locked`,
+  `set_audio_processing`, and `set_bus_route` (channel-strip faders,
+  header toggles, bus routing) plus `bus.set_gain_db` (Fairlight master
+  bus fader) are shipped — the UI existed on day one; the catalogue now
+  says so.
+- **Media pool with folder bins:** `media.list`, `create_bin`,
+  `rename_bin`, `delete_bin`, `move_to_bin`, and `update_properties`
+  shipped (pool refresh via `media.list` powering the F1 media server).
+- **Project plumbing:** `project.status` (the ProjectProvider status
+  poll) and `project.switch_sequence` (header sequence switcher).
+- **Editing-session gestures:** `edit.begin_gesture` / `edit.end_gesture`
+  (the trim and drag gesture brackets used by the undo system).
+- **Graphics and captions:** `title.update` (graphics title editor) and
+  `subtitle.add` / `update` / `remove` / `clear` (inspector subtitle
+  editor).
+- **Preferences and shortcuts:** `prefs.get` / `prefs.set` (settings
+  sync) and the four shortcut-override commands (`list`, `set`, `reset`,
+  `import`).
+- **Catalogue hygiene for plumbing commands:** menu-less shipped specs
+  gained their natural menus per the validator (`edit.*` gesture pair and
+  shortcut overrides under Edit, `project.status` / `media.list` /
+  `prefs.*` under File), and params are now documented instead of empty.
+
+### Added
+- `shortcuts_import_and_reset_workflow` engine test: import rejects
+  unknown command ids before persisting, the imported map survives a
+  settings-file reload, and reset round-trips through the same file.
+
+---
+
 ## [0.1.0-alpha.6] - 2026-10-25
 
 Sixth engineering alpha: the second FilmCraft Tier-1 parity fulfilment task.

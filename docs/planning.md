@@ -396,6 +396,21 @@ flowchart TD
   coverage 110/443 (25%). Known limit: motion-tracking point analysis
   happens at render later — setup persists today (evaluators already
   ported in `saturn-render::tracking`).
+* **P3 — Track/bus/media/project/prefs/shortcuts batch (Done 2026-10-25,
+  shipped in 0.1.0-alpha.7):** Audited all 53 remaining planned commands
+  (non-UI-only) on the three-way rule; 28 already had dispatch + UI
+  affordance + test and were flipped: all seven track commands, the
+  Fairlight master-bus fader, the six media/bin commands, project
+  status + switch_sequence, the edit gesture pair, title.update, the four
+  subtitle commands, prefs.get/set, and the four shortcut overrides.
+  Added the `shortcuts_import_and_reset_workflow` engine test (import
+  validates ids, survives reload, reset round-trips) and fixed catalogue
+  hygiene for plumbing specs (menus per validator, documented params).
+  Catalogue: 185 shipped / 28 planned; Tier-1 coverage 129/443 (29%).
+  Remaining planned are feature-sized: nodegraph (6), interop importers
+  (4), caption track management (4), speech (2), multicam
+  create/switch_angle (2), prefs.reset, and small singulars
+  (project.update_media, project.inspect, marker.ripple, speech UX).
 
 ---
 
