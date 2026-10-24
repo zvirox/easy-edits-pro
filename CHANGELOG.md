@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.9] - 2026-10-25
+
+Fifth FilmCraft Tier-1 parity fulfilment task: the three small
+singulars. `project.inspect`, `marker.ripple`, and `prefs.reset` were
+verified (engine dispatch + real UI affordance + test) and shipped.
+The catalogue stands at 213 commands with 192 shipped and 21 planned;
+Tier-1 coverage reaches 30% (132/443) and the prefs family is fully
+closed.
+
+### Added
+- **Project JSON viewer.** File > Inspect Project opens a dialog that
+  reads the full project document from `project.inspect` — the engine
+  source of truth — with a one-click clipboard copy. Useful for
+  debugging and for parity comparisons.
+- **Marker ripple.** The Markers panel gains a "Shift from playhead"
+  control: enter a signed frame count and every marker at or after the
+  playhead moves by it (the engine clamps at zero and reports what it
+  shifted). Markers > Ripple Markers prompts for the same shift in
+  seconds. Frame-to-tick conversion is unit-tested, including NTSC
+  fractional rates.
+- **Preference reset reaches the engine.** The Preferences dialog's
+  Reset flow now also clears the engine's persisted prefs store, not
+  just the in-memory state.
+
+### Changed
+- Engine tests: `prefs_reset_clears_stored_preferences` (set + reset
+  round-trips through the settings file and a reload stays empty) and
+  `project_inspect_reflects_edited_document` (the inspect snapshot
+  reflects project name, media, and timeline tracks).
+
+### Notes
+- Accurate record for alpha.8: the interop importers' Import modal
+  (InteropModal via the `import_timeline_interop` Tauri command) already
+  dispatched the same engine commands when alpha.8 shipped; alpha.8's
+  direct File > Import flow remains a second entry point to them.
+- Deferred: `project.update_media` stays planned — it needs a file
+  re-probe command exposed to the UI before an honest affordance can
+  be built (`probe_media_file` is internal to the Tauri media
+  commands today).
+
+---
+
 ## [0.1.0-alpha.8] - 2026-10-25
 
 Fourth FilmCraft Tier-1 parity fulfilment task: the interop importers.

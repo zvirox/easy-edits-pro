@@ -423,6 +423,23 @@ flowchart TD
   singulars (project.update_media, project.inspect, marker.ripple),
   nodegraph (6), caption track management (4), speech (2), multicam
   create/switch_angle (2), prefs.reset.
+* **P4 correction (recorded 2026-10-25):** The interop UI affordance
+  predated the P4 build — InteropModal (via the import_timeline_interop
+  Tauri command) already dispatched the same engine commands; P4 added
+  the direct File > Import entry point on top. Both land on the engine.
+* **P5 — Small singulars (Done 2026-10-25, shipped in 0.1.0-alpha.9):**
+  Built and shipped project.inspect (File > Inspect Project JSON viewer
+  with clipboard copy), marker.ripple (Markers panel "Shift from
+  playhead" in signed frames + Markers menu prompt in seconds, shared
+  useMarkers.rippleMarkers path, markerShiftTicks unit-tested), and
+  prefs.reset (Preferences dialog reset now clears the engine store).
+  New engine tests: prefs_reset_clears_stored_preferences,
+  project_inspect_reflects_edited_document. project.update_media stays
+  planned: it needs probe_media_file exposed to the UI for an honest
+  re-probe affordance. Catalogue: 192 shipped / 21 planned; Tier-1
+  coverage 132/443 (30%); prefs family closed 4/4. Remaining planned:
+  nodegraph (6), caption track management (4), speech (2), multicam
+  create/switch_angle (2), project.update_media, and UI-only stragglers.
 
 ---
 
