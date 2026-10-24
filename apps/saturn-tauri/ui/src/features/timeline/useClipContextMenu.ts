@@ -12,6 +12,7 @@ const CLIP_CONTEXT_COMMAND_IDS = new Set([
   "timeline.remove_clip",
   "timeline.split_clip",
   "timeline.ripple_delete",
+  "timeline.ripple_delete_batch",
   "timeline.rate_stretch",
 ]);
 

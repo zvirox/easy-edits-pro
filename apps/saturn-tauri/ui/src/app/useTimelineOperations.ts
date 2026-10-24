@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { getClipSelection, setMultiClips, setPrimaryClip, useClipSelection } from "./selectionStore";
+import { useTrackGroupOperations } from "./useTrackGroupOperations";
 import type {
   Clip,
   MediaAsset,
@@ -95,6 +96,7 @@ export function useTimelineOperations({
   // setters keep the exact setState signatures the call sites already use;
   // the dead selectedClipId state is gone (it had no readers).
   const { clip: selectedClip, clips: selectedClips } = useClipSelection();
+  const trackGroupOps = useTrackGroupOperations({ perform, project });
   const setSelectedClip = useCallback((clip: SetStateAction<SelectedClip | null>) => {
     setPrimaryClip(typeof clip === "function" ? clip(getClipSelection().clip) : clip);
   }, []);
@@ -224,31 +226,7 @@ export function useTimelineOperations({
     [perform]
   );
 
-  const handleCreateTrackGroup = useCallback(async () => {
-    const name = window.prompt("Enter new folder group name:", "Audio Stems");
-    if (!name?.trim()) return;
-    const colors = ["#be185d", "#10b981", "#f59e0b", "#ec4899", "#6b21a8", "#6b21a8"];
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    await perform("timeline.create_track_group", { name: name.trim(), color }, `Folder group "${name}" created`);
-  }, [perform]);
-
-  const handleToggleGroupCollapse = useCallback(
-    async (groupId: number) => {
-      await perform("timeline.toggle_track_group_collapsed", { group_id: groupId });
-    },
-    [perform]
-  );
-
-  const handleEditTrackGroup = useCallback(
-    async (groupId: number) => {
-      const group = (project?.sequence.track_groups ?? []).find((g) => g.id === groupId);
-      if (!group) return;
-      const newName = window.prompt("Rename track folder:", group.name);
-      if (!newName?.trim()) return;
-      await perform("timeline.set_track_group_properties", { group_id: groupId, name: newName.trim(), color: group.color }, `Renamed folder to "${newName}"`);
-    },
-    [perform, project]
-  );
+  const handleCreateTrackGroup = trackGroupOps.handleCreateTrackGroup;
 
   const switchSequence = useCallback(
     async (sequenceId: number) => {
@@ -615,6 +593,34 @@ export function useTimelineOperations({
       }
       if (Math.abs(deltaX) > 4) {
         const deltaTicks = Math.round((deltaX / timelineZoom) * TICKS_PER_SECOND);
+        // Multi-selection drag moves all selected clips together (keeping
+        // relative offsets) via the batch command; single drag stays atomic.
+        const draggedInSelection = selectedClips.some(
+          (c) => c.track_id === drag.trackId && c.clip_index === drag.clipIndex
+        );
+        if (draggedInSelection && selectedClips.length > 1) {
+          const tracks = project?.sequence.tracks ?? [];
+          const placed = selectedClips
+            .map((ref) => {
+              const clip = tracks.find((t) => t.id === ref.track_id)?.clips[ref.clip_index];
+              return clip ? { ref, start: clip.timeline_start } : null;
+            })
+            .filter((x): x is { ref: SelectedClip; start: number } => x !== null);
+          if (placed.length > 1) {
+            void perform(
+              "timeline.move_clips_batch",
+              {
+                moves: placed.map(({ ref, start }) => ({
+                  track_id: ref.track_id,
+                  clip_index: ref.clip_index,
+                  timeline_start: Math.max(0, start + deltaTicks),
+                })),
+              },
+              `Moved ${placed.length} clips`
+            );
+            return;
+          }
+        }
         const newStart = Math.max(0, drag.startTime + deltaTicks);
         void perform(
           "timeline.move_clip",
@@ -628,7 +634,7 @@ export function useTimelineOperations({
         );
       }
     },
-    [timelineZoom, perform, commitTrim, endGesture]
+    [timelineZoom, perform, commitTrim, endGesture, project, selectedClips]
   );
 
   const beginTimelineClipTrim = useCallback(
@@ -748,8 +754,10 @@ export function useTimelineOperations({
     toggleTrackSolo,
     toggleTrackLock,
     handleCreateTrackGroup,
-    handleToggleGroupCollapse,
-    handleEditTrackGroup,
+    handleToggleGroupCollapse: trackGroupOps.handleToggleGroupCollapse,
+    handleEditTrackGroup: trackGroupOps.handleEditTrackGroup,
+    handleDeleteTrackGroup: trackGroupOps.handleDeleteTrackGroup,
+    handleAssignTrackToGroup: trackGroupOps.handleAssignTrackToGroup,
     switchSequence,
     addTrackToTimeline,
     removeTrackFromTimeline,

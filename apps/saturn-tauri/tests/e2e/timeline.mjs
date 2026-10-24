@@ -63,7 +63,7 @@ export async function run(ctx) {
   await clip.click({ button: 'right' });
   const clipMenu = page.locator('.clip-context-menu');
   await clipMenu.waitFor();
-  assert.equal(await clipMenu.getByRole('menuitem').count(), 4);
+  assert.equal(await clipMenu.getByRole('menuitem').count(), 5);
   const splitMenuItem = clipMenu.getByRole('menuitem', { name: /Split Clip at Playhead/ });
   assert.equal(
     await splitMenuItem.isDisabled(),

@@ -140,6 +140,7 @@ export interface InspectorPanelProps {
 
   perform?: (cmd: string, params?: unknown) => Promise<unknown>;
   updateEffectPayload?: (id: number, payload: EffectPayload) => Promise<void>;
+  reorderEffect?: (fromIndex: number, toIndex: number) => Promise<void>;
 
   // Audio mixer props
   masterVu: { left: number; right: number; peakDb: number };
@@ -250,7 +251,9 @@ export function InspectorPanel(props: InspectorPanelProps) {
             selectedClip={selectedClip}
             addEffect={props.addEffect}
             toggleEffect={async (id) => props.toggleEffectEnabled(String(id))}
-            reorderEffect={async () => {}}
+            reorderEffect={(fromIndex, toIndex) =>
+              props.reorderEffect?.(fromIndex, toIndex) ?? Promise.resolve()
+            }
             removeEffect={(id) => props.removeEffect(String(id))}
             updateEffectPayload={props.updateEffectPayload ?? (async () => {})}
             loadLutCubeDialog={async () => {}}

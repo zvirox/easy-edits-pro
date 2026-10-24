@@ -103,6 +103,8 @@ export interface TimelineSectionProps {
 
   handleToggleGroupCollapse: (groupId: number) => Promise<void>;
   handleEditTrackGroup: (groupId: number) => Promise<void>;
+  handleDeleteTrackGroup: (groupId: number) => Promise<void>;
+  handleAssignTrackToGroup: (trackId: number, groupId: number | null) => Promise<void>;
   toggleTrackLock: (track: Track) => Promise<void>;
   toggleTrackMute: (track: Track) => Promise<void>;
   toggleTrackSolo: (track: Track) => Promise<void>;
@@ -184,6 +186,8 @@ export function TimelineSection({
   setSelectedClip,
   handleToggleGroupCollapse,
   handleEditTrackGroup,
+  handleDeleteTrackGroup,
+  handleAssignTrackToGroup,
   toggleTrackLock,
   toggleTrackMute,
   toggleTrackSolo,
@@ -389,6 +393,14 @@ export function TimelineSection({
                       >
                         ✎
                       </InteriorButton>
+                      <InteriorButton
+                        type="button"
+                        className="track-mini-btn"
+                        onClick={() => void handleDeleteTrackGroup(group.id)}
+                        title="Delete Folder (tracks stay)"
+                      >
+                        ×
+                      </InteriorButton>
                     </div>
                   </div>
                 );
@@ -406,6 +418,8 @@ export function TimelineSection({
                     key={track.id}
                     track={track}
                     parentGroup={parentGroup}
+                    trackGroups={project?.sequence.track_groups ?? []}
+                    assignTrackToGroup={handleAssignTrackToGroup}
                     toggleTrackLock={toggleTrackLock}
                     toggleTrackMute={toggleTrackMute}
                     toggleTrackSolo={toggleTrackSolo}
@@ -428,6 +442,8 @@ export function TimelineSection({
                     key={track.id}
                     track={track}
                     parentGroup={parentGroup}
+                    trackGroups={project?.sequence.track_groups ?? []}
+                    assignTrackToGroup={handleAssignTrackToGroup}
                     toggleTrackLock={toggleTrackLock}
                     toggleTrackMute={toggleTrackMute}
                     toggleTrackSolo={toggleTrackSolo}

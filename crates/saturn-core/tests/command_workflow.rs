@@ -3207,3 +3207,110 @@ fn lift_and_extract_edit_marks_range_content() {
     let empty = engine.execute(CommandRequest::new("sequence.lift", json!({"ranges": []})));
     assert!(empty.is_err());
 }
+
+#[test]
+fn ripple_delete_batch_workflow() {
+    let mut engine = EditorEngine::default();
+    let add_media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "batch.mp4", "path": "/assets/batch.mp4", "kind": "video",
+                "duration": TICKS_PER_SECOND * 10
+            }),
+        ))
+        .unwrap();
+    let media_id = add_media["media_id"].as_u64().unwrap();
+    for start in [0i64, 3, 6] {
+        engine
+            .execute(CommandRequest::new(
+                "timeline.add_clip",
+                json!({
+                    "media_id": media_id,
+                    "track_id": 1,
+                    "timeline_start": start * TICKS_PER_SECOND,
+                    "duration": TICKS_PER_SECOND * 2
+                }),
+            ))
+            .unwrap();
+    }
+
+    // Empty selection is rejected with a real error.
+    let empty = engine.execute(CommandRequest::new(
+        "timeline.ripple_delete_batch",
+        json!({ "clips": [] }),
+    ));
+    assert!(empty.is_err());
+
+    // Batch-remove the first and last clips with ripple: the middle clip
+    // (3s..5s) closes left by the 2s removed before it, landing at 0s..2s.
+    let report = engine
+        .execute(CommandRequest::new(
+            "timeline.ripple_delete_batch",
+            json!({
+                "clips": [
+                    {"track_id": 1, "clip_index": 0},
+                    {"track_id": 1, "clip_index": 2}
+                ],
+                "ripple": true
+            }),
+        ))
+        .unwrap();
+    assert_eq!(report["removed"], 2);
+
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips.len(), 1);
+    assert_eq!(clips[0].timeline_start.0, TICKS_PER_SECOND);
+    assert_eq!(clips[0].duration.0, TICKS_PER_SECOND * 2);
+    let sequence_end = engine.document().project.sequence.duration();
+    assert_eq!(sequence_end.0, TICKS_PER_SECOND * 3);
+}
+
+#[test]
+fn ripple_delete_ranges_workflow() {
+    let mut engine = EditorEngine::default();
+    let add_media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "ranges.mp4", "path": "/assets/ranges.mp4", "kind": "video",
+                "duration": TICKS_PER_SECOND * 10
+            }),
+        ))
+        .unwrap();
+    let media_id = add_media["media_id"].as_u64().unwrap();
+    for start in [0i64, 3, 6] {
+        engine
+            .execute(CommandRequest::new(
+                "timeline.add_clip",
+                json!({
+                    "media_id": media_id,
+                    "track_id": 1,
+                    "timeline_start": start * TICKS_PER_SECOND,
+                    "duration": TICKS_PER_SECOND * 2
+                }),
+            ))
+            .unwrap();
+    }
+
+    // Ripple-delete the 4s..6s interval: clip B (3s..5s) keeps its head
+    // (1s of source), clip C is untouched content-wise but ripples left.
+    let report = engine
+        .execute(CommandRequest::new(
+            "timeline.ripple_delete_ranges",
+            json!({"ranges": [[TICKS_PER_SECOND * 4, TICKS_PER_SECOND * 6]]}),
+        ))
+        .unwrap();
+    assert_eq!(report["deleted_ranges_count"], 1);
+    assert_eq!(report["tracks_affected"], 1);
+
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips.len(), 3);
+    assert_eq!(clips[0].timeline_start.0, 0);
+    assert_eq!(clips[0].duration.0, TICKS_PER_SECOND * 2);
+    // Clip B kept its head (3s..4s stays); clip C ripples left by 2s.
+    assert_eq!(clips[1].timeline_start.0, TICKS_PER_SECOND * 3);
+    assert_eq!(clips[1].duration.0, TICKS_PER_SECOND);
+    assert_eq!(clips[2].timeline_start.0, TICKS_PER_SECOND * 4);
+    assert_eq!(clips[2].duration.0, TICKS_PER_SECOND * 2);
+}

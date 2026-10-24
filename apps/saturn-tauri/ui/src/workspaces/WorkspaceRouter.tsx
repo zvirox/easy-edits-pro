@@ -359,6 +359,8 @@ export function WorkspaceRouter({
         setSelectedClip: timelineOps.setSelectedClip,
         handleToggleGroupCollapse: timelineOps.handleToggleGroupCollapse,
         handleEditTrackGroup: timelineOps.handleEditTrackGroup,
+        handleDeleteTrackGroup: timelineOps.handleDeleteTrackGroup,
+        handleAssignTrackToGroup: timelineOps.handleAssignTrackToGroup,
         toggleTrackLock: timelineOps.toggleTrackLock,
         toggleTrackMute: timelineOps.toggleTrackMute,
         toggleTrackSolo: timelineOps.toggleTrackSolo,
@@ -414,6 +416,8 @@ export function WorkspaceRouter({
         updateEffectParam: inspectorOps.updateEffectParam,
         saveEffectParam: inspectorOps.saveEffectParam,
         removeEffect: (id) => inspectorOps.removeEffect(id),
+        reorderEffect: inspectorOps.reorderEffects,
+        updateEffectPayload: inspectorOps.updateEffectPayload,
         playhead: playback.playhead,
         keyframeProperty: inspectorOps.keyframeProperty,
         setKeyframeProperty: inspectorOps.setKeyframeProperty,
@@ -604,34 +608,18 @@ export function WorkspaceRouter({
               setColorDraft={inspectorOps.setColorDraft}
               colorWheelsDraft={inspectorOps.colorWheelsDraft}
               setColorWheelsDraft={inspectorOps.setColorWheelsDraft}
-              rgbCurvesDraft={{ master: [], red: [], green: [], blue: [] }}
-              hslQualifierDraft={{
-                enabled: true,
-                hue_center: 0,
-                hue_width: 30,
-                hue_softness: 5,
-                sat_center: 0.5,
-                sat_width: 0.5,
-                sat_softness: 0.1,
-                luma_center: 0.5,
-                luma_width: 0.5,
-                luma_softness: 0.1,
-                invert: false,
-                blur_radius: 0,
-                hue_shift: 0,
-                sat_boost: 0,
-                exposure_shift: 0,
-              }}
-              showMatteDraft={false}
-              setShowMatteDraft={() => {}}
+              rgbCurvesDraft={inspectorOps.rgbCurvesDraft}
+              hslQualifierDraft={inspectorOps.hslQualifierDraft}
+              showMatteDraft={inspectorOps.showMatteDraft}
+              setShowMatteDraft={inspectorOps.setShowMatteDraft}
               updateColorWheels={inspectorOps.setColorWheelsDraft}
-              updateRgbCurves={() => {}}
-              updateHslQualifier={() => {}}
+              updateRgbCurves={inspectorOps.saveRgbCurves}
+              updateHslQualifier={inspectorOps.saveHslQualifier}
               applyColorPreset={() => {}}
               applyLutPreset={() => {}}
               loadLutCubeDialog={() => {}}
               saveColor={inspectorOps.saveColor}
-              runCommand={async () => {}}
+              runCommand={inspectorOps.runCommand}
             />
           ) : (
             <EffectDockRight
@@ -639,8 +627,8 @@ export function WorkspaceRouter({
               addEffect={inspectorOps.addEffect}
               removeEffect={inspectorOps.removeEffect}
               toggleEffect={inspectorOps.toggleEffect}
-              reorderEffect={() => {}}
-              updateEffectPayload={() => {}}
+              reorderEffect={inspectorOps.reorderEffects}
+              updateEffectPayload={inspectorOps.updateEffectPayload}
               loadLutCubeDialog={() => {}}
             />
           )

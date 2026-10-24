@@ -10,12 +10,14 @@ import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import type {
   DavinciWorkspace,
   GpuMetrics,
+  ProjectDocument,
   ProjectStatus,
   SelectedClip,
   SilenceInterval,
   Transition,
 } from "./projectTypes";
 import { TICKS_PER_SECOND } from "./projectTypes";
+import { buildBatchCommandParams } from "./menuCommandParams";
 
 const recentProjectsKey = "easy-edits-pro.recent-projects.v1";
 const projectFilters = [{ name: "Easy Edits Pro project", extensions: ["saturn"] }];
@@ -59,7 +61,12 @@ export interface UseProjectOperationsOptions {
   setSelectedTransition: Dispatch<SetStateAction<{ track_id: number; transition: Transition } | null>>;
   setSelectedMediaId: Dispatch<SetStateAction<number | null>>;
   /** Live timeline context, read at invocation time to fill command parameters. */
-  getMenuContext: () => { selectedClip: SelectedClip | null; playhead: number };
+  getMenuContext: () => {
+    selectedClip: SelectedClip | null;
+    selectedClips: SelectedClip[];
+    playhead: number;
+    project: ProjectDocument["project"] | null;
+  };
 }
 
 export function useProjectOperations({
@@ -591,6 +598,13 @@ export function useProjectOperations({
           (id === "timeline.remove_clip" || id === "timeline.ripple_delete")
         ) {
           params = { ...selectedClip };
+        } else {
+          const built = buildBatchCommandParams(id, getMenuContext());
+          if (built) {
+            if (built.notice) setNotice(built.notice);
+            if (built.cancel) return;
+            params = built.params ?? null;
+          }
         }
       }
       await perform(id, params ?? null);

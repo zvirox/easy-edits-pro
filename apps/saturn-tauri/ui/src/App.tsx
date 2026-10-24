@@ -43,6 +43,7 @@ import {
   useEditClipboard,
 } from "./app/useEditClipboard";
 import type { CommandSpec, SelectedClip } from "./types";
+import type { ProjectDocument } from "./app/projectTypes";
 
 function EditorApp() {
   const [preferences, setPreferences] = useState<Preferences>(loadPreferences);
@@ -180,10 +181,12 @@ function EditorApp() {
     }
   }, [refreshProject]);
 
-  const menuContext = useRef<{ selectedClip: SelectedClip | null; playhead: number }>({
-    selectedClip: null,
-    playhead: 0,
-  });
+  const menuContext = useRef<{
+    selectedClip: SelectedClip | null;
+    selectedClips: SelectedClip[];
+    playhead: number;
+    project: ProjectDocument["project"] | null;
+  }>({ selectedClip: null, selectedClips: [], playhead: 0, project: null });
 
   const projectOps = useProjectOperations({
     projectState, setProjectState, refreshProject,
@@ -191,7 +194,12 @@ function EditorApp() {
     setPlayhead: playback.setPlayhead,
     setSelectedClip: () => {}, setSelectedClips: () => {},
     setSelectedTransition: () => {}, setSelectedMediaId: () => {},
-    getMenuContext: () => menuContext.current,
+  getMenuContext: () => ({
+    selectedClip: menuContext.current.selectedClip,
+    selectedClips: menuContext.current.selectedClips,
+    playhead: menuContext.current.playhead,
+    project: menuContext.current.project,
+  }),
   });
 
   const timelineEndSeconds = Math.max(
@@ -261,9 +269,11 @@ function EditorApp() {
   useEffect(() => {
     menuContext.current = {
       selectedClip: timelineOps.selectedClip,
+      selectedClips: timelineOps.selectedClips,
       playhead: playback.playhead,
+      project,
     };
-  }, [timelineOps.selectedClip, playback.playhead]);
+  }, [timelineOps.selectedClip, timelineOps.selectedClips, playback.playhead, project]);
 
   // F1: auto-select the first V1 clip once per sequence load so the
   // Inspector, Effects, Color, and Curves docks come up live without a

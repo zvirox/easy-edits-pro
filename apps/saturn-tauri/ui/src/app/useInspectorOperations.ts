@@ -11,11 +11,14 @@ import type {
 import type {
   EffectKind,
   EffectPayload,
+  HslQualifier,
   InterpolationKind,
   KeyframeProperty,
   MotionBlurParams,
+  RgbCurves,
   SpeedRamp,
   TrackingMode,
+  CustomShaderParams,
 } from "../engine/playbackEngine";
 import { type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "../components/ColorWheels";
 import { TICKS_PER_SECOND } from "../engine/playback/constants";
@@ -33,6 +36,26 @@ export interface UseInspectorOperationsOptions {
   project: ProjectDocument["project"] | null;
 }
 
+const DEFAULT_HSL_QUALIFIER: HslQualifier = {
+  enabled: true,
+  hue_center: 0,
+  hue_width: 30,
+  hue_softness: 5,
+  sat_center: 0.5,
+  sat_width: 0.5,
+  sat_softness: 0.1,
+  luma_center: 0.5,
+  luma_width: 0.5,
+  luma_softness: 0.1,
+  invert: false,
+  blur_radius: 0,
+  hue_shift: 0,
+  sat_boost: 0,
+  exposure_shift: 0,
+};
+
+const EMPTY_RGB_CURVES: RgbCurves = { master: [], red: [], green: [], blue: [] };
+
 export function useInspectorOperations({
   selectedClip,
   selectedTimelineClip,
@@ -46,6 +69,9 @@ export function useInspectorOperations({
 }: UseInspectorOperationsOptions) {
   const [colorDraft, setColorDraft] = useState<ColorAdjustments>({ exposure: 0, contrast: 1, saturation: 1, hue: 0 });
   const [colorWheelsDraft, setColorWheelsDraft] = useState<ColorWheelsData>(DEFAULT_COLOR_WHEELS);
+  const [rgbCurvesDraft, setRgbCurvesDraft] = useState<RgbCurves>(EMPTY_RGB_CURVES);
+  const [hslQualifierDraft, setHslQualifierDraft] = useState<HslQualifier>(DEFAULT_HSL_QUALIFIER);
+  const [showMatteDraft, setShowMatteDraft] = useState(false);
 
   const [keyframeProperty, setKeyframeProperty] = useState<KeyframeProperty>("opacity");
   const [keyframeValue, setKeyframeValue] = useState("1");
@@ -115,14 +141,6 @@ export function useInspectorOperations({
       // In-memory update
     },
     []
-  );
-
-  const updateEffectPayload = useCallback(
-    async (effectId: number, payload: EffectPayload) => {
-      if (!selectedClip) return;
-      await perform("clip.update_effect_payload", { ...selectedClip, effect_id: effectId, payload }, "Effect updated");
-    },
-    [selectedClip, perform]
   );
 
   const saveEffectParam = useCallback(
@@ -287,35 +305,75 @@ export function useInspectorOperations({
     }
   }, [project, setNotice]);
 
+  const saveMotionTracking = useCallback(
+    async (
+      patch: {
+        mode?: TrackingMode;
+        smoothness?: number;
+        pinned_clip_id?: number | null;
+      }
+    ) => {
+      if (!selectedClip) return false;
+      const mode = patch.mode ?? trackingMode;
+      const smoothness = patch.smoothness ?? trackingSmoothness;
+      const pinned_clip_id =
+        patch.pinned_clip_id !== undefined ? patch.pinned_clip_id : trackingTargetClipId;
+      return perform(
+        "clip.set_motion_tracking",
+        {
+          ...selectedClip,
+          tracking: {
+            id: 1,
+            name: "Track Point",
+            mode,
+            points: [],
+            pinned_clip_id,
+            smoothness,
+          },
+        },
+        "Motion tracking setup saved"
+      );
+    },
+    [selectedClip, perform, trackingMode, trackingSmoothness, trackingTargetClipId]
+  );
+
+  const setTrackingModePersisted = useCallback(
+    async (mode: TrackingMode) => {
+      setTrackingMode(mode);
+      await saveMotionTracking({ mode });
+    },
+    [saveMotionTracking]
+  );
+
   const updateStabilizationSmoothness = useCallback(
     async (val: number) => {
       if (!selectedClip) return;
       setTrackingSmoothness(val);
-      await perform("clip.set_stabilization_smoothness", { ...selectedClip, smoothness: val });
+      await saveMotionTracking({ smoothness: val });
     },
-    [selectedClip, perform]
+    [selectedClip, saveMotionTracking]
   );
 
   const pinClipToMotionTrack = useCallback(
     async (targetClipId: number | null) => {
       if (!selectedClip) return;
       setTrackingTargetClipId(targetClipId);
-      await perform("clip.pin_to_motion_track", { ...selectedClip, target_clip_id: targetClipId });
+      await saveMotionTracking({ pinned_clip_id: targetClipId });
     },
-    [selectedClip, perform]
+    [selectedClip, saveMotionTracking]
   );
 
   const runMotionTracker = useCallback(
-    async (forward = true) => {
+    async (_forward = true) => {
       if (!selectedClip) return;
       setIsAnalyzingTracking(true);
       try {
-        await perform("clip.run_motion_tracker", { ...selectedClip, forward, mode: trackingMode }, "Motion tracking completed");
+        await saveMotionTracking({});
       } finally {
         setIsAnalyzingTracking(false);
       }
     },
-    [selectedClip, perform, trackingMode]
+    [selectedClip, saveMotionTracking]
   );
 
   const saveSpeedRamp = useCallback(
@@ -330,6 +388,61 @@ export function useInspectorOperations({
     async (mb: MotionBlurParams) => {
       if (!selectedClip) return;
       await perform("clip.set_motion_blur", { ...selectedClip, motion_blur: mb }, "Motion blur updated");
+    },
+    [selectedClip, perform]
+  );
+
+  const saveRgbCurves = useCallback(
+    async (curves: RgbCurves) => {
+      setRgbCurvesDraft(curves);
+      if (!selectedClip) return;
+      await perform("clip.update_rgb_curves", { ...selectedClip, curves }, "RGB curves updated");
+    },
+    [selectedClip, perform]
+  );
+
+  const saveHslQualifier = useCallback(
+    async (qualifier: HslQualifier) => {
+      setHslQualifierDraft(qualifier);
+      if (!selectedClip) return;
+      await perform("clip.update_hsl_qualifier", { ...selectedClip, qualifier }, "HSL qualifier updated");
+    },
+    [selectedClip, perform]
+  );
+
+  const reorderEffects = useCallback(
+    async (fromIndex: number, toIndex: number) => {
+      if (!selectedClip) return;
+      await perform(
+        "clip.reorder_effects",
+        { ...selectedClip, from_index: fromIndex, to_index: toIndex },
+        "Effect order updated"
+      );
+      await refreshProject();
+    },
+    [selectedClip, perform, refreshProject]
+  );
+
+  const updateEffectPayload = useCallback(
+    async (effectId: number, payload: EffectPayload) => {
+      if (!selectedClip) return;
+      if (payload.kind === "custom_shader") {
+        const p = payload.params as CustomShaderParams;
+        await perform(
+          "clip.update_custom_shader",
+          {
+            ...selectedClip,
+            effect_id: effectId,
+            name: p.name,
+            shader_code: p.shader_code,
+            preset_id: p.preset_id ?? null,
+            uniforms: p.uniforms ?? {},
+          },
+          "Shader updated"
+        );
+        return;
+      }
+      await perform("clip.update_effect", { ...selectedClip, effect_id: effectId, payload }, "Effect updated");
     },
     [selectedClip, perform]
   );
@@ -356,7 +469,7 @@ export function useInspectorOperations({
     subtitleTextDraft,
     setSubtitleTextDraft,
     trackingMode,
-    setTrackingMode,
+    setTrackingMode: setTrackingModePersisted,
     trackingSmoothness,
     setTrackingSmoothness,
     trackingTargetClipId,
@@ -370,6 +483,14 @@ export function useInspectorOperations({
     removeEffect,
     toggleEffect,
     updateEffectPayload,
+    reorderEffects,
+    rgbCurvesDraft,
+    hslQualifierDraft,
+    showMatteDraft,
+    setShowMatteDraft,
+    saveRgbCurves,
+    saveHslQualifier,
+    saveMotionTracking,
     updateEffectParam,
     saveEffectParam,
     saveKeyframe,

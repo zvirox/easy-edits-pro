@@ -19,6 +19,8 @@ import {
 interface TimelineTrackLabelProps {
   track: Track;
   parentGroup?: { id: number; name: string; color?: string; collapsed?: boolean } | null;
+  trackGroups: { id: number; name: string }[];
+  assignTrackToGroup: (trackId: number, groupId: number | null) => Promise<void>;
   toggleTrackLock: (track: Track) => Promise<void>;
   toggleTrackMute: (track: Track) => Promise<void>;
   toggleTrackSolo: (track: Track) => Promise<void>;
@@ -30,6 +32,8 @@ interface TimelineTrackLabelProps {
 export function TimelineTrackLabel({
   track,
   parentGroup,
+  trackGroups,
+  assignTrackToGroup,
   toggleTrackLock,
   toggleTrackMute,
   toggleTrackSolo,
@@ -37,6 +41,23 @@ export function TimelineTrackLabel({
   busy,
   tracksCount,
 }: TimelineTrackLabelProps) {
+  const promptAssignGroup = async () => {
+    const list =
+      trackGroups.map((g, i) => `${i + 1}. ${g.name}`).join("\n") || "(no folders yet)";
+    const current = parentGroup
+      ? `\nCurrent folder: ${parentGroup.name} (Enter 0 to remove)`
+      : "\nEnter 0 to remove from any folder";
+    const input = window.prompt(`${list}${current}\n\nFolder number:`, "0");
+    if (input === null) return;
+    const pick = Number(input.trim());
+    if (!Number.isFinite(pick)) return;
+    if (pick === 0) {
+      if (parentGroup) await assignTrackToGroup(track.id, null);
+      return;
+    }
+    const group = trackGroups[pick - 1];
+    if (group) await assignTrackToGroup(track.id, group.id);
+  };
   return (
     <div
       className={`track-label ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""} ${parentGroup ? "is-grouped-track" : ""}`}
@@ -86,6 +107,15 @@ export function TimelineTrackLabel({
             🔗
           </span>
         )}
+        <InteriorButton
+          type="button"
+          className="track-mini-btn"
+          onClick={() => void promptAssignGroup()}
+          disabled={busy}
+          title={parentGroup ? `In folder: ${parentGroup.name} — click to change` : "Move track into a folder group"}
+        >
+          …
+        </InteriorButton>
         <span style={{ flex: 1 }} />
         <InteriorButton
           className="track-delete-btn"

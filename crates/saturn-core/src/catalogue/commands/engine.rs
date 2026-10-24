@@ -116,7 +116,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
         id: "timeline.ripple_delete_batch",
         label: "Ripple Delete Selected Clips",
-        menu: &[],
+        menu: &["Edit"],
         shortcut: None,
         params: "{\"clips\":[obj],\"ripple\":bool?}",
         category: Category::Sequence,
@@ -124,7 +124,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         undo_group: UndoGroup::Transaction,
         aliases: &[],
         since: "0.1.0",
-        shipped: false,
+        shipped: true,
         ui_only: false,
     },
 ];
