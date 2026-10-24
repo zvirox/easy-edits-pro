@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [0.1.0-alpha.4] - 2026-10-24
+
+Fourth engineering alpha: the glass-cards overhaul plan v4 is complete —
+functional workstream F1–F6 (reactive selection, media relinking, transport,
+keyframed exports, async encoder probe, Fairlight 4-band EQ), G-workstream
+debt closed (typed per-workspace shell column presets, 1100–1280 right-dock
+collapse), and the placeholder plugin-slot system removed.
 
 ### Removed
 - **Fairlight placeholder plugin slots:** Removed the fake "PLUGIN SLOTS ·
