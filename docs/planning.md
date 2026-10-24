@@ -366,6 +366,23 @@ flowchart TD
     band2` on equalizer-3bands plus `equalizer-10bands band6` for the
     bell), and EQ attach failures propagate instead of vanishing.
 
+### Parity fulfilment workstream (post-alpha.4)
+
+* **P1 — Clip + timeline Tier-1 audit & flip (Done 2026-10-24, `2e74b35`,
+  shipped in 0.1.0-alpha.5):** Audited all 42 planned `clip.*` / `timeline.*`
+  commands against the verified-before-done rule (engine dispatch arm, UI
+  affordance, test). 30 already met the rule and were flipped to shipped:
+  10 clip commands (color, keyframes, effects, color wheels, speed ramp,
+  motion blur) and 20 timeline commands (add/move/trim/slip/roll/slide,
+  transitions, titles, tracks, track groups, compound clips, link/unlink,
+  ripple-delete-gap). Added the missing `remove_keyframe` workflow test
+  (nonexistent-time no-op + targeted removal) and gave `timeline.slip_clip`
+  a `Clip` menu entry (validator-reachable). Catalogue: 213 commands,
+  145 shipped / 68 planned; Tier-1 coverage 15% → 22% (98/443). Next parity
+  task: build UI affordances for the 12 remaining planned commands in these
+  families (advanced inspector surfaces, ripple-delete ranges/batch
+  affordances, track-group assign/delete, `move_clips_batch`).
+
 ---
 
 ## 7. Master Agentic Execution Rules

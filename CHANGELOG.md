@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.5] - 2026-10-24
+
+Fifth engineering alpha: the first FilmCraft Tier-1 parity fulfilment task.
+Thirty commands across the clip and timeline families were verified against
+the verified-before-done rule (engine dispatch, UI affordance, test) and
+flipped to shipped, moving Tier-1 coverage from 15% to 22%. No behaviour
+change beyond a Clip-menu entry for slip — this alpha makes the catalogue
+tell the truth about what the editor already does.
+
+### Changed
+- **Clip family fulfilment (0 → 10 shipped of 17 planned):** `clip.set_color`,
+  `clip.set_keyframe`, `clip.remove_keyframe`, `clip.add_effect`,
+  `clip.remove_effect`, `clip.update_effect`, `clip.toggle_effect`,
+  `clip.set_color_wheels`, `clip.set_speed_ramp`, and
+  `clip.set_motion_blur` are now shipped — each already had a working engine
+  dispatch arm and a real UI affordance (Inspector operations, color docks);
+  the missing `remove_keyframe` workflow test covers the nonexistent-time
+  no-op (`removed: false`, no mutation) and targeted removal.
+- **Timeline family fulfilment (10 → 30 shipped of 25 planned — 20 flipped):**
+  `timeline.add_clip`, `timeline.move_clip`, `timeline.trim_clip`,
+  `timeline.slip_clip`, `timeline.roll_edit`, `timeline.slide_clip`,
+  `timeline.add_track`, `timeline.remove_track`, `timeline.link_clips`,
+  `timeline.unlink_clips`, `timeline.create_compound_clip`,
+  `timeline.decompose_compound_clip`, `timeline.add_transition`,
+  `timeline.update_transition`, `timeline.remove_transition`,
+  `timeline.add_title`, `timeline.create_track_group`,
+  `timeline.toggle_track_group_collapsed`, `timeline.set_track_group_properties`,
+  and `timeline.ripple_delete_gap` are now shipped with existing
+  affordances (timeline context menus, trim/slip handles, header menu,
+  panels).
+- `timeline.slip_clip` gains its `Clip` menu entry so the catalogue validator
+  accepts it as shipped (it was already reachable from the trim handles).
+- Catalogue is now 213 commands (145 shipped, 68 planned) — `docs/COMMANDS.md`,
+  `docs/PARITY.md`, and `docs/reference/command-catalogue.json` regenerated
+  via `pnpm catalogue:sync`.
+
+### Remaining in these families (next parity task)
+- UI affordances still to build for 12 planned commands: the advanced
+  inspector surfaces (`clip.reorder_effects`, motion tracking, pin-to-track,
+  RGB curves, HSL qualifier, custom GLSL shaders ×2) plus ripple-delete
+  ranges/batch and track-group assign/delete.
+
+---
+
 ## [0.1.0-alpha.4] - 2026-10-24
 
 Fourth engineering alpha: the glass-cards overhaul plan v4 is complete —
