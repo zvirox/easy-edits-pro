@@ -9,6 +9,8 @@ Generated from the command catalogue. Do not edit by hand.
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
 | Relink Missing Media | `project.relink_media` | shipped |  | `{"media_id":int,"path":path}` |
+| Project Status | `project.status` | shipped |  | `{}` |
+| List Media | `media.list` | shipped |  | `{}` |
 | New Project | `project.new` | shipped | Ctrl+N | `{"name":str?,"sequence_name":str?,"width":int?,"height":int?,"frame_rate":str?}` |
 | Open Project | `file.open` | shipped | Ctrl+O | `{"path":path}` |
 | Save Project | `file.save` | shipped | Ctrl+S | `{"path":path}` |
@@ -16,11 +18,13 @@ Generated from the command catalogue. Do not edit by hand.
 | Import CMX 3600 EDL | `interop.import_edl` | planned |  | `{"edl":str,"project_name":str?}` |
 | Import Final Cut Pro XML | `interop.import_fcpxml` | planned |  | `{"xml":str}` |
 | Import Premiere Pro XML | `interop.import_premiere_xml` | planned |  | `{"xml":str}` |
-| Create Media Bin | `media.create_bin` | planned |  | `{"name":str,"parent_id":int?,"color":str?}` |
-| Rename Media Bin | `media.rename_bin` | planned |  | `{"bin_id":int,"name":str}` |
-| Delete Media Bin | `media.delete_bin` | planned |  | `{"bin_id":int}` |
+| Create Media Bin | `media.create_bin` | shipped |  | `{"name":str,"parent_id":int?,"color":str?}` |
+| Rename Media Bin | `media.rename_bin` | shipped |  | `{"bin_id":int,"name":str}` |
+| Delete Media Bin | `media.delete_bin` | shipped |  | `{"bin_id":int}` |
 | Check Missing Media | `media.check_missing` | shipped |  | `{}` |
 | Import OpenTimelineIO | `interop.import_otio` | planned |  | `{"content":str,"project_name":str?}` |
+| Read Preferences | `prefs.get` | shipped |  | `{"key":str?}` |
+| Write Preferences | `prefs.set` | shipped |  | `{"values":obj}` |
 
 ## Edit
 
@@ -40,9 +44,15 @@ Generated from the command catalogue. Do not edit by hand.
 | Ripple Delete Time Ranges | `timeline.ripple_delete_ranges` | shipped |  | `{"ranges":obj}` |
 | Ripple Delete Timeline Gap | `timeline.ripple_delete_gap` | shipped |  | `{"track_id":int?,"at_tick":obj}` |
 | Preferences… | `edit.preferences` | shipped | Ctrl+, | `{}` |
+| Begin Undo Gesture | `edit.begin_gesture` | shipped |  | `{"label":str?}` |
+| End Undo Gesture | `edit.end_gesture` | shipped |  | `{}` |
 | Ripple Delete Selected Clips | `timeline.ripple_delete_batch` | shipped |  | `{"clips":[obj],"ripple":bool?}` |
 | Insert Source Clip | `timeline.insert_clip` | shipped |  | `{"media_id":int,"track_id":int?,"at":obj?,"source_in":obj?,"duration":obj?}` |
 | Overwrite Source Clip | `timeline.overwrite_clip` | shipped |  | `{"media_id":int,"track_id":int?,"at":obj?,"source_in":obj?,"duration":obj?}` |
+| List Shortcut Overrides | `shortcuts.list` | shipped |  | `{}` |
+| Write Shortcut Overrides | `shortcuts.set` | planned |  | `{"shortcuts":obj}` |
+| Reset Shortcut Overrides | `shortcuts.reset` | shipped |  | `{}` |
+| Import Shortcut Overrides | `shortcuts.import` | shipped |  | `{"shortcuts":obj}` |
 
 ## Clip
 
@@ -72,8 +82,8 @@ Generated from the command catalogue. Do not edit by hand.
 | Set Dynamic Shutter Motion Blur | `clip.set_motion_blur` | shipped |  | `{"track_id":int,"clip_index":int,"motion_blur":obj}` |
 | Create Compound Clip | `timeline.create_compound_clip` | shipped | Ctrl+G | `{"name":str?,"target_track_id":int?,"clips":[obj]}` |
 | Decompose Compound Clip in Place | `timeline.decompose_compound_clip` | shipped | Ctrl+Shift+G | `{"track_id":int,"clip_index":int}` |
-| Move Media to Bin | `media.move_to_bin` | planned |  | `{"media_id":int,"bin_id":int?}` |
-| Update Media Properties | `media.update_properties` | planned |  | `{"media_id":int,"name":str?,"color_label":str?,"tags":[str]?,"comment":str?,"scene":str?,"take":str?}` |
+| Move Media to Bin | `media.move_to_bin` | shipped |  | `{"media_id":int,"bin_id":int?}` |
+| Update Media Properties | `media.update_properties` | shipped |  | `{"media_id":int,"name":str?,"color_label":str?,"tags":[str]?,"comment":str?,"scene":str?,"take":str?}` |
 | Update Clip RGB Curves | `clip.update_rgb_curves` | shipped |  | `{"track_id":int,"clip_index":int,"curves":obj}` |
 | Update Clip HSL Qualifier | `clip.update_hsl_qualifier` | shipped |  | `{"track_id":int,"clip_index":int,"qualifier":obj}` |
 | Add Custom GLSL Shader | `clip.add_custom_shader` | shipped |  | `{"track_id":int,"clip_index":int,"name":str?,"shader_code":str?,"preset_id":str?,"uniforms":obj?}` |
@@ -107,7 +117,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Move Clip | `timeline.move_clip` | shipped |  | `{"track_id":int,"clip_index":int,"target_track_id":int?,"timeline_start":obj}` |
 | Trim Clip Edge | `timeline.trim_clip` | shipped |  | `{"track_id":int,"clip_index":int,"edge":"start"\|"end","delta":obj,"ripple":bool?}` |
 | Update Transition | `timeline.update_transition` | shipped |  | `{"track_id":int,"transition_id":int,"kind":obj?,"duration":obj?,"cut_at":obj?}` |
-| Set Track Locked | `track.set_locked` | planned |  | `{"track_id":int,"locked":bool}` |
+| Set Track Locked | `track.set_locked` | shipped |  | `{"track_id":int,"locked":bool}` |
 | Add Transition | `timeline.add_transition` | shipped | Ctrl+D | `{"track_id":int,"cut_at":obj,"duration":obj?,"kind":obj?}` |
 | Remove Transition | `timeline.remove_transition` | shipped |  | `{"track_id":int,"transition_id":int}` |
 | Add Title Clip | `timeline.add_title` | shipped | Ctrl+T | `{"text":str,"subtitle":str?,"style":str?,"duration":obj?,"track_id":int?,"timeline_start":obj?}` |
@@ -118,7 +128,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Duplicate Sequence | `sequence.duplicate` | shipped |  | `{"sequence_id":int?,"name":str?}` |
 | Rename Sequence… | `sequence.rename` | shipped |  | `{"sequence_id":int?,"name":str}` |
 | Delete Sequence | `sequence.delete` | shipped |  | `{"sequence_id":int?}` |
-| Switch Active Sequence | `project.switch_sequence` | planned |  | `{"sequence_id":int}` |
+| Switch Active Sequence | `project.switch_sequence` | shipped |  | `{"sequence_id":int}` |
 | Add Timeline Track | `timeline.add_track` | shipped | Ctrl+Shift+T | `{"kind":obj?,"name":str?}` |
 | Remove Timeline Track | `timeline.remove_track` | shipped |  | `{"track_id":int}` |
 | Create Track Group | `timeline.create_track_group` | shipped |  | `{"name":str,"color":str?}` |
@@ -163,11 +173,11 @@ Generated from the command catalogue. Do not edit by hand.
 | Export Captions (SRT/VTT) | `caption.export` | shipped |  | `{"track_id":int?,"format":str?}` |
 | Set Caption Style | `caption.style_set` | planned |  | `{"track_id":int,"id":int?,"name":str?,"font_family":str?,"font_size":num?,"fill_color":str?,"stroke_color":str?,"stroke_width":num?,"background_color":str?}` |
 | Captions Panel | `caption.panel` | shipped |  | `{}` |
-| Update Title Properties | `title.update` | planned |  | `{"media_id":int,"text":str?,"subtitle":str?,"style":str?,"font_size":num?,"color":str?,"bg_color":str?}` |
-| Add Subtitle | `subtitle.add` | planned |  | `{"start_ticks":obj,"end_ticks":obj,"text":str}` |
-| Remove Subtitle | `subtitle.remove` | planned |  | `{"id":int}` |
-| Update Subtitle | `subtitle.update` | planned |  | `{"id":int,"start_ticks":obj?,"end_ticks":obj?,"text":str?}` |
-| Clear Subtitles | `subtitle.clear` | planned |  | `{}` |
+| Update Title Properties | `title.update` | shipped |  | `{"media_id":int,"text":str?,"subtitle":str?,"style":str?,"font_size":num?,"color":str?,"bg_color":str?}` |
+| Add Subtitle | `subtitle.add` | shipped |  | `{"start_ticks":obj,"end_ticks":obj,"text":str}` |
+| Remove Subtitle | `subtitle.remove` | shipped |  | `{"id":int}` |
+| Update Subtitle | `subtitle.update` | shipped |  | `{"id":int,"start_ticks":obj?,"end_ticks":obj?,"text":str?}` |
+| Clear Subtitles | `subtitle.clear` | shipped |  | `{}` |
 | Essential Graphics Panel | `graphic.panel` | shipped |  | `{}` |
 | List Fonts | `fonts.list` | shipped |  | `{}` |
 | Add Graphic | `graphic.add` | shipped |  | `{"kind":"text\|rectangle\|ellipse\|polygon\|adjustment","name":str?,"start_ticks":obj?,"duration_ticks":obj?,"text":str?}` |
@@ -189,19 +199,19 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
-| Set Track Gain | `track.set_gain_db` | planned |  | `{"track_id":int,"gain_db":num}` |
-| Set Track Pan | `track.set_pan` | planned |  | `{"track_id":int,"pan":num}` |
-| Set Track Muted | `track.set_muted` | planned |  | `{"track_id":int,"muted":bool}` |
-| Set Track Solo | `track.set_solo` | planned |  | `{"track_id":int,"solo":bool}` |
-| Set Track Audio Processing | `track.set_audio_processing` | planned |  | `{"track_id":int,"eq_enabled":bool?,"eq_low_gain":num?,"eq_mid_gain":num?,"eq_high_gain":num?,"comp_enabled":bool?,"comp_threshold":num?,"comp_ratio":num?,"comp_attack":num?,"comp_release":num?,"denoise_enabled":bool?,"denoise_amount":num?}` |
-| Set Track Bus Route | `track.set_bus_route` | planned |  | `{"track_id":int,"bus":obj}` |
+| Set Track Gain | `track.set_gain_db` | shipped |  | `{"track_id":int,"gain_db":num}` |
+| Set Track Pan | `track.set_pan` | shipped |  | `{"track_id":int,"pan":num}` |
+| Set Track Muted | `track.set_muted` | shipped |  | `{"track_id":int,"muted":bool}` |
+| Set Track Solo | `track.set_solo` | shipped |  | `{"track_id":int,"solo":bool}` |
+| Set Track Audio Processing | `track.set_audio_processing` | shipped |  | `{"track_id":int,"eq_enabled":bool?,"eq_low_gain":num?,"eq_mid_gain":num?,"eq_high_gain":num?,"comp_enabled":bool?,"comp_threshold":num?,"comp_ratio":num?,"comp_attack":num?,"comp_release":num?,"denoise_enabled":bool?,"denoise_amount":num?}` |
+| Set Track Bus Route | `track.set_bus_route` | shipped |  | `{"track_id":int,"bus":obj}` |
 | Set Track Automation | `track.set_automation` | shipped |  | `{"track_id":int,"automation":obj}` |
 | Set Track Automation Mode | `track.set_automation_mode` | shipped |  | `{"track_id":int,"mode":"off\|read\|touch\|latch\|write"}` |
 | Set Track Automation Interpolation | `track.set_automation_interpolation` | shipped |  | `{"track_id":int,"interpolation":"linear\|constant\|smooth"}` |
 | Add Track Automation Point | `track.add_automation_point` | shipped |  | `{"track_id":int,"lane":"volume\|pan","time":ticks,"value":num}` |
 | Remove Track Automation Point | `track.remove_automation_point` | shipped |  | `{"track_id":int,"lane":"volume\|pan","time":ticks}` |
 | Clear Track Automation | `track.clear_automation` | shipped |  | `{"track_id":int,"lane":"volume\|pan"?}` |
-| Set Audio Bus Gain | `bus.set_gain_db` | planned |  | `{"target":obj,"gain_db":num}` |
+| Set Audio Bus Gain | `bus.set_gain_db` | shipped |  | `{"target":obj,"gain_db":num}` |
 | Transcribe Speech to Subtitles | `speech.transcribe_to_subtitles` | planned |  | `{"segments":[obj],"replace_existing":bool?}` |
 
 ## Effects

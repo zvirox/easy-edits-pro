@@ -3314,3 +3314,52 @@ fn ripple_delete_ranges_workflow() {
     assert_eq!(clips[2].timeline_start.0, TICKS_PER_SECOND * 4);
     assert_eq!(clips[2].duration.0, TICKS_PER_SECOND * 2);
 }
+
+#[test]
+fn shortcuts_import_and_reset_workflow() {
+    let path = std::env::temp_dir().join(format!(
+        "eep-shortcuts-{}-{}.json",
+        std::process::id(),
+        line!()
+    ));
+    let _ = std::fs::remove_file(&path);
+    let mut engine = EditorEngine::default();
+    engine.load_settings(&path);
+
+    // Import validates ids: unknown commands are rejected before persisting.
+    let invalid = engine.execute(CommandRequest::new(
+        "shortcuts.import",
+        json!({"shortcuts": {"not.a.command": "Ctrl+8"}}),
+    ));
+    assert!(invalid.is_err());
+
+    let imported = engine
+        .execute(CommandRequest::new(
+            "shortcuts.import",
+            json!({"shortcuts": {"playhead.start": "Ctrl+Home", "playhead.end": "Ctrl+End"}}),
+        ))
+        .unwrap();
+    assert_eq!(imported["shortcuts"]["playhead.start"], "Ctrl+Home");
+
+    // The imported map is visible via shortcuts.list and survives a reload.
+    let mut reloaded = EditorEngine::default();
+    reloaded.load_settings(&path);
+    let listed = reloaded
+        .execute(CommandRequest::new("shortcuts.list", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(listed["shortcuts"]["playhead.start"], "Ctrl+Home");
+    assert_eq!(listed["shortcuts"]["playhead.end"], "Ctrl+End");
+
+    // Reset clears the map (round-tripped through the same file).
+    let reset = reloaded
+        .execute(CommandRequest::new("shortcuts.reset", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(reset["reset"], true);
+    let mut after_reset = EditorEngine::default();
+    after_reset.load_settings(&path);
+    let listed = after_reset
+        .execute(CommandRequest::new("shortcuts.list", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(listed["shortcuts"], serde_json::json!({}));
+    let _ = std::fs::remove_file(&path);
+}
