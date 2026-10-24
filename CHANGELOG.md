@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.6] - 2026-10-25
+
+Sixth engineering alpha: the second FilmCraft Tier-1 parity fulfilment task.
+Twelve commands gained their real UI affordances and flipped to shipped —
+the **clip and timeline Tier-1 families are now fully closed**, with
+Tier-1 coverage reaching 25% (110/443).
+
+### Added
+- **Track folder groups become fully manageable:** the new
+  `useTrackGroupOperations` hook backs the existing create/collapse/rename
+  flows and adds folder deletion (group header × button — tracks stay, they
+  just leave the folder) and per-track folder assignment (a folder button on
+  every track label). Menu route via prompt-based
+  `timeline.assign_track_group` / `timeline.delete_track_group`.
+- **Batch timeline editing surfaces:** `timeline.ripple_delete_batch` appears
+  in the clip context menu and the Edit menu (selection-aware);
+  `timeline.ripple_delete_ranges` works from mark in/out when set (otherwise
+  prompts for a range); `timeline.move_clips_batch` moves the selection to
+  the playhead preserving relative offsets, and multi-selection drags now
+  move all selected clips together through the batch command. New pure
+  `menuCommandParams` module builds the parameters.
+- **New engine tests:** `ripple_delete_batch` (empty selection rejected;
+  two clips removed, middle clip ripples left) and `ripple_delete_ranges`
+  (interval cut, tail ripples left, report counters asserted) workflows in
+  `command_workflow.rs`.
+
+### Changed
+- **Effects list reorder is real:** the up/down buttons in the Effects dock
+  and inspector now dispatch `clip.reorder_effects` — both call sites were
+  silent no-op stubs before.
+- **Custom GLSL shaders round-trip:** the shader editor applies through
+  `clip.update_custom_shader` (routed by payload kind); other effect
+  payloads persist through `clip.update_effect`, replacing the
+  non-catalogue `clip.update_effect_payload` call.
+- **Color grade studio persists:** the RGB curves and HSL qualifier editors
+  now save through `clip.update_rgb_curves` / `clip.update_hsl_qualifier`
+  with live draft state (previously literal empty stubs), and the color
+  studio `runCommand` path is wired.
+- **Motion tracking panel is honest:** mode pills, stabilization
+  smoothness, and pin-target now persist through `clip.set_motion_tracking`
+  and `clip.pin_to_track`. Three phantom commands that had no backend
+  (`clip.run_motion_tracker`, `clip.set_stabilization_smoothness`,
+  `clip.pin_to_motion_track`) are gone. Note: tracking *point analysis*
+  still happens at render in a later workstream — `saturn-render` already
+  ports the evaluators (`evaluate_tracking_at`, `compute_stabilization_offset`);
+  the setup is persisted in projects today.
+- Catalogue: 213 commands, **157 shipped / 56 planned**. clip 17/17,
+  timeline 35/35 shipped; `docs/COMMANDS.md`, `docs/PARITY.md`,
+  `docs/reference/command-catalogue.json` regenerated.
+
+### Known limits
+- Motion-tracking point capture (the actual per-frame analysis) is not yet
+  computed by the live pipeline; the inspector persists the tracking setup
+  for the render stage, where the evaluators are already ported.
+
+---
+
 ## [0.1.0-alpha.5] - 2026-10-24
 
 Fifth engineering alpha: the first FilmCraft Tier-1 parity fulfilment task.

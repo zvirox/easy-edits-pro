@@ -378,10 +378,24 @@ flowchart TD
   ripple-delete-gap). Added the missing `remove_keyframe` workflow test
   (nonexistent-time no-op + targeted removal) and gave `timeline.slip_clip`
   a `Clip` menu entry (validator-reachable). Catalogue: 213 commands,
-  145 shipped / 68 planned; Tier-1 coverage 15% → 22% (98/443). Next parity
-  task: build UI affordances for the 12 remaining planned commands in these
-  families (advanced inspector surfaces, ripple-delete ranges/batch
-  affordances, track-group assign/delete, `move_clips_batch`).
+  145 shipped / 68 planned; Tier-1 coverage 15% → 22% (98/443).
+* **P2 — Clip + timeline closure (Done 2026-10-25, shipped in
+  0.1.0-alpha.6):** Built the real UI affordances for the last 12 planned
+  commands and flipped them shipped: effects-list reorder (dead stubs
+  removed), custom-shader/curve/qualifier persistence in the color studio
+  and inspector, honest motion-tracking persistence via
+  `clip.set_motion_tracking`/`clip.pin_to_track` (three phantom
+  non-catalogue commands removed), track-folder delete/assign
+  (`useTrackGroupOperations` + timeline buttons; group-header × and
+  per-track folder buttons), and batch editing
+  (`ripple_delete_batch` context/Edit menu, `ripple_delete_ranges` from
+  marks or prompt, `move_clips_batch` playhead + multi-select drag) through
+  the new `menuCommandParams` builder. New engine tests:
+  `ripple_delete_batch`, `ripple_delete_ranges`. Both families closed:
+  clip 17/17, timeline 35/35; catalogue 157 shipped / 56 planned; Tier-1
+  coverage 110/443 (25%). Known limit: motion-tracking point analysis
+  happens at render later — setup persists today (evaluators already
+  ported in `saturn-render::tracking`).
 
 ---
 
