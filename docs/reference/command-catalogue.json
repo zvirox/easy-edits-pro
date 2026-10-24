@@ -1143,10 +1143,12 @@
     "category": "File",
     "id": "project.inspect",
     "label": "Inspect Project",
-    "menu": [],
+    "menu": [
+      "File"
+    ],
     "mutating": false,
-    "params": "",
-    "shipped": false,
+    "params": "{}",
+    "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
     "uiOnly": false,
@@ -2175,10 +2177,12 @@
     "category": "Markers",
     "id": "marker.ripple",
     "label": "Ripple Markers",
-    "menu": [],
+    "menu": [
+      "Markers"
+    ],
     "mutating": true,
     "params": "{\"from\":ticks,\"delta\":ticks}",
-    "shipped": false,
+    "shipped": true,
     "shortcut": null,
     "since": "0.2.0",
     "uiOnly": false,
@@ -3130,10 +3134,12 @@
     "category": "Edit",
     "id": "prefs.reset",
     "label": "Reset Preferences",
-    "menu": [],
+    "menu": [
+      "File"
+    ],
     "mutating": false,
     "params": "{}",
-    "shipped": false,
+    "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
     "uiOnly": false,

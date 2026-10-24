@@ -3363,3 +3363,70 @@ fn shortcuts_import_and_reset_workflow() {
     assert_eq!(listed["shortcuts"], serde_json::json!({}));
     let _ = std::fs::remove_file(&path);
 }
+
+#[test]
+fn prefs_reset_clears_stored_preferences() {
+    let path = std::env::temp_dir().join(format!(
+        "eep-prefs-reset-{}-{}.json",
+        std::process::id(),
+        line!()
+    ));
+    let _ = std::fs::remove_file(&path);
+    let mut engine = EditorEngine::default();
+    engine.load_settings(&path);
+
+    let set = engine
+        .execute(CommandRequest::new(
+            "prefs.set",
+            json!({"values": {"theme": "light", "trackHeight": "tall"}}),
+        ))
+        .unwrap();
+    assert_eq!(set["prefs"]["theme"], "light");
+
+    let reset = engine
+        .execute(CommandRequest::new("prefs.reset", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(reset["reset"], true);
+
+    // The store is empty immediately and stays empty after a settings reload.
+    let mut reloaded = EditorEngine::default();
+    reloaded.load_settings(&path);
+    let get = reloaded
+        .execute(CommandRequest::new("prefs.get", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(get["prefs"], serde_json::json!({}));
+    let _ = std::fs::remove_file(&path);
+}
+
+#[test]
+fn project_inspect_reflects_edited_document() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name": "Inspect target"}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name": "a.mov", "path": "/assets/a.mov", "kind": "video"}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_track",
+            json!({"kind": "video"}),
+        ))
+        .unwrap();
+
+    let document = engine
+        .execute(CommandRequest::new("project.inspect", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(document["project"]["name"], "Inspect target");
+    assert_eq!(document["project"]["media"].as_array().unwrap().len(), 1);
+    assert!(!document["project"]["sequence"]["tracks"]
+        .as_array()
+        .unwrap()
+        .is_empty());
+}

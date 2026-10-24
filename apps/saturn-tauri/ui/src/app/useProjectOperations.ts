@@ -114,6 +114,7 @@ export function useProjectOperations({
 
   const [newProjectName, setNewProjectName] = useState("Untitled project");
   const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [projectJsonOpen, setProjectJsonOpen] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
 
   // Export settings
@@ -549,6 +550,9 @@ export function useProjectOperations({
         case "file.save":
           await saveProject();
           return;
+        case "project.inspect":
+          setProjectJsonOpen(true);
+          return;
         case "view.fullscreen":
           await toggleFullscreen();
           return;
@@ -674,6 +678,9 @@ export function useProjectOperations({
     setNewProjectName,
     newProjectOpen,
     setNewProjectOpen,
+    projectJsonOpen,
+    setProjectJsonOpen,
+    runCommand,
     fullscreen,
     exportFormat,
     setExportFormat,

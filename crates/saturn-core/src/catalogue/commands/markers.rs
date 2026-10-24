@@ -116,7 +116,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
         id: "marker.ripple",
         label: "Ripple Markers",
-        menu: &[],
+        menu: &["Markers"],
         shortcut: None,
         params: "{\"from\":ticks,\"delta\":ticks}",
         category: Category::Markers,
@@ -124,7 +124,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         undo_group: UndoGroup::Transaction,
         aliases: &["shift markers"],
         since: "0.2.0",
-        shipped: false,
+        shipped: true,
         ui_only: false,
     },
     CommandSpec {

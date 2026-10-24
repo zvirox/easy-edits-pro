@@ -509,6 +509,7 @@ export function WorkspaceRouter({
         onUpdateKind: markerOps.setMarkerKind,
         onDelete: markerOps.removeMarker,
         onClear: markerOps.clearMarkers,
+        onRipple: (deltaTicks: number) => void markerOps.rippleMarkers(deltaTicks),
         onAdd: markerOps.addMarker,
         onAddRange: markerOps.addRangeMarker,
         onImport: markerOps.importMarkers,

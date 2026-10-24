@@ -7,6 +7,7 @@ import { SpeedDurationModal } from "./SpeedDurationModal";
 import { GpuTelemetryModal } from "./GpuTelemetryModal";
 import { MediaBinModal } from "./MediaBinModal";
 import { MediaPropsModal } from "./MediaPropsModal";
+import { ProjectJsonDialog } from "./ProjectJsonDialog";
 import { NetworkImportModal } from "../../components/NetworkImportModal";
 import { BatchQueueDrawer } from "../../components/BatchQueueDrawer";
 import { OllamaChatDrawer } from "../../components/OllamaChatDrawer";
@@ -51,6 +52,13 @@ export function EditorModals({
         name={projectOps.newProjectName}
         setName={projectOps.setNewProjectName}
         onCreate={projectOps.createProject}
+      />
+
+      <ProjectJsonDialog
+        isOpen={projectOps.projectJsonOpen}
+        onClose={() => projectOps.setProjectJsonOpen(false)}
+        runCommand={projectOps.runCommand}
+        setNotice={setNotice}
       />
 
       <TranscriptionModal

@@ -4,6 +4,7 @@ import { open, save } from "@tauri-apps/plugin-dialog";
 import type { Marker, MarkerKind, ProjectDocument } from "./projectTypes";
 import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
 import { defaultMarkerRange } from "../features/markers/markerList";
+import { TICKS_PER_SECOND } from "./projectTypes";
 
 export const MARKERS_PANEL_ID = "markers";
 
@@ -37,6 +38,7 @@ export interface MarkerOperations {
   splitAtPlayhead: () => Promise<void>;
   goToNextMarker: () => Promise<void>;
   goToPreviousMarker: () => Promise<void>;
+  rippleMarkers: (deltaTicks: number) => Promise<void>;
   exportMarkers: () => Promise<void>;
   importMarkers: () => Promise<void>;
   openPanel: () => void;
@@ -175,6 +177,34 @@ export function useMarkers({
   const goToNextMarker = useCallback(() => navigate("marker.next"), [navigate]);
   const goToPreviousMarker = useCallback(() => navigate("marker.previous"), [navigate]);
 
+  // Shift every marker at or after the playhead by a signed tick amount. Uses
+  // marker.ripple so the engine clamps at zero and reports what it moved.
+  const rippleMarkers = useCallback(
+    async (deltaTicks: number) => {
+      if (!deltaTicks) {
+        setNotice("Enter a non-zero shift to ripple markers");
+        return;
+      }
+      try {
+        const result = await runCommand<{ shifted: number; clamped: number }>(
+          "marker.ripple",
+          { from: playhead, delta: deltaTicks },
+        );
+        await refreshProject();
+        setNotice(
+          result.shifted > 0
+            ? `Shifted ${result.shifted} marker${result.shifted === 1 ? "" : "s"}${
+                result.clamped ? ` (${result.clamped} clamped to zero)` : ""
+              }`
+            : "No markers at or after the playhead to shift",
+        );
+      } catch (error) {
+        fail(error);
+      }
+    },
+    [playhead, runCommand, refreshProject, setNotice, fail],
+  );
+
   const exportMarkers = useCallback(async () => {
     if (markers.length === 0) {
       setNotice("There are no markers to export");
@@ -248,6 +278,20 @@ export function useMarkers({
         case "marker.split":
           await splitAtPlayhead();
           return true;
+        case "marker.ripple": {
+          const value = window.prompt(
+            "Shift markers at or after the playhead by (seconds, negative to move earlier)",
+            "1",
+          );
+          if (value === null) return true;
+          const seconds = Number(value.trim());
+          if (!Number.isFinite(seconds) || seconds === 0) {
+            setNotice("Enter a non-zero shift, for example 1 or -0.5");
+            return true;
+          }
+          await rippleMarkers(Math.round(seconds * TICKS_PER_SECOND));
+          return true;
+        }
         case "marker.export_csv":
           await exportMarkers();
           return true;
@@ -280,6 +324,7 @@ export function useMarkers({
       goToNextMarker,
       goToPreviousMarker,
       splitAtPlayhead,
+      rippleMarkers,
       exportMarkers,
       importMarkers,
       clearMarkers,
@@ -305,6 +350,7 @@ export function useMarkers({
     splitAtPlayhead,
     goToNextMarker,
     goToPreviousMarker,
+    rippleMarkers,
     exportMarkers,
     importMarkers,
     openPanel,

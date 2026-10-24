@@ -13,7 +13,7 @@ entries exist in the catalogue but are not yet shipped.
 
 | Tier | FilmCraft | EEP shipped | Coverage |
 |---|---:|---:|---:|
-| Tier 1 | 443 | 129 | 29% |
+| Tier 1 | 443 | 132 | 30% |
 | Tier 2 | 207 | 16 | 8% |
 | Tier 3 | 17 | 0 | 0% |
 
@@ -28,16 +28,16 @@ Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
 | file | 1 | 57 | 2 | 0 | 55 |
 | timeline | 1 | 56 | 35 | 0 | 21 |
 | sequence | 1 | 45 | 6 | 0 | 39 |
-| project | 1 | 40 | 5 | 2 | 35 |
+| project | 1 | 40 | 6 | 1 | 34 |
 | edit | 1 | 39 | 12 | 0 | 27 |
-| markers | 1 | 32 | 11 | 1 | 21 |
+| markers | 1 | 32 | 12 | 0 | 20 |
 | trim | 1 | 24 | 5 | 0 | 19 |
 | captions | 1 | 22 | 11 | 4 | 11 |
 | export | 1 | 19 | 0 | 0 | 19 |
 | media | 1 | 17 | 7 | 0 | 10 |
 | shortcuts | 1 | 16 | 3 | 1 | 13 |
 | playhead | 1 | 14 | 13 | 0 | 1 |
-| prefs | 1 | 4 | 2 | 1 | 2 |
+| prefs | 1 | 4 | 3 | 0 | 1 |
 | history | 1 | 1 | 0 | 0 | 1 |
 | graphics | 2 | 82 | 16 | 0 | 66 |
 | multicam | 2 | 35 | 0 | 3 | 35 |
@@ -77,6 +77,6 @@ Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
 
 FilmCraft commands: 701
 
-EEP commands: 213 (189 shipped, 24 planned)
+EEP commands: 213 (192 shipped, 21 planned)
 
 App-only families (no FilmCraft counterpart): bus, interop, nodegraph, track, view, workspace

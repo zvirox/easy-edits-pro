@@ -9,6 +9,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
 | Relink Missing Media | `project.relink_media` | shipped |  | `{"media_id":int,"path":path}` |
+| Inspect Project | `project.inspect` | shipped |  | `{}` |
 | Project Status | `project.status` | shipped |  | `{}` |
 | List Media | `media.list` | shipped |  | `{}` |
 | New Project | `project.new` | shipped | Ctrl+N | `{"name":str?,"sequence_name":str?,"width":int?,"height":int?,"frame_rate":str?}` |
@@ -25,6 +26,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Import OpenTimelineIO | `interop.import_otio` | shipped |  | `{"content":str,"project_name":str?}` |
 | Read Preferences | `prefs.get` | shipped |  | `{"key":str?}` |
 | Write Preferences | `prefs.set` | shipped |  | `{"values":obj}` |
+| Reset Preferences | `prefs.reset` | shipped |  | `{}` |
 
 ## Edit
 
@@ -151,6 +153,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Go to Next Marker | `marker.next` | shipped | Shift+Right | `{"from":ticks}` |
 | Go to Previous Marker | `marker.previous` | shipped | Shift+Left | `{"from":ticks}` |
 | Split Markers at Playhead | `marker.split` | shipped |  | `{"at":ticks}` |
+| Ripple Markers | `marker.ripple` | shipped |  | `{"from":ticks,"delta":ticks}` |
 | Markers Panel | `marker.panel` | shipped |  | `{}` |
 | Export Markers (CSV) | `marker.export_csv` | shipped |  | `{}` |
 | Import Markers (CSV) | `marker.import_csv` | shipped |  | `{"csv":str,"replace":bool?}` |

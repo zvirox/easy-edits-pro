@@ -270,3 +270,31 @@
 .markers-clear:hover {
   color: var(--status-danger-text);
 }
+
+.markers-ripple {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.markers-ripple-label {
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+.markers-ripple-input {
+  width: 56px;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--bg-subpanel);
+  color: var(--text-main);
+  font: inherit;
+}
+
+.markers-ripple-input:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}

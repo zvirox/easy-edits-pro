@@ -634,6 +634,7 @@ function EditorApp() {
           setPreferences(DEFAULT_PREFERENCES);
           timelineOps.setSnapEnabled(DEFAULT_PREFERENCES.snap);
           timelineOps.setTimelineTrackHeight(DEFAULT_PREFERENCES.trackHeight);
+          void runCommand("prefs.reset").catch(() => {});
         }}
         snapEnabled={timelineOps.snapEnabled}
         onSnapChange={timelineOps.setSnapEnabled}

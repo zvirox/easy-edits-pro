@@ -86,3 +86,12 @@ export function defaultMarkerRange(
   }
   return { start: playhead, end: playhead + TICKS_PER_SECOND * 2 };
 }
+
+/** Convert a signed frame count into a signed tick delta for marker ripple. */
+export function markerShiftTicks(
+  frames: number,
+  frameRate: { numerator: number; denominator: number },
+): number {
+  const frameTicks = Math.round((TICKS_PER_SECOND * frameRate.denominator) / frameRate.numerator);
+  return Math.round(frames * frameTicks);
+}

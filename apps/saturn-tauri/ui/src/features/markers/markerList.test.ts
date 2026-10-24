@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   defaultMarkerRange,
   markerLeftPx,
+  markerShiftTicks,
   markerWidthPx,
   nextMarker,
   previousMarker,
@@ -51,4 +52,14 @@ test("default range prefers ordered in/out marks", () => {
     start: 50,
     end: 50 + 254_016_000_000 * 2,
   });
+});
+
+test("markerShiftTicks converts signed frames to signed ticks", () => {
+  const rate30 = { numerator: 30, denominator: 1 };
+  assert.equal(markerShiftTicks(12, rate30), Math.round((254_016_000_000 / 30) * 12));
+  assert.equal(markerShiftTicks(-3, rate30), -Math.round(254_016_000_000 / 30) * 3);
+  assert.equal(markerShiftTicks(0, rate30), 0);
+  // Non-integer rational rates keep the same rounding the timecode uses.
+  const ntsc = { numerator: 30000, denominator: 1001 };
+  assert.equal(markerShiftTicks(5, ntsc), Math.round((254_016_000_000 * 1001) / 30000) * 5);
 });

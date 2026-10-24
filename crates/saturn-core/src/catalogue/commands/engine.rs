@@ -60,15 +60,15 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
         id: "project.inspect",
         label: "Inspect Project",
-        menu: &[],
+        menu: &["File"],
         shortcut: None,
-        params: "",
+        params: "{}",
         category: Category::File,
         mutating: false,
         undo_group: UndoGroup::None,
         aliases: &[],
         since: "0.1.0",
-        shipped: false,
+        shipped: true,
         ui_only: false,
     },
     CommandSpec {

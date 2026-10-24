@@ -1,0 +1,19 @@
+.project-json-card {
+  min-width: 0;
+}
+
+.project-json-view {
+  max-height: 60vh;
+  margin: 0;
+  padding: 8px 10px;
+  overflow: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-subpanel);
+  color: var(--text-main);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre;
+  tab-size: 2;
+}

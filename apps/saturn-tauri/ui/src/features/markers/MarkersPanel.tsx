@@ -1,8 +1,9 @@
+import { useState } from "react";
 import type { Marker, MarkerKind } from "../../app/projectTypes";
 import { formatTimecodeFrames } from "../../utils/formatters";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { Icon } from "../../components/Icon";
-import { MARKER_KINDS, markerColor, sortedMarkers } from "./markerList";
+import { MARKER_KINDS, markerColor, markerShiftTicks, sortedMarkers } from "./markerList";
 
 export interface MarkersPanelProps {
   markers: readonly Marker[];
@@ -14,6 +15,7 @@ export interface MarkersPanelProps {
   onUpdateKind: (id: number, kind: MarkerKind) => void;
   onDelete: (id: number) => void;
   onClear: () => void;
+  onRipple: (deltaTicks: number) => void;
   onAdd: () => void;
   onAddRange: () => void;
   onImport: () => void;
@@ -34,12 +36,14 @@ export function MarkersPanel({
   onUpdateKind,
   onDelete,
   onClear,
+  onRipple,
   onAdd,
   onAddRange,
   onImport,
   onExport,
 }: MarkersPanelProps) {
   const ordered = sortedMarkers(markers);
+  const [shiftFrames, setShiftFrames] = useState("");
 
   return (
     <section className="markers-panel" aria-label="Markers">
@@ -140,6 +144,33 @@ export function MarkersPanel({
 
       {ordered.length > 0 && (
         <div className="markers-panel-footer">
+          <form
+            className="markers-ripple"
+            title="Shift every marker at or after the playhead by a signed frame amount"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const frames = Number(shiftFrames.trim());
+              if (!Number.isFinite(frames) || frames === 0) return;
+              onRipple(markerShiftTicks(frames, frameRate));
+              setShiftFrames("");
+            }}
+          >
+            <label className="markers-ripple-label" htmlFor="markers-ripple-input">
+              Shift from playhead
+            </label>
+            <input
+              id="markers-ripple-input"
+              className="markers-ripple-input"
+              type="number"
+              step="1"
+              placeholder="+12 / -24"
+              value={shiftFrames}
+              onChange={(event) => setShiftFrames(event.currentTarget.value)}
+            />
+            <InteriorButton size="sm" type="submit">
+              Shift
+            </InteriorButton>
+          </form>
           <span className="markers-count">{ordered.length} markers</span>
           <button type="button" className="markers-clear" onClick={onClear}>
             Clear all
