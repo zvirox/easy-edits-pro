@@ -411,6 +411,18 @@ flowchart TD
   (4), caption track management (4), speech (2), multicam
   create/switch_angle (2), prefs.reset, and small singulars
   (project.update_media, project.inspect, marker.ripple, speech UX).
+* **P4 — Interop importers (Done 2026-10-25, shipped in 0.1.0-alpha.8):**
+  Built the File > Import UI in `useProjectOperations.ts`: the four
+  `interop.import_*` commands open a format-filtered file dialog, read
+  the file through the sandboxed `read_text_file` Tauri command, and
+  dispatch contents to the engine (EDL/OTIO pass the filename stem as
+  project_name). Success resets selections/playhead and enters the
+  editor; engine arms and round-trip tests already existed. Catalogue:
+  189 shipped / 24 planned. Interop is Tier 2 — coverage 16/207;
+  Tier-1 unchanged at 129/443 (29%). Remaining planned: project/media
+  singulars (project.update_media, project.inspect, marker.ripple),
+  nodegraph (6), caption track management (4), speech (2), multicam
+  create/switch_angle (2), prefs.reset.
 
 ---
 

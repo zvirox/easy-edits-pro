@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.8] - 2026-10-25
+
+Fourth FilmCraft Tier-1 parity fulfilment task: the interop importers.
+The four `interop.*` commands gained their real File > Import UI
+affordances and are now shipped — EDL, FCPXML, Premiere XML, and OTIO
+timelines can be brought in from the app for the first time. The
+catalogue stands at 213 commands with 189 shipped and 24 planned.
+
+### Added
+- **File > Import now works end to end.** `interop.import_edl`
+  (CMX 3600), `interop.import_fcpxml`, `interop.import_premiere_xml`,
+  and `interop.import_otio` open a file dialog with format-specific
+  filters, read the chosen file through the sandboxed
+  `read_text_file` Tauri command, and hand the contents to the engine
+  (the importers parse contents, not paths). EDL and OTIO imports pass
+  the filename stem as the project name.
+- A successful import resets the editing surface the same way opening
+  a project does — selections cleared, playhead to zero — and lands
+  the user in the editor with a "Timeline imported" notice. Parse
+  failures surface through the standard notice path.
+
+### Changed
+- Tier-2 coverage rises to 16/207; the interop family is a Tier-2
+  family, so Tier-1 stands at 129/443 (29%).
+
+---
+
 ## [0.1.0-alpha.7] - 2026-10-25
 
 Seventh engineering alpha: the third FilmCraft Tier-1 parity fulfilment
