@@ -15,14 +15,14 @@ Generated from the command catalogue. Do not edit by hand.
 | Open Project | `file.open` | shipped | Ctrl+O | `{"path":path}` |
 | Save Project | `file.save` | shipped | Ctrl+S | `{"path":path}` |
 | Import Media… | `project.add_media` | shipped | Ctrl+I | `{"name":str,"path":path,"kind":str?,"duration":ticks?,"width":int?,"height":int?,"fps":num?,"audio_channels":int?,"codec":str?,"bin_id":int?,"color_label":str?,"tags":[str]?,"title":obj?,"waveform":[int]?}` |
-| Import CMX 3600 EDL | `interop.import_edl` | planned |  | `{"edl":str,"project_name":str?}` |
-| Import Final Cut Pro XML | `interop.import_fcpxml` | planned |  | `{"xml":str}` |
-| Import Premiere Pro XML | `interop.import_premiere_xml` | planned |  | `{"xml":str}` |
+| Import CMX 3600 EDL | `interop.import_edl` | shipped |  | `{"edl":str,"project_name":str?}` |
+| Import Final Cut Pro XML | `interop.import_fcpxml` | shipped |  | `{"xml":str}` |
+| Import Premiere Pro XML | `interop.import_premiere_xml` | shipped |  | `{"xml":str}` |
 | Create Media Bin | `media.create_bin` | shipped |  | `{"name":str,"parent_id":int?,"color":str?}` |
 | Rename Media Bin | `media.rename_bin` | shipped |  | `{"bin_id":int,"name":str}` |
 | Delete Media Bin | `media.delete_bin` | shipped |  | `{"bin_id":int}` |
 | Check Missing Media | `media.check_missing` | shipped |  | `{}` |
-| Import OpenTimelineIO | `interop.import_otio` | planned |  | `{"content":str,"project_name":str?}` |
+| Import OpenTimelineIO | `interop.import_otio` | shipped |  | `{"content":str,"project_name":str?}` |
 | Read Preferences | `prefs.get` | shipped |  | `{"key":str?}` |
 | Write Preferences | `prefs.set` | shipped |  | `{"values":obj}` |
 

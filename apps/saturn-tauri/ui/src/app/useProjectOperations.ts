@@ -598,6 +598,30 @@ export function useProjectOperations({
           (id === "timeline.remove_clip" || id === "timeline.ripple_delete")
         ) {
           params = { ...selectedClip };
+        } else if (id.startsWith("interop.import_")) {
+          const filters: { name: string; extensions: string[] }[] =
+            id === "interop.import_edl"
+              ? [{ name: "CMX 3600 EDL", extensions: ["edl"] }]
+              : id === "interop.import_fcpxml"
+                ? [{ name: "Final Cut Pro XML", extensions: ["fcpxml", "xml"] }]
+                : id === "interop.import_premiere_xml"
+                  ? [{ name: "Premiere Pro XML", extensions: ["xml"] }]
+                  : [{ name: "OpenTimelineIO", extensions: ["otio", "json"] }];
+          const selectedPath = await open({
+            title: "Import timeline file",
+            multiple: false,
+            filters,
+          });
+          if (typeof selectedPath !== "string") return;
+          const content = await invoke<string>("read_text_file", { path: selectedPath });
+          const stem =
+            selectedPath.split(/[/\\]/).pop()?.replace(/\.[^.]+$/, "") || "Imported";
+          params =
+            id === "interop.import_edl"
+              ? { edl: content, project_name: stem }
+              : id === "interop.import_otio"
+                ? { content, project_name: stem }
+                : { xml: content };
         } else {
           const built = buildBatchCommandParams(id, getMenuContext());
           if (built) {
@@ -607,7 +631,18 @@ export function useProjectOperations({
           }
         }
       }
-      await perform(id, params ?? null);
+      const ok = await perform(id, params ?? null);
+      if (ok && id.startsWith("interop.import_")) {
+        // The import replaced the whole document — reset the editing surface
+        // the same way opening a project does.
+        setSelectedClip(null);
+        setSelectedClips([]);
+        setSelectedTransition(null);
+        setSelectedMediaId(null);
+        setPlayhead(0);
+        setAppStage("editor");
+        setNotice("Timeline imported");
+      }
     },
     [openProject, saveProject, toggleFullscreen, perform, getMenuContext, project]
   );
