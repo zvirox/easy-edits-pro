@@ -24,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `*_collaboration_lock` handlers. Catalogue is now 213 commands (113 shipped).
 
 ### Added
+- **Per-workspace shell column presets & right-dock collapse (G7 debt):** The
+  workspace switcher now applies plan §5's fixed column-ratio table
+  (Edit/media/effects/fusion/animation `28/48/24`, Color `34/42/24`,
+  Fairlight `40/36/24`) through a typed table that drives the shell's dock
+  columns; in the 1100–1280 viewport band the right dock card collapses so
+  the persistent monitor, toolbox, and timeline keep their room. The
+  geometry-invariance walk verifies the preset re-ratio, the collapse band
+  boundaries, and that the status-bar and no-overlap invariants hold
+  throughout.
 - **True 4-band track EQ (F6):** The Fairlight track EQ is a real 4-band
   parametric end-to-end — low shelf (80 Hz), mid bell (1 kHz), a new
   high-mid bell (2.5 kHz), and high shelf (8 kHz) — with the fourth band in

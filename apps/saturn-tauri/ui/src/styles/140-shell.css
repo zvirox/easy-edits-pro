@@ -17,7 +17,10 @@
 
 .shell-top {
   display: grid;
-  grid-template-columns: minmax(260px, 24%) minmax(0, 1fr) minmax(260px, 24%);
+  /* Dock widths come from the per-workspace preset table (plan v4 §5,
+     workspaces/columnRatios.ts) via the --shell-left/--shell-right custom
+     properties WorkspaceShell sets per mode; the monitor owns the rest. */
+  grid-template-columns: minmax(260px, var(--shell-left, 24%)) minmax(0, 1fr) minmax(260px, var(--shell-right, 24%));
   gap: 8px;
   min-width: 0;
   min-height: 0;
@@ -155,8 +158,26 @@
   font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 1280px) {
+/* G7 debt (plan v4 §5, rule "cards never overlap"): in the 1100–1280 band the
+   right dock card collapses entirely so the persistent monitor, toolbox and
+   timeline keep their room on laptop viewports; below 1100 it stays collapsed
+   and the surviving left dock keeps shrinking with the viewport. */
+@media (max-width: 1280px) and (min-width: 1100px) {
   .shell-top {
-    grid-template-columns: minmax(200px, 22vw) minmax(0, 1fr) minmax(200px, 22vw);
+    grid-template-columns: minmax(220px, 24%) minmax(0, 1fr);
+  }
+
+  .shell-dock-right {
+    display: none;
+  }
+}
+
+@media (max-width: 1099.98px) {
+  .shell-top {
+    grid-template-columns: minmax(200px, 22vw) minmax(0, 1fr);
+  }
+
+  .shell-dock-right {
+    display: none;
   }
 }

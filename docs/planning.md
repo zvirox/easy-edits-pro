@@ -273,8 +273,17 @@ flowchart TD
     menu-overflow invariants hold throughout. §7.4's bus-assign minimum width
     is fixed; §7.4's automation pills and §7.6 were already resolved. §7.5
     (Program "Offline media – Relink" card) is verified **missing** and folded
-    into F2. Remaining plan v4 debt: §5's 1100–1280 right-dock collapse,
-    the typed per-workspace column-ratio table, and the F workstream.
+    into F2. Plan v4 debt from this block is fully resolved (2026-10-23): the
+    typed per-workspace column-ratio table
+    (`workspaces/columnRatios.ts` — plan §5's fixed presets, `edit
+    [28, 48, 24]`, `color [34, 42, 24]`, `audio [40, 36, 24]`, edit split as
+    the fallback) drives `WorkspaceShell`'s dock columns through CSS custom
+    properties; §5's responsive regime collapses the right dock card across
+    1100–1280 (boundary-mounts at 1281px); and the F workstream (F1–F6) is
+    complete. The geometry harness now encodes the §5 contract directly:
+    row 2 never moves, the right dock stays 24%, modes sharing the edit
+    preset keep the monitor pixel-identical, color/audio visibly re-ratio,
+    and inside the collapse band the fixed two-track shell is invariant.
 
 ### Functional Workstream F
 

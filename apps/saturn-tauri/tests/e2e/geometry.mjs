@@ -6,6 +6,13 @@
 // §9 acceptance (plan v4): the walk runs at 1920x1080, 1600x900 AND 1280x720;
 // additionally no two card surfaces may intersect in any mode ("no-overlap
 // test"), and the status bar must stay visible everywhere.
+// §5 column presets (plan v4 changes note 3): a workspace may pick a different
+// dock/monitor column ratio from the small fixed table while "timeline,
+// toolbox, meters and bars stay identical". The invariance contract is
+// therefore: row 2 (toolbox + timeline) never moves; the monitor keeps its row
+// position and its right edge (the right dock is locked at 24%); modes sharing
+// the edit preset keep the monitor box pixel-identical; modes with a different
+// preset must visibly re-ratio (the shift must actually happen).
 // Exception (user decision, 2026-10-23): Deliver is the previous full-page
 // ExportWorkspace — no persistent skeleton there, so it is asserted separately.
 import assert from 'node:assert/strict';
@@ -145,9 +152,40 @@ async function assertNoCardOverlap(page, label) {
   }
 }
 
-function assertSameGeometry(before, after, label, { expectRemount = false } = {}) {
-  for (const key of ['monitor', 'rail', 'timeline']) {
-    const a = before[key];
+// G7 debt (plan v4 §5): in the 1100–1280 band the right dock card collapses
+// so the persistent monitor/toolbox/timeline keep their room. The card must
+// actually be out of layout (display:none), and the shell-top grid must drop
+// to two tracks instead of squeezing three columns.
+async function assertRightDockCollapsed(page, label) {
+  const box = await page.locator('.shell-dock-right').boundingBox();
+  const collapsed = box === null || box.width === 0 || box.height === 0;
+  assert.ok(collapsed, `${label}: right dock card must collapse in the 1100–1280 band`);
+  const tracks = await page.evaluate(() =>
+    getComputedStyle(document.querySelector('.shell-top')).gridTemplateColumns.split(' ').length,
+  );
+  assert.equal(tracks, 2, `${label}: shell-top must fall back to two grid tracks`);
+}
+
+// Mirror of ui/src/workspaces/columnRatios.ts — the plan §5 fixed table the
+// harness asserts against (kept literal here so the e2e test pins the plan's
+// numbers, not just the implementation's current values).
+const PRESETS = {
+  edit: [28, 48, 24],
+  media: [28, 48, 24],
+  effects: [28, 48, 24],
+  fusion: [28, 48, 24],
+  keyframes: [28, 48, 24],
+  color: [34, 42, 24],
+  audio: [40, 36, 24],
+};
+
+function assertModeGeometry(baseline, after, mode, label, { expectRemount = false, collapseBand = false } = {}) {
+  const [leftRatio] = PRESETS[mode] ?? PRESETS.edit;
+  const sharesEditPreset = leftRatio === PRESETS.edit[0];
+
+  // Row 2 (toolbox + timeline) never moves in any mode, and never remounts.
+  for (const key of ['rail', 'timeline']) {
+    const a = baseline[key];
     const b = after[key];
     for (const dim of ['x', 'y', 'width', 'height']) {
       assert.ok(
@@ -156,8 +194,54 @@ function assertSameGeometry(before, after, label, { expectRemount = false } = {}
       );
     }
     if (expectRemount) continue;
-    assert.equal(before.probes[key], after.probes[key], `${label}: ${key} remounted (probe changed)`);
+    assert.equal(baseline.probes[key], after.probes[key], `${label}: ${key} remounted (probe changed)`);
   }
+
+  // Row 1: the monitor keeps its row slot; its column may re-ratio per the
+  // §5 preset table — but only in the full three-track shell (above 1280px).
+  // Inside the 1100–1280 collapse band the shell is a fixed two-track
+  // responsive regime, so the monitor is invariant again there. The right
+  // edge stays fixed either way (right dock locked at 24% or collapsed).
+  const a = baseline.monitor;
+  const b = after.monitor;
+  for (const dim of ['y', 'height']) {
+    assert.ok(
+      Math.abs(a[dim] - b[dim]) <= TOLERANCE_PX,
+      `${label}: monitor.${dim} moved ${Math.abs(a[dim] - b[dim]).toFixed(2)}px (${a[dim]} -> ${b[dim]})`,
+    );
+  }
+  if (collapseBand) {
+    for (const dim of ['x', 'width']) {
+      assert.ok(
+        Math.abs(a[dim] - b[dim]) <= TOLERANCE_PX,
+        `${label}: monitor.${dim} moved ${Math.abs(a[dim] - b[dim]).toFixed(2)}px (${a[dim]} -> ${b[dim]}) ` +
+          'inside the collapse band, a fixed two-track regime',
+      );
+    }
+    if (expectRemount) return;
+    assert.equal(baseline.probes.monitor, after.probes.monitor, `${label}: monitor remounted (probe changed)`);
+    return;
+  }
+  assert.ok(
+    Math.abs((a.x + a.width) - (b.x + b.width)) <= TOLERANCE_PX,
+    `${label}: monitor right edge moved (${(a.x + a.width).toFixed(2)} -> ${(b.x + b.width).toFixed(2)}) — ` +
+      'the §5 table locks the right dock at 24%',
+  );
+  if (sharesEditPreset) {
+    for (const dim of ['x', 'width']) {
+      assert.ok(
+        Math.abs(a[dim] - b[dim]) <= TOLERANCE_PX,
+        `${label}: monitor.${dim} moved ${Math.abs(a[dim] - b[dim]).toFixed(2)}px (${a[dim]} -> ${b[dim]})`,
+      );
+    }
+  } else {
+    assert.ok(
+      Math.abs(a.x - b.x) > TOLERANCE_PX,
+      `${label}: ${mode} preset (left ${leftRatio}%) did not re-ratio the monitor column`,
+    );
+  }
+  if (expectRemount) return;
+  assert.equal(baseline.probes.monitor, after.probes.monitor, `${label}: monitor remounted (probe changed)`);
 }
 
 async function switchWorkspace(page, menu, name) {
@@ -193,7 +277,9 @@ async function sweepViewport(page, ctx, width, height) {
     if (step.mode === 'edit') continue; // baseline mode
     await switchWorkspace(page, step.menu, step.name);
     await page.locator(`.workspace-shell[data-workspace="${step.mode}"]`).waitFor();
-    assertSameGeometry(baseline, await snapshot(page), `${label}: edit -> ${step.mode}`);
+    assertModeGeometry(baseline, await snapshot(page), step.mode, `${label}: edit -> ${step.mode}`, {
+      collapseBand: width <= 1280,
+    });
     await assertStatusBarVisible(page, `${label} ${step.mode} status bar`);
     await assertMenuBarFits(page, `${label} ${step.mode} menu bar`);
     await assertNoCardOverlap(page, `${label} ${step.mode}`);
@@ -219,7 +305,7 @@ async function sweepViewport(page, ctx, width, height) {
   // Deliver unmounts the shell by design (full-page workspace, user decision
   // 2026-10-23), so returning to Edit remounts the skeleton once — box
   // invariance still holds, but the probe continuity check does not apply.
-  assertSameGeometry(baseline, await snapshot(page), `${label}: deliver -> edit`, { expectRemount: true });
+  assertModeGeometry(baseline, await snapshot(page), 'edit', `${label}: deliver -> edit`, { expectRemount: true });
   await assertNoCardOverlap(page, `${label} edit`);
   await assertMenuBarFits(page, `${label} edit menu bar`);
 }
@@ -235,6 +321,26 @@ export async function run(ctx) {
 
   ctx.state.geometryInvariance = 'passed (1920/1600/1280, seven shell modes + full-page deliver)';
   ctx.state.noCardOverlap = 'passed (all modes, three viewports)';
+
+  // G7 debt (plan v4 §5): the right-dock collapse band. Above 1280 the card
+  // mounts; inside 1100–1280 it must be out of layout while every shell
+  // invariant (persistent zones mounted, status bar visible, menu strip sane,
+  // no card overlap) still holds.
+  await page.setViewportSize({ width: 1281, height: 900 });
+  await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
+  await page.waitForTimeout(320);
+  assert.ok(
+    await page.locator('.shell-dock-right').isVisible(),
+    '1281px: right dock must be mounted above the collapse band',
+  );
+  await page.setViewportSize({ width: 1150, height: 900 });
+  await page.waitForTimeout(320);
+  await snapshot(page);
+  await assertRightDockCollapsed(page, '1150px collapse band');
+  await assertStatusBarVisible(page, '1150px status bar');
+  await assertMenuBarFits(page, '1150px menu bar');
+  await assertNoCardOverlap(page, '1150px collapse band');
+  ctx.state.rightDockCollapse = 'passed (collapses across 1100–1280, mounts at 1281px, invariants hold)';
 
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();

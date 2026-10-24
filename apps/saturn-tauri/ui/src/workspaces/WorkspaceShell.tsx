@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { MasterMeter } from "../features/timeline/MasterMeter";
+import { columnRatiosFor } from "./columnRatios";
 
 export interface WorkspaceShellProps {
   /** Current workspace mode id (`edit`, `color`, `effects`, ...). */
@@ -27,8 +28,15 @@ export interface WorkspaceShellProps {
  * never unmount when the mode switches (directive 5, geometry invariance).
  */
 export function WorkspaceShell({ mode, left, right, center, toolbox, timeline }: WorkspaceShellProps) {
+  // Plan §5: the mode picks its column ratio from the small fixed table;
+  // only the dock columns change, the persistent zones never remount.
+  const [leftRatio, , rightRatio] = columnRatiosFor(mode);
+  const ratioVars = {
+    "--shell-left": `${leftRatio}%`,
+    "--shell-right": `${rightRatio}%`,
+  } as CSSProperties;
   return (
-    <main className="workspace-shell" data-workspace={mode}>
+    <main className="workspace-shell" data-workspace={mode} style={ratioVars}>
       <div className="shell-top">
         {left}
         <section className="shell-center" aria-label="Program monitor">
