@@ -1132,6 +1132,81 @@ fn keyframe_bezier_interpolation_workflow() {
 }
 
 #[test]
+fn remove_keyframe_workflow() {
+    let mut engine = EditorEngine::default();
+    let media_path = "/assets/clip.mov";
+    let add_media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "clip.mov",
+                "path": media_path,
+                "kind": "video",
+                "duration": 254_016_000_000i64 * 10
+            }),
+        ))
+        .unwrap();
+    let media_id = add_media["media_id"].as_u64().unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({ "media_id": media_id, "track_id": 1, "timeline_start": 0 }),
+        ))
+        .unwrap();
+
+    let set_keyframe = |engine: &mut EditorEngine, time: i64, value: f64| {
+        engine
+            .execute(CommandRequest::new(
+                "clip.set_keyframe",
+                json!({
+                    "track_id": 1,
+                    "clip_index": 0,
+                    "property": "opacity",
+                    "time": time,
+                    "value": value,
+                    "interpolation": "linear"
+                }),
+            ))
+            .unwrap();
+    };
+    set_keyframe(&mut engine, 0, 0.0);
+    set_keyframe(&mut engine, 1, 1.0);
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].keyframes.len(), 2);
+
+    // Removing a non-existent keyframe reports removed:false without mutating
+    let missing = engine
+        .execute(CommandRequest::new(
+            "clip.remove_keyframe",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "property": "opacity",
+                "time": 999,
+            }),
+        ))
+        .unwrap();
+    assert_eq!(missing["removed"], false);
+    assert_eq!(engine.document().project.sequence.tracks[0].clips[0].keyframes.len(), 2);
+
+    // Removing an existing keyframe removes exactly that keyframe
+    let removed = engine
+        .execute(CommandRequest::new(
+            "clip.remove_keyframe",
+            json!({
+                "track_id": 1,
+                "clip_index": 0,
+                "property": "opacity",
+                "time": 0,
+            }),
+        ))
+        .unwrap();
+    assert_eq!(removed["removed"], true);
+    let clip = &engine.document().project.sequence.tracks[0].clips[0];
+    assert_eq!(clip.keyframes.len(), 1);
+    assert_eq!(clip.keyframes[0].time, saturn_core::Tick(1));
+}
+
+#[test]
 fn lut_effect_workflow() {
     let mut engine = EditorEngine::default();
     let media_path = "/assets/clip.mov";

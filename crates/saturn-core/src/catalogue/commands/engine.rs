@@ -102,7 +102,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
         id: "timeline.slip_clip",
         label: "Slip Clip Source",
-        menu: &[],
+        menu: &["Clip"],
         shortcut: None,
         params: "{\"track_id\":int,\"clip_index\":int,\"delta\":obj}",
         category: Category::Sequence,
@@ -110,7 +110,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         undo_group: UndoGroup::Gesture,
         aliases: &[],
         since: "0.1.0",
-        shipped: false,
+        shipped: true,
         ui_only: false,
     },
     CommandSpec {
