@@ -3486,3 +3486,99 @@ fn speech_ripple_delete_silence_workflow_with_undo() {
         10 * TICKS_PER_SECOND
     );
 }
+
+#[test]
+fn caption_track_management_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name": "Caption tracks"}),
+        ))
+        .unwrap();
+
+    // Caption tracks are created lazily; start from zero.
+    assert!(engine.document().project.sequence.caption_tracks.is_empty());
+
+    let added = engine
+        .execute(CommandRequest::new(
+            "caption.track_add",
+            json!({"name": "Captions"}),
+        ))
+        .unwrap();
+    let first_id = added["id"].as_u64().unwrap();
+
+    let added = engine
+        .execute(CommandRequest::new(
+            "caption.track_add",
+            json!({"name": "Spanish", "language": "es"}),
+        ))
+        .unwrap();
+    assert_eq!(added["added"], true);
+    let spanish_id = added["id"].as_u64().unwrap();
+    assert_ne!(spanish_id, first_id);
+
+    let renamed = engine
+        .execute(CommandRequest::new(
+            "caption.track_rename",
+            json!({"id": spanish_id, "name": "Espanol"}),
+        ))
+        .unwrap();
+    assert_eq!(renamed["renamed"], true);
+    assert_eq!(
+        engine
+            .document()
+            .project
+            .sequence
+            .caption_tracks
+            .iter()
+            .find(|track| track.id == spanish_id)
+            .unwrap()
+            .name,
+        "Espanol"
+    );
+
+    // Empty names and unknown ids are rejected.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "caption.track_rename",
+            json!({"id": spanish_id, "name": "  "}),
+        ))
+        .is_err());
+    assert!(engine
+        .execute(CommandRequest::new(
+            "caption.track_remove",
+            json!({"id": 987654}),
+        ))
+        .is_err());
+
+    // Undo walks back the rename, then the second add.
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    assert_eq!(
+        engine
+            .document()
+            .project
+            .sequence
+            .caption_tracks
+            .iter()
+            .find(|track| track.id == spanish_id)
+            .unwrap()
+            .name,
+        "Spanish"
+    );
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    assert_eq!(engine.document().project.sequence.caption_tracks.len(), 1);
+
+    // The last remaining track cannot be removed.
+    let err = engine
+        .execute(CommandRequest::new(
+            "caption.track_remove",
+            json!({"id": first_id}),
+        ))
+        .unwrap_err();
+    assert!(
+        matches!(err, saturn_core::DispatchError::InvalidParameters(ref message)
+            if message.contains("last caption track")),
+        "expected last-track guard, got {err:?}"
+    );
+}

@@ -6,6 +6,13 @@ import { Icon } from "../../components/Icon";
 import { activeCue, frameTicks, sortedCues } from "./captionsList";
 
 export interface CaptionsPanelProps {
+  /** All caption tracks; the panel edits `track` (the selection). */
+  captionTracks: readonly CaptionTrack[];
+  activeTrackId: number | null;
+  onTrackChange: (id: number) => void;
+  onTrackAdd: () => void;
+  onTrackRename: (trackId: number, currentName: string) => void;
+  onTrackRemove: (trackId: number) => void;
   track: CaptionTrack | null;
   cues: readonly SubtitleItem[];
   playhead: number;
@@ -124,6 +131,11 @@ function CueRow({
  * Timing and text invariants are enforced by the engine commands.
  */
 export function CaptionsPanel({
+  captionTracks,
+  onTrackChange,
+  onTrackAdd,
+  onTrackRename,
+  onTrackRemove,
   track,
   cues,
   playhead,
@@ -142,8 +154,53 @@ export function CaptionsPanel({
   const active = activeCue(ordered, playhead);
   const frameStep = frameTicks(frameRate);
 
+  const renameTrack = () => {
+    if (!track) return;
+    const value = window.prompt("Rename caption track", track.name);
+    if (value === null) return;
+    const next = value.trim();
+    if (next && next !== track.name) onTrackRename(track.id, next);
+  };
+
   return (
     <section className="captions-panel" aria-label="Captions">
+      <div className="captions-trackbar">
+        <select
+          className="captions-track-select"
+          aria-label="Caption track"
+          value={(track ?? captionTracks[0])?.id ?? ""}
+          onChange={(event) => onTrackChange(Number(event.currentTarget.value))}
+        >
+          {(captionTracks.length > 0 ? captionTracks : []).map((entry) => (
+            <option key={entry.id} value={entry.id}>
+              {entry.name} ({entry.language})
+            </option>
+          ))}
+        </select>
+        <InteriorButton size="sm" onClick={onTrackAdd} title="Add a caption track">
+          <Icon name="add" />
+        </InteriorButton>
+        <InteriorButton
+          size="sm"
+          onClick={renameTrack}
+          disabled={!track}
+          title="Rename this caption track"
+        >
+          <Icon name="pen" />
+        </InteriorButton>
+        <InteriorButton
+          size="sm"
+          onClick={() => track && onTrackRemove(track.id)}
+          disabled={!track || captionTracks.length <= 1}
+          title={
+            captionTracks.length <= 1
+              ? "The last caption track cannot be removed"
+              : "Remove this caption track"
+          }
+        >
+          <Icon name="remove" />
+        </InteriorButton>
+      </div>
       <div className="captions-panel-toolbar">
         <InteriorButton size="sm" onClick={onAdd} title="Add a caption cue at the playhead">
           <Icon name="add" /> Cue

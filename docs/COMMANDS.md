@@ -165,9 +165,9 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
-| Add Caption Track | `caption.track_add` | planned |  | `{"name":str?,"language":str?}` |
-| Remove Caption Track | `caption.track_remove` | planned |  | `{"id":int}` |
-| Rename Caption Track | `caption.track_rename` | planned |  | `{"id":int,"name":str}` |
+| Add Caption Track | `caption.track_add` | shipped |  | `{"name":str?,"language":str?}` |
+| Remove Caption Track | `caption.track_remove` | shipped |  | `{"id":int}` |
+| Rename Caption Track | `caption.track_rename` | shipped |  | `{"id":int,"name":str}` |
 | Add Caption Cue | `caption.cue_add` | shipped |  | `{"track_id":int?,"start_ticks":obj,"end_ticks":obj,"text":str,"speaker":str?,"style_id":int?}` |
 | Edit Caption Cue | `caption.cue_update` | shipped |  | `{"track_id":int,"id":int,"start_ticks":obj?,"end_ticks":obj?,"text":str?,"speaker":str?,"style_id":int?}` |
 | Delete Caption Cue | `caption.cue_remove` | shipped |  | `{"track_id":int,"id":int}` |

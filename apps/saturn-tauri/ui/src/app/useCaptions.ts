@@ -3,7 +3,6 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import type { CaptionTrack, ProjectDocument, SubtitleItem } from "./projectTypes";
 import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
-import { defaultCaptionCues, defaultCaptionTrack } from "./captions";
 import { TICKS_PER_SECOND } from "../utils/formatters.ts";
 
 export const CAPTIONS_PANEL_ID = "captions";
@@ -18,6 +17,11 @@ export interface UseCaptionsOptions {
 }
 
 export interface CaptionOperations {
+  /** All caption tracks in the sequence, in engine order. */
+  captionTracks: CaptionTrack[];
+  /** The track the panel edits; falls back to the first track. */
+  activeTrackId: number | null;
+  setActiveTrackId: (id: number | null) => void;
   track: CaptionTrack | null;
   cues: SubtitleItem[];
   selectedCueId: number | null;
@@ -29,6 +33,9 @@ export interface CaptionOperations {
   updateCueSpeaker: (id: number, speaker: string | null) => Promise<void>;
   nudgeCue: (id: number, deltaTicks: number) => Promise<void>;
   removeCue: (id: number) => Promise<void>;
+  addCaptionTrack: () => Promise<void>;
+  removeCaptionTrack: (trackId: number) => Promise<void>;
+  renameCaptionTrack: (trackId: number, name: string) => Promise<void>;
   importCues: () => Promise<void>;
   exportCues: (format: "srt" | "vtt") => Promise<void>;
   /** Handles the caption commands that need UI gestures; false = not ours. */
@@ -49,9 +56,15 @@ export function useCaptions({
   seek,
 }: UseCaptionsOptions): CaptionOperations {
   const [selectedCueId, setSelectedCueId] = useState<number | null>(null);
+  // null = follow the first track; the engine keeps ids stable.
+  const [activeTrackId, setActiveTrackId] = useState<number | null>(null);
 
-  const track = useMemo(() => defaultCaptionTrack(project?.sequence), [project?.sequence]);
-  const cues = useMemo(() => defaultCaptionCues(project?.sequence), [project?.sequence]);
+  const captionTracks = useMemo(() => project?.sequence.caption_tracks ?? [], [project?.sequence]);
+  const track = useMemo(() => {
+    if (captionTracks.length === 0) return null;
+    return captionTracks.find((entry) => entry.id === activeTrackId) ?? captionTracks[0];
+  }, [captionTracks, activeTrackId]);
+  const cues = useMemo(() => track?.cues ?? [], [track]);
 
   const openPanel = useCallback(() => {
     const announce = () =>
@@ -163,6 +176,46 @@ export function useCaptions({
     [cues.length, project?.name, setNotice],
   );
 
+  const addCaptionTrack = useCallback(async () => {
+    try {
+      const res = await runCommand<{ id: number }>("caption.track_add", {
+        name: `Captions ${captionTracks.length + 1}`,
+      });
+      await refreshProject();
+      if (res) setActiveTrackId(res.id);
+      setNotice("Caption track added");
+    } catch (error) {
+      setNotice(String(error));
+    }
+  }, [captionTracks.length, runCommand, refreshProject, setNotice]);
+
+  const removeCaptionTrack = useCallback(
+    async (trackId: number) => {
+      try {
+        await runCommand("caption.track_remove", { id: trackId });
+        await refreshProject();
+        setActiveTrackId((current) => (current === trackId ? null : current));
+        setNotice("Caption track removed");
+      } catch (error) {
+        setNotice(String(error));
+      }
+    },
+    [runCommand, refreshProject, setNotice],
+  );
+
+  const renameCaptionTrack = useCallback(
+    async (trackId: number, name: string) => {
+      try {
+        await runCommand("caption.track_rename", { id: trackId, name });
+        await refreshProject();
+        setNotice("Caption track renamed");
+      } catch (error) {
+        setNotice(String(error));
+      }
+    },
+    [runCommand, refreshProject, setNotice],
+  );
+
   /** Menu entry points for the shipped caption commands (panel gestures). */
   const handleMenuCommand = useCallback(
     async (id: string): Promise<boolean> => {
@@ -178,9 +231,32 @@ export function useCaptions({
         await addCue();
         return true;
       }
+      if (id === "caption.track_add") {
+        await addCaptionTrack();
+        return true;
+      }
+      if (id === "caption.track_remove") {
+        if (!track) {
+          setNotice("No caption track to remove");
+          return true;
+        }
+        await removeCaptionTrack(track.id);
+        return true;
+      }
+      if (id === "caption.track_rename") {
+        if (!track) {
+          setNotice("No caption track to rename");
+          return true;
+        }
+        const value = window.prompt("Rename caption track", track.name);
+        if (value === null) return true;
+        const next = value.trim();
+        if (next && next !== track.name) await renameCaptionTrack(track.id, next);
+        return true;
+      }
       return false;
     },
-    [importCues, exportCues, addCue],
+    [importCues, exportCues, addCue, addCaptionTrack, removeCaptionTrack, renameCaptionTrack, track, setNotice],
   );
 
   /** Select a cue and park the playhead at its start. */
@@ -195,6 +271,9 @@ export function useCaptions({
   );
 
   return {
+    captionTracks,
+    activeTrackId,
+    setActiveTrackId,
     track,
     cues,
     selectedCueId,
@@ -205,6 +284,9 @@ export function useCaptions({
     updateCueSpeaker,
     nudgeCue,
     removeCue,
+    addCaptionTrack,
+    removeCaptionTrack,
+    renameCaptionTrack,
     importCues,
     exportCues,
     handleMenuCommand,

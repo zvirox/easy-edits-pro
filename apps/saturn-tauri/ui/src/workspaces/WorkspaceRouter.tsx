@@ -516,6 +516,12 @@ export function WorkspaceRouter({
         onExport: markerOps.exportMarkers,
   };  const captionsPanelProps: CaptionsPanelProps = {
         track: captionsOps.track,
+        captionTracks: captionsOps.captionTracks,
+        activeTrackId: captionsOps.activeTrackId,
+        onTrackChange: (id: number) => captionsOps.setActiveTrackId(id),
+        onTrackAdd: () => void captionsOps.addCaptionTrack(),
+        onTrackRename: (id: number, name: string) => void captionsOps.renameCaptionTrack(id, name),
+        onTrackRemove: (id: number) => void captionsOps.removeCaptionTrack(id),
         cues: captionsOps.cues,
         playhead: playback.playhead,
         frameRate: project?.settings.frame_rate ?? { numerator: 30, denominator: 1 },
