@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.11] - 2026-10-25
+
+Seventh parity fulfilment task: multi-track caption management. The
+three `caption.track_*` commands were verified (engine dispatch +
+panel affordance + test) and shipped. The Captions panel now manages
+multiple caption tracks — pick, add, rename, remove — and cue editing
+operates on the selected track. The catalogue stands at 213 commands
+with 198 shipped and 15 planned; Tier-1 coverage is 135/443 (30%).
+
+### Added
+- **Caption track bar.** The Captions panel shows every caption track
+  with its language, and can add a track ("Captions N"), rename the
+  selected one, or remove it — removal is disabled on the last track,
+  matching the engine's guard. Cue editing, import, and export all
+  apply to the selected track.
+- **Menu paths.** Graphics > Captions carries the track commands;
+  rename prompts for a name.
+- `caption_track_management_workflow_with_undo` engine test: lazy
+  first-track creation, add/rename, empty-name and unknown-id
+  rejection, undo of both the rename and the add, and the last-track
+  removal guard.
+
+---
+
 ## [0.1.0-alpha.10] - 2026-10-25
 
 Sixth parity fulfilment task, and a bug-fix release: the speech

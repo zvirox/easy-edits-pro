@@ -458,6 +458,21 @@ flowchart TD
   unchanged 132/443 (30%). Remaining planned: caption track management
   (3), nodegraph (6), multicam create/switch_angle (2),
   project.update_media, and UI-only stragglers.
+* **P7 — Caption track management (Done 2026-10-25, shipped in
+  0.1.0-alpha.11):** Built the caption-track affordances: useCaptions
+  gained multi-track state with an active-track selection (cue
+  editing/import/export follow it), the Captions panel gained a track
+  bar (picker with language, add, rename, remove — disabled on the
+  last track per the engine guard), and Graphics > Captions menu ids
+  route to the same operations. New engine test
+  caption_track_management_workflow_with_undo (lazy first-track
+  creation, add/rename, empty-name + unknown-id rejection, undo of
+  rename and add, last-track guard). Catalogue: 198 shipped / 15
+  planned; Tier-1 coverage 135/443 (30%); captions family 14/22 with
+  1 planned. Remaining planned: nodegraph (6), multicam
+  create/switch_angle (2), project.update_media, and UI-only
+  stragglers (3) — Tier-1 families are nearly closed except nodegraph
+  adjacency and the media seam.
 
 ---
 
