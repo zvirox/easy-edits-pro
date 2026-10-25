@@ -3562,56 +3562,5 @@
     "since": "0.1.0",
     "uiOnly": true,
     "undoGroup": "none"
-  },
-  {
-    "aliases": [],
-    "category": "Window",
-    "id": "workspace.library",
-    "label": "Workspace: Library",
-    "menu": [
-      "Window",
-      "Workspaces"
-    ],
-    "mutating": false,
-    "params": "{}",
-    "shipped": false,
-    "shortcut": null,
-    "since": "0.1.0",
-    "uiOnly": true,
-    "undoGroup": "none"
-  },
-  {
-    "aliases": [],
-    "category": "Window",
-    "id": "workspace.ai",
-    "label": "Workspace: AI Assistant",
-    "menu": [
-      "Window",
-      "Workspaces"
-    ],
-    "mutating": false,
-    "params": "{}",
-    "shipped": false,
-    "shortcut": null,
-    "since": "0.1.0",
-    "uiOnly": true,
-    "undoGroup": "none"
-  },
-  {
-    "aliases": [],
-    "category": "Window",
-    "id": "workspace.export",
-    "label": "Workspace: Export",
-    "menu": [
-      "Window",
-      "Workspaces"
-    ],
-    "mutating": false,
-    "params": "{}",
-    "shipped": false,
-    "shortcut": null,
-    "since": "0.1.0",
-    "uiOnly": true,
-    "undoGroup": "none"
   }
 ]

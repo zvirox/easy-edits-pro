@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-213 commands.
+210 commands.
 
 ## File
 
@@ -259,9 +259,6 @@ Generated from the command catalogue. Do not edit by hand.
 | Workspace: Effects | `workspace.effects` | shipped | Shift+6 | `{}` |
 | Workspace: Animation | `workspace.keyframes` | shipped | Shift+7 | `{}` |
 | Workspace: Deliver | `workspace.deliver` | shipped | Shift+8 | `{}` |
-| Workspace: Library | `workspace.library` | planned |  | `{}` |
-| Workspace: AI Assistant | `workspace.ai` | planned |  | `{}` |
-| Workspace: Export | `workspace.export` | planned |  | `{}` |
 
 ## Help
 

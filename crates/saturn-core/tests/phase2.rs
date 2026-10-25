@@ -262,6 +262,20 @@ fn settings_round_trip_through_one_json_file() {
         "workspace.save should be purged, got {err:?}"
     );
 
+    // G4 purged the placeholder workspace switchers (library / ai /
+    // export): the generic `workspace.*` interception slices the id into
+    // selectDavinciWorkspace, so specs naming workspaces that do not exist
+    // would brick the router. The real surfaces keep working switchers.
+    for purged in ["workspace.library", "workspace.ai", "workspace.export"] {
+        let err = engine
+            .execute(CommandRequest::new(purged, Value::Null))
+            .unwrap_err();
+        assert!(
+            matches!(err, DispatchError::UnknownCommand(ref id) if id == purged),
+            "{purged} should be purged, got {err:?}"
+        );
+    }
+
     let mut loaded = EditorEngine::default();
     loaded.load_settings(&path);
     let prefs = loaded
