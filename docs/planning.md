@@ -508,6 +508,21 @@ flowchart TD
   unchanged 19/207). Remaining planned: project.update_media,
   caption.style_set, shortcuts.set, and workspace.library/ai/export
   (3).
+* **P10 — Media metadata re-probe (Done 2026-10-25, shipped in
+  0.1.0-alpha.14):** Closed the seam deferred since Task 5: new
+  probe_media_for_update Tauri command (canonicalize + the importer's
+  probe_media_file Discoverer pass), updateMediaMetadata in
+  useMediaOperations (probe the selected asset, then
+  perform(project.update_media) — the engine's None-means-keep rule
+  preserves waveforms), an Update button in the Media pool toolbar
+  beside Scan (enabled on selection; reuses the undo icon after the
+  junk-glyph ratchet caught the raw glyph), and File > Update Media
+  Metadata menu routing. The catalogue spec gained the File menu it
+  was missing (menus must be non-empty once shipped). Catalogue: 208
+  shipped / 5 planned; Tier-1 coverage 135 → 136/443 (31%, this is a
+  Tier-1 project-family command); Tier-2 unchanged 19/207. Remaining
+  planned: caption.style_set, shortcuts.set, and
+  workspace.library/ai/export (3).
 
 ---
 

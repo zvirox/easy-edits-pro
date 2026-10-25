@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.14] - 2026-10-25
+
+Tenth parity fulfilment task: media metadata re-probe. The media seam
+deferred since Task 5 is closed — the importer's GStreamer probe is
+now exposed as a Tauri command and wired to `project.update_media`,
+which ships with a Media pool affordance and the File menu. The
+catalogue stands at 213 commands with 208 shipped and 5 planned;
+because this is a Tier-1 project-family command, Tier-1 coverage
+moves 135 → 136/443 (31%).
+
+### Added
+- **Update metadata.** The Media pool toolbar gains an Update button
+  (next to Scan, enabled when an asset is selected): it re-probes the
+  selected file through the same Discoverer pass the import flow uses
+  and applies the fresh kind/duration/dimensions to the engine, whose
+  None-means-keep rule preserves existing waveforms. File > Update
+  Media Metadata routes to the same operation.
+- **Rust seam.** New `probe_media_for_update` Tauri command — it
+  returns probe results for the engine dispatch, so project state
+  stays owned by the core through the normal command pipeline.
+
+---
+
 ## [0.1.0-alpha.13] - 2026-10-25
 
 Ninth parity fulfilment task: the compositing Nodes panel. All six
