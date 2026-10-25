@@ -5,6 +5,7 @@ import type { MediaPanelProps } from "../features/media-pool";
 import type { InspectorPanelProps } from "../features/inspector";
 import type { MarkersPanelProps } from "../features/markers";
 import type { CaptionsPanelProps } from "../features/captions";
+import type { NodeGraphPanelProps } from "../features/nodegraph";
 import type { GraphicOperations } from "../features/graphics";
 import { FairlightDockLeft, FairlightDockRight } from "./docks/FairlightDocks";
 import { FusionDockRight } from "./docks/FusionDocks";
@@ -19,6 +20,7 @@ export interface SpecialPanelProps {
   markers: MarkersPanelProps;
   captions: CaptionsPanelProps;
   graphics: { ops: GraphicOperations; playhead: number; frame: { width: number; height: number } };
+  nodeGraph: NodeGraphPanelProps;
 }
 
 /**
@@ -99,6 +101,7 @@ export function specialModeDocks({
           markersPanelProps={panelProps.markers}
           captionsPanelProps={panelProps.captions}
           graphicsPanelProps={panelProps.graphics}
+          nodeGraphPanelProps={panelProps.nodeGraph}
         />
       ),
     };

@@ -25,8 +25,9 @@ export async function run(ctx) {
     await popover.waitFor({ state: 'detached' });
   }
   // Graphics ships the Phase 5 caption commands and Audio ships the Phase 6
-  // automation commands, so both must render; Effects stays unshipped for now.
-  for (const menu of ['Audio', 'Graphics']) {
+  // automation commands, so both must render; Effects ships the nodegraph
+  // commands (0.1.0-alpha.13), so it must now render too.
+  for (const menu of ['Audio', 'Graphics', 'Effects']) {
     await menuBar.getByRole('button', { name: menu, exact: true }).click();
     const popover = page.locator('.menu-popover').last();
     await popover.waitFor();
@@ -35,11 +36,6 @@ export async function run(ctx) {
     await page.keyboard.press('Escape');
     await popover.waitFor({ state: 'detached' });
   }
-  assert.equal(
-    await menuBar.getByRole('button', { name: 'Effects', exact: true }).count(),
-    0,
-    'the Effects menu has no shipped commands yet and must not render',
-  );
   // The tool rail exposes every editing and graphics tool in named groups.
   const toolRail = page.locator('.timeline-tool-rail');
   assert.equal(

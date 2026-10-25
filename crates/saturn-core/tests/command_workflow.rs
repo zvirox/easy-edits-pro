@@ -3582,3 +3582,74 @@ fn caption_track_management_workflow_with_undo() {
         "expected last-track guard, got {err:?}"
     );
 }
+
+#[test]
+fn nodegraph_disconnect_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    let added_a = engine
+        .execute(CommandRequest::new(
+            "nodegraph.add_node",
+            json!({"kind": "media_source", "title": "A"}),
+        ))
+        .unwrap();
+    let a = added_a["node_id"].as_u64().unwrap();
+    let added_b = engine
+        .execute(CommandRequest::new(
+            "nodegraph.add_node",
+            json!({"kind": "output_sink", "title": "B"}),
+        ))
+        .unwrap();
+    let b = added_b["node_id"].as_u64().unwrap();
+
+    engine
+        .execute(CommandRequest::new(
+            "nodegraph.connect",
+            json!({"from_node": a, "from_socket": "output", "to_node": b, "to_socket": "input"}),
+        ))
+        .unwrap();
+
+    // Unknown nodes make the disconnect a no-op that reports false.
+    let absent = engine
+        .execute(CommandRequest::new(
+            "nodegraph.disconnect",
+            json!({"from_node": 424242, "from_socket": "output", "to_node": b, "to_socket": "input"}),
+        ))
+        .unwrap();
+    assert_eq!(absent["disconnected"], false);
+
+    // Disconnecting the real connection removes exactly that edge.
+    let res = engine
+        .execute(CommandRequest::new(
+            "nodegraph.disconnect",
+            json!({"from_node": a, "from_socket": "output", "to_node": b, "to_socket": "input"}),
+        ))
+        .unwrap();
+    assert_eq!(res["disconnected"], true);
+    assert_eq!(
+        engine
+            .document()
+            .project
+            .sequence
+            .node_graph
+            .as_ref()
+            .unwrap()
+            .connections
+            .len(),
+        0
+    );
+
+    // Undo restores the connection.
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    assert_eq!(
+        engine
+            .document()
+            .project
+            .sequence
+            .node_graph
+            .as_ref()
+            .unwrap()
+            .connections
+            .len(),
+        1
+    );
+}

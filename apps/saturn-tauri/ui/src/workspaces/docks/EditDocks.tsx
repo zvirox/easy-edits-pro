@@ -4,6 +4,7 @@ import { InspectorPanel, type InspectorPanelProps } from "../../features/inspect
 import { DockCard, type DockTab } from "../../features/dock/DockCard";
 import { MarkersPanel, type MarkersPanelProps } from "../../features/markers";
 import { CaptionsPanel, type CaptionsPanelProps } from "../../features/captions";
+import { NodeGraphPanel, type NodeGraphPanelProps } from "../../features/nodegraph";
 import { GraphicsPanel, type GraphicOperations } from "../../features/graphics";
 import type { TrimSession } from "../../app/timelineTrim";
 import type { MediaAsset, ProjectDocument } from "../../app/projectTypes";
@@ -23,6 +24,7 @@ export interface EditDockProps {
   inspectorPanelProps: InspectorPanelProps;
   markersPanelProps: MarkersPanelProps;
   captionsPanelProps: CaptionsPanelProps;
+  nodeGraphPanelProps: NodeGraphPanelProps;
   graphicsPanelProps: {
     ops: GraphicOperations;
     playhead: number;
@@ -68,9 +70,14 @@ export function EditDockRight({
   markersPanelProps,
   captionsPanelProps,
   graphicsPanelProps,
+  nodeGraphPanelProps,
 }: Pick<
   EditDockProps,
-  "inspectorPanelProps" | "markersPanelProps" | "captionsPanelProps" | "graphicsPanelProps"
+  | "inspectorPanelProps"
+  | "markersPanelProps"
+  | "captionsPanelProps"
+  | "graphicsPanelProps"
+  | "nodeGraphPanelProps"
 >) {
   const tabs: DockTab[] = [
     { id: "inspector", title: "Inspector", render: () => <InspectorPanel {...inspectorPanelProps} /> },
@@ -82,6 +89,11 @@ export function EditDockRight({
       render: () => (
         <GraphicsPanel ops={graphicsPanelProps.ops} playhead={graphicsPanelProps.playhead} frame={graphicsPanelProps.frame} />
       ),
+    },
+    {
+      id: "nodegraph",
+      title: "Nodes",
+      render: () => <NodeGraphPanel {...nodeGraphPanelProps} />,
     },
   ];
   return <DockCard className="shell-dock shell-dock-right" tabs={tabs} ariaLabel="Inspector dock" />;

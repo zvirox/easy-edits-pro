@@ -16,6 +16,7 @@ import { useAudioWorkspace } from "./app/useAudioWorkspace";
 import { useMarkers } from "./app/useMarkers";
 import { useCaptions } from "./app/useCaptions";
 import { useGraphics } from "./app/useGraphics";
+import { useNodeGraph } from "./app/useNodeGraph";
 import { useShortcutsSync } from "./app/useShortcutsSync";
 import { applyViewCommand } from "./app/viewCommands";
 
@@ -250,6 +251,13 @@ function EditorApp() {
     setNotice,
   });
 
+  const nodeGraphOps = useNodeGraph({
+    project,
+    runCommand,
+    refreshProject,
+    setNotice,
+  });
+
   useEffect(() => {
     setPreferences((current) =>
       current.snap === timelineOps.snapEnabled
@@ -366,6 +374,9 @@ function EditorApp() {
         return;
       }
       if (id.startsWith("marker.") && (await markerOps.handleMenuCommand(id))) {
+        return;
+      }
+      if (id.startsWith("nodegraph.") && (await nodeGraphOps.handleMenuCommand(id))) {
         return;
       }
       if ((EDIT_CLIPBOARD_COMMANDS as string[]).includes(id)) {
@@ -597,6 +608,7 @@ function EditorApp() {
           audioOps={audioOps}
           markerOps={markerOps}
           captionsOps={captionsOps}
+          nodeGraphOps={nodeGraphOps}
           graphicsOps={graphicsOps}
         />
         </ErrorBoundary>

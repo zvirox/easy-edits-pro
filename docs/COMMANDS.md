@@ -221,12 +221,12 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
-| Add Node to Graph | `nodegraph.add_node` | planned |  | `{"track_id":int?,"clip_index":int?,"kind":obj,"title":str?,"pos_x":num?,"pos_y":num?,"params":any?}` |
-| Remove Node from Graph | `nodegraph.remove_node` | planned |  | `{"track_id":int?,"clip_index":int?,"node_id":int}` |
-| Connect Graph Sockets | `nodegraph.connect` | planned |  | `{"track_id":int?,"clip_index":int?,"from_node":int,"from_socket":str,"to_node":int,"to_socket":str}` |
-| Disconnect Graph Sockets | `nodegraph.disconnect` | planned |  | `{"track_id":int?,"clip_index":int?,"from_node":int,"from_socket":str,"to_node":int,"to_socket":str}` |
-| Update Node Properties | `nodegraph.update_node` | planned |  | `{"track_id":int?,"clip_index":int?,"node_id":int,"pos_x":num?,"pos_y":num?,"enabled":bool?,"params":any?}` |
-| Add Roto-Spline Mask | `nodegraph.add_mask` | planned |  | `{"track_id":int?,"clip_index":int?,"mask":obj}` |
+| Add Node to Graph | `nodegraph.add_node` | shipped |  | `{"track_id":int?,"clip_index":int?,"kind":obj,"title":str?,"pos_x":num?,"pos_y":num?,"params":any?}` |
+| Remove Node from Graph | `nodegraph.remove_node` | shipped |  | `{"track_id":int?,"clip_index":int?,"node_id":int}` |
+| Connect Graph Sockets | `nodegraph.connect` | shipped |  | `{"track_id":int?,"clip_index":int?,"from_node":int,"from_socket":str,"to_node":int,"to_socket":str}` |
+| Disconnect Graph Sockets | `nodegraph.disconnect` | shipped |  | `{"track_id":int?,"clip_index":int?,"from_node":int,"from_socket":str,"to_node":int,"to_socket":str}` |
+| Update Node Properties | `nodegraph.update_node` | shipped |  | `{"track_id":int?,"clip_index":int?,"node_id":int,"pos_x":num?,"pos_y":num?,"enabled":bool?,"params":any?}` |
+| Add Roto-Spline Mask | `nodegraph.add_mask` | shipped |  | `{"track_id":int?,"clip_index":int?,"mask":obj}` |
 
 ## View
 

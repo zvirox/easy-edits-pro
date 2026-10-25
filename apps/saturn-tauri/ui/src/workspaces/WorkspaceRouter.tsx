@@ -3,6 +3,7 @@ import type { MediaPanelProps } from "../features/media-pool";
 import type { InspectorPanelProps } from "../features/inspector";
 import type { MarkersPanelProps } from "../features/markers";
 import type { CaptionsPanelProps } from "../features/captions";
+import type { NodeGraphPanelProps } from "../features/nodegraph";
 import { WorkspaceShell } from "./WorkspaceShell";
 import { specialModeDocks } from "./SpecialModeShells";
 import { ExportWorkspace } from "./ExportWorkspace";
@@ -27,6 +28,7 @@ import type { SourcePreviewFocus } from "../features/preview";
 import type { CommandSpec } from "../features/menubar/AppHeader";
 import type { MarkerOperations } from "../app/useMarkers";
 import type { CaptionOperations } from "../app/useCaptions";
+import type { NodeGraphOperations } from "../app/useNodeGraph";
 import type { GraphicOperations } from "../features/graphics";
 
 export interface WorkspaceRouterProps {
@@ -59,6 +61,7 @@ export interface WorkspaceRouterProps {
   audioOps: any;
   markerOps: MarkerOperations;
   captionsOps: CaptionOperations;
+  nodeGraphOps: NodeGraphOperations;
   graphicsOps: GraphicOperations;
 }
 
@@ -91,6 +94,7 @@ export function WorkspaceRouter({
   audioOps,
   markerOps,
   captionsOps,
+  nodeGraphOps,
   graphicsOps,
   encoderInfo,
 }: WorkspaceRouterProps) {
@@ -542,7 +546,18 @@ export function WorkspaceRouter({
         ops: graphicsOps,
         playhead: playback.playhead,
         frame: project?.settings ?? { width: 1920, height: 1080 },
-  };  const shellToolbox = (
+  };
+  const nodeGraphPanelProps: NodeGraphPanelProps = {
+        graph: nodeGraphOps.graph,
+        onAddNode: (kind) => void nodeGraphOps.addNode(kind),
+        onRemoveNode: (id: number) => void nodeGraphOps.removeNode(id),
+        onConnect: (from: number, fromSocket: string, to: number, toSocket: string) =>
+          void nodeGraphOps.connectNodes(from, fromSocket, to, toSocket),
+        onDisconnect: (conn) => void nodeGraphOps.disconnectNodes(conn.from_node, conn.from_socket, conn.to_node, conn.to_socket),
+        onUpdateNode: (id: number, patch) => void nodeGraphOps.updateNode(id, patch),
+        onAddMask: () => void nodeGraphOps.addMask(),
+  };
+  const shellToolbox = (
     <TimelineToolRail
       timelineTool={timelineSectionProps.timelineTool}
       setTimelineTool={timelineSectionProps.setTimelineTool}
@@ -581,6 +596,7 @@ export function WorkspaceRouter({
         markers: markersPanelProps,
         captions: captionsPanelProps,
         graphics: graphicsPanelProps,
+        nodeGraph: nodeGraphPanelProps,
       },
     });
     return (
@@ -663,6 +679,7 @@ export function WorkspaceRouter({
           markersPanelProps={markersPanelProps}
           captionsPanelProps={captionsPanelProps}
           graphicsPanelProps={graphicsPanelProps}
+          nodeGraphPanelProps={nodeGraphPanelProps}
         />
       }
       center={shellCenter}

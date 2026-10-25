@@ -1,0 +1,169 @@
+.nodegraph-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+
+.nodegraph-toolbar,
+.nodegraph-connect {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.nodegraph-kind-select,
+.nodegraph-select,
+.nodegraph-socket {
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--bg-subpanel);
+  color: var(--text-main);
+  font: inherit;
+}
+
+.nodegraph-kind-select {
+  flex: 1;
+}
+
+.nodegraph-select {
+  max-width: 120px;
+}
+
+.nodegraph-socket {
+  width: 64px;
+}
+
+.nodegraph-canvas-wrap {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: auto;
+  background: var(--bg-subpanel);
+  max-height: 280px;
+}
+
+.nodegraph-canvas {
+  position: relative;
+  background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.nodegraph-empty {
+  padding: 12px;
+  color: var(--text-dim, var(--text-main));
+  font-size: 12px;
+}
+
+.nodegraph-wires {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.nodegraph-wire {
+  stroke: var(--accent);
+  stroke-width: 2;
+  fill: none;
+}
+
+.nodegraph-node {
+  position: absolute;
+  width: 132px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-soft);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.nodegraph-node.is-dragging {
+  cursor: grabbing;
+}
+
+.nodegraph-node.is-disabled {
+  opacity: 0.5;
+}
+
+.nodegraph-node-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.nodegraph-node-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nodegraph-node-toggle,
+.nodegraph-node-remove,
+.nodegraph-conn-remove {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.nodegraph-node-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 4px;
+  font-size: 10px;
+  color: var(--text-dim, var(--text-main));
+}
+
+.nodegraph-connections {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.nodegraph-connections li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 2px 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+}
+
+.nodegraph-masks {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.nodegraph-masks-label {
+  font-weight: 600;
+}
+
+.nodegraph-masks ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
