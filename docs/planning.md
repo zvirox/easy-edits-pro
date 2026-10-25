@@ -523,6 +523,23 @@ flowchart TD
   Tier-1 project-family command); Tier-2 unchanged 19/207. Remaining
   planned: caption.style_set, shortcuts.set, and
   workspace.library/ai/export (3).
+* **P11 — Caption styling and engine shortcut sync (Done 2026-10-25,
+  shipped in 0.1.0-alpha.15):** Flipped the final two single
+  commands. shortcuts.set was a dynamic-dispatch case — the
+  ShortcutsDialog rebind editor and useShortcutsSync already
+  dispatched it (every override change runs shortcuts.set; hydration
+  reads shortcuts.list and migrates the localStorage mirror; reset
+  clears settings) — so only the flag was stale, plus an outdated doc
+  comment corrected. caption.style_set gained the missing pieces: the
+  caption_style_workflow_with_undo engine test (unknown track /
+  empty name / unknown style rejection, create with engine defaults,
+  partial update, undo of update and creation) and a style bar in the
+  Captions panel (font size, fill / stroke / background, stroke
+  width, Apply — first save creates the style, later saves update
+  it); Graphics > Captions > Set Caption Style opens the panel.
+  Catalogue: 210 shipped / 3 planned; Tier-1 136 → 138/443 (31%);
+  captions 15/22 and shortcuts 4/16 with 0 planned. Remaining
+  planned: workspace.library/ai/export (3).
 
 ---
 

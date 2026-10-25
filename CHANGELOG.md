@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.15] - 2026-10-25
+
+Eleventh parity fulfilment task: caption styling and engine-backed
+shortcut sync. `caption.style_set` gains a style section in the
+Captions panel (size, fill, stroke, and background with Apply — first
+save creates the track's reusable style, later saves update it), and
+`shortcuts.set` is flipped as a dynamic-dispatch case: the
+ShortcutsDialog editor and its sync hook were already dispatching it;
+only the catalogue flag was stale. The catalogue stands at 213
+commands with 210 shipped and 3 planned; both commands are Tier-1, so
+Tier-1 coverage moves 136 → 138/443 (31%).
+
+### Added
+- **Caption style section.** The Captions panel gains a compact style
+  bar — font size, fill / stroke / background colours, stroke width,
+  and Apply — saved to the selected track through `caption.style_set`.
+  Graphics > Captions > Set Caption Style opens the panel.
+- **New engine test** `caption_style_workflow_with_undo`: rejection of
+  unknown tracks, empty names, and unknown style ids; create with
+  engine defaults filling omitted fields; partial update semantics;
+  undo walking back both the update and the creation.
+
+### Fixed
+- The ShortcutsDialog doc comment claimed overrides lived only in
+  localStorage; they are mirrored there and synced to engine settings
+  (`settings.json`) through `shortcuts.set` / `shortcuts.list`.
+
+---
+
 ## [0.1.0-alpha.14] - 2026-10-25
 
 Tenth parity fulfilment task: media metadata re-probe. The media seam
