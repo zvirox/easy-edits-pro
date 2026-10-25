@@ -440,6 +440,24 @@ flowchart TD
   coverage 132/443 (30%); prefs family closed 4/4. Remaining planned:
   nodegraph (6), caption track management (4), speech (2), multicam
   create/switch_angle (2), project.update_media, and UI-only stragglers.
+* **P6 — Speech trio + dead-flow repair (Done 2026-10-25, shipped in
+  0.1.0-alpha.10):** Audited the speech surface and found every UI flow
+  (transcribe, silence detect, silence ripple, filler removal) invoked
+  unregistered Tauri command names — the feature has been dead since
+  it was built. Repaired all four seams, exposed the transcribe
+  wrapper's synthesized word-timed segments to the filler flow, fed
+  media waveform peaks into silence detection/ripple, added menu
+  affordances via Audio > Speech and Edit > Speech, extracted
+  useSpeechOperations.ts (800-line gate), and added the missing
+  speech_ripple_delete_silence engine test (padding semantics
+  documented: 2s silence minus 2x50ms padding = 1.9s removed). Lesson:
+  the three-way audit greps for command ids, so dynamic dispatch
+  (wrappers that map format/name strings to engine ids) needs a
+  dedicated pass — this is the second such find after InteropModal.
+  Catalogue: 195 shipped / 18 planned; Tier-3 3/17 (18%); Tier-1
+  unchanged 132/443 (30%). Remaining planned: caption track management
+  (3), nodegraph (6), multicam create/switch_angle (2),
+  project.update_media, and UI-only stragglers.
 
 ---
 

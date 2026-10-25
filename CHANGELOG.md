@@ -7,6 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.10] - 2026-10-25
+
+Sixth parity fulfilment task, and a bug-fix release: the speech
+feature set (transcription, silence removal, filler removal) has been
+dead in the UI since it was built — every flow invoked Tauri command
+names that were never registered. This release repairs the seams and
+ships the three `speech.*` commands behind them. The catalogue stands
+at 213 commands with 195 shipped and 18 planned.
+
+### Fixed
+- **Speech flows work for the first time.** The transcription modal,
+  silence detection, silence ripple deletion, and filler removal now
+  call the registered commands (`transcribe_audio_speech`,
+  `detect_timeline_silence`, `ripple_delete_silence`,
+  `ripple_delete_fillers`) with the right arguments. Previously every
+  one of them failed at runtime with an unknown-command error.
+
+### Added
+- **Transcription records what it heard.** The transcribe wrapper now
+  returns the word-timed speech segments alongside the subtitle cues,
+  and the UI keeps them so filler removal consumes exactly what the
+  transcription produced instead of a synthetic guess.
+- **Silence analysis uses real media waveforms.** Detection and
+  silence ripple feed the first media asset's waveform peaks into the
+  engine; without an audio-bearing asset the flows explain what they
+  need instead of failing.
+- **Menu affordances:** Audio > Speech opens the transcription modal;
+  Edit > Speech entries open the speech tools that dispatch
+  `speech.ripple_delete_silence` and `speech.ripple_delete_fillers`.
+- `speech_ripple_delete_silence_workflow_with_undo` engine test: a 2s
+  silent stretch is padding-trimmed to 1.9s, removed by ripple, and
+  restored by undo.
+
+### Changed
+- `useSpeechOperations.ts` now owns the transcribe/silence modal state
+  and handlers (useProjectOperations had passed the 800-line gate).
+- Tier-3 coverage rises to 3/17 (speech is a Tier-3 family); Tier-1
+  stands at 132/443 (30%).
+
+---
+
 ## [0.1.0-alpha.9] - 2026-10-25
 
 Fifth FilmCraft Tier-1 parity fulfilment task: the three small
