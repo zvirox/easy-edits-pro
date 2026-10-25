@@ -4,7 +4,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
         id: "project.update_media",
         label: "Update Media Metadata",
-        menu: &[],
+        menu: &["File"],
         shortcut: None,
         params: "{\"path\":path,\"kind\":str?,\"duration\":ticks?,\"width\":int?,\"height\":int?,\"waveform\":[int]?}",
         category: Category::File,
@@ -12,7 +12,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         undo_group: UndoGroup::Transaction,
         aliases: &[],
         since: "0.1.0",
-        shipped: false,
+        shipped: true,
         ui_only: false,
     },
     CommandSpec {

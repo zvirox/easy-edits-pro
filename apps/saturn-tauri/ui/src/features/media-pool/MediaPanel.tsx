@@ -104,6 +104,7 @@ export interface MediaPanelProps {
   setSelectedMediaId: (id: number) => void;
   busy: boolean;
   checkMissingMedia: () => Promise<void>;
+  onUpdateMetadata: () => Promise<void>;
   setCreateBinModalOpen: (open: boolean) => void;
   setNetworkImportModalOpen: (open: boolean) => void;
   importMedia: () => Promise<void>;
@@ -152,6 +153,7 @@ export function MediaPanel({
   setSelectedMediaId,
   busy,
   checkMissingMedia,
+  onUpdateMetadata,
   setCreateBinModalOpen,
   setNetworkImportModalOpen,
   importMedia,
@@ -240,6 +242,17 @@ export function MediaPanel({
                   data-tooltip-pos="bottom"
                 >
                   🔍 Scan
+                </InteriorButton>
+                <InteriorButton
+                  type="button"
+                  className="btn-secondary"
+                  style={{ padding: "4px 7px", fontSize: "11px" }}
+                  onClick={() => void onUpdateMetadata()}
+                  disabled={busy || selectedMediaId === null}
+                  data-tooltip="Re-probe the selected file and update its metadata"
+                  data-tooltip-pos="bottom"
+                >
+                  <Icon name="undo" /> Update
                 </InteriorButton>
                 <InteriorButton
                   type="button"

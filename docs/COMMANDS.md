@@ -8,6 +8,7 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Update Media Metadata | `project.update_media` | shipped |  | `{"path":path,"kind":str?,"duration":ticks?,"width":int?,"height":int?,"waveform":[int]?}` |
 | Relink Missing Media | `project.relink_media` | shipped |  | `{"media_id":int,"path":path}` |
 | Inspect Project | `project.inspect` | shipped |  | `{}` |
 | Project Status | `project.status` | shipped |  | `{}` |

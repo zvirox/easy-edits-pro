@@ -303,6 +303,38 @@ pub async fn prepare_video_preview(
 }
 
 #[tauri::command]
+pub async fn probe_media_for_update(path: String) -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        gstreamer::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
+        let discoverer = Discoverer::new(gstreamer::ClockTime::from_seconds(30))
+            .map_err(|error| format!("Could not create media scanner: {error}"))?;
+        let canonical_path = PathBuf::from(&path)
+            .canonicalize()
+            .map_err(|error| format!("Cannot read path: {error}"))?;
+        if !canonical_path.is_file() {
+            return Err(format!("File not found: {}", canonical_path.display()));
+        }
+        let (kind, duration, width, height, _, _, _, discovered_ok) =
+            probe_media_file(&discoverer, &canonical_path);
+        if !discovered_ok {
+            return Err(format!(
+                "GStreamer could not decode {}",
+                canonical_path.display()
+            ));
+        }
+        Ok(json!({
+            "path": canonical_path.to_string_lossy(),
+            "kind": kind,
+            "duration": duration,
+            "width": width,
+            "height": height,
+        }))
+    })
+    .await
+    .map_err(|error| format!("Media probe task failed: {error}"))?
+}
+
+#[tauri::command]
 pub async fn import_media(
     app: AppHandle,
     state: State<'_, AppState>,

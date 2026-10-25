@@ -9,7 +9,7 @@ pub use project::{
     get_command_catalogue,
 };
 mod media;
-pub use media::{import_media, prepare_video_preview};
+pub use media::{import_media, prepare_video_preview, probe_media_for_update};
 mod export;
 pub use export::{detect_encoder_capabilities, export_frame, queue_export, start_export};
 mod jobs;

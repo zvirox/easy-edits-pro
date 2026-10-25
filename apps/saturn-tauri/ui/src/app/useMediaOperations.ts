@@ -286,6 +286,37 @@ export function useMediaOperations({
     }
   }, [setBusy, setNotice, setProjectState, setMissingMediaIds, setSelectedClip, setSelectedClips, setUndoStatus, setRedoStatus]);
 
+  /** Re-probes the selected media file and applies fresh metadata through the engine. */
+  const updateMediaMetadata = useCallback(async () => {
+    const asset = (project?.media ?? []).find((item) => item.id === selectedMediaId);
+    if (!asset) {
+      setNotice("Select a media asset to update its metadata");
+      return;
+    }
+    try {
+      const probe = await invoke<{
+        path: string;
+        kind: string;
+        duration: number | null;
+        width: number | null;
+        height: number | null;
+      }>("probe_media_for_update", { path: asset.path });
+      await perform(
+        "project.update_media",
+        {
+          path: probe.path,
+          kind: probe.kind,
+          duration: probe.duration,
+          width: probe.width,
+          height: probe.height,
+        },
+        `Media metadata updated (${probe.kind}${probe.width ? `, ${probe.width}×${probe.height}` : ""})`,
+      );
+    } catch (error) {
+      setNotice(String(error));
+    }
+  }, [project, selectedMediaId, perform, setNotice]);
+
   const relinkMedia = useCallback(
     async (mediaId: number) => {
       const path = await open({ title: "Relink missing media", multiple: false, filters: mediaFilters });
@@ -705,6 +736,7 @@ export function useMediaOperations({
     setTitleDraft,
     importMedia,
     relinkMedia,
+    updateMediaMetadata,
     createMediaBin,
     renameMediaBin,
     deleteMediaBin,

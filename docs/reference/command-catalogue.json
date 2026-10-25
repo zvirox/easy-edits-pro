@@ -1081,10 +1081,12 @@
     "category": "File",
     "id": "project.update_media",
     "label": "Update Media Metadata",
-    "menu": [],
+    "menu": [
+      "File"
+    ],
     "mutating": true,
     "params": "{\"path\":path,\"kind\":str?,\"duration\":ticks?,\"width\":int?,\"height\":int?,\"waveform\":[int]?}",
-    "shipped": false,
+    "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
     "uiOnly": false,

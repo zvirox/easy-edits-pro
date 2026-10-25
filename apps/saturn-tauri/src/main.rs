@@ -140,6 +140,7 @@ fn main() {
             discard_autosave,
             check_media_availability,
             import_media,
+            probe_media_for_update,
             start_export,
             detect_encoder_capabilities,
             export_frame,

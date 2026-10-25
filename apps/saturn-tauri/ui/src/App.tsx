@@ -439,6 +439,9 @@ function EditorApp() {
         case "project.add_media":
           await mediaOps.importMedia();
           return;
+        case "project.update_media":
+          await mediaOps.updateMediaMetadata();
+          return;
         case "edit.preferences":
           setPreferencesOpen(true);
           return;

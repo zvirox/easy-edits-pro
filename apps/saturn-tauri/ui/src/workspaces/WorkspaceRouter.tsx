@@ -248,6 +248,7 @@ export function WorkspaceRouter({
         askAi: mediaOps.askAi,
         aiReply: mediaOps.aiReply,
         checkMissingMedia: mediaOps.checkMissingMedia,
+        onUpdateMetadata: () => mediaOps.updateMediaMetadata(),
         mediaViewMode: mediaOps.mediaViewMode,
         setMediaViewMode: mediaOps.setMediaViewMode,
         activeBinId: mediaOps.activeBinId,
