@@ -490,6 +490,24 @@ flowchart TD
   multicam family 3/35 shipped, 0 planned. Remaining planned:
   nodegraph (6), project.update_media, caption.style_set,
   shortcuts.set, and workspace.library/ai/export (3).
+* **P9 — Compositing Nodes panel (Done 2026-10-25, shipped in
+  0.1.0-alpha.13):** Built the sequence-level graph editor: a Nodes
+  dock tab with draggable node cards (position and enabled commit
+  through nodegraph.update_node), SVG connection wires drawn from the
+  engine edges, a connect row (from/to node plus socket fields,
+  defaulting output/input), a connection list with per-edge
+  disconnect via nodegraph.disconnect, add/remove through
+  nodegraph.add_node / add_mask (four-point matte) / remove_node
+  (engine cleans up attached edges), and a roto-spline mask list.
+  Effects > Nodes menu ids route to the hook — add/mask dispatch
+  immediately, node-specific ones open the panel. New
+  nodegraph_disconnect_workflow_with_undo engine test; the e2e shell
+  contract now asserts the Effects menu renders. Catalogue: 207
+  shipped / 6 planned; nodegraph 6/6 shipped, 0 planned (extension
+  family, no FilmCraft tier — Tier-1 unchanged 135/443, Tier-2
+  unchanged 19/207). Remaining planned: project.update_media,
+  caption.style_set, shortcuts.set, and workspace.library/ai/export
+  (3).
 
 ---
 

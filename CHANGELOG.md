@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.13] - 2026-10-25
+
+Ninth parity fulfilment task: the compositing Nodes panel. All six
+`nodegraph.*` commands are shipped behind a real graph editor —
+draggable node cards with SVG connection wires, per-node
+enable/remove, a connect row with socket fields, per-edge disconnect,
+and a roto-spline mask list. The Effects menu now renders in the menu
+bar (it ships the nodegraph commands). The catalogue stands at 213
+commands with 207 shipped and 6 planned; nodegraph is an extension
+family with no FilmCraft tier, so tier coverage is unchanged (Tier-1
+135/443, 30%; Tier-2 19/207, 9%).
+
+### Added
+- **Nodes panel** (Edit and docked workspaces): a dotted canvas where
+  nodes are placed by the engine, dragged (position commits through
+  `nodegraph.update_node` on drop), toggled enabled/disabled, and
+  removed (the engine cleans up attached edges). Connections are
+  drawn between the affected cards and listed below with one-click
+  disconnect; Add Mask creates a four-point rectangular matte.
+- **Menu dispatch.** Effects > Nodes items route to the hook: add
+  node/mask dispatch immediately; the node- and edge-specific
+  commands open the Nodes panel.
+- `nodegraph_disconnect_workflow_with_undo` engine test covering the
+  previously untested disconnect command (unknown edge reports
+  `false`, real edge removal, undo restores).
+- The e2e shell contract now asserts the Effects menu renders with
+  shipped commands (previously it asserted the opposite).
+
+---
+
 ## [0.1.0-alpha.12] - 2026-10-25
 
 Eighth parity fulfilment task: live multicam editing. The multicam
