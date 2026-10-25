@@ -531,6 +531,8 @@ export function WorkspaceRouter({
         onTrackAdd: () => void captionsOps.addCaptionTrack(),
         onTrackRename: (id: number, name: string) => void captionsOps.renameCaptionTrack(id, name),
         onTrackRemove: (id: number) => void captionsOps.removeCaptionTrack(id),
+        style: captionsOps.style,
+        onSaveStyle: (patch) => void captionsOps.saveCaptionStyle(patch),
         cues: captionsOps.cues,
         playhead: playback.playhead,
         frameRate: project?.settings.frame_rate ?? { numerator: 30, denominator: 1 },

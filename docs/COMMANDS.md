@@ -53,7 +53,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Insert Source Clip | `timeline.insert_clip` | shipped |  | `{"media_id":int,"track_id":int?,"at":obj?,"source_in":obj?,"duration":obj?}` |
 | Overwrite Source Clip | `timeline.overwrite_clip` | shipped |  | `{"media_id":int,"track_id":int?,"at":obj?,"source_in":obj?,"duration":obj?}` |
 | List Shortcut Overrides | `shortcuts.list` | shipped |  | `{}` |
-| Write Shortcut Overrides | `shortcuts.set` | planned |  | `{"shortcuts":obj}` |
+| Write Shortcut Overrides | `shortcuts.set` | shipped |  | `{"shortcuts":obj}` |
 | Reset Shortcut Overrides | `shortcuts.reset` | shipped |  | `{}` |
 | Import Shortcut Overrides | `shortcuts.import` | shipped |  | `{"shortcuts":obj}` |
 
@@ -175,7 +175,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Nudge Caption Timing | `caption.cue_nudge` | shipped |  | `{"track_id":int,"id":int,"delta_ticks":int}` |
 | Import Captions (SRT/VTT) | `caption.import` | shipped |  | `{"track_id":int?,"content":str}` |
 | Export Captions (SRT/VTT) | `caption.export` | shipped |  | `{"track_id":int?,"format":str?}` |
-| Set Caption Style | `caption.style_set` | planned |  | `{"track_id":int,"id":int?,"name":str?,"font_family":str?,"font_size":num?,"fill_color":str?,"stroke_color":str?,"stroke_width":num?,"background_color":str?}` |
+| Set Caption Style | `caption.style_set` | shipped |  | `{"track_id":int,"id":int?,"name":str?,"font_family":str?,"font_size":num?,"fill_color":str?,"stroke_color":str?,"stroke_width":num?,"background_color":str?}` |
 | Captions Panel | `caption.panel` | shipped |  | `{}` |
 | Update Title Properties | `title.update` | shipped |  | `{"media_id":int,"text":str?,"subtitle":str?,"style":str?,"font_size":num?,"color":str?,"bg_color":str?}` |
 | Add Subtitle | `subtitle.add` | shipped |  | `{"start_ticks":obj,"end_ticks":obj,"text":str}` |

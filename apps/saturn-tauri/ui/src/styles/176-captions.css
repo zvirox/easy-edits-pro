@@ -153,3 +153,42 @@
   outline: 1px solid var(--accent);
   outline-offset: 1px;
 }
+
+.captions-stylebar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 11px;
+}
+
+.captions-style-label {
+  font-weight: 600;
+}
+
+.captions-style-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.captions-style-field input[type="number"] {
+  width: 52px;
+  padding: 1px 3px;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--bg-subpanel);
+  color: var(--text-main);
+  font: inherit;
+}
+
+.captions-style-field input[type="color"] {
+  width: 24px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  background: var(--bg-subpanel);
+}

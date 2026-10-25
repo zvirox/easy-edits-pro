@@ -3653,3 +3653,95 @@ fn nodegraph_disconnect_workflow_with_undo() {
         1
     );
 }
+
+#[test]
+fn caption_style_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name": "Styles"})))
+        .unwrap();
+    let added = engine
+        .execute(CommandRequest::new("caption.track_add", json!({"name": "Captions"})))
+        .unwrap();
+    let track_id = added["id"].as_u64().unwrap();
+
+    // Unknown tracks are rejected before any state changes.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "caption.style_set",
+            json!({"track_id": 987654, "name": "X"}),
+        ))
+        .is_err());
+
+    // Creating a style (no id) fills engine defaults for missing fields.
+    let added = engine
+        .execute(CommandRequest::new(
+            "caption.style_set",
+            json!({
+                "track_id": track_id,
+                "name": "Default",
+                "font_size": 40.0,
+                "fill_color": "#ffffff"
+            }),
+        ))
+        .unwrap();
+    assert_eq!(added["added"], true);
+    let style_id = added["id"].as_u64().unwrap();
+
+    let style_view = |engine_ref: &EditorEngine, track: u64| -> (bool, f32, Option<f32>, String, Option<String>) {
+        let found = engine_ref
+            .document()
+            .project
+            .sequence
+            .caption_tracks
+            .iter()
+            .find(|entry| entry.id == track)
+            .unwrap();
+        match found.styles.first() {
+            Some(style) => (true, style.font_size, Some(style.stroke_width), style.fill_color.clone(), style.background_color.clone()),
+            None => (false, 0.0, None, String::new(), None),
+        }
+    };
+    assert_eq!(style_view(&engine, track_id).0, true);
+    assert_eq!(style_view(&engine, track_id).1, 40.0);
+
+    // Updating an existing style touches only the given fields.
+    let updated = engine
+        .execute(CommandRequest::new(
+            "caption.style_set",
+            json!({
+                "track_id": track_id,
+                "id": style_id,
+                "fill_color": "#ff0000",
+                "stroke_width": 2.0,
+                "background_color": "#000000"
+            }),
+        ))
+        .unwrap();
+    assert_eq!(updated["updated"], true);
+    let view = style_view(&engine, track_id);
+    assert_eq!(view.3, "#ff0000");
+    assert_eq!(view.2, Some(2.0));
+    assert_eq!(view.4.as_deref(), Some("#000000"));
+    assert_eq!(view.1, 40.0);
+
+    // Empty names and unknown style ids are rejected.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "caption.style_set",
+            json!({"track_id": track_id, "id": style_id, "name": "  "}),
+        ))
+        .is_err());
+    assert!(engine
+        .execute(CommandRequest::new(
+            "caption.style_set",
+            json!({"track_id": track_id, "id": 31337, "name": "Ghost"}),
+        ))
+        .is_err());
+
+    // Undo walks back the update, then the creation.
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    assert_eq!(style_view(&engine, track_id).3, "#ffffff");
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    assert_eq!(style_view(&engine, track_id).0, false);
+}

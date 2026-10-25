@@ -39,7 +39,8 @@ type Row = {
 
 /**
  * Searchable shortcut reference with conflict-checked rebinding for menu
- * commands. Overrides live in localStorage until the preferences engine lands.
+ * commands. Changes dispatch `shortcuts.set` to the engine (settings.json)
+ * through `useShortcutsSync`, which mirrors the overrides in localStorage.
  */
 export function ShortcutsDialog({
   open,

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { CaptionTrack, SubtitleItem } from "../../app/projectTypes";
+import type { CaptionStyle, CaptionTrack, SubtitleItem } from "../../app/projectTypes";
 import { formatTimecodeFrames } from "../../utils/formatters";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { Icon } from "../../components/Icon";
@@ -14,6 +14,9 @@ export interface CaptionsPanelProps {
   onTrackRename: (trackId: number, currentName: string) => void;
   onTrackRemove: (trackId: number) => void;
   track: CaptionTrack | null;
+  /** The track's reusable style; null until first saved. */
+  style: CaptionStyle | null;
+  onSaveStyle: (patch: Partial<CaptionStyle>) => void;
   cues: readonly SubtitleItem[];
   playhead: number;
   frameRate: { numerator: number; denominator: number };
@@ -137,6 +140,8 @@ export function CaptionsPanel({
   onTrackRename,
   onTrackRemove,
   track,
+  style,
+  onSaveStyle,
   cues,
   playhead,
   frameRate,
@@ -153,6 +158,14 @@ export function CaptionsPanel({
   const ordered = sortedCues(cues);
   const active = activeCue(ordered, playhead);
   const frameStep = frameTicks(frameRate);
+
+  const [styleDraft, setStyleDraft] = useState({
+    font_size: style?.font_size ?? 42,
+    fill_color: style?.fill_color ?? "#ffffff",
+    stroke_color: style?.stroke_color ?? "#000000",
+    stroke_width: style?.stroke_width ?? 0,
+    background_color: style?.background_color ?? "#000000",
+  });
 
   const renameTrack = () => {
     if (!track) return;
@@ -199,6 +212,83 @@ export function CaptionsPanel({
           }
         >
           <Icon name="remove" />
+        </InteriorButton>
+      </div>
+      <div className="captions-stylebar" key={style?.id ?? "new"}>
+        <span className="captions-style-label">Style</span>
+        <label className="captions-style-field">
+          Size
+          <input
+            type="number"
+            aria-label="Caption font size"
+            min={8}
+            max={200}
+            value={styleDraft.font_size}
+            onChange={(event) =>
+              setStyleDraft((draft) => ({
+                ...draft,
+                font_size: Number(event.currentTarget.value) || 42,
+              }))
+            }
+          />
+        </label>
+        <label className="captions-style-field">
+          Fill
+          <input
+            type="color"
+            aria-label="Caption fill colour"
+            value={styleDraft.fill_color}
+            onChange={(event) =>
+              setStyleDraft((draft) => ({ ...draft, fill_color: event.currentTarget.value }))
+            }
+          />
+        </label>
+        <label className="captions-style-field">
+          Stroke
+          <input
+            type="color"
+            aria-label="Caption stroke colour"
+            value={styleDraft.stroke_color}
+            onChange={(event) =>
+              setStyleDraft((draft) => ({ ...draft, stroke_color: event.currentTarget.value }))
+            }
+          />
+        </label>
+        <label className="captions-style-field">
+          W
+          <input
+            type="number"
+            aria-label="Caption stroke width"
+            min={0}
+            max={20}
+            step={0.5}
+            value={styleDraft.stroke_width}
+            onChange={(event) =>
+              setStyleDraft((draft) => ({
+                ...draft,
+                stroke_width: Number(event.currentTarget.value) || 0,
+              }))
+            }
+          />
+        </label>
+        <label className="captions-style-field">
+          Bg
+          <input
+            type="color"
+            aria-label="Caption background colour"
+            value={styleDraft.background_color}
+            onChange={(event) =>
+              setStyleDraft((draft) => ({ ...draft, background_color: event.currentTarget.value }))
+            }
+          />
+        </label>
+        <InteriorButton
+          size="sm"
+          disabled={!track}
+          title="Save this look to the selected caption track"
+          onClick={() => onSaveStyle(styleDraft)}
+        >
+          Apply
         </InteriorButton>
       </div>
       <div className="captions-panel-toolbar">

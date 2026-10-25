@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import type { CaptionTrack, ProjectDocument, SubtitleItem } from "./projectTypes";
+import type { CaptionStyle, CaptionTrack, ProjectDocument, SubtitleItem } from "./projectTypes";
 import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
 import { TICKS_PER_SECOND } from "../utils/formatters.ts";
 
@@ -36,6 +36,9 @@ export interface CaptionOperations {
   addCaptionTrack: () => Promise<void>;
   removeCaptionTrack: (trackId: number) => Promise<void>;
   renameCaptionTrack: (trackId: number, name: string) => Promise<void>;
+  /** The track's first reusable style; created on first save. */
+  style: CaptionStyle | null;
+  saveCaptionStyle: (patch: Partial<CaptionStyle>) => Promise<void>;
   importCues: () => Promise<void>;
   exportCues: (format: "srt" | "vtt") => Promise<void>;
   /** Handles the caption commands that need UI gestures; false = not ours. */
@@ -216,6 +219,31 @@ export function useCaptions({
     [runCommand, refreshProject, setNotice],
   );
 
+  /** The track's first reusable style; created on first save. */
+  const style = track?.styles[0] ?? null;
+
+  const saveCaptionStyle = useCallback(
+    async (patch: Partial<CaptionStyle>) => {
+      if (!track) {
+        setNotice("No caption track — add one first");
+        return;
+      }
+      try {
+        await runCommand("caption.style_set", {
+          track_id: track.id,
+          ...(style ? { id: style.id } : {}),
+          name: style?.name ?? "Default",
+          ...patch,
+        });
+        await refreshProject();
+        setNotice("Caption style saved");
+      } catch (error) {
+        setNotice(String(error));
+      }
+    },
+    [track, style, runCommand, refreshProject, setNotice],
+  );
+
   /** Menu entry points for the shipped caption commands (panel gestures). */
   const handleMenuCommand = useCallback(
     async (id: string): Promise<boolean> => {
@@ -254,9 +282,15 @@ export function useCaptions({
         if (next && next !== track.name) await renameCaptionTrack(track.id, next);
         return true;
       }
+      if (id === "caption.style_set") {
+        // The style fields live in the panel's style section.
+        openPanel();
+        setNotice("Use the Captions panel style section to edit the caption look");
+        return true;
+      }
       return false;
     },
-    [importCues, exportCues, addCue, addCaptionTrack, removeCaptionTrack, renameCaptionTrack, track, setNotice],
+    [importCues, exportCues, addCue, addCaptionTrack, removeCaptionTrack, renameCaptionTrack, openPanel, track, setNotice],
   );
 
   /** Select a cue and park the playhead at its start. */
@@ -287,6 +321,8 @@ export function useCaptions({
     addCaptionTrack,
     removeCaptionTrack,
     renameCaptionTrack,
+    style,
+    saveCaptionStyle,
     importCues,
     exportCues,
     handleMenuCommand,
