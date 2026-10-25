@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.16] - 2026-10-25
+
+Twelfth and final parity fulfilment task: the planned-command list
+reaches **zero**. The last three entries — `workspace.library`,
+`workspace.ai`, `workspace.export` — were placeholder switchers for
+workspaces that do not exist (`DavinciWorkspace` has no such values,
+and the generic `workspace.*` menu interception would have bricked the
+router on first use). They are purged under the G2 precedent, with the
+phase2 purge test extended so the ids resolve to the standard
+unknown-command error. The real surfaces are served by shipped
+switchers: the Media pool is the library, Export is the Deliver
+workspace, and AI lives in the transcription and media-pool flows.
+
+### Campaign summary (Tasks 5–12, alphas 5–16)
+The three-way audit (engine dispatch + UI affordance + test) has now
+verified or dispositioned every command in the catalogue:
+
+| Metric | alpha.4 (start) | alpha.16 (now) |
+|---|---|---|
+| Shipped commands | 115 | **210 of 210 in catalogue (0 planned)** |
+| Tier-1 coverage | 15% | **31% (138/443)** |
+| Tier-2 coverage | 8% | **9% (19/207)** |
+| Tier-3 coverage | 0% | **18% (3/17)** |
+
+Three dynamic-dispatch finds (InteropModal, the dead speech flows, the
+already-wired `shortcuts.set`), two dead-flow repairs, and one purge
+with regression test. **Beta 1 planning is now unblocked** — the
+original gate was closing the Tier-1 command gaps.
+
+---
+
 ## [0.1.0-alpha.15] - 2026-10-25
 
 Eleventh parity fulfilment task: caption styling and engine-backed

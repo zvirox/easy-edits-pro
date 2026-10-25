@@ -540,6 +540,29 @@ flowchart TD
   Catalogue: 210 shipped / 3 planned; Tier-1 136 → 138/443 (31%);
   captions 15/22 and shortcuts 4/16 with 0 planned. Remaining
   planned: workspace.library/ai/export (3).
+* **P12 — Workspace purge, planned list at zero (Done 2026-10-25,
+  shipped in 0.1.0-alpha.16):** The final three planned ids —
+  workspace.library / workspace.ai / workspace.export — were
+  placeholder switchers for workspaces that do not exist:
+  DavinciWorkspace has no such values, and the shipped workspace.*
+  switchers work through a generic Window > Workspaces interception
+  that slices the id into selectDavinciWorkspace, so shipping them
+  would have bricked the router on first use. Purged under the G2
+  precedent (workspace.save/list); the phase2 purge test now also
+  asserts the three ids resolve to the standard unknown-command error.
+  The real surfaces keep shipped switchers: the Media pool is the
+  library, Export is the Deliver workspace, AI lives in the
+  transcription and media-pool flows. Catalogue: 210 commands, 210
+  shipped, 0 planned. Tier-1 138/443 (31%); Tier-2 19/207 (9%);
+  Tier-3 3/17 (18%). **The parity fulfilment campaign P1–P12 is
+  complete — every catalogue command is verified, extension-shipped,
+  or purged with a regression test. Beta 1 planning is unblocked** per
+  the original gate (Tier-1 command gaps closed); candidate Beta 1
+  focus areas: lifting Tier-1 coverage beyond command-level parity
+  (287 Tier-1 commands remain FilmCraft-only, mostly feature-sized),
+  QAT hardening of the twelve audited seams, native packaging polish,
+  and Beta acceptance criteria (installer flows, sample projects,
+  updated docs).
 
 ---
 
