@@ -51,7 +51,7 @@ pub async fn sync_multicam_by_waveform(
 pub async fn transcribe_audio_speech(
     state: State<'_, AppState>,
     options: Option<TranscribeAudioOptions>,
-) -> Result<Vec<saturn_core::SubtitleItem>, String> {
+) -> Result<serde_json::Value, String> {
     let opts = options.unwrap_or(TranscribeAudioOptions {
         media_id: None,
         language: Some("en".to_string()),
@@ -169,14 +169,17 @@ pub async fn transcribe_audio_speech(
         ))
         .map_err(|e| e.to_string())?;
 
-    Ok(engine
+    let subtitles = engine
         .document()
         .project
         .sequence
         .caption_tracks
         .first()
         .map(|track| track.cues.clone())
-        .unwrap_or_default())
+        .unwrap_or_default();
+    // Include the word-timed segments so the filler-removal flow can reuse
+    // exactly what was "transcribed" instead of re-synthesizing timings.
+    Ok(json!({ "subtitles": subtitles, "segments": segments }))
 }
 
 #[tauri::command]

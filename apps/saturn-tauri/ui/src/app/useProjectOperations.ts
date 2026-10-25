@@ -13,11 +13,10 @@ import type {
   ProjectDocument,
   ProjectStatus,
   SelectedClip,
-  SilenceInterval,
   Transition,
 } from "./projectTypes";
-import { TICKS_PER_SECOND } from "./projectTypes";
-import { buildBatchCommandParams } from "./menuCommandParams";
+import { TICKS_PER_SECOND } from "./projectTypes";import { buildBatchCommandParams } from "./menuCommandParams";
+import { useSpeechOperations } from "./useSpeechOperations";
 
 const recentProjectsKey = "easy-edits-pro.recent-projects.v1";
 const projectFilters = [{ name: "Easy Edits Pro project", extensions: ["saturn"] }];
@@ -86,6 +85,7 @@ export function useProjectOperations({
   getMenuContext,
 }: UseProjectOperationsOptions) {
   const project = projectState?.document.project ?? null;
+  const speechOps = useSpeechOperations({ project, refreshProject, setNotice, setBusy });
 
   const [appStage, setAppStage] = useState<AppStage>("welcome");
   const [loadingMessage, setLoadingMessage] = useState("Preparing your editing workspace");
@@ -127,22 +127,6 @@ export function useProjectOperations({
   const [useHardwareEncoding, setUseHardwareEncoding] = useState(true);
   const [rendering, setRendering] = useState(false);
   const [renderProgress, setRenderProgress] = useState<{ fractionPercent: number; phase: string } | null>(null);
-
-  // Transcribe modal
-  const [transcribeModalOpen, setTranscribeModalOpen] = useState(false);
-  const [transcribeLanguage, setTranscribeLanguage] = useState("en");
-  const [transcribeModel, setTranscribeModel] = useState("base");
-  const [transcribeTextOverride, setTranscribeTextOverride] = useState("");
-  const [transcribeReplaceExisting, setTranscribeReplaceExisting] = useState(false);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-
-  // Silence removal modal
-  const [silenceModalOpen, setSilenceModalOpen] = useState(false);
-  const [silenceThresholdDb, setSilenceThresholdDb] = useState(-35);
-  const [silenceMinDurationMs, setSilenceMinDurationMs] = useState(400);
-  const [silencePaddingMs, setSilencePaddingMs] = useState(50);
-  const [silenceIntervals, setSilenceIntervals] = useState<SilenceInterval[]>([]);
-  const [isDetectingSilence, setIsDetectingSilence] = useState(false);
 
   // Interop modal
   const [interopModalOpen, setInteropModalOpen] = useState(false);
@@ -396,79 +380,6 @@ export function useProjectOperations({
     setNotice,
   ]);
 
-  const handleAutoTranscribe = useCallback(async () => {
-    setIsTranscribing(true);
-    setNotice("Transcribing timeline audio with Whisper AI…");
-    try {
-      await invoke("transcribe_timeline_speech", {
-        model: transcribeModel,
-        language: transcribeLanguage === "auto" ? null : transcribeLanguage,
-        textOverride: transcribeTextOverride || null,
-        replaceExisting: transcribeReplaceExisting,
-      });
-      await refreshProject();
-      setTranscribeModalOpen(false);
-      setNotice("Auto-transcription complete! Subtitle cues added.");
-    } catch (err) {
-      setNotice(`Transcription failed: ${String(err)}`);
-    } finally {
-      setIsTranscribing(false);
-    }
-  }, [transcribeModel, transcribeLanguage, transcribeTextOverride, transcribeReplaceExisting, setNotice, refreshProject]);
-
-  const handleDetectSilence = useCallback(async () => {
-    setIsDetectingSilence(true);
-    setNotice("Analyzing audio waveform for silence gaps…");
-    try {
-      const intervals = await invoke<SilenceInterval[]>("detect_silence_intervals", {
-        thresholdDb: silenceThresholdDb,
-        minDurationMs: silenceMinDurationMs,
-      });
-      setSilenceIntervals(intervals);
-      setNotice(`Detected ${intervals.length} silence intervals across timeline.`);
-    } catch (err) {
-      setNotice(`Silence detection failed: ${String(err)}`);
-    } finally {
-      setIsDetectingSilence(false);
-    }
-  }, [silenceThresholdDb, silenceMinDurationMs, setNotice]);
-
-  const handleRippleDeleteSilence = useCallback(async () => {
-    setBusy(true);
-    setNotice("Ripple-deleting silence gaps…");
-    try {
-      await invoke("ripple_delete_silence_intervals", {
-        thresholdDb: silenceThresholdDb,
-        minDurationMs: silenceMinDurationMs,
-        paddingMs: silencePaddingMs,
-      });
-      await refreshProject();
-      setSilenceModalOpen(false);
-      setNotice("Successfully ripple-removed silence pauses from timeline!");
-    } catch (err) {
-      setNotice(`Ripple delete failed: ${String(err)}`);
-    } finally {
-      setBusy(false);
-    }
-  }, [silenceThresholdDb, silenceMinDurationMs, silencePaddingMs, setBusy, setNotice, refreshProject]);
-
-  const handleRippleDeleteFillers = useCallback(async () => {
-    setBusy(true);
-    setNotice("Ripple-deleting verbal hesitation fillers…");
-    try {
-      await invoke("ripple_delete_filler_words", {
-        paddingMs: silencePaddingMs,
-      });
-      await refreshProject();
-      setSilenceModalOpen(false);
-      setNotice("Successfully removed filler words from timeline!");
-    } catch (err) {
-      setNotice(`Filler removal failed: ${String(err)}`);
-    } finally {
-      setBusy(false);
-    }
-  }, [silencePaddingMs, setBusy, setNotice, refreshProject]);
-
   const handleExportTimelineInterop = useCallback(
     async (fmt?: string) => {
       const targetFormat = fmt || interopFormat;
@@ -552,6 +463,13 @@ export function useProjectOperations({
           return;
         case "project.inspect":
           setProjectJsonOpen(true);
+          return;
+        case "speech.transcribe_to_subtitles":
+          speechOps.setTranscribeModalOpen(true);
+          return;
+        case "speech.ripple_delete_silence":
+        case "speech.ripple_delete_fillers":
+          speechOps.setSilenceModalOpen(true);
           return;
         case "view.fullscreen":
           await toggleFullscreen();
@@ -698,27 +616,7 @@ export function useProjectOperations({
     setUseHardwareEncoding,
     rendering,
     renderProgress,
-    transcribeModalOpen,
-    setTranscribeModalOpen,
-    transcribeLanguage,
-    setTranscribeLanguage,
-    transcribeModel,
-    setTranscribeModel,
-    transcribeTextOverride,
-    setTranscribeTextOverride,
-    transcribeReplaceExisting,
-    setTranscribeReplaceExisting,
-    isTranscribing,
-    silenceModalOpen,
-    setSilenceModalOpen,
-    silenceThresholdDb,
-    setSilenceThresholdDb,
-    silenceMinDurationMs,
-    setSilenceMinDurationMs,
-    silencePaddingMs,
-    setSilencePaddingMs,
-    silenceIntervals,
-    isDetectingSilence,
+    ...speechOps,
     interopModalOpen,
     setInteropModalOpen,
     interopMode,
@@ -749,10 +647,6 @@ export function useProjectOperations({
     saveProject,
     chooseExportDestination,
     exportProject,
-    handleAutoTranscribe,
-    handleDetectSilence,
-    handleRippleDeleteSilence,
-    handleRippleDeleteFillers,
     handleExportTimelineInterop,
     handleImportTimelineInterop,
     handleFetchGpuTelemetry,

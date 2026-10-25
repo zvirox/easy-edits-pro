@@ -3430,3 +3430,59 @@ fn project_inspect_reflects_edited_document() {
         .unwrap()
         .is_empty());
 }
+
+#[test]
+fn speech_ripple_delete_silence_workflow_with_undo() {
+    let mut engine = EditorEngine::default();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name":"lecture.mp4", "path":"/assets/lecture.mp4", "kind":"video"}),
+        ))
+        .unwrap();
+    let media_id = media["media_id"].as_u64().unwrap();
+    let track_id = engine.document().project.sequence.tracks[0].id;
+
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": track_id,
+                "media_id": media_id,
+                "timeline_start": 0,
+                "source_in": 0,
+                "duration": 10 * TICKS_PER_SECOND
+            }),
+        ))
+        .unwrap();
+
+    // 100 peak bins over the 10s timeline: loud, then a 2s silent stretch
+    // (bins 40..60), then loud again. -35 dBFS threshold means peaks <= 4
+    // count as silent, so 0/200 is unambiguous.
+    let mut peaks: Vec<u8> = Vec::new();
+    for i in 0..100 {
+        peaks.push(if (40..60).contains(&i) { 0 } else { 200 });
+    }
+
+    let res = engine
+        .execute(CommandRequest::new(
+            "speech.ripple_delete_silence",
+            json!({"peaks": peaks}),
+        ))
+        .unwrap();
+    assert_eq!(res["deleted_ranges_count"].as_u64().unwrap(), 1);
+    // The 2s silent stretch loses 50ms of padding on each side.
+    assert_eq!(
+        engine.document().project.sequence.duration().0,
+        10 * TICKS_PER_SECOND - 1900 * (TICKS_PER_SECOND / 1000)
+    );
+
+    // Undo restores the full 10s timeline.
+    engine
+        .execute(CommandRequest::new("edit.undo", Value::Null))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.duration().0,
+        10 * TICKS_PER_SECOND
+    );
+}

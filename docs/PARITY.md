@@ -15,7 +15,7 @@ entries exist in the catalogue but are not yet shipped.
 |---|---:|---:|---:|
 | Tier 1 | 443 | 132 | 30% |
 | Tier 2 | 207 | 16 | 8% |
-| Tier 3 | 17 | 0 | 0% |
+| Tier 3 | 17 | 3 | 18% |
 
 Tier 1 targets Beta 1; Tier 2 comes after Beta 1; Tier 3 is later.
 Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
@@ -52,7 +52,7 @@ Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
 | lut | 2 | 4 | 0 | 0 | 4 |
 | color | 2 | 1 | 0 | 0 | 1 |
 | mediaBrowser | 3 | 10 | 0 | 0 | 10 |
-| tts | 3 | 7 | 0 | 3 | 7 |
+| tts | 3 | 7 | 3 | 0 | 4 |
 | essentialSound | - | 9 | 0 | 0 | 9 |
 | source | - | 7 | 0 | 0 | 7 |
 | labels | - | 4 | 0 | 0 | 4 |
@@ -77,6 +77,6 @@ Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
 
 FilmCraft commands: 701
 
-EEP commands: 213 (192 shipped, 21 planned)
+EEP commands: 213 (195 shipped, 18 planned)
 
 App-only families (no FilmCraft counterpart): bus, interop, nodegraph, track, view, workspace

@@ -41,8 +41,8 @@ Generated from the command catalogue. Do not edit by hand.
 | Select All Clips | `edit.select_all` | shipped | Ctrl+A | `{}` |
 | Deselect All | `edit.deselect_all` | shipped | Ctrl+Shift+A | `{}` |
 | Select Clip at Playhead | `edit.select_clip_at_playhead` | shipped |  | `{}` |
-| Ripple Delete Audio Silence | `speech.ripple_delete_silence` | planned |  | `{"peaks":[int],"options":obj?}` |
-| Ripple Delete Filler Words | `speech.ripple_delete_fillers` | planned |  | `{"segments":[obj],"custom_fillers":[str]?}` |
+| Ripple Delete Audio Silence | `speech.ripple_delete_silence` | shipped |  | `{"peaks":[int],"options":obj?}` |
+| Ripple Delete Filler Words | `speech.ripple_delete_fillers` | shipped |  | `{"segments":[obj],"custom_fillers":[str]?}` |
 | Ripple Delete Time Ranges | `timeline.ripple_delete_ranges` | shipped |  | `{"ranges":obj}` |
 | Ripple Delete Timeline Gap | `timeline.ripple_delete_gap` | shipped |  | `{"track_id":int?,"at_tick":obj}` |
 | Preferences… | `edit.preferences` | shipped | Ctrl+, | `{}` |
@@ -215,7 +215,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Remove Track Automation Point | `track.remove_automation_point` | shipped |  | `{"track_id":int,"lane":"volume\|pan","time":ticks}` |
 | Clear Track Automation | `track.clear_automation` | shipped |  | `{"track_id":int,"lane":"volume\|pan"?}` |
 | Set Audio Bus Gain | `bus.set_gain_db` | shipped |  | `{"target":obj,"gain_db":num}` |
-| Transcribe Speech to Subtitles | `speech.transcribe_to_subtitles` | planned |  | `{"segments":[obj],"replace_existing":bool?}` |
+| Transcribe Speech to Subtitles | `speech.transcribe_to_subtitles` | shipped |  | `{"segments":[obj],"replace_existing":bool?}` |
 
 ## Effects
 
