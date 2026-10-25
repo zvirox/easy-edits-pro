@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.12] - 2026-10-25
+
+Eighth parity fulfilment task: live multicam editing. The multicam
+monitor in the preview already had an angle grid, keyboard cuts, and a
+Sync Waveforms button, but its callbacks were stubbed no-ops. They now
+drive the real engine commands, and `multicam.create`,
+`multicam.switch_angle`, and `multicam.sync` are shipped. The catalogue
+stands at 213 commands with 201 shipped and 12 planned; multicam is a
+Tier-2 family, so Tier-1 coverage is unchanged at 135/443 (30%) and
+Tier-2 moves to 19/207 (9%).
+
+### Added
+- **Live cuts.** Clicking an angle tile in the monitor (or pressing
+  1–9) switches the selected timeline clip's multicam angle via
+  `multicam.switch_angle`; the engine links an unlinked clip to the
+  group containing that angle. A notice asks for a timeline selection
+  when none exists.
+- **Waveform sync.** The Sync Waveforms button cross-correlates the
+  first multicam group's angle waveforms (via the
+  `sync_multicam_by_waveform` Tauri command) and applies the resulting
+  per-angle offsets through `multicam.sync`; unsyncable angles fall
+  back to zero offset with an honest notice.
+- **Creation flow.** Clip > Multicam > Create Multicam Clip builds a
+  group from the project's video/audio media assets (up to nine
+  angles) and dispatches `multicam.create`; it is guarded when fewer
+  than two assets are imported.
+
+---
+
 ## [0.1.0-alpha.11] - 2026-10-25
 
 Seventh parity fulfilment task: multi-track caption management. The

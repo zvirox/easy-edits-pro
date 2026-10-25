@@ -473,6 +473,23 @@ flowchart TD
   create/switch_angle (2), project.update_media, and UI-only
   stragglers (3) — Tier-1 families are nearly closed except nodegraph
   adjacency and the media seam.
+* **P8 — Live multicam editing (Done 2026-10-25, shipped in
+  0.1.0-alpha.12):** Made the pre-existing multicam monitor real: the
+  angle grid and keyboard 1–9 cuts now dispatch
+  multicam.switch_angle against the selected timeline clip (the engine
+  links unlinked clips to the group containing the angle), the Sync
+  Waveforms button cross-correlates the first group's angle waveforms
+  via the sync_multicam_by_waveform Tauri command and applies the
+  offsets through multicam.sync, and Clip > Multicam > Create Multicam
+  Clip builds a group from the project's video/audio assets (up to 9
+  angles, guarded below two). Engine arms and the
+  create→switch→sync→undo workflow test already existed; the stubbed
+  callbacks in WorkspaceRouter and App's useShortcuts were the only
+  gap. Catalogue: 201 shipped / 12 planned; Tier-2 coverage 16 →
+  19/207 (9%, multicam is Tier 2); Tier-1 unchanged 135/443 (30%);
+  multicam family 3/35 shipped, 0 planned. Remaining planned:
+  nodegraph (6), project.update_media, caption.style_set,
+  shortcuts.set, and workspace.library/ai/export (3).
 
 ---
 
