@@ -564,6 +564,32 @@ flowchart TD
   and Beta acceptance criteria (installer flows, sample projects,
   updated docs).
 
+* **P13 — Tier-1 semantic mapping audit and per-id parity metric
+  (Done 2026-10-25, infrastructure; Tier-1 finish campaign start):**
+  User directive: Tier-1 coverage finishes before Beta 1 planning.
+  Naive id-diffing overcounts: EEP regularly implements FilmCraft
+  behavior under different ids (`markers.markIn` maps to
+  `timeline.set_mark_in`, `sequence.transcribe` to
+  `speech.transcribe_to_subtitles`), and the count-based PARITY gap was
+  a count difference, not id-verified. Every one of the 443 FilmCraft
+  Tier-1 commands was hand-dispositioned in
+  `docs/reference/tier1-audit.json`: 18 `shipped` (same id), 80
+  `equivalent` (documented semantic mapping to a shipped EEP command,
+  integrity-checked by the generator), 344 `new` (genuine gaps), 1
+  `na` (`edit.label` submenu parent). `check-parity.mjs` now computes
+  per-id coverage from the audit and hard-fails on any audit entry
+  that maps to a command that does not ship — the implemented-id flip
+  mechanism follows the same integrity rule. Id-verified Tier-1 truth:
+  **98/442 (22%)** — the count metric's 31% over-credited families
+  holding extension commands beyond FilmCraft's set. Tiers 2/3 report
+  "audit pending" until their audits land. Remaining work: 344 new
+  Tier-1 commands, batched family by family, each batch verified
+  before done and released. Batch order (smallest first, then big
+  families): playhead (4), prefs (1), history (1), captions (13),
+  media (16), shortcuts (13), export (19), trim (24), markers (18),
+  edit (29), project (37), timeline (34), sequence (32), clip (52),
+  file (51).
+
 ---
 
 ## 7. Master Agentic Execution Rules

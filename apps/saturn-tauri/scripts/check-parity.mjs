@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * FilmCraft parity report (packet D1).
+ * FilmCraft parity report (packet D1, extended P13).
  *
  * Compares the checked-in EEP catalogue with the inventory recorded from the
  * installed FilmCraft 0.8.0 (`filmcraft-cli describe`) on 2026-10-21.
@@ -8,16 +8,24 @@
  * - A family alias map maps EEP family prefixes onto the canonical FilmCraft
  *   family names they serve (`graphic` -> `graphics`, `subtitle` -> `captions`,
  *   `speech` -> `tts`, ...).
- * - Ships vs planned (catalogue entry that exists but is not `shipped`) are
- *   reported separately; gaps are computed against the shipped count.
+ * - Coverage is **per id**, not per count. `docs/reference/tier<N>-audit.json`
+ *   maps every FilmCraft Tier-N command to a disposition:
+ *     `shipped`    - the same id exists in the EEP catalogue and ships;
+ *     `equivalent` - a shipped EEP command fulfils the behavior (documented
+ *                    semantic mapping, may use a different id);
+ *     `new`        - a genuine gap; once implemented the entry carries an
+ *                    `eep` id that must exist and ship in the catalogue;
+ *     `na`         - documented divergence (excluded from the denominator).
+ * - A tier without an audit file reports its FilmCraft count without a
+ *   coverage claim, so coverage is never asserted without id-level evidence.
  * - Families are grouped by parity tier (see the plan, section 5.2).
  * - The report is written to `docs/PARITY.md`. Run with `--check` to verify
  *   the committed report is not stale (used by CI); exits non-zero on drift.
  *
- * Informational: without `--check` it exits non-zero only when the reference
- * files are malformed.
+ * Informational: without `--check` it exits non-zero when the reference files
+ * are malformed or an audit entry is inconsistent with the catalogue.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -66,6 +74,58 @@ const familyOf = (id) => {
   return familyAlias[raw] ?? raw;
 };
 
+// --- Per-id audit ----------------------------------------------------------
+const eepById = new Map(eep.map((item) => [item.id, item]));
+const audits = new Map(); // tier -> { byId: Map, covered: Set, na: Set }
+for (const tier of [1, 2, 3]) {
+  const path = resolve(root, `docs/reference/tier${tier}-audit.json`);
+  if (!existsSync(path)) continue;
+  const raw = JSON.parse(readFileSync(path, "utf8"));
+  const byId = new Map(Object.entries(raw));
+  const fcInTier = filmcraft.filter(
+    (item) => familyTier.get(familyOf(item.id)) === tier,
+  );
+  const errors = [];
+  const covered = new Set();
+  const na = new Set();
+  for (const [id, entry] of byId) {
+    if (familyTier.get(familyOf(id)) !== tier) {
+      errors.push(`${id}: audit entry is not a Tier-${tier} command`);
+    }
+    if (entry.disposition === "shipped" || entry.disposition === "equivalent") {
+      const spec = entry.eep ? eepById.get(entry.eep) : undefined;
+      if (!spec || !spec.shipped) {
+        errors.push(`${id}: mapped ${entry.eep ?? "(none)"} is not a shipped EEP command`);
+      } else {
+        covered.add(id);
+      }
+    } else if (entry.disposition === "new") {
+      if (entry.eep) {
+        const spec = eepById.get(entry.eep);
+        if (!spec || !spec.shipped) {
+          errors.push(`${id}: implemented ${entry.eep ?? "(none)"} is not a shipped EEP command`);
+        } else {
+          covered.add(id);
+        }
+      }
+    } else if (entry.disposition === "na") {
+      na.add(id);
+      if (!entry.note) errors.push(`${id}: na disposition requires a note`);
+    } else {
+      errors.push(`${id}: unknown disposition ${entry.disposition}`);
+    }
+  }
+  for (const item of fcInTier) {
+    if (!byId.has(item.id)) errors.push(`${item.id}: Tier-${tier} command missing from the audit`);
+  }
+  if (errors.length) {
+    console.error(`Parity check failed: tier${tier}-audit.json is inconsistent with the catalogue:`);
+    for (const error of errors) console.error(`  - ${error}`);
+    process.exit(1);
+  }
+  audits.set(tier, { byId, covered, na, total: fcInTier.length });
+}
+
 const tally = (items) => {
   const map = new Map();
   for (const item of items) {
@@ -90,24 +150,42 @@ const families = [...new Set([...fcCounts.keys(), ...eepTally.keys()])].sort((a,
 });
 
 const rows = families.map((family) => {
-  const tally = eepTally.get(family) ?? { shipped: 0, planned: 0 };
+  const tier = familyTier.get(family) ?? null;
+  const audit = tier === null ? undefined : audits.get(tier);
+  let covered = null;
+  let na = 0;
+  if (audit) {
+    covered = 0;
+    for (const item of filmcraft) {
+      if (familyOf(item.id) === family) {
+        if (audit.covered.has(item.id)) covered += 1;
+        if (audit.na.has(item.id)) na += 1;
+      }
+    }
+  }
   const filmcraftCount = fcCounts.get(family) ?? 0;
+  const tallyRow = eepTally.get(family) ?? { shipped: 0, planned: 0 };
   return {
     family,
-    tier: familyTier.get(family) ?? null,
+    tier,
     filmcraft: filmcraftCount,
-    shipped: tally.shipped,
-    planned: tally.planned,
-    gap: Math.max(0, filmcraftCount - tally.shipped),
+    covered,
+    na,
+    gap:
+      covered === null
+        ? ""
+        : Math.max(0, filmcraftCount - na - covered) || "",
   };
 });
 
 const tierSummary = [1, 2, 3].map((tier) => {
   const tierRows = rows.filter((row) => row.tier === tier);
   const fc = tierRows.reduce((sum, row) => sum + row.filmcraft, 0);
-  const shipped = tierRows.reduce((sum, row) => sum + row.shipped, 0);
-  const percent = fc === 0 ? 100 : Math.round((shipped / fc) * 100);
-  return { tier, fc, shipped, percent };
+  const audit = audits.get(tier);
+  const covered = audit ? audit.covered.size : null;
+  const na = audit ? audit.na.size : 0;
+  const percent = covered === null ? null : Math.round((covered / (fc - na)) * 100);
+  return { tier, fc, covered, na, percent };
 });
 
 // --- Markdown report -------------------------------------------------------
@@ -115,20 +193,28 @@ const lines = [
   "# FilmCraft parity report",
   "",
   "<!-- Generated by apps/saturn-tauri/scripts/check-parity.mjs from",
-  "     docs/reference/command-catalogue.json and",
-  "     docs/reference/filmcraft-commands.json. Regenerate with",
+  "     docs/reference/command-catalogue.json,",
+  "     docs/reference/filmcraft-commands.json, and",
+  "     docs/reference/tier<N>-audit.json. Regenerate with",
   "     `pnpm check:parity`; CI verifies this file with `--check`. -->",
   "",
   "Verified-before-done rule: a command counts as shipped only with a UI",
-  "affordance, a test, and `shipped: true` in the catalogue; `planned`",
-  "entries exist in the catalogue but are not yet shipped.",
+  "affordance, a test, and `shipped: true` in the catalogue.",
+  "",
+  "Coverage is per id: a FilmCraft command counts as covered when the audit",
+  "maps it to a shipped EEP command (`shipped` id match, documented",
+  "`equivalent`, or an implemented `new` entry). Documented `na` divergences",
+  "are excluded from the denominator. Tiers without an audit file report no",
+  "coverage.",
   "",
   "## Tier coverage",
   "",
-  "| Tier | FilmCraft | EEP shipped | Coverage |",
-  "|---|---:|---:|---:|",
+  "| Tier | FilmCraft | N/A | Covered | Coverage |",
+  "|---|---:|---:|---:|---:|",
   ...tierSummary.map((entry) =>
-    `| Tier ${entry.tier} | ${entry.fc} | ${entry.shipped} | ${entry.percent}% |`,
+    entry.covered === null
+      ? `| Tier ${entry.tier} | ${entry.fc} | - | - | audit pending |`
+      : `| Tier ${entry.tier} | ${entry.fc} | ${entry.na} | ${entry.covered} | ${entry.percent}% |`,
   ),
   "",
   "Tier 1 targets Beta 1; Tier 2 comes after Beta 1; Tier 3 is later.",
@@ -136,10 +222,12 @@ const lines = [
   "",
   "## Per-family coverage",
   "",
-  "| Family | Tier | FilmCraft | EEP shipped | EEP planned | Gap |",
+  "| Family | Tier | FilmCraft | Covered | N/A | Gap |",
   "|---|---|---:|---:|---:|---:|",
   ...rows.map((row) =>
-    `| ${row.family} | ${row.tier ?? "-"} | ${row.filmcraft} | ${row.shipped} | ${row.planned} | ${row.gap || ""} |`,
+    row.covered === null
+      ? `| ${row.family} | ${row.tier ?? "-"} | ${row.filmcraft} | - | - | |`
+      : `| ${row.family} | ${row.tier ?? "-"} | ${row.filmcraft} | ${row.covered} | ${row.na} | ${row.gap} |`,
   ),
   "",
   "## Totals",
@@ -168,11 +256,11 @@ if (checkOnly) {
   writeFileSync(reportPath, report);
   const width = Math.max(...rows.map((row) => row.family.length), 6);
   console.log(
-    `${"family".padEnd(width)}  ${"tier".padStart(4)}  ${"filmcraft".padStart(9)}  ${"shipped".padStart(7)}  ${"planned".padStart(7)}  gap`,
+    `${"family".padEnd(width)}  ${"tier".padStart(4)}  ${"fc".padStart(5)}  ${"covered".padStart(7)}  ${"na".padStart(4)}  gap`,
   );
   for (const row of rows) {
     console.log(
-      `${row.family.padEnd(width)}  ${String(row.tier ?? "-").padStart(4)}  ${String(row.filmcraft).padStart(9)}  ${String(row.shipped).padStart(7)}  ${String(row.planned).padStart(7)}  ${row.gap || ""}`,
+      `${row.family.padEnd(width)}  ${String(row.tier ?? "-").padStart(4)}  ${String(row.filmcraft).padStart(5)}  ${row.covered === null ? "-".padStart(7) : String(row.covered).padStart(7)}  ${row.covered === null ? "-".padStart(4) : String(row.na).padStart(4)}  ${row.gap || ""}`,
     );
   }
   console.log("");
@@ -182,7 +270,9 @@ if (checkOnly) {
   );
   for (const entry of tierSummary) {
     console.log(
-      `Tier ${entry.tier} coverage:      ${entry.shipped}/${entry.fc} (${entry.percent}%)`,
+      entry.covered === null
+        ? `Tier ${entry.tier} coverage:      audit pending (${entry.fc} commands)`
+        : `Tier ${entry.tier} coverage:      ${entry.covered}/${entry.fc - entry.na} (${entry.percent}%)`,
     );
   }
   console.log("");

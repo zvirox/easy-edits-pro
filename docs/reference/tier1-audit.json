@@ -1,0 +1,1905 @@
+{
+ "captions.add": {
+  "label": "Add Caption at Playhead",
+  "disposition": "equivalent",
+  "eep": "caption.cue_add"
+ },
+ "captions.delete": {
+  "label": "Delete Captions",
+  "disposition": "new"
+ },
+ "captions.deleteTrack": {
+  "label": "Delete Caption Track",
+  "disposition": "equivalent",
+  "eep": "caption.track_remove"
+ },
+ "captions.export": {
+  "label": "Captions\u2026",
+  "disposition": "equivalent",
+  "eep": "caption.export"
+ },
+ "captions.goTo": {
+  "label": "Go to Caption",
+  "disposition": "new"
+ },
+ "captions.hideAll": {
+  "label": "Hide All Caption Tracks",
+  "disposition": "new"
+ },
+ "captions.import": {
+  "label": "Import Captions\u2026",
+  "disposition": "equivalent",
+  "eep": "caption.import"
+ },
+ "captions.list": {
+  "label": "List Captions",
+  "disposition": "new"
+ },
+ "captions.merge": {
+  "label": "Merge Captions",
+  "disposition": "new"
+ },
+ "captions.move": {
+  "label": "Move Captions",
+  "disposition": "new"
+ },
+ "captions.newTrack": {
+  "label": "Add New Caption Track\u2026",
+  "disposition": "equivalent",
+  "eep": "caption.track_add"
+ },
+ "captions.next": {
+  "label": "Go to Next Caption Segment",
+  "disposition": "new"
+ },
+ "captions.previous": {
+  "label": "Go to Previous Caption Segment",
+  "disposition": "new"
+ },
+ "captions.select": {
+  "label": "Select Captions",
+  "disposition": "new"
+ },
+ "captions.setStyle": {
+  "label": "Caption Track Style",
+  "disposition": "equivalent",
+  "eep": "caption.style_set",
+  "note": "per-track style folds into the caption style set"
+ },
+ "captions.setText": {
+  "label": "Edit Caption Text",
+  "disposition": "equivalent",
+  "eep": "caption.cue_update",
+  "note": "cue_update edits text and timing"
+ },
+ "captions.setTimes": {
+  "label": "Set Caption In/Out",
+  "disposition": "equivalent",
+  "eep": "caption.cue_update",
+  "note": "cue_update edits text and timing"
+ },
+ "captions.setTrack": {
+  "label": "Caption Track Settings",
+  "disposition": "new"
+ },
+ "captions.showActiveOnly": {
+  "label": "Show Active Caption Tracks Only",
+  "disposition": "new"
+ },
+ "captions.showAll": {
+  "label": "Show All Caption Tracks",
+  "disposition": "new"
+ },
+ "captions.split": {
+  "label": "Split Caption",
+  "disposition": "new"
+ },
+ "captions.trim": {
+  "label": "Trim Caption",
+  "disposition": "equivalent",
+  "eep": "caption.cue_nudge",
+  "note": "timing trim of a cue"
+ },
+ "clip.audioChannels": {
+  "label": "Audio Channels\u2026",
+  "disposition": "new"
+ },
+ "clip.audioGain": {
+  "label": "Audio Gain\u2026",
+  "disposition": "new"
+ },
+ "clip.audioPeak": {
+  "label": "Audio Clip Peak Amplitude",
+  "disposition": "new"
+ },
+ "clip.automateToSequence": {
+  "label": "Automate to Sequence\u2026",
+  "disposition": "new"
+ },
+ "clip.breakoutToMono": {
+  "label": "Breakout to Mono",
+  "disposition": "new"
+ },
+ "clip.clearPosterFrame": {
+  "label": "Clear Poster Frame",
+  "disposition": "new"
+ },
+ "clip.createMulticam": {
+  "label": "Create Multi-Camera Source Sequence\u2026",
+  "disposition": "equivalent",
+  "eep": "multicam.create",
+  "note": "multi-camera source sequence creation"
+ },
+ "clip.editOffline": {
+  "label": "Edit Offline\u2026",
+  "disposition": "new"
+ },
+ "clip.editSubclip": {
+  "label": "Edit Subclip\u2026",
+  "disposition": "new"
+ },
+ "clip.enable": {
+  "label": "Enable",
+  "disposition": "new"
+ },
+ "clip.extractAudio": {
+  "label": "Extract Audio",
+  "disposition": "new"
+ },
+ "clip.fieldOptions": {
+  "label": "Field Options\u2026",
+  "disposition": "new"
+ },
+ "clip.fillFrame": {
+  "label": "Fill frame",
+  "disposition": "new"
+ },
+ "clip.fitToFrame": {
+  "label": "Fit to frame",
+  "disposition": "new"
+ },
+ "clip.frameHold": {
+  "label": "Add Frame Hold",
+  "disposition": "new"
+ },
+ "clip.frameHoldOptions": {
+  "label": "Frame Hold Options\u2026",
+  "disposition": "new"
+ },
+ "clip.generateAudioWaveform": {
+  "label": "Generate Audio Waveform",
+  "disposition": "new"
+ },
+ "clip.group": {
+  "label": "Group",
+  "disposition": "new"
+ },
+ "clip.insertFrameHoldSegment": {
+  "label": "Insert Frame Hold Segment",
+  "disposition": "new"
+ },
+ "clip.interpretFootage": {
+  "label": "Interpret Footage\u2026",
+  "disposition": "new"
+ },
+ "clip.link": {
+  "label": "Link",
+  "disposition": "equivalent",
+  "eep": "timeline.link_clips"
+ },
+ "clip.makeSubclip": {
+  "label": "Make Subclip\u2026",
+  "disposition": "new"
+ },
+ "clip.mergeClips": {
+  "label": "Merge Clips\u2026",
+  "disposition": "new"
+ },
+ "clip.modifyTimecode": {
+  "label": "Timecode\u2026",
+  "disposition": "new"
+ },
+ "clip.multicamEnable": {
+  "label": "Enable",
+  "disposition": "new"
+ },
+ "clip.multicamFlatten": {
+  "label": "Flatten",
+  "disposition": "new"
+ },
+ "clip.nest": {
+  "label": "Nest\u2026",
+  "disposition": "equivalent",
+  "eep": "timeline.create_compound_clip",
+  "note": "nesting creates a compound clip"
+ },
+ "clip.nudgeVolumeDown1": {
+  "label": "Nudge Volume -1dB",
+  "disposition": "new"
+ },
+ "clip.nudgeVolumeDown3": {
+  "label": "Nudge Volume -3dB",
+  "disposition": "new"
+ },
+ "clip.nudgeVolumeUp1": {
+  "label": "Nudge Volume +1dB",
+  "disposition": "new"
+ },
+ "clip.nudgeVolumeUp3": {
+  "label": "Nudge Volume +3dB",
+  "disposition": "new"
+ },
+ "clip.remix": {
+  "label": "Remix",
+  "disposition": "new"
+ },
+ "clip.remix.enable": {
+  "label": "Enable Remix",
+  "disposition": "new"
+ },
+ "clip.remix.properties": {
+  "label": "Remix Properties\u2026",
+  "disposition": "new"
+ },
+ "clip.remix.revert": {
+  "label": "Revert Remix",
+  "disposition": "new"
+ },
+ "clip.rename": {
+  "label": "Rename\u2026",
+  "disposition": "new"
+ },
+ "clip.replaceFromBin": {
+  "label": "From Bin",
+  "disposition": "new"
+ },
+ "clip.replaceFromSource": {
+  "label": "From Source Monitor",
+  "disposition": "new"
+ },
+ "clip.replaceFromSourceMatchFrame": {
+  "label": "From Source Monitor, Match Frame",
+  "disposition": "new"
+ },
+ "clip.restoreCaptionsFromSource": {
+  "label": "Restore Captions from Source Clip",
+  "disposition": "new"
+ },
+ "clip.revealInProject": {
+  "label": "Reveal in Project",
+  "disposition": "new"
+ },
+ "clip.scaleToFrameSize": {
+  "label": "Scale to Frame Size",
+  "disposition": "new"
+ },
+ "clip.sceneEditDetection": {
+  "label": "Scene Edit Detection\u2026",
+  "disposition": "new"
+ },
+ "clip.setPosterFrame": {
+  "label": "Set Poster Frame",
+  "disposition": "new"
+ },
+ "clip.setTimeInterpolation": {
+  "label": "Set Time Interpolation",
+  "disposition": "new"
+ },
+ "clip.sourceSettings": {
+  "label": "Source Settings\u2026",
+  "disposition": "new"
+ },
+ "clip.speedDuration": {
+  "label": "Speed/Duration\u2026",
+  "disposition": "equivalent",
+  "eep": "timeline.rate_stretch"
+ },
+ "clip.synchronize": {
+  "label": "Synchronize\u2026",
+  "disposition": "new"
+ },
+ "clip.timeInterpolation.frameBlending": {
+  "label": "Frame Blending",
+  "disposition": "new"
+ },
+ "clip.timeInterpolation.frameSampling": {
+  "label": "Frame Sampling",
+  "disposition": "new"
+ },
+ "clip.timeInterpolation.opticalFlow": {
+  "label": "Optical Flow",
+  "disposition": "new"
+ },
+ "clip.ungroup": {
+  "label": "Ungroup",
+  "disposition": "new"
+ },
+ "clip.updateMetadata": {
+  "label": "Update Metadata\u2026",
+  "disposition": "equivalent",
+  "eep": "media.update_properties"
+ },
+ "clip.volumeDown": {
+  "label": "Decrease Clip Volume",
+  "disposition": "new"
+ },
+ "clip.volumeDownMany": {
+  "label": "Decrease Clip Volume Many",
+  "disposition": "new"
+ },
+ "clip.volumeUp": {
+  "label": "Increase Clip Volume",
+  "disposition": "new"
+ },
+ "clip.volumeUpMany": {
+  "label": "Increase Clip Volume Many",
+  "disposition": "new"
+ },
+ "edit.clear": {
+  "label": "Clear",
+  "disposition": "equivalent",
+  "eep": "edit.delete",
+  "note": "edit.delete carries the 'clear' alias"
+ },
+ "edit.consolidateDuplicates": {
+  "label": "Consolidate Duplicates",
+  "disposition": "new"
+ },
+ "edit.copy": {
+  "label": "Copy",
+  "disposition": "shipped",
+  "eep": "edit.copy"
+ },
+ "edit.cut": {
+  "label": "Cut",
+  "disposition": "shipped",
+  "eep": "edit.cut"
+ },
+ "edit.deselectAll": {
+  "label": "Deselect All",
+  "disposition": "equivalent",
+  "eep": "edit.deselect_all"
+ },
+ "edit.duplicate": {
+  "label": "Duplicate",
+  "disposition": "new"
+ },
+ "edit.editOriginal": {
+  "label": "Edit Original",
+  "disposition": "new"
+ },
+ "edit.find": {
+  "label": "Find\u2026",
+  "disposition": "new"
+ },
+ "edit.findNext": {
+  "label": "Find Next",
+  "disposition": "new"
+ },
+ "edit.label": {
+  "label": "Label",
+  "disposition": "na",
+  "note": "submenu parent, not a command"
+ },
+ "edit.label.blue": {
+  "label": "Blue",
+  "disposition": "new"
+ },
+ "edit.label.brown": {
+  "label": "Brown",
+  "disposition": "new"
+ },
+ "edit.label.caribbean": {
+  "label": "Caribbean",
+  "disposition": "new"
+ },
+ "edit.label.cerulean": {
+  "label": "Cerulean",
+  "disposition": "new"
+ },
+ "edit.label.forest": {
+  "label": "Forest",
+  "disposition": "new"
+ },
+ "edit.label.green": {
+  "label": "Green",
+  "disposition": "new"
+ },
+ "edit.label.iris": {
+  "label": "Iris",
+  "disposition": "new"
+ },
+ "edit.label.lavender": {
+  "label": "Lavender",
+  "disposition": "new"
+ },
+ "edit.label.magenta": {
+  "label": "Magenta",
+  "disposition": "new"
+ },
+ "edit.label.mango": {
+  "label": "Mango",
+  "disposition": "new"
+ },
+ "edit.label.purple": {
+  "label": "Purple",
+  "disposition": "new"
+ },
+ "edit.label.rose": {
+  "label": "Rose",
+  "disposition": "new"
+ },
+ "edit.label.tan": {
+  "label": "Tan",
+  "disposition": "new"
+ },
+ "edit.label.teal": {
+  "label": "Teal",
+  "disposition": "new"
+ },
+ "edit.label.violet": {
+  "label": "Violet",
+  "disposition": "new"
+ },
+ "edit.label.yellow": {
+  "label": "Yellow",
+  "disposition": "new"
+ },
+ "edit.paste": {
+  "label": "Paste",
+  "disposition": "shipped",
+  "eep": "edit.paste"
+ },
+ "edit.pasteAttributes": {
+  "label": "Paste Attributes\u2026",
+  "disposition": "new"
+ },
+ "edit.pasteInsert": {
+  "label": "Paste Insert",
+  "disposition": "new"
+ },
+ "edit.pasteMedia": {
+  "label": "Paste Media",
+  "disposition": "new"
+ },
+ "edit.redo": {
+  "label": "Redo",
+  "disposition": "shipped",
+  "eep": "edit.redo"
+ },
+ "edit.removeAttributes": {
+  "label": "Remove Attributes\u2026",
+  "disposition": "new"
+ },
+ "edit.removeUnused": {
+  "label": "Remove Unused",
+  "disposition": "new"
+ },
+ "edit.rippleDelete": {
+  "label": "Ripple Delete",
+  "disposition": "equivalent",
+  "eep": "timeline.ripple_delete"
+ },
+ "edit.rippleDeleteHead": {
+  "label": "Ripple Delete Head Frame",
+  "disposition": "new"
+ },
+ "edit.selectAll": {
+  "label": "Select All",
+  "disposition": "equivalent",
+  "eep": "edit.select_all"
+ },
+ "edit.selectAllMatching": {
+  "label": "Select All Matching",
+  "disposition": "new"
+ },
+ "edit.selectLabelGroup": {
+  "label": "Select Label Group",
+  "disposition": "new"
+ },
+ "edit.undo": {
+  "label": "Undo",
+  "disposition": "shipped",
+  "eep": "edit.undo"
+ },
+ "export.formats": {
+  "label": "List Export Formats",
+  "disposition": "new"
+ },
+ "export.presets.delete": {
+  "label": "Delete Export Preset",
+  "disposition": "new"
+ },
+ "export.presets.export": {
+  "label": "Export Export Presets",
+  "disposition": "new"
+ },
+ "export.presets.favorite": {
+  "label": "Favorite Export Preset",
+  "disposition": "new"
+ },
+ "export.presets.get": {
+  "label": "Get Export Preset",
+  "disposition": "new"
+ },
+ "export.presets.import": {
+  "label": "Import Export Presets",
+  "disposition": "new"
+ },
+ "export.presets.list": {
+  "label": "List Export Presets",
+  "disposition": "new"
+ },
+ "export.presets.save": {
+  "label": "Save Export Preset",
+  "disposition": "new"
+ },
+ "export.queue.add": {
+  "label": "Send to Export Queue",
+  "disposition": "new"
+ },
+ "export.queue.cancel": {
+  "label": "Cancel Queued Export",
+  "disposition": "new"
+ },
+ "export.queue.clear": {
+  "label": "Clear Finished Exports",
+  "disposition": "new"
+ },
+ "export.queue.list": {
+  "label": "List Export Queue",
+  "disposition": "new"
+ },
+ "export.queue.move": {
+  "label": "Reorder Queued Export",
+  "disposition": "new"
+ },
+ "export.queue.remove": {
+  "label": "Remove Queued Export",
+  "disposition": "new"
+ },
+ "export.queue.retry": {
+  "label": "Retry Queued Export",
+  "disposition": "new"
+ },
+ "export.queue.start": {
+  "label": "Start Export Queue",
+  "disposition": "new"
+ },
+ "export.queue.stop": {
+  "label": "Stop Export Queue",
+  "disposition": "new"
+ },
+ "export.quick": {
+  "label": "Quick Export",
+  "disposition": "new"
+ },
+ "export.resolve": {
+  "label": "Resolve Export Settings",
+  "disposition": "new"
+ },
+ "file.autoSaveNow": {
+  "label": "Auto Save Now",
+  "disposition": "new"
+ },
+ "file.autoSaveStatus": {
+  "label": "Auto Save Status",
+  "disposition": "new"
+ },
+ "file.close": {
+  "label": "Close",
+  "disposition": "new"
+ },
+ "file.closeAllOtherProjects": {
+  "label": "Close All Other Projects",
+  "disposition": "new"
+ },
+ "file.closeAllProjects": {
+  "label": "Close All Projects",
+  "disposition": "new"
+ },
+ "file.closeProject": {
+  "label": "Close Project",
+  "disposition": "new"
+ },
+ "file.discardRecovery": {
+  "label": "Discard Unsaved Changes",
+  "disposition": "new"
+ },
+ "file.exportAaf": {
+  "label": "AAF\u2026",
+  "disposition": "new"
+ },
+ "file.exportAle": {
+  "label": "Avid Log Exchange\u2026",
+  "disposition": "new"
+ },
+ "file.exportEdl": {
+  "label": "EDL\u2026",
+  "disposition": "new"
+ },
+ "file.exportFcp7Xml": {
+  "label": "Final Cut Pro XML\u2026",
+  "disposition": "new"
+ },
+ "file.exportFcpxml": {
+  "label": "FCPXML\u2026",
+  "disposition": "new"
+ },
+ "file.exportFrame": {
+  "label": "Export Frame",
+  "disposition": "new"
+ },
+ "file.exportGraphicsTemplate": {
+  "label": "Motion Graphics Template\u2026",
+  "disposition": "new"
+ },
+ "file.exportInterchange": {
+  "label": "Export Interchange",
+  "disposition": "new"
+ },
+ "file.exportMedia": {
+  "label": "Media\u2026",
+  "disposition": "new"
+ },
+ "file.exportOmf": {
+  "label": "OMF\u2026",
+  "disposition": "new"
+ },
+ "file.exportOtio": {
+  "label": "OpenTimelineIO\u2026",
+  "disposition": "new"
+ },
+ "file.exportSelectionProject": {
+  "label": "Selection as FilmCraft Project\u2026",
+  "disposition": "new"
+ },
+ "file.import": {
+  "label": "Import\u2026",
+  "disposition": "equivalent",
+  "eep": "project.add_media",
+  "note": "generic import dialog"
+ },
+ "file.importAaf": {
+  "label": "Import AAF\u2026",
+  "disposition": "new"
+ },
+ "file.importDemoFootage": {
+  "label": "Demo Footage",
+  "disposition": "new"
+ },
+ "file.importFromMediaBrowser": {
+  "label": "Import from Media Browser",
+  "disposition": "new"
+ },
+ "file.importImageSequence": {
+  "label": "Import Image Sequence\u2026",
+  "disposition": "new"
+ },
+ "file.listAutoSaves": {
+  "label": "Browse Auto-Saves",
+  "disposition": "new"
+ },
+ "file.mediaProperties": {
+  "label": "Selection\u2026",
+  "disposition": "new"
+ },
+ "file.mediaPropertiesFile": {
+  "label": "File\u2026",
+  "disposition": "new"
+ },
+ "file.newAdjustmentLayer": {
+  "label": "Adjustment Layer\u2026",
+  "disposition": "new"
+ },
+ "file.newBarsAndTone": {
+  "label": "Bars and Tone\u2026",
+  "disposition": "new"
+ },
+ "file.newBin": {
+  "label": "Bin",
+  "disposition": "equivalent",
+  "eep": "media.create_bin"
+ },
+ "file.newBinFromSelection": {
+  "label": "Bin From Selection",
+  "disposition": "new"
+ },
+ "file.newBlackVideo": {
+  "label": "Black Video\u2026",
+  "disposition": "new"
+ },
+ "file.newColorMatte": {
+  "label": "Color Matte\u2026",
+  "disposition": "new"
+ },
+ "file.newCountingLeader": {
+  "label": "Universal Counting Leader\u2026",
+  "disposition": "new"
+ },
+ "file.newOfflineFile": {
+  "label": "Offline File\u2026",
+  "disposition": "new"
+ },
+ "file.newProject": {
+  "label": "Project\u2026",
+  "disposition": "equivalent",
+  "eep": "project.new"
+ },
+ "file.newProjectFromTemplate": {
+  "label": "New Project from Template",
+  "disposition": "new"
+ },
+ "file.newSearchBin": {
+  "label": "Search Bin",
+  "disposition": "new"
+ },
+ "file.newSequence": {
+  "label": "Sequence\u2026",
+  "disposition": "equivalent",
+  "eep": "sequence.create"
+ },
+ "file.newSequenceFromClip": {
+  "label": "Sequence From Clip",
+  "disposition": "new"
+ },
+ "file.newTransparentVideo": {
+  "label": "Transparent Video\u2026",
+  "disposition": "new"
+ },
+ "file.open": {
+  "label": "Open Project\u2026",
+  "disposition": "shipped",
+  "eep": "file.open"
+ },
+ "file.openDemoProject": {
+  "label": "Demo Project",
+  "disposition": "new"
+ },
+ "file.projectManager": {
+  "label": "Project Manager\u2026",
+  "disposition": "new"
+ },
+ "file.projectSettings.general": {
+  "label": "General\u2026",
+  "disposition": "new"
+ },
+ "file.projectSettings.scratchDisks": {
+  "label": "Scratch Disks\u2026",
+  "disposition": "new"
+ },
+ "file.recover": {
+  "label": "Recover Unsaved Changes\u2026",
+  "disposition": "new"
+ },
+ "file.recoveryList": {
+  "label": "List Recoverable Sessions",
+  "disposition": "new"
+ },
+ "file.replaceFonts": {
+  "label": "Replace Fonts in Projects\u2026",
+  "disposition": "new"
+ },
+ "file.reveal": {
+  "label": "Reveal in Finder",
+  "disposition": "new"
+ },
+ "file.revert": {
+  "label": "Revert",
+  "disposition": "new"
+ },
+ "file.save": {
+  "label": "Save",
+  "disposition": "shipped",
+  "eep": "file.save"
+ },
+ "file.saveAll": {
+  "label": "Save All",
+  "disposition": "new"
+ },
+ "file.saveAs": {
+  "label": "Save As\u2026",
+  "disposition": "new"
+ },
+ "file.saveAsTemplate": {
+  "label": "Save as Template\u2026",
+  "disposition": "new"
+ },
+ "file.saveCopy": {
+  "label": "Save a Copy\u2026",
+  "disposition": "new"
+ },
+ "file.templates": {
+  "label": "List Project Templates",
+  "disposition": "new"
+ },
+ "history.list": {
+  "label": "List History",
+  "disposition": "new"
+ },
+ "markers.add": {
+  "label": "Add Marker",
+  "disposition": "equivalent",
+  "eep": "marker.add"
+ },
+ "markers.addChapter": {
+  "label": "Add Chapter Marker\u2026",
+  "disposition": "new"
+ },
+ "markers.addFlashCue": {
+  "label": "Add Flash Cue Marker\u2026",
+  "disposition": "new"
+ },
+ "markers.addRange": {
+  "label": "Add Range Marker",
+  "disposition": "equivalent",
+  "eep": "marker.add_range"
+ },
+ "markers.addRangeInOut": {
+  "label": "Add Range Marker to In and Out",
+  "disposition": "new"
+ },
+ "markers.clearAll": {
+  "label": "Clear Markers",
+  "disposition": "equivalent",
+  "eep": "marker.clear"
+ },
+ "markers.clearCurrent": {
+  "label": "Clear Selected Marker",
+  "disposition": "equivalent",
+  "eep": "marker.remove",
+  "note": "selected marker removed by id"
+ },
+ "markers.clearIn": {
+  "label": "Clear In",
+  "disposition": "new"
+ },
+ "markers.clearInOut": {
+  "label": "Clear In and Out",
+  "disposition": "equivalent",
+  "eep": "timeline.clear_marks"
+ },
+ "markers.clearOut": {
+  "label": "Clear Out",
+  "disposition": "new"
+ },
+ "markers.copyPasteIncludesSequenceMarkers": {
+  "label": "Copy Paste Includes Sequence Markers",
+  "disposition": "new"
+ },
+ "markers.edit": {
+  "label": "Edit Marker\u2026",
+  "disposition": "equivalent",
+  "eep": "marker.update"
+ },
+ "markers.exportCsv": {
+  "label": "Export Markers as CSV\u2026",
+  "disposition": "equivalent",
+  "eep": "marker.export_csv"
+ },
+ "markers.filterColors": {
+  "label": "Marker Colour Filter",
+  "disposition": "new"
+ },
+ "markers.goNext": {
+  "label": "Go to Next Marker",
+  "disposition": "equivalent",
+  "eep": "marker.next"
+ },
+ "markers.goPrev": {
+  "label": "Go to Previous Marker",
+  "disposition": "equivalent",
+  "eep": "marker.previous"
+ },
+ "markers.goToIn": {
+  "label": "Go to In",
+  "disposition": "equivalent",
+  "eep": "playhead.go_to_in"
+ },
+ "markers.goToOut": {
+  "label": "Go to Out",
+  "disposition": "equivalent",
+  "eep": "playhead.go_to_out"
+ },
+ "markers.goToSplitAudioIn": {
+  "label": "Audio In",
+  "disposition": "new"
+ },
+ "markers.goToSplitAudioOut": {
+  "label": "Audio Out",
+  "disposition": "new"
+ },
+ "markers.goToSplitVideoIn": {
+  "label": "Video In",
+  "disposition": "new"
+ },
+ "markers.goToSplitVideoOut": {
+  "label": "Video Out",
+  "disposition": "new"
+ },
+ "markers.markClip": {
+  "label": "Mark Clip",
+  "disposition": "new"
+ },
+ "markers.markIn": {
+  "label": "Mark In",
+  "disposition": "equivalent",
+  "eep": "timeline.set_mark_in"
+ },
+ "markers.markOut": {
+  "label": "Mark Out",
+  "disposition": "equivalent",
+  "eep": "timeline.set_mark_out"
+ },
+ "markers.markSelection": {
+  "label": "Mark Selection",
+  "disposition": "new"
+ },
+ "markers.markSplitAudioIn": {
+  "label": "Audio In",
+  "disposition": "new"
+ },
+ "markers.markSplitAudioOut": {
+  "label": "Audio Out",
+  "disposition": "new"
+ },
+ "markers.markSplitVideoIn": {
+  "label": "Video In",
+  "disposition": "new"
+ },
+ "markers.markSplitVideoOut": {
+  "label": "Video Out",
+  "disposition": "new"
+ },
+ "markers.rippleSequenceMarkers": {
+  "label": "Ripple Sequence Markers",
+  "disposition": "equivalent",
+  "eep": "marker.ripple"
+ },
+ "markers.showAllMarkerColors": {
+  "label": "Show All Marker Colors",
+  "disposition": "new"
+ },
+ "media.attachProxies": {
+  "label": "Attach Proxies\u2026",
+  "disposition": "new"
+ },
+ "media.autoRelink": {
+  "label": "Relink Moved Media",
+  "disposition": "new"
+ },
+ "media.colorInfo": {
+  "label": "Media Colour Info",
+  "disposition": "new"
+ },
+ "media.createProxies": {
+  "label": "Create Proxies\u2026",
+  "disposition": "new"
+ },
+ "media.detachProxies": {
+  "label": "Detach Proxies",
+  "disposition": "new"
+ },
+ "media.findMissing": {
+  "label": "Find Missing Media",
+  "disposition": "new"
+ },
+ "media.linkMedia": {
+  "label": "Link Media\u2026",
+  "disposition": "new"
+ },
+ "media.makeOffline": {
+  "label": "Make Offline\u2026",
+  "disposition": "new"
+ },
+ "media.offlineAll": {
+  "label": "Offline All",
+  "disposition": "new"
+ },
+ "media.proxyPresets": {
+  "label": "Proxy Presets",
+  "disposition": "new"
+ },
+ "media.reconnectFullRes": {
+  "label": "Reconnect Full Resolution Media\u2026",
+  "disposition": "new"
+ },
+ "media.refreshChanged": {
+  "label": "Refresh Changed Media",
+  "disposition": "new"
+ },
+ "media.relink": {
+  "label": "Relink Media",
+  "disposition": "equivalent",
+  "eep": "project.relink_media",
+  "note": "Relink Missing Media"
+ },
+ "media.replaceFootage": {
+  "label": "Replace Footage\u2026",
+  "disposition": "new"
+ },
+ "media.search": {
+  "label": "Search for Media",
+  "disposition": "new"
+ },
+ "media.status": {
+  "label": "Media Status",
+  "disposition": "new"
+ },
+ "media.toggleProxies": {
+  "label": "Toggle Proxies",
+  "disposition": "new"
+ },
+ "playhead.end": {
+  "label": "Go to Sequence End",
+  "disposition": "shipped",
+  "eep": "playhead.end"
+ },
+ "playhead.nextEdit": {
+  "label": "Go to Next Edit Point",
+  "disposition": "equivalent",
+  "eep": "playhead.next_edit"
+ },
+ "playhead.nextEditAnyTrack": {
+  "label": "Go to Next Edit Point on Any Track",
+  "disposition": "new"
+ },
+ "playhead.prevEdit": {
+  "label": "Go to Previous Edit Point",
+  "disposition": "equivalent",
+  "eep": "playhead.previous_edit"
+ },
+ "playhead.prevEditAnyTrack": {
+  "label": "Go to Previous Edit Point on Any Track",
+  "disposition": "new"
+ },
+ "playhead.selectedClipEnd": {
+  "label": "Go to Selected Clip End",
+  "disposition": "equivalent",
+  "eep": "playhead.go_to_clip_end"
+ },
+ "playhead.selectedClipStart": {
+  "label": "Go to Selected Clip Start",
+  "disposition": "equivalent",
+  "eep": "playhead.go_to_clip_start"
+ },
+ "playhead.set": {
+  "label": "Set Playhead",
+  "disposition": "new"
+ },
+ "playhead.start": {
+  "label": "Go to Sequence Start",
+  "disposition": "shipped",
+  "eep": "playhead.start"
+ },
+ "playhead.step": {
+  "label": "Step Frames",
+  "disposition": "new"
+ },
+ "playhead.stepBack": {
+  "label": "Step Back One Frame",
+  "disposition": "equivalent",
+  "eep": "playhead.nudge_back_1"
+ },
+ "playhead.stepBack5": {
+  "label": "Step Back Five Frames",
+  "disposition": "equivalent",
+  "eep": "playhead.nudge_back_5"
+ },
+ "playhead.stepForward": {
+  "label": "Step Forward One Frame",
+  "disposition": "equivalent",
+  "eep": "playhead.nudge_forward_1"
+ },
+ "playhead.stepForward5": {
+  "label": "Step Forward Five Frames",
+  "disposition": "equivalent",
+  "eep": "playhead.nudge_forward_5"
+ },
+ "prefs.get": {
+  "label": "Get Preferences",
+  "disposition": "shipped",
+  "eep": "prefs.get"
+ },
+ "prefs.reset": {
+  "label": "Reset Preferences",
+  "disposition": "shipped",
+  "eep": "prefs.reset"
+ },
+ "prefs.schema": {
+  "label": "Settings Schema",
+  "disposition": "new"
+ },
+ "prefs.set": {
+  "label": "Set Preferences",
+  "disposition": "shipped",
+  "eep": "prefs.set"
+ },
+ "project.columns.list": {
+  "label": "List Project Columns",
+  "disposition": "new"
+ },
+ "project.columns.resize": {
+  "label": "Resize Column",
+  "disposition": "new"
+ },
+ "project.columns.set": {
+  "label": "Metadata Display",
+  "disposition": "new"
+ },
+ "project.delete": {
+  "label": "Clear",
+  "disposition": "new"
+ },
+ "project.deleteSearchBin": {
+  "label": "Delete Search Bin",
+  "disposition": "new"
+ },
+ "project.deselectAll": {
+  "label": "Deselect All Project Items",
+  "disposition": "new"
+ },
+ "project.editSearchBin": {
+  "label": "Edit Search Bin",
+  "disposition": "new"
+ },
+ "project.freeform.alignToGrid": {
+  "label": "Align to Grid",
+  "disposition": "new"
+ },
+ "project.freeform.arrangements": {
+  "label": "List Arrangements",
+  "disposition": "new"
+ },
+ "project.freeform.deleteArrangement": {
+  "label": "Delete Arrangement",
+  "disposition": "new"
+ },
+ "project.freeform.layout": {
+  "label": "Freeform Layout",
+  "disposition": "new"
+ },
+ "project.freeform.move": {
+  "label": "Move Clip Cards",
+  "disposition": "new"
+ },
+ "project.freeform.options": {
+  "label": "Freeform View Options\u2026",
+  "disposition": "new"
+ },
+ "project.freeform.reset": {
+  "label": "Reset to Grid",
+  "disposition": "new"
+ },
+ "project.freeform.resize": {
+  "label": "Clip Size",
+  "disposition": "new"
+ },
+ "project.freeform.restoreArrangement": {
+  "label": "Restore Arrangement",
+  "disposition": "new"
+ },
+ "project.freeform.saveArrangement": {
+  "label": "Save Arrangement",
+  "disposition": "new"
+ },
+ "project.freeform.stack": {
+  "label": "Stack Clips",
+  "disposition": "new"
+ },
+ "project.freeform.unstack": {
+  "label": "Unstack Clips",
+  "disposition": "new"
+ },
+ "project.ingestSettings": {
+  "label": "Ingest Settings\u2026",
+  "disposition": "new"
+ },
+ "project.inspect": {
+  "label": "Inspect Project",
+  "disposition": "shipped",
+  "eep": "project.inspect"
+ },
+ "project.items": {
+  "label": "List Project Panel Rows",
+  "disposition": "new"
+ },
+ "project.matteColor": {
+  "label": "Color Matte Color\u2026",
+  "disposition": "new"
+ },
+ "project.moveToBin": {
+  "label": "Move to Bin",
+  "disposition": "equivalent",
+  "eep": "media.move_to_bin"
+ },
+ "project.notes": {
+  "label": "Get Project Notes",
+  "disposition": "new"
+ },
+ "project.renameBin": {
+  "label": "Rename Bin",
+  "disposition": "equivalent",
+  "eep": "media.rename_bin"
+ },
+ "project.searchBinItems": {
+  "label": "Search Bin Contents",
+  "disposition": "new"
+ },
+ "project.select": {
+  "label": "Select Project Items",
+  "disposition": "new"
+ },
+ "project.selectAll": {
+  "label": "Select All Project Items",
+  "disposition": "new"
+ },
+ "project.setMarks": {
+  "label": "Set Source In/Out",
+  "disposition": "new"
+ },
+ "project.setNotes": {
+  "label": "Edit Project Notes",
+  "disposition": "new"
+ },
+ "project.sort": {
+  "label": "Sort Project Items",
+  "disposition": "new"
+ },
+ "project.view.get": {
+  "label": "Project Panel View",
+  "disposition": "new"
+ },
+ "project.view.set": {
+  "label": "Set Project Panel View",
+  "disposition": "new"
+ },
+ "project.viewPreset.delete": {
+  "label": "Delete View Preset",
+  "disposition": "new"
+ },
+ "project.viewPreset.list": {
+  "label": "List View Presets",
+  "disposition": "new"
+ },
+ "project.viewPreset.rename": {
+  "label": "Rename View Preset",
+  "disposition": "new"
+ },
+ "project.viewPreset.restore": {
+  "label": "Restore View Preset",
+  "disposition": "new"
+ },
+ "project.viewPreset.save": {
+  "label": "Save Current View Preset",
+  "disposition": "new"
+ },
+ "project.viewPreset.saveAs": {
+  "label": "Save As New View Preset",
+  "disposition": "new"
+ },
+ "sequence.addEdit": {
+  "label": "Add Edit",
+  "disposition": "equivalent",
+  "eep": "timeline.split_clip",
+  "note": "razor at playhead on targeted tracks"
+ },
+ "sequence.addEditAllTracks": {
+  "label": "Add Edit to All Tracks",
+  "disposition": "new"
+ },
+ "sequence.addTracks": {
+  "label": "Add Tracks\u2026",
+  "disposition": "equivalent",
+  "eep": "timeline.add_track",
+  "note": "track addition, repeated per track"
+ },
+ "sequence.applyAudioTransition": {
+  "label": "Apply Audio Transition",
+  "disposition": "new"
+ },
+ "sequence.applyVideoTransition": {
+  "label": "Apply Video Transition",
+  "disposition": "equivalent",
+  "eep": "timeline.add_transition"
+ },
+ "sequence.close": {
+  "label": "Close Sequence",
+  "disposition": "new"
+ },
+ "sequence.closeGap": {
+  "label": "Close Gap",
+  "disposition": "equivalent",
+  "eep": "timeline.ripple_delete_gap",
+  "note": "gap removal under the playhead"
+ },
+ "sequence.closeOthers": {
+  "label": "Close Other Timeline Panels",
+  "disposition": "new"
+ },
+ "sequence.colorSettings": {
+  "label": "Color Management\u2026",
+  "disposition": "new"
+ },
+ "sequence.deleteRenderFiles": {
+  "label": "Delete Render Files",
+  "disposition": "new"
+ },
+ "sequence.deleteRenderFilesInToOut": {
+  "label": "Delete Render Files In to Out",
+  "disposition": "new"
+ },
+ "sequence.deleteTrack": {
+  "label": "Delete Track",
+  "disposition": "equivalent",
+  "eep": "timeline.remove_track",
+  "note": "single-track removal"
+ },
+ "sequence.deleteTracks": {
+  "label": "Delete Tracks\u2026",
+  "disposition": "equivalent",
+  "eep": "timeline.remove_track",
+  "note": "track removal, repeated per track"
+ },
+ "sequence.extract": {
+  "label": "Extract",
+  "disposition": "shipped",
+  "eep": "sequence.extract"
+ },
+ "sequence.goToNextGap": {
+  "label": "Next in Sequence",
+  "disposition": "new"
+ },
+ "sequence.goToNextGapInTrack": {
+  "label": "Next in Track",
+  "disposition": "new"
+ },
+ "sequence.goToPrevGap": {
+  "label": "Previous in Sequence",
+  "disposition": "new"
+ },
+ "sequence.goToPrevGapInTrack": {
+  "label": "Previous in Track",
+  "disposition": "new"
+ },
+ "sequence.inspect": {
+  "label": "Inspect Sequence",
+  "disposition": "new"
+ },
+ "sequence.joinThroughEdits": {
+  "label": "Join Through Edits",
+  "disposition": "new"
+ },
+ "sequence.lift": {
+  "label": "Lift",
+  "disposition": "shipped",
+  "eep": "sequence.lift"
+ },
+ "sequence.linkedSelection": {
+  "label": "Linked Selection",
+  "disposition": "new"
+ },
+ "sequence.makeSubsequence": {
+  "label": "Make Subsequence",
+  "disposition": "new"
+ },
+ "sequence.matchFrame": {
+  "label": "Match Frame",
+  "disposition": "new"
+ },
+ "sequence.moveTab": {
+  "label": "Move Sequence Tab",
+  "disposition": "new"
+ },
+ "sequence.nestSequences": {
+  "label": "Insert and overwrite sequences as nests or individual clips",
+  "disposition": "new"
+ },
+ "sequence.normalizeMixTrack": {
+  "label": "Normalize Mix Track\u2026",
+  "disposition": "new"
+ },
+ "sequence.open": {
+  "label": "Open in Timeline",
+  "disposition": "equivalent",
+  "eep": "project.switch_sequence",
+  "note": "opening a sequence in the timeline"
+ },
+ "sequence.removeTransition": {
+  "label": "Clear Transition",
+  "disposition": "equivalent",
+  "eep": "timeline.remove_transition"
+ },
+ "sequence.renderAudio": {
+  "label": "Render Audio",
+  "disposition": "new"
+ },
+ "sequence.renderBar": {
+  "label": "Render Bar",
+  "disposition": "new"
+ },
+ "sequence.renderEffectsInToOut": {
+  "label": "Render Effects In to Out",
+  "disposition": "new"
+ },
+ "sequence.renderInToOut": {
+  "label": "Render In to Out",
+  "disposition": "new"
+ },
+ "sequence.renderSelection": {
+  "label": "Render Selection",
+  "disposition": "new"
+ },
+ "sequence.revealInProject": {
+  "label": "Reveal Sequence in Project",
+  "disposition": "new"
+ },
+ "sequence.revealNested": {
+  "label": "Reveal Nested Sequence",
+  "disposition": "new"
+ },
+ "sequence.reverseMatchFrame": {
+  "label": "Reverse Match Frame",
+  "disposition": "new"
+ },
+ "sequence.selectionFollowsPlayhead": {
+  "label": "Selection Follows Playhead",
+  "disposition": "new"
+ },
+ "sequence.setTransition": {
+  "label": "Edit Transition Settings",
+  "disposition": "equivalent",
+  "eep": "timeline.update_transition"
+ },
+ "sequence.settings": {
+  "label": "Sequence Settings\u2026",
+  "disposition": "new"
+ },
+ "sequence.showThroughEdits": {
+  "label": "Show Through Edits",
+  "disposition": "new"
+ },
+ "sequence.simplify": {
+  "label": "Simplify Sequence\u2026",
+  "disposition": "new"
+ },
+ "sequence.snap": {
+  "label": "Snap in Timeline",
+  "disposition": "equivalent",
+  "eep": "view.toggle_snap"
+ },
+ "sequence.throughEdits": {
+  "label": "List Through Edits",
+  "disposition": "new"
+ },
+ "sequence.transcribe": {
+  "label": "Transcribe Sequence\u2026",
+  "disposition": "equivalent",
+  "eep": "speech.transcribe_to_subtitles"
+ },
+ "shortcuts.audit": {
+  "label": "Shortcut Audit",
+  "disposition": "new"
+ },
+ "shortcuts.clear": {
+  "label": "Clear Shortcut",
+  "disposition": "new"
+ },
+ "shortcuts.conflicts": {
+  "label": "Shortcut Conflicts",
+  "disposition": "new"
+ },
+ "shortcuts.deletePreset": {
+  "label": "Delete Shortcut Preset",
+  "disposition": "new"
+ },
+ "shortcuts.export": {
+  "label": "Export Keyboard Shortcuts",
+  "disposition": "new"
+ },
+ "shortcuts.forKey": {
+  "label": "Shortcuts on a Key",
+  "disposition": "new"
+ },
+ "shortcuts.get": {
+  "label": "Get Shortcuts of a Command",
+  "disposition": "new"
+ },
+ "shortcuts.import": {
+  "label": "Import Keyboard Shortcuts",
+  "disposition": "shipped",
+  "eep": "shortcuts.import"
+ },
+ "shortcuts.list": {
+  "label": "List Keyboard Shortcuts",
+  "disposition": "shipped",
+  "eep": "shortcuts.list"
+ },
+ "shortcuts.loadPreset": {
+  "label": "Load Shortcut Preset",
+  "disposition": "new"
+ },
+ "shortcuts.presets": {
+  "label": "Keyboard Shortcut Presets",
+  "disposition": "new"
+ },
+ "shortcuts.redo": {
+  "label": "Redo Shortcut Change",
+  "disposition": "new"
+ },
+ "shortcuts.resolve": {
+  "label": "Resolve Shortcut",
+  "disposition": "new"
+ },
+ "shortcuts.savePreset": {
+  "label": "Save Shortcut Preset As",
+  "disposition": "new"
+ },
+ "shortcuts.set": {
+  "label": "Assign Shortcut",
+  "disposition": "shipped",
+  "eep": "shortcuts.set"
+ },
+ "shortcuts.undo": {
+  "label": "Undo Shortcut Change",
+  "disposition": "new"
+ },
+ "timeline.move": {
+  "label": "Move Clips",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clips_batch"
+ },
+ "timeline.moveAudioTargetsDown": {
+  "label": "Move All Audio Targets Down",
+  "disposition": "new"
+ },
+ "timeline.moveAudioTargetsUp": {
+  "label": "Move All Audio Targets Up",
+  "disposition": "new"
+ },
+ "timeline.moveVideoTargetsDown": {
+  "label": "Move All Video Targets Down",
+  "disposition": "new"
+ },
+ "timeline.moveVideoTargetsUp": {
+  "label": "Move All Video Targets Up",
+  "disposition": "new"
+ },
+ "timeline.nudgeDown": {
+  "label": "Nudge Clip Selection Down",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clip",
+  "note": "track change moves the clip"
+ },
+ "timeline.nudgeLeft": {
+  "label": "Nudge Clip Selection Left One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clips_batch",
+  "note": "one-frame reposition of the selection"
+ },
+ "timeline.nudgeLeft5": {
+  "label": "Nudge Clip Selection Left Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clips_batch",
+  "note": "five-frame reposition of the selection"
+ },
+ "timeline.nudgeRight": {
+  "label": "Nudge Clip Selection Right One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clips_batch",
+  "note": "one-frame reposition of the selection"
+ },
+ "timeline.nudgeRight5": {
+  "label": "Nudge Clip Selection Right Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clips_batch",
+  "note": "five-frame reposition of the selection"
+ },
+ "timeline.nudgeUp": {
+  "label": "Nudge Clip Selection Up",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clip",
+  "note": "track change moves the clip"
+ },
+ "timeline.place": {
+  "label": "Place Clip",
+  "disposition": "equivalent",
+  "eep": "timeline.add_clip",
+  "note": "append/overwrite placement of a source clip"
+ },
+ "timeline.rateStretch": {
+  "label": "Rate Stretch",
+  "disposition": "equivalent",
+  "eep": "timeline.rate_stretch"
+ },
+ "timeline.razor": {
+  "label": "Razor",
+  "disposition": "new"
+ },
+ "timeline.roll": {
+  "label": "Rolling Edit",
+  "disposition": "equivalent",
+  "eep": "timeline.roll_edit"
+ },
+ "timeline.select": {
+  "label": "Select Clips",
+  "disposition": "new"
+ },
+ "timeline.selectClipAtPlayhead": {
+  "label": "Select Clip at Playhead",
+  "disposition": "equivalent",
+  "eep": "edit.select_clip_at_playhead"
+ },
+ "timeline.selectGap": {
+  "label": "Select Gap",
+  "disposition": "new"
+ },
+ "timeline.selectNextClip": {
+  "label": "Select Next Clip",
+  "disposition": "new"
+ },
+ "timeline.selectPrevClip": {
+  "label": "Select Previous Clip",
+  "disposition": "new"
+ },
+ "timeline.setTargeting": {
+  "label": "Track Targeting",
+  "disposition": "new"
+ },
+ "timeline.setTrack": {
+  "label": "Track Settings",
+  "disposition": "new"
+ },
+ "timeline.slide": {
+  "label": "Slide",
+  "disposition": "equivalent",
+  "eep": "timeline.slide_clip"
+ },
+ "timeline.slideLeft": {
+  "label": "Slide Clip Selection Left One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.slide_clip",
+  "note": "one-frame slide delta"
+ },
+ "timeline.slideLeft5": {
+  "label": "Slide Clip Selection Left Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.slide_clip",
+  "note": "five-frame slide delta"
+ },
+ "timeline.slideRight": {
+  "label": "Slide Clip Selection Right One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.slide_clip",
+  "note": "one-frame slide delta"
+ },
+ "timeline.slideRight5": {
+  "label": "Slide Clip Selection Right Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.slide_clip",
+  "note": "five-frame slide delta"
+ },
+ "timeline.slip": {
+  "label": "Slip",
+  "disposition": "equivalent",
+  "eep": "timeline.slip_clip"
+ },
+ "timeline.slipLeft": {
+  "label": "Slip Clip Selection Left One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.slip_clip",
+  "note": "one-frame slip delta"
+ },
+ "timeline.slipLeft5": {
+  "label": "Slip Clip Selection Left Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.slip_clip",
+  "note": "five-frame slip delta"
+ },
+ "timeline.slipRight": {
+  "label": "Slip Clip Selection Right One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.slip_clip",
+  "note": "one-frame slip delta"
+ },
+ "timeline.slipRight5": {
+  "label": "Slip Clip Selection Right Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.slip_clip",
+  "note": "five-frame slip delta"
+ },
+ "timeline.toggleAllAudioTargets": {
+  "label": "Toggle All Audio Targets",
+  "disposition": "new"
+ },
+ "timeline.toggleAllSourceAudio": {
+  "label": "Toggle All Source Audio",
+  "disposition": "new"
+ },
+ "timeline.toggleAllSourceVideo": {
+  "label": "Toggle All Source Video",
+  "disposition": "new"
+ },
+ "timeline.toggleAllVideoTargets": {
+  "label": "Toggle All Video Targets",
+  "disposition": "new"
+ },
+ "timeline.toggleMuteTargetedAudio": {
+  "label": "Toggle Mute for All Targeted Audio Tracks",
+  "disposition": "new"
+ },
+ "timeline.toggleOutputTargetedVideo": {
+  "label": "Toggle Track Output for All Targeted Video Tracks",
+  "disposition": "new"
+ },
+ "timeline.toggleSoloTargetedAudio": {
+  "label": "Toggle Solo for All Targeted Audio Tracks",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetA1": {
+  "label": "Toggle Target Audio 1",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetA2": {
+  "label": "Toggle Target Audio 2",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetA3": {
+  "label": "Toggle Target Audio 3",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetA4": {
+  "label": "Toggle Target Audio 4",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetA5": {
+  "label": "Toggle Target Audio 5",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetA6": {
+  "label": "Toggle Target Audio 6",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetA7": {
+  "label": "Toggle Target Audio 7",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetA8": {
+  "label": "Toggle Target Audio 8",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetV1": {
+  "label": "Toggle Target Video 1",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetV2": {
+  "label": "Toggle Target Video 2",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetV3": {
+  "label": "Toggle Target Video 3",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetV4": {
+  "label": "Toggle Target Video 4",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetV5": {
+  "label": "Toggle Target Video 5",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetV6": {
+  "label": "Toggle Target Video 6",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetV7": {
+  "label": "Toggle Target Video 7",
+  "disposition": "new"
+ },
+ "timeline.toggleTargetV8": {
+  "label": "Toggle Target Video 8",
+  "disposition": "new"
+ },
+ "timeline.trim": {
+  "label": "Trim Edit",
+  "disposition": "equivalent",
+  "eep": "trim.enter",
+  "note": "Trim Edit enters trim mode"
+ },
+ "trim.applyDefaultTransition": {
+  "label": "Apply Default Transitions to Selection",
+  "disposition": "new"
+ },
+ "trim.backward": {
+  "label": "Trim Backward",
+  "disposition": "new"
+ },
+ "trim.backwardMany": {
+  "label": "Trim Backward Many",
+  "disposition": "new"
+ },
+ "trim.cancelDynamic": {
+  "label": "Cancel Dynamic Trim",
+  "disposition": "new"
+ },
+ "trim.clear": {
+  "label": "Clear Edit Point Selection",
+  "disposition": "new"
+ },
+ "trim.edit": {
+  "label": "Trim Edit",
+  "disposition": "new"
+ },
+ "trim.extendNextEdit": {
+  "label": "Extend Next Edit To Playhead",
+  "disposition": "new"
+ },
+ "trim.extendPreviousEdit": {
+  "label": "Extend Previous Edit To Playhead",
+  "disposition": "new"
+ },
+ "trim.extendToPlayhead": {
+  "label": "Extend Selected Edit to Playhead",
+  "disposition": "new"
+ },
+ "trim.forward": {
+  "label": "Trim Forward",
+  "disposition": "new"
+ },
+ "trim.forwardMany": {
+  "label": "Trim Forward Many",
+  "disposition": "new"
+ },
+ "trim.monitor": {
+  "label": "Trim Monitor State",
+  "disposition": "new"
+ },
+ "trim.next": {
+  "label": "Trim Next Edit to Playhead",
+  "disposition": "new"
+ },
+ "trim.nudge": {
+  "label": "Trim by Frames",
+  "disposition": "new"
+ },
+ "trim.playAround": {
+  "label": "Play Around Edit",
+  "disposition": "new"
+ },
+ "trim.previous": {
+  "label": "Trim Previous Edit to Playhead",
+  "disposition": "new"
+ },
+ "trim.rippleNext": {
+  "label": "Ripple Trim Next Edit to Playhead",
+  "disposition": "new"
+ },
+ "trim.ripplePrevious": {
+  "label": "Ripple Trim Previous Edit to Playhead",
+  "disposition": "new"
+ },
+ "trim.selectEditPoint": {
+  "label": "Select Edit Point",
+  "disposition": "new"
+ },
+ "trim.selectNearest": {
+  "label": "Select Nearest Edit Point",
+  "disposition": "new"
+ },
+ "trim.shuttle": {
+  "label": "Dynamic Trim (Shuttle)",
+  "disposition": "new"
+ },
+ "trim.shuttleStop": {
+  "label": "Dynamic Trim Stop",
+  "disposition": "new"
+ },
+ "trim.tick": {
+  "label": "Advance Trim Playback",
+  "disposition": "new"
+ },
+ "trim.toggleType": {
+  "label": "Toggle Trim Type",
+  "disposition": "new"
+ }
+}
