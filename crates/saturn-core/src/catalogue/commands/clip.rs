@@ -222,7 +222,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         undo_group: UndoGroup::Transaction,
         aliases: &[],
         since: "0.1.0",
-        shipped: false,
+        shipped: true,
         ui_only: false,
     },
     CommandSpec {
@@ -236,7 +236,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         undo_group: UndoGroup::Transaction,
         aliases: &[],
         since: "0.1.0",
-        shipped: false,
+        shipped: true,
         ui_only: false,
     },
     CommandSpec {
@@ -250,7 +250,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         undo_group: UndoGroup::Transaction,
         aliases: &[],
         since: "0.1.0",
-        shipped: false,
+        shipped: true,
         ui_only: false,
     },
     CommandSpec {

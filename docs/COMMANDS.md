@@ -75,9 +75,9 @@ Generated from the command catalogue. Do not edit by hand.
 | Link Clips | `timeline.link_clips` | shipped | Ctrl+L | `{"clips":[obj]}` |
 | Unlink Clips | `timeline.unlink_clips` | shipped | Ctrl+Shift+L | `{"clips":[obj]}` |
 | Set Color Wheels | `clip.set_color_wheels` | shipped |  | `{"track_id":int,"clip_index":int,"wheels":obj}` |
-| Create Multicam Clip | `multicam.create` | planned |  | `{"name":str,"angles":[obj],"sync_mode":obj?}` |
-| Switch Multicam Angle | `multicam.switch_angle` | planned |  | `{"track_id":int,"clip_index":int,"angle_id":int}` |
-| Sync Multicam Angles | `multicam.sync` | planned |  | `{"multicam_id":int,"sync_mode":obj,"offsets":obj?}` |
+| Create Multicam Clip | `multicam.create` | shipped |  | `{"name":str,"angles":[obj],"sync_mode":obj?}` |
+| Switch Multicam Angle | `multicam.switch_angle` | shipped |  | `{"track_id":int,"clip_index":int,"angle_id":int}` |
+| Sync Multicam Angles | `multicam.sync` | shipped |  | `{"multicam_id":int,"sync_mode":obj,"offsets":obj?}` |
 | Set Motion Tracking & Stabilization | `clip.set_motion_tracking` | shipped |  | `{"track_id":int,"clip_index":int,"tracking":obj}` |
 | Pin Clip to Motion Track | `clip.pin_to_track` | shipped |  | `{"track_id":int,"clip_index":int,"pinned_clip_id":int?}` |
 | Set Optical Flow Speed Ramp | `clip.set_speed_ramp` | shipped |  | `{"track_id":int,"clip_index":int,"speed_ramp":obj}` |

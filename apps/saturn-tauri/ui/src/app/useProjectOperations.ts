@@ -443,6 +443,65 @@ export function useProjectOperations({
     } catch {}
   }, [fullscreen]);
 
+  /** Switches the selected timeline clip's multicam angle (monitor cuts, 1-9 keys). */
+  const switchMulticamAngle = useCallback(
+    async (angleId: number) => {
+      const { selectedClip } = getMenuContext();
+      if (!selectedClip) {
+        setNotice("Select a timeline clip to switch its multicam angle");
+        return;
+      }
+      await perform(
+        "multicam.switch_angle",
+        {
+          track_id: selectedClip.track_id,
+          clip_index: selectedClip.clip_index,
+          angle_id: angleId,
+        },
+        "Multicam angle switched",
+      );
+    },
+    [getMenuContext, perform, setNotice],
+  );
+
+  /**
+   * Cross-correlates the waveforms of the first multicam group's angles and
+   * applies the resulting offsets through `multicam.sync`.
+   */
+  const syncMulticamWaveforms = useCallback(async () => {
+    const group = project?.sequence.multicam_clips?.[0];
+    if (!group) {
+      setNotice("No multicam clip — create one from Clip > Multicam");
+      return;
+    }
+    const [reference, ...rest] = group.angles;
+    if (!reference || rest.length === 0) {
+      setNotice("A multicam clip needs at least two angles to sync");
+      return;
+    }
+    const offsets: Record<string, number> = { [String(reference.id)]: 0 };
+    let syncedCount = 0;
+    for (const angle of rest) {
+      try {
+        const res = await invoke<{ offsetTicks: number; synced: boolean }>(
+          "sync_multicam_by_waveform",
+          { referenceMediaId: reference.media_id, targetMediaId: angle.media_id },
+        );
+        offsets[String(angle.id)] = res.synced ? res.offsetTicks : 0;
+        if (res.synced) syncedCount += 1;
+      } catch {
+        offsets[String(angle.id)] = 0;
+      }
+    }
+    await perform(
+      "multicam.sync",
+      { multicam_id: group.id, sync_mode: "audio_waveform", offsets },
+      syncedCount > 0
+        ? `Synced ${syncedCount} angle${syncedCount === 1 ? "" : "s"} by waveform`
+        : "Waveforms too dissimilar — offsets left at zero",
+    );
+  }, [project, perform, setNotice]);
+
   /**
    * Menu, palette, and toolbar entry point.
    *
@@ -474,6 +533,30 @@ export function useProjectOperations({
         case "view.fullscreen":
           await toggleFullscreen();
           return;
+        case "multicam.create": {
+          const assets = (project?.media ?? []).filter(
+            (asset) => asset.kind === "video" || asset.kind === "audio",
+          );
+          if (assets.length < 2) {
+            setNotice("Import at least two media assets to build a multicam clip");
+            return;
+          }
+          const requested = window.prompt("Multicam clip name", "Multicam Sequence");
+          if (requested === null) return;
+          const name = requested.trim() || "Multicam Sequence";
+          const angles = assets.slice(0, 9).map((asset, index) => ({
+            id: index + 1,
+            name: asset.name,
+            media_id: asset.id,
+            sync_offset_ticks: 0,
+          }));
+          await perform(
+            "multicam.create",
+            { name, angles, sync_mode: "audio_waveform" },
+            "Multicam clip created",
+          );
+          return;
+        }
         case "timeline.rate_stretch": {
           if (!getMenuContext().selectedClip) {
             setNotice("Select a timeline clip first");
@@ -652,5 +735,7 @@ export function useProjectOperations({
     handleFetchGpuTelemetry,
     toggleFullscreen,
     invokeMenuCommand,
+    switchMulticamAngle,
+    syncMulticamWaveforms,
   };
 }

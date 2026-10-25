@@ -463,7 +463,7 @@ function EditorApp() {
     selectedClip: timelineOps.selectedClip,
     timelineZoom: timelineOps.timelineZoom,
     toggleProgramPlayback: playback.toggleProgramPlayback,
-    switchMulticamAngle: () => {},
+    switchMulticamAngle: (angle: number) => void projectOps.switchMulticamAngle(angle),
     handleShuttleKey: playback.handleShuttleKey,
     stepProgramFrame: playback.stepProgramFrame,
     trimActive: timelineOps.trimMode !== null,

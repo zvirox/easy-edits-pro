@@ -285,8 +285,12 @@ export function WorkspaceRouter({
         setMulticamMode: () => {},
         multicamActiveAngle: 1,
         setMulticamActiveAngle: () => {},
-        switchMulticamAngle: async () => {},
-        syncMulticamWaveforms: async () => {},
+        switchMulticamAngle: async (angle: number) => {
+          await projectOps.switchMulticamAngle(angle);
+        },
+        syncMulticamWaveforms: async () => {
+          await projectOps.syncMulticamWaveforms();
+        },
         onThreePointEdit: (mode, mediaId, sourceIn, duration) =>
           timelineOps.threePointEdit(
             mode,
