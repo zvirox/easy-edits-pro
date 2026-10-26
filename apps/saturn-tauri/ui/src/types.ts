@@ -415,7 +415,7 @@ export interface BatchQueueItem {
   name: string;
   format: string;
   resolution: string;
-  status: "queued" | "running" | "paused" | "completed" | "failed";
+  status: "queued" | "running" | "paused" | "completed" | "failed" | "cancelled";
   progress: number;
   outputPath: string;
 }

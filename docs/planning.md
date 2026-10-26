@@ -687,6 +687,44 @@ flowchart TD
   tests (33 binaries), app tests, build, 98 node tests, e2e
   (browserErrors 0), glass/commands/parity/source checks green.
 
+* **P17 — Tier-1 Batch 4: export 19/19 closed (Done 2026-10-26,
+  shipped in 0.1.0-alpha.20):** Fourth family batch; the export
+  family closes completely (19/19, no equivalences, no deferrals).
+  Nine engine-backed commands: `export.formats` (the render
+  pipeline's real capability table — MP4/H.264/AAC with optional
+  hardware encoding, WebM/VP8/Vorbis), the preset store
+  `export.presets` (list/get/save/delete/favorite/import/export)
+  over the settings file with four factory presets (source,
+  youtube-4k, social-vertical, webm-archive; factory entries shadow
+  same-named user presets and cannot be deleted; favorites are a
+  separate settings list), and `export.resolve` — pure computation
+  turning a preset or explicit overrides into concrete render
+  settings for the current project (source or WIDTHxHEIGHT, source
+  or NUM/DEN frame rate, marked-range validation against the
+  sequence In/Out points). Ten commands are ui_only and drive the
+  shell's real JobManager queue (workers, pause, history):
+  `export.quick` queues the current timeline via the factory source
+  preset, and `export.queue.add/list/cancel/remove/move/retry/clear/
+  start/stop` map onto the detached submit/list/cancel/remove/
+  pending-order move/retry registry/clear history/resume/pause —
+  queue start and stop are the runner's release and pause gates.
+  New shell machinery: the shared `spawn_queued_export` (used by the
+  existing `queue_export` and the new `retry_export`), an in-memory
+  ExportJobRegistry storing each job's parameters for retry, and
+  core JobManager APIs `move_pending` (reorder queued jobs) and
+  `remove` (drop queued jobs without a history entry; running jobs
+  refuse). UI: the Deliver workspace gains the engine preset bank
+  (list/apply/save-as/favorite/delete/import/export with a live
+  resolve summary and a Quick Export button), its batch card is fed
+  from `get_all_jobs` polling with a working pause toggle, the
+  BatchQueueDrawer now renders live queue data (cancel/remove/move/
+  retry per row, start/stop, clear finished), and enqueue flows
+  resolve presets through the engine before calling `queue_export`.
+  Catalogue: 263 commands, 263 shipped, all in menus, 66 UI-only.
+  Id-verified Tier-1: **162/442 (37%)**. Gates: workspace tests
+  (33 binaries), app tests, build, 98 node tests, e2e
+  (browserErrors 0), glass/commands/parity/source checks green.
+
 ---
 
 ## 7. Master Agentic Execution Rules

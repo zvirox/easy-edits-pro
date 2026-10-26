@@ -179,8 +179,11 @@ export function EditorModals({
       <BatchQueueDrawer
         isOpen={mediaOps.batchQueueDrawerOpen}
         onClose={() => mediaOps.setBatchQueueDrawerOpen(false)}
-        onEnqueueCurrentTimeline={(preset) => {
-          setNotice(`Enqueued timeline with preset "${preset}" to batch render daemon`);
+        onEnqueueCurrentTimeline={async (preset) => {
+          const jobId = await projectOps.enqueueExport(preset);
+          if (jobId !== null) {
+            setNotice(`Enqueued timeline with preset "${preset}" as job #${jobId}`);
+          }
         }}
       />
 

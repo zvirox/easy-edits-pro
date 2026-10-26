@@ -28,6 +28,7 @@ mod keyframe_cmds;
 mod markers_cmds;
 mod media_cmds;
 mod nodegraph_cmds;
+mod export_cmds;
 mod params;
 mod project_cmds;
 mod sequence_cmds;
@@ -200,6 +201,9 @@ impl EditorEngine {
             return result;
         }
         if let Some(result) = self.dispatch_settings(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_export(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_clip(command.id, request.params.clone()) {

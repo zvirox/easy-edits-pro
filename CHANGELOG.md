@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.20] - 2026-10-26
+
+Tier-1 coverage Batch 4 (P17): the export family closes completely
+at 19/19 — coverage 162/442 (37%). Nine engine-backed commands: the
+real capability table (MP4/H.264/AAC hardware-optional, WebM/VP8/
+Vorbis), a persisted export preset store with factory presets and
+favorites, and export settings resolution against the current
+project. Ten ui_only commands drive the shell's JobManager queue —
+quick export, add/list/cancel/remove/reorder/retry/clear, and the
+runner's start/stop gates — backed by a retry registry and new
+move/remove queue APIs. The Deliver workspace gains the engine
+preset bank, a live resolve summary, and Quick Export; the batch
+queue drawer now renders the real queue. Catalogue: 263/263 shipped.
+
 ## [0.1.0-alpha.19] - 2026-10-26
 
 Tier-1 coverage Batch 3 (P16): the shortcuts family closes completely

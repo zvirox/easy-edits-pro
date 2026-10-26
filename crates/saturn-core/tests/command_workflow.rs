@@ -4319,3 +4319,227 @@ fn shortcuts_lifecycle_workflow_queries_presets_undo() {
     let _ = std::fs::remove_file(&path);
     let _ = std::fs::remove_file(&export_path);
 }
+
+#[test]
+fn export_family_workflow_presets_formats_resolve() {
+    let path = std::env::temp_dir().join(format!(
+        "eep-export-presets-{}-{}.json",
+        std::process::id(),
+        line!()
+    ));
+    let _ = std::fs::remove_file(&path);
+    let mut engine = EditorEngine::default();
+    engine.load_settings(&path);
+
+    // The formats table mirrors the render pipeline's real capability set.
+    let formats = engine
+        .execute(CommandRequest::new("export.formats", Value::Null))
+        .unwrap();
+    let list = formats["formats"].as_array().unwrap();
+    assert_eq!(list.len(), 2, "formats: {formats}");
+    assert_eq!(list[0]["id"], "mp4");
+    assert_eq!(list[0]["video_codec"], "h264");
+    assert_eq!(list[0]["hardware_accel"], true);
+    assert_eq!(list[1]["id"], "webm");
+    assert_eq!(list[1]["video_codec"], "vp8");
+    assert_eq!(list[1]["hardware_accel"], false);
+
+    // Factory presets are always listed; get resolves them without settings.
+    let presets = engine
+        .execute(CommandRequest::new("export.presets", Value::Null))
+        .unwrap();
+    for name in ["source", "youtube-4k", "social-vertical", "webm-archive"] {
+        assert!(presets["presets"][name].is_object(), "presets: {presets}");
+    }
+    let got = engine
+        .execute(CommandRequest::new(
+            "export.presets.get",
+            json!({"name": "youtube-4k"}),
+        ))
+        .unwrap();
+    assert_eq!(got["settings"]["resolution"], "3840x2160");
+    let missing = engine
+        .execute(CommandRequest::new(
+            "export.presets.get",
+            json!({"name": "Nope"}),
+        ))
+        .unwrap();
+    assert!(missing["settings"].is_null());
+
+    // Saving validates the format before persisting.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "export.presets.save",
+            json!({"name": "Mine", "settings": {"format": "mov"}}),
+        ))
+        .is_err());
+    engine
+        .execute(CommandRequest::new(
+            "export.presets.save",
+            json!({"name": "Mine", "settings": {"format": "webm", "resolution": "1080x1920"}}),
+        ))
+        .unwrap();
+    let mut reloaded = EditorEngine::default();
+    reloaded.load_settings(&path);
+    let persisted = reloaded
+        .execute(CommandRequest::new("export.presets", Value::Null))
+        .unwrap();
+    assert_eq!(persisted["presets"]["Mine"]["format"], "webm");
+
+    // Favorites flag any known preset (factory included).
+    let faved = reloaded
+        .execute(CommandRequest::new(
+            "export.presets.favorite",
+            json!({"name": "Mine"}),
+        ))
+        .unwrap();
+    assert_eq!(faved["favorite"], true);
+    assert_eq!(
+        faved["favorites"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+    let unfaved = reloaded
+        .execute(CommandRequest::new(
+            "export.presets.favorite",
+            json!({"name": "Mine", "favorite": false}),
+        ))
+        .unwrap();
+    assert_eq!(unfaved["favorites"].as_array().unwrap().len(), 0);
+    assert!(reloaded
+        .execute(CommandRequest::new(
+            "export.presets.favorite",
+            json!({"name": "Ghost"}),
+        ))
+        .is_err());
+
+    // Import validates every entry's format before merging.
+    assert!(reloaded
+        .execute(CommandRequest::new(
+            "export.presets.import",
+            json!({"presets": {"Bad": {"format": "mov"}}}),
+        ))
+        .is_err());
+    let imported = reloaded
+        .execute(CommandRequest::new(
+            "export.presets.import",
+            json!({"presets": {"Team)): Render": {"format": "mp4"}}}),
+        ))
+        .unwrap();
+    assert_eq!(imported["imported"], 1);
+
+    // Factory presets cannot be deleted; user presets can, once.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "export.presets.delete",
+            json!({"name": "source"}),
+        ))
+        .is_err());
+    let deleted = reloaded
+        .execute(CommandRequest::new(
+            "export.presets.delete",
+            json!({"name": "Mine"}),
+        ))
+        .unwrap();
+    assert_eq!(deleted["deleted"], "Mine");
+    assert!(reloaded
+        .execute(CommandRequest::new(
+            "export.presets.delete",
+            json!({"name": "Mine"}),
+        ))
+        .is_err());
+
+    // Preset file export writes readable JSON.
+    let export_path = path.with_extension("presets.json");
+    let written = reloaded
+        .execute(CommandRequest::new(
+            "export.presets.export",
+            json!({"path": export_path.to_string_lossy()}),
+        ))
+        .unwrap();
+    assert!(written["exported"].as_u64().unwrap() >= 1);
+    let contents: Value = serde_json::from_str(&std::fs::read_to_string(&export_path).unwrap())
+        .unwrap();
+    assert!(contents["presets"].is_object());
+
+    // Resolve turns preset/overrides into concrete render settings for the
+    // current project: defaults follow the project (1920x1080 source).
+    let resolved = engine
+        .execute(CommandRequest::new("export.resolve", json!({})))
+        .unwrap();
+    assert_eq!(resolved["format"], "mp4");
+    assert_eq!(resolved["width"], 1920);
+    assert_eq!(resolved["height"], 1080);
+    assert_eq!(resolved["use_mark_range"], false);
+    assert!(resolved["range"].is_null());
+    let from_preset = engine
+        .execute(CommandRequest::new(
+            "export.resolve",
+            json!({"preset": "youtube-4k"}),
+        ))
+        .unwrap();
+    assert_eq!(from_preset["width"], 3840);
+    assert_eq!(from_preset["height"], 2160);
+    assert_eq!(from_preset["use_hardware"], true);
+    let explicit = engine
+        .execute(CommandRequest::new(
+            "export.resolve",
+            json!({
+                "format": "webm",
+                "resolution": "1280x720",
+                "frame_rate": "24000/1001",
+                "use_hardware": false,
+            }),
+        ))
+        .unwrap();
+    assert_eq!(explicit["width"], 1280);
+    assert_eq!(explicit["height"], 720);
+    assert_eq!(explicit["frame_rate_numerator"], 24000);
+    assert_eq!(explicit["frame_rate_denominator"], 1001);
+    assert_eq!(explicit["use_hardware"], false);
+    // Invalid resolution, unknown preset, and unmarked ranges all fail.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "export.resolve",
+            json!({"resolution": "wide"}),
+        ))
+        .is_err());
+    assert!(engine
+        .execute(CommandRequest::new(
+            "export.resolve",
+            json!({"preset": "Nope"}),
+        ))
+        .is_err());
+    assert!(engine
+        .execute(CommandRequest::new(
+            "export.resolve",
+            json!({"use_mark_range": true}),
+        ))
+        .is_err());
+    // With marks set, a marked-range resolve returns the range.
+    engine
+        .execute(CommandRequest::new(
+            "timeline.set_mark_in",
+            json!({"at": TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.set_mark_out",
+            json!({"at": TICKS_PER_SECOND * 3}),
+        ))
+        .unwrap();
+    let marked = engine
+        .execute(CommandRequest::new(
+            "export.resolve",
+            json!({"use_mark_range": true}),
+        ))
+        .unwrap();
+    assert_eq!(marked["range"]["start"], TICKS_PER_SECOND);
+    assert_eq!(marked["range"]["end"], TICKS_PER_SECOND * 3);
+
+    let _ = std::fs::remove_file(&path);
+    let _ = std::fs::remove_file(&export_path);
+}

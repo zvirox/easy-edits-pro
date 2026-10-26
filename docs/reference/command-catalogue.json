@@ -1590,6 +1590,337 @@
     "undoGroup": "none"
   },
   {
+    "aliases": [
+      "export containers"
+    ],
+    "category": "File",
+    "id": "export.formats",
+    "label": "List Export Formats",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.presets",
+    "label": "List Export Presets",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.presets.get",
+    "label": "Get Export Preset",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.presets.save",
+    "label": "Save Export Preset",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str,\"settings\":obj}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.presets.delete",
+    "label": "Delete Export Preset",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.presets.favorite",
+    "label": "Favorite Export Preset",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str,\"favorite\":bool?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.presets.import",
+    "label": "Import Export Presets",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"presets\":obj}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.presets.export",
+    "label": "Export Export Presets",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"path\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "export settings"
+    ],
+    "category": "File",
+    "id": "export.resolve",
+    "label": "Resolve Export Settings",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"preset\":str?,\"format\":str?,\"resolution\":str?,\"frame_rate\":str?,\"use_mark_range\":bool?,\"use_hardware\":bool?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "fast export"
+    ],
+    "category": "File",
+    "id": "export.quick",
+    "label": "Quick Export",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "queue export"
+    ],
+    "category": "File",
+    "id": "export.queue.add",
+    "label": "Send to Export Queue",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.queue.list",
+    "label": "List Export Queue",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.queue.cancel",
+    "label": "Cancel Queued Export",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"id\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.queue.remove",
+    "label": "Remove Queued Export",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"id\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.queue.move",
+    "label": "Reorder Queued Export",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"id\":int,\"target_index\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.queue.retry",
+    "label": "Retry Queued Export",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"id\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.queue.clear",
+    "label": "Clear Finished Exports",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.queue.start",
+    "label": "Start Export Queue",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "export.queue.stop",
+    "label": "Stop Export Queue",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
     "aliases": [],
     "category": "Graphics",
     "id": "caption.track_add",

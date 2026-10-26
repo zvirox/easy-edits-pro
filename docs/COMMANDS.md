@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-244 commands.
+263 commands.
 
 ## File
 
@@ -34,6 +34,25 @@ Generated from the command catalogue. Do not edit by hand.
 | Detach Proxy | `media.detach_proxy` | shipped |  | `{"media_id":int}` |
 | Toggle Proxies | `media.toggle_proxies` | shipped |  | `{}` |
 | Search for Media | `media.search` | shipped |  | `{}` |
+| List Export Formats | `export.formats` | shipped |  | `{}` |
+| List Export Presets | `export.presets` | shipped |  | `{}` |
+| Get Export Preset | `export.presets.get` | shipped |  | `{"name":str}` |
+| Save Export Preset | `export.presets.save` | shipped |  | `{"name":str,"settings":obj}` |
+| Delete Export Preset | `export.presets.delete` | shipped |  | `{"name":str}` |
+| Favorite Export Preset | `export.presets.favorite` | shipped |  | `{"name":str,"favorite":bool?}` |
+| Import Export Presets | `export.presets.import` | shipped |  | `{"presets":obj}` |
+| Export Export Presets | `export.presets.export` | shipped |  | `{"path":str}` |
+| Resolve Export Settings | `export.resolve` | shipped |  | `{"preset":str?,"format":str?,"resolution":str?,"frame_rate":str?,"use_mark_range":bool?,"use_hardware":bool?}` |
+| Quick Export | `export.quick` | shipped |  | `{}` |
+| Send to Export Queue | `export.queue.add` | shipped |  | `{}` |
+| List Export Queue | `export.queue.list` | shipped |  | `{}` |
+| Cancel Queued Export | `export.queue.cancel` | shipped |  | `{"id":int}` |
+| Remove Queued Export | `export.queue.remove` | shipped |  | `{"id":int}` |
+| Reorder Queued Export | `export.queue.move` | shipped |  | `{"id":int,"target_index":int}` |
+| Retry Queued Export | `export.queue.retry` | shipped |  | `{"id":int}` |
+| Clear Finished Exports | `export.queue.clear` | shipped |  | `{}` |
+| Start Export Queue | `export.queue.start` | shipped |  | `{}` |
+| Stop Export Queue | `export.queue.stop` | shipped |  | `{}` |
 | Read Preferences | `prefs.get` | shipped |  | `{"key":str?}` |
 | Write Preferences | `prefs.set` | shipped |  | `{"values":obj}` |
 | Reset Preferences | `prefs.reset` | shipped |  | `{}` |

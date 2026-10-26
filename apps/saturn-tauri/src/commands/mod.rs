@@ -15,7 +15,8 @@ pub use export::{detect_encoder_capabilities, export_frame, queue_export, start_
 mod jobs;
 pub use jobs::{
     cancel_all_jobs, cancel_job, clear_job_history, get_active_jobs, get_all_jobs,
-    is_job_queue_paused, pause_job_queue, resume_job_queue,
+    is_job_queue_paused, move_queued_export, pause_job_queue, remove_queued_export,
+    retry_export, resume_job_queue, ExportJobRegistry,
 };
 mod audio;
 pub use audio::{

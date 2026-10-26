@@ -528,79 +528,117 @@
  },
  "export.formats": {
   "label": "List Export Formats",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.formats",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.presets.delete": {
   "label": "Delete Export Preset",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.presets.delete",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.presets.export": {
   "label": "Export Export Presets",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.presets.export",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.presets.favorite": {
   "label": "Favorite Export Preset",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.presets.favorite",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.presets.get": {
   "label": "Get Export Preset",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.presets.get",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.presets.import": {
   "label": "Import Export Presets",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.presets.import",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.presets.list": {
   "label": "List Export Presets",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.presets",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.presets.save": {
   "label": "Save Export Preset",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.presets.save",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.queue.add": {
   "label": "Send to Export Queue",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.queue.add",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.queue.cancel": {
   "label": "Cancel Queued Export",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.queue.cancel",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.queue.clear": {
   "label": "Clear Finished Exports",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.queue.clear",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.queue.list": {
   "label": "List Export Queue",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.queue.list",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.queue.move": {
   "label": "Reorder Queued Export",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.queue.move",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.queue.remove": {
   "label": "Remove Queued Export",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.queue.remove",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.queue.retry": {
   "label": "Retry Queued Export",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.queue.retry",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.queue.start": {
   "label": "Start Export Queue",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.queue.start",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.queue.stop": {
   "label": "Stop Export Queue",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.queue.stop",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.quick": {
   "label": "Quick Export",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.quick",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "export.resolve": {
   "label": "Resolve Export Settings",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "export.resolve",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
  },
  "file.autoSaveNow": {
   "label": "Auto Save Now",

@@ -318,8 +318,7 @@ impl JobManager {
         false
     }
 
-    pub fn cancel_all(&self) {
-        let mut cancelled_infos = Vec::new();
+    pub fn cancel_all(&self) {        let mut cancelled_infos = Vec::new();
         {
             let mut state = self.inner.queue.lock().unwrap();
             while let Some(mut queued) = state.pending.pop_front() {
@@ -342,6 +341,40 @@ impl JobManager {
         for info in cancelled_infos {
             Self::notify_listeners(&self.inner, &info);
         }
+    }
+
+    /// Reorder a pending (queued) job. Running and finished jobs have no
+    /// queue position; those return false.
+    pub fn move_pending(&self, id: JobId, target_index: usize) -> bool {
+        let mut state = self.inner.queue.lock().unwrap();
+        let Some(from) = state.pending.iter().position(|item| item.info.id == id) else {
+            return false;
+        };
+        let clamped = target_index.min(state.pending.len() - 1);
+        let queued = state.pending.remove(from).unwrap();
+        state.pending.insert(clamped, queued);
+        true
+    }
+
+    /// Drop a job from the queue entirely: pending jobs are removed without
+    /// a history entry (the FC "Remove from Queue" gesture), history entries
+    /// are erased. Running jobs must be cancelled first and report false.
+    pub fn remove(&self, id: JobId) -> bool {
+        let mut state = self.inner.queue.lock().unwrap();
+        if let Some(pos) = state.pending.iter().position(|item| item.info.id == id) {
+            let mut queued = state.pending.remove(pos).unwrap();
+            queued.cancellation.cancel();
+            if let Some(sender) = queued.result_sender {
+                let _ = sender.send(Err("Job was removed from the queue".into()));
+            }
+            return true;
+        }
+        if state.running.iter().any(|(info, _)| info.id == id) {
+            return false;
+        }
+        let before = state.history.len();
+        state.history.retain(|info| info.id != id);
+        before != state.history.len()
     }
 
     pub fn get_job(&self, id: JobId) -> Option<JobInfo> {
@@ -662,5 +695,61 @@ mod tests {
 
         let order = execution_order.lock().unwrap().clone();
         assert_eq!(order, vec!["high", "low"]);
+    }
+
+    #[test]
+    fn test_move_pending_and_remove() {
+        let manager = JobManager::new(1);
+        let release = Arc::new(AtomicBool::new(false));
+        let release_clone = Arc::clone(&release);
+        // One worker blocked so the next submissions stay queued.
+        manager.submit_detached(
+            "Blocker",
+            JobKind::Custom { name: "blocker".into() },
+            JobPriority::Immediate,
+            move |_ctx| {
+                while !release_clone.load(Ordering::SeqCst) {
+                    thread::sleep(Duration::from_millis(5));
+                }
+                Ok(None)
+            },
+        );
+        thread::sleep(Duration::from_millis(50));
+
+        let (_, _, first_rx) = manager.submit(
+            "First",
+            JobKind::Custom { name: "j".into() },
+            JobPriority::Normal,
+            |_| Ok(None),
+        );
+        let (second_id, _, _second_rx) = manager.submit(
+            "Second",
+            JobKind::Custom { name: "j".into() },
+            JobPriority::Normal,
+            |_| Ok(None),
+        );
+        let (third_id, _, _third_rx) = manager.submit(
+            "Third",
+            JobKind::Custom { name: "j".into() },
+            JobPriority::Normal,
+            |_| Ok(None),
+        );
+        thread::sleep(Duration::from_millis(50));
+
+        // Move Third to the front of the pending list.
+        assert!(manager.move_pending(third_id, 0));
+        let pending_first = manager.list_all().into_iter().find(|info| info.label == "Third");
+        assert!(pending_first.is_some(), "moved job stays visible");
+        // Moving a pending job anywhere in the list works.
+        assert!(manager.move_pending(second_id, 0));
+        assert!(!manager.move_pending(JobId(999_999), 0));
+
+        // Remove drops the queued job without a Cancelled history entry.
+        assert!(manager.remove(second_id));
+        assert!(manager.get_job(second_id).is_none());
+        // Finished/unknown ids also report false.
+        assert!(!manager.remove(JobId(999_999)));
+        release.store(true, Ordering::SeqCst);
+        let _ = first_rx.recv_timeout(Duration::from_secs(2));
     }
 }

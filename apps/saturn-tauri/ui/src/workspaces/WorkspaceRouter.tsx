@@ -22,6 +22,7 @@ import {
   type TimelineSectionProps,
 } from "../features/timeline";
 import { useEffect, useRef, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { TICKS_PER_SECOND, type Clip, type MediaAsset, type ProjectDocument } from "../app/projectTypes";
 import type { CommandStatus } from "../app/ProjectProvider";
 import type { AudioClockMaster } from "../engine/playbackEngine";
@@ -106,6 +107,58 @@ export function WorkspaceRouter({
   // Automated selections — media drops, add-to-timeline — must not steal
   // the monitor, so the switch is driven by gestures, not selection state.
   const [sourcePreview, setSourcePreview] = useState<SourcePreviewFocus | null>(null);
+
+  // Deliver workspace live queue state: the embedded batch card renders the
+  // real JobManager queue; polling runs only while Deliver is on screen.
+  const [deliverPreset, setDeliverPreset] = useState("source");
+  const [queuePaused, setQueuePaused] = useState(false);
+  const [batchQueue, setBatchQueue] = useState<
+    { id: number; name: string; format: string; resolution: string; status: "queued" | "running" | "paused" | "completed" | "failed" | "cancelled"; progress: number; outputPath: string }[]
+  >([]);
+  useEffect(() => {
+    if (davinciWorkspace !== "deliver") return;
+    let active = true;
+    const tick = async () => {
+      try {
+        const live = await invoke<
+          { id: number; label: string; kind: { preset?: string }; state: Record<string, unknown> }[]
+        >("get_all_jobs");
+        const paused = await invoke<boolean>("is_job_queue_paused");
+        if (!active) return;
+        setQueuePaused(paused);
+        setBatchQueue(
+          live.map((job) => {
+            const status = String(job.state.status ?? "queued") as
+              | "queued"
+              | "running"
+              | "paused"
+              | "completed"
+              | "failed"
+              | "cancelled";
+            const progress = typeof job.state.progress === "number" ? job.state.progress : 0;
+            return {
+              id: job.id,
+              name: job.label,
+              format: job.kind?.preset ?? "export",
+              resolution: "",
+              status,
+              progress,
+              outputPath: String(job.state.output ?? ""),
+            };
+          }),
+        );
+      } catch {
+        // Queue probes are best-effort; the card shows the last good list.
+      }
+    };
+    void tick();
+    const timer = window.setInterval(() => void tick(), 1000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [davinciWorkspace]);
+
   const mediaRef = useRef(media);
   useEffect(() => {
     mediaRef.current = media;
@@ -175,10 +228,17 @@ export function WorkspaceRouter({
     return (
       <ExportWorkspace
         project={project}
-        batchQueue={[]}
-        setBatchQueue={() => {}}
-        queuePaused={false}
-        toggleQueuePause={() => {}}
+        batchQueue={batchQueue}
+        setBatchQueue={() => {
+          void invoke("clear_job_history")
+            .then(() => invoke<never[]>("get_all_jobs"))
+            .then((live) => setBatchQueue(live))
+            .catch(() => {});
+        }}
+        queuePaused={queuePaused}
+        toggleQueuePause={() =>
+          invoke<boolean>(queuePaused ? "resume_job_queue" : "pause_job_queue").then(setQueuePaused)
+        }
         deliverDestination="render"
         setDeliverDestination={() => {}}
         handleExportTimelineInterop={projectOps.handleExportTimelineInterop}
@@ -187,8 +247,8 @@ export function WorkspaceRouter({
         interopContent={projectOps.interopContent}
         setNotice={projectOps.setNotice}
         encoderInfo={encoderInfo}
-        selectedExportPreset="source"
-        setSelectedExportPreset={() => {}}
+        selectedExportPreset={deliverPreset}
+        setSelectedExportPreset={setDeliverPreset}
         exportResolution={projectOps.exportResolution}
         setExportResolution={projectOps.setExportResolution}
         exportFrameRate={projectOps.exportFrameRate}
@@ -210,7 +270,8 @@ export function WorkspaceRouter({
         renderPreview={() => null}
         rendering={projectOps.rendering}
         renderProgress={projectOps.renderProgress}
-        addExportToQueue={() => {}}
+        addExportToQueue={() => projectOps.enqueueExport(deliverPreset)}
+        quickExport={() => projectOps.enqueueExport("source")}
         exportProject={projectOps.exportProject}
       />
     );

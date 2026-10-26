@@ -1,112 +1,97 @@
 import { InteriorButton } from "./interior/interior-button";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { backdropVariants, drawerVariants, useMotionPreset } from "../motion/variants";
 import { invoke } from "@tauri-apps/api/core";
+import { runCommand } from "../app/ProjectProvider";
+import { Icon } from "./Icon";
 
-export interface BatchJobItem {
+interface JobState {
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
+  progress?: number;
+  phase?: string;
+  output?: string | null;
+  error?: string;
+}
+
+interface LiveJob {
   id: number;
   label: string;
-  preset: string;
-  status: "queued" | "running" | "completed" | "failed" | "cancelled";
-  progress: number;
-  phase: string;
-  outputPath: string;
+  state: JobState;
+  created_at: number;
 }
 
 interface BatchQueueDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onEnqueueCurrentTimeline: (preset: string) => void;
+  onEnqueueCurrentTimeline: (preset: string) => unknown;
 }
 
+const statusColor = (status: JobState["status"]): string =>
+  status === "running"
+    ? "var(--text-on-accent)"
+    : status === "completed"
+      ? "var(--status-success)"
+      : status === "failed"
+        ? "var(--status-danger)"
+        : "var(--text-secondary)";
+
+/**
+ * Live view over the shell's export queue (JobManager). Every row comes from
+ * `get_all_jobs`; the toolbar drives pause/resume/clear, and queued jobs can
+ * be reordered, cancelled, or removed. Finished and failed jobs carry their
+ * parameters in the retry registry, so Retry re-submits them as-is.
+ */
 export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
   isOpen,
   onClose,
   onEnqueueCurrentTimeline,
 }) => {
-  const [isDaemonPaused, setIsDaemonPaused] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState("YouTube 4K (H.264/AAC)");
-
-  // Sample and live jobs
-  const [jobs, setJobs] = useState<BatchJobItem[]>([
-    {
-      id: 101,
-      label: "Feature Cut_Master_v1.mp4",
-      preset: "ProRes 422 HQ Master",
-      status: "running",
-      progress: 68,
-      phase: "Rendering Color & Effects",
-      outputPath: "/exports/Feature_Cut_Master_v1.mp4",
-    },
-    {
-      id: 102,
-      label: "Social_Teaser_Vertical.mp4",
-      preset: "TikTok / Reels 1080x1920",
-      status: "queued",
-      progress: 0,
-      phase: "Pending",
-      outputPath: "/exports/Social_Teaser_Vertical.mp4",
-    },
-  ]);
-
   const motionPreset = useMotionPreset();
+  const [jobs, setJobs] = useState<LiveJob[]>([]);
+  const [paused, setPaused] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState("source");
+  const [presets, setPresets] = useState<string[]>(["source"]);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleTogglePause = async () => {
+  const refresh = useCallback(async () => {
     try {
-      if (isDaemonPaused) {
-        await invoke("resume_job_queue");
-        setIsDaemonPaused(false);
-      } else {
-        await invoke("pause_job_queue");
-        setIsDaemonPaused(true);
-      }
-    } catch {
-      setIsDaemonPaused(!isDaemonPaused);
+      const live = await invoke<LiveJob[]>("get_all_jobs");
+      setJobs(live);
+    } catch (refreshError) {
+      setError(String(refreshError));
     }
-  };
+  }, []);
 
-  const handleClearCompleted = async () => {
+  // Poll while the drawer is open; export jobs progress on the worker
+  // threads and the queue state changes from every control here.
+  useEffect(() => {
+    if (!isOpen) return;
+    void refresh();
+    void invoke<boolean>("is_job_queue_paused").then(setPaused).catch(() => {});
+    void runCommand<{ presets: Record<string, unknown> }>("export.presets", {})
+      .then((result) => {
+        const names = Object.keys(result.presets ?? {});
+        if (names.length) setPresets(names.sort((a, b) => a.localeCompare(b)));
+      })
+      .catch(() => {});
+    const timer = window.setInterval(() => void refresh(), 1000);
+    return () => window.clearInterval(timer);
+  }, [isOpen, refresh]);
+
+  const guard = async (action: () => Promise<unknown>) => {
+    setError(null);
     try {
-      await invoke("clear_job_history");
-    } catch {
-      // fallback
+      await action();
+    } catch (actionError) {
+      setError(String(actionError));
     }
-    setJobs((prev) => prev.filter((j) => j.status === "running" || j.status === "queued"));
+    void refresh();
   };
 
-  const handleCancelJob = async (id: number) => {
-    try {
-      await invoke("cancel_job", { jobId: id });
-    } catch {
-      // fallback
-    }
-    setJobs((prev) =>
-      prev.map((j) => (j.id === id ? { ...j, status: "cancelled", phase: "Cancelled by user" } : j))
-    );
-  };
+  const pendingCount = jobs.filter((job) => job.state.status === "queued").length;
 
-  const handleAddJob = () => {
-    onEnqueueCurrentTimeline(selectedPreset);
-    const newJob: BatchJobItem = {
-      id: Date.now(),
-      label: `Export_${selectedPreset.split(" ")[0]}_${Date.now().toString().slice(-4)}.mp4`,
-      preset: selectedPreset,
-      status: "queued",
-      progress: 0,
-      phase: "Queued",
-      outputPath: `/exports/render_${Date.now().toString().slice(-4)}.mp4`,
-    };
-    setJobs((prev) => [...prev, newJob]);
-  };
-
-  const exportPresets = [
-    "YouTube 4K (H.264/AAC)",
-    "ProRes 422 HQ Master",
-    "Web 1080p 60fps (Fast Encode)",
-    "TikTok / Reels (1080x1920 9:16)",
-    "Cinema DCI 4K (DCP Master)",
-  ];
+  const queuedIds = jobs.filter((job) => job.state.status === "queued").map((job) => job.id);
 
   return (
     <AnimatePresence>
@@ -123,6 +108,7 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
         >
           <motion.div
             className="batch-queue-drawer glass"
+            data-testid="batch-queue-drawer"
             data-elev="3"
             onClick={(e) => e.stopPropagation()}
             style={{
@@ -141,261 +127,267 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
             variants={drawerVariants}
             transition={motionPreset.transition}
           >
-        {/* Drawer Header */}
-        <header
-          className="batch-queue-drawer-header"
-          style={{
-            padding: "16px 20px",
-            borderBottom: "1px solid var(--border-default)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: "transparent",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 20 }}>📦</span>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Background Batch Queue</h3>
-                <span
-                  style={{
-                    fontSize: 10,
-                    padding: "2px 6px",
-                    borderRadius: 4,
-                    fontWeight: 700,
-                    background: isDaemonPaused ? "color-mix(in srgb, var(--status-warning) 22%, transparent)" : "color-mix(in srgb, var(--status-success) 22%, transparent)",
-                    color: isDaemonPaused ? "var(--status-warning)" : "var(--status-success)",
-                  }}
-                >
-                  {isDaemonPaused ? "⏸️ DAEMON PAUSED" : "🟢 DAEMON RUNNING"}
-                </span>
+            <header
+              className="batch-queue-drawer-header"
+              style={{
+                padding: "16px 20px",
+                borderBottom: "1px solid var(--border-default)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                background: "transparent",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Export Queue</h3>
+                  <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                    Background render workers {paused ? "paused" : "running"}
+                  </span>
+                </div>
               </div>
-              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
-                Multi-job headless background render executor
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close export queue"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--text-secondary)",
+                  cursor: "pointer",
+                  padding: 2,
+                }}
+              >
+                <Icon name="close" />
+              </button>
+            </header>
+
+            <div
+              style={{
+                padding: "10px 16px",
+                background: "var(--bg-surface)",
+                borderBottom: "1px solid var(--border-default)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <InteriorButton
+                  type="button"
+                  data-testid="queue-pause-resume"
+                  onClick={() =>
+                    guard(async () => {
+                      setPaused(await invoke<boolean>(paused ? "resume_job_queue" : "pause_job_queue"));
+                    })
+                  }
+                >
+                  {paused ? "Start Queue" : "Stop Queue"}
+                </InteriorButton>
+                <InteriorButton
+                  type="button"
+                  data-testid="queue-clear-finished"
+                  onClick={() => guard(() => invoke("clear_job_history"))}
+                >
+                  Clear Finished
+                </InteriorButton>
+              </div>
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                {jobs.length} job{jobs.length === 1 ? "" : "s"} · {pendingCount} queued
               </span>
             </div>
-          </div>
-          <InteriorButton
-            onClick={onClose}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--text-secondary)",
-              fontSize: 18,
-              cursor: "pointer",
-            }}
-          >
-            ✕
-          </InteriorButton>
-        </header>
 
-        {/* Toolbar */}
-        <div
-          style={{
-            padding: "10px 16px",
-            background: "var(--bg-surface)",
-            borderBottom: "1px solid var(--border-default)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div style={{ display: "flex", gap: 8 }}>
-            <InteriorButton
-              type="button"
-              onClick={handleTogglePause}
+            <div
               style={{
-                padding: "5px 10px",
-                fontSize: 11,
-                fontWeight: 600,
-                background: "var(--border-default)",
-                color: "var(--text-primary)",
-                border: "none",
-                borderRadius: 4,
-                cursor: "pointer",
+                padding: "10px 16px",
+                borderBottom: "1px solid var(--border-default)",
+                display: "flex",
+                gap: 8,
+                alignItems: "center",
               }}
             >
-              {isDaemonPaused ? "▶️ Resume Daemon" : "⏸️ Pause Daemon"}
-            </InteriorButton>
-            <InteriorButton
-              type="button"
-              onClick={handleClearCompleted}
-              style={{
-                padding: "5px 10px",
-                fontSize: 11,
-                background: "var(--bg-input)",
-                color: "var(--text-secondary)",
-                border: "1px solid var(--border-default)",
-                borderRadius: 4,
-                cursor: "pointer",
-              }}
-            >
-              🧹 Clear Completed
-            </InteriorButton>
-          </div>
-          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{jobs.length} jobs in queue</span>
-        </div>
-
-        {/* Job List */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
-          {jobs.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-muted)" }}>
-              <span style={{ fontSize: 32, display: "block", marginBottom: 8 }}>📭</span>
-              <strong>Render Queue is Empty</strong>
-              <p style={{ fontSize: 12, margin: "4px 0 0" }}>
-                Enqueue timelines with presets to render in the background.
-              </p>
+              <select
+                value={selectedPreset}
+                onChange={(event) => setSelectedPreset(event.target.value)}
+                aria-label="Queue preset"
+                style={{
+                  flex: 1,
+                  padding: "5px 8px",
+                  background: "var(--bg-input)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-default)",
+                  borderRadius: 4,
+                  fontSize: 12,
+                }}
+              >
+                {presets.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <InteriorButton
+                type="button"
+                data-testid="queue-add-job"
+                onClick={() =>
+                  guard(async () => {
+                    await onEnqueueCurrentTimeline(selectedPreset);
+                  })
+                }
+              >
+                Add Current Timeline
+              </InteriorButton>
             </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {jobs.map((job) => (
-                <div
-                  key={job.id}
-                  style={{
-                    background: "var(--bg-elevated)",
-                    border: "1px solid var(--border-default)",
-                    borderRadius: 6,
-                    padding: 12,
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                        {job.label}
-                      </div>
-                      <div style={{ fontSize: 11, color: "var(--accent-text)", marginTop: 2 }}>
-                        🏷️ {job.preset}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span
+
+            {error ? (
+              <p role="alert" style={{ margin: 0, padding: "6px 16px", fontSize: 11, color: "var(--status-danger)" }}>
+                {error}
+              </p>
+            ) : null}
+
+            <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+              {jobs.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-muted)" }}>
+                  <strong>Export Queue is Empty</strong>
+                  <p style={{ fontSize: 12, margin: "4px 0 0" }}>
+                    Add the current timeline with a preset to render in the background.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {jobs.map((job) => {
+                    const status = job.state.status;
+                    const isQueued = status === "queued";
+                    const isTerminal = status === "completed" || status === "failed" || status === "cancelled";
+                    return (
+                      <div
+                        key={job.id}
+                        data-testid={`queue-job-${job.id}`}
                         style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          padding: "2px 6px",
-                          borderRadius: 3,
-                          textTransform: "uppercase",
-                          background:
-                            job.status === "running"
-                              ? "var(--accent-secondary)"
-                              : job.status === "completed"
-                              ? "color-mix(in srgb, var(--status-success) 22%, transparent)"
-                              : job.status === "cancelled"
-                              ? "color-mix(in srgb, var(--status-danger) 20%, transparent)"
-                              : "var(--border-default)",
-                          color:
-                            job.status === "running"
-                              ? "var(--text-on-accent)"
-                              : job.status === "completed"
-                              ? "var(--status-success)"
-                              : job.status === "cancelled"
-                              ? "var(--status-danger)"
-                              : "var(--text-secondary)",
+                          background: "var(--bg-elevated)",
+                          border: "1px solid var(--border-default)",
+                          borderRadius: 6,
+                          padding: 12,
                         }}
                       >
-                        {job.status}
-                      </span>
-                      {job.status === "running" || job.status === "queued" ? (
-                        <InteriorButton
-                          type="button"
-                          onClick={() => handleCancelJob(job.id)}
-                          title="Cancel Job"
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "var(--status-danger)",
-                            cursor: "pointer",
-                            fontSize: 13,
-                          }}
-                        >
-                          ✕
-                        </InteriorButton>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  {/* Progress Bar */}
-                  {job.status === "running" && (
-                    <div style={{ margin: "8px 0 4px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-secondary)", marginBottom: 3 }}>
-                        <span>{job.phase}</span>
-                        <span>{job.progress}%</span>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                              #{job.id} {job.label}
+                            </div>
+                            <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>
+                              {status === "running"
+                                ? `${job.state.phase ?? "Rendering"} · ${Math.round((job.state.progress ?? 0) * 100)}%`
+                                : status === "failed"
+                                  ? `Failed: ${job.state.error ?? "unknown error"}`
+                                  : status === "completed"
+                                    ? `Completed: ${job.state.output ?? "done"}`
+                                    : status === "cancelled"
+                                      ? "Cancelled"
+                                      : "Waiting for a worker"}
+                            </div>
+                          </div>
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 700,
+                              padding: "2px 6px",
+                              borderRadius: 3,
+                              textTransform: "uppercase",
+                              color: statusColor(status),
+                              border: "1px solid var(--border-default)",
+                            }}
+                          >
+                            {status}
+                          </span>
+                        </div>
+                        {status === "running" ? (
+                          <div
+                            style={{
+                              height: 4,
+                              borderRadius: 2,
+                              background: "var(--border-default)",
+                              overflow: "hidden",
+                              marginBottom: 8,
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                background: "var(--accent-primary)",
+                                transform: `scaleX(${Math.max(0, Math.min(1, job.state.progress ?? 0))})`,
+                                transformOrigin: "left center",
+                                transition: "transform 240ms linear",
+                              }}
+                            />
+                          </div>
+                        ) : null}
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                          {!isTerminal ? (
+                            <InteriorButton
+                              type="button"
+                              data-testid={`queue-cancel-${job.id}`}
+                              onClick={() => guard(() => invoke("cancel_job", { id: job.id }))}
+                            >
+                              Cancel
+                            </InteriorButton>
+                          ) : null}
+                          {isQueued ? (
+                            <>
+                              <InteriorButton
+                                type="button"
+                                onClick={() =>
+                                  guard(() =>
+                                    invoke("move_queued_export", {
+                                      jobId: job.id,
+                                      targetIndex: Math.max(0, queuedIds.indexOf(job.id) - 1),
+                                    }),
+                                  )
+                                }
+                                disabled={queuedIds.indexOf(job.id) === 0}
+                              >
+                                Move Up
+                              </InteriorButton>
+                              <InteriorButton
+                                type="button"
+                                onClick={() =>
+                                  guard(() =>
+                                    invoke("move_queued_export", {
+                                      jobId: job.id,
+                                      targetIndex: queuedIds.indexOf(job.id) + 1,
+                                    }),
+                                  )
+                                }
+                                disabled={queuedIds.indexOf(job.id) === queuedIds.length - 1}
+                              >
+                                Move Down
+                              </InteriorButton>
+                              <InteriorButton
+                                type="button"
+                                onClick={() => guard(() => invoke("remove_queued_export", { jobId: job.id }))}
+                              >
+                                Remove
+                              </InteriorButton>
+                            </>
+                          ) : null}
+                          {isTerminal ? (
+                            <InteriorButton
+                              type="button"
+                              data-testid={`queue-retry-${job.id}`}
+                              onClick={() => guard(() => invoke("retry_export", { jobId: job.id }))}
+                            >
+                              Retry
+                            </InteriorButton>
+                          ) : null}
+                        </div>
                       </div>
-                      <div style={{ height: 5, background: "var(--border-default)", borderRadius: 3, overflow: "hidden" }}>
-                        <div
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            background: "var(--accent-primary)",
-                            transform: `scaleX(${Math.max(0, Math.min(1, job.progress / 100))})`,
-                            transformOrigin: "left center",
-                            transition: "transform var(--dur-med) var(--ease-out)",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    Destination: {job.outputPath}
-                  </div>
+                    );
+                  })}
                 </div>
-              ))}
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Quick Enqueue Footer */}
-        <footer
-          style={{
-            padding: 16,
-            background: "var(--bg-elevated)",
-            borderTop: "1px solid var(--border-default)",
-          }}
-        >
-          <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>
-            Quick Enqueue Timeline:
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <select
-              value={selectedPreset}
-              onChange={(e) => setSelectedPreset(e.target.value)}
-              style={{
-                flex: 1,
-                background: "var(--bg-input)",
-                border: "1px solid var(--text-muted)",
-                borderRadius: 4,
-                color: "var(--text-primary)",
-                fontSize: 12,
-                padding: "6px 8px",
-              }}
-            >
-              {exportPresets.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-            <InteriorButton
-              type="button"
-              onClick={handleAddJob}
-              style={{
-                padding: "6px 14px",
-                background: "var(--accent-primary)",
-                border: "none",
-                borderRadius: 4,
-                color: "var(--text-on-accent)",
-                fontWeight: 600,
-                fontSize: 12,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-              }}
-            >
-              ➕ Add to Queue
-            </InteriorButton>
-          </div>
-        </footer>
           </motion.div>
         </motion.div>
       )}

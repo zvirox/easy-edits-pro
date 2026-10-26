@@ -59,6 +59,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(state.clone())
+        .manage(commands::ExportJobRegistry::default())
         .setup({
             let state = state.clone();
             move |app| {
@@ -149,6 +150,9 @@ fn main() {
             cancel_job,
             cancel_all_jobs,
             clear_job_history,
+            retry_export,
+            move_queued_export,
+            remove_queued_export,
             search_openverse,
             download_openverse_asset,
             ask_local_ai,

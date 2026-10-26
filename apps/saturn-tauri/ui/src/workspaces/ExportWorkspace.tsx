@@ -12,6 +12,7 @@ import {
   exportFrameRateOptions,
 } from "../types";
 import { formatTime } from "../utils/formatters";
+import { DeliverPresetBank } from "../features/deliver/DeliverPresetBank";
 
 export interface ExportWorkspaceProps {
   project: ProjectDocument["project"] | null;
@@ -51,6 +52,8 @@ export interface ExportWorkspaceProps {
   rendering: boolean;
   renderProgress: { fractionPercent: number; phase: string } | null;
   addExportToQueue: () => Promise<void> | void;
+  /** Queue a full-timeline export with the factory source preset. */
+  quickExport: () => Promise<void> | void;
   exportProject: () => Promise<void> | void;
 }
 
@@ -92,6 +95,7 @@ export function ExportWorkspace({
   rendering,
   renderProgress,
   addExportToQueue,
+  quickExport,
   exportProject,
 }: ExportWorkspaceProps) {
   const outputResolution =
@@ -492,6 +496,35 @@ export function ExportWorkspace({
                 })}
               </div>
             </div>
+
+            {/* Engine-backed preset bank: the shared export.* preset store. */}
+            <DeliverPresetBank
+              disabled={rendering || !hasClips}
+              format={exportFormat}
+              resolution={exportResolution}
+              frameRate={exportFrameRate}
+              useHardware={useHardwareEncoding}
+              useMarkRange={exportMarkedRange}
+              applyPreset={(settings) => {
+                if (typeof settings.format === "string" && (settings.format === "mp4" || settings.format === "webm")) {
+                  setExportFormat(settings.format);
+                }
+                if (typeof settings.resolution === "string") {
+                  setExportResolution(settings.resolution);
+                }
+                if (typeof settings.frame_rate === "string") {
+                  setExportFrameRate(settings.frame_rate);
+                }
+                if (typeof settings.use_hardware === "boolean") {
+                  setUseHardwareEncoding(settings.use_hardware);
+                }
+                if (typeof settings.use_mark_range === "boolean") {
+                  setExportMarkedRange(settings.use_mark_range);
+                }
+              }}
+              onNotice={setNotice}
+              onQuickExport={quickExport}
+            />
 
             <div className="export-form-scroll">
               <label className="export-field">

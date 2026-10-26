@@ -31,8 +31,15 @@ impl SettingsStore {
         }
     }
 
-    fn object(&self, key: &str) -> Value {
+    pub(super) fn object(&self, key: &str) -> Value {
         self.data.get(key).cloned().unwrap_or_else(|| json!({}))
+    }
+
+    /// Store an object section and persist; the shared mutation path for
+    /// settings-scoped families (shortcuts, export presets).
+    pub(super) fn store_object(&mut self, key: &str, value: Value) -> Result<(), DispatchError> {
+        self.data.insert(key.into(), value);
+        self.persist()
     }
 
     fn shortcuts_map(&self) -> serde_json::Map<String, Value> {
@@ -72,7 +79,7 @@ impl SettingsStore {
         self.persist()
     }
 
-    fn persist(&self) -> Result<(), DispatchError> {
+    pub(super) fn persist(&self) -> Result<(), DispatchError> {
         let Some(path) = &self.path else {
             return Ok(());
         };

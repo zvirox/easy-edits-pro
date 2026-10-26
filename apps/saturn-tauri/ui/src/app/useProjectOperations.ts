@@ -2,6 +2,7 @@ import {
   type Dispatch,
   type SetStateAction,
   useCallback,
+  useMemo,
   useState,
 } from "react";
 import { Channel, invoke } from "@tauri-apps/api/core";
@@ -15,7 +16,9 @@ import type {
   SelectedClip,
   Transition,
 } from "./projectTypes";
-import { TICKS_PER_SECOND } from "./projectTypes";import { buildBatchCommandParams } from "./menuCommandParams";
+import { TICKS_PER_SECOND } from "./projectTypes";
+import { buildBatchCommandParams } from "./menuCommandParams";
+import { createEnqueueExport } from "./enqueueExport";
 import { useSpeechOperations } from "./useSpeechOperations";
 
 const recentProjectsKey = "easy-edits-pro.recent-projects.v1";
@@ -380,6 +383,33 @@ export function useProjectOperations({
     setNotice,
   ]);
 
+  /**
+   * Queue the current timeline for a detached background export; factory in
+   * app/enqueueExport.ts (shared with the Deliver workspace), memoized over
+   * the same settings the direct export uses.
+   */
+  const enqueueExport = useMemo(
+    () =>
+      createEnqueueExport({
+        project,
+        rendering,
+        exportOutputPath,
+        exportMarkedRange,
+        setExportOutputPath,
+        chooseExportDestination,
+        setNotice,
+      }),
+    [
+      project,
+      rendering,
+      exportOutputPath,
+      exportMarkedRange,
+      setExportOutputPath,
+      chooseExportDestination,
+      setNotice,
+    ],
+  );
+
   const handleExportTimelineInterop = useCallback(
     async (fmt?: string) => {
       const targetFormat = fmt || interopFormat;
@@ -730,6 +760,7 @@ export function useProjectOperations({
     saveProject,
     chooseExportDestination,
     exportProject,
+    enqueueExport,
     handleExportTimelineInterop,
     handleImportTimelineInterop,
     handleFetchGpuTelemetry,
