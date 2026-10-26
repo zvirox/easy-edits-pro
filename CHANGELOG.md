@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.22] - 2026-10-26
+
+Tier-1 milestone release: **251/442 (57%)** — the 250 milestone is
+crossed with two whole families. The edit family closes its menu
+(+29): FC labels land as a schema-backed clip attribute — a
+serde-default `label` colour on every clip, 16 engine-validated
+colours under Edit > Label, and an inset accent on timeline clips —
+alongside an engine-held attribute clipboard (copy/paste/remove of
+grading, effects, speed and ramp, motion blur), duplicate,
+duplicate-consolidation, head-frame ripple delete, unused-media
+removal, and the ui_only paste-insert, paste-media, cycling
+find/find-next, select-all-matching, select-label-group, and
+edit-original (path-copy fallback). The project-panel family adds 18:
+File > Project Panel gains engine-persisted media-pool view state
+(mode, sort, columns) with named view presets (save/save as/list/
+restore/rename/delete), panel row listing, undoable project notes,
+per-media source-monitor marks, and media-pool multi-select
+(select all/deselect). Catalogue: 353/353 shipped, 84 UI-only.
+
 ## [0.1.0-alpha.21] - 2026-10-26
 
 Tier-1 milestone release (P18) under the new milestone cadence:
