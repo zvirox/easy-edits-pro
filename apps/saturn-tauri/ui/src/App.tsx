@@ -41,16 +41,23 @@ import {
 } from "./features/preferences/preferences";
 import { setReducedMotionOverride } from "./motion/variants";
 import { formatTrimStatus } from "./app/timelineTrim";
-import { parseTimecode, resolvePlayheadCommand } from "./app/playheadNavigation";
+import {
+  promptGoToTimecode,
+  resolvePlayheadCommand,
+} from "./app/playheadNavigation";
 import {
   handleTrimTransportCommand,
   isTrimTransportCommand,
 } from "./app/trimTransports";
-import { inspectSelectedEdit } from "./app/editInspect";
+import { handleInspectMenuCommand } from "./app/editInspect";
 import {
   EDIT_CLIPBOARD_COMMANDS,
   useEditClipboard,
 } from "./app/useEditClipboard";
+import {
+  TIMELINE_SELECTION_COMMANDS,
+  useTimelineSelection,
+} from "./app/useTimelineSelection";
 import type { CommandSpec, SelectedClip } from "./types";
 import type { ProjectDocument } from "./app/projectTypes";
 
@@ -369,6 +376,18 @@ function EditorApp() {
     seek: playback.seekProgramTo,
   });
 
+  const runTimelineSelection = useTimelineSelection({
+    project,
+    media,
+    playhead: playback.playhead,
+    selectedClip: timelineOps.selectedClip,
+    selectedClips: timelineOps.selectedClips,
+    setSelectedClip: timelineOps.setSelectedClip,
+    setSelectedClips: timelineOps.setSelectedClips,
+    runCommand,
+    setNotice,
+  });
+
   const handlePanelCommand = useProjectPanel({
     selectedMediaId: mediaOps.selectedMediaId,
     setSelectedMediaId: mediaOps.setSelectedMediaId,
@@ -426,18 +445,19 @@ function EditorApp() {
         await runEditClipboard(id as (typeof EDIT_CLIPBOARD_COMMANDS)[number]);
         return;
       }
+      if ((TIMELINE_SELECTION_COMMANDS as string[]).includes(id)) {
+        await runTimelineSelection(
+          id as (typeof TIMELINE_SELECTION_COMMANDS)[number],
+        );
+        return;
+      }
       if (id.startsWith("project.") && (await handlePanelCommand(id))) {
         return;
       }
       if (id === "playhead.go_to_timecode") {
-        const value = window.prompt("Go to timecode (HH:MM:SS:FF)", "00:00:00:00");
-        if (value === null) return;
-        const target = parseTimecode(value, project?.settings.frame_rate);
-        if (target === null) {
-          setNotice("Enter a timecode such as 00:01:23:12");
-          return;
-        }
-        playback.seekProgramTo(target);
+        const result = promptGoToTimecode(project?.settings.frame_rate);
+        if (result.status === "ok") playback.seekProgramTo(result.ticks);
+        else if (result.status === "error") setNotice(result.message);
         return;
       }
       if (id.startsWith("playhead.")) {
@@ -469,17 +489,11 @@ function EditorApp() {
         timelineOps.cancelTrimMode();
         return;
       }
-      if (id === "timeline.inspect" || id === "trim.inspect") {
-        const selected = timelineOps.selectedClip;
-        if (!selected) {
-          setNotice("Select a clip to inspect its edit points");
-          return;
-        }
-        try {
-          setNotice(await inspectSelectedEdit(runCommand, id, selected));
-        } catch (error) {
-          setNotice(String(error));
-        }
+      if (await handleInspectMenuCommand(id, {
+        selected: timelineOps.selectedClip,
+        runCommand,
+        setNotice,
+      })) {
         return;
       }
       if (isTrimTransportCommand(id)) {
@@ -510,8 +524,6 @@ function EditorApp() {
           await mediaOps.updateMediaMetadata();
           return;
         case "edit.preferences":
-          setPreferencesOpen(true);
-          return;
         case "prefs.schema":
           setPreferencesOpen(true);
           return;
@@ -553,7 +565,7 @@ function EditorApp() {
       }
       await projectOps.invokeMenuCommand(id);
     },
-    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps, markerOps, project, playback, runEditClipboard, handlePanelCommand, runShortcutMachineCommand, mediaHygiene]
+    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps, markerOps, project, playback, runEditClipboard, runTimelineSelection, handlePanelCommand, runShortcutMachineCommand, mediaHygiene]
   );
 
   const shortcuts = useShortcuts({

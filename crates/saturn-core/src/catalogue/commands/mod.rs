@@ -11,6 +11,7 @@ pub(super) mod playhead;
 pub(super) mod project_panel;
 pub(super) mod sequence;
 pub(super) mod settings;
+pub(super) mod timeline;
 pub(super) mod trim;
 pub(super) mod view;
 pub(super) mod window;

@@ -1752,19 +1752,27 @@
   },
   "timeline.moveAudioTargetsDown": {
     "label": "Move All Audio Targets Down",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.moveAudioTargetsDown",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.moveAudioTargetsUp": {
     "label": "Move All Audio Targets Up",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.moveAudioTargetsUp",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.moveVideoTargetsDown": {
     "label": "Move All Video Targets Down",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.moveVideoTargetsDown",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.moveVideoTargetsUp": {
     "label": "Move All Video Targets Up",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.moveVideoTargetsUp",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.nudgeDown": {
     "label": "Nudge Clip Selection Down",
@@ -1815,7 +1823,9 @@
   },
   "timeline.razor": {
     "label": "Razor",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "timeline.split_clip",
+    "note": "split_clip splits the clip at a playhead position (razor)"
   },
   "timeline.roll": {
     "label": "Rolling Edit",
@@ -1824,7 +1834,9 @@
   },
   "timeline.select": {
     "label": "Select Clips",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.select",
+    "note": "implemented in 0.4.0 (alpha.23); frontend-only prompt"
   },
   "timeline.selectClipAtPlayhead": {
     "label": "Select Clip at Playhead",
@@ -1833,23 +1845,33 @@
   },
   "timeline.selectGap": {
     "label": "Select Gap",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.selectGap",
+    "note": "implemented in 0.4.0 (alpha.23); frontend-only; marks the gap in/out at the playhead"
   },
   "timeline.selectNextClip": {
     "label": "Select Next Clip",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.selectNextClip",
+    "note": "implemented in 0.4.0 (alpha.23); frontend-only timeline-order stepping"
   },
   "timeline.selectPrevClip": {
     "label": "Select Previous Clip",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.selectPrevClip",
+    "note": "implemented in 0.4.0 (alpha.23); frontend-only timeline-order stepping"
   },
   "timeline.setTargeting": {
     "label": "Track Targeting",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.setTargeting",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.setTrack": {
     "label": "Track Settings",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "track.set_gain_db",
+    "note": "per-property track.set_gain_db / set_pan / set_muted / set_solo / set_locked"
   },
   "timeline.slide": {
     "label": "Slide",
@@ -1911,95 +1933,141 @@
   },
   "timeline.toggleAllAudioTargets": {
     "label": "Toggle All Audio Targets",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleAllAudioTargets",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleAllSourceAudio": {
     "label": "Toggle All Source Audio",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleAllSourceAudio",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleAllSourceVideo": {
     "label": "Toggle All Source Video",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleAllSourceVideo",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleAllVideoTargets": {
     "label": "Toggle All Video Targets",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleAllVideoTargets",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleMuteTargetedAudio": {
     "label": "Toggle Mute for All Targeted Audio Tracks",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleMuteTargetedAudio",
+    "note": "implemented in 0.4.0 (alpha.23); flips Track muted/solo on the targeted tracks"
   },
   "timeline.toggleOutputTargetedVideo": {
     "label": "Toggle Track Output for All Targeted Video Tracks",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleOutputTargetedVideo",
+    "note": "implemented in 0.4.0 (alpha.23); flips Track muted/solo on the targeted tracks"
   },
   "timeline.toggleSoloTargetedAudio": {
     "label": "Toggle Solo for All Targeted Audio Tracks",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleSoloTargetedAudio",
+    "note": "implemented in 0.4.0 (alpha.23); flips Track muted/solo on the targeted tracks"
   },
   "timeline.toggleTargetA1": {
     "label": "Toggle Target Audio 1",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetA1",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetA2": {
     "label": "Toggle Target Audio 2",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetA2",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetA3": {
     "label": "Toggle Target Audio 3",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetA3",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetA4": {
     "label": "Toggle Target Audio 4",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetA4",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetA5": {
     "label": "Toggle Target Audio 5",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetA5",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetA6": {
     "label": "Toggle Target Audio 6",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetA6",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetA7": {
     "label": "Toggle Target Audio 7",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetA7",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetA8": {
     "label": "Toggle Target Audio 8",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetA8",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetV1": {
     "label": "Toggle Target Video 1",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetV1",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetV2": {
     "label": "Toggle Target Video 2",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetV2",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetV3": {
     "label": "Toggle Target Video 3",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetV3",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetV4": {
     "label": "Toggle Target Video 4",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetV4",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetV5": {
     "label": "Toggle Target Video 5",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetV5",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetV6": {
     "label": "Toggle Target Video 6",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetV6",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetV7": {
     "label": "Toggle Target Video 7",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetV7",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.toggleTargetV8": {
     "label": "Toggle Target Video 8",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "timeline.toggleTargetV8",
+    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
   },
   "timeline.trim": {
     "label": "Trim Edit",

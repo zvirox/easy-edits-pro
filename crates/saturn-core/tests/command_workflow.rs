@@ -5330,3 +5330,153 @@ fn project_panel_views_presets_notes_and_marks_workflow() {
     assert_eq!(asset.source_mark_in, None, "undo restores the marks");
     assert_eq!(asset.source_mark_out, None);
 }
+
+#[test]
+fn timeline_targeting_workflow_with_state_and_undo() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name": "Targeting Test"}),
+        ))
+        .unwrap();
+
+    // Default project: V1 + A1. Add V2 and A2 so ordinals 1..=2 exist.
+    engine
+        .execute(CommandRequest::new("timeline.add_track", json!({"kind": "video"})))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new("timeline.add_track", json!({"kind": "audio"})))
+        .unwrap();
+
+    // Default targeting is V1/A1; setTargeting reports both sets.
+    let state = engine
+        .execute(CommandRequest::new(
+            "timeline.setTargeting",
+            json!({"video": [1]}),
+        ))
+        .unwrap();
+    assert_eq!(state["video_targets"], json!([1]));
+    assert_eq!(state["audio_targets"], json!([1]));
+    // A fieldless read (menu item / CLI status) leaves the sets unchanged.
+    let state = engine
+        .execute(CommandRequest::new("timeline.setTargeting", json!({})))
+        .unwrap();
+    assert_eq!(state["video_targets"], json!([1]));
+    assert_eq!(state["audio_targets"], json!([1]));
+    // Null params (menu dispatch fallback) read the state the same way.
+    let state = engine
+        .execute(CommandRequest::new(
+            "timeline.setTargeting",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    assert_eq!(state["video_targets"], json!([1]));
+
+    // Toggles flip membership; out-of-range ordinals are rejected.
+    let state = engine
+        .execute(CommandRequest::new("timeline.toggleTargetV2", json!({})))
+        .unwrap();
+    assert_eq!(state["video_targets"], json!([1, 2]));
+    let state = engine
+        .execute(CommandRequest::new("timeline.toggleTargetV1", json!({})))
+        .unwrap();
+    assert_eq!(state["video_targets"], json!([2]));
+    assert!(engine
+        .execute(CommandRequest::new("timeline.toggleTargetV3", json!({})))
+        .is_err());
+    assert!(engine
+        .execute(CommandRequest::new("timeline.toggleTargetA0", json!({})))
+        .is_err());
+
+    // Move-all shifts the ordinals, clamped to the existing tracks.
+    engine
+        .execute(CommandRequest::new("timeline.setTargeting", json!({"audio": [1]})))
+        .unwrap();
+    let state = engine
+        .execute(CommandRequest::new("timeline.moveAudioTargetsUp", json!({})))
+        .unwrap();
+    assert_eq!(state["audio_targets"], json!([2]));
+    let state = engine
+        .execute(CommandRequest::new("timeline.moveAudioTargetsDown", json!({})))
+        .unwrap();
+    assert_eq!(state["audio_targets"], json!([1]));
+
+    // Toggle-all flips: all on, then all off; source patching shares the set.
+    let state = engine
+        .execute(CommandRequest::new("timeline.toggleAllAudioTargets", json!({})))
+        .unwrap();
+    assert_eq!(state["audio_targets"], json!([1, 2]));
+    let state = engine
+        .execute(CommandRequest::new("timeline.toggleAllAudioTargets", json!({})))
+        .unwrap();
+    assert_eq!(state["audio_targets"], json!([]));
+    let state = engine
+        .execute(CommandRequest::new("timeline.toggleAllSourceAudio", json!({})))
+        .unwrap();
+    assert_eq!(state["audio_targets"], json!([1, 2]));
+
+    // Targeted-flag toggles are document mutations and participate in undo.
+    let audio_positions: Vec<usize> = engine
+        .document()
+        .project
+        .sequence
+        .tracks
+        .iter()
+        .enumerate()
+        .filter(|(_, track)| track.kind == saturn_core::TrackKind::Audio)
+        .map(|(index, _)| index)
+        .collect();
+    engine
+        .execute(CommandRequest::new("timeline.setTargeting", json!({"audio": [2]})))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new("timeline.toggleMuteTargetedAudio", json!({})))
+        .unwrap();
+    assert!(
+        engine.document().project.sequence.tracks[audio_positions[1]].muted,
+        "A2 muted by the targeted toggle"
+    );
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert!(
+        !engine.document().project.sequence.tracks[audio_positions[1]].muted,
+        "undo restores the mute"
+    );
+
+    // Video track output is the muted flag on the targeted video track.
+    engine
+        .execute(CommandRequest::new("timeline.setTargeting", json!({"video": [2]})))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new("timeline.toggleOutputTargetedVideo", json!({})))
+        .unwrap();
+    let video_positions: Vec<usize> = engine
+        .document()
+        .project
+        .sequence
+        .tracks
+        .iter()
+        .enumerate()
+        .filter(|(_, track)| track.kind == saturn_core::TrackKind::Video)
+        .map(|(index, _)| index)
+        .collect();
+    assert!(engine.document().project.sequence.tracks[video_positions[1]].muted);
+
+    // Solo flips on the targeted audio tracks.
+    engine
+        .execute(CommandRequest::new("timeline.setTargeting", json!({"audio": [1]})))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new("timeline.toggleSoloTargetedAudio", json!({})))
+        .unwrap();
+    assert!(engine.document().project.sequence.tracks[audio_positions[0]].solo);
+
+    // ui_only selection commands never reach the engine.
+    let result = engine.execute(CommandRequest::new("timeline.select", json!({})));
+    match result {
+        Err(error) => assert!(format!("{error}").contains("interface")),
+        Ok(_) => panic!("timeline.select must be rejected by the engine"),
+    }
+}

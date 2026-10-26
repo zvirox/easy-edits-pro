@@ -128,3 +128,25 @@ export function resolvePlayheadCommand(
       return null;
   }
 }
+
+/** Result of {@link promptGoToTimecode}: cancelled, bad input, or a tick target. */
+export type GoToTimecodeResult =
+  | { status: "cancelled" }
+  | { status: "error"; message: string }
+  | { status: "ok"; ticks: number };
+
+/**
+ * Prompt for a timecode and parse it against the project frame rate. Pure
+ * input handling: the caller owns seeking and notices.
+ */
+export function promptGoToTimecode(
+  frameRate: ProjectDocument["project"]["settings"]["frame_rate"] | null | undefined,
+): GoToTimecodeResult {
+  const value = window.prompt("Go to timecode (HH:MM:SS:FF)", "00:00:00:00");
+  if (value === null) return { status: "cancelled" };
+  const target = parseTimecode(value, frameRate ?? undefined);
+  if (target === null) {
+    return { status: "error", message: "Enter a timecode such as 00:01:23:12" };
+  }
+  return { status: "ok", ticks: target };
+}

@@ -532,7 +532,7 @@ impl EditorEngine {
                     "group": updated_group,
                 }))
             })()),
-            _ => None,
+            _ => self.dispatch_timeline_targeting(id, params),
         }
     }
 }

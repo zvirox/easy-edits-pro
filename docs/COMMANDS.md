@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-353 commands.
+385 commands.
 
 ## File
 
@@ -147,6 +147,10 @@ Generated from the command catalogue. Do not edit by hand.
 | Delete Shortcut Preset | `shortcuts.delete_preset` | shipped |  | `{"name":str}` |
 | Undo Shortcut Change | `shortcuts.undo` | shipped |  | `{}` |
 | Redo Shortcut Change | `shortcuts.redo` | shipped |  | `{}` |
+| Select Clips | `timeline.select` | shipped |  | `{}` |
+| Select Gap | `timeline.selectGap` | shipped |  | `{}` |
+| Select Next Clip | `timeline.selectNextClip` | shipped |  | `{}` |
+| Select Previous Clip | `timeline.selectPrevClip` | shipped |  | `{}` |
 
 ## Clip
 
@@ -236,6 +240,34 @@ Generated from the command catalogue. Do not edit by hand.
 | Set Track Group Properties | `timeline.set_track_group_properties` | shipped |  | `{"group_id":int,"name":str?,"color":str?,"muted":bool?,"solo":bool?,"locked":bool?}` |
 | Lift | `sequence.lift` | shipped | ; | `{"ranges":obj}` |
 | Extract | `sequence.extract` | shipped | ' | `{"ranges":obj}` |
+| Track Targeting | `timeline.setTargeting` | shipped |  | `{"video":int[]?,"audio":int[]?}` |
+| Toggle Target Video 1 | `timeline.toggleTargetV1` | shipped |  | `{}` |
+| Toggle Target Video 2 | `timeline.toggleTargetV2` | shipped |  | `{}` |
+| Toggle Target Video 3 | `timeline.toggleTargetV3` | shipped |  | `{}` |
+| Toggle Target Video 4 | `timeline.toggleTargetV4` | shipped |  | `{}` |
+| Toggle Target Video 5 | `timeline.toggleTargetV5` | shipped |  | `{}` |
+| Toggle Target Video 6 | `timeline.toggleTargetV6` | shipped |  | `{}` |
+| Toggle Target Video 7 | `timeline.toggleTargetV7` | shipped |  | `{}` |
+| Toggle Target Video 8 | `timeline.toggleTargetV8` | shipped |  | `{}` |
+| Toggle Target Audio 1 | `timeline.toggleTargetA1` | shipped |  | `{}` |
+| Toggle Target Audio 2 | `timeline.toggleTargetA2` | shipped |  | `{}` |
+| Toggle Target Audio 3 | `timeline.toggleTargetA3` | shipped |  | `{}` |
+| Toggle Target Audio 4 | `timeline.toggleTargetA4` | shipped |  | `{}` |
+| Toggle Target Audio 5 | `timeline.toggleTargetA5` | shipped |  | `{}` |
+| Toggle Target Audio 6 | `timeline.toggleTargetA6` | shipped |  | `{}` |
+| Toggle Target Audio 7 | `timeline.toggleTargetA7` | shipped |  | `{}` |
+| Toggle Target Audio 8 | `timeline.toggleTargetA8` | shipped |  | `{}` |
+| Move All Video Targets Up | `timeline.moveVideoTargetsUp` | shipped |  | `{}` |
+| Move All Video Targets Down | `timeline.moveVideoTargetsDown` | shipped |  | `{}` |
+| Move All Audio Targets Up | `timeline.moveAudioTargetsUp` | shipped |  | `{}` |
+| Move All Audio Targets Down | `timeline.moveAudioTargetsDown` | shipped |  | `{}` |
+| Toggle All Video Targets | `timeline.toggleAllVideoTargets` | shipped |  | `{}` |
+| Toggle All Source Video | `timeline.toggleAllSourceVideo` | shipped |  | `{}` |
+| Toggle All Audio Targets | `timeline.toggleAllAudioTargets` | shipped |  | `{}` |
+| Toggle All Source Audio | `timeline.toggleAllSourceAudio` | shipped |  | `{}` |
+| Toggle Mute for All Targeted Audio Tracks | `timeline.toggleMuteTargetedAudio` | shipped |  | `{}` |
+| Toggle Solo for All Targeted Audio Tracks | `timeline.toggleSoloTargetedAudio` | shipped |  | `{}` |
+| Toggle Track Output for All Targeted Video Tracks | `timeline.toggleOutputTargetedVideo` | shipped |  | `{}` |
 | Trim Edit | `trim.edit` | shipped |  | `{}` |
 | Select Edit Point | `trim.selectEditPoint` | shipped |  | `{"track_id":int,"clip_index":int,"edge":"start"\|"end"}` |
 | Select Nearest Edit Point | `trim.selectNearest` | shipped |  | `{"at":obj?}` |

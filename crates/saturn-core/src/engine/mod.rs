@@ -38,6 +38,7 @@ mod settings_cmds;
 mod captions_cmds;
 mod graphics_cmds;
 mod timeline_cmds;
+mod timeline_targeting;
 mod trim_cmds;
 use helpers::*;
 use params::*;
@@ -90,6 +91,9 @@ pub struct EditorEngine {
     /// Edit family state: the attribute clipboard (editor state, not
     /// document state).
     edit: edit_labels_cmds::EditState,
+    /// Timeline targeting family state: the targeted video/audio track
+    /// ordinals (editor state, not document state).
+    targeting: timeline_targeting::TargetingState,
     /// Lazily-built shaping context (system font scan is expensive); shared
     /// so engine clones keep one font database.
     text: std::sync::Arc<
@@ -115,6 +119,7 @@ impl Default for EditorEngine {
             settings: settings_cmds::SettingsStore::default(),
             trim: trim_cmds::TrimState::default(),
             edit: edit_labels_cmds::EditState::default(),
+            targeting: timeline_targeting::TargetingState::new(),
             text: std::sync::Arc::new(std::sync::Mutex::new(None)),
         }
     }

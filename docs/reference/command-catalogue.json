@@ -5275,6 +5275,550 @@
     "undoGroup": "none"
   },
   {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.setTargeting",
+    "label": "Track Targeting",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{\"video\":int[]?,\"audio\":int[]?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetV1",
+    "label": "Toggle Target Video 1",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetV2",
+    "label": "Toggle Target Video 2",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetV3",
+    "label": "Toggle Target Video 3",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetV4",
+    "label": "Toggle Target Video 4",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetV5",
+    "label": "Toggle Target Video 5",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetV6",
+    "label": "Toggle Target Video 6",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetV7",
+    "label": "Toggle Target Video 7",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetV8",
+    "label": "Toggle Target Video 8",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetA1",
+    "label": "Toggle Target Audio 1",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetA2",
+    "label": "Toggle Target Audio 2",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetA3",
+    "label": "Toggle Target Audio 3",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetA4",
+    "label": "Toggle Target Audio 4",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetA5",
+    "label": "Toggle Target Audio 5",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetA6",
+    "label": "Toggle Target Audio 6",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetA7",
+    "label": "Toggle Target Audio 7",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleTargetA8",
+    "label": "Toggle Target Audio 8",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.moveVideoTargetsUp",
+    "label": "Move All Video Targets Up",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.moveVideoTargetsDown",
+    "label": "Move All Video Targets Down",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.moveAudioTargetsUp",
+    "label": "Move All Audio Targets Up",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.moveAudioTargetsDown",
+    "label": "Move All Audio Targets Down",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleAllVideoTargets",
+    "label": "Toggle All Video Targets",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleAllSourceVideo",
+    "label": "Toggle All Source Video",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleAllAudioTargets",
+    "label": "Toggle All Audio Targets",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleAllSourceAudio",
+    "label": "Toggle All Source Audio",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleMuteTargetedAudio",
+    "label": "Toggle Mute for All Targeted Audio Tracks",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleSoloTargetedAudio",
+    "label": "Toggle Solo for All Targeted Audio Tracks",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "timeline.toggleOutputTargetedVideo",
+    "label": "Toggle Track Output for All Targeted Video Tracks",
+    "menu": [
+      "Sequence",
+      "Track Targeting"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "timeline.select",
+    "label": "Select Clips",
+    "menu": [
+      "Edit",
+      "Select"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "timeline.selectGap",
+    "label": "Select Gap",
+    "menu": [
+      "Edit",
+      "Select"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "timeline.selectNextClip",
+    "label": "Select Next Clip",
+    "menu": [
+      "Edit",
+      "Select"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "timeline.selectPrevClip",
+    "label": "Select Previous Clip",
+    "menu": [
+      "Edit",
+      "Select"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
     "aliases": [
       "trim edit point"
     ],
