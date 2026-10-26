@@ -4067,6 +4067,312 @@
     "undoGroup": "none"
   },
   {
+    "aliases": [],
+    "category": "File",
+    "id": "project.view.get",
+    "label": "Get Project Panel View",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.view.set",
+    "label": "Set Project Panel View",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"view_mode\":str?,\"sort\":obj?,\"columns\":obj[]?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.sort",
+    "label": "Sort Project Items",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"key\":str,\"dir\":str?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.items",
+    "label": "List Project Panel Rows",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.columns.list",
+    "label": "List Project Columns",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.columns.set",
+    "label": "Metadata Display",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"columns\":[{\"id\":str,\"width\":num?,\"visible\":bool?}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.columns.resize",
+    "label": "Resize Column",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"id\":str,\"width\":num}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.notes",
+    "label": "Get Project Notes",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.setNotes",
+    "label": "Edit Project Notes",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": true,
+    "params": "{\"text\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.setMarks",
+    "label": "Set Source In/Out",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": true,
+    "params": "{\"media_id\":int,\"source_in\":ticks?,\"source_out\":ticks?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.selectAll",
+    "label": "Select All Project Items",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.deselectAll",
+    "label": "Deselect All Project Items",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.viewPreset.save",
+    "label": "Save Current View Preset",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.viewPreset.saveAs",
+    "label": "Save As New View Preset",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.viewPreset.list",
+    "label": "List View Presets",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.viewPreset.restore",
+    "label": "Restore View Preset",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.viewPreset.rename",
+    "label": "Rename View Preset",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"from\":str,\"to\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.viewPreset.delete",
+    "label": "Delete View Preset",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
     "aliases": [
       "three point insert",
       "insert edit"

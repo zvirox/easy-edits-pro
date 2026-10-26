@@ -27,6 +27,8 @@ fn default_bin_color() -> String {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Project {
     pub name: String,
+    #[serde(default)]
+    pub notes: String,
     pub settings: ProjectSettings,
     pub media: Vec<MediaAsset>,
     #[serde(default)]
@@ -141,6 +143,12 @@ pub struct MediaAsset {
     pub take: String,
     #[serde(default)]
     pub is_missing: bool,
+    /// Source-monitor marks set through `project.set_marks`; the default
+    /// range offered by the panel's send-to-timeline actions.
+    #[serde(default)]
+    pub source_mark_in: Option<Tick>,
+    #[serde(default)]
+    pub source_mark_out: Option<Tick>,
     /// Lower-resolution viewing copy; playback decodes this when the
     /// project's `use_proxies` flag is on.
     #[serde(default)]
@@ -183,6 +191,8 @@ impl Default for MediaAsset {
             scene: String::new(),
             take: String::new(),
             is_missing: false,
+            source_mark_in: None,
+            source_mark_out: None,
             proxy_path: None,
             colorspace: None,
             gamma: None,

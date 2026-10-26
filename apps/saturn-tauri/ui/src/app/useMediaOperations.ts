@@ -97,6 +97,7 @@ export function useMediaOperations({
   snapEnabled = true,
 }: UseMediaOperationsOptions) {
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
+  const [selectedMediaIds, setSelectedMediaIds] = useState<number[]>([]);
   const [filmoraTab, setFilmoraTab] = useState<FilmoraTab>("media");
   const [search, setSearch] = useState("");
   const [activeBinId, setActiveBinId] = useState<number | null>(null);
@@ -679,6 +680,8 @@ export function useMediaOperations({
   return {
     selectedMediaId,
     setSelectedMediaId,
+    selectedMediaIds,
+    setSelectedMediaIds,
     filmoraTab,
     setFilmoraTab,
     search,

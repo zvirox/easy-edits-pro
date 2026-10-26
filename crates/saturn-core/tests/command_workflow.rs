@@ -5173,3 +5173,160 @@ fn edit_labels_attributes_and_repair_family_workflow_with_undo() {
     engine.execute(CommandRequest::new("edit.undo", serde_json::Value::Null)).unwrap();
     assert_eq!(engine.document().project.media.len(), 2, "undo restores the unused media");
 }
+
+#[test]
+fn project_panel_views_presets_notes_and_marks_workflow() {
+    use saturn_core::TICKS_PER_SECOND;
+    let s = TICKS_PER_SECOND;
+
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name": "Panel workflow"})))
+        .unwrap();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name": "panel.mp4", "path": "/assets/panel.mp4", "kind": "video"}),
+        ))
+        .unwrap();
+    let media_id = media["media_id"].as_u64().unwrap();
+
+    // View defaults read back before anything is stored.
+    let view = engine
+        .execute(CommandRequest::new("project.view.get", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(view["view"]["view_mode"], json!("grid"));
+    assert_eq!(view["view"]["sort"]["key"], json!("name"));
+    assert_eq!(view["view"]["columns"].as_array().unwrap().len(), 6);
+
+    // View state, sort, and column edits persist into the prefs object.
+    engine
+        .execute(CommandRequest::new(
+            "project.view.set",
+            json!({"view_mode": "list"}),
+        ))
+        .unwrap();
+    let view = engine
+        .execute(CommandRequest::new(
+            "project.sort",
+            json!({"key": "kind", "dir": "desc"}),
+        ))
+        .unwrap();
+    assert_eq!(view["sort"], json!({"key": "kind", "dir": "desc"}));
+    let bad_sort = engine.execute(CommandRequest::new(
+        "project.sort",
+        json!({"key": "kind", "dir": "sideways"}),
+    ));
+    assert!(bad_sort.is_err());
+    engine
+        .execute(CommandRequest::new(
+            "project.columns.set",
+            json!({"columns": [{"id": "name", "width": 180.0}, {"id": "kind"}]}),
+        ))
+        .unwrap();
+    let resized = engine
+        .execute(CommandRequest::new(
+            "project.columns.resize",
+            json!({"id": "kind", "width": 96.0}),
+        ))
+        .unwrap();
+    assert_eq!(resized["column"]["width"], json!(96.0));
+    let unknown = engine.execute(CommandRequest::new(
+        "project.columns.resize",
+        json!({"id": "iso", "width": 96.0}),
+    ));
+    assert!(unknown.is_err());
+
+    // Panels list rows for the media pool and bins.
+    let items = engine
+        .execute(CommandRequest::new("project.items", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(items["media"].as_array().unwrap().len(), 1);
+    assert_eq!(items["bins"].as_array().unwrap().len(), 0);
+
+    // View presets round-trip: saveAs, list, restore, rename, delete.
+    engine
+        .execute(CommandRequest::new(
+            "project.viewPreset.saveAs",
+            json!({"name": "Night"}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new("project.view.set", json!({"view_mode": "grid"})))
+        .unwrap();
+    let active = engine
+        .execute(CommandRequest::new(
+            "project.viewPreset.list",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    assert_eq!(active["presets"], json!(["Night"]));
+    let restored = engine
+        .execute(CommandRequest::new(
+            "project.viewPreset.restore",
+            json!({"name": "Night"}),
+        ))
+        .unwrap();
+    assert_eq!(restored["view"]["view_mode"], json!("list"));
+    engine
+        .execute(CommandRequest::new(
+            "project.viewPreset.rename",
+            json!({"from": "Night", "to": "Day"}),
+        ))
+        .unwrap();
+    let missing = engine.execute(CommandRequest::new(
+        "project.viewPreset.restore",
+        json!({"name": "Night"}),
+    ));
+    assert!(missing.is_err());
+    engine
+        .execute(CommandRequest::new(
+            "project.viewPreset.delete",
+            json!({"name": "Day"}),
+        ))
+        .unwrap();
+    let empty = engine
+        .execute(CommandRequest::new(
+            "project.viewPreset.list",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    assert_eq!(empty["presets"], json!([]));
+
+    // Notes are document data with undo.
+    engine
+        .execute(CommandRequest::new(
+            "project.setNotes",
+            json!({"text": "Call sheet ready"}),
+        ))
+        .unwrap();
+    let notes = engine
+        .execute(CommandRequest::new("project.notes", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(notes["notes"], json!("Call sheet ready"));
+    engine.execute(CommandRequest::new("edit.undo", serde_json::Value::Null)).unwrap();
+    let notes = engine
+        .execute(CommandRequest::new("project.notes", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(notes["notes"], json!(""));
+
+    // Source marks validate ordering and survive undo.
+    let bad_marks = engine.execute(CommandRequest::new(
+        "project.setMarks",
+        json!({"media_id": media_id, "source_in": 4 * s, "source_out": 2 * s}),
+    ));
+    assert!(bad_marks.is_err());
+    engine
+        .execute(CommandRequest::new(
+            "project.setMarks",
+            json!({"media_id": media_id, "source_in": s, "source_out": 2 * s}),
+        ))
+        .unwrap();
+    let asset = &engine.document().project.media[0];
+    assert_eq!(asset.source_mark_in.as_ref().map(|tick| tick.0), Some(s));
+    assert_eq!(asset.source_mark_out.as_ref().map(|tick| tick.0), Some(2 * s));
+    engine.execute(CommandRequest::new("edit.undo", serde_json::Value::Null)).unwrap();
+    let asset = &engine.document().project.media[0];
+    assert_eq!(asset.source_mark_in, None, "undo restores the marks");
+    assert_eq!(asset.source_mark_out, None);
+}

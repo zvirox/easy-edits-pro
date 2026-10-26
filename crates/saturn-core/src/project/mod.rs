@@ -28,6 +28,7 @@ impl ProjectDocument {
             generator: format!("Project Saturn {}", env!("CARGO_PKG_VERSION")),
             project: Project {
                 name: name.into(),
+                notes: String::new(),
                 settings: ProjectSettings {
                     width: 1920,
                     height: 1080,

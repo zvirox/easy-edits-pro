@@ -1274,15 +1274,18 @@
   },
   "project.columns.list": {
     "label": "List Project Columns",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.columns.list"
   },
   "project.columns.resize": {
     "label": "Resize Column",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.columns.resize"
   },
   "project.columns.set": {
     "label": "Metadata Display",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.columns.set"
   },
   "project.delete": {
     "label": "Clear",
@@ -1294,7 +1297,8 @@
   },
   "project.deselectAll": {
     "label": "Deselect All Project Items",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.deselectAll"
   },
   "project.editSearchBin": {
     "label": "Edit Search Bin",
@@ -1359,7 +1363,8 @@
   },
   "project.items": {
     "label": "List Project Panel Rows",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.items"
   },
   "project.matteColor": {
     "label": "Color Matte Color…",
@@ -1372,7 +1377,8 @@
   },
   "project.notes": {
     "label": "Get Project Notes",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.notes"
   },
   "project.renameBin": {
     "label": "Rename Bin",
@@ -1389,51 +1395,63 @@
   },
   "project.selectAll": {
     "label": "Select All Project Items",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.selectAll"
   },
   "project.setMarks": {
     "label": "Set Source In/Out",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.setMarks"
   },
   "project.setNotes": {
     "label": "Edit Project Notes",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.setNotes"
   },
   "project.sort": {
     "label": "Sort Project Items",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.sort"
   },
   "project.view.get": {
     "label": "Project Panel View",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.view.get"
   },
   "project.view.set": {
     "label": "Set Project Panel View",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.view.set"
   },
   "project.viewPreset.delete": {
     "label": "Delete View Preset",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.viewPreset.delete"
   },
   "project.viewPreset.list": {
     "label": "List View Presets",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.viewPreset.list"
   },
   "project.viewPreset.rename": {
     "label": "Rename View Preset",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.viewPreset.rename"
   },
   "project.viewPreset.restore": {
     "label": "Restore View Preset",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.viewPreset.restore"
   },
   "project.viewPreset.save": {
     "label": "Save Current View Preset",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.viewPreset.save"
   },
   "project.viewPreset.saveAs": {
     "label": "Save As New View Preset",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.viewPreset.saveAs"
   },
   "sequence.addEdit": {
     "label": "Add Edit",

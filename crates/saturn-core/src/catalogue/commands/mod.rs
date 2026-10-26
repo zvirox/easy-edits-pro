@@ -8,6 +8,7 @@ pub(super) mod graphics;
 pub(super) mod help;
 pub(super) mod markers;
 pub(super) mod playhead;
+pub(super) mod project_panel;
 pub(super) mod sequence;
 pub(super) mod settings;
 pub(super) mod trim;

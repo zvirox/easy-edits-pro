@@ -8,6 +8,7 @@ import { useRecovery, ProjectWelcomeScreen } from "./features/welcome";
 import { useMediaServer } from "./features/media-pool";
 import { useShortcuts, type DavinciWorkspace } from "./app/useShortcuts";
 import { useMediaOperations } from "./app/useMediaOperations";
+import { useProjectPanel } from "./app/useProjectPanel";
 import { useTimelineOperations } from "./app/useTimelineOperations";
 import { pickFirstTimelineClip, setPrimaryClip } from "./app/selectionStore";
 import { useInspectorOperations } from "./app/useInspectorOperations";
@@ -368,6 +369,17 @@ function EditorApp() {
     seek: playback.seekProgramTo,
   });
 
+  const handlePanelCommand = useProjectPanel({
+    selectedMediaId: mediaOps.selectedMediaId,
+    setSelectedMediaId: mediaOps.setSelectedMediaId,
+    setSelectedMediaIds: mediaOps.setSelectedMediaIds,
+    project,
+    notes: project?.notes ?? "",
+    runCommand,
+    refreshProject,
+    setNotice,
+  });
+
   const runShortcutMachineCommand = useMemo(
     () =>
       createShortcutMachineCommand({
@@ -412,6 +424,9 @@ function EditorApp() {
       }
       if ((EDIT_CLIPBOARD_COMMANDS as string[]).includes(id)) {
         await runEditClipboard(id as (typeof EDIT_CLIPBOARD_COMMANDS)[number]);
+        return;
+      }
+      if (id.startsWith("project.") && (await handlePanelCommand(id))) {
         return;
       }
       if (id === "playhead.go_to_timecode") {
@@ -538,7 +553,7 @@ function EditorApp() {
       }
       await projectOps.invokeMenuCommand(id);
     },
-    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps, markerOps, project, playback, runEditClipboard, runShortcutMachineCommand, mediaHygiene]
+    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps, markerOps, project, playback, runEditClipboard, handlePanelCommand, runShortcutMachineCommand, mediaHygiene]
   );
 
   const shortcuts = useShortcuts({

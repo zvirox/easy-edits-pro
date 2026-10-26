@@ -32,6 +32,7 @@ mod nodegraph_cmds;
 mod export_cmds;
 mod params;
 mod project_cmds;
+mod project_panel_cmds;
 mod sequence_cmds;
 mod settings_cmds;
 mod captions_cmds;

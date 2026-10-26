@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-335 commands.
+353 commands.
 
 ## File
 
@@ -53,6 +53,24 @@ Generated from the command catalogue. Do not edit by hand.
 | Clear Finished Exports | `export.queue.clear` | shipped |  | `{}` |
 | Start Export Queue | `export.queue.start` | shipped |  | `{}` |
 | Stop Export Queue | `export.queue.stop` | shipped |  | `{}` |
+| Get Project Panel View | `project.view.get` | shipped |  | `{}` |
+| Set Project Panel View | `project.view.set` | shipped |  | `{"view_mode":str?,"sort":obj?,"columns":obj[]?}` |
+| Sort Project Items | `project.sort` | shipped |  | `{"key":str,"dir":str?}` |
+| List Project Panel Rows | `project.items` | shipped |  | `{}` |
+| List Project Columns | `project.columns.list` | shipped |  | `{}` |
+| Metadata Display | `project.columns.set` | shipped |  | `{"columns":[{"id":str,"width":num?,"visible":bool?}]}` |
+| Resize Column | `project.columns.resize` | shipped |  | `{"id":str,"width":num}` |
+| Get Project Notes | `project.notes` | shipped |  | `{}` |
+| Edit Project Notes | `project.setNotes` | shipped |  | `{"text":str}` |
+| Set Source In/Out | `project.setMarks` | shipped |  | `{"media_id":int,"source_in":ticks?,"source_out":ticks?}` |
+| Select All Project Items | `project.selectAll` | shipped |  | `{}` |
+| Deselect All Project Items | `project.deselectAll` | shipped |  | `{}` |
+| Save Current View Preset | `project.viewPreset.save` | shipped |  | `{"name":str?}` |
+| Save As New View Preset | `project.viewPreset.saveAs` | shipped |  | `{"name":str?}` |
+| List View Presets | `project.viewPreset.list` | shipped |  | `{}` |
+| Restore View Preset | `project.viewPreset.restore` | shipped |  | `{"name":str?}` |
+| Rename View Preset | `project.viewPreset.rename` | shipped |  | `{"from":str,"to":str}` |
+| Delete View Preset | `project.viewPreset.delete` | shipped |  | `{"name":str?}` |
 | Read Preferences | `prefs.get` | shipped |  | `{"key":str?}` |
 | Write Preferences | `prefs.set` | shipped |  | `{"values":obj}` |
 | Reset Preferences | `prefs.reset` | shipped |  | `{}` |

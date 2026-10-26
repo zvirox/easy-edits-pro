@@ -289,6 +289,7 @@ export function WorkspaceRouter({
         visibleMedia: mediaOps.visibleMedia,
         selectedMediaId: mediaOps.selectedMediaId,
         setSelectedMediaId: (id: number) => mediaOps.setSelectedMediaId(id),
+        selectedMediaIds: mediaOps.selectedMediaIds,
         missingMediaIds,
         importMedia: mediaOps.importMedia,
         setNetworkImportModalOpen: mediaOps.setNetworkImportModalOpen,

@@ -103,6 +103,7 @@ export interface MediaPanelProps {
   visibleMedia?: MediaAsset[];
   selectedMediaId: number | null;
   setSelectedMediaId: (id: number) => void;
+  selectedMediaIds?: number[];
   busy: boolean;
   checkMissingMedia: () => Promise<void>;
   onUpdateMetadata: () => Promise<void>;
@@ -155,6 +156,7 @@ export function MediaPanel({
   visibleMedia,
   selectedMediaId,
   setSelectedMediaId,
+  selectedMediaIds,
   busy,
   checkMissingMedia,
   onUpdateMetadata,
@@ -395,7 +397,7 @@ export function MediaPanel({
               <div className="media-list">
                 {mediaItems.map((item) => {
                   const isMissing = missingMediaIds.has(item.id) || item.is_missing;
-                  const isSelected = selectedMediaId === item.id;
+                  const isSelected = selectedMediaId === item.id || (selectedMediaIds ?? []).includes(item.id);
                   const binName = project?.bins?.find((b) => b.id === item.bin_id)?.name;
                   return (
                     <div className="media-row" key={item.id} style={{ position: "relative" }}>
@@ -462,7 +464,7 @@ export function MediaPanel({
                   <tbody>
                     {mediaItems.map((item) => {
                       const isMissing = missingMediaIds.has(item.id) || item.is_missing;
-                      const isSelected = selectedMediaId === item.id;
+                      const isSelected = selectedMediaId === item.id || (selectedMediaIds ?? []).includes(item.id);
                       const binName = project?.bins?.find((b) => b.id === item.bin_id)?.name;
                       return (
                         <tr

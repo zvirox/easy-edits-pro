@@ -172,6 +172,7 @@ export type LoudnessReport = {
 export type ProjectDocument = {
   project: {
     name: string;
+    notes?: string;
     bins?: MediaBin[];
     media: MediaAsset[];
     sequence: Sequence;

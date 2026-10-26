@@ -145,7 +145,7 @@ impl EditorEngine {
                 "path": self.current_path.as_ref(),
                 "is_dirty": self.is_dirty(),
             }))),
-            _ => None,
+            _ => self.dispatch_project_panel(id, params),
         }
     }
 }

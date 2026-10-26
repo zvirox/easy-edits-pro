@@ -39,6 +39,8 @@ impl EditorEngine {
                     scene: String::new(),
                     take: String::new(),
                     is_missing: false,
+                    source_mark_in: None,
+                    source_mark_out: None,
                     proxy_path: None,
                     colorspace: None,
                     gamma: None,
