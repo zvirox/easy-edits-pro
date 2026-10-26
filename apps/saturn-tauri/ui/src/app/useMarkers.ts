@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import type { Marker, MarkerKind, ProjectDocument } from "./projectTypes";
 import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
-import { defaultMarkerRange } from "../features/markers/markerList";
+import { defaultMarkerRange, splitMarkerTarget, type SplitDomain, type SplitEdge } from "../features/markers/markerList";
 import { TICKS_PER_SECOND } from "./projectTypes";
 
 export const MARKERS_PANEL_ID = "markers";
@@ -260,15 +260,158 @@ export function useMarkers({
     [seek],
   );
 
+  /** The marker a split/split-navigation command acts on. */
+  const requireSelectedMarker = useCallback((): Marker | null => {
+    if (selectedMarkerId !== null) {
+      const marker = markers.find((item) => item.id === selectedMarkerId);
+      if (marker) return marker;
+    }
+    setNotice("Select a marker in the timeline or the Markers panel first");
+    return null;
+  }, [selectedMarkerId, markers, setNotice]);
+
+  const addKindMarker = useCallback(
+    async (kind: Extract<MarkerKind, "chapter" | "flash_cue">) => {
+      try {
+        const result = await runCommand<{ id: number }>(kind === "chapter" ? "marker.add_chapter" : "marker.add_flash_cue", {
+          at: playhead,
+        });
+        await refreshProject();
+        setSelectedMarkerId(result.id);
+        setNotice(kind === "chapter" ? "Chapter marker added" : "Flash cue marker added");
+      } catch (error) {
+        fail(error);
+      }
+    },
+    [playhead, refreshProject, runCommand, setNotice, fail],
+  );
+
+  const goToSplitMarker = useCallback(
+    async (domain: SplitDomain, edge: SplitEdge) => {
+      const marker = requireSelectedMarker();
+      if (!marker) return;
+      const target = splitMarkerTarget(marker, domain, edge);
+      if (target === null) {
+        setNotice("That marker has no out position");
+        return;
+      }
+      setSelectedMarkerId(marker.id);
+      seek(target);
+    },
+    [requireSelectedMarker, seek, setNotice],
+  );
+
+  const markSplitMarker = useCallback(
+    async (domain: SplitDomain, edge: SplitEdge) => {
+      const marker = requireSelectedMarker();
+      if (!marker) return;
+      const id = domain === "audio" ? "marker.set_split_audio" : "marker.set_split_video";
+      const outId = domain === "audio" ? "marker.set_split_audio_out" : "marker.set_split_video_out";
+      try {
+        await runCommand(edge === "in" ? id : outId, {
+          id: marker.id,
+          at: Math.round(playhead * TICKS_PER_SECOND),
+        });
+        await refreshProject();
+        setNotice(`Marker ${domain} ${edge} marked at the playhead`);
+      } catch (error) {
+        fail(error);
+      }
+    },
+    [playhead, refreshProject, runCommand, requireSelectedMarker, setNotice, fail],
+  );
+
   const handleMenuCommand = useCallback(
     async (id: string): Promise<boolean> => {
       switch (id) {
         case "marker.add":
           await addMarker();
           return true;
+        case "marker.add_chapter":
+          await addKindMarker("chapter");
+          return true;
+        case "marker.add_flash_cue":
+          await addKindMarker("flash_cue");
+          return true;
         case "marker.add_range":
           await addRangeMarker();
           return true;
+        case "marker.add_range_in_out": {
+          if (project?.sequence.mark_in == null || project?.sequence.mark_out == null) {
+            setNotice("Set both In and Out points before adding a range marker");
+            return true;
+          }
+          try {
+            const result = await runCommand<{ id: number }>("marker.add_range_in_out", {});
+            await refreshProject();
+            setSelectedMarkerId(result.id);
+            setNotice("Range marker added for In and Out");
+          } catch (error) {
+            fail(error);
+          }
+          return true;
+        }
+        case "marker.go_to_split_audio_in":
+          await goToSplitMarker("audio", "in");
+          return true;
+        case "marker.go_to_split_audio_out":
+          await goToSplitMarker("audio", "out");
+          return true;
+        case "marker.go_to_split_video_in":
+          await goToSplitMarker("video", "in");
+          return true;
+        case "marker.go_to_split_video_out":
+          await goToSplitMarker("video", "out");
+          return true;
+        case "marker.set_split_audio":
+          await markSplitMarker("audio", "in");
+          return true;
+        case "marker.set_split_video":
+          await markSplitMarker("video", "in");
+          return true;
+        case "marker.set_split_audio_out":
+          await markSplitMarker("audio", "out");
+          return true;
+        case "marker.set_split_video_out":
+          await markSplitMarker("video", "out");
+          return true;
+        case "marker.set_color_filter": {
+          const value = window.prompt("Filter markers by colors (comma-separated, empty shows all)", "red, blue");
+          if (value === null) return true;
+          const colors = value.split(",").map((c) => c.trim()).filter(Boolean);
+          try {
+            if (colors.length === 0) {
+              await runCommand("marker.show_all_colors", {});
+              setNotice("Showing all marker colors");
+            } else {
+              await runCommand("marker.set_color_filter", { colors });
+              setNotice(`Filtering markers: ${colors.join(", ")}`);
+            }
+          } catch (error) {
+            fail(error);
+          }
+          return true;
+        }
+        case "marker.show_all_colors":
+          try {
+            await runCommand("marker.show_all_colors", {});
+            setNotice("Showing all marker colors");
+          } catch (error) {
+            fail(error);
+          }
+          return true;
+        case "marker.set_copy_paste_includes": {
+          const value = window.prompt("Should copy/paste include sequence markers? (on/off)", "on");
+          if (value === null) return true;
+          const enabled = value.trim().toLowerCase() !== "off";
+          try {
+            await runCommand("marker.set_copy_paste_includes", { enabled });
+            setNotice(enabled ? "Copy/paste includes sequence markers" : "Copy/paste skips sequence markers");
+          } catch (error) {
+            fail(error);
+          }
+          return true;
+        }
         case "marker.next":
           await goToNextMarker();
           return true;
@@ -320,7 +463,10 @@ export function useMarkers({
     },
     [
       addMarker,
+      addKindMarker,
       addRangeMarker,
+      goToSplitMarker,
+      markSplitMarker,
       goToNextMarker,
       goToPreviousMarker,
       splitAtPlayhead,
@@ -332,6 +478,9 @@ export function useMarkers({
       removeMarker,
       openPanel,
       setNotice,
+      runCommand,
+      fail,
+      project,
     ],
   );
 

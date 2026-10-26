@@ -122,6 +122,46 @@ export function buildBatchCommandParams(
 }
 
 /**
+ * Parameter builders for the mark commands that act on the current timeline
+ * selection (Mark Clip / Mark Selection).
+ */
+export function buildMarkerCommandParams(
+  id: string,
+  ctx: BatchMenuContext
+): MenuBatchResult | null {
+  switch (id) {
+    case "timeline.mark_clip": {
+      const selected = ctx.selectedClip;
+      if (!selected) {
+        return { notice: "Select a timeline clip to mark it", cancel: true };
+      }
+      return {
+        params: { track_id: selected.track_id, clip_index: selected.clip_index },
+      };
+    }
+    case "timeline.mark_selection": {
+      const refs = [
+        ...(ctx.selectedClips.length
+          ? ctx.selectedClips
+          : ctx.selectedClip
+            ? [ctx.selectedClip]
+            : []),
+      ];
+      if (refs.length === 0) {
+        return { notice: "Select one or more timeline clips to mark them", cancel: true };
+      }
+      return {
+        params: {
+          clips: refs.map((c) => ({ track_id: c.track_id, clip_index: c.clip_index })),
+        },
+      };
+    }
+    default:
+      return null;
+  }
+}
+
+/**
  * Parameter builders for the engine-backed trim commands. Menu dispatch only
  * carries a command id, so the trim family fills from the current selection
  * and playhead, with native prompts for the frame-count inputs.

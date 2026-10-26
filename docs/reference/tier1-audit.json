@@ -888,11 +888,13 @@
  },
  "markers.addChapter": {
   "label": "Add Chapter Marker…",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.add_chapter"
  },
  "markers.addFlashCue": {
   "label": "Add Flash Cue Marker…",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.add_flash_cue"
  },
  "markers.addRange": {
   "label": "Add Range Marker",
@@ -901,7 +903,8 @@
  },
  "markers.addRangeInOut": {
   "label": "Add Range Marker to In and Out",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.add_range_in_out"
  },
  "markers.clearAll": {
   "label": "Clear Markers",
@@ -916,7 +919,8 @@
  },
  "markers.clearIn": {
   "label": "Clear In",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "timeline.clear_mark_in"
  },
  "markers.clearInOut": {
   "label": "Clear In and Out",
@@ -925,11 +929,13 @@
  },
  "markers.clearOut": {
   "label": "Clear Out",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "timeline.clear_mark_out"
  },
  "markers.copyPasteIncludesSequenceMarkers": {
   "label": "Copy Paste Includes Sequence Markers",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.set_copy_paste_includes"
  },
  "markers.edit": {
   "label": "Edit Marker…",
@@ -943,7 +949,8 @@
  },
  "markers.filterColors": {
   "label": "Marker Colour Filter",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.set_color_filter"
  },
  "markers.goNext": {
   "label": "Go to Next Marker",
@@ -967,23 +974,32 @@
  },
  "markers.goToSplitAudioIn": {
   "label": "Audio In",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.go_to_split_audio_in",
+  "note": "ui_only navigation over split marker domains"
  },
  "markers.goToSplitAudioOut": {
   "label": "Audio Out",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.go_to_split_audio_out",
+  "note": "ui_only navigation over split marker domains"
  },
  "markers.goToSplitVideoIn": {
   "label": "Video In",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.go_to_split_video_in",
+  "note": "ui_only navigation over split marker domains"
  },
  "markers.goToSplitVideoOut": {
   "label": "Video Out",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.go_to_split_video_out",
+  "note": "ui_only navigation over split marker domains"
  },
  "markers.markClip": {
   "label": "Mark Clip",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "timeline.mark_clip"
  },
  "markers.markIn": {
   "label": "Mark In",
@@ -997,23 +1013,32 @@
  },
  "markers.markSelection": {
   "label": "Mark Selection",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "timeline.mark_selection"
  },
  "markers.markSplitAudioIn": {
   "label": "Audio In",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.set_split_audio",
+  "note": "split marker domains share the marker duration"
  },
  "markers.markSplitAudioOut": {
   "label": "Audio Out",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.set_split_audio_out",
+  "note": "split marker domains share the marker duration"
  },
  "markers.markSplitVideoIn": {
   "label": "Video In",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.set_split_video",
+  "note": "split marker domains share the marker duration"
  },
  "markers.markSplitVideoOut": {
   "label": "Video Out",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.set_split_video_out",
+  "note": "split marker domains share the marker duration"
  },
  "markers.rippleSequenceMarkers": {
   "label": "Ripple Sequence Markers",
@@ -1022,7 +1047,8 @@
  },
  "markers.showAllMarkerColors": {
   "label": "Show All Marker Colors",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "marker.show_all_colors"
  },
  "media.attachProxies": {
   "label": "Attach Proxies…",

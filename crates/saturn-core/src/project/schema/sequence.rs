@@ -426,6 +426,8 @@ impl MarkerKind {
 
 /// Sequence-level marker. Point markers (`duration_ticks == 0`) mark an instant;
 /// range markers span `[start_ticks, start_ticks + duration_ticks)`.
+/// A split marker carries separate audio/video positions for sync workflows;
+/// a domain positions defaults to the shared `start_ticks`.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Marker {
     pub id: u64,
@@ -439,11 +441,25 @@ pub struct Marker {
     pub color: String,
     #[serde(default)]
     pub note: String,
+    #[serde(default)]
+    pub audio_start_ticks: Option<Tick>,
+    #[serde(default)]
+    pub video_start_ticks: Option<Tick>,
 }
 
 impl Marker {
     pub fn end_ticks(&self) -> Tick {
         Tick(self.start_ticks.0.saturating_add(self.duration_ticks.0))
+    }
+
+    /// The audio-domain in position; falls back to the shared start.
+    pub fn audio_position(&self) -> Tick {
+        self.audio_start_ticks.unwrap_or(self.start_ticks)
+    }
+
+    /// The video-domain in position; falls back to the shared start.
+    pub fn video_position(&self) -> Tick {
+        self.video_start_ticks.unwrap_or(self.start_ticks)
     }
 
     pub fn is_range(&self) -> bool {

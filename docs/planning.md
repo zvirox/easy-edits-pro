@@ -725,6 +725,40 @@ flowchart TD
   (33 binaries), app tests, build, 98 node tests, e2e
   (browserErrors 0), glass/commands/parity/source checks green.
 
+* **P18 — Tier-1 Batch 5+6: trim 24/24 closed + markers +18
+  (Done 2026-10-26, shipped in 0.1.0-alpha.21):** Fifth and sixth
+  family batches, released together under the Tier-1 milestone rule
+  (§6b): **204/442 (46%)** crosses the 200 milestone. Trim closes
+  completely (24/24): a new engine `trim_cmds` module holds the
+  edit-point selection state (track, clip index, edge) plus a ripple
+  trim-type flag, and 19 engine-backed commands ride the extracted
+  `trim_clip_core` (the old `timeline.trim_clip` validation, shared):
+  1/10-frame forward/backward, signed-frame nudge, extend-to-playhead,
+  extend/ripple next and previous edit onto the playhead, select/
+  nearest/clear edit point, monitor, trim-edit context, toggle type,
+  and default-transition application through the existing
+  `timeline.add_transition` path. The five ui_only dynamic-trim
+  transports (shuttle, stop, tick, play around, cancel dynamic) ride
+  the keyboard trim session from a dedicated `trimTransports` module.
+  Entering trim mode mirrors the edit point into the engine. Markers
+  gains 18 of its 32 (14 were already equivalent): chapter and
+  flash-cue marker wrappers, range markers from the In/Out pair,
+  per-side In/Out clears, Mark Clip / Mark Selection spanning,
+  a settings-backed marker colour filter (with show-all) and the
+  copy-paste-includes-sequence-markers preference, plus split-marker
+  domains — `Marker` now carries optional audio/video in-positions
+  (serde defaults keep old files loading; domains share the marker
+  duration, the one documented divergence) with engine
+  `marker.set_split_*` and ui_only split navigation. Tests: the trim
+  workflow (boundaries, ripple shifts, undo) and markers workflow
+  (kinds, ranges, marks, split domains, prefs round-trip) join the
+  engine suite; node tests for the trim transports, marker split
+  targets, and menu param builders. Catalogue: 305 commands, 305
+  shipped, all in menus, 75 UI-only. Id-verified Tier-1: **204/442
+  (46%)** — milestone 200 reached; next release gate is 250. Gates:
+  workspace tests (33 binaries), app tests, build, 113 node tests,
+  e2e (browserErrors 0), glass/commands/parity/source checks green.
+
 ---
 
 ## 6b. Tier-1 Milestone Release Rule (2026-10-26)

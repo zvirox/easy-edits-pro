@@ -203,6 +203,8 @@ mod tests {
             duration_ticks: Tick(duration),
             color: String::new(),
             note: String::new(),
+            audio_start_ticks: None,
+            video_start_ticks: None,
         }
     }
 
@@ -241,6 +243,8 @@ mod tests {
                 duration_ticks: Tick(0),
                 color: "#d9468f".into(),
                 note: "Line one\nline two".into(),
+                audio_start_ticks: None,
+                video_start_ticks: None,
             },
             Marker {
                 id: 8,
@@ -250,6 +254,8 @@ mod tests {
                 duration_ticks: Tick(1000),
                 color: String::new(),
                 note: String::new(),
+                audio_start_ticks: None,
+                video_start_ticks: None,
             },
         ];
         let csv = export_markers_csv(&markers);

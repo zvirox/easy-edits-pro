@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-287 commands.
+305 commands.
 
 ## File
 
@@ -217,6 +217,20 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Add Chapter Marker | `marker.add_chapter` | shipped |  | `{"at":ticks,"duration":ticks?,"name":str?,"color":str?,"note":str?}` |
+| Add Flash Cue Marker | `marker.add_flash_cue` | shipped |  | `{"at":ticks,"duration":ticks?,"name":str?,"color":str?,"note":str?}` |
+| Add Range Marker to In and Out | `marker.add_range_in_out` | shipped |  | `{}` |
+| Marker Colour Filter | `marker.set_color_filter` | shipped |  | `{"colors":[str]}` |
+| Show All Marker Colors | `marker.show_all_colors` | shipped |  | `{}` |
+| Copy Paste Includes Sequence Markers | `marker.set_copy_paste_includes` | shipped |  | `{"enabled":bool}` |
+| Mark Split Audio In | `marker.set_split_audio` | shipped |  | `{"id":int,"at":ticks}` |
+| Mark Split Video In | `marker.set_split_video` | shipped |  | `{"id":int,"at":ticks}` |
+| Mark Split Audio Out | `marker.set_split_audio_out` | shipped |  | `{"id":int,"at":ticks}` |
+| Mark Split Video Out | `marker.set_split_video_out` | shipped |  | `{"id":int,"at":ticks}` |
+| Go to Audio In | `marker.go_to_split_audio_in` | shipped |  | `{"id":int?}` |
+| Go to Audio Out | `marker.go_to_split_audio_out` | shipped |  | `{"id":int?}` |
+| Go to Video In | `marker.go_to_split_video_in` | shipped |  | `{"id":int?}` |
+| Go to Video Out | `marker.go_to_split_video_out` | shipped |  | `{"id":int?}` |
 | Add Marker | `marker.add` | shipped | M | `{"at":ticks,"duration":ticks?,"name":str?,"kind":str?,"color":str?,"note":str?}` |
 | Add Range Marker | `marker.add_range` | shipped | Shift+M | `{"start":ticks,"end":ticks,"name":str?,"kind":str?,"color":str?,"note":str?}` |
 | Edit Marker | `marker.update` | shipped |  | `{"id":int,"at":ticks?,"duration":ticks?,"name":str?,"kind":str?,"color":str?,"note":str?}` |
@@ -232,6 +246,10 @@ Generated from the command catalogue. Do not edit by hand.
 | Set In Point | `timeline.set_mark_in` | shipped | I | `{"at":obj}` |
 | Set Out Point | `timeline.set_mark_out` | shipped | O | `{"at":obj}` |
 | Clear In/Out Points | `timeline.clear_marks` | shipped |  | `{}` |
+| Clear In | `timeline.clear_mark_in` | shipped |  | `{}` |
+| Clear Out | `timeline.clear_mark_out` | shipped |  | `{}` |
+| Mark Clip | `timeline.mark_clip` | shipped |  | `{"track_id":int,"clip_index":int}` |
+| Mark Selection | `timeline.mark_selection` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
 
 ## Graphics
 

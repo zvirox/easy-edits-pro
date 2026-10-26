@@ -74,3 +74,35 @@ pub(in crate::engine) struct MarkerImportParams {
     #[serde(default)]
     pub(in crate::engine) replace: bool,
 }
+
+/// Set the audio or video in-position of a split marker.
+#[derive(Deserialize)]
+pub(in crate::engine) struct SetMarkerSplitParams {
+    pub(in crate::engine) id: u64,
+    pub(in crate::engine) at: Tick,
+}
+
+/// Replace the active marker colour filter; an empty list shows all colours.
+#[derive(Deserialize)]
+pub(in crate::engine) struct SetMarkerColorFilterParams {
+    pub(in crate::engine) colors: Vec<String>,
+}
+
+/// Toggle whether copy/paste includes sequence markers.
+#[derive(Deserialize)]
+pub(in crate::engine) struct SetMarkerCopyPasteParams {
+    pub(in crate::engine) enabled: bool,
+}
+
+/// Mark in/out around one clip.
+#[derive(Deserialize)]
+pub(in crate::engine) struct MarkClipParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) clip_index: usize,
+}
+
+/// Mark in/out around a batch of clips (the smallest span covering them).
+#[derive(Deserialize)]
+pub(in crate::engine) struct MarkSelectionParams {
+    pub(in crate::engine) clips: Vec<ClipReferenceParams>,
+}

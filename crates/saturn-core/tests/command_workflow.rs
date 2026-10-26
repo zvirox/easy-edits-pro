@@ -4757,3 +4757,244 @@ fn trim_edit_point_family_workflow_with_ripple_and_undo() {
         .execute(CommandRequest::new("trim.forward", serde_json::Value::Null));
     assert!(refused.is_err());
 }
+
+#[test]
+fn markers_family_workflow_chapters_ranges_marks_and_split_domains() {
+    use saturn_core::TICKS_PER_SECOND;
+    let s = TICKS_PER_SECOND;
+
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name": "Markers workflow"})))
+        .unwrap();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name": "marks.mp4", "path": "/assets/marks.mp4", "kind": "video"}),
+        ))
+        .unwrap();
+    let media_id = media["media_id"].as_u64().unwrap();
+    let track_id = engine.document().project.sequence.tracks[0].id;
+    engine
+        .execute(CommandRequest::new(
+            "project.update_media",
+            json!({"path": "/assets/marks.mp4", "kind": "video", "duration": 20 * s}),
+        ))
+        .unwrap();
+    for index in 0..3 {
+        engine
+            .execute(CommandRequest::new(
+                "timeline.add_clip",
+                json!({
+                    "track_id": track_id,
+                    "media_id": media_id,
+                    "timeline_start": index * 3 * s,
+                    "source_in": 0,
+                    "duration": 3 * s,
+                }),
+            ))
+            .unwrap();
+    }
+
+    // Chapter and flash cue markers carry their fixed kinds.
+    let chapter = engine
+        .execute(CommandRequest::new(
+            "marker.add_chapter",
+            json!({"at": 1 * s, "name": "Opening"}),
+        ))
+        .unwrap();
+    let flash = engine
+        .execute(CommandRequest::new(
+            "marker.add_flash_cue",
+            json!({"at": 2 * s}),
+        ))
+        .unwrap();
+    let markers = &engine.document().project.sequence.markers;
+    assert_eq!(markers[0].kind, saturn_core::MarkerKind::Chapter);
+    assert_eq!(flash["kind"], "flash_cue");
+
+    // A range marker from the In/Out pair.
+    engine
+        .execute(CommandRequest::new(
+            "timeline.set_mark_in",
+            json!({"at": s / 2}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.set_mark_out",
+            json!({"at": 5 * s / 2}),
+        ))
+        .unwrap();
+    let ranged = engine
+        .execute(
+            CommandRequest::new("marker.add_range_in_out", serde_json::Value::Null),
+        )
+        .unwrap();
+    assert_eq!(ranged["start"], s / 2);
+    assert_eq!(ranged["end"], 5 * s / 2);
+
+    // Without both marks the in/out range refuses.
+    engine
+        .execute(CommandRequest::new("timeline.clear_marks", serde_json::Value::Null))
+        .unwrap();
+    let refused = engine
+        .execute(
+            CommandRequest::new("marker.add_range_in_out", serde_json::Value::Null),
+        );
+    assert!(refused.is_err());
+
+    // Mark Clip pins the in/out pair around clip 1.
+    let marked = engine
+        .execute(CommandRequest::new(
+            "timeline.mark_clip",
+            json!({"track_id": track_id, "clip_index": 1}),
+        ))
+        .unwrap();
+    assert_eq!(marked["mark_in"], 3 * s);
+    assert_eq!(marked["mark_out"], 6 * s);
+
+    // Mark Selection spans the smallest cover of the chosen clips.
+    let marked = engine
+        .execute(CommandRequest::new(
+            "timeline.mark_selection",
+            json!({"clips": [
+                {"track_id": track_id, "clip_index": 0},
+                {"track_id": track_id, "clip_index": 2}
+            ]}),
+        ))
+        .unwrap();
+    assert_eq!(marked["mark_in"], 0);
+    assert_eq!(marked["mark_out"], 9 * s);
+
+    // Clearing one side keeps the other.
+    engine
+        .execute(CommandRequest::new(
+            "timeline.clear_mark_in",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    assert!(engine.document().project.sequence.mark_in.is_none());
+    assert_eq!(
+        engine
+            .document()
+            .project
+            .sequence
+            .mark_out
+            .map(|tick| tick.0),
+        Some(9 * s)
+    );
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(
+        engine
+            .document()
+            .project
+            .sequence
+            .mark_in
+            .map(|tick| tick.0),
+        Some(0)
+    );
+
+    // Split marker domains: independent in positions, shared duration.
+    let chapter_id = chapter["id"].as_u64().unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "marker.set_split_video",
+            json!({"id": chapter_id, "at": s / 2}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "marker.set_split_audio",
+            json!({"id": chapter_id, "at": s / 4}),
+        ))
+        .unwrap();
+    let chapter_marker = engine
+        .document()
+        .project
+        .sequence
+        .markers
+        .iter()
+        .find(|marker| marker.id == chapter_id)
+        .unwrap()
+        .clone();
+    assert_eq!(chapter_marker.video_position().0, s / 2);
+    assert_eq!(chapter_marker.audio_position().0, s / 4);
+    assert_eq!(chapter_marker.start_ticks.0, 1 * s);
+
+    // Out edges land the shared duration relative to the domain position.
+    engine
+        .execute(CommandRequest::new(
+            "marker.set_split_video_out",
+            json!({"id": chapter_id, "at": 3 * s / 2}),
+        ))
+        .unwrap();
+    let chapter_marker = engine
+        .document()
+        .project
+        .sequence
+        .markers
+        .iter()
+        .find(|marker| marker.id == chapter_id)
+        .unwrap()
+        .clone();
+    assert_eq!(chapter_marker.duration_ticks.0, 1 * s);
+    assert_eq!(
+        chapter_marker.video_position().0 + chapter_marker.duration_ticks.0,
+        3 * s / 2
+    );
+
+    // domain_out must land after the domain in position.
+    let bad_out = engine
+        .execute(CommandRequest::new(
+            "marker.set_split_audio_out",
+            json!({"id": chapter_id, "at": s / 6}),
+        ));
+    assert!(bad_out.is_err());
+
+    // Colour filter and the copy/paste marker preference persist through the
+    // prefs settings object and read back through prefs.get.
+    let filtered = engine
+        .execute(CommandRequest::new(
+            "marker.set_color_filter",
+            json!({"colors": [" Red ", "red", "blue"]}),
+        ))
+        .unwrap();
+    assert_eq!(filtered["filter"], json!(["red", "blue"]));
+    let stored = engine
+        .execute(CommandRequest::new(
+            "prefs.get",
+            json!({"key": "marker_color_filter"}),
+        ))
+        .unwrap();
+    assert_eq!(stored["value"], json!(["red", "blue"]));
+    engine
+        .execute(CommandRequest::new(
+            "marker.show_all_colors",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    let stored = engine
+        .execute(CommandRequest::new(
+            "prefs.get",
+            json!({"key": "marker_color_filter"}),
+        ))
+        .unwrap();
+    assert_eq!(stored["value"], json!([]));
+    engine
+        .execute(CommandRequest::new(
+            "marker.set_copy_paste_includes",
+            json!({"enabled": true}),
+        ))
+        .unwrap();
+    let stored = engine
+        .execute(CommandRequest::new(
+            "prefs.get",
+            json!({"key": "marker_copy_paste_includes"}),
+        ))
+        .unwrap();
+    assert_eq!(stored["value"], json!(true));
+    let _ = chapter["id"].as_u64();
+}

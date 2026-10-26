@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.21] - 2026-10-26
+
+Tier-1 milestone release (P18) under the new milestone cadence:
+**204/442 (46%)** — the 200 milestone is crossed. The trim family
+closes completely at 24/24: an engine-held edit-point selection plus a
+ripple trim-type flag drive 19 structured trim commands (frame and
+ten-frame trims, signed nudges, extend-to-playhead, extend/ripple the
+next or previous edit onto the playhead, edit-point select/nearest/
+clear, monitor, trim-edit context, toggle type, and default
+transitions), all sharing the extracted `timeline.trim_clip`
+validation core; the five ui_only dynamic-trim transports ride the
+keyboard trim session from new `trimTransports` wiring, and entering
+trim mode mirrors the edit point into the engine. The markers family
+gains 18: chapter and flash-cue markers, range markers from the In/Out
+pair, per-side In/Out clears, Mark Clip and Mark Selection, a
+settings-backed marker colour filter, the copy-paste-includes-markers
+preference, and split-marker audio/video domains with dedicated mark
+and navigation commands. Catalogue: 305/305 shipped, 75 UI-only.
+
 ## [0.1.0-alpha.20] - 2026-10-26
 
 Tier-1 coverage Batch 4 (P17): the export family closes completely

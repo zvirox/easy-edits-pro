@@ -47,6 +47,8 @@ export type Marker = {
   duration_ticks: number;
   color: string;
   note: string;
+  audio_start_ticks?: number | null;
+  video_start_ticks?: number | null;
 };
 export type Sequence = {
   id?: number;

@@ -1,4 +1,5 @@
 use super::*;
+use crate::project::MarkerKind;
 
 impl EditorEngine {
     pub(super) fn dispatch_markers(
@@ -32,6 +33,8 @@ impl EditorEngine {
                     duration_ticks: duration,
                     color: params.color.trim().to_string(),
                     note: params.note.trim().to_string(),
+                    audio_start_ticks: None,
+                    video_start_ticks: None,
                 });
                 sort_markers(&mut self.document.project.sequence.markers);
                 Ok(json!({
@@ -59,6 +62,8 @@ impl EditorEngine {
                     duration_ticks: Tick(params.end.0 - params.start.0),
                     color: params.color.trim().to_string(),
                     note: params.note.trim().to_string(),
+                    audio_start_ticks: None,
+                    video_start_ticks: None,
                 });
                 sort_markers(&mut self.document.project.sequence.markers);
                 Ok(json!({
@@ -220,6 +225,8 @@ impl EditorEngine {
                             duration_ticks: Tick(marker.end_ticks().0 - params.at.0),
                             color: marker.color.clone(),
                             note: marker.note.clone(),
+                            audio_start_ticks: None,
+                            video_start_ticks: None,
                         };
                         (marker.id, second)
                     })
@@ -279,13 +286,206 @@ impl EditorEngine {
                         duration_ticks: row.duration_ticks,
                         color: row.color,
                         note: row.note,
+                        audio_start_ticks: None,
+                        video_start_ticks: None,
                     });
                 }
                 sort_markers(&mut self.document.project.sequence.markers);
                 Ok(json!({"imported": imported, "replaced": params.replace}))
             })()),
+            "marker.add_chapter" => Some((|| {
+                let params: AddMarkerParams = parse_params(params)?;
+                self.add_typed_marker(params, MarkerKind::Chapter)
+            })()),
+            "marker.add_flash_cue" => Some((|| {
+                let params: AddMarkerParams = parse_params(params)?;
+                self.add_typed_marker(params, MarkerKind::FlashCue)
+            })()),
+            "marker.add_range_in_out" => Some((|| {
+                let sequence = &self.document.project.sequence;
+                let (start, end) = match (sequence.mark_in, sequence.mark_out) {
+                    (Some(mark_in), Some(mark_out)) if mark_out.0 > mark_in.0 => (mark_in, mark_out),
+                    _ => {
+                        return Err(DispatchError::Operation(
+                            "Set both In and Out points before adding a range marker".into(),
+                        ))
+                    }
+                };
+                let name = marker_name(&self.document, None);
+                self.checkpoint();
+                let marker_id = self.document.project.next_id;
+                self.document.project.next_id = marker_id.saturating_add(1);
+                self.document.project.sequence.markers.push(Marker {
+                    id: marker_id,
+                    name,
+                    kind: MarkerKind::Comment,
+                    start_ticks: start,
+                    duration_ticks: Tick(end.0 - start.0),
+                    color: String::new(),
+                    note: String::new(),
+                    audio_start_ticks: None,
+                    video_start_ticks: None,
+                });
+                sort_markers(&mut self.document.project.sequence.markers);
+                Ok(json!({"added": true, "id": marker_id, "start": start.0, "end": end.0}))
+            })()),
+            "marker.set_color_filter" => Some((|| {
+                let params: SetMarkerColorFilterParams = parse_params(params)?;
+                let mut colors: Vec<String> = Vec::new();
+                for color in params.colors {
+                    let normalized = color.trim().to_lowercase();
+                    if !normalized.is_empty() && !colors.contains(&normalized) {
+                        colors.push(normalized);
+                    }
+                }
+                self.store_pref("marker_color_filter", json!(colors))?;
+                Ok(json!({"filter": colors}))
+            })()),
+            "marker.show_all_colors" => Some((|| {
+                self.store_pref("marker_color_filter", json!([]))?;
+                Ok(json!({"filter": []}))
+            })()),
+            "marker.set_copy_paste_includes" => Some((|| {
+                let params: SetMarkerCopyPasteParams = parse_params(params)?;
+                self.store_pref("marker_copy_paste_includes", json!(params.enabled))?;
+                Ok(json!({"copy_paste_includes": params.enabled}))
+            })()),
+            "marker.set_split_audio" => Some(self.set_marker_split(params, true, false)),
+            "marker.set_split_video" => Some(self.set_marker_split(params, false, false)),
+            "marker.set_split_audio_out" => Some(self.set_marker_split(params, true, true)),
+            "marker.set_split_video_out" => Some(self.set_marker_split(params, false, true)),
             _ => None,
         }
+    }
+
+    /// Merge one marker preference into the shared "prefs" object so it is
+    /// readable through `prefs.get` and survives restarts with the settings
+    /// file.
+    fn store_pref(&mut self, key: &str, value: Value) -> Result<(), DispatchError> {
+        let mut prefs = self
+            .settings
+            .object("prefs")
+            .as_object()
+            .cloned()
+            .unwrap_or_default();
+        prefs.insert(key.into(), value);
+        self.settings.store_object("prefs", Value::Object(prefs))
+    }
+
+    /// Shared add path for the chapter/flash-cue marker wrappers: the kind is
+    /// fixed by the command, everything else follows `marker.add`.
+    fn add_typed_marker(
+        &mut self,
+        params: AddMarkerParams,
+        kind: MarkerKind,
+    ) -> Result<Value, DispatchError> {
+        if params.at.0 < 0 {
+            return Err(DispatchError::InvalidParameters(
+                "Marker start must be non-negative".into(),
+            ));
+        }
+        let duration = params.duration.unwrap_or(Tick(0));
+        if duration.0 < 0 {
+            return Err(DispatchError::InvalidParameters(
+                "Marker duration must be non-negative".into(),
+            ));
+        }
+        let name = marker_name(&self.document, params.name);
+        self.checkpoint();
+        let marker_id = self.document.project.next_id;
+        self.document.project.next_id = marker_id.saturating_add(1);
+        self.document.project.sequence.markers.push(Marker {
+            id: marker_id,
+            name,
+            kind,
+            start_ticks: params.at,
+            duration_ticks: duration,
+            color: params.color.trim().to_string(),
+            note: params.note.trim().to_string(),
+            audio_start_ticks: None,
+            video_start_ticks: None,
+        });
+        sort_markers(&mut self.document.project.sequence.markers);
+        Ok(json!({
+            "added": true,
+            "id": marker_id,
+            "kind": kind,
+            "range": duration.0 > 0
+        }))
+    }
+
+    /// Set a split marker's audio/video in-position, or (with `out`) pull the
+    /// shared duration so the domain position out lands at `at`. The split
+    /// domains share the marker duration; moving a domain out therefore
+    /// resizes both, which is the documented divergence until per-domain
+    /// durations are modelled.
+    fn set_marker_split(
+        &mut self,
+        params: Value,
+        audio: bool,
+        out: bool,
+    ) -> Result<Value, DispatchError> {
+        let params: SetMarkerSplitParams = parse_params(params)?;
+        if params.at.0 < 0 {
+            return Err(DispatchError::InvalidParameters(
+                "Split position must be non-negative".into(),
+            ));
+        }
+        let out_delta: Option<i64> = {
+            let marker = self
+                .document
+                .project
+                .sequence
+                .markers
+                .iter()
+                .find(|marker| marker.id == params.id)
+                .ok_or_else(|| {
+                    DispatchError::InvalidParameters(format!(
+                        "Marker {} does not exist",
+                        params.id
+                    ))
+                })?;
+            if out {
+                let position = if audio {
+                    marker.audio_position().0
+                } else {
+                    marker.video_position().0
+                };
+                if params.at.0 <= position {
+                    return Err(DispatchError::InvalidParameters(
+                        "The split out position must land after the domain in position".into(),
+                    ));
+                }
+                Some(params.at.0 - position)
+            } else {
+                None
+            }
+        };
+        self.checkpoint();
+        {
+            let marker = self
+                .document
+                .project
+                .sequence
+                .markers
+                .iter_mut()
+                .find(|marker| marker.id == params.id)
+                .expect("marker verified above");
+            if let Some(delta) = out_delta {
+                marker.duration_ticks = Tick(delta);
+            } else if audio {
+                marker.audio_start_ticks = Some(params.at);
+            } else {
+                marker.video_start_ticks = Some(params.at);
+            }
+        }
+        Ok(json!({
+            "updated": true,
+            "id": params.id,
+            "domain": if audio { "audio" } else { "video" },
+            "at": params.at.0,
+            "out": out,
+        }))
     }
 }
 

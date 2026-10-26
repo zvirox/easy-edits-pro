@@ -19,6 +19,7 @@ import type {
 import { TICKS_PER_SECOND } from "./projectTypes";
 import {
   buildBatchCommandParams,
+  buildMarkerCommandParams,
   buildTrimCommandParams,
 } from "./menuCommandParams";
 import { createEnqueueExport } from "./enqueueExport";
@@ -661,17 +662,24 @@ export function useProjectOperations({
                 ? { content, project_name: stem }
                 : { xml: content };
         } else {
-          const built = buildTrimCommandParams(id, getMenuContext());
-          if (built) {
-            if (built.notice) setNotice(built.notice);
-            if (built.cancel) return;
-            params = built.params ?? null;
+          const marked = buildMarkerCommandParams(id, getMenuContext());
+          if (marked) {
+            if (marked.notice) setNotice(marked.notice);
+            if (marked.cancel) return;
+            params = marked.params ?? null;
           } else {
-            const batched = buildBatchCommandParams(id, getMenuContext());
-            if (batched) {
-              if (batched.notice) setNotice(batched.notice);
-              if (batched.cancel) return;
-              params = batched.params ?? null;
+            const built = buildTrimCommandParams(id, getMenuContext());
+            if (built) {
+              if (built.notice) setNotice(built.notice);
+              if (built.cancel) return;
+              params = built.params ?? null;
+            } else {
+              const batched = buildBatchCommandParams(id, getMenuContext());
+              if (batched) {
+                if (batched.notice) setNotice(batched.notice);
+                if (batched.cancel) return;
+                params = batched.params ?? null;
+              }
             }
           }
         }

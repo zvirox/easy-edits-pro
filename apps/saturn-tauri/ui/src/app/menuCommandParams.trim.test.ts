@@ -101,3 +101,41 @@ test("buildTrimCommandParams prompts a signed frame count for nudges", () => {
 test("buildTrimCommandParams ignores ids outside the trim family", () => {
   assert.equal(buildTrimCommandParams("timeline.trim_clip", ctx(0)), null);
 });
+
+import { buildMarkerCommandParams } from "./menuCommandParams.ts";
+
+test("buildMarkerCommandParams marks clips from the selection", () => {
+  const selected = { track_id: 2, clip_index: 3 };
+  const single = buildMarkerCommandParams("timeline.mark_clip", ctx(0, selected));
+  assert.deepEqual(single, { params: { track_id: 2, clip_index: 3 } });
+
+  const multi = buildMarkerCommandParams("timeline.mark_selection", ctx(0, selected));
+  assert.deepEqual(multi, { params: { clips: [{ track_id: 2, clip_index: 3 }] } });
+
+  const multiCtx = ctx(0, selected);
+  multiCtx.selectedClips = [
+    { track_id: 2, clip_index: 3 },
+    { track_id: 1, clip_index: 0 },
+  ] as never;
+  const batch = buildMarkerCommandParams("timeline.mark_selection", multiCtx);
+  assert.deepEqual(batch, {
+    params: {
+      clips: [
+        { track_id: 2, clip_index: 3 },
+        { track_id: 1, clip_index: 0 },
+      ],
+    },
+  });
+});
+
+test("buildMarkerCommandParams refuses marking without a selection", () => {
+  const clip = buildMarkerCommandParams("timeline.mark_clip", ctx(0));
+  assert.equal(clip?.cancel, true);
+  const selection = buildMarkerCommandParams("timeline.mark_selection", ctx(0));
+  assert.equal(selection?.cancel, true);
+});
+
+test("buildMarkerCommandParams ignores non-mark ids", () => {
+  assert.equal(buildMarkerCommandParams("marker.add", ctx(0)), null);
+  assert.equal(buildMarkerCommandParams("trim.forward", ctx(0)), null);
+});

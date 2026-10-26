@@ -97,6 +97,55 @@ impl EditorEngine {
                 self.document.project.sequence.mark_out = None;
                 Ok(json!({"cleared": true}))
             })()),
+            "timeline.clear_mark_in" => Some((|| {
+                self.checkpoint();
+                self.document.project.sequence.mark_in = None;
+                Ok(json!({"mark_in": serde_json::Value::Null}))
+            })()),
+            "timeline.clear_mark_out" => Some((|| {
+                self.checkpoint();
+                self.document.project.sequence.mark_out = None;
+                Ok(json!({"mark_out": serde_json::Value::Null}))
+            })()),
+            "timeline.mark_clip" => Some((|| {
+                let params: MarkClipParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                let mark_in = clip.timeline_start;
+                let mark_out = Tick(clip.timeline_start.0.saturating_add(clip.duration.0));
+                self.checkpoint();
+                self.document.project.sequence.mark_in = Some(mark_in);
+                self.document.project.sequence.mark_out = Some(mark_out);
+                Ok(json!({"mark_in": mark_in.0, "mark_out": mark_out.0}))
+            })()),
+            "timeline.mark_selection" => Some((|| {
+                let params: MarkSelectionParams = parse_params(params)?;
+                if params.clips.is_empty() {
+                    return Err(DispatchError::InvalidParameters(
+                        "Marking a selection needs at least one clip".into(),
+                    ));
+                }
+                let mut mark_in = Option::<Tick>::None;
+                let mut mark_out = Option::<Tick>::None;
+                for reference in &params.clips {
+                    let track_index = find_track_index(&self.document, reference.track_id)?;
+                    let clip = find_clip(&self.document, track_index, reference.clip_index)?;
+                    let start = clip.timeline_start;
+                    let end = Tick(clip.timeline_start.0.saturating_add(clip.duration.0));
+                    mark_in = Some(match mark_in {
+                        Some(current) if current.0 <= start.0 => current,
+                        _ => start,
+                    });
+                    mark_out = Some(match mark_out {
+                        Some(current) if current.0 >= end.0 => current,
+                        _ => end,
+                    });
+                }
+                self.checkpoint();
+                self.document.project.sequence.mark_in = mark_in;
+                self.document.project.sequence.mark_out = mark_out;
+                Ok(json!({"mark_in": mark_in.unwrap().0, "mark_out": mark_out.unwrap().0}))
+            })()),
             "timeline.ripple_delete_ranges" => Some((|| {
                 let params: RippleDeleteRangesParams = parse_params(params)?;
                 self.checkpoint();

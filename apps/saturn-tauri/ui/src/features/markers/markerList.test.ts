@@ -8,6 +8,8 @@ import {
   nextMarker,
   previousMarker,
   sortedMarkers,
+  splitMarkerTarget,
+  splitPosition,
 } from "./markerList.ts";
 
 const marker = (id: number, start: number, duration = 0) => ({
@@ -62,4 +64,30 @@ test("markerShiftTicks converts signed frames to signed ticks", () => {
   // Non-integer rational rates keep the same rounding the timecode uses.
   const ntsc = { numerator: 30000, denominator: 1001 };
   assert.equal(markerShiftTicks(5, ntsc), Math.round((254_016_000_000 * 1001) / 30000) * 5);
+});
+
+test("split markers expose audio/video positions with shared-start fallback", () => {
+  const shared = {
+    id: 1,
+    name: "Sync",
+    kind: "comment" as const,
+    start_ticks: 1000,
+    duration_ticks: 500,
+    color: "",
+  };
+  assert.equal(splitPosition(shared, "audio"), 1000);
+  assert.equal(splitPosition(shared, "video"), 1000);
+  assert.equal(splitMarkerTarget(shared, "video", "in"), 1000);
+  assert.equal(splitMarkerTarget(shared, "audio", "out"), 1500);
+
+  const split = {
+    ...shared,
+    audio_start_ticks: 700,
+    video_start_ticks: 1100,
+  };
+  assert.equal(splitPosition(split, "audio"), 700);
+  assert.equal(splitPosition(split, "video"), 1100);
+  assert.equal(splitMarkerTarget(split, "audio", "in"), 700);
+  assert.equal(splitMarkerTarget(split, "audio", "out"), 1200);
+  assert.equal(splitMarkerTarget(split, "video", "out"), 1600);
 });

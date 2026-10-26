@@ -7,6 +7,38 @@ export type MarkerLike = Pick<
   "id" | "name" | "kind" | "start_ticks" | "duration_ticks" | "color"
 >;
 
+/** One split-marker navigation target: audio or video, in or out. */
+export type SplitDomain = "audio" | "video";
+export type SplitEdge = "in" | "out";
+
+/** A marker's audio/video position, falling back to the shared start. */
+export function splitPosition(
+  marker: MarkerLike & {
+    audio_start_ticks?: number | null;
+    video_start_ticks?: number | null;
+  },
+  domain: SplitDomain,
+): number {
+  if (domain === "audio") return marker.audio_start_ticks ?? marker.start_ticks;
+  return marker.video_start_ticks ?? marker.start_ticks;
+}
+
+/**
+ * Tick target for a split-marker navigation command; null when the edge has
+ * no position (an out edge without duration).
+ */
+export function splitMarkerTarget(
+  marker: MarkerLike & {
+    audio_start_ticks?: number | null;
+    video_start_ticks?: number | null;
+  },
+  domain: SplitDomain,
+  edge: SplitEdge,
+): number | null {
+  const position = splitPosition(marker, domain);
+  return edge === "in" ? position : position + marker.duration_ticks;
+}
+
 export const MARKER_KINDS: { value: MarkerKind; label: string; color: string }[] = [
   { value: "comment", label: "Comment", color: "var(--accent-violet-300)" },
   { value: "chapter", label: "Chapter", color: "var(--accent-orange)" },
