@@ -30,7 +30,9 @@ export async function run(ctx) {
     .locator('.shortcuts-row')
     .filter({ has: page.getByText('Undo', { exact: true }) })
     .first();
-  await undoRow.getByRole('button').click();
+  // The row now carries engine helper buttons too; the rebind control is the
+  // .shortcuts-key button specifically.
+  await undoRow.locator('button.shortcuts-key').click();
   await page.keyboard.press('Control+Shift+U');
   await undoRow.locator('.shortcuts-key').getByText('Ctrl+Shift+U').waitFor();
   // exact: the dialog's default label list is unique for Undo, so a non-exact

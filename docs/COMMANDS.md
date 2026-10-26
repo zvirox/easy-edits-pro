@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-231 commands.
+244 commands.
 
 ## File
 
@@ -67,6 +67,19 @@ Generated from the command catalogue. Do not edit by hand.
 | Write Shortcut Overrides | `shortcuts.set` | shipped |  | `{"shortcuts":obj}` |
 | Reset Shortcut Overrides | `shortcuts.reset` | shipped |  | `{}` |
 | Import Shortcut Overrides | `shortcuts.import` | shipped |  | `{"shortcuts":obj}` |
+| Get Command Shortcut | `shortcuts.get` | shipped |  | `{"command_id":str}` |
+| Shortcuts on a Key | `shortcuts.for_key` | shipped |  | `{"key":str}` |
+| Shortcut Conflicts | `shortcuts.conflicts` | shipped |  | `{}` |
+| Shortcut Audit | `shortcuts.audit` | shipped |  | `{}` |
+| Clear Shortcut | `shortcuts.clear` | shipped |  | `{"command_id":str}` |
+| Resolve Shortcut | `shortcuts.resolve` | shipped |  | `{"key":str,"keep":str}` |
+| Export Keyboard Shortcuts | `shortcuts.export` | shipped |  | `{"path":str}` |
+| Keyboard Shortcut Presets | `shortcuts.presets` | shipped |  | `{}` |
+| Save Shortcut Preset As | `shortcuts.save_preset` | shipped |  | `{"name":str}` |
+| Load Shortcut Preset | `shortcuts.load_preset` | shipped |  | `{"name":str}` |
+| Delete Shortcut Preset | `shortcuts.delete_preset` | shipped |  | `{"name":str}` |
+| Undo Shortcut Change | `shortcuts.undo` | shipped |  | `{}` |
+| Redo Shortcut Change | `shortcuts.redo` | shipped |  | `{}` |
 
 ## Clip
 

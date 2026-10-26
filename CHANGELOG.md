@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.19] - 2026-10-26
+
+Tier-1 coverage Batch 3 (P16): the shortcuts family closes completely
+at 16/16 — coverage 143/442 (32%). Thirteen new settings-scoped
+commands: per-command and per-key shortcut queries, conflict and
+audit reports, single-override clear, conflict resolve, JSON export,
+a persisted preset store (save/load/delete over named override sets
+with a factory `default`), and a settings-scoped undo/redo stack
+beside the settings file. The Keyboard Shortcuts dialog surfaces all
+of it — audit counts, undo/redo, presets, per-row inspect, resolve,
+clear, and file export. Catalogue: 244/244 shipped.
+
 ## [0.1.0-alpha.18] - 2026-10-26
 
 Tier-1 coverage Batch 2 (P15): the media family lands at 15/17,

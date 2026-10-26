@@ -3592,6 +3592,216 @@
   },
   {
     "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.get",
+    "label": "Get Command Shortcut",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{\"command_id\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "find shortcut key"
+    ],
+    "category": "Edit",
+    "id": "shortcuts.for_key",
+    "label": "Shortcuts on a Key",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{\"key\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.conflicts",
+    "label": "Shortcut Conflicts",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.audit",
+    "label": "Shortcut Audit",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.clear",
+    "label": "Clear Shortcut",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{\"command_id\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.resolve",
+    "label": "Resolve Shortcut",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{\"key\":str,\"keep\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.export",
+    "label": "Export Keyboard Shortcuts",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{\"path\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.presets",
+    "label": "Keyboard Shortcut Presets",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.save_preset",
+    "label": "Save Shortcut Preset As",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.load_preset",
+    "label": "Load Shortcut Preset",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.delete_preset",
+    "label": "Delete Shortcut Preset",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.undo",
+    "label": "Undo Shortcut Change",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "shortcuts.redo",
+    "label": "Redo Shortcut Change",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
     "category": "View",
     "id": "view.toggle_snap",
     "label": "Snap to Frame",

@@ -4137,3 +4137,185 @@ fn media_lifecycle_workflow_relink_offline_proxies() {
         ))
         .is_err());
 }
+
+#[test]
+fn shortcuts_lifecycle_workflow_queries_presets_undo() {
+    let path = std::env::temp_dir().join(format!(
+        "eep-shortcuts-lifecycle-{}-{}.json",
+        std::process::id(),
+        line!()
+    ));
+    let _ = std::fs::remove_file(&path);
+    let mut engine = EditorEngine::default();
+    engine.load_settings(&path);
+
+    // Two commands bound to one key create a detectable conflict.
+    engine
+        .execute(CommandRequest::new(
+            "shortcuts.import",
+            json!({"shortcuts": {"playhead.start": "Ctrl+Home", "playhead.end": "Ctrl+Home"}}),
+        ))
+        .unwrap();
+    let conflicts = engine
+        .execute(CommandRequest::new("shortcuts.conflicts", Value::Null))
+        .unwrap();
+    assert_eq!(
+        conflicts["conflicts"][0]["key"], "Ctrl+Home",
+        "conflicts: {conflicts}"
+    );
+    assert_eq!(conflicts["conflicts"][0]["commands"].as_array().unwrap().len(), 2);
+
+    // Per-command and per-key queries agree with the audit.
+    let got = engine
+        .execute(CommandRequest::new(
+            "shortcuts.get",
+            json!({"command_id": "playhead.start"}),
+        ))
+        .unwrap();
+    assert_eq!(got["shortcut"], "Ctrl+Home");
+    assert!(engine
+        .execute(CommandRequest::new(
+            "shortcuts.get",
+            json!({"command_id": "clip.play"}),
+        ))
+        .unwrap()["shortcut"]
+        .is_null());
+    let on_key = engine
+        .execute(CommandRequest::new(
+            "shortcuts.for_key",
+            json!({"key": "Ctrl+Home"}),
+        ))
+        .unwrap();
+    assert_eq!(on_key["commands"].as_array().unwrap().len(), 2);
+    let audit = engine
+        .execute(CommandRequest::new("shortcuts.audit", Value::Null))
+        .unwrap();
+    assert_eq!(audit["total"], 2);
+    assert_eq!(audit["conflicts"], 1);
+    assert_eq!(audit["empty"], 0);
+
+    // Resolve keeps one command on the key and unbinds the rest.
+    let resolved = engine
+        .execute(CommandRequest::new(
+            "shortcuts.resolve",
+            json!({"key": "Ctrl+Home", "keep": "playhead.start"}),
+        ))
+        .unwrap();
+    assert_eq!(resolved["resolved"], 1);
+    let on_key = engine
+        .execute(CommandRequest::new(
+            "shortcuts.for_key",
+            json!({"key": "Ctrl+Home"}),
+        ))
+        .unwrap();
+    assert_eq!(on_key["commands"].as_array().unwrap(), &["playhead.start"]);
+    // Resolve validates that the keeper actually holds the key.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "shortcuts.resolve",
+            json!({"key": "Ctrl+Home", "keep": "playhead.end"}),
+        ))
+        .is_err());
+
+    // Presets: save, list with the built-in default, load, delete.
+    let saved = engine
+        .execute(CommandRequest::new(
+            "shortcuts.save_preset",
+            json!({"name": "My layout"}),
+        ))
+        .unwrap();
+    assert_eq!(saved["saved"], "My layout");
+    let presets = engine
+        .execute(CommandRequest::new("shortcuts.presets", Value::Null))
+        .unwrap();
+    assert!(presets["presets"]["default"].is_object());
+    assert!(presets["presets"]["My layout"].is_object());
+    engine
+        .execute(CommandRequest::new(
+            "shortcuts.clear",
+            json!({"command_id": "playhead.start"}),
+        ))
+        .unwrap();
+    let cleared = engine
+        .execute(CommandRequest::new("shortcuts.list", Value::Null))
+        .unwrap();
+    assert_eq!(cleared["shortcuts"].as_object().unwrap().len(), 0);
+    let loaded = engine
+        .execute(CommandRequest::new(
+            "shortcuts.load_preset",
+            json!({"name": "My layout"}),
+        ))
+        .unwrap();
+    assert_eq!(loaded["loaded"], "My layout");
+    assert_eq!(
+        loaded["shortcuts"]["playhead.start"], "Ctrl+Home",
+        "preset restored"
+    );
+    assert!(engine
+        .execute(CommandRequest::new(
+            "shortcuts.load_preset",
+            json!({"name": "Nope"}),
+        ))
+        .is_err());
+    assert!(engine
+        .execute(CommandRequest::new(
+            "shortcuts.delete_preset",
+            json!({"name": "default"}),
+        ))
+        .is_err());
+    let deleted = engine
+        .execute(CommandRequest::new(
+            "shortcuts.delete_preset",
+            json!({"name": "My layout"}),
+        ))
+        .unwrap();
+    assert_eq!(deleted["deleted"], "My layout");
+
+    // Settings-scoped undo/redo walk the snapshot chain one change at a
+    // time: undo past the preset load, then past the clear, then redo
+    // both back.
+    let undone = engine
+        .execute(CommandRequest::new("shortcuts.undo", Value::Null))
+        .unwrap();
+    assert_eq!(
+        undone["shortcuts"].as_object().unwrap().len(),
+        0,
+        "first undo reverts the preset load"
+    );
+    let undone = engine
+        .execute(CommandRequest::new("shortcuts.undo", Value::Null))
+        .unwrap();
+    assert_eq!(undone["shortcuts"]["playhead.start"], "Ctrl+Home");
+    let redone = engine
+        .execute(CommandRequest::new("shortcuts.redo", Value::Null))
+        .unwrap();
+    assert_eq!(
+        redone["shortcuts"].as_object().unwrap().len(),
+        0,
+        "redo re-applies the clear"
+    );
+    let redone = engine
+        .execute(CommandRequest::new("shortcuts.redo", Value::Null))
+        .unwrap();
+    assert_eq!(redone["shortcuts"]["playhead.start"], "Ctrl+Home");
+    assert!(engine
+        .execute(CommandRequest::new("shortcuts.redo", Value::Null))
+        .is_err());
+
+    // Export writes the live map to a readable JSON file.
+    let export_path = path.with_extension("export.json");
+    let exported = engine
+        .execute(CommandRequest::new(
+            "shortcuts.export",
+            json!({"path": export_path.to_string_lossy()}),
+        ))
+        .unwrap();
+    assert_eq!(exported["exported"], 1);
+    let contents: Value = serde_json::from_str(
+        &std::fs::read_to_string(&export_path).unwrap(),
+    )
+    .unwrap();
+    assert!(contents["shortcuts"].is_object());
+    let _ = std::fs::remove_file(&path);
+    let _ = std::fs::remove_file(&export_path);
+}

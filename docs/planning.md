@@ -653,6 +653,40 @@ flowchart TD
   tests (33 binaries), app tests, build, 98 node tests, e2e
   (browserErrors 0), glass/commands/parity/source checks green.
 
+* **P16 — Tier-1 Batch 3: shortcuts 16/16 closed (Done 2026-10-26,
+  shipped in 0.1.0-alpha.19):** Third family batch; the shortcuts
+  family closes completely (16/16, no equivalences and no deferrals).
+  Thirteen shipped commands (all `since: 0.2.1`), all over the
+  settings store where shortcut overrides live outside the project
+  document: per-side queries `shortcuts.get` (binding of one command)
+  and `shortcuts.for_key` (commands on a key), read-only reports
+  `shortcuts.conflicts` (keys held by several commands) and
+  `shortcuts.audit` (total/empty/conflict counts), `shortcuts.clear`
+  (one override removed, a no-op returning cleared:false when
+  absent), `shortcuts.resolve` (one command keeps a contested key,
+  the other bindings are removed; validates the keeper actually
+  holds the key), `shortcuts.export` (JSON file with the live
+  override map), preset machinery `shortcuts.presets` /
+  `shortcuts.save_preset` / `shortcuts.load_preset` /
+  `shortcuts.delete_preset` (named override sets persisted under
+  `shortcut_presets`; the built-in `default` preset is the empty set
+  and cannot be deleted; loading restores the stored map, `default`
+  clears it), and settings-scoped `shortcuts.undo` /
+  `shortcuts.redo` — a dedicated 100-deep snapshot stack beside the
+  persisting store, because settings mutations do not enter the
+  project history; every shortcut mutation (set, import, reset
+  included) snapshots first. UI: the Keyboard Shortcuts dialog gained
+  an engine strip (audit counts, Undo/Redo change, preset
+  select/Load/Delete/Save As), per-row inspect (get + for_key in one
+  gesture), Resolve on conflicted rows, Clear on overridden rows, and
+  an Export-to-file picker; every Edit-menu shortcut machine entry
+  routes through a prompt-idiom handler. The overrides mirror keeps
+  its localStorage cache in step via a write-skip on engine-driven
+  replacements. Catalogue: 244 commands, 244 shipped, 244 in menus,
+  56 UI-only. Id-verified Tier-1: **143/442 (32%)**. Gates: workspace
+  tests (33 binaries), app tests, build, 98 node tests, e2e
+  (browserErrors 0), glass/commands/parity/source checks green.
+
 ---
 
 ## 7. Master Agentic Execution Rules

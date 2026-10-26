@@ -1543,31 +1543,45 @@
  },
  "shortcuts.audit": {
   "label": "Shortcut Audit",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.audit",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.clear": {
   "label": "Clear Shortcut",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.clear",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.conflicts": {
   "label": "Shortcut Conflicts",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.conflicts",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.deletePreset": {
   "label": "Delete Shortcut Preset",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.delete_preset",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.export": {
   "label": "Export Keyboard Shortcuts",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.export",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.forKey": {
   "label": "Shortcuts on a Key",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.for_key",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.get": {
   "label": "Get Shortcuts of a Command",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.get",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.import": {
   "label": "Import Keyboard Shortcuts",
@@ -1581,23 +1595,33 @@
  },
  "shortcuts.loadPreset": {
   "label": "Load Shortcut Preset",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.load_preset",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.presets": {
   "label": "Keyboard Shortcut Presets",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.presets",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.redo": {
   "label": "Redo Shortcut Change",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.redo",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.resolve": {
   "label": "Resolve Shortcut",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.resolve",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.savePreset": {
   "label": "Save Shortcut Preset As",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.save_preset",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "shortcuts.set": {
   "label": "Assign Shortcut",
@@ -1606,7 +1630,9 @@
  },
  "shortcuts.undo": {
   "label": "Undo Shortcut Change",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "shortcuts.undo",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
  },
  "timeline.move": {
   "label": "Move Clips",

@@ -248,3 +248,65 @@
   color: var(--text-main);
   font-size: 11px;
 }
+
+/* Engine-backed shortcut settings (audit, presets, undo/redo). */
+.shortcuts-engine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+  font-size: 11px;
+}
+
+.shortcuts-engine button,
+.shortcuts-row .shortcuts-find,
+.shortcuts-row .shortcuts-resolve,
+.shortcuts-row .shortcuts-clear {
+  padding: 3px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--bg-button);
+  color: var(--text-main);
+  font-size: 11px;
+}
+
+.shortcuts-engine button:disabled {
+  opacity: 0.5;
+}
+
+.shortcuts-preset-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shortcuts-preset-row select,
+.shortcuts-preset-row input {
+  padding: 3px 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: var(--bg-input, var(--bg-button));
+  color: var(--text-main);
+  font-size: 11px;
+}
+
+.shortcuts-row-detail {
+  margin: 6px 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shortcuts-detail-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  padding: 2px;
+}

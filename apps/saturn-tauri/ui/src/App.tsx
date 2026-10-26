@@ -18,6 +18,7 @@ import { useCaptions } from "./app/useCaptions";
 import { useGraphics } from "./app/useGraphics";
 import { useNodeGraph } from "./app/useNodeGraph";
 import { useShortcutsSync } from "./app/useShortcutsSync";
+import { createShortcutMachineCommand } from "./app/shortcutMachineCommands";
 import { applyViewCommand } from "./app/viewCommands";
 
 import { AppHeader } from "./features/menubar";
@@ -135,7 +136,8 @@ function EditorApp() {
     }
     legacy.forEach((key) => localStorage.removeItem(key));
   }, []);
-  const { shortcutOverrides, setShortcutOverrides } = useShortcutsSync();
+  const { shortcutOverrides, setShortcutOverrides, engineOps: shortcutEngineOps } =
+    useShortcutsSync();
 
   const effectiveCommands = useMemo(
     () =>
@@ -361,6 +363,16 @@ function EditorApp() {
     setNotice,
   });
 
+  const runShortcutMachineCommand = useMemo(
+    () =>
+      createShortcutMachineCommand({
+        engineOps: shortcutEngineOps,
+        runCommand,
+        setNotice,
+      }),
+    [shortcutEngineOps, runCommand, setNotice],
+  );
+
   /**
    * Single entry point for menus, the command palette, keyboard shortcuts, and
    * workspace toolbars. UI-only commands are handled here; everything else goes
@@ -368,6 +380,10 @@ function EditorApp() {
    */
   const dispatchCommand = useCallback(
     async (id: string) => {
+      if (id.startsWith("shortcuts.")) {
+        await runShortcutMachineCommand(id);
+        return;
+      }
       if (id === "marker.panel" || id === "caption.panel" || id === "graphic.panel") {
         // The docked-adjacent panels live in the Edit workspace; switching
         // there and announcing the panel keeps the gesture one step.
@@ -496,7 +512,7 @@ function EditorApp() {
       }
       await projectOps.invokeMenuCommand(id);
     },
-    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps, markerOps, project, playback, runEditClipboard]
+    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps, markerOps, project, playback, runEditClipboard, runShortcutMachineCommand, mediaHygiene]
   );
 
   const shortcuts = useShortcuts({
@@ -712,6 +728,7 @@ function EditorApp() {
         }
         onImport={(next) => setShortcutOverrides(next)}
         onResetAll={() => setShortcutOverrides({})}
+        engineOps={shortcutEngineOps}
       />
     </div>
   );
