@@ -151,6 +151,7 @@ pub fn import_fcpxml(xml: &str) -> Result<ProjectDocument, String> {
                     speed_ramp: None,
                     motion_blur: None,
                     compound_sequence_id: None,
+                label: String::new(),
                 });
             }
         }

@@ -4998,3 +4998,178 @@ fn markers_family_workflow_chapters_ranges_marks_and_split_domains() {
     assert_eq!(stored["value"], json!(true));
     let _ = chapter["id"].as_u64();
 }
+
+#[test]
+fn edit_labels_attributes_and_repair_family_workflow_with_undo() {
+    use saturn_core::TICKS_PER_SECOND;
+    let s = TICKS_PER_SECOND;
+
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name": "Edit family workflow"})))
+        .unwrap();
+    let used = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name": "edit.mp4", "path": "/assets/edit.mp4", "kind": "video"}),
+        ))
+        .unwrap();
+    let media_id = used["media_id"].as_u64().unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name": "unused.mp4", "path": "/assets/unused.mp4", "kind": "video"}),
+        ))
+        .unwrap();
+    let track_id = engine.document().project.sequence.tracks[0].id;
+    for index in 0..3 {
+        engine
+            .execute(CommandRequest::new(
+                "timeline.add_clip",
+                json!({
+                    "track_id": track_id,
+                    "media_id": media_id,
+                    "timeline_start": index * 10 * s,
+                    "source_in": index * 5 * s,
+                    "duration": 3 * s,
+                }),
+            ))
+            .unwrap();
+    }
+
+    let label_at = |engine: &EditorEngine, index: usize| -> String {
+        engine.document().project.sequence.tracks[0].clips[index]
+            .label
+            .clone()
+    };
+
+    // FC label colours apply to the listed clips and validate the colour name.
+    engine
+        .execute(CommandRequest::new(
+            "edit.label.blue",
+            json!({"clips": [{"track_id": track_id, "clip_index": 0}]}),
+        ))
+        .unwrap();
+    assert_eq!(label_at(&engine, 0), "blue");
+    engine
+        .execute(CommandRequest::new(
+            "edit.label.mango",
+            json!({"clips": [
+                {"track_id": track_id, "clip_index": 1},
+                {"track_id": track_id, "clip_index": 2},
+            ]}),
+        ))
+        .unwrap();
+    assert_eq!(label_at(&engine, 1), "mango");
+    assert_eq!(label_at(&engine, 2), "mango");
+    let bad_color = engine.execute(CommandRequest::new(
+        "edit.label.neon",
+        json!({"clips": [{"track_id": track_id, "clip_index": 0}]}),
+    ));
+    assert!(bad_color.is_err());
+
+    // Duplicate lands a full copy right after the source clip.
+    engine
+        .execute(CommandRequest::new(
+            "edit.duplicate",
+            json!({"track_id": track_id, "clip_index": 0}),
+        ))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips.len(), 4);
+    let duplicate = clips
+        .iter()
+        .find(|clip| clip.timeline_start.0 == 3 * s && clip.label == "blue")
+        .expect("duplicate keeps the label and lands after the source");
+    assert_eq!(duplicate.duration.0, 3 * s);
+
+    // The attribute clipboard transfers grading between clips and undo
+    // restores. Set a grade on clip 0 first through clip.set_color.
+    engine
+        .execute(CommandRequest::new(
+            "clip.set_color",
+            json!({"track_id": track_id, "clip_index": 0, "exposure": 1.5, "contrast": 0.2, "saturation": 1.2}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "edit.copy_attributes",
+            json!({"track_id": track_id, "clip_index": 0}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "edit.paste_attributes",
+            json!({"track_id": track_id, "clip_index": 2}),
+        ))
+        .unwrap();
+    let target = &engine.document().project.sequence.tracks[0].clips[2];
+    assert!((target.color.exposure - 1.5).abs() < 1e-6);
+    engine
+        .execute(CommandRequest::new(
+            "edit.remove_attributes",
+            json!({"track_id": track_id, "clip_index": 2}),
+        ))
+        .unwrap();
+    let target = &engine.document().project.sequence.tracks[0].clips[2];
+    assert!((target.color.exposure - 0.0).abs() < 1e-6);
+    engine.execute(CommandRequest::new("edit.undo", serde_json::Value::Null)).unwrap();
+    let target = &engine.document().project.sequence.tracks[0].clips[2];
+    assert!((target.color.exposure - 1.5).abs() < 1e-6, "undo restores pasted attributes");
+
+    // Consolidate duplicates removes later identical placements, keeping the
+    // earliest. Add one exact copy of clip 1 first.
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({
+                "track_id": track_id,
+                "media_id": media_id,
+                "timeline_start": 30 * s,
+                "source_in": 0,
+                "duration": 3 * s,
+            }),
+        ))
+        .unwrap();
+    let consolidated = engine
+        .execute(CommandRequest::new(
+            "edit.consolidate_duplicates",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    // The duplicate and the explicit re-add share clip 0's source usage,
+    // so both later copies go, keeping only the earliest.
+    assert_eq!(consolidated["removed"], json!(2));
+    assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), 3);
+
+    // Ripple delete the head frame of clip 1: its content head advances and
+    // every later clip on the track closes up by the same amount.
+    let before = &engine.document().project.sequence.tracks[0].clips;
+    let old_duration = before[1].duration.0;
+    let old_last_start = before[2].timeline_start.0;
+    engine
+        .execute(CommandRequest::new(
+            "edit.ripple_delete_head",
+            json!({"track_id": track_id, "clip_index": 1, "frames": 1}),
+        ))
+        .unwrap();
+    let after = &engine.document().project.sequence.tracks[0].clips;
+    let delta = old_duration - after[1].duration.0;
+    assert!(delta > 0, "head removal shortens the clip");
+    assert!(after[1].source_in.0 > 5 * s, "the clip content head advanced");
+    assert_eq!(after[2].timeline_start.0, old_last_start - delta);
+    assert_eq!(after[1].timeline_start.0, 10 * s, "the clip start stays put");
+
+    // Unused media (nothing references unused.mp4) is removable with undo.
+    let removed = engine
+        .execute(CommandRequest::new(
+            "edit.remove_unused_media",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    assert_eq!(removed["removed"], json!(1));
+    assert_eq!(removed["names"][0], json!("unused.mp4"));
+    assert_eq!(engine.document().project.media.len(), 1);
+    engine.execute(CommandRequest::new("edit.undo", serde_json::Value::Null)).unwrap();
+    assert_eq!(engine.document().project.media.len(), 2, "undo restores the unused media");
+}

@@ -365,6 +365,7 @@ function EditorApp() {
     runCommand,
     refreshProject,
     setNotice,
+    seek: playback.seekProgramTo,
   });
 
   const runShortcutMachineCommand = useMemo(

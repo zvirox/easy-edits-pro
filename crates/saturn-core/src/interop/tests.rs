@@ -22,6 +22,7 @@ fn sample_project() -> ProjectDocument {
         speed_ramp: None,
         motion_blur: None,
         compound_sequence_id: None,
+                label: String::new(),
     };
 
     let mut doc = ProjectDocument::new("Test Interop");

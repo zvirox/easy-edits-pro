@@ -194,6 +194,7 @@ mod tests {
             speed_ramp: None,
             motion_blur: None,
             compound_sequence_id: None,
+                label: String::new(),
         };
 
         let mut seq = Sequence {

@@ -994,6 +994,505 @@
   },
   {
     "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.blue",
+    "label": "Blue",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.brown",
+    "label": "Brown",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.caribbean",
+    "label": "Caribbean",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.cerulean",
+    "label": "Cerulean",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.forest",
+    "label": "Forest",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.green",
+    "label": "Green",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.iris",
+    "label": "Iris",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.lavender",
+    "label": "Lavender",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.magenta",
+    "label": "Magenta",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.mango",
+    "label": "Mango",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.purple",
+    "label": "Purple",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.rose",
+    "label": "Rose",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.tan",
+    "label": "Tan",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.teal",
+    "label": "Teal",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.violet",
+    "label": "Violet",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.label.yellow",
+    "label": "Yellow",
+    "menu": [
+      "Edit",
+      "Label"
+    ],
+    "mutating": true,
+    "params": "{\"clips\":[{\"track_id\":int,\"clip_index\":int}]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.duplicate",
+    "label": "Duplicate",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.consolidate_duplicates",
+    "label": "Consolidate Duplicates",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.copy_attributes",
+    "label": "Copy Attributes",
+    "menu": [
+      "Edit",
+      "Attributes"
+    ],
+    "mutating": false,
+    "params": "{\"track_id\":int,\"clip_index\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.paste_attributes",
+    "label": "Paste Attributes",
+    "menu": [
+      "Edit",
+      "Attributes"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.remove_attributes",
+    "label": "Remove Attributes",
+    "menu": [
+      "Edit",
+      "Attributes"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.ripple_delete_head",
+    "label": "Ripple Delete Head Frame",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"frames\":int?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.remove_unused_media",
+    "label": "Remove Unused Media",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.paste_insert",
+    "label": "Paste Insert",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.paste_media",
+    "label": "Paste Media",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.find",
+    "label": "Find…",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.find_next",
+    "label": "Find Next",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.select_all_matching",
+    "label": "Select All Matching",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.select_label_group",
+    "label": "Select Label Group",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Edit",
+    "id": "edit.edit_original",
+    "label": "Edit Original",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
     "category": "Effects",
     "id": "nodegraph.add_node",
     "label": "Add Node to Graph",

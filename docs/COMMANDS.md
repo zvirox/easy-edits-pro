@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-305 commands.
+335 commands.
 
 ## File
 
@@ -76,6 +76,36 @@ Generated from the command catalogue. Do not edit by hand.
 | Ripple Delete Timeline Gap | `timeline.ripple_delete_gap` | shipped |  | `{"track_id":int?,"at_tick":obj}` |
 | Preferences… | `edit.preferences` | shipped | Ctrl+, | `{}` |
 | Undo History | `history.list` | shipped |  | `{}` |
+| Blue | `edit.label.blue` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Brown | `edit.label.brown` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Caribbean | `edit.label.caribbean` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Cerulean | `edit.label.cerulean` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Forest | `edit.label.forest` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Green | `edit.label.green` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Iris | `edit.label.iris` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Lavender | `edit.label.lavender` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Magenta | `edit.label.magenta` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Mango | `edit.label.mango` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Purple | `edit.label.purple` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Rose | `edit.label.rose` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Tan | `edit.label.tan` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Teal | `edit.label.teal` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Violet | `edit.label.violet` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Yellow | `edit.label.yellow` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Duplicate | `edit.duplicate` | shipped |  | `{"track_id":int,"clip_index":int}` |
+| Consolidate Duplicates | `edit.consolidate_duplicates` | shipped |  | `{}` |
+| Copy Attributes | `edit.copy_attributes` | shipped |  | `{"track_id":int,"clip_index":int}` |
+| Paste Attributes | `edit.paste_attributes` | shipped |  | `{"track_id":int,"clip_index":int}` |
+| Remove Attributes | `edit.remove_attributes` | shipped |  | `{"track_id":int,"clip_index":int}` |
+| Ripple Delete Head Frame | `edit.ripple_delete_head` | shipped |  | `{"track_id":int,"clip_index":int,"frames":int?}` |
+| Remove Unused Media | `edit.remove_unused_media` | shipped |  | `{}` |
+| Paste Insert | `edit.paste_insert` | shipped |  | `{}` |
+| Paste Media | `edit.paste_media` | shipped |  | `{}` |
+| Find… | `edit.find` | shipped |  | `{}` |
+| Find Next | `edit.find_next` | shipped |  | `{}` |
+| Select All Matching | `edit.select_all_matching` | shipped |  | `{}` |
+| Select Label Group | `edit.select_label_group` | shipped |  | `{}` |
+| Edit Original | `edit.edit_original` | shipped |  | `{}` |
 | Begin Undo Gesture | `edit.begin_gesture` | shipped |  | `{"label":str?}` |
 | End Undo Gesture | `edit.end_gesture` | shipped |  | `{}` |
 | Ripple Delete Selected Clips | `timeline.ripple_delete_batch` | shipped |  | `{"clips":[obj],"ripple":bool?}` |

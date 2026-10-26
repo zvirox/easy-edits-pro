@@ -1,6 +1,7 @@
 import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, MouseEvent, SetStateAction, PointerEvent } from "react";
 import { formatTime, getClipWaveform } from "../../utils/formatters";
+import { clipLabelColor } from "./labelColors";
 import type {
   Clip,
   MediaAsset,
@@ -282,6 +283,7 @@ export function TimelineTrackLane({
 
           const clipLeft = (clip.timeline_start / TICKS_PER_SECOND) * timelineZoom;
           const clipWidth = Math.max(24, (clip.duration / TICKS_PER_SECOND) * timelineZoom);
+          const labelHex = clipLabelColor(clip.label);
 
           return (
             <div
@@ -290,6 +292,7 @@ export function TimelineTrackLane({
                 left: `${clipLeft}px`,
                 width: `${clipWidth}px`,
                 borderLeftColor: item?.color_tag || undefined,
+                ...(labelHex ? { boxShadow: `inset 0 3px 0 0 ${labelHex}` } : {}),
               }}
               key={`${clip.media_id}-${clip.timeline_start}-${index}`}
               data-media-id={clip.media_id}

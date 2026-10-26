@@ -24,7 +24,7 @@ impl EditorEngine {
                 let params: TrimInspectParams = parse_params(params)?;
                 self.inspect_trim(params)
             })()),
-            _ => None,
+            _ => self.dispatch_edit_labels(id, params),
         }
     }
 
@@ -305,6 +305,7 @@ fn new_clip(media_id: u64, start: i64, source_in: i64, duration: i64) -> Clip {
         speed_ramp: None,
         motion_blur: None,
         compound_sequence_id: None,
+                label: String::new(),
     }
 }
 

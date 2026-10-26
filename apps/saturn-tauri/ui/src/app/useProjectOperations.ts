@@ -19,6 +19,7 @@ import type {
 import { TICKS_PER_SECOND } from "./projectTypes";
 import {
   buildBatchCommandParams,
+  buildEditCommandParams,
   buildMarkerCommandParams,
   buildTrimCommandParams,
 } from "./menuCommandParams";
@@ -679,6 +680,13 @@ export function useProjectOperations({
                 if (batched.notice) setNotice(batched.notice);
                 if (batched.cancel) return;
                 params = batched.params ?? null;
+              } else {
+                const edited = buildEditCommandParams(id, getMenuContext());
+                if (edited) {
+                  if (edited.notice) setNotice(edited.notice);
+                  if (edited.cancel) return;
+                  params = edited.params ?? null;
+                }
               }
             }
           }

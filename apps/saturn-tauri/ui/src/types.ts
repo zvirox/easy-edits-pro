@@ -213,6 +213,7 @@ export type Clip = {
   motion_blur?: MotionBlurParams | null;
   node_graph?: NodeGraph | null;
   compound_sequence_id?: number | null;
+  label?: string;
 };
 
 export type Track = {

@@ -222,3 +222,52 @@ export function buildTrimCommandParams(
       return null;
   }
 }
+
+/**
+ * Parameter builders for the engine-backed Edit-menu commands (FC label
+ * colours, the attribute clipboard, duplicate/repair commands). The ui_only
+ * edit commands never reach here — dispatchCommand intercepts them first.
+ * Returns null when `id` is not one of these commands.
+ */
+export function buildEditCommandParams(
+  id: string,
+  ctx: BatchMenuContext
+): MenuBatchResult | null {
+  if (id.startsWith("edit.label.")) {
+    const refs = ctx.selectedClips.length
+      ? ctx.selectedClips
+      : ctx.selectedClip
+        ? [ctx.selectedClip]
+        : [];
+    if (refs.length === 0) {
+      return { notice: "Select one or more timeline clips first", cancel: true };
+    }
+    return {
+      params: {
+        clips: refs.map((c) => ({ track_id: c.track_id, clip_index: c.clip_index })),
+      },
+    };
+  }
+  switch (id) {
+    case "edit.duplicate":
+    case "edit.copy_attributes":
+    case "edit.paste_attributes":
+    case "edit.remove_attributes":
+    case "edit.ripple_delete_head": {
+      if (!ctx.selectedClip) {
+        return { notice: "Select a timeline clip first", cancel: true };
+      }
+      return {
+        params: {
+          track_id: ctx.selectedClip.track_id,
+          clip_index: ctx.selectedClip.clip_index,
+        },
+      };
+    }
+    case "edit.consolidate_duplicates":
+    case "edit.remove_unused_media":
+      return { params: {} };
+    default:
+      return null;
+  }
+}

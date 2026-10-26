@@ -320,6 +320,7 @@ impl EditorEngine {
                     speed_ramp: None,
                     motion_blur: None,
                     compound_sequence_id: None,
+                label: String::new(),
                 };
                 let track = &mut self.document.project.sequence.tracks[track_index];
                 track.clips.push(clip);

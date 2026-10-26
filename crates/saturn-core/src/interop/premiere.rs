@@ -181,6 +181,7 @@ pub fn import_premiere_xml(xml: &str) -> Result<ProjectDocument, String> {
             speed_ramp: None,
             motion_blur: None,
             compound_sequence_id: None,
+                label: String::new(),
         });
     }
 

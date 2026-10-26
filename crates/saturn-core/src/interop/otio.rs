@@ -275,6 +275,7 @@ pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument,
                         speed_ramp: None,
                         motion_blur: None,
                         compound_sequence_id: None,
+                label: String::new(),
                     });
 
                     current_timeline_tick += dur_ticks.max(frame_ticks);

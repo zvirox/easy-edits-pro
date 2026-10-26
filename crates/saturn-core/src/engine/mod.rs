@@ -21,6 +21,7 @@ mod clip_cmds;
 mod color_cmds;
 mod compound_cmds;
 mod edit_cmds;
+mod edit_labels_cmds;
 mod effects_cmds;
 mod helpers;
 mod history;
@@ -85,6 +86,9 @@ pub struct EditorEngine {
     /// Trim family state: selected edit point + ripple flag (editor state,
     /// not document state).
     trim: trim_cmds::TrimState,
+    /// Edit family state: the attribute clipboard (editor state, not
+    /// document state).
+    edit: edit_labels_cmds::EditState,
     /// Lazily-built shaping context (system font scan is expensive); shared
     /// so engine clones keep one font database.
     text: std::sync::Arc<
@@ -109,6 +113,7 @@ impl Default for EditorEngine {
             gesture_checkpointed: false,
             settings: settings_cmds::SettingsStore::default(),
             trim: trim_cmds::TrimState::default(),
+            edit: edit_labels_cmds::EditState::default(),
             text: std::sync::Arc::new(std::sync::Mutex::new(None)),
         }
     }

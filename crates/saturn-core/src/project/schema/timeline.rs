@@ -218,4 +218,7 @@ pub struct Clip {
     pub motion_blur: Option<MotionBlurParams>,
     #[serde(default)]
     pub compound_sequence_id: Option<u64>,
+    /// FC-style label colour name ("blue", "mango", ...); empty = unlabelled.
+    #[serde(default)]
+    pub label: String,
 }
