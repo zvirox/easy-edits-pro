@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.23] - 2026-10-26
+
+Tier-1 milestone release: **302/440 (69%)** — the 300 milestone is
+crossed with two whole families. The timeline family closes its book
+(+34, including equivalents): FC track targeting lands as editor-held
+state — targeted video/audio track sets (V1/A1 defaults, 1-based
+ordinals) driven by timeline.setTargeting, sixteen toggleTargetV1-V8/
+A1-A8 switches, move-all up/down per kind, toggle-all including the
+source-patching aliases (one shared state), and undoable
+targeted-flag mutations (mute/solo for targeted audio tracks, track
+output for targeted video). Razor maps to the existing split-at-
+playhead command; the Track Settings dialog maps to the per-property
+track gain/pan/mute/solo/lock commands. Edit > Select adds clip
+selection helpers: select matching clips by media name or label,
+mark the bounded gap at the playhead in/out, and step Select Next/
+Previous Clip in timeline order. The project-panel remainder (+17,
+2 na): freeform layout for the media pool — engine-persisted card
+positions, clip-size scaling, align-to-grid, reset, stack/unstack,
+and named arrangements under File > Project Panel; Clear removes
+selected media (refusing in-use items); saved search bins run
+case-insensitive name queries; ingest settings and matte colour are
+recorded na (no ingest pipeline, no colour-matte generator yet).
+Catalogue: 402/402 shipped, 89 UI-only.
+
 ## [0.1.0-alpha.22] - 2026-10-26
 
 Tier-1 milestone release: **251/442 (57%)** — the 250 milestone is
