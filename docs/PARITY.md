@@ -19,7 +19,7 @@ coverage.
 
 | Tier | FilmCraft | N/A | Covered | Coverage |
 |---|---:|---:|---:|---:|
-| Tier 1 | 443 | 1 | 98 | 22% |
+| Tier 1 | 443 | 1 | 116 | 26% |
 | Tier 2 | 207 | - | - | audit pending |
 | Tier 3 | 17 | - | - | audit pending |
 
@@ -38,13 +38,13 @@ Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
 | edit | 1 | 39 | 9 | 1 | 29 |
 | markers | 1 | 32 | 14 | 0 | 18 |
 | trim | 1 | 24 | 0 | 0 | 24 |
-| captions | 1 | 22 | 9 | 0 | 13 |
+| captions | 1 | 22 | 21 | 0 | 1 |
 | export | 1 | 19 | 0 | 0 | 19 |
 | media | 1 | 17 | 1 | 0 | 16 |
 | shortcuts | 1 | 16 | 3 | 0 | 13 |
-| playhead | 1 | 14 | 10 | 0 | 4 |
-| prefs | 1 | 4 | 3 | 0 | 1 |
-| history | 1 | 1 | 0 | 0 | 1 |
+| playhead | 1 | 14 | 14 | 0 |  |
+| prefs | 1 | 4 | 4 | 0 |  |
+| history | 1 | 1 | 1 | 0 |  |
 | graphics | 2 | 82 | - | - | |
 | multicam | 2 | 35 | - | - | |
 | mixer | 2 | 20 | - | - | |
@@ -83,6 +83,6 @@ Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
 
 FilmCraft commands: 701
 
-EEP commands: 210 (210 shipped, 0 planned)
+EEP commands: 222 (222 shipped, 0 planned)
 
 App-only families (no FilmCraft counterpart): bus, interop, nodegraph, track, view, workspace

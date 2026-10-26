@@ -17,3 +17,57 @@
   white-space: pre;
   tab-size: 2;
 }
+
+/* Undo history (history.list) — entry labels, newest first. */
+.history-card {
+  min-width: 0;
+}
+
+.history-view {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 56vh;
+  overflow: auto;
+}
+
+.history-view-title {
+  margin: 6px 0 2px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.history-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-subpanel);
+}
+
+.history-row {
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 11px;
+}
+
+.history-row:last-child {
+  border-bottom: none;
+}
+
+.history-row.is-newest {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.history-empty {
+  padding: 4px 10px;
+  color: var(--text-muted);
+  font-size: 11px;
+}

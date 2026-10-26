@@ -91,6 +91,17 @@ impl EditorEngine {
                 self.settings.persist()?;
                 Ok(json!({"reset": true}))
             })()),
+            // Query: the keys the product recognises, their shape, and the
+            // default the UI applies when a key is absent.
+            "prefs.schema" => Some(Ok(json!({
+                "schema": [
+                    {"key": "theme", "type": "string", "values": ["dark", "light"], "default": "dark"},
+                    {"key": "glass", "type": "string", "values": ["full", "lite", "off"], "default": "full"},
+                    {"key": "reducedMotion", "type": "bool|null", "values": [true, false, null], "default": null},
+                    {"key": "snap", "type": "bool", "values": [true, false], "default": true},
+                    {"key": "trackHeight", "type": "string", "values": ["compact", "normal", "expanded"], "default": "normal"},
+                ],
+            }))),
             "shortcuts.list" => Some(Ok(json!({"shortcuts": self.settings.object("shortcuts")}))),
             "shortcuts.set" => Some(self.write_shortcuts(params, false)),
             "shortcuts.import" => Some(self.write_shortcuts(params, true)),

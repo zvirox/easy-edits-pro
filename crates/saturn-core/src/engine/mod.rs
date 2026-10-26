@@ -70,6 +70,12 @@ pub struct EditorEngine {
     current_path: Option<PathBuf>,
     undo: Vec<ProjectDocument>,
     redo: Vec<ProjectDocument>,
+    /// Entry labels parallel to `undo`/`redo`: the command id that produced
+    /// each snapshot, newest last.
+    undo_labels: Vec<String>,
+    redo_labels: Vec<String>,
+    /// Command id of the dispatch in flight; consumed by `checkpoint`.
+    pending_label: Option<String>,
     saved_snapshot: String,
     gesture_depth: u32,
     gesture_checkpointed: bool,
@@ -90,6 +96,9 @@ impl Default for EditorEngine {
             current_path: None,
             undo: Vec::new(),
             redo: Vec::new(),
+            undo_labels: Vec::new(),
+            redo_labels: Vec::new(),
+            pending_label: None,
             saved_snapshot,
             gesture_depth: 0,
             gesture_checkpointed: false,
@@ -122,6 +131,8 @@ impl EditorEngine {
         self.current_path = source_path;
         self.undo.clear();
         self.redo.clear();
+        self.undo_labels.clear();
+        self.redo_labels.clear();
         self.saved_snapshot.clear();
         Ok(())
     }
@@ -164,6 +175,7 @@ impl EditorEngine {
         if command.ui_only {
             return Err(DispatchError::UiOnly(request.id));
         }
+        self.pending_label = Some(command.id.to_owned());
         let availability = self.command_status(command.id)?;
         if !availability.enabled {
             return Err(DispatchError::Disabled {

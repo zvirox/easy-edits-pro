@@ -4,7 +4,7 @@ import { InteriorButton } from "../../components/interior/interior-button";
 import { Icon } from "../../components/Icon";
 import type { GlassMode, Preferences, TrackHeightPreference } from "./preferences";
 
-type TabId = "general" | "appearance" | "timeline" | "media" | "audio" | "export";
+type TabId = "general" | "appearance" | "timeline" | "media" | "audio" | "export" | "schema";
 
 interface TabSpec {
   id: TabId;
@@ -19,7 +19,15 @@ const TABS: TabSpec[] = [
   { id: "media", label: "Media", reason: "Ships with the media engine in Phase 4." },
   { id: "audio", label: "Audio", reason: "Ships with the Fairlight audio phase." },
   { id: "export", label: "Export", reason: "Ships with the deliver phase." },
+  { id: "schema", label: "Schema" },
 ];
+
+interface PrefSchemaRow {
+  key: string;
+  type: string;
+  values?: unknown[];
+  default?: unknown;
+}
 
 export interface PreferencesDialogProps {
   open: boolean;
@@ -31,6 +39,8 @@ export interface PreferencesDialogProps {
   onSnapChange: (enabled: boolean) => void;
   trackHeight: TrackHeightPreference;
   onTrackHeightChange: (height: TrackHeightPreference) => void;
+  /** Reads the engine's preference keys for the Schema tab (prefs.schema). */
+  runCommand?: <T = unknown>(id: string, params?: unknown) => Promise<T>;
 }
 
 function Segmented<T extends string | number | boolean | null>({
@@ -79,8 +89,10 @@ export function PreferencesDialog({
   onSnapChange,
   trackHeight,
   onTrackHeightChange,
+  runCommand,
 }: PreferencesDialogProps) {
   const [tab, setTab] = useState<TabId>("appearance");
+  const [schema, setSchema] = useState<PrefSchemaRow[]>([]);
 
   useEffect(() => {
     if (!open) return;
@@ -90,6 +102,21 @@ export function PreferencesDialog({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open || !runCommand) return;
+    let active = true;
+    runCommand<{ schema: PrefSchemaRow[] }>("prefs.schema")
+      .then((result) => {
+        if (active) setSchema(result.schema ?? []);
+      })
+      .catch(() => {
+        if (active) setSchema([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [open, runCommand]);
 
   return (
     <GlassDialog
@@ -237,6 +264,34 @@ export function PreferencesDialog({
         </section>
       </div>
 
+      {tab === "schema" ? (
+        <div className="preferences-schema" data-testid="prefs-schema">
+          <p className="preferences-schema-note">
+            Keys the engine recognises in <code>prefs.set</code>; absent keys
+            fall back to the default.
+          </p>
+          <table className="preferences-schema-table">
+            <thead>
+              <tr>
+                <th scope="col">Key</th>
+                <th scope="col">Values</th>
+                <th scope="col">Default</th>
+              </tr>
+            </thead>
+            <tbody>
+              {schema.map((row) => (
+                <tr key={row.key}>
+                  <td className="preferences-schema-key">{row.key}</td>
+                  <td>
+                    {(row.values ?? []).map((value) => JSON.stringify(value)).join(" · ")}
+                  </td>
+                  <td>{row.default === null ? "system" : JSON.stringify(row.default)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
       <footer className="preferences-footer">
         <span>Preferences · this machine</span>
         <InteriorButton type="button" className="preferences-reset" onClick={onReset}>

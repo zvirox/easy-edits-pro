@@ -975,6 +975,24 @@
     "undoGroup": "none"
   },
   {
+    "aliases": [
+      "history"
+    ],
+    "category": "Edit",
+    "id": "history.list",
+    "label": "Undo History",
+    "menu": [
+      "Edit"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
     "aliases": [],
     "category": "Effects",
     "id": "nodegraph.add_node",
@@ -1605,6 +1623,196 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.2.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "captions"
+    ],
+    "category": "Graphics",
+    "id": "caption.list",
+    "label": "List Captions",
+    "menu": [
+      "Graphics",
+      "Captions"
+    ],
+    "mutating": false,
+    "params": "{\"track_id\":int?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "captions delete"
+    ],
+    "category": "Graphics",
+    "id": "caption.cue_delete",
+    "label": "Delete Selected Captions",
+    "menu": [
+      "Graphics",
+      "Captions"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"ids\":[int]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "captions split"
+    ],
+    "category": "Graphics",
+    "id": "caption.cue_split",
+    "label": "Split Caption at Playhead",
+    "menu": [
+      "Graphics",
+      "Captions"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"id\":int,\"at_ticks\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "captions merge"
+    ],
+    "category": "Graphics",
+    "id": "caption.cue_merge",
+    "label": "Merge Selected Captions",
+    "menu": [
+      "Graphics",
+      "Captions"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"ids\":[int]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "captions next"
+    ],
+    "category": "Sequence",
+    "id": "caption.next",
+    "label": "Go to Next Caption Segment",
+    "menu": [
+      "Sequence",
+      "Captions"
+    ],
+    "mutating": false,
+    "params": "{\"from\":obj,\"track_id\":int?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "captions previous"
+    ],
+    "category": "Sequence",
+    "id": "caption.previous",
+    "label": "Go to Previous Caption Segment",
+    "menu": [
+      "Sequence",
+      "Captions"
+    ],
+    "mutating": false,
+    "params": "{\"from\":obj,\"track_id\":int?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "captions hide"
+    ],
+    "category": "Sequence",
+    "id": "caption.tracks_hide",
+    "label": "Hide All Caption Tracks",
+    "menu": [
+      "Sequence",
+      "Captions"
+    ],
+    "mutating": true,
+    "params": "{\"track_ids\":[int]?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "captions show"
+    ],
+    "category": "Sequence",
+    "id": "caption.tracks_show",
+    "label": "Show All Caption Tracks",
+    "menu": [
+      "Sequence",
+      "Captions"
+    ],
+    "mutating": true,
+    "params": "{\"track_ids\":[int]?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "captions select"
+    ],
+    "category": "Graphics",
+    "id": "caption.cue_select",
+    "label": "Select Captions",
+    "menu": [
+      "Graphics",
+      "Captions"
+    ],
+    "mutating": false,
+    "params": "{\"ids\":[int]?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "captions go to"
+    ],
+    "category": "Graphics",
+    "id": "caption.go_to",
+    "label": "Reveal Active Caption",
+    "menu": [
+      "Graphics",
+      "Captions"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
     "uiOnly": true,
     "undoGroup": "none"
   },
@@ -3144,6 +3352,25 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "schema"
+    ],
+    "category": "Edit",
+    "id": "prefs.schema",
+    "label": "Settings Schema",
+    "menu": [
+      "Edit",
+      "Preferences"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
     "uiOnly": false,
     "undoGroup": "none"
   },

@@ -201,6 +201,7 @@ impl EditorEngine {
                             id: track_id,
                             name: "Captions".into(),
                             language: "en".into(),
+                            visible: true,
                             cues: Vec::new(),
                             styles: Vec::new(),
                         });

@@ -197,4 +197,18 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         shipped: true,
         ui_only: true,
     },
+    CommandSpec {
+        id: "history.list",
+        label: "Undo History",
+        menu: &["Edit"],
+        shortcut: None,
+        params: "{}",
+        category: Category::Edit,
+        mutating: false,
+        undo_group: UndoGroup::None,
+        aliases: &["history"],
+        since: "0.2.1",
+        shipped: true,
+        ui_only: false,
+    },
 ];

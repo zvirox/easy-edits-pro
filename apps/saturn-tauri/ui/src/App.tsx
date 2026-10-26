@@ -24,6 +24,7 @@ import { AppHeader } from "./features/menubar";
 import { WorkspaceRouter } from "./workspaces/WorkspaceRouter";
 import { StatusBar } from "./components/StatusBar";
 import { EditorModals } from "./features/dialogs";
+import { HistoryDialog } from "./features/dialogs/HistoryDialog";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { TICKS_PER_SECOND, timelineTools } from "./features/timeline/types";
 import { audioClockMaster } from "./engine/playbackEngine";
@@ -122,6 +123,7 @@ function EditorApp() {
   const [busy, setBusy] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   // G2 purged the floating-panel engine; wipe the legacy persisted MDI
   // layouts (localStorage mirror of the removed save/load commands).
   useEffect(() => {
@@ -445,6 +447,12 @@ function EditorApp() {
         case "edit.preferences":
           setPreferencesOpen(true);
           return;
+        case "prefs.schema":
+          setPreferencesOpen(true);
+          return;
+        case "history.list":
+          setHistoryOpen(true);
+          return;
         case "help.shortcuts":
           setShortcutsOpen(true);
           return;
@@ -655,6 +663,13 @@ function EditorApp() {
         onSnapChange={timelineOps.setSnapEnabled}
         trackHeight={timelineOps.timelineTrackHeight}
         onTrackHeightChange={timelineOps.setTimelineTrackHeight}
+        runCommand={runCommand}
+      />
+
+      <HistoryDialog
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        runCommand={runCommand}
       />
 
       <ShortcutsDialog

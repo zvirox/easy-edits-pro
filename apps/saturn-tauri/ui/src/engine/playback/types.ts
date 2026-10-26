@@ -430,6 +430,8 @@ export interface CaptionTrack {
   id: number;
   name: string;
   language: string;
+  /** Drives the program overlay; absent in older projects means visible. */
+  visible?: boolean;
   cues: SubtitleItem[];
   styles: CaptionStyle[];
 }

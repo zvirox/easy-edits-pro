@@ -18,6 +18,7 @@ fn ensure_default_track(engine: &mut EditorEngine) -> u64 {
             id: track_id,
             name: "Captions".into(),
             language: "en".into(),
+            visible: true,
             cues: Vec::new(),
             styles: Vec::new(),
         });
@@ -158,6 +159,7 @@ impl EditorEngine {
                         id: track_id,
                         name: params.name.unwrap_or_else(|| "Captions".into()),
                         language: params.language.unwrap_or_else(|| "en".into()),
+                        visible: true,
                         cues: Vec::new(),
                         styles: Vec::new(),
                     });
@@ -461,6 +463,285 @@ impl EditorEngine {
                     "cues": track.cues.len(),
                     "track_id": track.id,
                 }))
+            })()),
+            "caption.list" => Some((|| {
+                let params: CaptionListParams = parse_params(params)?;
+                if let Some(track_id) = params.track_id {
+                    if !track_exists(self, track_id) {
+                        return Err(DispatchError::InvalidParameters(format!(
+                            "Caption track {} does not exist",
+                            track_id
+                        )));
+                    }
+                }
+                let tracks: Vec<Value> = self
+                    .document
+                    .project
+                    .sequence
+                    .caption_tracks
+                    .iter()
+                    .filter(|track| params.track_id.is_none_or(|id| track.id == id))
+                    .map(|track| {
+                        json!({
+                            "id": track.id,
+                            "name": track.name,
+                            "language": track.language,
+                            "visible": track.visible,
+                            "cues": track.cues.iter().map(|cue| json!({
+                                "id": cue.id,
+                                "start_ticks": cue.start_ticks.0,
+                                "end_ticks": cue.end_ticks.0,
+                                "text": cue.text,
+                                "speaker": cue.speaker,
+                            })).collect::<Vec<_>>(),
+                        })
+                    })
+                    .collect();
+                let cues: usize = tracks.iter().map(|track| track["cues"].as_array().map_or(0, Vec::len)).sum();
+                Ok(json!({"tracks": tracks, "cues": cues}))
+            })()),
+            "caption.cue_delete" => Some((|| {
+                let params: CaptionCueDeleteParams = parse_params(params)?;
+                if !track_exists(self, params.track_id) {
+                    return Err(DispatchError::InvalidParameters(format!(
+                        "Caption track {} does not exist",
+                        params.track_id
+                    )));
+                }
+                if params.ids.is_empty() {
+                    return Err(DispatchError::InvalidParameters(
+                        "cue_delete needs at least one cue id".into(),
+                    ));
+                }
+                self.checkpoint();
+                let track = track_mut(self, params.track_id).expect("verified above");
+                let before = track.cues.len();
+                let ids: std::collections::HashSet<u64> = params.ids.iter().copied().collect();
+                track.cues.retain(|cue| !ids.contains(&cue.id));
+                Ok(json!({"removed": before - track.cues.len()}))
+            })()),
+            "caption.cue_split" => Some((|| {
+                let params: CaptionCueSplitParams = parse_params(params)?;
+                if !track_exists(self, params.track_id) {
+                    return Err(DispatchError::InvalidParameters(format!(
+                        "Caption track {} does not exist",
+                        params.track_id
+                    )));
+                }
+                {
+                    let track = track_mut(self, params.track_id)
+                        .expect("verified above");
+                    let Some(cue) = track.cues.iter().find(|cue| cue.id == params.id) else {
+                        return Err(DispatchError::InvalidParameters(format!(
+                            "Caption cue {} does not exist",
+                            params.id
+                        )));
+                    };
+                    if params.at_ticks.0 <= cue.start_ticks.0
+                        || params.at_ticks.0 >= cue.end_ticks.0
+                    {
+                        return Err(DispatchError::InvalidParameters(format!(
+                            "Split point {} is outside cue {} ({}..{})",
+                            params.at_ticks.0, cue.id, cue.start_ticks.0, cue.end_ticks.0
+                        )));
+                    }
+                    let total = cue.end_ticks.0 - cue.start_ticks.0;
+                    let into = params.at_ticks.0 - cue.start_ticks.0;
+                    let cut = ((cue.text.chars().count() as i64 * into) / total) as usize;
+                    if cut == 0 || cut >= cue.text.chars().count() {
+                        return Err(DispatchError::InvalidParameters(
+                            "The split point does not divide the caption text".into(),
+                        ));
+                    }
+                }
+                self.checkpoint();
+                let new_id = next_id(self);
+                let track = track_mut(self, params.track_id).expect("verified above");
+                let index = track
+                    .cues
+                    .iter()
+                    .position(|cue| cue.id == params.id)
+                    .expect("verified above");
+                let original_end = track.cues[index].end_ticks;
+                let first = &mut track.cues[index];
+                let at = params.at_ticks.0;
+                let total = first.end_ticks.0 - first.start_ticks.0;
+                let into = at - first.start_ticks.0;
+                let cut = (first.text.chars().count() as i64 * into / total) as usize;
+                let second_chars: Vec<char> = first.text.chars().collect();
+                let second_text = second_chars[cut..]
+                    .iter()
+                    .collect::<String>()
+                    .trim_start()
+                    .to_string();
+                first.text = second_chars[..cut].iter().collect();
+                first.end_ticks = Tick(at);
+                let second = SubtitleItem {
+                    id: new_id,
+                    start_ticks: Tick(at),
+                    end_ticks: original_end,
+                    text: second_text,
+                    speaker: track.cues[index].speaker.clone(),
+                    style_id: track.cues[index].style_id,
+                };
+                let first_id = track.cues[index].id;
+                track.cues.insert(index + 1, second);
+                Ok(json!({"split": true, "first": first_id, "second": track.cues[index + 1].id}))
+            })()),
+            "caption.cue_merge" => Some((|| {
+                let params: CaptionCueMergeParams = parse_params(params)?;
+                if !track_exists(self, params.track_id) {
+                    return Err(DispatchError::InvalidParameters(format!(
+                        "Caption track {} does not exist",
+                        params.track_id
+                    )));
+                }
+                if params.ids.len() < 2 {
+                    return Err(DispatchError::InvalidParameters(
+                        "cue_merge needs at least two cue ids".into(),
+                    ));
+                }
+                {
+                    let track = track_mut(self, params.track_id).expect("verified above");
+                    let mut found: Vec<&SubtitleItem> = Vec::new();
+                    for id in &params.ids {
+                        match track.cues.iter().find(|cue| &cue.id == id) {
+                            Some(cue) => found.push(cue),
+                            None => {
+                                return Err(DispatchError::InvalidParameters(format!(
+                                    "Caption cue {id} does not exist"
+                                )));
+                            }
+                        }
+                    }
+                    found.sort_by_key(|cue| cue.start_ticks);
+                    for pair in found.windows(2) {
+                        if pair[1].start_ticks.0 < pair[0].end_ticks.0 {
+                            return Err(DispatchError::InvalidParameters(format!(
+                                "Cues {} and {} overlap; merge needs distinct cues",
+                                pair[0].id, pair[1].id
+                            )));
+                        }
+                    }
+                }
+                self.checkpoint();
+                let track = track_mut(self, params.track_id).expect("verified above");
+                let mut merged: Vec<SubtitleItem> = Vec::new();
+                let ids: std::collections::HashSet<u64> = params.ids.iter().copied().collect();
+                for cue in track.cues.iter() {
+                    if ids.contains(&cue.id) {
+                        merged.push(cue.clone());
+                    }
+                }
+                merged.sort_by_key(|cue| cue.start_ticks);
+                let text = merged
+                    .iter()
+                    .map(|cue| cue.text.trim())
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                let combined = SubtitleItem {
+                    id: merged[0].id,
+                    start_ticks: merged[0].start_ticks,
+                    end_ticks: merged[merged.len() - 1].end_ticks,
+                    text,
+                    speaker: merged.iter().find_map(|cue| cue.speaker.clone()),
+                    style_id: merged.iter().find_map(|cue| cue.style_id),
+                };
+                let merged_count = merged.len();
+                track.cues.retain(|cue| !ids.contains(&cue.id));
+                track.cues.push(combined);
+                track.cues.sort_by_key(|cue| cue.start_ticks);
+                Ok(json!({"merged": true, "id": merged[0].id, "count": merged_count}))
+            })()),
+            "caption.next" => Some((|| {
+                let params: CaptionNavParams = parse_params(params)?;
+                let from = params.from.0;
+                let track_id = params.track_id;
+                let target = self
+                    .document
+                    .project
+                    .sequence
+                    .caption_tracks
+                    .iter()
+                    .filter(|track| track_id.is_none_or(|id| track.id == id))
+                    .flat_map(|track| {
+                        let track_id = track.id;
+                        track.cues.iter().map(move |cue| (track_id, cue))
+                    })
+                    .filter(|(_, cue)| cue.start_ticks.0 > from)
+                    .min_by_key(|(_, cue)| cue.start_ticks.0);
+                Ok(match target {
+                    Some((track_id, cue)) => json!({
+                        "target": cue.start_ticks.0,
+                        "id": cue.id,
+                        "track_id": track_id,
+                    }),
+                    None => json!({"target": null}),
+                })
+            })()),
+            "caption.previous" => Some((|| {
+                let params: CaptionNavParams = parse_params(params)?;
+                let from = params.from.0;
+                let track_id = params.track_id;
+                let target = self
+                    .document
+                    .project
+                    .sequence
+                    .caption_tracks
+                    .iter()
+                    .filter(|track| track_id.is_none_or(|id| track.id == id))
+                    .flat_map(|track| {
+                        let track_id = track.id;
+                        track.cues.iter().map(move |cue| (track_id, cue))
+                    })
+                    .filter(|(_, cue)| cue.start_ticks.0 < from)
+                    .max_by_key(|(_, cue)| cue.start_ticks.0);
+                Ok(match target {
+                    Some((track_id, cue)) => json!({
+                        "target": cue.start_ticks.0,
+                        "id": cue.id,
+                        "track_id": track_id,
+                    }),
+                    None => json!({"target": null}),
+                })
+            })()),
+            "caption.tracks_hide" => Some((|| {
+                let params: CaptionTracksVisibilityParams = parse_params(params)?;
+                self.checkpoint();
+                let mut changed = 0;
+                for track in self.document.project.sequence.caption_tracks.iter_mut() {
+                    if params
+                        .track_ids
+                        .as_ref()
+                        .is_some_and(|ids| !ids.contains(&track.id))
+                    {
+                        continue;
+                    }
+                    if track.visible {
+                        track.visible = false;
+                        changed += 1;
+                    }
+                }
+                Ok(json!({"hidden": changed}))
+            })()),
+            "caption.tracks_show" => Some((|| {
+                let params: CaptionTracksVisibilityParams = parse_params(params)?;
+                self.checkpoint();
+                let mut changed = 0;
+                for track in self.document.project.sequence.caption_tracks.iter_mut() {
+                    if params
+                        .track_ids
+                        .as_ref()
+                        .is_some_and(|ids| !ids.contains(&track.id))
+                    {
+                        continue;
+                    }
+                    if !track.visible {
+                        track.visible = true;
+                        changed += 1;
+                    }
+                }
+                Ok(json!({"shown": changed}))
             })()),
             _ => None,
         }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CaptionStyle, CaptionTrack, SubtitleItem } from "../../app/projectTypes";
 import { formatTimecodeFrames } from "../../utils/formatters";
 import { InteriorButton } from "../../components/interior/interior-button";
@@ -13,6 +13,10 @@ export interface CaptionsPanelProps {
   onTrackAdd: () => void;
   onTrackRename: (trackId: number, currentName: string) => void;
   onTrackRemove: (trackId: number) => void;
+  /** Drives the program overlay; hidden tracks keep their cues. */
+  onToggleTrackVisible: (trackId: number, visible: boolean) => void;
+  onShowAllTracks: () => void;
+  onHideAllTracks: () => void;
   track: CaptionTrack | null;
   /** The track's reusable style; null until first saved. */
   style: CaptionStyle | null;
@@ -20,13 +24,22 @@ export interface CaptionsPanelProps {
   cues: readonly SubtitleItem[];
   playhead: number;
   frameRate: { numerator: number; denominator: number };
-  selectedCueId: number | null;
-  onSelect: (id: number | null) => void;
+  /** Cue ids in the multi-cue selection. */
+  selectedCueIds: readonly number[];
+  /** Bumped to scroll the active cue into view (caption.go_to). */
+  revealTick: number;
+  onSelect: (id: number | null, additive?: boolean) => void;
+  onSelectAll: () => void;
   onAdd: () => void;
   onEditText: (id: number, text: string) => void;
   onEditSpeaker: (id: number, speaker: string | null) => void;
   onNudge: (id: number, deltaTicks: number) => void;
   onDelete: (id: number) => void;
+  onDeleteSelected: () => void;
+  onSplit: () => void;
+  onMerge: () => void;
+  onNext: () => void;
+  onPrevious: () => void;
   onImport: () => void;
   onExport: (format: "srt" | "vtt") => void;
 }
@@ -49,7 +62,7 @@ function CueRow({
   isSelected: boolean;
   frameRate: { numerator: number; denominator: number };
   frameStep: number;
-  onSelect: (id: number) => void;
+  onSelect: (id: number, additive: boolean) => void;
   onEditText: (id: number, text: string) => void;
   onEditSpeaker: (id: number, speaker: string | null) => void;
   onNudge: (id: number, deltaTicks: number) => void;
@@ -75,12 +88,22 @@ function CueRow({
   return (
     <li
       className={`captions-row${isActive ? " is-active" : ""}${isSelected ? " is-selected" : ""}`}
+      data-cue={cue.id}
     >
+      <input
+        type="checkbox"
+        className="captions-row-check"
+        checked={isSelected}
+        onChange={(event) => onSelect(cue.id, event.currentTarget.checked)}
+        aria-label={`Select cue at ${formatTimecodeFrames(cue.start_ticks, frameRate)}`}
+      />
       <button
         type="button"
         className="captions-row-timestamp"
-        onClick={() => onSelect(cue.id)}
-        title="Seek to cue start"
+        onClick={(event) =>
+          onSelect(cue.id, event.shiftKey || event.metaKey || event.ctrlKey)
+        }
+        title="Seek to cue start (shift-click to multi-select)"
       >
         {formatTimecodeFrames(cue.start_ticks, frameRate)}
       </button>
@@ -139,25 +162,39 @@ export function CaptionsPanel({
   onTrackAdd,
   onTrackRename,
   onTrackRemove,
+  onToggleTrackVisible,
+  onShowAllTracks,
+  onHideAllTracks,
   track,
   style,
   onSaveStyle,
   cues,
   playhead,
   frameRate,
-  selectedCueId,
+  selectedCueIds,
+  revealTick,
   onSelect,
+  onSelectAll,
   onAdd,
   onEditText,
   onEditSpeaker,
   onNudge,
   onDelete,
+  onDeleteSelected,
+  onSplit,
+  onMerge,
+  onNext,
+  onPrevious,
   onImport,
   onExport,
 }: CaptionsPanelProps) {
   const ordered = sortedCues(cues);
   const active = activeCue(ordered, playhead);
   const frameStep = frameTicks(frameRate);
+  const listRef = useRef<HTMLUListElement>(null);
+  // Latest reveal target, kept out of the reveal effect's dependencies.
+  const activeRef = useRef<number | null>(null);
+  activeRef.current = active?.id ?? selectedCueIds[0] ?? null;
 
   const [styleDraft, setStyleDraft] = useState({
     font_size: style?.font_size ?? 42,
@@ -166,6 +203,20 @@ export function CaptionsPanel({
     stroke_width: style?.stroke_width ?? 0,
     background_color: style?.background_color ?? "#000000",
   });
+
+  // caption.go_to: bring the active (or first selected) cue row into view.
+  // Only `revealTick` is a dependency: reveal is a one-shot gesture, not a
+  // follower of playhead moves.
+  useEffect(() => {
+    if (revealTick === 0) return;
+    const activeId = activeRef.current;
+    const row = listRef.current?.querySelector(
+      activeId != null
+        ? `.captions-row[data-cue="${activeId}"]`
+        : ".captions-row.is-active",
+    );
+    row?.scrollIntoView({ block: "nearest" });
+  }, [revealTick]);
 
   const renameTrack = () => {
     if (!track) return;
@@ -212,6 +263,23 @@ export function CaptionsPanel({
           }
         >
           <Icon name="remove" />
+        </InteriorButton>
+        <span className="captions-trackbar-spacer" />
+        <InteriorButton
+          size="sm"
+          onClick={() => track && onToggleTrackVisible(track.id, !(track.visible ?? true))}
+          disabled={!track}
+          title={
+            (track?.visible ?? true) ? "Hide this caption track" : "Show this caption track"
+          }
+        >
+          <Icon name={(track?.visible ?? true) ? "eye" : "eyeOff"} />
+        </InteriorButton>
+        <InteriorButton size="sm" onClick={onHideAllTracks} title="Hide all caption tracks">
+          <Icon name="eyeOff" /> All
+        </InteriorButton>
+        <InteriorButton size="sm" onClick={onShowAllTracks} title="Show all caption tracks">
+          <Icon name="eye" /> All
         </InteriorButton>
       </div>
       <div className="captions-stylebar" key={style?.id ?? "new"}>
@@ -296,6 +364,34 @@ export function CaptionsPanel({
           <Icon name="add" /> Cue
         </InteriorButton>
         <span className="captions-panel-spacer" />
+        <InteriorButton size="sm" onClick={onPrevious} title="Go to previous caption segment">
+          <Icon name="trackBackward" />
+        </InteriorButton>
+        <InteriorButton size="sm" onClick={onNext} title="Go to next caption segment">
+          <Icon name="trackForward" />
+        </InteriorButton>
+        <InteriorButton size="sm" onClick={onSplit} title="Split the cue under the playhead">
+          <Icon name="split" />
+        </InteriorButton>
+        <InteriorButton
+          size="sm"
+          onClick={onMerge}
+          disabled={selectedCueIds.length < 2}
+          title="Merge the selected cues"
+        >
+          <Icon name="link" />
+        </InteriorButton>
+        <InteriorButton
+          size="sm"
+          onClick={onDeleteSelected}
+          disabled={selectedCueIds.length === 0}
+          title="Delete the selected cues"
+        >
+          <Icon name="remove" />
+        </InteriorButton>
+        <InteriorButton size="sm" onClick={onSelectAll} title="Select all cues on this track">
+          <Icon name="select" />
+        </InteriorButton>
         <InteriorButton size="sm" onClick={onImport} title="Import SRT/VTT into this track">
           <Icon name="import" />
         </InteriorButton>
@@ -314,13 +410,13 @@ export function CaptionsPanel({
       {ordered.length === 0 ? (
         <p className="captions-panel-empty">No caption cues yet — add one at the playhead.</p>
       ) : (
-        <ul className="captions-panel-list">
+        <ul className="captions-panel-list" ref={listRef}>
           {ordered.map((cue) => (
             <CueRow
               key={cue.id}
               cue={cue}
               isActive={active?.id === cue.id}
-              isSelected={selectedCueId === cue.id}
+              isSelected={selectedCueIds.includes(cue.id)}
               frameRate={frameRate}
               frameStep={frameStep}
               onSelect={onSelect}

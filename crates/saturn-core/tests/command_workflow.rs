@@ -3745,3 +3745,233 @@ fn caption_style_workflow_with_undo() {
     engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
     assert_eq!(style_view(&engine, track_id).0, false);
 }
+
+#[test]
+fn caption_multi_cue_workflow_with_undo() {
+    use saturn_core::TICKS_PER_SECOND;
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name": "Captions"})))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "caption.track_add",
+            json!({"name": "English"}),
+        ))
+        .unwrap();
+
+    macro_rules! cue_add {
+        ($start:expr, $end:expr, $text:expr) => {
+            engine
+                .execute(CommandRequest::new(
+                    "caption.cue_add",
+                    json!({
+                        "start_ticks": $start, "end_ticks": $end, "text": $text,
+                        "speaker": " Narrator ",
+                    }),
+                ))
+                .unwrap();
+        };
+    }
+    cue_add!(0, TICKS_PER_SECOND * 3, "Hello caption world");
+    cue_add!(TICKS_PER_SECOND * 10, TICKS_PER_SECOND * 12, "Second");
+    cue_add!(TICKS_PER_SECOND * 20, TICKS_PER_SECOND * 22, "Third");
+
+    // caption.list snapshots every track with cue detail.
+    let list = engine
+        .execute(CommandRequest::new("caption.list", json!({})))
+        .unwrap();
+    let tracks = list["tracks"].as_array().unwrap();
+    assert_eq!(tracks.len(), 1);
+    assert_eq!(tracks[0]["visible"], true);
+    assert_eq!(tracks[0]["cues"].as_array().unwrap().len(), 3);
+    assert_eq!(list["cues"], 3);
+
+    // Navigation walks cues by start ticks across the track.
+    let next = engine
+        .execute(CommandRequest::new(
+            "caption.next",
+            json!({"from": TICKS_PER_SECOND * 5}),
+        ))
+        .unwrap();
+    assert_eq!(next["target"], TICKS_PER_SECOND * 10);
+    let prev = engine
+        .execute(CommandRequest::new(
+            "caption.previous",
+            json!({"from": TICKS_PER_SECOND * 15}),
+        ))
+        .unwrap();
+    assert_eq!(prev["target"], TICKS_PER_SECOND * 10);
+
+    let track_id = tracks[0]["id"].as_u64().unwrap();
+
+    // Split divides timing proportionally to the character count.
+    let split = engine
+        .execute(CommandRequest::new(
+            "caption.cue_split",
+            json!({
+                "track_id": track_id, "id": next["id"],
+                "at_ticks": TICKS_PER_SECOND * 11,
+            }),
+        ))
+        .unwrap()
+        .clone();
+    assert_eq!(split["split"], true);
+    let second = split["second"].as_u64().unwrap();
+    let list = engine
+        .execute(CommandRequest::new("caption.list", json!({"track_id": track_id})))
+        .unwrap();
+    let cues = list["tracks"][0]["cues"].as_array().unwrap();
+    assert_eq!(cues.len(), 4);
+    let split_cue = cues.iter().find(|cue| cue["id"] == split["second"]).unwrap();
+    assert_eq!(split_cue["text"], "ond", "text splits proportionally");
+    assert_eq!(split_cue["start_ticks"], TICKS_PER_SECOND * 11);
+    assert_eq!(cues[1]["text"], "Sec");
+
+    // Merging invalid cues fails before the checkpoint.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "caption.cue_merge",
+            json!({"track_id": track_id, "ids": [1]}),
+        ))
+        .is_err());
+
+    // Merge folds the split pair back into one cue spanning both.
+    let first_id = split["first"].as_u64().unwrap();
+    let merged = engine
+        .execute(CommandRequest::new(
+            "caption.cue_merge",
+            json!({"track_id": track_id, "ids": [first_id, second]}),
+        ))
+        .unwrap();
+    assert_eq!(merged["id"], first_id);
+    let cues = engine
+        .execute(CommandRequest::new("caption.list", json!({"track_id": track_id})))
+        .unwrap()["tracks"][0]["cues"]
+        .as_array()
+        .unwrap()
+        .clone();
+    assert_eq!(cues.len(), 3);
+    assert_eq!(cues[1]["text"], "Sec ond", "merged text joins with one space");
+    assert_eq!(cues[1]["start_ticks"], TICKS_PER_SECOND * 10);
+    assert_eq!(cues[1]["end_ticks"], TICKS_PER_SECOND * 12);
+
+    // Multi-delete removes exactly the named cues.
+    let removed = engine
+        .execute(CommandRequest::new(
+            "caption.cue_delete",
+            json!({"track_id": track_id, "ids": [cues[0]["id"], cues[2]["id"]]}),
+        ))
+        .unwrap();
+    assert_eq!(removed["removed"], 2);
+    let count = engine
+        .execute(CommandRequest::new("caption.list", json!({"track_id": track_id})))
+        .unwrap()["cues"]
+        .clone();
+    assert_eq!(count, 1);
+
+    // Undo walks back delete, merge, and split in order.
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    let cues = engine
+        .execute(CommandRequest::new("caption.list", json!({"track_id": track_id})))
+        .unwrap()["tracks"][0]["cues"]
+        .as_array()
+        .unwrap()
+        .clone();
+    assert_eq!(cues.len(), 3);
+    assert_eq!(cues[0]["text"], "Hello caption world");
+
+    // Track visibility drives the program overlay and survives undo.
+    let hidden = engine
+        .execute(CommandRequest::new("caption.tracks_hide", json!({})))
+        .unwrap();
+    assert_eq!(hidden["hidden"], 1);
+    let visible = engine
+        .execute(CommandRequest::new("caption.list", json!({})))
+        .unwrap()["tracks"][0]["visible"]
+        .clone();
+    assert_eq!(visible, false);
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    let visible = engine
+        .execute(CommandRequest::new("caption.list", json!({})))
+        .unwrap()["tracks"][0]["visible"]
+        .clone();
+    assert_eq!(visible, true);
+    let shown = engine
+        .execute(CommandRequest::new(
+            "caption.tracks_show",
+            json!({"track_ids": [track_id]}),
+        ))
+        .unwrap();
+    assert_eq!(shown["shown"], 0, "already visible");
+}
+
+#[test]
+fn history_list_and_prefs_schema_describe_engine_state() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name": "History"})))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name": "a.mov", "path": "/assets/a.mov", "kind": "video"}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "marker.add",
+            json!({"at": 12}),
+        ))
+        .unwrap();
+
+    // Labels mirror the stacks newest-first; project.new checkpoints too.
+    let history = engine
+        .execute(CommandRequest::new("history.list", Value::Null))
+        .unwrap();
+    let undo = history["undo"].as_array().unwrap();
+    assert_eq!(undo.len(), 3, "history: {history}");
+    assert_eq!(undo[0]["label"], "marker.add");
+    assert_eq!(undo[1]["label"], "project.add_media");
+    assert_eq!(undo[2]["label"], "project.new");
+    assert_eq!(history["redo"].as_array().unwrap().len(), 0);
+
+    // Undo moves the label to the redo side; redo moves it back.
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    let history = engine
+        .execute(CommandRequest::new("history.list", Value::Null))
+        .unwrap();
+    assert_eq!(history["undo"].as_array().unwrap().len(), 2);
+    assert_eq!(history["redo"].as_array().unwrap()[0]["label"], "marker.add");
+
+    // prefs.schema documents the keys the product recognises.
+    let schema = engine
+        .execute(CommandRequest::new("prefs.schema", Value::Null))
+        .unwrap();
+    let rows = schema["schema"].as_array().unwrap();
+    let keys: Vec<&str> = rows
+        .iter()
+        .map(|row| row["key"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        keys,
+        vec!["theme", "glass", "reducedMotion", "snap", "trackHeight"]
+    );
+    let theme = rows.iter().find(|row| row["key"] == "theme").unwrap();
+    assert_eq!(theme["default"], "dark");
+    assert!(theme["values"].as_array().unwrap().contains(&json!("light")));
+
+    // The schema keys are writable through prefs.set and survive a reload.
+    engine
+        .execute(CommandRequest::new(
+            "prefs.set",
+            json!({"values": {"theme": "light", "trackHeight": "compact"}}),
+        ))
+        .unwrap();
+    let prefs = engine
+        .execute(CommandRequest::new("prefs.get", json!({"key": "theme"})))
+        .unwrap();
+    assert_eq!(prefs["value"], "light");
+}

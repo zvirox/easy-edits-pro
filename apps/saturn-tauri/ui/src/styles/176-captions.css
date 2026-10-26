@@ -192,3 +192,14 @@
   border-radius: 3px;
   background: var(--bg-subpanel);
 }
+
+/* Multi-cue selection (captions.cue_select / cue_delete / cue_merge). */
+.captions-row-check {
+  flex: 0 0 auto;
+  margin-right: 6px;
+  accent-color: var(--accent, var(--text-main));
+}
+
+.captions-trackbar-spacer {
+  flex: 1 1 auto;
+}

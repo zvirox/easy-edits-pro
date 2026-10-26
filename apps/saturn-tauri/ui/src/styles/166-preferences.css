@@ -271,3 +271,40 @@
   color: var(--text-main);
   font-size: 11px;
 }
+
+/* prefs.schema — recognised preference keys. */
+.preferences-schema {
+  margin-top: 10px;
+  overflow: auto;
+  max-height: 40vh;
+}
+
+.preferences-schema-note {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.preferences-schema-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.preferences-schema-table th,
+.preferences-schema-table td {
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  text-align: left;
+  color: var(--text-main);
+}
+
+.preferences-schema-table th {
+  color: var(--text-muted);
+  background: var(--bg-subpanel);
+  font-weight: 600;
+}
+
+.preferences-schema-key {
+  font-family: ui-monospace, "Cascadia Code", monospace;
+}

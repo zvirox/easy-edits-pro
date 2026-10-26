@@ -6,7 +6,9 @@
  },
  "captions.delete": {
   "label": "Delete Captions",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "caption.cue_delete",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "captions.deleteTrack": {
   "label": "Delete Caption Track",
@@ -20,11 +22,15 @@
  },
  "captions.goTo": {
   "label": "Go to Caption",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "caption.go_to",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "captions.hideAll": {
   "label": "Hide All Caption Tracks",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "caption.tracks_hide",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "captions.import": {
   "label": "Import Captions\u2026",
@@ -33,15 +39,21 @@
  },
  "captions.list": {
   "label": "List Captions",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "caption.list",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "captions.merge": {
   "label": "Merge Captions",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "caption.cue_merge",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "captions.move": {
   "label": "Move Captions",
-  "disposition": "new"
+  "disposition": "equivalent",
+  "eep": "caption.cue_nudge",
+  "note": "moving a caption in time is the cue timing nudge"
  },
  "captions.newTrack": {
   "label": "Add New Caption Track\u2026",
@@ -50,15 +62,21 @@
  },
  "captions.next": {
   "label": "Go to Next Caption Segment",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "caption.next",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "captions.previous": {
   "label": "Go to Previous Caption Segment",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "caption.previous",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "captions.select": {
   "label": "Select Captions",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "caption.cue_select",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "captions.setStyle": {
   "label": "Caption Track Style",
@@ -80,7 +98,9 @@
  },
  "captions.setTrack": {
   "label": "Caption Track Settings",
-  "disposition": "new"
+  "disposition": "equivalent",
+  "eep": "caption.track_rename",
+  "note": "EEP per-track settings are the track name; looks are per-track styles via caption.style_set"
  },
  "captions.showActiveOnly": {
   "label": "Show Active Caption Tracks Only",
@@ -88,11 +108,15 @@
  },
  "captions.showAll": {
   "label": "Show All Caption Tracks",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "caption.tracks_show",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "captions.split": {
   "label": "Split Caption",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "caption.cue_split",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "captions.trim": {
   "label": "Trim Caption",
@@ -815,7 +839,9 @@
  },
  "history.list": {
   "label": "List History",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "history.list",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "markers.add": {
   "label": "Add Marker",
@@ -1042,7 +1068,9 @@
  },
  "playhead.nextEditAnyTrack": {
   "label": "Go to Next Edit Point on Any Track",
-  "disposition": "new"
+  "disposition": "equivalent",
+  "eep": "playhead.next_edit",
+  "note": "EEP has no track targeting; next_edit scans every track, which is the any-track semantics"
  },
  "playhead.prevEdit": {
   "label": "Go to Previous Edit Point",
@@ -1051,7 +1079,9 @@
  },
  "playhead.prevEditAnyTrack": {
   "label": "Go to Previous Edit Point on Any Track",
-  "disposition": "new"
+  "disposition": "equivalent",
+  "eep": "playhead.previous_edit",
+  "note": "EEP has no track targeting; previous_edit scans every track"
  },
  "playhead.selectedClipEnd": {
   "label": "Go to Selected Clip End",
@@ -1065,7 +1095,9 @@
  },
  "playhead.set": {
   "label": "Set Playhead",
-  "disposition": "new"
+  "disposition": "equivalent",
+  "eep": "playhead.go_to_timecode",
+  "note": "the playhead is set to a time entered in the Go to Timecode dialog"
  },
  "playhead.start": {
   "label": "Go to Sequence Start",
@@ -1074,7 +1106,9 @@
  },
  "playhead.step": {
   "label": "Step Frames",
-  "disposition": "new"
+  "disposition": "equivalent",
+  "eep": "playhead.nudge_forward_1",
+  "note": "EEP exposes frame stepping through the +-1/+-5 nudge commands"
  },
  "playhead.stepBack": {
   "label": "Step Back One Frame",
@@ -1108,7 +1142,9 @@
  },
  "prefs.schema": {
   "label": "Settings Schema",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "prefs.schema",
+  "note": "implemented in 0.2.1 (alpha.17)"
  },
  "prefs.set": {
   "label": "Set Preferences",

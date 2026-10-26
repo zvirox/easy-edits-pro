@@ -223,6 +223,7 @@ mod tests {
                 id: 1,
                 name: "Captions".into(),
                 language: "en".into(),
+                visible: true,
                 cues: vec![SubtitleItem {
                     id: 1,
                     start_ticks: Tick::from_millis(6000),

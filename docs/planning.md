@@ -590,6 +590,39 @@ flowchart TD
   edit (29), project (37), timeline (34), sequence (32), clip (52),
   file (51).
 
+* **P14 — Tier-1 Batch 1: playhead, prefs, history closed; captions
+  21/22 (Done 2026-10-26, shipped in 0.1.0-alpha.17):** First family
+  batch of the Tier-1 finish campaign. Twelve new shipped commands
+  (all `since: 0.2.1`): `caption.list`, `caption.cue_delete`,
+  `caption.cue_split` (proportional text/timing split),
+  `caption.cue_merge` (non-overlapping merge, text joined),
+  `caption.next`, `caption.previous` (marker.next target pattern; UI
+  seeks and selects), `caption.tracks_hide` / `caption.tracks_show`
+  (new `visible` field on `CaptionTrack`, serde-default true; the
+  playback deck now overlays only visible tracks and flattens cues
+  from every track instead of hardcoding the first one),
+  `caption.cue_select` and `caption.go_to` (ui_only: panel
+  multi-select and scroll-into-view), `history.list` (engine undo/redo
+  stacks now carry parallel entry labels: `pending_label` set in
+  `execute`, consumed by `checkpoint`; surfaced in the new Undo
+  History dialog under Edit), and `prefs.schema` (static schema of the
+  five recognised preference keys; rendered in a new Preferences
+  Schema tab). Six audit entries flipped to `equivalent` with notes:
+  playhead.nextEditAnyTrack/prevEditAnyTrack (EEP scans all tracks —
+  there is no track targeting), playhead.set (Go to Timecode dialog),
+  playhead.step (the ±1/±5 nudge commands), captions.move
+  (caption.cue_nudge), captions.setTrack (caption.track_rename; looks
+  via caption.style_set). Deferred: `captions.showActiveOnly` — needs
+  deck-level render-mode work; the only captions family entry left
+  (21/22). The Captions panel gained multi-cue selection (checkboxes +
+  shift/meta-click), prev/next/split/merge/delete/select toolbar
+  entries, per-track visibility toggles, and reveal. Catalogue: 222
+  commands, 222 shipped, 55 UI-only. Id-verified Tier-1: **116/442
+  (26%)** — playhead **14/14** and prefs **4/4** and history **1/1**
+  closed, captions 21/22. Gates: workspace tests (33 binaries),
+  app tests, build, 98 node tests, e2e, glass/commands/parity/source
+  checks green.
+
 ---
 
 ## 7. Master Agentic Execution Rules

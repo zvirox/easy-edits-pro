@@ -90,10 +90,18 @@ pub struct CaptionTrack {
     pub name: String,
     #[serde(default = "default_caption_language")]
     pub language: String,
+    /// Shown in the program overlay and the captions panel; hidden tracks
+    /// keep their cues.
+    #[serde(default = "default_caption_visible")]
+    pub visible: bool,
     #[serde(default)]
     pub cues: Vec<SubtitleItem>,
     #[serde(default)]
     pub styles: Vec<CaptionStyle>,
+}
+
+fn default_caption_visible() -> bool {
+    true
 }
 
 fn default_caption_language() -> String {

@@ -568,6 +568,7 @@ mod tests {
                 id: 1,
                 name: "Captions".into(),
                 language: "en".into(),
+                visible: true,
                 cues: vec![
                     SubtitleItem {
                         id: 1,

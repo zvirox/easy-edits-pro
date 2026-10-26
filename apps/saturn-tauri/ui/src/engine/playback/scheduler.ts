@@ -188,7 +188,10 @@ if (!project) return emptyResult;
 const tracks = project.project.sequence.tracks;
 const projectWidth = project.project.settings.width || 1920;
 const projectHeight = project.project.settings.height || 1080;
-const subtitles = project.project.sequence.caption_tracks?.[0]?.cues;
+const subtitles = (project.project.sequence.caption_tracks ?? [])
+  // Hidden caption tracks keep their cues but stay out of the program overlay.
+  .filter((track) => track.visible !== false)
+  .flatMap((track) => track.cues);
 const activeSubtitle = getActiveSubtitle(subtitles, playhead);
 
 // Compute sequence duration across all tracks

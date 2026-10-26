@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-210 commands.
+222 commands.
 
 ## File
 
@@ -47,11 +47,13 @@ Generated from the command catalogue. Do not edit by hand.
 | Ripple Delete Time Ranges | `timeline.ripple_delete_ranges` | shipped |  | `{"ranges":obj}` |
 | Ripple Delete Timeline Gap | `timeline.ripple_delete_gap` | shipped |  | `{"track_id":int?,"at_tick":obj}` |
 | Preferences… | `edit.preferences` | shipped | Ctrl+, | `{}` |
+| Undo History | `history.list` | shipped |  | `{}` |
 | Begin Undo Gesture | `edit.begin_gesture` | shipped |  | `{"label":str?}` |
 | End Undo Gesture | `edit.end_gesture` | shipped |  | `{}` |
 | Ripple Delete Selected Clips | `timeline.ripple_delete_batch` | shipped |  | `{"clips":[obj],"ripple":bool?}` |
 | Insert Source Clip | `timeline.insert_clip` | shipped |  | `{"media_id":int,"track_id":int?,"at":obj?,"source_in":obj?,"duration":obj?}` |
 | Overwrite Source Clip | `timeline.overwrite_clip` | shipped |  | `{"media_id":int,"track_id":int?,"at":obj?,"source_in":obj?,"duration":obj?}` |
+| Settings Schema | `prefs.schema` | shipped |  | `{}` |
 | List Shortcut Overrides | `shortcuts.list` | shipped |  | `{}` |
 | Write Shortcut Overrides | `shortcuts.set` | shipped |  | `{"shortcuts":obj}` |
 | Reset Shortcut Overrides | `shortcuts.reset` | shipped |  | `{}` |
@@ -99,6 +101,10 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Go to Next Caption Segment | `caption.next` | shipped |  | `{"from":obj,"track_id":int?}` |
+| Go to Previous Caption Segment | `caption.previous` | shipped |  | `{"from":obj,"track_id":int?}` |
+| Hide All Caption Tracks | `caption.tracks_hide` | shipped |  | `{"track_ids":[int]?}` |
+| Show All Caption Tracks | `caption.tracks_show` | shipped |  | `{"track_ids":[int]?}` |
 | Go to Sequence Start | `playhead.start` | shipped | Home | `{}` |
 | Go to Sequence End | `playhead.end` | shipped | End | `{}` |
 | Next Edit Point | `playhead.next_edit` | shipped | Down | `{}` |
@@ -177,6 +183,12 @@ Generated from the command catalogue. Do not edit by hand.
 | Export Captions (SRT/VTT) | `caption.export` | shipped |  | `{"track_id":int?,"format":str?}` |
 | Set Caption Style | `caption.style_set` | shipped |  | `{"track_id":int,"id":int?,"name":str?,"font_family":str?,"font_size":num?,"fill_color":str?,"stroke_color":str?,"stroke_width":num?,"background_color":str?}` |
 | Captions Panel | `caption.panel` | shipped |  | `{}` |
+| List Captions | `caption.list` | shipped |  | `{"track_id":int?}` |
+| Delete Selected Captions | `caption.cue_delete` | shipped |  | `{"track_id":int,"ids":[int]}` |
+| Split Caption at Playhead | `caption.cue_split` | shipped |  | `{"track_id":int,"id":int,"at_ticks":int}` |
+| Merge Selected Captions | `caption.cue_merge` | shipped |  | `{"track_id":int,"ids":[int]}` |
+| Select Captions | `caption.cue_select` | shipped |  | `{"ids":[int]?}` |
+| Reveal Active Caption | `caption.go_to` | shipped |  | `{}` |
 | Update Title Properties | `title.update` | shipped |  | `{"media_id":int,"text":str?,"subtitle":str?,"style":str?,"font_size":num?,"color":str?,"bg_color":str?}` |
 | Add Subtitle | `subtitle.add` | shipped |  | `{"start_ticks":obj,"end_ticks":obj,"text":str}` |
 | Remove Subtitle | `subtitle.remove` | shipped |  | `{"id":int}` |

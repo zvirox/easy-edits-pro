@@ -45,6 +45,8 @@ impl EditorEngine {
                 self.current_path = Some(params.path.clone());
                 self.undo.clear();
                 self.redo.clear();
+                self.undo_labels.clear();
+                self.redo_labels.clear();
                 self.saved_snapshot = serde_json::to_string(&self.document).unwrap_or_default();
                 Ok(json!({"name": self.document.project.name, "path": params.path}))
             })()),

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.17] - 2026-10-26
+
+Tier-1 coverage Batch 1 (P14): playhead, prefs, and history families
+closed id-verified, captions at 21/22. Tier-1 coverage 116/442 (26%)
+from the per-id audit — 12 new shipped commands (caption list/delete/
+split/merge/next/previous/track-visibility/cue-select/go-to,
+history.list, prefs.schema), 6 audit equivalences documented, and the
+Captions panel upgraded with multi-cue selection, navigation,
+split/merge/delete, track visibility, and reveal. The undo/redo stacks
+now carry command labels, surfaced in a new Edit > Undo History
+dialog. Catalogue: 222/222 shipped.
+
 ## [0.1.0-alpha.16] - 2026-10-25
 
 Twelfth and final parity fulfilment task: the planned-command list

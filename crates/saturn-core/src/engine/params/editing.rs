@@ -143,6 +143,44 @@ pub(in crate::engine) struct CaptionTrackRenameParams {
 }
 
 #[derive(Deserialize)]
+pub(in crate::engine) struct CaptionListParams {
+    #[serde(default)]
+    pub(in crate::engine) track_id: Option<u64>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionCueDeleteParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) ids: Vec<u64>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionCueSplitParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) id: u64,
+    pub(in crate::engine) at_ticks: Tick,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionCueMergeParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) ids: Vec<u64>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionNavParams {
+    pub(in crate::engine) from: Tick,
+    #[serde(default)]
+    pub(in crate::engine) track_id: Option<u64>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct CaptionTracksVisibilityParams {
+    #[serde(default)]
+    pub(in crate::engine) track_ids: Option<Vec<u64>>,
+}
+
+#[derive(Deserialize)]
 pub(in crate::engine) struct CaptionCueAddParams {
     #[serde(default)]
     pub(in crate::engine) track_id: Option<u64>,
