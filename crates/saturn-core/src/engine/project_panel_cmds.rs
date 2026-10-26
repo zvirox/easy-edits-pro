@@ -12,6 +12,7 @@ use super::*;
 pub(in crate::engine) const PANEL_VIEW_KEY: &str = "project_panel_view";
 pub(in crate::engine) const PANEL_PRESETS_KEY: &str = "project_view_presets";
 pub(in crate::engine) const PANEL_PRESET_CURRENT_KEY: &str = "project_view_preset_current";
+pub(in crate::engine) const SEARCH_BINS_KEY: &str = "project_search_bins";
 
 pub(in crate::engine) const PANEL_DEFAULT_COLUMNS: [&str; 6] =
     ["name", "kind", "duration", "fps", "codec", "bin"];
@@ -29,7 +30,7 @@ fn default_panel_view() -> Value {
 
 impl EditorEngine {
     /// Read the stored panel view, filling defaults for missing sections.
-    fn panel_view(&self) -> Value {
+    pub(in crate::engine) fn panel_view(&self) -> Value {
         let stored = self.settings.object("prefs").get(PANEL_VIEW_KEY).cloned();
         let mut merged = default_panel_view();
         if let (Some(target), Some(stored)) = (merged.as_object_mut(), stored.and_then(|v| v.as_object().cloned()))
@@ -41,15 +42,8 @@ impl EditorEngine {
         merged
     }
 
-    fn store_panel_view(&mut self, view: Value) -> Result<(), DispatchError> {
-        let mut prefs = self
-            .settings
-            .object("prefs")
-            .as_object()
-            .cloned()
-            .unwrap_or_default();
-        prefs.insert(PANEL_VIEW_KEY.into(), view);
-        self.settings.store_object("prefs", Value::Object(prefs))
+    pub(in crate::engine) fn store_panel_view(&mut self, view: Value) -> Result<(), DispatchError> {
+        self.store_pref(PANEL_VIEW_KEY, view)
     }
 
     fn presets_map(&self) -> serde_json::Map<String, Value> {
@@ -83,6 +77,16 @@ impl EditorEngine {
         self.settings.store_object("prefs", Value::Object(prefs))
     }
 
+    /// Saved search bins: `{name: query}` in the shared prefs object.
+    fn search_bins(&self) -> serde_json::Map<String, Value> {
+        self.settings
+            .object("prefs")
+            .get(SEARCH_BINS_KEY)
+            .and_then(|value| value.as_object())
+            .cloned()
+            .unwrap_or_default()
+    }
+
     pub(super) fn dispatch_project_panel(
         &mut self,
         id: &str,
@@ -101,9 +105,9 @@ impl EditorEngine {
                 let params: ProjectViewSetParams = parse_params(params)?;
                 let mut view = self.panel_view();
                 if let Some(mode) = &params.view_mode {
-                    if mode != "grid" && mode != "list" {
+                    if mode != "grid" && mode != "list" && mode != "freeform" {
                         return Err(DispatchError::InvalidParameters(
-                            "View mode must be 'grid' or 'list'".into(),
+                            "View mode must be 'grid', 'list', or 'freeform'".into(),
                         ));
                     }
                     view["view_mode"] = json!(mode);
@@ -338,6 +342,116 @@ impl EditorEngine {
                 }
                 self.store_presets(presets)?;
                 Ok(json!({"deleted": params.name}))
+            })()),
+            "project.remove" => Some((|| {
+                let params: ProjectRemoveParams = parse_params(params)?;
+                let ids = {
+                    let mut unique = params.media_ids;
+                    unique.sort_unstable();
+                    unique.dedup();
+                    if unique.is_empty() {
+                        return Err(DispatchError::InvalidParameters(
+                            "Select one or more media items to clear".into(),
+                        ));
+                    }
+                    for id in &unique {
+                        if !self.document.project.media.iter().any(|asset| asset.id == *id) {
+                            return Err(DispatchError::InvalidParameters(format!(
+                                "Media item {} does not exist",
+                                id
+                            )));
+                        }
+                    }
+                    unique
+                };
+                // Media referenced by timeline clips stays put; FC's Clear
+                // warns the same way.
+                let in_use: Vec<u64> = ids
+                    .iter()
+                    .filter(|id| {
+                        self.document
+                            .project
+                            .sequence
+                            .tracks
+                            .iter()
+                            .any(|track| track.clips.iter().any(|clip| clip.media_id == **id))
+                    })
+                    .copied()
+                    .collect();
+                if !in_use.is_empty() {
+                    return Err(DispatchError::Operation(format!(
+                        "{} media item(s) are used by timeline clips; remove or ripple-delete those clips first",
+                        in_use.len()
+                    )));
+                }
+                self.checkpoint();
+                self.document
+                    .project
+                    .media
+                    .retain(|asset| !ids.contains(&asset.id));
+                Ok(json!({"removed": ids.len(), "media_ids": ids}))
+            })()),
+            "project.searchBin.set" => Some((|| {
+                let params: SearchBinSetParams = parse_params(params)?;
+                let name = params.name.trim();
+                if name.is_empty() || name.len() > 64 {
+                    return Err(DispatchError::InvalidParameters(
+                        "Search bin name must be 1-64 characters".into(),
+                    ));
+                }
+                let mut bins = self.search_bins();
+                let query = params.query.trim().to_string();
+                if query.is_empty() {
+                    return Err(DispatchError::InvalidParameters(
+                        "Search bin query must not be empty".into(),
+                    ));
+                }
+                bins.insert(name.to_string(), json!(query));
+                self.store_pref(SEARCH_BINS_KEY, Value::Object(bins))?;
+                Ok(json!({"saved": name, "query": query}))
+            })()),
+            "project.searchBin.delete" => Some((|| {
+                let params: SearchBinNameParams = parse_params(params)?;
+                let name = params.name.trim();
+                let mut bins = self.search_bins();
+                if bins.remove(name).is_none() {
+                    return Err(DispatchError::InvalidParameters(format!(
+                        "No search bin named '{name}'"
+                    )));
+                }
+                self.store_pref(SEARCH_BINS_KEY, Value::Object(bins))?;
+                Ok(json!({"deleted": name}))
+            })()),
+            "project.searchBin.items" => Some((|| {
+                let params: SearchBinNameParams = parse_params(params)?;
+                let name = params.name.trim();
+                let bins = self.search_bins();
+                let query = bins
+                    .get(name)
+                    .and_then(|value| value.as_str())
+                    .map(str::to_string)
+                    .ok_or_else(|| {
+                        DispatchError::InvalidParameters(format!(
+                            "No search bin named '{name}'"
+                        ))
+                    })?;
+                let needle = query.to_lowercase();
+                let matches: Vec<Value> = self
+                    .document
+                    .project
+                    .media
+                    .iter()
+                    .filter(|asset| {
+                        format!("{} {:?}", asset.name, asset.kind).to_lowercase().contains(&needle)
+                    })
+                    .map(|asset| json!({"id": asset.id, "name": asset.name}))
+                    .collect();
+                Ok(json!({
+                    "bin": name,
+                    "query": query,
+                    "matches": matches,
+                    "count": matches.len(),
+                }))
             })()),
             _ => None,
         }

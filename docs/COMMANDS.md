@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-385 commands.
+402 commands.
 
 ## File
 
@@ -53,6 +53,18 @@ Generated from the command catalogue. Do not edit by hand.
 | Clear Finished Exports | `export.queue.clear` | shipped |  | `{}` |
 | Start Export Queue | `export.queue.start` | shipped |  | `{}` |
 | Stop Export Queue | `export.queue.stop` | shipped |  | `{}` |
+| Freeform Layout | `project.freeform.layout` | shipped |  | `{"enabled":bool?}` |
+| Move Clip Cards | `project.freeform.move` | shipped |  | `{"media_ids":int[],"dx":num,"dy":num}` |
+| Clip Size | `project.freeform.resize` | shipped |  | `{"media_ids":int[],"scale":num}` |
+| Align to Grid | `project.freeform.alignToGrid` | shipped |  | `{}` |
+| Reset to Grid | `project.freeform.reset` | shipped |  | `{}` |
+| Stack Clips | `project.freeform.stack` | shipped |  | `{"media_ids":int[]}` |
+| Unstack Clips | `project.freeform.unstack` | shipped |  | `{"media_ids":int[]}` |
+| Freeform View Options | `project.freeform.options` | shipped |  | `{"grid":num?}` |
+| Save Arrangement | `project.freeform.saveArrangement` | shipped |  | `{"name":str}` |
+| Restore Arrangement | `project.freeform.restoreArrangement` | shipped |  | `{"name":str}` |
+| Delete Arrangement | `project.freeform.deleteArrangement` | shipped |  | `{"name":str}` |
+| List Arrangements | `project.freeform.arrangements` | shipped |  | `{}` |
 | Get Project Panel View | `project.view.get` | shipped |  | `{}` |
 | Set Project Panel View | `project.view.set` | shipped |  | `{"view_mode":str?,"sort":obj?,"columns":obj[]?}` |
 | Sort Project Items | `project.sort` | shipped |  | `{"key":str,"dir":str?}` |
@@ -71,6 +83,11 @@ Generated from the command catalogue. Do not edit by hand.
 | Restore View Preset | `project.viewPreset.restore` | shipped |  | `{"name":str?}` |
 | Rename View Preset | `project.viewPreset.rename` | shipped |  | `{"from":str,"to":str}` |
 | Delete View Preset | `project.viewPreset.delete` | shipped |  | `{"name":str?}` |
+| Clear Project Items | `project.remove` | shipped |  | `{"media_ids":int[]}` |
+| Save Search Bin | `project.searchBin.set` | shipped |  | `{"name":str,"query":str}` |
+| Delete Search Bin | `project.searchBin.delete` | shipped |  | `{"name":str}` |
+| List Search Bin Items | `project.searchBin.items` | shipped |  | `{"name":str}` |
+| Select Project Items | `project.select` | shipped |  | `{}` |
 | Read Preferences | `prefs.get` | shipped |  | `{"key":str?}` |
 | Write Preferences | `prefs.set` | shipped |  | `{"values":obj}` |
 | Reset Preferences | `prefs.reset` | shipped |  | `{}` |

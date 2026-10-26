@@ -30,8 +30,8 @@ function withPrompt(answer: string | null, run: () => void) {
 }
 
 test("panel command list is unique and grouped under project.", () => {
-  assert.equal(PROJECT_PANEL_COMMANDS.length, 18);
-  assert.equal(new Set(PROJECT_PANEL_COMMANDS).size, 18);
+  assert.equal(PROJECT_PANEL_COMMANDS.length, 35);
+  assert.equal(new Set(PROJECT_PANEL_COMMANDS).size, 35);
   for (const id of PROJECT_PANEL_COMMANDS) assert.ok(id.startsWith("project."));
 });
 
@@ -137,8 +137,125 @@ test("formatters summarize engine results for the pool notice", () => {
 });
 
 test("document-mutating panel commands are a narrow, marked set", () => {
-  assert.deepEqual(PANEL_DOC_COMMANDS, ["project.setNotes", "project.setMarks"]);
+  assert.deepEqual(PANEL_DOC_COMMANDS, ["project.setNotes", "project.setMarks", "project.remove"]);
   for (const id of PANEL_DOC_COMMANDS) {
     assert.ok((PROJECT_PANEL_COMMANDS as readonly ProjectPanelCommand[]).includes(id));
   }
+});
+
+test("freeform builders validate the selection and prompt-driven inputs", () => {
+  const withPrompt = (answer: string | null, run: () => void) => {
+    const previous = (globalThis as { window?: unknown }).window;
+    (globalThis as { window?: unknown }).window = { prompt: () => answer };
+    try {
+      run();
+    } finally {
+      (globalThis as { window?: unknown }).window = previous;
+    }
+  };
+  // Selection-gated builders refuse to run without panel items.
+  assert.equal(
+    buildProjectPanelParams("project.remove", ctx({ selectedMediaIds: [] }))?.cancel,
+    true
+  );
+  assert.deepEqual(buildProjectPanelParams("project.remove", ctx({ selectedMediaIds: [3, 5] })), {
+    params: { media_ids: [3, 5] },
+  });
+  assert.equal(
+    buildProjectPanelParams("project.freeform.stack", ctx({ selectedMediaIds: [] }))?.cancel,
+    true
+  );
+  assert.deepEqual(
+    buildProjectPanelParams("project.freeform.unstack", ctx({ selectedMediaIds: [7] })),
+    { params: { media_ids: [7] } }
+  );
+  // Prompt-driven freeform commands parse freeform movement and scale.
+  withPrompt("40 -8", () => {
+    assert.deepEqual(
+      buildProjectPanelParams("project.freeform.move", ctx({ selectedMediaIds: [1] })),
+      { params: { media_ids: [1], dx: 40, dy: -8 } }
+    );
+  });
+  withPrompt(null, () => {
+    assert.equal(
+      buildProjectPanelParams("project.freeform.move", ctx({ selectedMediaIds: [1] }))?.cancel,
+      true
+    );
+  });
+  withPrompt("0.5", () => {
+    assert.deepEqual(
+      buildProjectPanelParams("project.freeform.resize", ctx({ selectedMediaIds: [1, 2] })),
+      { params: { media_ids: [1, 2], scale: 0.5 } }
+    );
+  });
+  withPrompt("80", () => {
+    assert.deepEqual(buildProjectPanelParams("project.freeform.options", ctx()), {
+      params: { grid: 80 },
+    });
+  });
+  withPrompt("", () => {
+    assert.equal(
+      buildProjectPanelParams("project.freeform.saveArrangement", ctx())?.cancel,
+      true
+    );
+  });
+  withPrompt("Wide board", () => {
+    assert.deepEqual(buildProjectPanelParams("project.freeform.saveArrangement", ctx()), {
+      params: { name: "Wide board" },
+    });
+  });
+  withPrompt("Wide board", () => {
+    assert.deepEqual(buildProjectPanelParams("project.freeform.deleteArrangement", ctx()), {
+      params: { name: "Wide board" },
+    });
+  });
+});
+
+test("search-bin builders split the name from the query text", () => {
+  const withPrompt = (answer: string | null, run: () => void) => {
+    const previous = (globalThis as { window?: unknown }).window;
+    (globalThis as { window?: unknown }).window = { prompt: () => answer };
+    try {
+      run();
+    } finally {
+      (globalThis as { window?: unknown }).window = previous;
+    }
+  };
+  withPrompt("INT ship", () => {
+    assert.deepEqual(buildProjectPanelParams("project.searchBin.set", ctx()), {
+      params: { name: "INT", query: "ship" },
+    });
+  });
+  withPrompt("greedy-name-only", () => {
+    assert.equal(
+      buildProjectPanelParams("project.searchBin.set", ctx())?.cancel,
+      true
+    );
+  });
+  withPrompt("INT", () => {
+    assert.deepEqual(buildProjectPanelParams("project.searchBin.items", ctx()), {
+      params: { name: "INT" },
+    });
+  });
+  withPrompt("INT", () => {
+    assert.deepEqual(buildProjectPanelParams("project.searchBin.delete", ctx()), {
+      params: { name: "INT" },
+    });
+  });
+});
+
+test("formatters summarize the freeform and search-bin results", () => {
+  assert.equal(formatPanelResult("project.freeform.layout", { freeform: true }), "Freeform layout on");
+  assert.equal(formatPanelResult("project.freeform.layout", { freeform: false }), "Freeform layout off (list view)");
+  assert.equal(formatPanelResult("project.freeform.move", { moved: 3 }), "3 clip card(s) moved");
+  assert.equal(formatPanelResult("project.freeform.reset", { cleared: 4 }), "Freeform layout reset (4 card position(s) cleared)");
+  assert.equal(formatPanelResult("project.freeform.unstack", { updated: 9 }), "9 clip card(s) unstacked onto the grid");
+  assert.equal(
+    formatPanelResult("project.freeform.arrangements", { arrangements: ["A", "B"] }),
+    "2 arrangement(s): A, B"
+  );
+  assert.equal(
+    formatPanelResult("project.searchBin.items", { bin: "INT", matches: [1, 2, 3] }),
+    'Search bin "INT" matched 3 media item(s)'
+  );
 });

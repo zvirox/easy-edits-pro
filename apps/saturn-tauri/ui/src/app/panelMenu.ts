@@ -19,12 +19,29 @@ export const PROJECT_PANEL_COMMANDS = [
   "project.setMarks",
   "project.selectAll",
   "project.deselectAll",
+  "project.select",
+  "project.remove",
   "project.viewPreset.save",
   "project.viewPreset.saveAs",
   "project.viewPreset.list",
   "project.viewPreset.restore",
   "project.viewPreset.rename",
   "project.viewPreset.delete",
+  "project.freeform.layout",
+  "project.freeform.move",
+  "project.freeform.resize",
+  "project.freeform.alignToGrid",
+  "project.freeform.reset",
+  "project.freeform.stack",
+  "project.freeform.unstack",
+  "project.freeform.options",
+  "project.freeform.saveArrangement",
+  "project.freeform.restoreArrangement",
+  "project.freeform.deleteArrangement",
+  "project.freeform.arrangements",
+  "project.searchBin.set",
+  "project.searchBin.delete",
+  "project.searchBin.items",
 ] as const;
 
 export type ProjectPanelCommand = (typeof PROJECT_PANEL_COMMANDS)[number];
@@ -33,10 +50,12 @@ export type ProjectPanelCommand = (typeof PROJECT_PANEL_COMMANDS)[number];
 export const PANEL_DOC_COMMANDS: ProjectPanelCommand[] = [
   "project.setNotes",
   "project.setMarks",
+  "project.remove",
 ];
 
 export interface PanelMenuContext {
   selectedMediaId: number | null;
+  selectedMediaIds: number[];
   notes: string;
 }
 
@@ -59,10 +78,10 @@ export function buildProjectPanelParams(
 ): PanelMenuResult | null {
   switch (id) {
     case "project.view.set": {
-      const mode = window.prompt("Project panel view mode (grid or list):", "grid");
+      const mode = window.prompt("Project panel view mode (grid, list, or freeform):", "grid");
       if (mode === null) return { cancel: true };
-      if (mode !== "grid" && mode !== "list") {
-        return { notice: "Enter 'grid' or 'list'", cancel: true };
+      if (mode !== "grid" && mode !== "list" && mode !== "freeform") {
+        return { notice: "Enter 'grid', 'list', or 'freeform'", cancel: true };
       }
       return { params: { view_mode: mode } };
     }
@@ -158,6 +177,93 @@ export function buildProjectPanelParams(
       if (name.trim() === "") return { notice: "Enter a preset name", cancel: true };
       return { params: { name: name.trim() } };
     }
+    case "project.remove": {
+      if (ctx.selectedMediaIds.length === 0) {
+        return { notice: "Select media items to clear first", cancel: true };
+      }
+      return { params: { media_ids: ctx.selectedMediaIds } };
+    }
+    case "project.freeform.layout":
+      return { params: {} };
+    case "project.freeform.move": {
+      if (ctx.selectedMediaIds.length === 0) {
+        return { notice: "Select media items to move first", cancel: true };
+      }
+      const input = window.prompt("Move clip cards by dx dy (pixels):", "40 0");
+      if (input === null) return { cancel: true };
+      const [dxText, dyText] = input.trim().split(/[\s,]+/).map(Number);
+      if (!Number.isFinite(dxText) || !Number.isFinite(dyText)) {
+        return { notice: "Enter two numbers, e.g. '40 0'", cancel: true };
+      }
+      return { params: { media_ids: ctx.selectedMediaIds, dx: dxText, dy: dyText } };
+    }
+    case "project.freeform.resize": {
+      if (ctx.selectedMediaIds.length === 0) {
+        return { notice: "Select media items to resize first", cancel: true };
+      }
+      const input = window.prompt("Clip size scale (0.2 - 5):", "1.5");
+      if (input === null) return { cancel: true };
+      const scale = Number(input.trim());
+      if (!Number.isFinite(scale)) {
+        return { notice: "Enter a number, e.g. 1.5", cancel: true };
+      }
+      return { params: { media_ids: ctx.selectedMediaIds, scale } };
+    }
+    case "project.freeform.stack":
+    case "project.freeform.unstack": {
+      if (ctx.selectedMediaIds.length === 0) {
+        return { notice: "Select media items first", cancel: true };
+      }
+      return { params: { media_ids: ctx.selectedMediaIds } };
+    }
+    case "project.freeform.alignToGrid":
+    case "project.freeform.reset":
+    case "project.freeform.arrangements":
+      return { params: {} };
+    case "project.freeform.options": {
+      const input = window.prompt("Freeform grid size (pixels):", "40");
+      if (input === null) return { cancel: true };
+      const grid = Number(input.trim());
+      if (!Number.isFinite(grid) || grid <= 0) {
+        return { notice: "Enter a positive grid size in pixels", cancel: true };
+      }
+      return { params: { grid } };
+    }
+    case "project.freeform.saveArrangement":
+    case "project.freeform.restoreArrangement":
+    case "project.freeform.deleteArrangement": {
+      const verb = id === "project.freeform.saveArrangement"
+        ? "Save"
+        : id === "project.freeform.restoreArrangement"
+          ? "Restore"
+          : "Delete";
+      const name = window.prompt(`${verb} arrangement named:`, "");
+      if (name === null) return { cancel: true };
+      if (name.trim() === "") return { notice: "Enter an arrangement name", cancel: true };
+      return { params: { name: name.trim() } };
+    }
+    case "project.searchBin.set": {
+      const input = window.prompt("Search bin as 'name query text':", "");
+      if (input === null) return { cancel: true };
+      const trimmed = input.trim();
+      const separator = trimmed.indexOf(" ");
+      const name = separator < 0 ? trimmed : trimmed.slice(0, separator);
+      const query = separator < 0 ? "" : trimmed.slice(separator + 1).trim();
+      if (name === "" || query === "") {
+        return { notice: "Enter a name followed by the query text", cancel: true };
+      }
+      return { params: { name, query } };
+    }
+    case "project.searchBin.delete":
+    case "project.searchBin.items": {
+      const name = window.prompt(
+        id === "project.searchBin.delete" ? "Delete search bin named:" : "List search bin named:",
+        "",
+      );
+      if (name === null) return { cancel: true };
+      if (name.trim() === "") return { notice: "Enter a search bin name", cancel: true };
+      return { params: { name: name.trim() } };
+    }
     default:
       return null;
   }
@@ -224,6 +330,59 @@ export function formatPanelResult(id: string, result: unknown): string | null {
   }
   if (id === "project.setMarks") {
     return `Source marks set on media #${String(value.media_id)}`;
+  }
+  if (id === "project.remove") {
+    return `${value.removed ?? 0} media item(s) cleared from the panel`;
+  }
+  if (id === "project.freeform.layout") {
+    return value.freeform === true ? "Freeform layout on" : "Freeform layout off (list view)";
+  }
+  if (id === "project.freeform.move") {
+    return `${value.moved ?? 0} clip card(s) moved`;
+  }
+  if (id === "project.freeform.resize") {
+    return `${value.resized ?? 0} clip card(s) resized to ${value.scale}×`;
+  }
+  if (id === "project.freeform.alignToGrid") {
+    return `Clip cards aligned to a ${value.aligned_to_grid}px grid`;
+  }
+  if (id === "project.freeform.reset") {
+    return `Freeform layout reset (${value.cleared ?? 0} card position(s) cleared)`;
+  }
+  if (id === "project.freeform.stack") {
+    return value.stacked === true
+      ? `${value.updated ?? 0} clip card(s) stacked`
+      : `${value.updated ?? 0} clip card(s) unstacked onto the grid`;
+  }
+  if (id === "project.freeform.unstack") {
+    return `${value.updated ?? 0} clip card(s) unstacked onto the grid`;
+  }
+  if (id === "project.freeform.options") {
+    return typeof value.grid === "number" ? `Freeform grid set to ${value.grid}px` : null;
+  }
+  if (id === "project.freeform.saveArrangement") {
+    const names = (value.arrangements ?? []) as string[];
+    return `Arrangement "${String(value.saved)}" saved (${names.length} total)`;
+  }
+  if (id === "project.freeform.restoreArrangement") {
+    return `Arrangement "${String(value.restored)}" restored (${value.items ?? 0} card(s))`;
+  }
+  if (id === "project.freeform.deleteArrangement") {
+    return `Arrangement "${String(value.deleted)}" deleted`;
+  }
+  if (id === "project.freeform.arrangements") {
+    const names = (value.arrangements ?? []) as string[];
+    return names.length ? `${names.length} arrangement(s): ${names.join(", ")}` : "No arrangements saved yet";
+  }
+  if (id === "project.searchBin.set") {
+    return `Search bin "${String(value.saved)}" saved: ${String(value.query)}`;
+  }
+  if (id === "project.searchBin.delete") {
+    return `Search bin "${String(value.deleted)}" deleted`;
+  }
+  if (id === "project.searchBin.items") {
+    const matches = (value.matches ?? []) as unknown[];
+    return `Search bin "${String(value.bin)}" matched ${matches.length} media item(s)`;
   }
   return null;
 }

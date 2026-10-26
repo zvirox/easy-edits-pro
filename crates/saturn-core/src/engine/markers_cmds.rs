@@ -358,10 +358,10 @@ impl EditorEngine {
         }
     }
 
-    /// Merge one marker preference into the shared "prefs" object so it is
+    /// Merge one preference into the shared "prefs" object so it is
     /// readable through `prefs.get` and survives restarts with the settings
-    /// file.
-    fn store_pref(&mut self, key: &str, value: Value) -> Result<(), DispatchError> {
+    /// file. Shared by the marker, panel, and freeform preference keys.
+    pub(in crate::engine) fn store_pref(&mut self, key: &str, value: Value) -> Result<(), DispatchError> {
         let mut prefs = self
             .settings
             .object("prefs")

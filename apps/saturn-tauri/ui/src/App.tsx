@@ -50,14 +50,8 @@ import {
   isTrimTransportCommand,
 } from "./app/trimTransports";
 import { handleInspectMenuCommand } from "./app/editInspect";
-import {
-  EDIT_CLIPBOARD_COMMANDS,
-  useEditClipboard,
-} from "./app/useEditClipboard";
-import {
-  TIMELINE_SELECTION_COMMANDS,
-  useTimelineSelection,
-} from "./app/useTimelineSelection";
+import { EDIT_CLIPBOARD_COMMANDS, useEditClipboard } from "./app/useEditClipboard";
+import { TIMELINE_SELECTION_COMMANDS, useTimelineSelection } from "./app/useTimelineSelection";
 import type { CommandSpec, SelectedClip } from "./types";
 import type { ProjectDocument } from "./app/projectTypes";
 
@@ -390,6 +384,7 @@ function EditorApp() {
 
   const handlePanelCommand = useProjectPanel({
     selectedMediaId: mediaOps.selectedMediaId,
+    selectedMediaIds: mediaOps.selectedMediaIds,
     setSelectedMediaId: mediaOps.setSelectedMediaId,
     setSelectedMediaIds: mediaOps.setSelectedMediaIds,
     project,

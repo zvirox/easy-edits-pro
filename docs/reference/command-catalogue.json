@@ -4069,6 +4069,210 @@
   {
     "aliases": [],
     "category": "File",
+    "id": "project.freeform.layout",
+    "label": "Freeform Layout",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"enabled\":bool?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.freeform.move",
+    "label": "Move Clip Cards",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"media_ids\":int[],\"dx\":num,\"dy\":num}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.freeform.resize",
+    "label": "Clip Size",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"media_ids\":int[],\"scale\":num}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.freeform.alignToGrid",
+    "label": "Align to Grid",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.freeform.reset",
+    "label": "Reset to Grid",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.freeform.stack",
+    "label": "Stack Clips",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"media_ids\":int[]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.freeform.unstack",
+    "label": "Unstack Clips",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"media_ids\":int[]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.freeform.options",
+    "label": "Freeform View Options",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"grid\":num?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.freeform.saveArrangement",
+    "label": "Save Arrangement",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.freeform.restoreArrangement",
+    "label": "Restore Arrangement",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.freeform.deleteArrangement",
+    "label": "Delete Arrangement",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.freeform.arrangements",
+    "label": "List Arrangements",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
     "id": "project.view.get",
     "label": "Get Project Panel View",
     "menu": [
@@ -4370,6 +4574,91 @@
     "shortcut": null,
     "since": "0.4.0",
     "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.remove",
+    "label": "Clear Project Items",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": true,
+    "params": "{\"media_ids\":int[]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.searchBin.set",
+    "label": "Save Search Bin",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str,\"query\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.searchBin.delete",
+    "label": "Delete Search Bin",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.searchBin.items",
+    "label": "List Search Bin Items",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "project.select",
+    "label": "Select Project Items",
+    "menu": [
+      "File",
+      "Project Panel"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
     "undoGroup": "none"
   },
   {

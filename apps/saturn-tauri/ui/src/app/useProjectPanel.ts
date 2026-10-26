@@ -10,11 +10,14 @@ import {
 
 type Runner = <T>(id: string, params?: unknown) => Promise<T>;
 
+type PanelMedia = { id: number; name?: string; kind?: string };
+
 type Options = {
   selectedMediaId: number | null;
+  selectedMediaIds: number[];
   setSelectedMediaId: (id: number | null) => void;
   setSelectedMediaIds: (ids: number[]) => void;
-  project: { media: { id: number }[] } | null;
+  project: { media: PanelMedia[] } | null;
   notes: string;
   runCommand: Runner;
   refreshProject: () => Promise<unknown>;
@@ -28,6 +31,7 @@ type Options = {
  */
 export function useProjectPanel({
   selectedMediaId,
+  selectedMediaIds,
   setSelectedMediaId,
   setSelectedMediaIds,
   project,
@@ -54,8 +58,25 @@ export function useProjectPanel({
         setNotice("Panel selection cleared");
         return true;
       }
+      if (command === "project.select") {
+        const query = window.prompt("Select panel items by name or kind:");
+        if (!query) return true;
+        const needle = query.toLowerCase();
+        const matches = (project?.media ?? []).filter((item) =>
+          `${item.name ?? ""} ${item.kind ?? ""}`.toLowerCase().includes(needle),
+        );
+        const ids = matches.map((item) => item.id);
+        setSelectedMediaIds(ids);
+        setSelectedMediaId(ids[0] ?? null);
+        setNotice(
+          ids.length
+            ? `${ids.length} panel item(s) match "${query}"`
+            : `No panel items match "${query}"`,
+        );
+        return true;
+      }
 
-      const ctx: PanelMenuContext = { selectedMediaId, notes };
+      const ctx: PanelMenuContext = { selectedMediaId, selectedMediaIds, notes };
       const built = buildProjectPanelParams(command, ctx);
       if (built) {
         if (built.notice) setNotice(built.notice);
@@ -81,6 +102,6 @@ export function useProjectPanel({
       }
       return true;
     },
-    [selectedMediaId, notes, project, setSelectedMediaId, setSelectedMediaIds, runCommand, refreshProject, setNotice],
+    [selectedMediaId, selectedMediaIds, notes, project, setSelectedMediaId, setSelectedMediaIds, runCommand, refreshProject, setNotice],
   );
 }

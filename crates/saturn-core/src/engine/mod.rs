@@ -32,6 +32,7 @@ mod nodegraph_cmds;
 mod export_cmds;
 mod params;
 mod project_cmds;
+mod project_freeform_cmds;
 mod project_panel_cmds;
 mod sequence_cmds;
 mod settings_cmds;
@@ -202,6 +203,9 @@ impl EditorEngine {
         }
 
         if let Some(result) = self.dispatch_project(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_project_freeform(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_sequence(command.id, request.params.clone()) {

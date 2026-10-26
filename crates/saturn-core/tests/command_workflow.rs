@@ -5480,3 +5480,245 @@ fn timeline_targeting_workflow_with_state_and_undo() {
         Ok(_) => panic!("timeline.select must be rejected by the engine"),
     }
 }
+
+
+#[test]
+fn project_freeform_remove_and_search_bins_workflow() {
+    use saturn_core::TICKS_PER_SECOND;
+
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name": "Freeform Test"}),
+        ))
+        .unwrap();
+
+    let media_a = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "ship_int.mp4", "path": "/assets/ship_int.mp4", "kind": "video",
+                "duration": TICKS_PER_SECOND * 10, "width": 1920, "height": 1080
+            }),
+        ))
+        .unwrap();
+    let id_a = media_a["media_id"].as_u64().unwrap();
+    let media_b = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "harbor_ext.mp4", "path": "/assets/harbor_ext.mp4", "kind": "video",
+                "duration": TICKS_PER_SECOND * 8, "width": 1920, "height": 1080
+            }),
+        ))
+        .unwrap();
+    let id_b = media_b["media_id"].as_u64().unwrap();
+
+    // Unknown media ids are rejected before any state is stored.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "project.freeform.move",
+            json!({"media_ids": [999], "dx": 1.0, "dy": 0.0}),
+        ))
+        .is_err());
+
+    // Move and resize persist positions in the prefs store.
+    let result = engine
+        .execute(CommandRequest::new(
+            "project.freeform.move",
+            json!({"media_ids": [id_a, id_b], "dx": 55.0, "dy": -10.0}),
+        ))
+        .unwrap();
+    assert_eq!(result["moved"], 2);
+    let result = engine
+        .execute(CommandRequest::new(
+            "project.freeform.resize",
+            json!({"media_ids": [id_a], "scale": 2.0}),
+        ))
+        .unwrap();
+    assert_eq!(result["resized"], 1);
+    let prefs = engine
+        .execute(CommandRequest::new(
+            "prefs.get",
+            json!({"key": "project_freeform_positions"}),
+        ))
+        .unwrap();
+    let stored = prefs.get("value").unwrap_or(&prefs).clone();
+    let stored_text = stored.to_string();
+    assert!(stored_text.contains("\"scale\":2.0"), "positions stored: {stored_text}");
+
+    // Align-to-grid snaps 55 back onto the default 40px grid.
+    engine
+        .execute(CommandRequest::new(
+            "project.freeform.alignToGrid",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    let prefs = engine
+        .execute(CommandRequest::new(
+            "prefs.get",
+            json!({"key": "project_freeform_positions"}),
+        ))
+        .unwrap();
+    assert!(prefs.to_string().contains("40.0"));
+
+    // Unstack spreads the two cards on the square grid pitch.
+    engine
+        .execute(CommandRequest::new(
+            "project.freeform.unstack",
+            json!({"media_ids": [id_a, id_b]}),
+        ))
+        .unwrap();
+
+    // Arrangements round-trip: save, mutate, restore, delete.
+    engine
+        .execute(CommandRequest::new(
+            "project.freeform.saveArrangement",
+            json!({"name": "Board A"}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "project.freeform.reset",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    let result = engine
+        .execute(CommandRequest::new(
+            "project.freeform.restoreArrangement",
+            json!({"name": "Board A"}),
+        ))
+        .unwrap();
+    assert_eq!(result["restored"], "Board A");
+    assert!(engine
+        .execute(CommandRequest::new(
+            "project.freeform.restoreArrangement",
+            json!({"name": "Missing"}),
+        ))
+        .is_err());
+    let result = engine
+        .execute(CommandRequest::new(
+            "project.freeform.arrangements",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    assert_eq!(result["arrangements"], json!(["Board A"]));
+    engine
+        .execute(CommandRequest::new(
+            "project.freeform.deleteArrangement",
+            json!({"name": "Board A"}),
+        ))
+        .unwrap();
+
+    // The layout flip switches the stored panel view to freeform and back.
+    let result = engine
+        .execute(CommandRequest::new(
+            "project.freeform.layout",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    assert_eq!(result["view_mode"], "freeform");
+    let view = engine
+        .execute(CommandRequest::new(
+            "project.view.get",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    assert_eq!(view["view"]["view_mode"], "freeform");
+    engine
+        .execute(CommandRequest::new(
+            "project.freeform.layout",
+            json!({"enabled": false}),
+        ))
+        .unwrap();
+    let view = engine
+        .execute(CommandRequest::new(
+            "project.view.get",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    assert_eq!(view["view"]["view_mode"], "list");
+    let grid = engine
+        .execute(CommandRequest::new(
+            "project.freeform.options",
+            json!({"grid": 80.0}),
+        ))
+        .unwrap();
+    assert_eq!(grid["grid"], 80.0);
+
+    // Clear refuses media used by the timeline, then succeeds after the
+    // clip goes away, and undoes cleanly.
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"media_id": id_a, "track_id": 1, "duration": TICKS_PER_SECOND * 2}),
+        ))
+        .unwrap();
+    assert!(engine
+        .execute(CommandRequest::new(
+            "project.remove",
+            json!({"media_ids": [id_a, id_b]}),
+        ))
+        .is_err());
+    engine
+        .execute(CommandRequest::new(
+            "timeline.remove_clip",
+            json!({"track_id": 1, "clip_index": 0}),
+        ))
+        .unwrap();
+    let result = engine
+        .execute(CommandRequest::new(
+            "project.remove",
+            json!({"media_ids": [id_a, id_b]}),
+        ))
+        .unwrap();
+    assert_eq!(result["removed"], 2);
+    assert_eq!(engine.document().project.media.len(), 0);
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(engine.document().project.media.len(), 2);
+
+    // Saved search bins match media by name substring; missing bins error.
+    engine
+        .execute(CommandRequest::new(
+            "project.searchBin.set",
+            json!({"name": "INT", "query": "int"}),
+        ))
+        .unwrap();
+    let result = engine
+        .execute(CommandRequest::new(
+            "project.searchBin.items",
+            json!({"name": "INT"}),
+        ))
+        .unwrap();
+    assert_eq!(result["count"], 1);
+    assert_eq!(result["matches"][0]["name"], "ship_int.mp4");
+    engine
+        .execute(CommandRequest::new(
+            "project.searchBin.set",
+            json!({"name": "INT", "query": "harbor"}),
+        ))
+        .unwrap();
+    let result = engine
+        .execute(CommandRequest::new(
+            "project.searchBin.items",
+            json!({"name": "INT"}),
+        ))
+        .unwrap();
+    assert_eq!(result["count"], 1);
+    assert_eq!(result["matches"][0]["name"], "harbor_ext.mp4");
+    engine
+        .execute(CommandRequest::new(
+            "project.searchBin.delete",
+            json!({"name": "INT"}),
+        ))
+        .unwrap();
+    assert!(engine
+        .execute(CommandRequest::new(
+            "project.searchBin.items",
+            json!({"name": "INT"}),
+        ))
+        .is_err());
+}

@@ -1289,11 +1289,15 @@
   },
   "project.delete": {
     "label": "Clear",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.remove",
+    "note": "implemented in 0.4.0 (alpha.23); removes the selected media items, refusing in-use media"
   },
   "project.deleteSearchBin": {
     "label": "Delete Search Bin",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.searchBin.delete",
+    "note": "implemented in 0.4.0 (alpha.23); saved-query search bins in the shared prefs store"
   },
   "project.deselectAll": {
     "label": "Deselect All Project Items",
@@ -1302,59 +1306,86 @@
   },
   "project.editSearchBin": {
     "label": "Edit Search Bin",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.searchBin.set",
+    "note": "implemented in 0.4.0 (alpha.23); saved-query search bins in the shared prefs store"
   },
   "project.freeform.alignToGrid": {
     "label": "Align to Grid",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.alignToGrid",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.freeform.arrangements": {
     "label": "List Arrangements",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.arrangements",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.freeform.deleteArrangement": {
     "label": "Delete Arrangement",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.deleteArrangement",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.freeform.layout": {
     "label": "Freeform Layout",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.layout",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.freeform.move": {
     "label": "Move Clip Cards",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.move",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.freeform.options": {
     "label": "Freeform View Options…",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.options",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.freeform.reset": {
     "label": "Reset to Grid",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.reset",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.freeform.resize": {
     "label": "Clip Size",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.resize",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.freeform.restoreArrangement": {
     "label": "Restore Arrangement",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.restoreArrangement",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.freeform.saveArrangement": {
     "label": "Save Arrangement",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.saveArrangement",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.freeform.stack": {
     "label": "Stack Clips",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.stack",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.freeform.unstack": {
     "label": "Unstack Clips",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.freeform.unstack",
+    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
   },
   "project.ingestSettings": {
     "label": "Ingest Settings…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "EEP imports reference media in place; there is no ingest/copy pipeline to configure"
   },
   "project.inspect": {
     "label": "Inspect Project",
@@ -1368,7 +1399,8 @@
   },
   "project.matteColor": {
     "label": "Color Matte Color…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "EEP has no colour-matte generator yet; revisited alongside file.newColorMatte"
   },
   "project.moveToBin": {
     "label": "Move to Bin",
@@ -1387,11 +1419,15 @@
   },
   "project.searchBinItems": {
     "label": "Search Bin Contents",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.searchBin.items",
+    "note": "implemented in 0.4.0 (alpha.23); saved-query search bins in the shared prefs store"
   },
   "project.select": {
     "label": "Select Project Items",
-    "disposition": "new"
+    "disposition": "new",
+    "eep": "project.select",
+    "note": "implemented in 0.4.0 (alpha.23); frontend-only prompt matching panel items by name or kind"
   },
   "project.selectAll": {
     "label": "Select All Project Items",

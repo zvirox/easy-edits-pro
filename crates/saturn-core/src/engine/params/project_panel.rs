@@ -79,3 +79,20 @@ pub(in crate::engine) struct ProjectPresetRenameParams {
     pub(in crate::engine) from: String,
     pub(in crate::engine) to: String,
 }
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct ProjectRemoveParams {
+    pub(in crate::engine) media_ids: Vec<u64>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct SearchBinSetParams {
+    pub(in crate::engine) name: String,
+    /// Saved query matched against media names and kinds.
+    pub(in crate::engine) query: String,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct SearchBinNameParams {
+    pub(in crate::engine) name: String,
+}
