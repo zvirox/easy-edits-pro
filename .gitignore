@@ -48,3 +48,6 @@ apps/saturn-tauri/ui/public/glass-spike.mp4
 .prowl/setup-applies.json
 .prowl-setup.lock
 # /prowl-agent: derived state
+
+# graphify knowledge-graph build outputs
+graphify-out/
