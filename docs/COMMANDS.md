@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-263 commands.
+287 commands.
 
 ## File
 
@@ -188,6 +188,30 @@ Generated from the command catalogue. Do not edit by hand.
 | Set Track Group Properties | `timeline.set_track_group_properties` | shipped |  | `{"group_id":int,"name":str?,"color":str?,"muted":bool?,"solo":bool?,"locked":bool?}` |
 | Lift | `sequence.lift` | shipped | ; | `{"ranges":obj}` |
 | Extract | `sequence.extract` | shipped | ' | `{"ranges":obj}` |
+| Trim Edit | `trim.edit` | shipped |  | `{}` |
+| Select Edit Point | `trim.selectEditPoint` | shipped |  | `{"track_id":int,"clip_index":int,"edge":"start"\|"end"}` |
+| Select Nearest Edit Point | `trim.selectNearest` | shipped |  | `{"at":obj?}` |
+| Clear Edit Point | `trim.clear` | shipped |  | `{}` |
+| Show Trim Monitor | `trim.monitor` | shipped |  | `{"at":obj?}` |
+| Trim Forward 1 Frame | `trim.forward` | shipped |  | `{}` |
+| Trim Backward 1 Frame | `trim.backward` | shipped |  | `{}` |
+| Trim Forward 10 Frames | `trim.forwardMany` | shipped |  | `{}` |
+| Trim Backward 10 Frames | `trim.backwardMany` | shipped |  | `{}` |
+| Nudge Trim | `trim.nudge` | shipped |  | `{"frames":int,"ripple":bool?}` |
+| Extend Edit to Playhead | `trim.extendToPlayhead` | shipped |  | `{"at":obj}` |
+| Extend Next Edit to Playhead | `trim.extendNextEdit` | shipped |  | `{"at":obj}` |
+| Extend Previous Edit to Playhead | `trim.extendPreviousEdit` | shipped |  | `{"at":obj}` |
+| Trim Next Edit to Playhead | `trim.next` | shipped |  | `{"at":obj?}` |
+| Trim Previous Edit to Playhead | `trim.previous` | shipped |  | `{"at":obj?}` |
+| Ripple Next Edit to Playhead | `trim.rippleNext` | shipped |  | `{"at":obj}` |
+| Ripple Previous Edit to Playhead | `trim.ripplePrevious` | shipped |  | `{"at":obj}` |
+| Toggle Trim Type | `trim.toggleType` | shipped |  | `{}` |
+| Apply Default Transition | `trim.applyDefaultTransition` | shipped |  | `{"duration":obj?,"kind":obj?}` |
+| Play Around Edit | `trim.playAround` | shipped |  | `{}` |
+| Shuttle Trim | `trim.shuttle` | shipped |  | `{"direction":int}` |
+| Stop Trim Shuttle | `trim.shuttleStop` | shipped |  | `{}` |
+| Trim Tick | `trim.tick` | shipped |  | `{"frames":int}` |
+| Cancel Dynamic Trim | `trim.cancelDynamic` | shipped |  | `{}` |
 
 ## Markers
 

@@ -36,6 +36,7 @@ mod settings_cmds;
 mod captions_cmds;
 mod graphics_cmds;
 mod timeline_cmds;
+mod trim_cmds;
 use helpers::*;
 use params::*;
 
@@ -81,6 +82,9 @@ pub struct EditorEngine {
     gesture_depth: u32,
     gesture_checkpointed: bool,
     settings: settings_cmds::SettingsStore,
+    /// Trim family state: selected edit point + ripple flag (editor state,
+    /// not document state).
+    trim: trim_cmds::TrimState,
     /// Lazily-built shaping context (system font scan is expensive); shared
     /// so engine clones keep one font database.
     text: std::sync::Arc<
@@ -104,6 +108,7 @@ impl Default for EditorEngine {
             gesture_depth: 0,
             gesture_checkpointed: false,
             settings: settings_cmds::SettingsStore::default(),
+            trim: trim_cmds::TrimState::default(),
             text: std::sync::Arc::new(std::sync::Mutex::new(None)),
         }
     }
@@ -210,6 +215,9 @@ impl EditorEngine {
             return result;
         }
         if let Some(result) = self.dispatch_clip_advanced(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_trim(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_markers(command.id, request.params.clone()) {

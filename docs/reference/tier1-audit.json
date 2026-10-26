@@ -16,7 +16,7 @@
   "eep": "caption.track_remove"
  },
  "captions.export": {
-  "label": "Captions\u2026",
+  "label": "Captions…",
   "disposition": "equivalent",
   "eep": "caption.export"
  },
@@ -33,7 +33,7 @@
   "note": "implemented in 0.2.1 (alpha.17)"
  },
  "captions.import": {
-  "label": "Import Captions\u2026",
+  "label": "Import Captions…",
   "disposition": "equivalent",
   "eep": "caption.import"
  },
@@ -56,7 +56,7 @@
   "note": "moving a caption in time is the cue timing nudge"
  },
  "captions.newTrack": {
-  "label": "Add New Caption Track\u2026",
+  "label": "Add New Caption Track…",
   "disposition": "equivalent",
   "eep": "caption.track_add"
  },
@@ -125,11 +125,11 @@
   "note": "timing trim of a cue"
  },
  "clip.audioChannels": {
-  "label": "Audio Channels\u2026",
+  "label": "Audio Channels…",
   "disposition": "new"
  },
  "clip.audioGain": {
-  "label": "Audio Gain\u2026",
+  "label": "Audio Gain…",
   "disposition": "new"
  },
  "clip.audioPeak": {
@@ -137,7 +137,7 @@
   "disposition": "new"
  },
  "clip.automateToSequence": {
-  "label": "Automate to Sequence\u2026",
+  "label": "Automate to Sequence…",
   "disposition": "new"
  },
  "clip.breakoutToMono": {
@@ -149,17 +149,17 @@
   "disposition": "new"
  },
  "clip.createMulticam": {
-  "label": "Create Multi-Camera Source Sequence\u2026",
+  "label": "Create Multi-Camera Source Sequence…",
   "disposition": "equivalent",
   "eep": "multicam.create",
   "note": "multi-camera source sequence creation"
  },
  "clip.editOffline": {
-  "label": "Edit Offline\u2026",
+  "label": "Edit Offline…",
   "disposition": "new"
  },
  "clip.editSubclip": {
-  "label": "Edit Subclip\u2026",
+  "label": "Edit Subclip…",
   "disposition": "new"
  },
  "clip.enable": {
@@ -171,7 +171,7 @@
   "disposition": "new"
  },
  "clip.fieldOptions": {
-  "label": "Field Options\u2026",
+  "label": "Field Options…",
   "disposition": "new"
  },
  "clip.fillFrame": {
@@ -187,7 +187,7 @@
   "disposition": "new"
  },
  "clip.frameHoldOptions": {
-  "label": "Frame Hold Options\u2026",
+  "label": "Frame Hold Options…",
   "disposition": "new"
  },
  "clip.generateAudioWaveform": {
@@ -203,7 +203,7 @@
   "disposition": "new"
  },
  "clip.interpretFootage": {
-  "label": "Interpret Footage\u2026",
+  "label": "Interpret Footage…",
   "disposition": "new"
  },
  "clip.link": {
@@ -212,15 +212,15 @@
   "eep": "timeline.link_clips"
  },
  "clip.makeSubclip": {
-  "label": "Make Subclip\u2026",
+  "label": "Make Subclip…",
   "disposition": "new"
  },
  "clip.mergeClips": {
-  "label": "Merge Clips\u2026",
+  "label": "Merge Clips…",
   "disposition": "new"
  },
  "clip.modifyTimecode": {
-  "label": "Timecode\u2026",
+  "label": "Timecode…",
   "disposition": "new"
  },
  "clip.multicamEnable": {
@@ -232,7 +232,7 @@
   "disposition": "new"
  },
  "clip.nest": {
-  "label": "Nest\u2026",
+  "label": "Nest…",
   "disposition": "equivalent",
   "eep": "timeline.create_compound_clip",
   "note": "nesting creates a compound clip"
@@ -262,7 +262,7 @@
   "disposition": "new"
  },
  "clip.remix.properties": {
-  "label": "Remix Properties\u2026",
+  "label": "Remix Properties…",
   "disposition": "new"
  },
  "clip.remix.revert": {
@@ -270,7 +270,7 @@
   "disposition": "new"
  },
  "clip.rename": {
-  "label": "Rename\u2026",
+  "label": "Rename…",
   "disposition": "new"
  },
  "clip.replaceFromBin": {
@@ -298,7 +298,7 @@
   "disposition": "new"
  },
  "clip.sceneEditDetection": {
-  "label": "Scene Edit Detection\u2026",
+  "label": "Scene Edit Detection…",
   "disposition": "new"
  },
  "clip.setPosterFrame": {
@@ -310,16 +310,16 @@
   "disposition": "new"
  },
  "clip.sourceSettings": {
-  "label": "Source Settings\u2026",
+  "label": "Source Settings…",
   "disposition": "new"
  },
  "clip.speedDuration": {
-  "label": "Speed/Duration\u2026",
+  "label": "Speed/Duration…",
   "disposition": "equivalent",
   "eep": "timeline.rate_stretch"
  },
  "clip.synchronize": {
-  "label": "Synchronize\u2026",
+  "label": "Synchronize…",
   "disposition": "new"
  },
  "clip.timeInterpolation.frameBlending": {
@@ -339,7 +339,7 @@
   "disposition": "new"
  },
  "clip.updateMetadata": {
-  "label": "Update Metadata\u2026",
+  "label": "Update Metadata…",
   "disposition": "equivalent",
   "eep": "media.update_properties"
  },
@@ -393,7 +393,7 @@
   "disposition": "new"
  },
  "edit.find": {
-  "label": "Find\u2026",
+  "label": "Find…",
   "disposition": "new"
  },
  "edit.findNext": {
@@ -475,7 +475,7 @@
   "eep": "edit.paste"
  },
  "edit.pasteAttributes": {
-  "label": "Paste Attributes\u2026",
+  "label": "Paste Attributes…",
   "disposition": "new"
  },
  "edit.pasteInsert": {
@@ -492,7 +492,7 @@
   "eep": "edit.redo"
  },
  "edit.removeAttributes": {
-  "label": "Remove Attributes\u2026",
+  "label": "Remove Attributes…",
   "disposition": "new"
  },
  "edit.removeUnused": {
@@ -669,23 +669,23 @@
   "disposition": "new"
  },
  "file.exportAaf": {
-  "label": "AAF\u2026",
+  "label": "AAF…",
   "disposition": "new"
  },
  "file.exportAle": {
-  "label": "Avid Log Exchange\u2026",
+  "label": "Avid Log Exchange…",
   "disposition": "new"
  },
  "file.exportEdl": {
-  "label": "EDL\u2026",
+  "label": "EDL…",
   "disposition": "new"
  },
  "file.exportFcp7Xml": {
-  "label": "Final Cut Pro XML\u2026",
+  "label": "Final Cut Pro XML…",
   "disposition": "new"
  },
  "file.exportFcpxml": {
-  "label": "FCPXML\u2026",
+  "label": "FCPXML…",
   "disposition": "new"
  },
  "file.exportFrame": {
@@ -693,7 +693,7 @@
   "disposition": "new"
  },
  "file.exportGraphicsTemplate": {
-  "label": "Motion Graphics Template\u2026",
+  "label": "Motion Graphics Template…",
   "disposition": "new"
  },
  "file.exportInterchange": {
@@ -701,29 +701,29 @@
   "disposition": "new"
  },
  "file.exportMedia": {
-  "label": "Media\u2026",
+  "label": "Media…",
   "disposition": "new"
  },
  "file.exportOmf": {
-  "label": "OMF\u2026",
+  "label": "OMF…",
   "disposition": "new"
  },
  "file.exportOtio": {
-  "label": "OpenTimelineIO\u2026",
+  "label": "OpenTimelineIO…",
   "disposition": "new"
  },
  "file.exportSelectionProject": {
-  "label": "Selection as FilmCraft Project\u2026",
+  "label": "Selection as FilmCraft Project…",
   "disposition": "new"
  },
  "file.import": {
-  "label": "Import\u2026",
+  "label": "Import…",
   "disposition": "equivalent",
   "eep": "project.add_media",
   "note": "generic import dialog"
  },
  "file.importAaf": {
-  "label": "Import AAF\u2026",
+  "label": "Import AAF…",
   "disposition": "new"
  },
  "file.importDemoFootage": {
@@ -735,7 +735,7 @@
   "disposition": "new"
  },
  "file.importImageSequence": {
-  "label": "Import Image Sequence\u2026",
+  "label": "Import Image Sequence…",
   "disposition": "new"
  },
  "file.listAutoSaves": {
@@ -743,19 +743,19 @@
   "disposition": "new"
  },
  "file.mediaProperties": {
-  "label": "Selection\u2026",
+  "label": "Selection…",
   "disposition": "new"
  },
  "file.mediaPropertiesFile": {
-  "label": "File\u2026",
+  "label": "File…",
   "disposition": "new"
  },
  "file.newAdjustmentLayer": {
-  "label": "Adjustment Layer\u2026",
+  "label": "Adjustment Layer…",
   "disposition": "new"
  },
  "file.newBarsAndTone": {
-  "label": "Bars and Tone\u2026",
+  "label": "Bars and Tone…",
   "disposition": "new"
  },
  "file.newBin": {
@@ -768,23 +768,23 @@
   "disposition": "new"
  },
  "file.newBlackVideo": {
-  "label": "Black Video\u2026",
+  "label": "Black Video…",
   "disposition": "new"
  },
  "file.newColorMatte": {
-  "label": "Color Matte\u2026",
+  "label": "Color Matte…",
   "disposition": "new"
  },
  "file.newCountingLeader": {
-  "label": "Universal Counting Leader\u2026",
+  "label": "Universal Counting Leader…",
   "disposition": "new"
  },
  "file.newOfflineFile": {
-  "label": "Offline File\u2026",
+  "label": "Offline File…",
   "disposition": "new"
  },
  "file.newProject": {
-  "label": "Project\u2026",
+  "label": "Project…",
   "disposition": "equivalent",
   "eep": "project.new"
  },
@@ -797,7 +797,7 @@
   "disposition": "new"
  },
  "file.newSequence": {
-  "label": "Sequence\u2026",
+  "label": "Sequence…",
   "disposition": "equivalent",
   "eep": "sequence.create"
  },
@@ -806,11 +806,11 @@
   "disposition": "new"
  },
  "file.newTransparentVideo": {
-  "label": "Transparent Video\u2026",
+  "label": "Transparent Video…",
   "disposition": "new"
  },
  "file.open": {
-  "label": "Open Project\u2026",
+  "label": "Open Project…",
   "disposition": "shipped",
   "eep": "file.open"
  },
@@ -819,19 +819,19 @@
   "disposition": "new"
  },
  "file.projectManager": {
-  "label": "Project Manager\u2026",
+  "label": "Project Manager…",
   "disposition": "new"
  },
  "file.projectSettings.general": {
-  "label": "General\u2026",
+  "label": "General…",
   "disposition": "new"
  },
  "file.projectSettings.scratchDisks": {
-  "label": "Scratch Disks\u2026",
+  "label": "Scratch Disks…",
   "disposition": "new"
  },
  "file.recover": {
-  "label": "Recover Unsaved Changes\u2026",
+  "label": "Recover Unsaved Changes…",
   "disposition": "new"
  },
  "file.recoveryList": {
@@ -839,7 +839,7 @@
   "disposition": "new"
  },
  "file.replaceFonts": {
-  "label": "Replace Fonts in Projects\u2026",
+  "label": "Replace Fonts in Projects…",
   "disposition": "new"
  },
  "file.reveal": {
@@ -860,15 +860,15 @@
   "disposition": "new"
  },
  "file.saveAs": {
-  "label": "Save As\u2026",
+  "label": "Save As…",
   "disposition": "new"
  },
  "file.saveAsTemplate": {
-  "label": "Save as Template\u2026",
+  "label": "Save as Template…",
   "disposition": "new"
  },
  "file.saveCopy": {
-  "label": "Save a Copy\u2026",
+  "label": "Save a Copy…",
   "disposition": "new"
  },
  "file.templates": {
@@ -887,11 +887,11 @@
   "eep": "marker.add"
  },
  "markers.addChapter": {
-  "label": "Add Chapter Marker\u2026",
+  "label": "Add Chapter Marker…",
   "disposition": "new"
  },
  "markers.addFlashCue": {
-  "label": "Add Flash Cue Marker\u2026",
+  "label": "Add Flash Cue Marker…",
   "disposition": "new"
  },
  "markers.addRange": {
@@ -932,12 +932,12 @@
   "disposition": "new"
  },
  "markers.edit": {
-  "label": "Edit Marker\u2026",
+  "label": "Edit Marker…",
   "disposition": "equivalent",
   "eep": "marker.update"
  },
  "markers.exportCsv": {
-  "label": "Export Markers as CSV\u2026",
+  "label": "Export Markers as CSV…",
   "disposition": "equivalent",
   "eep": "marker.export_csv"
  },
@@ -1025,7 +1025,7 @@
   "disposition": "new"
  },
  "media.attachProxies": {
-  "label": "Attach Proxies\u2026",
+  "label": "Attach Proxies…",
   "disposition": "new",
   "eep": "media.attach_proxy",
   "note": "implemented in 0.2.1 (alpha.18)"
@@ -1043,7 +1043,7 @@
   "note": "implemented in 0.2.1 (alpha.18)"
  },
  "media.createProxies": {
-  "label": "Create Proxies\u2026",
+  "label": "Create Proxies…",
   "disposition": "new"
  },
  "media.detachProxies": {
@@ -1059,13 +1059,13 @@
   "note": "the check scans every file-backed asset and reports the missing ids; the panel shows the same list"
  },
  "media.linkMedia": {
-  "label": "Link Media\u2026",
+  "label": "Link Media…",
   "disposition": "equivalent",
   "eep": "project.relink_media",
   "note": "linking an offline item to a new file IS the relink; clips reference the asset, so it re-links everywhere"
  },
  "media.makeOffline": {
-  "label": "Make Offline\u2026",
+  "label": "Make Offline…",
   "disposition": "new",
   "eep": "media.make_offline",
   "note": "implemented in 0.2.1 (alpha.18)"
@@ -1081,7 +1081,7 @@
   "disposition": "new"
  },
  "media.reconnectFullRes": {
-  "label": "Reconnect Full Resolution Media\u2026",
+  "label": "Reconnect Full Resolution Media…",
   "disposition": "equivalent",
   "eep": "project.relink_media",
   "note": "EEP has no separate proxy-resolution layer; restoring the source path is the relink"
@@ -1099,7 +1099,7 @@
   "note": "Relink Missing Media"
  },
  "media.replaceFootage": {
-  "label": "Replace Footage\u2026",
+  "label": "Replace Footage…",
   "disposition": "equivalent",
   "eep": "project.relink_media",
   "note": "clips reference the asset id, so relinking replaces the footage in every edit"
@@ -1266,7 +1266,7 @@
   "disposition": "new"
  },
  "project.freeform.options": {
-  "label": "Freeform View Options\u2026",
+  "label": "Freeform View Options…",
   "disposition": "new"
  },
  "project.freeform.reset": {
@@ -1294,7 +1294,7 @@
   "disposition": "new"
  },
  "project.ingestSettings": {
-  "label": "Ingest Settings\u2026",
+  "label": "Ingest Settings…",
   "disposition": "new"
  },
  "project.inspect": {
@@ -1307,7 +1307,7 @@
   "disposition": "new"
  },
  "project.matteColor": {
-  "label": "Color Matte Color\u2026",
+  "label": "Color Matte Color…",
   "disposition": "new"
  },
  "project.moveToBin": {
@@ -1391,7 +1391,7 @@
   "disposition": "new"
  },
  "sequence.addTracks": {
-  "label": "Add Tracks\u2026",
+  "label": "Add Tracks…",
   "disposition": "equivalent",
   "eep": "timeline.add_track",
   "note": "track addition, repeated per track"
@@ -1420,7 +1420,7 @@
   "disposition": "new"
  },
  "sequence.colorSettings": {
-  "label": "Color Management\u2026",
+  "label": "Color Management…",
   "disposition": "new"
  },
  "sequence.deleteRenderFiles": {
@@ -1438,7 +1438,7 @@
   "note": "single-track removal"
  },
  "sequence.deleteTracks": {
-  "label": "Delete Tracks\u2026",
+  "label": "Delete Tracks…",
   "disposition": "equivalent",
   "eep": "timeline.remove_track",
   "note": "track removal, repeated per track"
@@ -1498,7 +1498,7 @@
   "disposition": "new"
  },
  "sequence.normalizeMixTrack": {
-  "label": "Normalize Mix Track\u2026",
+  "label": "Normalize Mix Track…",
   "disposition": "new"
  },
  "sequence.open": {
@@ -1554,7 +1554,7 @@
   "eep": "timeline.update_transition"
  },
  "sequence.settings": {
-  "label": "Sequence Settings\u2026",
+  "label": "Sequence Settings…",
   "disposition": "new"
  },
  "sequence.showThroughEdits": {
@@ -1562,7 +1562,7 @@
   "disposition": "new"
  },
  "sequence.simplify": {
-  "label": "Simplify Sequence\u2026",
+  "label": "Simplify Sequence…",
   "disposition": "new"
  },
  "sequence.snap": {
@@ -1575,7 +1575,7 @@
   "disposition": "new"
  },
  "sequence.transcribe": {
-  "label": "Transcribe Sequence\u2026",
+  "label": "Transcribe Sequence…",
   "disposition": "equivalent",
   "eep": "speech.transcribe_to_subtitles"
  },
@@ -1936,98 +1936,122 @@
  },
  "trim.applyDefaultTransition": {
   "label": "Apply Default Transitions to Selection",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.applyDefaultTransition"
  },
  "trim.backward": {
   "label": "Trim Backward",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.backward"
  },
  "trim.backwardMany": {
   "label": "Trim Backward Many",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.backwardMany"
  },
  "trim.cancelDynamic": {
   "label": "Cancel Dynamic Trim",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.cancelDynamic"
  },
  "trim.clear": {
   "label": "Clear Edit Point Selection",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.clear"
  },
  "trim.edit": {
   "label": "Trim Edit",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.edit"
  },
  "trim.extendNextEdit": {
   "label": "Extend Next Edit To Playhead",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.extendNextEdit"
  },
  "trim.extendPreviousEdit": {
   "label": "Extend Previous Edit To Playhead",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.extendPreviousEdit"
  },
  "trim.extendToPlayhead": {
   "label": "Extend Selected Edit to Playhead",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.extendToPlayhead"
  },
  "trim.forward": {
   "label": "Trim Forward",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.forward"
  },
  "trim.forwardMany": {
   "label": "Trim Forward Many",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.forwardMany"
  },
  "trim.monitor": {
   "label": "Trim Monitor State",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.monitor"
  },
  "trim.next": {
   "label": "Trim Next Edit to Playhead",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.next"
  },
  "trim.nudge": {
   "label": "Trim by Frames",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.nudge"
  },
  "trim.playAround": {
   "label": "Play Around Edit",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.playAround"
  },
  "trim.previous": {
   "label": "Trim Previous Edit to Playhead",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.previous"
  },
  "trim.rippleNext": {
   "label": "Ripple Trim Next Edit to Playhead",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.rippleNext"
  },
  "trim.ripplePrevious": {
   "label": "Ripple Trim Previous Edit to Playhead",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.ripplePrevious"
  },
  "trim.selectEditPoint": {
   "label": "Select Edit Point",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.selectEditPoint"
  },
  "trim.selectNearest": {
   "label": "Select Nearest Edit Point",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.selectNearest"
  },
  "trim.shuttle": {
   "label": "Dynamic Trim (Shuttle)",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.shuttle"
  },
  "trim.shuttleStop": {
   "label": "Dynamic Trim Stop",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.shuttleStop"
  },
  "trim.tick": {
   "label": "Advance Trim Playback",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.tick"
  },
  "trim.toggleType": {
   "label": "Toggle Trim Type",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "trim.toggleType"
  }
 }

@@ -727,6 +727,20 @@ flowchart TD
 
 ---
 
+## 6b. Tier-1 Milestone Release Rule (2026-10-26)
+
+Per the user directive, remaining Tier-1 batches release on coverage
+milestones rather than one alpha per family. Current: 162/442 (37%).
+Release gates: **200 → alpha.21** (trim 24 + markers 18 → 204),
+**250 → alpha.22** (edit 29 + project 37 → 270), **300 → alpha.23**
+(timeline 34 → 304), **350 → alpha.24** (sequence 32 + clip 52 → 388,
+crossing both 350 on the way), **400 → alpha.25** (file 51 → 439),
+**442 → alpha.26** (deferred captions.showActiveOnly 1 +
+media.createProxies/proxyPresets 2). Every release keeps the full
+gate stack and the native + Linux Packages verification.
+
+---
+
 ## 7. Master Agentic Execution Rules
 
 All coding agents working on Easy Edits Pro must strictly adhere to these six execution directives:

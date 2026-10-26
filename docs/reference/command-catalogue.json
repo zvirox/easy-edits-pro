@@ -4132,6 +4132,458 @@
     "undoGroup": "none"
   },
   {
+    "aliases": [
+      "trim edit point"
+    ],
+    "category": "Sequence",
+    "id": "trim.edit",
+    "label": "Trim Edit",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "select trim point"
+    ],
+    "category": "Sequence",
+    "id": "trim.selectEditPoint",
+    "label": "Select Edit Point",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": false,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"edge\":\"start\"|\"end\"}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "trim.selectNearest",
+    "label": "Select Nearest Edit Point",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": false,
+    "params": "{\"at\":obj?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "deselect trim point"
+    ],
+    "category": "Sequence",
+    "id": "trim.clear",
+    "label": "Clear Edit Point",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "trim status"
+    ],
+    "category": "Sequence",
+    "id": "trim.monitor",
+    "label": "Show Trim Monitor",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": false,
+    "params": "{\"at\":obj?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "trim one frame forward"
+    ],
+    "category": "Sequence",
+    "id": "trim.forward",
+    "label": "Trim Forward 1 Frame",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "trim one frame backward"
+    ],
+    "category": "Sequence",
+    "id": "trim.backward",
+    "label": "Trim Backward 1 Frame",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "trim ten frames forward"
+    ],
+    "category": "Sequence",
+    "id": "trim.forwardMany",
+    "label": "Trim Forward 10 Frames",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "trim ten frames backward"
+    ],
+    "category": "Sequence",
+    "id": "trim.backwardMany",
+    "label": "Trim Backward 10 Frames",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "trim frames"
+    ],
+    "category": "Sequence",
+    "id": "trim.nudge",
+    "label": "Nudge Trim",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"frames\":int,\"ripple\":bool?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "extend edit point"
+    ],
+    "category": "Sequence",
+    "id": "trim.extendToPlayhead",
+    "label": "Extend Edit to Playhead",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"at\":obj}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "extend next edit"
+    ],
+    "category": "Sequence",
+    "id": "trim.extendNextEdit",
+    "label": "Extend Next Edit to Playhead",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"at\":obj}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "extend previous edit"
+    ],
+    "category": "Sequence",
+    "id": "trim.extendPreviousEdit",
+    "label": "Extend Previous Edit to Playhead",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"at\":obj}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "trim next edit"
+    ],
+    "category": "Sequence",
+    "id": "trim.next",
+    "label": "Trim Next Edit to Playhead",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"at\":obj?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "trim previous edit"
+    ],
+    "category": "Sequence",
+    "id": "trim.previous",
+    "label": "Trim Previous Edit to Playhead",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"at\":obj?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "ripple next edit"
+    ],
+    "category": "Sequence",
+    "id": "trim.rippleNext",
+    "label": "Ripple Next Edit to Playhead",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"at\":obj}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "ripple previous edit"
+    ],
+    "category": "Sequence",
+    "id": "trim.ripplePrevious",
+    "label": "Ripple Previous Edit to Playhead",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"at\":obj}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "toggle ripple trim"
+    ],
+    "category": "Sequence",
+    "id": "trim.toggleType",
+    "label": "Toggle Trim Type",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "default transition"
+    ],
+    "category": "Sequence",
+    "id": "trim.applyDefaultTransition",
+    "label": "Apply Default Transition",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"duration\":obj?,\"kind\":obj?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "play around cut"
+    ],
+    "category": "Sequence",
+    "id": "trim.playAround",
+    "label": "Play Around Edit",
+    "menu": [
+      "Sequence",
+      "Trim Mode"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "shuttle trim mode"
+    ],
+    "category": "Sequence",
+    "id": "trim.shuttle",
+    "label": "Shuttle Trim",
+    "menu": [
+      "Sequence",
+      "Trim Mode"
+    ],
+    "mutating": false,
+    "params": "{\"direction\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "trim.shuttleStop",
+    "label": "Stop Trim Shuttle",
+    "menu": [
+      "Sequence",
+      "Trim Mode"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "dynamic trim tick"
+    ],
+    "category": "Sequence",
+    "id": "trim.tick",
+    "label": "Trim Tick",
+    "menu": [
+      "Sequence",
+      "Trim Mode"
+    ],
+    "mutating": false,
+    "params": "{\"frames\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "cancel trim session"
+    ],
+    "category": "Sequence",
+    "id": "trim.cancelDynamic",
+    "label": "Cancel Dynamic Trim",
+    "menu": [
+      "Sequence",
+      "Trim Mode"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
     "aliases": [],
     "category": "View",
     "id": "view.toggle_snap",

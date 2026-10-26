@@ -362,7 +362,7 @@ impl JobManager {
     pub fn remove(&self, id: JobId) -> bool {
         let mut state = self.inner.queue.lock().unwrap();
         if let Some(pos) = state.pending.iter().position(|item| item.info.id == id) {
-            let mut queued = state.pending.remove(pos).unwrap();
+            let queued = state.pending.remove(pos).unwrap();
             queued.cancellation.cancel();
             if let Some(sender) = queued.result_sender {
                 let _ = sender.send(Err("Job was removed from the queue".into()));

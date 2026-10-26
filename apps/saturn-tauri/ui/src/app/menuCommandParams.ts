@@ -1,5 +1,5 @@
-import { TICKS_PER_SECOND } from "./projectTypes";
-import type { ProjectDocument, SelectedClip } from "./projectTypes";
+import { TICKS_PER_SECOND } from "./projectTypes.ts";
+import type { ProjectDocument, SelectedClip } from "./projectTypes.ts";
 
 export interface BatchMenuContext {
   selectedClip: SelectedClip | null;
@@ -116,6 +116,68 @@ export function buildBatchCommandParams(
       if (!Number.isFinite(gid)) return { cancel: true };
       return { params: { group_id: gid } };
     }
+    default:
+      return null;
+  }
+}
+
+/**
+ * Parameter builders for the engine-backed trim commands. Menu dispatch only
+ * carries a command id, so the trim family fills from the current selection
+ * and playhead, with native prompts for the frame-count inputs.
+ */
+export function buildTrimCommandParams(
+  id: string,
+  ctx: BatchMenuContext
+): MenuBatchResult | null {
+  switch (id) {
+    case "trim.selectEditPoint": {
+      const selected = ctx.selectedClip;
+      if (!selected) {
+        return { notice: "Select a clip to choose its edit point", cancel: true };
+      }
+      const edge = window.prompt("Select edit point edge - start or end", "end");
+      if (edge === null) return { cancel: true };
+      const normalized = edge.trim().toLowerCase();
+      if (normalized !== "start" && normalized !== "end") {
+        return { notice: "Enter start or end", cancel: true };
+      }
+      return {
+        params: {
+          track_id: selected.track_id,
+          clip_index: selected.clip_index,
+          edge: normalized,
+        },
+      };
+    }
+    case "trim.extendToPlayhead":
+    case "trim.extendNextEdit":
+    case "trim.extendPreviousEdit":
+    case "trim.rippleNext":
+    case "trim.ripplePrevious":
+    case "trim.next":
+    case "trim.previous":
+    case "trim.selectNearest":
+    case "trim.monitor":
+      return { params: { at: Math.round(ctx.playhead * TICKS_PER_SECOND) } };
+    case "trim.nudge": {
+      const input = window.prompt("Nudge trim by signed frames", "-1");
+      if (input === null) return { cancel: true };
+      const frames = Number(input.trim());
+      if (!Number.isInteger(frames)) {
+        return { notice: "Enter a signed integer frame count", cancel: true };
+      }
+      return { params: { frames } };
+    }
+    case "trim.edit":
+    case "trim.forward":
+    case "trim.backward":
+    case "trim.forwardMany":
+    case "trim.backwardMany":
+    case "trim.toggleType":
+    case "trim.clear":
+    case "trim.applyDefaultTransition":
+      return { params: {} };
     default:
       return null;
   }

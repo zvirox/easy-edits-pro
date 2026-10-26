@@ -10,5 +10,6 @@ pub(super) mod markers;
 pub(super) mod playhead;
 pub(super) mod sequence;
 pub(super) mod settings;
+pub(super) mod trim;
 pub(super) mod view;
 pub(super) mod window;

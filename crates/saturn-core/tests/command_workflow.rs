@@ -4543,3 +4543,217 @@ fn export_family_workflow_presets_formats_resolve() {
     let _ = std::fs::remove_file(&path);
     let _ = std::fs::remove_file(&export_path);
 }
+
+#[test]
+fn trim_edit_point_family_workflow_with_ripple_and_undo() {
+    use saturn_core::TICKS_PER_SECOND;
+    let f = TICKS_PER_SECOND / 30; // one frame at the default 30 fps
+    let s = TICKS_PER_SECOND;
+
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name": "Trim workflow"})))
+        .unwrap();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name": "trim.mp4", "path": "/assets/trim.mp4", "kind": "video"}),
+        ))
+        .unwrap();
+    let media_id = media["media_id"].as_u64().unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "project.update_media",
+            json!({"path": "/assets/trim.mp4", "kind": "video", "duration": 20 * s}),
+        ))
+        .unwrap();
+    let track_id = engine.document().project.sequence.tracks[0].id;
+    for index in 0..3 {
+        engine
+            .execute(CommandRequest::new(
+                "timeline.add_clip",
+                json!({
+                    "track_id": track_id,
+                    "media_id": media_id,
+                    "timeline_start": index * 3 * s,
+                    "source_in": 0,
+                    "duration": 3 * s,
+                }),
+            ))
+            .unwrap();
+    }
+
+    // Select the out edge of clip 0 and inspect the edit-point map.
+    let selected = engine
+        .execute(CommandRequest::new(
+            "trim.selectEditPoint",
+            json!({"track_id": track_id, "clip_index": 0, "edge": "end"}),
+        ))
+        .unwrap();
+    assert_eq!(selected["clip_index"], 0);
+    assert_eq!(selected["edge"], "end");
+
+    let monitor = engine
+        .execute(CommandRequest::new("trim.monitor", json!({"at": 4 * s})))
+        .unwrap();
+    assert_eq!(monitor["previous_edit"]["tick"], 3 * s);
+    assert_eq!(monitor["next_edit"]["tick"], 6 * s);
+    assert_eq!(monitor["ripple"], false);
+
+    // One-frame overwrite trim backward: no follower moves.
+    engine
+        .execute(CommandRequest::new("trim.backward", serde_json::Value::Null))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[0].duration.0, 3 * s - f);
+    assert_eq!(clips[1].timeline_start.0, 3 * s);
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].duration.0,
+        3 * s
+    );
+
+    // Ripple trim forward: the whole tail shifts by one frame.
+    let toggled = engine
+        .execute(CommandRequest::new("trim.toggleType", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(toggled["ripple"], true);
+    engine
+        .execute(CommandRequest::new("trim.forward", serde_json::Value::Null))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[0].duration.0, 3 * s + f);
+    assert_eq!(clips[1].timeline_start.0, 3 * s + f);
+    assert_eq!(clips[2].timeline_start.0, 6 * s + f);
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+
+    // Nudge five frames with an explicit overwrite override; the ripple flag
+    // itself stays untouched.
+    engine
+        .execute(CommandRequest::new(
+            "trim.nudge",
+            json!({"frames": 5, "ripple": false}),
+        ))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[0].duration.0, 3 * s + 5 * f);
+    assert_eq!(clips[1].timeline_start.0, 3 * s);
+    let monitor = engine
+        .execute(CommandRequest::new("trim.monitor", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(monitor["ripple"], true);
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+
+    // Trim Next Edit to Playhead: from 3.5s the next boundary (clip 1 out at
+    // 6s) is pulled back onto the playhead and the tail closes the gap
+    // (ripple type on).
+    engine
+        .execute(CommandRequest::new("trim.next", json!({"at": 7 * s / 2})))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[1].duration.0, s / 2);
+    assert_eq!(clips[2].timeline_start.0, 7 * s / 2);
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+
+    // Trim Previous Edit to Playhead: the edit before 2.5s is clip 0's in
+    // edge at 0; the head ripple keeps it anchored and shifts the tail back.
+    engine
+        .execute(CommandRequest::new("trim.previous", json!({"at": 5 * s / 2})))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[0].duration.0, s / 2);
+    assert_eq!(clips[1].timeline_start.0, s / 2);
+    assert_eq!(clips[2].timeline_start.0, 7 * s / 2);
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+
+    // Re-select clip 0's out edge, then extend it to the playhead (ripple
+    // type still on).
+    engine
+        .execute(CommandRequest::new(
+            "trim.selectEditPoint",
+            json!({"track_id": track_id, "clip_index": 0, "edge": "end"}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "trim.extendToPlayhead",
+            json!({"at": 4 * s}),
+        ))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[0].duration.0, 4 * s);
+    assert_eq!(clips[1].timeline_start.0, 4 * s);
+    assert_eq!(clips[2].timeline_start.0, 7 * s);
+
+    // Ripple the next edit after 0.5s onto the playhead: that is the same
+    // out edge at 4s, pulled back to 0.5s with the tail closing the gap.
+    engine
+        .execute(CommandRequest::new(
+            "trim.rippleNext",
+            json!({"at": s / 2}),
+        ))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[0].duration.0, s / 2);
+    assert_eq!(clips[1].timeline_start.0, s / 2);
+    assert_eq!(clips[2].timeline_start.0, 7 * s - 3 * s - s / 2);
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+
+    // Extend the previous edit before 8s onto the playhead: the in edge of
+    // clip 2 at 7s, pushed right by 1s (head ripple keeps it anchored).
+    engine
+        .execute(CommandRequest::new(
+            "trim.extendPreviousEdit",
+            json!({"at": 8 * s}),
+        ))
+        .unwrap();
+    let clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(clips[2].timeline_start.0, 7 * s);
+    assert_eq!(clips[2].duration.0, 2 * s);
+    assert_eq!(clips[2].source_in.0, 1 * s);
+
+    // Trim Edit reports the live context; the default transition lands on
+    // the reported cut.
+    let editing = engine
+        .execute(CommandRequest::new("trim.edit", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(editing["cut"], 7 * s);
+    assert_eq!(editing["edge"], "start");
+    engine
+        .execute(CommandRequest::new(
+            "trim.applyDefaultTransition",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    let transitions = &engine.document().project.sequence.tracks[0].transitions;
+    assert_eq!(transitions.len(), 1);
+    assert_eq!(transitions[0].cut_at.0, 7 * s);
+
+    // Nearest edit point to 9s is the clip 2 out edge at 10s.
+    let nearest = engine
+        .execute(CommandRequest::new("trim.selectNearest", json!({"at": 9 * s})))
+        .unwrap();
+    assert_eq!(nearest["clip_index"], 2);
+    assert_eq!(nearest["edge"], "end");
+
+    // Clear the selection: structured trims now refuse to run.
+    let cleared = engine
+        .execute(CommandRequest::new("trim.clear", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(cleared["cleared"], true);
+    let refused = engine
+        .execute(CommandRequest::new("trim.forward", serde_json::Value::Null));
+    assert!(refused.is_err());
+}

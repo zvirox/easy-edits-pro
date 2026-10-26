@@ -103,7 +103,7 @@ pub(in crate::engine) struct UpdateTransitionParams {
 }
 
 /// Which edge of a clip a trim gesture is moving.
-#[derive(Deserialize, serde::Serialize, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Deserialize, serde::Serialize, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub(in crate::engine) enum TrimEdge {
     Start,

@@ -9,113 +9,13 @@ impl EditorEngine {
         match id {
             "timeline.trim_clip" => Some((|| {
                 let params: TrimClipParams = parse_params(params)?;
-                let track_index = find_track_index(&self.document, params.track_id)?;
-                if self.document.project.sequence.tracks[track_index].locked {
-                    return Err(DispatchError::Operation("Track is locked".into()));
-                }
-                let clip = find_clip(&self.document, track_index, params.clip_index)?.clone();
-                let media_duration = self
-                    .document
-                    .project
-                    .media
-                    .iter()
-                    .find(|media| media.id == clip.media_id)
-                    .and_then(|media| media.duration);
-
-                let delta = params.delta.0;
-                let old_start = clip.timeline_start.0;
-                let old_duration = clip.duration.0;
-                let old_end = old_start.saturating_add(old_duration);
-                let (new_start, new_duration, new_source_in) = match params.edge {
-                    TrimEdge::Start => (
-                        old_start.saturating_add(delta),
-                        old_duration.saturating_sub(delta),
-                        clip.source_in.0.saturating_add(delta),
-                    ),
-                    TrimEdge::End => (
-                        old_start,
-                        old_duration.saturating_add(delta),
-                        clip.source_in.0,
-                    ),
-                };
-                if new_duration <= 0 {
-                    return Err(DispatchError::InvalidParameters(
-                        "Trim would remove the whole clip".into(),
-                    ));
-                }
-                if new_source_in < 0 {
-                    return Err(DispatchError::InvalidParameters(
-                        "Trim cannot extend before the media start".into(),
-                    ));
-                }
-                if new_start < 0 {
-                    return Err(DispatchError::InvalidParameters(
-                        "Trim cannot start before time zero".into(),
-                    ));
-                }
-                if media_duration
-                    .is_some_and(|length| new_source_in.saturating_add(new_duration) > length.0)
-                {
-                    return Err(DispatchError::InvalidParameters(
-                        "Trim cannot extend beyond the media duration".into(),
-                    ));
-                }
-
-                // A ripple head trim keeps the clip anchored and closes the gap
-                // by moving everything after the old out point.
-                let final_start = if params.ripple && params.edge == TrimEdge::Start {
-                    old_start
-                } else {
-                    new_start
-                };
-                let shift = new_duration.saturating_sub(old_duration);
-
-                self.checkpoint();
-                let track = &mut self.document.project.sequence.tracks[track_index];
-                {
-                    let clip = &mut track.clips[params.clip_index];
-                    clip.timeline_start = Tick(final_start);
-                    clip.duration = Tick(new_duration);
-                    clip.source_in = Tick(new_source_in);
-                    match params.edge {
-                        TrimEdge::Start => {
-                            for key in &mut clip.keyframes {
-                                key.time.0 = key.time.0.saturating_sub(delta);
-                            }
-                        }
-                        TrimEdge::End => {}
-                    }
-                    clip.keyframes
-                        .retain(|key| key.time.0 >= 0 && key.time.0 <= new_duration);
-                }
-
-                if params.ripple && shift != 0 {
-                    for later in track
-                        .clips
-                        .iter_mut()
-                        .filter(|item| item.timeline_start.0 >= old_end)
-                    {
-                        later.timeline_start.0 = later.timeline_start.0.saturating_add(shift);
-                    }
-                    for transition in track
-                        .transitions
-                        .iter_mut()
-                        .filter(|item| item.cut_at.0 >= old_end)
-                    {
-                        transition.cut_at.0 = transition.cut_at.0.saturating_add(shift);
-                    }
-                    track.clips.sort_by_key(|item| item.timeline_start);
-                }
-
-                Ok(json!({
-                    "trimmed": true,
-                    "edge": params.edge,
-                    "timeline_start": final_start,
-                    "duration": new_duration,
-                    "source_in": new_source_in,
-                    "delta": delta,
-                    "ripple": params.ripple,
-                }))
+                self.trim_clip_core(
+                    params.track_id,
+                    params.clip_index,
+                    params.edge,
+                    params.delta,
+                    params.ripple,
+                )
             })()),
             "timeline.slip_clip" => Some((|| {
                 let params: SlipClipParams = parse_params(params)?;
@@ -536,5 +436,127 @@ impl EditorEngine {
             })()),
             _ => None,
         }
+    }
+
+    /// Shared trim engine behind `timeline.trim_clip` and every `trim.*`
+    /// family command: validates the track lock, media bounds, and clip
+    /// survival, then moves the edge, shifts ripple followers, and re-selects.
+    pub(super) fn trim_clip_core(
+        &mut self,
+        track_id: u64,
+        clip_index: usize,
+        edge: TrimEdge,
+        delta: Tick,
+        ripple: bool,
+    ) -> Result<Value, DispatchError> {
+        let track_index = find_track_index(&self.document, track_id)?;
+        if self.document.project.sequence.tracks[track_index].locked {
+            return Err(DispatchError::Operation("Track is locked".into()));
+        }
+        let clip = find_clip(&self.document, track_index, clip_index)?.clone();
+        let media_duration = self
+            .document
+            .project
+            .media
+            .iter()
+            .find(|media| media.id == clip.media_id)
+            .and_then(|media| media.duration);
+
+        let delta = delta.0;
+        let old_start = clip.timeline_start.0;
+        let old_duration = clip.duration.0;
+        let old_end = old_start.saturating_add(old_duration);
+        let (new_start, new_duration, new_source_in) = match edge {
+            TrimEdge::Start => (
+                old_start.saturating_add(delta),
+                old_duration.saturating_sub(delta),
+                clip.source_in.0.saturating_add(delta),
+            ),
+            TrimEdge::End => (
+                old_start,
+                old_duration.saturating_add(delta),
+                clip.source_in.0,
+            ),
+        };
+        if new_duration <= 0 {
+            return Err(DispatchError::InvalidParameters(
+                "Trim would remove the whole clip".into(),
+            ));
+        }
+        if new_source_in < 0 {
+            return Err(DispatchError::InvalidParameters(
+                "Trim cannot extend before the media start".into(),
+            ));
+        }
+        if new_start < 0 {
+            return Err(DispatchError::InvalidParameters(
+                "Trim cannot start before time zero".into(),
+            ));
+        }
+        if media_duration
+            .is_some_and(|length| new_source_in.saturating_add(new_duration) > length.0)
+        {
+            return Err(DispatchError::InvalidParameters(
+                "Trim cannot extend beyond the media duration".into(),
+            ));
+        }
+
+        // A ripple head trim keeps the clip anchored and closes the gap
+        // by moving everything after the old out point.
+        let final_start = if ripple && edge == TrimEdge::Start {
+            old_start
+        } else {
+            new_start
+        };
+        let shift = new_duration.saturating_sub(old_duration);
+
+        self.checkpoint();
+        let track = &mut self.document.project.sequence.tracks[track_index];
+        {
+            let clip = &mut track.clips[clip_index];
+            clip.timeline_start = Tick(final_start);
+            clip.duration = Tick(new_duration);
+            clip.source_in = Tick(new_source_in);
+            match edge {
+                TrimEdge::Start => {
+                    for key in &mut clip.keyframes {
+                        key.time.0 = key.time.0.saturating_sub(delta);
+                    }
+                }
+                TrimEdge::End => {}
+            }
+            clip.keyframes
+                .retain(|key| key.time.0 >= 0 && key.time.0 <= new_duration);
+        }
+
+        if ripple && shift != 0 {
+            for later in track
+                .clips
+                .iter_mut()
+                .filter(|item| item.timeline_start.0 >= old_end)
+            {
+                later.timeline_start.0 = later.timeline_start.0.saturating_add(shift);
+            }
+            for transition in track
+                .transitions
+                .iter_mut()
+                .filter(|item| item.cut_at.0 >= old_end)
+            {
+                transition.cut_at.0 = transition.cut_at.0.saturating_add(shift);
+            }
+            track.clips.sort_by_key(|item| item.timeline_start);
+        }
+
+        Ok(json!({
+            "trimmed": true,
+            "edge": edge,
+            "track_id": track_id,
+            "clip_index": clip_index,
+            "timeline_start": final_start,
+            "duration": new_duration,
+            "source_in": new_source_in,
+            "delta": delta,
+            "ripple": ripple,
+        }))
     }
 }

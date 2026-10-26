@@ -41,6 +41,10 @@ import {
 import { setReducedMotionOverride } from "./motion/variants";
 import { formatTrimStatus } from "./app/timelineTrim";
 import { parseTimecode, resolvePlayheadCommand } from "./app/playheadNavigation";
+import {
+  handleTrimTransportCommand,
+  isTrimTransportCommand,
+} from "./app/trimTransports";
 import { inspectSelectedEdit } from "./app/editInspect";
 import {
   EDIT_CLIPBOARD_COMMANDS,
@@ -431,6 +435,14 @@ function EditorApp() {
       }
       if (id === "trim.enter") {
         timelineOps.enterTrimMode();
+        // Mirror the trim target into the engine so the trim.* family acts
+        // on the same edit point the keyboard session drives.
+        if (timelineOps.selectedClip) {
+          void runCommand("trim.selectEditPoint", {
+            ...timelineOps.selectedClip,
+            edge: "end",
+          }).catch(() => {});
+        }
         return;
       }
       if (id === "trim.commit") {
@@ -453,6 +465,19 @@ function EditorApp() {
           setNotice(String(error));
         }
         return;
+      }
+      if (isTrimTransportCommand(id)) {
+        const handled = handleTrimTransportCommand(id, {
+          trimActive: timelineOps.trimMode !== null,
+          baseCut: timelineOps.trimMode?.baseCut ?? null,
+          handleShuttle: timelineOps.handleTrimShuttle,
+          cancelDynamic: timelineOps.cancelTrimMode,
+          seek: playback.seekProgramTo,
+          playhead: playback.playhead,
+          frameRate: project?.settings.frame_rate ?? null,
+          notice: setNotice,
+        });
+        if (!handled) return;
       }
       if (id.startsWith("workspace.")) {
         selectDavinciWorkspace(id.slice("workspace.".length) as DavinciWorkspace);
