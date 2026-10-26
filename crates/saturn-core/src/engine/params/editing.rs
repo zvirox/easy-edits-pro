@@ -593,6 +593,12 @@ pub(in crate::engine) struct UpdateMediaPropertiesParams {
     pub(in crate::engine) scene: Option<String>,
     #[serde(default)]
     pub(in crate::engine) take: Option<String>,
+    /// Colour metadata recorded by the shell's probe (read back by
+    /// media.color_info).
+    #[serde(default)]
+    pub(in crate::engine) colorspace: Option<String>,
+    #[serde(default)]
+    pub(in crate::engine) gamma: Option<String>,
 }
 
 #[derive(Deserialize)]

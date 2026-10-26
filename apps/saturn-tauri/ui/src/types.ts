@@ -171,6 +171,9 @@ export type MediaAsset = {
   color_label?: string | null;
   tags?: string[] | null;
   is_missing?: boolean;
+  proxy_path?: string | null;
+  colorspace?: string | null;
+  gamma?: string | null;
   title?: TitleProperties | null;
   waveform?: number[] | null;
   nested_sequence?: Sequence | null;
@@ -272,7 +275,7 @@ export type ProjectDocument = {
     sequence: Sequence;
     sequences?: Sequence[];
     graphic_templates?: GraphicTemplate[];
-    settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
+    settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number; use_proxies?: boolean };
   };
 };
 

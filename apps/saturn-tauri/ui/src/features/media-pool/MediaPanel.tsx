@@ -1,6 +1,7 @@
 import { InteriorButton } from "../../components/interior/interior-button";
-import type { PointerEvent } from "react";
+import { useEffect, useRef, type PointerEvent } from "react";
 import { Icon, type IconName } from "../../components/Icon";
+import type { MediaHygieneOps } from "../../app/useMediaHygiene";
 import { LoadingButton } from "../../components/interior/loading-button";
 import { formatTime } from "../../utils/formatters";
 import type {
@@ -110,7 +111,10 @@ export interface MediaPanelProps {
   importMedia: () => Promise<void>;
   search: string;
   setSearch: (s: string) => void;
-  mediaViewMode: "grid" | "list";
+  /** Engine-backed media lifecycle ops (relink/offline/proxies). */
+  hygiene: MediaHygieneOps;
+  /** The project's proxy playback flag (engine doc settings). */
+  useProxies: boolean;  mediaViewMode: "grid" | "list";
   setMediaViewMode: (mode: "grid" | "list") => void;
   activeBinId: number | null;
   setActiveBinId: (id: number | null) => void;
@@ -159,6 +163,8 @@ export function MediaPanel({
   importMedia,
   search,
   setSearch,
+  hygiene,
+  useProxies,
   mediaViewMode,
   setMediaViewMode,
   activeBinId,
@@ -194,6 +200,12 @@ export function MediaPanel({
 }: MediaPanelProps) {
   const mediaItems = visibleMedia ?? [];
   const allMedia = media ?? [];
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // media.search: the pool search box takes the gesture.
+  useEffect(() => {
+    if (hygiene.searchFocusTick > 0) searchRef.current?.focus();
+  }, [hygiene.searchFocusTick]);
   return (
     <aside className="media-panel">
       <div className="filmora-tabs" role="tablist" aria-label="Filmora Asset Categories">
@@ -291,11 +303,27 @@ export function MediaPanel({
 
             <div className="media-controls-row">
               <input
+                ref={searchRef}
                 className="search"
                 value={search}
                 placeholder="Search media, tags…"
                 onChange={(event) => setSearch(event.target.value)}
               />
+              <InteriorButton type="button" className="view-mode-btn" disabled={busy}
+                onClick={() => void hygiene.relinkMoved()}
+                title="Scan folders for moved media and relink by name">
+                <Icon name="link" />
+              </InteriorButton>
+              <InteriorButton type="button" className="view-mode-btn" disabled={busy}
+                onClick={() => void hygiene.refreshChanged()}
+                title="Re-check files on disk and flag changed media">
+                <Icon name="refresh" />
+              </InteriorButton>
+              <InteriorButton type="button" className={`view-mode-btn ${useProxies ? "active" : ""}`}
+                disabled={busy} onClick={() => void hygiene.toggleProxies()}
+                title="Decode proxy copies where attached">
+                <Icon name="proxy" />
+              </InteriorButton>
               <div className="media-view-toggle">
                 <InteriorButton
                   type="button"

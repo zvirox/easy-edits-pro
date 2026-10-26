@@ -87,6 +87,12 @@ export type MediaAsset = {
   scene?: string | null;
   take?: string | null;
   is_missing?: boolean;
+  /** Lower-resolution viewing copy; played when the project uses proxies. */
+  proxy_path?: string | null;
+  colorspace?: string | null;
+  gamma?: string | null;
+  file_size?: number | null;
+  modified_ms?: number | null;
   title?: TitleProperties | null;
   waveform?: number[] | null;
   nested_sequence?: Sequence | null;
@@ -168,7 +174,7 @@ export type ProjectDocument = {
     sequence: Sequence;
     sequences?: Sequence[];
     graphic_templates?: GraphicTemplate[];
-    settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number };
+    settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number; use_proxies?: boolean };
   };
 };
 export type ProjectStatus = { document: ProjectDocument; path: string | null; is_dirty: boolean };

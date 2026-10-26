@@ -11,11 +11,13 @@ import { ProjectJsonDialog } from "./ProjectJsonDialog";
 import { NetworkImportModal } from "../../components/NetworkImportModal";
 import { BatchQueueDrawer } from "../../components/BatchQueueDrawer";
 import { OllamaChatDrawer } from "../../components/OllamaChatDrawer";
+import type { MediaHygieneOps } from "../../app/useMediaHygiene";
 import type { MediaAsset, ProjectDocument } from "../../app/projectTypes";
 
 export interface EditorModalsProps {
   projectOps: any;
   mediaOps: any;
+  mediaHygiene: MediaHygieneOps;
   timelineOps: any;
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
@@ -27,6 +29,7 @@ export interface EditorModalsProps {
 export function EditorModals({
   projectOps,
   mediaOps,
+  mediaHygiene,
   timelineOps,
   project,
   media,
@@ -163,6 +166,7 @@ export function EditorModals({
         media={media}
         project={project}
         moveMediaToBin={mediaOps.moveMediaToBin}
+        hygiene={mediaHygiene}
         updateMediaProperties={mediaOps.updateMediaProperties}
       />
 

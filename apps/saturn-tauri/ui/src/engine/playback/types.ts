@@ -397,6 +397,12 @@ export interface MediaAsset {
   color_label?: string | null;
   tags?: string[] | null;
   is_missing?: boolean;
+  /** Lower-resolution viewing copy; played when the project uses proxies. */
+  proxy_path?: string | null;
+  colorspace?: string | null;
+  gamma?: string | null;
+  file_size?: number | null;
+  modified_ms?: number | null;
   title?: TitleProperties | null;
   waveform?: number[] | null;
   nested_sequence?: Sequence | null;
@@ -520,6 +526,8 @@ export interface ProjectDocument {
       height: number;
       frame_rate: { numerator: number; denominator: number };
       audio_sample_rate: number;
+      /** Play the attached proxy copy where an asset carries one. */
+      use_proxies?: boolean;
     };
   };
 }

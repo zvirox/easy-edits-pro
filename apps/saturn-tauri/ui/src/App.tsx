@@ -25,6 +25,7 @@ import { WorkspaceRouter } from "./workspaces/WorkspaceRouter";
 import { StatusBar } from "./components/StatusBar";
 import { EditorModals } from "./features/dialogs";
 import { HistoryDialog } from "./features/dialogs/HistoryDialog";
+import { useMediaHygiene } from "./app/useMediaHygiene";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { TICKS_PER_SECOND, timelineTools } from "./features/timeline/types";
 import { audioClockMaster } from "./engine/playbackEngine";
@@ -253,6 +254,13 @@ function EditorApp() {
     setNotice,
   });
 
+  const mediaHygiene = useMediaHygiene({
+    runCommand,
+    refreshProject,
+    setNotice,
+    setBusy,
+  });
+
   const nodeGraphOps = useNodeGraph({
     project,
     runCommand,
@@ -450,6 +458,21 @@ function EditorApp() {
         case "prefs.schema":
           setPreferencesOpen(true);
           return;
+        case "media.search":
+          mediaHygiene.searchFocus();
+          return;
+        case "media.auto_relink":
+          void mediaHygiene.relinkMoved();
+          return;
+        case "media.refresh_changed":
+          void mediaHygiene.refreshChanged();
+          return;
+        case "media.offline_all":
+          void mediaHygiene.offlineAll();
+          return;
+        case "media.toggle_proxies":
+          void mediaHygiene.toggleProxies();
+          return;
         case "history.list":
           setHistoryOpen(true);
           return;
@@ -619,6 +642,7 @@ function EditorApp() {
           audioOps={audioOps}
           markerOps={markerOps}
           captionsOps={captionsOps}
+          mediaHygiene={mediaHygiene}
           nodeGraphOps={nodeGraphOps}
           graphicsOps={graphicsOps}
         />
@@ -628,6 +652,7 @@ function EditorApp() {
             the workspace region so the panel can never cover app chrome. */}
         <EditorModals
           projectOps={projectOps} mediaOps={mediaOps}
+          mediaHygiene={mediaHygiene}
           timelineOps={timelineOps} project={project}
           media={media} busy={busy}
           refreshProject={refreshProject} setNotice={setNotice}

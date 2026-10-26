@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-222 commands.
+231 commands.
 
 ## File
 
@@ -25,6 +25,15 @@ Generated from the command catalogue. Do not edit by hand.
 | Delete Media Bin | `media.delete_bin` | shipped |  | `{"bin_id":int}` |
 | Check Missing Media | `media.check_missing` | shipped |  | `{}` |
 | Import OpenTimelineIO | `interop.import_otio` | shipped |  | `{"content":str,"project_name":str?}` |
+| Relink Moved Media… | `media.auto_relink` | shipped |  | `{"search_dirs":[str]}` |
+| Make Offline | `media.make_offline` | shipped |  | `{"media_ids":[int]?}` |
+| Offline All | `media.offline_all` | shipped |  | `{}` |
+| Refresh Changed Media | `media.refresh_changed` | shipped |  | `{"media_ids":[int]?}` |
+| Media Colour Info | `media.color_info` | shipped |  | `{"media_id":int}` |
+| Attach Proxy | `media.attach_proxy` | shipped |  | `{"media_id":int,"path":str}` |
+| Detach Proxy | `media.detach_proxy` | shipped |  | `{"media_id":int}` |
+| Toggle Proxies | `media.toggle_proxies` | shipped |  | `{}` |
+| Search for Media | `media.search` | shipped |  | `{}` |
 | Read Preferences | `prefs.get` | shipped |  | `{"key":str?}` |
 | Write Preferences | `prefs.set` | shipped |  | `{"values":obj}` |
 | Reset Preferences | `prefs.reset` | shipped |  | `{}` |
@@ -88,7 +97,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Create Compound Clip | `timeline.create_compound_clip` | shipped | Ctrl+G | `{"name":str?,"target_track_id":int?,"clips":[obj]}` |
 | Decompose Compound Clip in Place | `timeline.decompose_compound_clip` | shipped | Ctrl+Shift+G | `{"track_id":int,"clip_index":int}` |
 | Move Media to Bin | `media.move_to_bin` | shipped |  | `{"media_id":int,"bin_id":int?}` |
-| Update Media Properties | `media.update_properties` | shipped |  | `{"media_id":int,"name":str?,"color_label":str?,"tags":[str]?,"comment":str?,"scene":str?,"take":str?}` |
+| Update Media Properties | `media.update_properties` | shipped |  | `{"media_id":int,"name":str?,"color_label":str?,"tags":[str]?,"comment":str?,"scene":str?,"take":str?,"colorspace":str?,"gamma":str?}` |
 | Update Clip RGB Curves | `clip.update_rgb_curves` | shipped |  | `{"track_id":int,"clip_index":int,"curves":obj}` |
 | Update Clip HSL Qualifier | `clip.update_hsl_qualifier` | shipped |  | `{"track_id":int,"clip_index":int,"qualifier":obj}` |
 | Add Custom GLSL Shader | `clip.add_custom_shader` | shipped |  | `{"track_id":int,"clip_index":int,"name":str?,"shader_code":str?,"preset_id":str?,"uniforms":obj?}` |

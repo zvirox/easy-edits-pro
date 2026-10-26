@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { GlassDialog } from "../../motion/GlassDialog";
 import type { MediaAsset, ProjectDocument } from "../../app/projectTypes";
+import type { ColorInfo, MediaHygieneOps } from "../../app/useMediaHygiene";
 
 export interface MediaPropsModalProps {
   mediaEditPropsId: number | null;
@@ -20,6 +22,8 @@ export interface MediaPropsModalProps {
   media: MediaAsset[];
   project: ProjectDocument["project"] | null;
   moveMediaToBin: (id: number, binId: number | null) => Promise<void>;
+  /** Engine-backed lifecycle ops: colour info, proxies, offline. */
+  hygiene: MediaHygieneOps;
   updateMediaProperties: (
     id: number,
     name: string,
@@ -47,8 +51,27 @@ export function MediaPropsModal({
   media,
   project,
   moveMediaToBin,
+  hygiene,
   updateMediaProperties,
 }: MediaPropsModalProps) {
+  const [colorInfo, setColorInfo] = useState<ColorInfo | null>(null);
+
+  // media.color_info: read the asset's colour metadata when the dialog opens.
+  useEffect(() => {
+    setColorInfo(null);
+    if (mediaEditPropsId === null) return;
+    let active = true;
+    void hygiene.colorInfo(mediaEditPropsId).then((info) => {
+      if (active) setColorInfo(info);
+    });
+    return () => {
+      active = false;
+    };
+    // Only the asset id drives the fetch; hygiene is stable across renders.
+  }, [mediaEditPropsId]);
+
+  const asset = media.find((m) => m.id === mediaEditPropsId) ?? null;
+  const proxyPath = asset?.proxy_path ?? null;
   return (
     <GlassDialog
       as="form"
@@ -171,6 +194,45 @@ export function MediaPropsModal({
             ))}
           </select>
         </label>
+        <div className="media-hygiene-section" style={{ fontSize: "11px", marginBottom: "14px", display: "grid", gap: "6px" }}>
+          <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>Colour &amp; Media State</span>
+          <div className="media-metadata-grid">
+            <span>
+              Colour space: {colorInfo?.colorspace ?? "unknown"}
+            </span>
+            <span>
+              Gamma: {colorInfo?.gamma ?? "unknown"}
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+            <span style={{ fontFamily: "ui-monospace, monospace", fontSize: "10px" }}>
+              {proxyPath ? `Proxy: ${proxyPath}` : "No proxy attached"}
+            </span>
+            <InteriorButton type="button" onClick={() => mediaEditPropsId !== null && void hygiene.attachProxy(mediaEditPropsId)}>
+              Attach Proxy…
+            </InteriorButton>
+            {proxyPath ? (
+              <InteriorButton type="button" onClick={() => mediaEditPropsId !== null && void hygiene.detachProxy(mediaEditPropsId)}>
+                Detach Proxy
+              </InteriorButton>
+            ) : null}
+          </div>
+          {asset && !asset.is_missing && asset.kind !== "title" && asset.kind !== "compound_sequence" ? (
+            <div>
+              <InteriorButton
+                type="button"
+                onClick={() => {
+                  if (mediaEditPropsId !== null) {
+                    void hygiene.makeOffline(mediaEditPropsId);
+                    onClose();
+                  }
+                }}
+              >
+                Mark Offline
+              </InteriorButton>
+            </div>
+          ) : null}
+        </div>
         <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
           <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
           <InteriorButton className="primary" type="submit">Save Properties</InteriorButton>

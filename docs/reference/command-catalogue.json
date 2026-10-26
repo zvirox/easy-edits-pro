@@ -664,7 +664,7 @@
       "Clip"
     ],
     "mutating": true,
-    "params": "{\"media_id\":int,\"name\":str?,\"color_label\":str?,\"tags\":[str]?,\"comment\":str?,\"scene\":str?,\"take\":str?}",
+    "params": "{\"media_id\":int,\"name\":str?,\"color_label\":str?,\"tags\":[str]?,\"comment\":str?,\"scene\":str?,\"take\":str?,\"colorspace\":str?,\"gamma\":str?}",
     "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
@@ -1436,6 +1436,158 @@
     "since": "0.1.0",
     "uiOnly": false,
     "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "auto relink"
+    ],
+    "category": "File",
+    "id": "media.auto_relink",
+    "label": "Relink Moved Media…",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"search_dirs\":[str]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.make_offline",
+    "label": "Make Offline",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"media_ids\":[int]?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.offline_all",
+    "label": "Offline All",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "refresh media"
+    ],
+    "category": "File",
+    "id": "media.refresh_changed",
+    "label": "Refresh Changed Media",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"media_ids\":[int]?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "colour info"
+    ],
+    "category": "File",
+    "id": "media.color_info",
+    "label": "Media Colour Info",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{\"media_id\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.attach_proxy",
+    "label": "Attach Proxy",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"media_id\":int,\"path\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.detach_proxy",
+    "label": "Detach Proxy",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"media_id\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "media.toggle_proxies",
+    "label": "Toggle Proxies",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "find media"
+    ],
+    "category": "File",
+    "id": "media.search",
+    "label": "Search for Media",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.2.1",
+    "uiOnly": true,
+    "undoGroup": "none"
   },
   {
     "aliases": [],

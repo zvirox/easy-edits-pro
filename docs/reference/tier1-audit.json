@@ -988,15 +988,21 @@
  },
  "media.attachProxies": {
   "label": "Attach Proxies\u2026",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "media.attach_proxy",
+  "note": "implemented in 0.2.1 (alpha.18)"
  },
  "media.autoRelink": {
   "label": "Relink Moved Media",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "media.auto_relink",
+  "note": "implemented in 0.2.1 (alpha.18)"
  },
  "media.colorInfo": {
   "label": "Media Colour Info",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "media.color_info",
+  "note": "implemented in 0.2.1 (alpha.18)"
  },
  "media.createProxies": {
   "label": "Create Proxies\u2026",
@@ -1004,23 +1010,33 @@
  },
  "media.detachProxies": {
   "label": "Detach Proxies",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "media.detach_proxy",
+  "note": "implemented in 0.2.1 (alpha.18)"
  },
  "media.findMissing": {
   "label": "Find Missing Media",
-  "disposition": "new"
+  "disposition": "equivalent",
+  "eep": "media.check_missing",
+  "note": "the check scans every file-backed asset and reports the missing ids; the panel shows the same list"
  },
  "media.linkMedia": {
   "label": "Link Media\u2026",
-  "disposition": "new"
+  "disposition": "equivalent",
+  "eep": "project.relink_media",
+  "note": "linking an offline item to a new file IS the relink; clips reference the asset, so it re-links everywhere"
  },
  "media.makeOffline": {
   "label": "Make Offline\u2026",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "media.make_offline",
+  "note": "implemented in 0.2.1 (alpha.18)"
  },
  "media.offlineAll": {
   "label": "Offline All",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "media.offline_all",
+  "note": "implemented in 0.2.1 (alpha.18)"
  },
  "media.proxyPresets": {
   "label": "Proxy Presets",
@@ -1028,11 +1044,15 @@
  },
  "media.reconnectFullRes": {
   "label": "Reconnect Full Resolution Media\u2026",
-  "disposition": "new"
+  "disposition": "equivalent",
+  "eep": "project.relink_media",
+  "note": "EEP has no separate proxy-resolution layer; restoring the source path is the relink"
  },
  "media.refreshChanged": {
   "label": "Refresh Changed Media",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "media.refresh_changed",
+  "note": "implemented in 0.2.1 (alpha.18)"
  },
  "media.relink": {
   "label": "Relink Media",
@@ -1042,19 +1062,27 @@
  },
  "media.replaceFootage": {
   "label": "Replace Footage\u2026",
-  "disposition": "new"
+  "disposition": "equivalent",
+  "eep": "project.relink_media",
+  "note": "clips reference the asset id, so relinking replaces the footage in every edit"
  },
  "media.search": {
   "label": "Search for Media",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "media.search",
+  "note": "implemented in 0.2.1 (alpha.18)"
  },
  "media.status": {
   "label": "Media Status",
-  "disposition": "new"
+  "disposition": "equivalent",
+  "eep": "media.check_missing",
+  "note": "the check's counts are the status breakdown; media.list returns per-asset detail"
  },
  "media.toggleProxies": {
   "label": "Toggle Proxies",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "media.toggle_proxies",
+  "note": "implemented in 0.2.1 (alpha.18)"
  },
  "playhead.end": {
   "label": "Go to Sequence End",

@@ -56,7 +56,9 @@ export type IconName =
   | "subtitle"
   | "search"
   | "eye"
-  | "eyeOff";
+  | "eyeOff"
+  | "refresh"
+  | "proxy";
 
 /**
  * The single icon primitive. Every rendered SVG carries the `icon-svg` class
@@ -72,6 +74,8 @@ export function Icon({
     search: <><circle cx="8.5" cy="8.5" r="5.5" /><path d="m13 13 4 4" /></>,
     eye: <><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10Z" fill="none" stroke="currentColor" strokeWidth="1.5" /><circle cx="10" cy="10" r="2.4" fill="none" stroke="currentColor" strokeWidth="1.5" /></>,
     eyeOff: <><path d="M4 4s2.5 5.5 6 8.5 6 3.5 6 3.5M8.5 5.2C12.8 5.7 18 10 18 10s-1.3 2.4-3.6 4M2 10s1.6-2.9 4.4-4.4M4 16l2.5-2.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></>,
+    refresh: <><path d="M17 10a7 7 0 1 1-2-4.9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><path d="M17 3v4h-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></>,
+    proxy: <><rect x="3" y="5" width="8" height="10" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" /><rect x="9" y="9" width="8" height="6" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="2 1.5" /></>,
     check: <path d="m4 10 4 4 8-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
     fullscreen: <path d="M7 3H3v4m10-4h4v4M3 13v4h4m10-4v4h-4" />,
     restore: <path d="M7 3h10v10M13 7H3v10h10V7Z" />,

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.18] - 2026-10-26
+
+Tier-1 coverage Batch 2 (P15): the media family lands at 15/17,
+coverage 130/442 (29%). Nine new shipped commands: auto-relink of
+moved media from picked folders, deliberate offline marking (single
+and all), changed-file refresh with size/mtime baselines, colour info
+with real colourspace/gamma metadata on assets, proxy state
+(attach/detach per asset, project-wide proxy playback toggle), and a
+Media pool search focus gesture. Five FilmCraft media commands are
+documented as equivalences of the existing relink/check machinery.
+Proxy transcode creation stays a genuine gap for a future proxy
+phase. Catalogue: 231/231 shipped.
+
 ## [0.1.0-alpha.17] - 2026-10-26
 
 Tier-1 coverage Batch 1 (P14): playhead, prefs, and history families

@@ -39,6 +39,11 @@ impl EditorEngine {
                     scene: String::new(),
                     take: String::new(),
                     is_missing: false,
+                    proxy_path: None,
+                    colorspace: None,
+                    gamma: None,
+                    file_size: None,
+                    modified_ms: None,
                     title: params.title,
                     waveform: params.waveform,
                     nested_sequence: None,
@@ -249,6 +254,12 @@ impl EditorEngine {
                 if let Some(take) = params.take {
                     media.take = take.trim().to_string();
                 }
+                if let Some(colorspace) = params.colorspace {
+                    media.colorspace = Some(colorspace);
+                }
+                if let Some(gamma) = params.gamma {
+                    media.gamma = Some(gamma);
+                }
                 Ok(json!({
                     "updated": true,
                     "media_id": params.media_id,
@@ -283,6 +294,297 @@ impl EditorEngine {
                 serde_json::to_value(&self.document.project.media)
                     .map_err(|error| DispatchError::Operation(error.to_string())),
             ),
+            // File-backed predicate shared by the media hygiene commands:
+            // titles and compound sequences have no file to lose.
+            "media.auto_relink" => Some((|| {
+                let params: MediaAutoRelinkParams = parse_params(params)?;
+                if params.search_dirs.is_empty() {
+                    return Err(DispatchError::InvalidParameters(
+                        "auto_relink needs at least one search directory".into(),
+                    ));
+                }
+                let mut dirs: Vec<std::path::PathBuf> = Vec::new();
+                for dir in &params.search_dirs {
+                    let path = std::path::PathBuf::from(dir);
+                    if !path.is_dir() {
+                        return Err(DispatchError::InvalidParameters(format!(
+                            "Search directory {dir} does not exist"
+                        )));
+                    }
+                    dirs.push(path);
+                }
+                let mut matches: Vec<(u64, PathBuf)> = Vec::new();
+                for media in &self.document.project.media {
+                    if media.kind == MediaKind::Title
+                        || media.kind == MediaKind::CompoundSequence
+                        || media.path.exists()
+                    {
+                        continue;
+                    }
+                    if let Some(found) = dirs.iter().find_map(|dir| {
+                        let candidate = dir.join(&media.path.file_name()?);
+                        candidate.is_file().then(|| candidate)
+                    }) {
+                        matches.push((media.id, found));
+                    }
+                }
+                if matches.is_empty() {
+                    return Ok(json!({"relinked": 0, "still_missing": self
+                        .document
+                        .project
+                        .media
+                        .iter()
+                        .filter(|media| {
+                            media.kind != MediaKind::Title
+                                && media.kind != MediaKind::CompoundSequence
+                                && !media.path.exists()
+                        })
+                        .count()}));
+                }
+                self.checkpoint();
+                for (id, found) in &matches {
+                    let media = self
+                        .document
+                        .project
+                        .media
+                        .iter_mut()
+                        .find(|media| media.id == *id)
+                        .expect("collected from this list");
+                    media.path = found.clone();
+                    media.is_missing = false;
+                }
+                Ok(json!({
+                    "relinked": matches.len(),
+                    "matches": matches.iter().map(|(id, path)| json!({
+                        "media_id": id, "path": path.to_string_lossy(),
+                    })).collect::<Vec<_>>(),
+                }))
+            })()),
+            "media.make_offline" => Some((|| {
+                let params: MediaMakeOfflineParams = parse_params(params)?;
+                if let Some(ids) = &params.media_ids {
+                    for id in ids {
+                        if !self.document.project.media.iter().any(|m| m.id == *id) {
+                            return Err(DispatchError::InvalidParameters(format!(
+                                "Media item {id} does not exist"
+                            )));
+                        }
+                    }
+                }
+                let targets: Vec<u64> = self
+                    .document
+                    .project
+                    .media
+                    .iter()
+                    .filter(|media| {
+                        media.kind != MediaKind::Title
+                            && media.kind != MediaKind::CompoundSequence
+                            && !media.is_missing
+                            && params
+                                .media_ids
+                                .as_ref()
+                                .is_none_or(|ids| ids.contains(&media.id))
+                    })
+                    .map(|media| media.id)
+                    .collect();
+                if targets.is_empty() {
+                    return Ok(json!({"offline": 0}));
+                }
+                self.checkpoint();
+                for id in &targets {
+                    let media = self
+                        .document
+                        .project
+                        .media
+                        .iter_mut()
+                        .find(|media| media.id == *id)
+                        .expect("collected above");
+                    media.is_missing = true;
+                }
+                Ok(json!({"offline": targets.len()}))
+            })()),
+            "media.offline_all" => Some((|| {
+                let targets: Vec<u64> = self
+                    .document
+                    .project
+                    .media
+                    .iter()
+                    .filter(|media| {
+                        media.kind != MediaKind::Title
+                            && media.kind != MediaKind::CompoundSequence
+                            && !media.is_missing
+                    })
+                    .map(|media| media.id)
+                    .collect();
+                if targets.is_empty() {
+                    return Ok(json!({"offline": 0}));
+                }
+                self.checkpoint();
+                for id in &targets {
+                    let media = self
+                        .document
+                        .project
+                        .media
+                        .iter_mut()
+                        .find(|media| media.id == *id)
+                        .expect("collected above");
+                    media.is_missing = true;
+                }
+                Ok(json!({"offline": targets.len()}))
+            })()),
+            "media.refresh_changed" => Some((|| {
+                let params: MediaRefreshChangedParams = parse_params(params)?;
+                if let Some(ids) = &params.media_ids {
+                    for id in ids {
+                        if !self.document.project.media.iter().any(|m| m.id == *id) {
+                            return Err(DispatchError::InvalidParameters(format!(
+                                "Media item {id} does not exist"
+                            )));
+                        }
+                    }
+                }
+                let mut changed = Vec::new();
+                let mut missing = Vec::new();
+                let mut baselined = Vec::new();
+                for media in self.document.project.media.iter_mut() {
+                    if media.kind == MediaKind::Title
+                        || media.kind == MediaKind::CompoundSequence
+                    {
+                        continue;
+                    }
+                    if params
+                        .media_ids
+                        .as_ref()
+                        .is_some_and(|ids| !ids.contains(&media.id))
+                    {
+                        continue;
+                    }
+                    let Some(metadata) = std::fs::metadata(&media.path).ok() else {
+                        media.is_missing = true;
+                        missing.push(media.id);
+                        continue;
+                    };
+                    media.is_missing = false;
+                    let size = metadata.len();
+                    let modified = metadata
+                        .modified()
+                        .ok()
+                        .and_then(|time| time.duration_since(std::time::UNIX_EPOCH).ok())
+                        .map(|since| since.as_millis() as u64);
+                    match (media.file_size, media.modified_ms) {
+                        (Some(stored_size), Some(stored_modified))
+                            if stored_size != size || Some(stored_modified) != modified =>
+                        {
+                            changed.push(media.id);
+                        }
+                        (None, _) | (_, None) => {
+                            // First refresh records the baseline; not a change.
+                            baselined.push(media.id);
+                        }
+                        _ => {}
+                    }
+                    media.file_size = Some(size);
+                    media.modified_ms = modified;
+                }
+                Ok(json!({
+                    "changed": changed,
+                    "missing": missing,
+                    "baselined": baselined,
+                }))
+            })()),
+            "media.color_info" => Some((|| {
+                let params: MediaColorInfoParams = parse_params(params)?;
+                let media = self
+                    .document
+                    .project
+                    .media
+                    .iter()
+                    .find(|media| media.id == params.media_id)
+                    .ok_or_else(|| {
+                        DispatchError::InvalidParameters(format!(
+                            "Media item {} does not exist",
+                            params.media_id
+                        ))
+                    })?;
+                // Read-only: no checkpoint.
+                Ok(json!({
+                    "media_id": media.id,
+                    "name": media.name,
+                    "colorspace": media.colorspace,
+                    "gamma": media.gamma,
+                    "codec": media.codec,
+                    "width": media.width,
+                    "height": media.height,
+                    "fps": media.fps,
+                    "color_label": media.color_label,
+                }))
+            })()),
+            "media.attach_proxy" => Some((|| {
+                let params: MediaProxyAttachParams = parse_params(params)?;
+                let proxy_path = PathBuf::from(&params.path);
+                if !proxy_path.is_file() {
+                    return Err(DispatchError::InvalidParameters(
+                        "The proxy file does not exist".into(),
+                    ));
+                }
+                let index = self
+                    .document
+                    .project
+                    .media
+                    .iter()
+                    .position(|media| media.id == params.media_id)
+                    .ok_or_else(|| {
+                        DispatchError::InvalidParameters(format!(
+                            "Media item {} does not exist",
+                            params.media_id
+                        ))
+                    })?;
+                self.checkpoint();
+                let media = &mut self.document.project.media[index];
+                media.proxy_path = Some(proxy_path.clone());
+                Ok(json!({
+                    "attached": true,
+                    "media_id": media.id,
+                    "proxy_path": proxy_path.to_string_lossy(),
+                }))
+            })()),
+            "media.detach_proxy" => Some((|| {
+                let params: MediaProxyDetachParams = parse_params(params)?;
+                let media = self
+                    .document
+                    .project
+                    .media
+                    .iter()
+                    .find(|media| media.id == params.media_id)
+                    .ok_or_else(|| {
+                        DispatchError::InvalidParameters(format!(
+                            "Media item {} does not exist",
+                            params.media_id
+                        ))
+                    })?;
+                if media.proxy_path.is_none() {
+                    return Err(DispatchError::InvalidParameters(format!(
+                        "Media item {} has no proxy attached",
+                        params.media_id
+                    )));
+                }
+                self.checkpoint();
+                let media = self
+                    .document
+                    .project
+                    .media
+                    .iter_mut()
+                    .find(|media| media.id == params.media_id)
+                    .expect("verified above");
+                media.proxy_path = None;
+                Ok(json!({"detached": true, "media_id": media.id}))
+            })()),
+            "media.toggle_proxies" => Some((|| {
+                self.checkpoint();
+                let settings = &mut self.document.project.settings;
+                settings.use_proxies = !settings.use_proxies;
+                Ok(json!({"use_proxies": settings.use_proxies}))
+            })()),
             _ => None,
         }
     }

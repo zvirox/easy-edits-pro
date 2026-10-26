@@ -3975,3 +3975,165 @@ fn history_list_and_prefs_schema_describe_engine_state() {
         .unwrap();
     assert_eq!(prefs["value"], "light");
 }
+
+#[test]
+fn media_lifecycle_workflow_relink_offline_proxies() {
+    let folder = tempfile::tempdir().unwrap();
+    let real = folder.path().join("clip.mov");
+    std::fs::write(&real, b"fake media bytes").unwrap();
+    let stale = folder.path().join("gone").join("clip.mov");
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name": "Media"})))
+        .unwrap();
+
+    let added = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({
+                "name": "clip", "path": stale.to_string_lossy(), "kind": "video",
+                "width": 1920, "height": 1080, "codec": "prores",
+            }),
+        ))
+        .unwrap();
+    let media_id = added["media_id"].as_u64().unwrap();
+
+    // Colour metadata is recorded through update_properties, read via
+    // color_info.
+    engine
+        .execute(CommandRequest::new(
+            "media.update_properties",
+            json!({"media_id": media_id, "colorspace": "rec709", "gamma": "2.4"}),
+        ))
+        .unwrap();
+    let info = engine
+        .execute(CommandRequest::new(
+            "media.color_info",
+            json!({"media_id": media_id}),
+        ))
+        .unwrap()
+        .clone();
+    assert_eq!(info["colorspace"], "rec709");
+    assert_eq!(info["gamma"], "2.4");
+    assert_eq!(info["codec"], "prores");
+    assert!(engine
+        .execute(CommandRequest::new(
+            "media.color_info",
+            json!({"media_id": 4242}),
+        ))
+        .is_err());
+
+    // auto_relink scans the listed directories for the moved file.
+    let relinked = engine
+        .execute(CommandRequest::new(
+            "media.auto_relink",
+            json!({"search_dirs": [folder.path().to_string_lossy()]}),
+        ))
+        .unwrap();
+    assert_eq!(relinked["relinked"], 1);
+    let media = engine
+        .execute(CommandRequest::new("media.list", Value::Null))
+        .unwrap()[0]
+        .clone();
+    assert_eq!(media["path"].as_str().unwrap(), real.to_str().unwrap());
+    assert_eq!(media["is_missing"], false);
+    // Unknown search directories are rejected before any mutation.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "media.auto_relink",
+            json!({"search_dirs": ["/definitely/not/here"]}),
+        ))
+        .is_err());
+
+    // refresh_changed baselines on first sight, then reports the change.
+    let first = engine
+        .execute(CommandRequest::new("media.refresh_changed", json!({})))
+        .unwrap();
+    assert_eq!(first["baselined"].as_array().unwrap().len(), 1);
+    std::fs::write(&real, b"fake media bytes v2").unwrap();
+    let second = engine
+        .execute(CommandRequest::new("media.refresh_changed", json!({})))
+        .unwrap();
+    assert_eq!(
+        second["changed"].as_array().unwrap().len(),
+        1,
+        "refresh: {second}"
+    );
+
+    // Proxies attach to existing files only and detach cleanly.
+    let proxy = folder.path().join("clip_proxy.mov");
+    std::fs::write(&proxy, b"proxy bytes").unwrap();
+    let attached = engine
+        .execute(CommandRequest::new(
+            "media.attach_proxy",
+            json!({"media_id": media_id, "path": proxy.to_string_lossy()}),
+        ))
+        .unwrap();
+    assert_eq!(attached["attached"], true);
+    assert!(engine
+        .execute(CommandRequest::new(
+            "media.attach_proxy",
+            json!({"media_id": media_id, "path": "/definitely/not/here.mov"}),
+        ))
+        .is_err());
+    let toggled = engine
+        .execute(CommandRequest::new("media.toggle_proxies", Value::Null))
+        .unwrap();
+    assert_eq!(toggled["use_proxies"], true);
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    let settings = engine
+        .execute(CommandRequest::new("project.inspect", Value::Null))
+        .unwrap()["project"]["settings"]
+        .clone();
+    assert_eq!(settings["use_proxies"], false);
+    engine
+        .execute(CommandRequest::new("media.toggle_proxies", Value::Null))
+        .unwrap();
+    let detached = engine
+        .execute(CommandRequest::new(
+            "media.detach_proxy",
+            json!({"media_id": media_id}),
+        ))
+        .unwrap();
+    assert_eq!(detached["detached"], true);
+    assert!(engine
+        .execute(CommandRequest::new(
+            "media.detach_proxy",
+            json!({"media_id": media_id}),
+        ))
+        .is_err());
+
+    // Deliberate offline marking is undoable.
+    let offline = engine
+        .execute(CommandRequest::new(
+            "media.make_offline",
+            json!({"media_ids": [media_id]}),
+        ))
+        .unwrap();
+    assert_eq!(offline["offline"], 1);
+    let media = engine
+        .execute(CommandRequest::new("media.list", Value::Null))
+        .unwrap()[0]
+        .clone();
+    assert_eq!(media["is_missing"], true);
+    assert_eq!(media["path"].as_str().unwrap(), real.to_str().unwrap());
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    let media = engine
+        .execute(CommandRequest::new("media.list", Value::Null))
+        .unwrap()[0]
+        .clone();
+    assert_eq!(media["is_missing"], false);
+
+    // offline_all is the same gesture with no id filter.
+    let offline = engine
+        .execute(CommandRequest::new("media.offline_all", Value::Null))
+        .unwrap();
+    assert_eq!(offline["offline"], 1);
+    engine.execute(CommandRequest::new("edit.undo", Value::Null)).unwrap();
+    assert!(engine
+        .execute(CommandRequest::new(
+            "media.make_offline",
+            json!({"media_ids": [4242]}),
+        ))
+        .is_err());
+}

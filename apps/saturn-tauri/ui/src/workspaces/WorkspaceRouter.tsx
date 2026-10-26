@@ -1,5 +1,6 @@
 import type { HardwareEncoderInfo } from "../types";
 import type { MediaPanelProps } from "../features/media-pool";
+import type { MediaHygieneOps } from "../app/useMediaHygiene";
 import type { InspectorPanelProps } from "../features/inspector";
 import type { MarkersPanelProps } from "../features/markers";
 import type { CaptionsPanelProps } from "../features/captions";
@@ -47,6 +48,7 @@ export interface WorkspaceRouterProps {
   selectDavinciWorkspace: (ws: any) => void;
   playback: any;
   mediaOps: any;
+  mediaHygiene: MediaHygieneOps;
   timelineOps: any;
   inspectorOps: any;
   projectOps: any;
@@ -80,6 +82,7 @@ export function WorkspaceRouter({
   selectDavinciWorkspace,
   playback,
   mediaOps,
+  mediaHygiene,
   timelineOps,
   inspectorOps,
   projectOps,
@@ -214,6 +217,8 @@ export function WorkspaceRouter({
   }
 
   const mediaPanelProps: MediaPanelProps = {
+        hygiene: mediaHygiene,
+        useProxies: project?.settings.use_proxies ?? false,
         filmoraTab: mediaOps.filmoraTab,
         setFilmoraTab: mediaOps.setFilmoraTab,
         search: mediaOps.search,

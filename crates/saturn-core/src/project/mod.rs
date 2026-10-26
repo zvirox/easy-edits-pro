@@ -33,6 +33,7 @@ impl ProjectDocument {
                     height: 1080,
                     frame_rate: FrameRate::FPS_30,
                     audio_sample_rate: 48_000,
+                    use_proxies: false,
                 },
                 media: Vec::new(),
                 bins: Vec::new(),

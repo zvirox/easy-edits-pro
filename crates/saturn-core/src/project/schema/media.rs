@@ -45,6 +45,9 @@ pub struct ProjectSettings {
     pub height: u32,
     pub frame_rate: FrameRate,
     pub audio_sample_rate: u32,
+    /// Playback decodes proxy copies where an asset carries one.
+    #[serde(default)]
+    pub use_proxies: bool,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -138,6 +141,20 @@ pub struct MediaAsset {
     pub take: String,
     #[serde(default)]
     pub is_missing: bool,
+    /// Lower-resolution viewing copy; playback decodes this when the
+    /// project's `use_proxies` flag is on.
+    #[serde(default)]
+    pub proxy_path: Option<PathBuf>,
+    /// Colour metadata the shell records for the asset (e.g. "rec709").
+    #[serde(default)]
+    pub colorspace: Option<String>,
+    #[serde(default)]
+    pub gamma: Option<String>,
+    /// Disk stamp recorded at import and by `media.refresh_changed`.
+    #[serde(default)]
+    pub file_size: Option<u64>,
+    #[serde(default)]
+    pub modified_ms: Option<u64>,
     #[serde(default)]
     pub title: Option<TitleProperties>,
     #[serde(default)]
@@ -166,6 +183,11 @@ impl Default for MediaAsset {
             scene: String::new(),
             take: String::new(),
             is_missing: false,
+            proxy_path: None,
+            colorspace: None,
+            gamma: None,
+            file_size: None,
+            modified_ms: None,
             title: None,
             waveform: None,
             nested_sequence: None,

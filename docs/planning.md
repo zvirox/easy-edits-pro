@@ -623,6 +623,36 @@ flowchart TD
   app tests, build, 98 node tests, e2e, glass/commands/parity/source
   checks green.
 
+* **P15 — Tier-1 Batch 2: media 15/17 (Done 2026-10-26, shipped in
+  0.1.0-alpha.18):** Second family batch. Five audit equivalences
+  documented: media.findMissing and media.status map to
+  media.check_missing (the scan reports the online/offline breakdown
+  ids), media.linkMedia / media.reconnectFullRes /
+  media.replaceFootage map to project.relink_media (clips reference
+  the asset id, so relinking replaces or restores the footage in
+  every edit). Nine shipped commands (all `since: 0.2.1`):
+  `media.auto_relink` (name-match scan of user-chosen folders for
+  moved files; the pool's folder picker feeds it),
+  `media.make_offline` / `media.offline_all` (deliberate offline
+  marking; `is_missing` is the offline flag, paths survive),
+  `media.refresh_changed` (records a size/mtime baseline per asset at
+  import and re-stat on demand, so later changes are detected without
+  an in-engine prober), `media.color_info` (query; colourspace/gamma
+  become real MediaAsset fields recorded through the extended
+  media.update_properties and shown in the asset-properties dialog),
+  `media.attach_proxy` / `media.detach_proxy` (`proxy_path` on the
+  asset), `media.toggle_proxies` (`use_proxies` in project settings),
+  and `media.search` (ui_only: Media > Search focuses the pool search
+  box). The media pool gains relink/refresh/proxy toolbar controls;
+  the asset-properties dialog gains a Colour & Media State section
+  (colourspace, gamma, proxy attach/detach, mark offline). Deferred
+  as genuine gaps (2): media.createProxies and media.proxyPresets —
+  a real transcode pipeline, a proxy-phase feature beyond a parity
+  batch. Catalogue: 231 commands, 231 shipped, 56 UI-only.
+  Id-verified Tier-1: **130/442 (29%)**, media 15/17. Gates: workspace
+  tests (33 binaries), app tests, build, 98 node tests, e2e
+  (browserErrors 0), glass/commands/parity/source checks green.
+
 ---
 
 ## 7. Master Agentic Execution Rules

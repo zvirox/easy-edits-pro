@@ -339,3 +339,38 @@ pub(in crate::engine) struct SetColorParams {
     #[serde(default)]
     pub(in crate::engine) hue: f64,
 }
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct MediaAutoRelinkParams {
+    /// Directories scanned for files whose names match the missing assets.
+    pub(in crate::engine) search_dirs: Vec<String>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct MediaMakeOfflineParams {
+    /// File-backed assets to mark offline; None marks every file-backed asset.
+    #[serde(default)]
+    pub(in crate::engine) media_ids: Option<Vec<u64>>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct MediaRefreshChangedParams {
+    #[serde(default)]
+    pub(in crate::engine) media_ids: Option<Vec<u64>>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct MediaColorInfoParams {
+    pub(in crate::engine) media_id: u64,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct MediaProxyAttachParams {
+    pub(in crate::engine) media_id: u64,
+    pub(in crate::engine) path: String,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct MediaProxyDetachParams {
+    pub(in crate::engine) media_id: u64,
+}
