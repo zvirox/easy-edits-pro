@@ -363,9 +363,12 @@ per id. Parity is no longer the organizing metric; Beta 1 readiness is.
   regeneration over stale/pruned cache attachments (an attached path can
   dangle after the age-based startup prune).
 - Samples bundling / first-run offer (E.2 tail).
-- Flatpak: run the manifest in CI against a tagged release (archive source)
-  and re-verify the acceptance drive on the release asset; then one
-  non-dev-machine report.
+- Flatpak: **CI route proven and re-verified on a tagged release (2026-10-27)** -
+  flathub `org.flatpak.Builder` build (GES compiled in-sandbox), local
+  install, bundle export, and the acceptance drive inside the sandbox all
+  PASS (H.264 6.02s, dispatch run 40513781606 and tagged run 40514895960);
+  the bundle ships with v0.1.1-alpha.1. Remaining: one non-dev-machine
+  report.
 - Container-mode .deb + .rpm install proofs: **DONE (2026-10-27, pass
   `1112645`, run 40495646190)** - CI jobs deb+dpkg in debian:12 and
   rpm+dnf in fedora:latest both PASS (real dependency-managed install,

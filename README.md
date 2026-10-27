@@ -18,11 +18,12 @@ parity report](docs/PARITY.md) for the current numbers - it is the source of
 truth for coverage.
 
 The most recent release is
-[v0.1.0-alpha.26](https://github.com/zvirox/easy-edits-pro/releases/tag/v0.1.0-alpha.26),
-with .deb, .rpm, and SHA-256 checksum assets. Packages are experimental: a
-package build is not an install or hardware-compatibility claim. The recorded
-install-and-launch evidence so far is an automated extracted-prefix acceptance
-run of the alpha.26 .deb on the development laptop (see *Known limitations*).
+[v0.1.1-alpha.1](https://github.com/zvirox/easy-edits-pro/releases/tag/v0.1.1-alpha.1),
+with .deb, .rpm, a single-file Flatpak bundle, and SHA-256 checksum assets.
+Packages are experimental: a package build is not an install or
+hardware-compatibility claim. The recorded install evidence includes CI
+real-install proofs of all three routes plus automated acceptance runs (see
+*Known limitations*), but not yet a non-developer-machine report.
 
 ## What currently works
 
@@ -63,14 +64,14 @@ run of the alpha.26 .deb on the development laptop (see *Known limitations*).
   keyframe handle editing, and the export queue need further implementation.
 - Install evidence is honest and recorded: the alpha.26 .deb passed the
   scripted extracted-prefix acceptance workflow on the dev laptop, and the
-  CI install-proof jobs have proven both packages with real dependency-
-  managed installs (2026-10-27: dpkg install in debian:12 + H.264 render
-  PASS, dnf install in fedora:latest + WebM/VP8 render PASS; the .rpm
-  Requires were fixed - they named rpmfusion-only plugins). Remaining:
-  one non-dev-machine report each. The Flatpak spike passed on GNOME 49
-  (launch, edit, H.264 render) and the route is planned for Beta 1, but no
-  Flatpak build has shipped in a release yet. Record your own result per
-  [docs/distribution.md](docs/distribution.md).
+  CI install-proof jobs have proven all three Linux routes (2026-10-27:
+  dpkg install in debian:12 + H.264 render PASS, dnf install in
+  fedora:latest + WebM/VP8 render PASS - the .rpm Requires were fixed:
+  they named rpmfusion-only plugins - and the Flatpak was built in CI,
+  acceptance-driven inside its sandbox, and verified H.264). Remaining:
+  one non-dev-machine report per route. The Flatpak ships for the first
+  time in v0.1.1-alpha.1 as a single-file bundle; record your own result
+  per [docs/distribution.md](docs/distribution.md).
 - `.saturn` project files embed absolute media paths; moving a project or its
   media shows clips offline until they are relinked.
 
