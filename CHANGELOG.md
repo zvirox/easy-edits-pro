@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.26] - 2026-10-27
+
+Tier-1 closure release: the final six Tier-1 gaps resolve and Tier 1
+reaches **388/443 covered with 55 honest na — 100% effective** for Beta 1
+scope (Tier 2 holds 123/207, 100% effective; 511 covered overall).
+clip.enable arrives as a real engine command: Clip.enabled (serde
+default-true, so pre-existing projects load enabled), the render
+pipeline skips disabled clips, the preview scheduler filters them
+before every audio/title/visual gather, and the command toggles when
+`enabled` is omitted. The Sequence menu gains Linked Selection
+(clicking a linked clip selects its whole Clip.group_id group) and
+Selection Follows Playhead (the clip under the playhead is selected as
+it moves, topmost video track first, disabled clips never) — both
+editor-held, the engine never sees selection. Captions gains Show
+Active Track Only (hide all tracks, show activeTrackId). Media gains
+Create Proxies (prepare_video_preview job per video asset without a
+proxy, result attached; sources that already decode natively are left
+alone). Proxy Presets records honest na: one fixed 1280x720 VP9 webm
+preview profile, no preset system. Catalogue: 440 commands, 112
+ui_only.
+
 ## [0.1.0-alpha.25] - 2026-10-27
 
 Tier-1 milestone release crossing **400 covered**: 383/443 Tier 1 (98%)
