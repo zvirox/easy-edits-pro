@@ -176,6 +176,8 @@ fn main() {
             ripple_delete_fillers,
             export_timeline_interop,
             import_timeline_interop,
+            reveal_path,
+            generate_synthetic_media,
             get_gpu_preview_metrics,
             present_gpu_preview_frame,
             measure_ebu_r128_loudness,

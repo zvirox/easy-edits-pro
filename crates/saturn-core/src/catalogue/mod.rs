@@ -127,6 +127,7 @@ static COMMANDS: std::sync::LazyLock<Vec<CommandSpec>> = std::sync::LazyLock::ne
     all.extend_from_slice(commands::effects::COMMANDS);
     all.extend_from_slice(commands::engine::COMMANDS);
     all.extend_from_slice(commands::file::COMMANDS);
+    all.extend_from_slice(commands::file_flows::COMMANDS);
     all.extend_from_slice(commands::graphics::COMMANDS);
     all.extend_from_slice(commands::help::COMMANDS);
     all.extend_from_slice(commands::markers::COMMANDS);

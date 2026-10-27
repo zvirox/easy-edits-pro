@@ -915,3 +915,98 @@ pnpm --dir apps/saturn-tauri test:e2e
 * **No-Overlap Test:** Assert no two `.glass` card bounding boxes intersect under any layout state.
 * **Zero Color Token Drift:** Assert `git diff` on `styles/00-tokens-glass.css` shows 0 modified or added color hex/rgba values.
 * **Source Size Ceiling:** All new and modified `.ts`, `.tsx`, `.rs`, and `.css` files must strictly remain $\le 800$ lines.
+
+---
+
+## 6d. Alpha.25 Batch Plan - File family (51) + Tier-2 multicam audit, milestone 400 (2026-10-27)
+
+Baseline: 353/410 (86%). The §6c estimate "file 51 -> 439" assumed full
+coverage; recon shows ~20 file commands have no honest implementation
+(no AAF/ALE/OMF writers, no mogrt, no media browser, no template or
+project-manager subsystem). Alpha.25 therefore = maximal-real file
+batch + the Tier-2 multicam audit (features already built; entries
+pending) so the release still crosses 400 with honest mappings.
+
+### D.1 Interop exports (engine arms + File > Export flows)
+- interop modules already ship export_cmx3600_edl, export_fcpxml,
+  export_premiere_xml, export_otio; add engine arms
+  interop.export_edl / interop.export_fcpxml /
+  interop.export_premiere_xml / interop.export_otio returning the
+  serialized document text (non-mutating; one ui flow writes them via
+  the save dialog).
+- UI: useProjectOperations invokeMenuCommand cases export.edl /
+  export.fcpxml / export.fcp7_xml / export.otio ( catalogue ui_only)
+  each with a save dialog and a success notice. Map
+  file.exportEdl / exportFcpxml / exportFcp7Xml / exportOtio;
+  file.exportInterchange maps to export.otio (generic interchange).
+
+### D.2 Save group
+- file.saveAs: always-ask save dialog -> file.save (ui_only flow).
+- file.saveCopy: engine file.save gains optional {"copy":bool} - when
+  true, write the document but keep current_path (copy semantics).
+- file.saveAll: equivalent file.save (single-document model).
+- file.revert: confirm -> file.open {current path} (ui_only flow).
+- file.close / closeProject: confirm -> fresh project.new, app stage
+  back to welcome (ui_only flow).
+- file.reveal: small Tauri command reveal_path (xdg-open parent dir;
+  no new plugin deps) + ui_only flow on the current project path.
+- file.closeAllProjects / closeAllOtherProjects: na (one project per
+  window).
+
+### D.3 Recovery / autosave (existing Tauri infra, now reachable)
+- Tauri already has autosave_once, recovery_status, restore_autosave,
+  discard_autosave and a periodic timer. Add ui_only catalogue
+  commands project.autosave.now / project.autosave.status /
+  project.recovery.restore / project.recovery.discard with
+  invokeMenuCommand cases and notices.
+- Map file.autoSaveNow / autoSaveStatus / recover / discardRecovery
+  (shipped) and file.listAutoSaves / recoveryList (equivalent status;
+  single autosave slot).
+
+### D.4 Frame export
+- Tauri export_frame already exists with a Preview PNG affordance.
+  Add export.frame ui_only catalogue command with an invokeMenuCommand
+  case (save dialog + invoke) so File > Export > Frame reaches the
+  same path; map file.exportFrame.
+- file.exportMedia -> equivalent export.quick.
+
+### D.5 Synthetic media generator (real feature)
+- Pure-Rust uncompressed-PNG writer (stored-deflate blocks, ~50 lines)
+  in a new Tauri module generates solid-color RGBA stills: black
+  video, color matte, transparent video. Honest, deterministic,
+  unit-testable; no new dependencies.
+- Bars and tone: GStreamer pipeline videotestsrc smpte ! x264enc +
+  audiotestsrc sine ! avenc_aac -> mp4mux (encoders verified present).
+- Tauri command generate_synthetic_media(kind, color, duration,
+  directory) -> path; ui_only catalogue command media.generate with
+  an invokeMenuCommand case (prompt options, generate, project.add_media).
+- Map file.newBlackVideo / newColorMatte / newTransparentVideo /
+  newBarsAndTone (shipped). newAdjustmentLayer na (no overlay clip
+  model); newCountingLeader na.
+
+### D.6 Remaining equivalents + na
+- Equivalent: file.newBinFromSelection -> media.create_bin +
+  media.move_to_bin (selection fan-out); file.newSearchBin ->
+  project.searchBin.set; file.newSequenceFromClip ->
+  timeline.create_compound_clip (one-clip nest); file.mediaProperties /
+  mediaPropertiesFile -> media.update_properties;
+  file.projectSettings.general -> sequence.settings (geometry/rate;
+  scratch disks na).
+- Na (each with note): importAaf, exportAaf, exportAle, exportOmf,
+  exportGraphicsTemplate, exportSelectionProject, importImageSequence,
+  importFromMediaBrowser, importDemoFootage, openDemoProject,
+  newOfflineFile, newProjectFromTemplate, saveAsTemplate, templates,
+  projectManager, scratchDisks, replaceFonts, closeAll x2.
+
+### D.7 Tier-2 multicam audit (features already exist)
+- Map multicam family (35) against existing engine commands
+  (multicam.create/switch/sync/flatten/update/delete) and the angle
+  viewer affordances; any uncovered gap recorded honestly. Existing
+  verifies: command_workflow multicam tests + this batch's tests.
+
+### Gates
+Same stack as §6c plus: reveal_path unit test, PNG writer unit tests,
+bars-tone generation smoke test (skip if gstreamer unavailable),
+export arm round-trip through interop import tests, source-size cap
+(useProjectOperations.ts currently 784 lines - extract file-flow
+helpers if needed).

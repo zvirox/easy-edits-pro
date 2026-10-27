@@ -1,2365 +1,2428 @@
 {
-  "captions.add": {
-    "label": "Add Caption at Playhead",
-    "disposition": "equivalent",
-    "eep": "caption.cue_add"
-  },
-  "captions.delete": {
-    "label": "Delete Captions",
-    "disposition": "new",
-    "eep": "caption.cue_delete",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "captions.deleteTrack": {
-    "label": "Delete Caption Track",
-    "disposition": "equivalent",
-    "eep": "caption.track_remove"
-  },
-  "captions.export": {
-    "label": "Captions…",
-    "disposition": "equivalent",
-    "eep": "caption.export"
-  },
-  "captions.goTo": {
-    "label": "Go to Caption",
-    "disposition": "new",
-    "eep": "caption.go_to",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "captions.hideAll": {
-    "label": "Hide All Caption Tracks",
-    "disposition": "new",
-    "eep": "caption.tracks_hide",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "captions.import": {
-    "label": "Import Captions…",
-    "disposition": "equivalent",
-    "eep": "caption.import"
-  },
-  "captions.list": {
-    "label": "List Captions",
-    "disposition": "new",
-    "eep": "caption.list",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "captions.merge": {
-    "label": "Merge Captions",
-    "disposition": "new",
-    "eep": "caption.cue_merge",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "captions.move": {
-    "label": "Move Captions",
-    "disposition": "equivalent",
-    "eep": "caption.cue_nudge",
-    "note": "moving a caption in time is the cue timing nudge"
-  },
-  "captions.newTrack": {
-    "label": "Add New Caption Track…",
-    "disposition": "equivalent",
-    "eep": "caption.track_add"
-  },
-  "captions.next": {
-    "label": "Go to Next Caption Segment",
-    "disposition": "new",
-    "eep": "caption.next",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "captions.previous": {
-    "label": "Go to Previous Caption Segment",
-    "disposition": "new",
-    "eep": "caption.previous",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "captions.select": {
-    "label": "Select Captions",
-    "disposition": "new",
-    "eep": "caption.cue_select",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "captions.setStyle": {
-    "label": "Caption Track Style",
-    "disposition": "equivalent",
-    "eep": "caption.style_set",
-    "note": "per-track style folds into the caption style set"
-  },
-  "captions.setText": {
-    "label": "Edit Caption Text",
-    "disposition": "equivalent",
-    "eep": "caption.cue_update",
-    "note": "cue_update edits text and timing"
-  },
-  "captions.setTimes": {
-    "label": "Set Caption In/Out",
-    "disposition": "equivalent",
-    "eep": "caption.cue_update",
-    "note": "cue_update edits text and timing"
-  },
-  "captions.setTrack": {
-    "label": "Caption Track Settings",
-    "disposition": "equivalent",
-    "eep": "caption.track_rename",
-    "note": "EEP per-track settings are the track name; looks are per-track styles via caption.style_set"
-  },
-  "captions.showActiveOnly": {
-    "label": "Show Active Caption Tracks Only",
-    "disposition": "new"
-  },
-  "captions.showAll": {
-    "label": "Show All Caption Tracks",
-    "disposition": "new",
-    "eep": "caption.tracks_show",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "captions.split": {
-    "label": "Split Caption",
-    "disposition": "new",
-    "eep": "caption.cue_split",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "captions.trim": {
-    "label": "Trim Caption",
-    "disposition": "equivalent",
-    "eep": "caption.cue_nudge",
-    "note": "timing trim of a cue"
-  },
-  "clip.audioChannels": {
-    "label": "Audio Channels…",
-    "disposition": "equivalent",
-    "eep": "media.update_properties",
-    "note": "interpreted channel count is recorded on the asset metadata"
-  },
-  "clip.audioGain": {
-    "label": "Audio Gain…",
-    "disposition": "shipped",
-    "eep": "clip.set_volume_db",
-    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
-  },
-  "clip.audioPeak": {
-    "label": "Audio Clip Peak Amplitude",
-    "disposition": "na",
-    "note": "no per-clip peak amplitude readout"
-  },
-  "clip.automateToSequence": {
-    "label": "Automate to Sequence…",
-    "disposition": "na",
-    "note": "clip volume is a static dB trim in EEP, not keyframed, so there are no clip gain keyframes to copy onto mix-track automation"
-  },
-  "clip.breakoutToMono": {
-    "label": "Breakout to Mono",
-    "disposition": "na",
-    "note": "no channel-split render path; clips reference whole assets"
-  },
-  "clip.clearPosterFrame": {
-    "label": "Clear Poster Frame",
-    "disposition": "na",
-    "note": "no thumbnail/poster preview pipeline"
-  },
-  "clip.createMulticam": {
-    "label": "Create Multi-Camera Source Sequence…",
-    "disposition": "equivalent",
-    "eep": "multicam.create",
-    "note": "multi-camera source sequence creation"
-  },
-  "clip.editOffline": {
-    "label": "Edit Offline…",
-    "disposition": "equivalent",
-    "eep": "project.relink_media",
-    "note": "offline clips are relinked to a chosen path rather than edited offline"
-  },
-  "clip.editSubclip": {
-    "label": "Edit Subclip…",
-    "disposition": "shipped",
-    "eep": "media.reveal",
-    "note": "subclip assets open as panel-selected media; EEP edits subclip content in place on the timeline, there is no separate subclip editor"
-  },
-  "clip.enable": {
-    "label": "Enable",
-    "disposition": "new"
-  },
-  "clip.extractAudio": {
-    "label": "Extract Audio",
-    "disposition": "na",
-    "note": "EEP renders non-audio media on audio tracks as an error; audio plays with its video clip, so there is no separate audio event to extract into"
-  },
-  "clip.fieldOptions": {
-    "label": "Field Options…",
-    "disposition": "na",
-    "note": "no interlaced-field pipeline in the render path"
-  },
-  "clip.fillFrame": {
-    "label": "Fill frame",
-    "disposition": "shipped",
-    "eep": "clip.frame_fit",
-    "note": "scale keyframes computed from media vs project aspect; 'fill' covers the native letterbox fit, 'fit' resets to identity"
-  },
-  "clip.fitToFrame": {
-    "label": "Fit to frame",
-    "disposition": "shipped",
-    "eep": "clip.frame_fit",
-    "note": "scale keyframes computed from media vs project aspect; 'fill' covers the native letterbox fit, 'fit' resets to identity"
-  },
-  "clip.frameHold": {
-    "label": "Add Frame Hold",
-    "disposition": "na",
-    "note": "no freeze-frame segment support in the clip model"
-  },
-  "clip.frameHoldOptions": {
-    "label": "Frame Hold Options…",
-    "disposition": "na",
-    "note": "no freeze-frame segment support in the clip model"
-  },
-  "clip.generateAudioWaveform": {
-    "label": "Generate Audio Waveform",
-    "disposition": "na",
-    "note": "waveforms auto-generate for imported audio; there is no manual regenerate"
-  },
-  "clip.group": {
-    "label": "Group",
-    "disposition": "equivalent",
-    "eep": "timeline.link_clips",
-    "note": "clips link/unlink as a group; all linked edits stay selected together"
-  },
-  "clip.insertFrameHoldSegment": {
-    "label": "Insert Frame Hold Segment",
-    "disposition": "na",
-    "note": "no freeze-frame segment support in the clip model"
-  },
-  "clip.interpretFootage": {
-    "label": "Interpret Footage…",
-    "disposition": "equivalent",
-    "eep": "media.update_properties",
-    "note": "colorspace and gamma interpretation metadata are recorded on the asset"
-  },
-  "clip.link": {
-    "label": "Link",
-    "disposition": "equivalent",
-    "eep": "timeline.link_clips"
-  },
-  "clip.makeSubclip": {
-    "label": "Make Subclip…",
-    "disposition": "shipped",
-    "eep": "clip.make_subclip",
-    "note": "new media asset cloning the source with the clip range as source marks"
-  },
-  "clip.mergeClips": {
-    "label": "Merge Clips…",
-    "disposition": "equivalent",
-    "eep": "timeline.create_compound_clip",
-    "note": "selected clips merge into a compound clip backed by a nested sequence"
-  },
-  "clip.modifyTimecode": {
-    "label": "Timecode…",
-    "disposition": "na",
-    "note": "no timecode display or burn-in in the player"
-  },
-  "clip.multicamEnable": {
-    "label": "Enable",
-    "disposition": "equivalent",
-    "eep": "multicam.create",
-    "note": "the clip becomes multicam via a multicam group with angle switching"
-  },
-  "clip.multicamFlatten": {
-    "label": "Flatten",
-    "disposition": "shipped",
-    "eep": "multicam.flatten",
-    "note": "clears the multicam linkage, keeping the active angle's media as a plain clip"
-  },
-  "clip.nest": {
-    "label": "Nest…",
-    "disposition": "equivalent",
-    "eep": "timeline.create_compound_clip",
-    "note": "nesting creates a compound clip"
-  },
-  "clip.nudgeVolumeDown1": {
-    "label": "Nudge Volume -1dB",
-    "disposition": "shipped",
-    "eep": "clip.set_volume_db",
-    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
-  },
-  "clip.nudgeVolumeDown3": {
-    "label": "Nudge Volume -3dB",
-    "disposition": "shipped",
-    "eep": "clip.set_volume_db",
-    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
-  },
-  "clip.nudgeVolumeUp1": {
-    "label": "Nudge Volume +1dB",
-    "disposition": "shipped",
-    "eep": "clip.set_volume_db",
-    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
-  },
-  "clip.nudgeVolumeUp3": {
-    "label": "Nudge Volume +3dB",
-    "disposition": "shipped",
-    "eep": "clip.set_volume_db",
-    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
-  },
-  "clip.remix": {
-    "label": "Remix",
-    "disposition": "na",
-    "note": "no music-remix/ducking analysis in the engine"
-  },
-  "clip.remix.enable": {
-    "label": "Enable Remix",
-    "disposition": "na",
-    "note": "no music-remix/ducking analysis in the engine"
-  },
-  "clip.remix.properties": {
-    "label": "Remix Properties…",
-    "disposition": "na",
-    "note": "no music-remix/ducking analysis in the engine"
-  },
-  "clip.remix.revert": {
-    "label": "Revert Remix",
-    "disposition": "na",
-    "note": "no music-remix/ducking analysis in the engine"
-  },
-  "clip.rename": {
-    "label": "Rename…",
-    "disposition": "na",
-    "note": "timeline clips carry label colours, not names; show as media name"
-  },
-  "clip.replaceFromBin": {
-    "label": "From Bin",
-    "disposition": "shipped",
-    "eep": "timeline.replace_media",
-    "note": "swaps the clip's source asset, keeping position, duration and effects; panel-selected media replaces the bin/source-monitor pickers"
-  },
-  "clip.replaceFromSource": {
-    "label": "From Source Monitor",
-    "disposition": "shipped",
-    "eep": "timeline.replace_media",
-    "note": "swaps the clip's source asset, keeping position, duration and effects; panel-selected media replaces the bin/source-monitor pickers"
-  },
-  "clip.replaceFromSourceMatchFrame": {
-    "label": "From Source Monitor, Match Frame",
-    "disposition": "shipped",
-    "eep": "timeline.replace_media",
-    "note": "swaps the clip's source asset, keeping position, duration and effects; panel-selected media replaces the bin/source-monitor pickers"
-  },
-  "clip.restoreCaptionsFromSource": {
-    "label": "Restore Captions from Source Clip",
-    "disposition": "equivalent",
-    "eep": "caption.import",
-    "note": "captions come back from the source caption track/import pipeline"
-  },
-  "clip.revealInProject": {
-    "label": "Reveal in Project",
-    "disposition": "shipped",
-    "eep": "media.reveal",
-    "note": "ui_only: selects the clip's media in the project panel and reports the playhead position; EEP has no source monitor window"
-  },
-  "clip.scaleToFrameSize": {
-    "label": "Scale to Frame Size",
-    "disposition": "shipped",
-    "eep": "clip.frame_fit",
-    "note": "scale-to-frame-size resets the transform scale to the native letterbox fit (scale100 mode, identical maths to fit in EEP)"
-  },
-  "clip.sceneEditDetection": {
-    "label": "Scene Edit Detection…",
-    "disposition": "na",
-    "note": "no scene-cut analysis pass in the engine"
-  },
-  "clip.setPosterFrame": {
-    "label": "Set Poster Frame",
-    "disposition": "na",
-    "note": "no thumbnail/poster preview pipeline"
-  },
-  "clip.setTimeInterpolation": {
-    "label": "Set Time Interpolation",
-    "disposition": "equivalent",
-    "eep": "clip.set_speed_ramp",
-    "note": "time interpolation rides on the clip speed ramp"
-  },
-  "clip.sourceSettings": {
-    "label": "Source Settings…",
-    "disposition": "na",
-    "note": "asset interpret metadata (colorspace/gamma/channels) is edited via media.update_properties instead of a source settings dialog"
-  },
-  "clip.speedDuration": {
-    "label": "Speed/Duration…",
-    "disposition": "equivalent",
-    "eep": "timeline.rate_stretch"
-  },
-  "clip.synchronize": {
-    "label": "Synchronize…",
-    "disposition": "equivalent",
-    "eep": "multicam.sync",
-    "note": "sync angles by audio waveform correlation with manual offsets"
-  },
-  "clip.timeInterpolation.frameBlending": {
-    "label": "Frame Blending",
-    "disposition": "equivalent",
-    "eep": "clip.set_speed_ramp",
-    "note": "frame-blend flag on the speed ramp"
-  },
-  "clip.timeInterpolation.frameSampling": {
-    "label": "Frame Sampling",
-    "disposition": "equivalent",
-    "eep": "clip.set_speed_ramp",
-    "note": "frame sampling = both interpolation flags off"
-  },
-  "clip.timeInterpolation.opticalFlow": {
-    "label": "Optical Flow",
-    "disposition": "equivalent",
-    "eep": "clip.set_speed_ramp",
-    "note": "optical-flow interpolation flag on the speed ramp"
-  },
-  "clip.ungroup": {
-    "label": "Ungroup",
-    "disposition": "equivalent",
-    "eep": "timeline.unlink_clips"
-  },
-  "clip.updateMetadata": {
-    "label": "Update Metadata…",
-    "disposition": "equivalent",
-    "eep": "media.update_properties"
-  },
-  "clip.volumeDown": {
-    "label": "Decrease Clip Volume",
-    "disposition": "shipped",
-    "eep": "clip.set_volume_db",
-    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
-  },
-  "clip.volumeDownMany": {
-    "label": "Decrease Clip Volume Many",
-    "disposition": "shipped",
-    "eep": "clip.set_volume_db",
-    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
-  },
-  "clip.volumeUp": {
-    "label": "Increase Clip Volume",
-    "disposition": "shipped",
-    "eep": "clip.set_volume_db",
-    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
-  },
-  "clip.volumeUpMany": {
-    "label": "Increase Clip Volume Many",
-    "disposition": "shipped",
-    "eep": "clip.set_volume_db",
-    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
-  },
-  "edit.clear": {
-    "label": "Clear",
-    "disposition": "equivalent",
-    "eep": "edit.delete",
-    "note": "edit.delete carries the 'clear' alias"
-  },
-  "edit.consolidateDuplicates": {
-    "label": "Consolidate Duplicates",
-    "disposition": "new",
-    "eep": "edit.consolidate_duplicates"
-  },
-  "edit.copy": {
-    "label": "Copy",
-    "disposition": "shipped",
-    "eep": "edit.copy"
-  },
-  "edit.cut": {
-    "label": "Cut",
-    "disposition": "shipped",
-    "eep": "edit.cut"
-  },
-  "edit.deselectAll": {
-    "label": "Deselect All",
-    "disposition": "equivalent",
-    "eep": "edit.deselect_all"
-  },
-  "edit.duplicate": {
-    "label": "Duplicate",
-    "disposition": "new",
-    "eep": "edit.duplicate"
-  },
-  "edit.editOriginal": {
-    "label": "Edit Original",
-    "disposition": "new",
-    "eep": "edit.edit_original"
-  },
-  "edit.find": {
-    "label": "Find…",
-    "disposition": "new",
-    "eep": "edit.find"
-  },
-  "edit.findNext": {
-    "label": "Find Next",
-    "disposition": "new",
-    "eep": "edit.find_next"
-  },
-  "edit.label": {
-    "label": "Label",
-    "disposition": "na",
-    "note": "submenu parent, not a command"
-  },
-  "edit.label.blue": {
-    "label": "Blue",
-    "disposition": "new",
-    "eep": "edit.label.blue"
-  },
-  "edit.label.brown": {
-    "label": "Brown",
-    "disposition": "new",
-    "eep": "edit.label.brown"
-  },
-  "edit.label.caribbean": {
-    "label": "Caribbean",
-    "disposition": "new",
-    "eep": "edit.label.caribbean"
-  },
-  "edit.label.cerulean": {
-    "label": "Cerulean",
-    "disposition": "new",
-    "eep": "edit.label.cerulean"
-  },
-  "edit.label.forest": {
-    "label": "Forest",
-    "disposition": "new",
-    "eep": "edit.label.forest"
-  },
-  "edit.label.green": {
-    "label": "Green",
-    "disposition": "new",
-    "eep": "edit.label.green"
-  },
-  "edit.label.iris": {
-    "label": "Iris",
-    "disposition": "new",
-    "eep": "edit.label.iris"
-  },
-  "edit.label.lavender": {
-    "label": "Lavender",
-    "disposition": "new",
-    "eep": "edit.label.lavender"
-  },
-  "edit.label.magenta": {
-    "label": "Magenta",
-    "disposition": "new",
-    "eep": "edit.label.magenta"
-  },
-  "edit.label.mango": {
-    "label": "Mango",
-    "disposition": "new",
-    "eep": "edit.label.mango"
-  },
-  "edit.label.purple": {
-    "label": "Purple",
-    "disposition": "new",
-    "eep": "edit.label.purple"
-  },
-  "edit.label.rose": {
-    "label": "Rose",
-    "disposition": "new",
-    "eep": "edit.label.rose"
-  },
-  "edit.label.tan": {
-    "label": "Tan",
-    "disposition": "new",
-    "eep": "edit.label.tan"
-  },
-  "edit.label.teal": {
-    "label": "Teal",
-    "disposition": "new",
-    "eep": "edit.label.teal"
-  },
-  "edit.label.violet": {
-    "label": "Violet",
-    "disposition": "new",
-    "eep": "edit.label.violet"
-  },
-  "edit.label.yellow": {
-    "label": "Yellow",
-    "disposition": "new",
-    "eep": "edit.label.yellow"
-  },
-  "edit.paste": {
-    "label": "Paste",
-    "disposition": "shipped",
-    "eep": "edit.paste"
-  },
-  "edit.pasteAttributes": {
-    "label": "Paste Attributes…",
-    "disposition": "new",
-    "eep": "edit.paste_attributes"
-  },
-  "edit.pasteInsert": {
-    "label": "Paste Insert",
-    "disposition": "new",
-    "eep": "edit.paste_insert"
-  },
-  "edit.pasteMedia": {
-    "label": "Paste Media",
-    "disposition": "new",
-    "eep": "edit.paste_media"
-  },
-  "edit.redo": {
-    "label": "Redo",
-    "disposition": "shipped",
-    "eep": "edit.redo"
-  },
-  "edit.removeAttributes": {
-    "label": "Remove Attributes…",
-    "disposition": "new",
-    "eep": "edit.remove_attributes"
-  },
-  "edit.removeUnused": {
-    "label": "Remove Unused",
-    "disposition": "new",
-    "eep": "edit.remove_unused_media"
-  },
-  "edit.rippleDelete": {
-    "label": "Ripple Delete",
-    "disposition": "equivalent",
-    "eep": "timeline.ripple_delete"
-  },
-  "edit.rippleDeleteHead": {
-    "label": "Ripple Delete Head Frame",
-    "disposition": "new",
-    "eep": "edit.ripple_delete_head"
-  },
-  "edit.selectAll": {
-    "label": "Select All",
-    "disposition": "equivalent",
-    "eep": "edit.select_all"
-  },
-  "edit.selectAllMatching": {
-    "label": "Select All Matching",
-    "disposition": "new",
-    "eep": "edit.select_all_matching"
-  },
-  "edit.selectLabelGroup": {
-    "label": "Select Label Group",
-    "disposition": "new",
-    "eep": "edit.select_label_group"
-  },
-  "edit.undo": {
-    "label": "Undo",
-    "disposition": "shipped",
-    "eep": "edit.undo"
-  },
-  "export.formats": {
-    "label": "List Export Formats",
-    "disposition": "new",
-    "eep": "export.formats",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.presets.delete": {
-    "label": "Delete Export Preset",
-    "disposition": "new",
-    "eep": "export.presets.delete",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.presets.export": {
-    "label": "Export Export Presets",
-    "disposition": "new",
-    "eep": "export.presets.export",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.presets.favorite": {
-    "label": "Favorite Export Preset",
-    "disposition": "new",
-    "eep": "export.presets.favorite",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.presets.get": {
-    "label": "Get Export Preset",
-    "disposition": "new",
-    "eep": "export.presets.get",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.presets.import": {
-    "label": "Import Export Presets",
-    "disposition": "new",
-    "eep": "export.presets.import",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.presets.list": {
-    "label": "List Export Presets",
-    "disposition": "new",
-    "eep": "export.presets",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.presets.save": {
-    "label": "Save Export Preset",
-    "disposition": "new",
-    "eep": "export.presets.save",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.queue.add": {
-    "label": "Send to Export Queue",
-    "disposition": "new",
-    "eep": "export.queue.add",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.queue.cancel": {
-    "label": "Cancel Queued Export",
-    "disposition": "new",
-    "eep": "export.queue.cancel",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.queue.clear": {
-    "label": "Clear Finished Exports",
-    "disposition": "new",
-    "eep": "export.queue.clear",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.queue.list": {
-    "label": "List Export Queue",
-    "disposition": "new",
-    "eep": "export.queue.list",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.queue.move": {
-    "label": "Reorder Queued Export",
-    "disposition": "new",
-    "eep": "export.queue.move",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.queue.remove": {
-    "label": "Remove Queued Export",
-    "disposition": "new",
-    "eep": "export.queue.remove",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.queue.retry": {
-    "label": "Retry Queued Export",
-    "disposition": "new",
-    "eep": "export.queue.retry",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.queue.start": {
-    "label": "Start Export Queue",
-    "disposition": "new",
-    "eep": "export.queue.start",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.queue.stop": {
-    "label": "Stop Export Queue",
-    "disposition": "new",
-    "eep": "export.queue.stop",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.quick": {
-    "label": "Quick Export",
-    "disposition": "new",
-    "eep": "export.quick",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "export.resolve": {
-    "label": "Resolve Export Settings",
-    "disposition": "new",
-    "eep": "export.resolve",
-    "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
-  },
-  "file.autoSaveNow": {
-    "label": "Auto Save Now",
-    "disposition": "new"
-  },
-  "file.autoSaveStatus": {
-    "label": "Auto Save Status",
-    "disposition": "new"
-  },
-  "file.close": {
-    "label": "Close",
-    "disposition": "new"
-  },
-  "file.closeAllOtherProjects": {
-    "label": "Close All Other Projects",
-    "disposition": "new"
-  },
-  "file.closeAllProjects": {
-    "label": "Close All Projects",
-    "disposition": "new"
-  },
-  "file.closeProject": {
-    "label": "Close Project",
-    "disposition": "new"
-  },
-  "file.discardRecovery": {
-    "label": "Discard Unsaved Changes",
-    "disposition": "new"
-  },
-  "file.exportAaf": {
-    "label": "AAF…",
-    "disposition": "new"
-  },
-  "file.exportAle": {
-    "label": "Avid Log Exchange…",
-    "disposition": "new"
-  },
-  "file.exportEdl": {
-    "label": "EDL…",
-    "disposition": "new"
-  },
-  "file.exportFcp7Xml": {
-    "label": "Final Cut Pro XML…",
-    "disposition": "new"
-  },
-  "file.exportFcpxml": {
-    "label": "FCPXML…",
-    "disposition": "new"
-  },
-  "file.exportFrame": {
-    "label": "Export Frame",
-    "disposition": "new"
-  },
-  "file.exportGraphicsTemplate": {
-    "label": "Motion Graphics Template…",
-    "disposition": "new"
-  },
-  "file.exportInterchange": {
-    "label": "Export Interchange",
-    "disposition": "new"
-  },
-  "file.exportMedia": {
-    "label": "Media…",
-    "disposition": "new"
-  },
-  "file.exportOmf": {
-    "label": "OMF…",
-    "disposition": "new"
-  },
-  "file.exportOtio": {
-    "label": "OpenTimelineIO…",
-    "disposition": "new"
-  },
-  "file.exportSelectionProject": {
-    "label": "Selection as FilmCraft Project…",
-    "disposition": "new"
-  },
-  "file.import": {
-    "label": "Import…",
-    "disposition": "equivalent",
-    "eep": "project.add_media",
-    "note": "generic import dialog"
-  },
-  "file.importAaf": {
-    "label": "Import AAF…",
-    "disposition": "new"
-  },
-  "file.importDemoFootage": {
-    "label": "Demo Footage",
-    "disposition": "new"
-  },
-  "file.importFromMediaBrowser": {
-    "label": "Import from Media Browser",
-    "disposition": "new"
-  },
-  "file.importImageSequence": {
-    "label": "Import Image Sequence…",
-    "disposition": "new"
-  },
-  "file.listAutoSaves": {
-    "label": "Browse Auto-Saves",
-    "disposition": "new"
-  },
-  "file.mediaProperties": {
-    "label": "Selection…",
-    "disposition": "new"
-  },
-  "file.mediaPropertiesFile": {
-    "label": "File…",
-    "disposition": "new"
-  },
-  "file.newAdjustmentLayer": {
-    "label": "Adjustment Layer…",
-    "disposition": "new"
-  },
-  "file.newBarsAndTone": {
-    "label": "Bars and Tone…",
-    "disposition": "new"
-  },
-  "file.newBin": {
-    "label": "Bin",
-    "disposition": "equivalent",
-    "eep": "media.create_bin"
-  },
-  "file.newBinFromSelection": {
-    "label": "Bin From Selection",
-    "disposition": "new"
-  },
-  "file.newBlackVideo": {
-    "label": "Black Video…",
-    "disposition": "new"
-  },
-  "file.newColorMatte": {
-    "label": "Color Matte…",
-    "disposition": "new"
-  },
-  "file.newCountingLeader": {
-    "label": "Universal Counting Leader…",
-    "disposition": "new"
-  },
-  "file.newOfflineFile": {
-    "label": "Offline File…",
-    "disposition": "new"
-  },
-  "file.newProject": {
-    "label": "Project…",
-    "disposition": "equivalent",
-    "eep": "project.new"
-  },
-  "file.newProjectFromTemplate": {
-    "label": "New Project from Template",
-    "disposition": "new"
-  },
-  "file.newSearchBin": {
-    "label": "Search Bin",
-    "disposition": "new"
-  },
-  "file.newSequence": {
-    "label": "Sequence…",
-    "disposition": "equivalent",
-    "eep": "sequence.create"
-  },
-  "file.newSequenceFromClip": {
-    "label": "Sequence From Clip",
-    "disposition": "new"
-  },
-  "file.newTransparentVideo": {
-    "label": "Transparent Video…",
-    "disposition": "new"
-  },
-  "file.open": {
-    "label": "Open Project…",
-    "disposition": "shipped",
-    "eep": "file.open"
-  },
-  "file.openDemoProject": {
-    "label": "Demo Project",
-    "disposition": "new"
-  },
-  "file.projectManager": {
-    "label": "Project Manager…",
-    "disposition": "new"
-  },
-  "file.projectSettings.general": {
-    "label": "General…",
-    "disposition": "new"
-  },
-  "file.projectSettings.scratchDisks": {
-    "label": "Scratch Disks…",
-    "disposition": "new"
-  },
-  "file.recover": {
-    "label": "Recover Unsaved Changes…",
-    "disposition": "new"
-  },
-  "file.recoveryList": {
-    "label": "List Recoverable Sessions",
-    "disposition": "new"
-  },
-  "file.replaceFonts": {
-    "label": "Replace Fonts in Projects…",
-    "disposition": "new"
-  },
-  "file.reveal": {
-    "label": "Reveal in Finder",
-    "disposition": "new"
-  },
-  "file.revert": {
-    "label": "Revert",
-    "disposition": "new"
-  },
-  "file.save": {
-    "label": "Save",
-    "disposition": "shipped",
-    "eep": "file.save"
-  },
-  "file.saveAll": {
-    "label": "Save All",
-    "disposition": "new"
-  },
-  "file.saveAs": {
-    "label": "Save As…",
-    "disposition": "new"
-  },
-  "file.saveAsTemplate": {
-    "label": "Save as Template…",
-    "disposition": "new"
-  },
-  "file.saveCopy": {
-    "label": "Save a Copy…",
-    "disposition": "new"
-  },
-  "file.templates": {
-    "label": "List Project Templates",
-    "disposition": "new"
-  },
-  "history.list": {
-    "label": "List History",
-    "disposition": "new",
-    "eep": "history.list",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "markers.add": {
-    "label": "Add Marker",
-    "disposition": "equivalent",
-    "eep": "marker.add"
-  },
-  "markers.addChapter": {
-    "label": "Add Chapter Marker…",
-    "disposition": "new",
-    "eep": "marker.add_chapter"
-  },
-  "markers.addFlashCue": {
-    "label": "Add Flash Cue Marker…",
-    "disposition": "new",
-    "eep": "marker.add_flash_cue"
-  },
-  "markers.addRange": {
-    "label": "Add Range Marker",
-    "disposition": "equivalent",
-    "eep": "marker.add_range"
-  },
-  "markers.addRangeInOut": {
-    "label": "Add Range Marker to In and Out",
-    "disposition": "new",
-    "eep": "marker.add_range_in_out"
-  },
-  "markers.clearAll": {
-    "label": "Clear Markers",
-    "disposition": "equivalent",
-    "eep": "marker.clear"
-  },
-  "markers.clearCurrent": {
-    "label": "Clear Selected Marker",
-    "disposition": "equivalent",
-    "eep": "marker.remove",
-    "note": "selected marker removed by id"
-  },
-  "markers.clearIn": {
-    "label": "Clear In",
-    "disposition": "new",
-    "eep": "timeline.clear_mark_in"
-  },
-  "markers.clearInOut": {
-    "label": "Clear In and Out",
-    "disposition": "equivalent",
-    "eep": "timeline.clear_marks"
-  },
-  "markers.clearOut": {
-    "label": "Clear Out",
-    "disposition": "new",
-    "eep": "timeline.clear_mark_out"
-  },
-  "markers.copyPasteIncludesSequenceMarkers": {
-    "label": "Copy Paste Includes Sequence Markers",
-    "disposition": "new",
-    "eep": "marker.set_copy_paste_includes"
-  },
-  "markers.edit": {
-    "label": "Edit Marker…",
-    "disposition": "equivalent",
-    "eep": "marker.update"
-  },
-  "markers.exportCsv": {
-    "label": "Export Markers as CSV…",
-    "disposition": "equivalent",
-    "eep": "marker.export_csv"
-  },
-  "markers.filterColors": {
-    "label": "Marker Colour Filter",
-    "disposition": "new",
-    "eep": "marker.set_color_filter"
-  },
-  "markers.goNext": {
-    "label": "Go to Next Marker",
-    "disposition": "equivalent",
-    "eep": "marker.next"
-  },
-  "markers.goPrev": {
-    "label": "Go to Previous Marker",
-    "disposition": "equivalent",
-    "eep": "marker.previous"
-  },
-  "markers.goToIn": {
-    "label": "Go to In",
-    "disposition": "equivalent",
-    "eep": "playhead.go_to_in"
-  },
-  "markers.goToOut": {
-    "label": "Go to Out",
-    "disposition": "equivalent",
-    "eep": "playhead.go_to_out"
-  },
-  "markers.goToSplitAudioIn": {
-    "label": "Audio In",
-    "disposition": "new",
-    "eep": "marker.go_to_split_audio_in",
-    "note": "ui_only navigation over split marker domains"
-  },
-  "markers.goToSplitAudioOut": {
-    "label": "Audio Out",
-    "disposition": "new",
-    "eep": "marker.go_to_split_audio_out",
-    "note": "ui_only navigation over split marker domains"
-  },
-  "markers.goToSplitVideoIn": {
-    "label": "Video In",
-    "disposition": "new",
-    "eep": "marker.go_to_split_video_in",
-    "note": "ui_only navigation over split marker domains"
-  },
-  "markers.goToSplitVideoOut": {
-    "label": "Video Out",
-    "disposition": "new",
-    "eep": "marker.go_to_split_video_out",
-    "note": "ui_only navigation over split marker domains"
-  },
-  "markers.markClip": {
-    "label": "Mark Clip",
-    "disposition": "new",
-    "eep": "timeline.mark_clip"
-  },
-  "markers.markIn": {
-    "label": "Mark In",
-    "disposition": "equivalent",
-    "eep": "timeline.set_mark_in"
-  },
-  "markers.markOut": {
-    "label": "Mark Out",
-    "disposition": "equivalent",
-    "eep": "timeline.set_mark_out"
-  },
-  "markers.markSelection": {
-    "label": "Mark Selection",
-    "disposition": "new",
-    "eep": "timeline.mark_selection"
-  },
-  "markers.markSplitAudioIn": {
-    "label": "Audio In",
-    "disposition": "new",
-    "eep": "marker.set_split_audio",
-    "note": "split marker domains share the marker duration"
-  },
-  "markers.markSplitAudioOut": {
-    "label": "Audio Out",
-    "disposition": "new",
-    "eep": "marker.set_split_audio_out",
-    "note": "split marker domains share the marker duration"
-  },
-  "markers.markSplitVideoIn": {
-    "label": "Video In",
-    "disposition": "new",
-    "eep": "marker.set_split_video",
-    "note": "split marker domains share the marker duration"
-  },
-  "markers.markSplitVideoOut": {
-    "label": "Video Out",
-    "disposition": "new",
-    "eep": "marker.set_split_video_out",
-    "note": "split marker domains share the marker duration"
-  },
-  "markers.rippleSequenceMarkers": {
-    "label": "Ripple Sequence Markers",
-    "disposition": "equivalent",
-    "eep": "marker.ripple"
-  },
-  "markers.showAllMarkerColors": {
-    "label": "Show All Marker Colors",
-    "disposition": "new",
-    "eep": "marker.show_all_colors"
-  },
-  "media.attachProxies": {
-    "label": "Attach Proxies…",
-    "disposition": "new",
-    "eep": "media.attach_proxy",
-    "note": "implemented in 0.2.1 (alpha.18)"
-  },
-  "media.autoRelink": {
-    "label": "Relink Moved Media",
-    "disposition": "new",
-    "eep": "media.auto_relink",
-    "note": "implemented in 0.2.1 (alpha.18)"
-  },
-  "media.colorInfo": {
-    "label": "Media Colour Info",
-    "disposition": "new",
-    "eep": "media.color_info",
-    "note": "implemented in 0.2.1 (alpha.18)"
-  },
-  "media.createProxies": {
-    "label": "Create Proxies…",
-    "disposition": "new"
-  },
-  "media.detachProxies": {
-    "label": "Detach Proxies",
-    "disposition": "new",
-    "eep": "media.detach_proxy",
-    "note": "implemented in 0.2.1 (alpha.18)"
-  },
-  "media.findMissing": {
-    "label": "Find Missing Media",
-    "disposition": "equivalent",
-    "eep": "media.check_missing",
-    "note": "the check scans every file-backed asset and reports the missing ids; the panel shows the same list"
-  },
-  "media.linkMedia": {
-    "label": "Link Media…",
-    "disposition": "equivalent",
-    "eep": "project.relink_media",
-    "note": "linking an offline item to a new file IS the relink; clips reference the asset, so it re-links everywhere"
-  },
-  "media.makeOffline": {
-    "label": "Make Offline…",
-    "disposition": "new",
-    "eep": "media.make_offline",
-    "note": "implemented in 0.2.1 (alpha.18)"
-  },
-  "media.offlineAll": {
-    "label": "Offline All",
-    "disposition": "new",
-    "eep": "media.offline_all",
-    "note": "implemented in 0.2.1 (alpha.18)"
-  },
-  "media.proxyPresets": {
-    "label": "Proxy Presets",
-    "disposition": "new"
-  },
-  "media.reconnectFullRes": {
-    "label": "Reconnect Full Resolution Media…",
-    "disposition": "equivalent",
-    "eep": "project.relink_media",
-    "note": "EEP has no separate proxy-resolution layer; restoring the source path is the relink"
-  },
-  "media.refreshChanged": {
-    "label": "Refresh Changed Media",
-    "disposition": "new",
-    "eep": "media.refresh_changed",
-    "note": "implemented in 0.2.1 (alpha.18)"
-  },
-  "media.relink": {
-    "label": "Relink Media",
-    "disposition": "equivalent",
-    "eep": "project.relink_media",
-    "note": "Relink Missing Media"
-  },
-  "media.replaceFootage": {
-    "label": "Replace Footage…",
-    "disposition": "equivalent",
-    "eep": "project.relink_media",
-    "note": "clips reference the asset id, so relinking replaces the footage in every edit"
-  },
-  "media.search": {
-    "label": "Search for Media",
-    "disposition": "new",
-    "eep": "media.search",
-    "note": "implemented in 0.2.1 (alpha.18)"
-  },
-  "media.status": {
-    "label": "Media Status",
-    "disposition": "equivalent",
-    "eep": "media.check_missing",
-    "note": "the check's counts are the status breakdown; media.list returns per-asset detail"
-  },
-  "media.toggleProxies": {
-    "label": "Toggle Proxies",
-    "disposition": "new",
-    "eep": "media.toggle_proxies",
-    "note": "implemented in 0.2.1 (alpha.18)"
-  },
-  "playhead.end": {
-    "label": "Go to Sequence End",
-    "disposition": "shipped",
-    "eep": "playhead.end"
-  },
-  "playhead.nextEdit": {
-    "label": "Go to Next Edit Point",
-    "disposition": "equivalent",
-    "eep": "playhead.next_edit"
-  },
-  "playhead.nextEditAnyTrack": {
-    "label": "Go to Next Edit Point on Any Track",
-    "disposition": "equivalent",
-    "eep": "playhead.next_edit",
-    "note": "EEP has no track targeting; next_edit scans every track, which is the any-track semantics"
-  },
-  "playhead.prevEdit": {
-    "label": "Go to Previous Edit Point",
-    "disposition": "equivalent",
-    "eep": "playhead.previous_edit"
-  },
-  "playhead.prevEditAnyTrack": {
-    "label": "Go to Previous Edit Point on Any Track",
-    "disposition": "equivalent",
-    "eep": "playhead.previous_edit",
-    "note": "EEP has no track targeting; previous_edit scans every track"
-  },
-  "playhead.selectedClipEnd": {
-    "label": "Go to Selected Clip End",
-    "disposition": "equivalent",
-    "eep": "playhead.go_to_clip_end"
-  },
-  "playhead.selectedClipStart": {
-    "label": "Go to Selected Clip Start",
-    "disposition": "equivalent",
-    "eep": "playhead.go_to_clip_start"
-  },
-  "playhead.set": {
-    "label": "Set Playhead",
-    "disposition": "equivalent",
-    "eep": "playhead.go_to_timecode",
-    "note": "the playhead is set to a time entered in the Go to Timecode dialog"
-  },
-  "playhead.start": {
-    "label": "Go to Sequence Start",
-    "disposition": "shipped",
-    "eep": "playhead.start"
-  },
-  "playhead.step": {
-    "label": "Step Frames",
-    "disposition": "equivalent",
-    "eep": "playhead.nudge_forward_1",
-    "note": "EEP exposes frame stepping through the +-1/+-5 nudge commands"
-  },
-  "playhead.stepBack": {
-    "label": "Step Back One Frame",
-    "disposition": "equivalent",
-    "eep": "playhead.nudge_back_1"
-  },
-  "playhead.stepBack5": {
-    "label": "Step Back Five Frames",
-    "disposition": "equivalent",
-    "eep": "playhead.nudge_back_5"
-  },
-  "playhead.stepForward": {
-    "label": "Step Forward One Frame",
-    "disposition": "equivalent",
-    "eep": "playhead.nudge_forward_1"
-  },
-  "playhead.stepForward5": {
-    "label": "Step Forward Five Frames",
-    "disposition": "equivalent",
-    "eep": "playhead.nudge_forward_5"
-  },
-  "prefs.get": {
-    "label": "Get Preferences",
-    "disposition": "shipped",
-    "eep": "prefs.get"
-  },
-  "prefs.reset": {
-    "label": "Reset Preferences",
-    "disposition": "shipped",
-    "eep": "prefs.reset"
-  },
-  "prefs.schema": {
-    "label": "Settings Schema",
-    "disposition": "new",
-    "eep": "prefs.schema",
-    "note": "implemented in 0.2.1 (alpha.17)"
-  },
-  "prefs.set": {
-    "label": "Set Preferences",
-    "disposition": "shipped",
-    "eep": "prefs.set"
-  },
-  "project.columns.list": {
-    "label": "List Project Columns",
-    "disposition": "new",
-    "eep": "project.columns.list"
-  },
-  "project.columns.resize": {
-    "label": "Resize Column",
-    "disposition": "new",
-    "eep": "project.columns.resize"
-  },
-  "project.columns.set": {
-    "label": "Metadata Display",
-    "disposition": "new",
-    "eep": "project.columns.set"
-  },
-  "project.delete": {
-    "label": "Clear",
-    "disposition": "new",
-    "eep": "project.remove",
-    "note": "implemented in 0.4.0 (alpha.23); removes the selected media items, refusing in-use media"
-  },
-  "project.deleteSearchBin": {
-    "label": "Delete Search Bin",
-    "disposition": "new",
-    "eep": "project.searchBin.delete",
-    "note": "implemented in 0.4.0 (alpha.23); saved-query search bins in the shared prefs store"
-  },
-  "project.deselectAll": {
-    "label": "Deselect All Project Items",
-    "disposition": "new",
-    "eep": "project.deselectAll"
-  },
-  "project.editSearchBin": {
-    "label": "Edit Search Bin",
-    "disposition": "new",
-    "eep": "project.searchBin.set",
-    "note": "implemented in 0.4.0 (alpha.23); saved-query search bins in the shared prefs store"
-  },
-  "project.freeform.alignToGrid": {
-    "label": "Align to Grid",
-    "disposition": "new",
-    "eep": "project.freeform.alignToGrid",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.freeform.arrangements": {
-    "label": "List Arrangements",
-    "disposition": "new",
-    "eep": "project.freeform.arrangements",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.freeform.deleteArrangement": {
-    "label": "Delete Arrangement",
-    "disposition": "new",
-    "eep": "project.freeform.deleteArrangement",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.freeform.layout": {
-    "label": "Freeform Layout",
-    "disposition": "new",
-    "eep": "project.freeform.layout",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.freeform.move": {
-    "label": "Move Clip Cards",
-    "disposition": "new",
-    "eep": "project.freeform.move",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.freeform.options": {
-    "label": "Freeform View Options…",
-    "disposition": "new",
-    "eep": "project.freeform.options",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.freeform.reset": {
-    "label": "Reset to Grid",
-    "disposition": "new",
-    "eep": "project.freeform.reset",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.freeform.resize": {
-    "label": "Clip Size",
-    "disposition": "new",
-    "eep": "project.freeform.resize",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.freeform.restoreArrangement": {
-    "label": "Restore Arrangement",
-    "disposition": "new",
-    "eep": "project.freeform.restoreArrangement",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.freeform.saveArrangement": {
-    "label": "Save Arrangement",
-    "disposition": "new",
-    "eep": "project.freeform.saveArrangement",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.freeform.stack": {
-    "label": "Stack Clips",
-    "disposition": "new",
-    "eep": "project.freeform.stack",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.freeform.unstack": {
-    "label": "Unstack Clips",
-    "disposition": "new",
-    "eep": "project.freeform.unstack",
-    "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
-  },
-  "project.ingestSettings": {
-    "label": "Ingest Settings…",
-    "disposition": "na",
-    "note": "EEP imports reference media in place; there is no ingest/copy pipeline to configure"
-  },
-  "project.inspect": {
-    "label": "Inspect Project",
-    "disposition": "shipped",
-    "eep": "project.inspect"
-  },
-  "project.items": {
-    "label": "List Project Panel Rows",
-    "disposition": "new",
-    "eep": "project.items"
-  },
-  "project.matteColor": {
-    "label": "Color Matte Color…",
-    "disposition": "na",
-    "note": "EEP has no colour-matte generator yet; revisited alongside file.newColorMatte"
-  },
-  "project.moveToBin": {
-    "label": "Move to Bin",
-    "disposition": "equivalent",
-    "eep": "media.move_to_bin"
-  },
-  "project.notes": {
-    "label": "Get Project Notes",
-    "disposition": "new",
-    "eep": "project.notes"
-  },
-  "project.renameBin": {
-    "label": "Rename Bin",
-    "disposition": "equivalent",
-    "eep": "media.rename_bin"
-  },
-  "project.searchBinItems": {
-    "label": "Search Bin Contents",
-    "disposition": "new",
-    "eep": "project.searchBin.items",
-    "note": "implemented in 0.4.0 (alpha.23); saved-query search bins in the shared prefs store"
-  },
-  "project.select": {
-    "label": "Select Project Items",
-    "disposition": "new",
-    "eep": "project.select",
-    "note": "implemented in 0.4.0 (alpha.23); frontend-only prompt matching panel items by name or kind"
-  },
-  "project.selectAll": {
-    "label": "Select All Project Items",
-    "disposition": "new",
-    "eep": "project.selectAll"
-  },
-  "project.setMarks": {
-    "label": "Set Source In/Out",
-    "disposition": "new",
-    "eep": "project.setMarks"
-  },
-  "project.setNotes": {
-    "label": "Edit Project Notes",
-    "disposition": "new",
-    "eep": "project.setNotes"
-  },
-  "project.sort": {
-    "label": "Sort Project Items",
-    "disposition": "new",
-    "eep": "project.sort"
-  },
-  "project.view.get": {
-    "label": "Project Panel View",
-    "disposition": "new",
-    "eep": "project.view.get"
-  },
-  "project.view.set": {
-    "label": "Set Project Panel View",
-    "disposition": "new",
-    "eep": "project.view.set"
-  },
-  "project.viewPreset.delete": {
-    "label": "Delete View Preset",
-    "disposition": "new",
-    "eep": "project.viewPreset.delete"
-  },
-  "project.viewPreset.list": {
-    "label": "List View Presets",
-    "disposition": "new",
-    "eep": "project.viewPreset.list"
-  },
-  "project.viewPreset.rename": {
-    "label": "Rename View Preset",
-    "disposition": "new",
-    "eep": "project.viewPreset.rename"
-  },
-  "project.viewPreset.restore": {
-    "label": "Restore View Preset",
-    "disposition": "new",
-    "eep": "project.viewPreset.restore"
-  },
-  "project.viewPreset.save": {
-    "label": "Save Current View Preset",
-    "disposition": "new",
-    "eep": "project.viewPreset.save"
-  },
-  "project.viewPreset.saveAs": {
-    "label": "Save As New View Preset",
-    "disposition": "new",
-    "eep": "project.viewPreset.saveAs"
-  },
-  "sequence.addEdit": {
-    "label": "Add Edit",
-    "disposition": "equivalent",
-    "eep": "timeline.split_clip",
-    "note": "razor at playhead on targeted tracks"
-  },
-  "sequence.addEditAllTracks": {
-    "label": "Add Edit to All Tracks",
-    "disposition": "shipped",
-    "eep": "sequence.add_edit_all_tracks",
-    "note": "razor cut at the playhead on every unlocked track, descending clip index keeps targeting valid across insertions"
-  },
-  "sequence.addTracks": {
-    "label": "Add Tracks…",
-    "disposition": "equivalent",
-    "eep": "timeline.add_track",
-    "note": "track addition, repeated per track"
-  },
-  "sequence.applyAudioTransition": {
-    "label": "Apply Audio Transition",
-    "disposition": "equivalent",
-    "eep": "timeline.add_transition",
-    "note": "audio crossfades route through the same transition commands"
-  },
-  "sequence.applyVideoTransition": {
-    "label": "Apply Video Transition",
-    "disposition": "equivalent",
-    "eep": "timeline.add_transition"
-  },
-  "sequence.close": {
-    "label": "Close Sequence",
-    "disposition": "shipped",
-    "eep": "sequence.close",
-    "note": "parks the active sequence in the project list and activates the first stored one; the last remaining sequence cannot be closed"
-  },
-  "sequence.closeGap": {
-    "label": "Close Gap",
-    "disposition": "equivalent",
-    "eep": "timeline.ripple_delete_gap",
-    "note": "gap removal under the playhead"
-  },
-  "sequence.closeOthers": {
-    "label": "Close Other Timeline Panels",
-    "disposition": "na",
-    "note": "sequences live in a header switcher, not closable timeline panels"
-  },
-  "sequence.colorSettings": {
-    "label": "Color Management…",
-    "disposition": "na",
-    "note": "no sequence-level color management pipeline in the render path"
-  },
-  "sequence.deleteRenderFiles": {
-    "label": "Delete Render Files",
-    "disposition": "na",
-    "note": "no preview render-file cache; playback decodes media directly"
-  },
-  "sequence.deleteRenderFilesInToOut": {
-    "label": "Delete Render Files In to Out",
-    "disposition": "na",
-    "note": "no preview render-file cache; playback decodes media directly"
-  },
-  "sequence.deleteTrack": {
-    "label": "Delete Track",
-    "disposition": "equivalent",
-    "eep": "timeline.remove_track",
-    "note": "single-track removal"
-  },
-  "sequence.deleteTracks": {
-    "label": "Delete Tracks…",
-    "disposition": "equivalent",
-    "eep": "timeline.remove_track",
-    "note": "track removal, repeated per track"
-  },
-  "sequence.extract": {
-    "label": "Extract",
-    "disposition": "shipped",
-    "eep": "sequence.extract"
-  },
-  "sequence.goToNextGap": {
-    "label": "Next in Sequence",
-    "disposition": "shipped",
-    "eep": "sequence.goToNextGap",
-    "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
-  },
-  "sequence.goToNextGapInTrack": {
-    "label": "Next in Track",
-    "disposition": "shipped",
-    "eep": "sequence.goToNextGapInTrack",
-    "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
-  },
-  "sequence.goToPrevGap": {
-    "label": "Previous in Sequence",
-    "disposition": "shipped",
-    "eep": "sequence.goToPrevGap",
-    "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
-  },
-  "sequence.goToPrevGapInTrack": {
-    "label": "Previous in Track",
-    "disposition": "shipped",
-    "eep": "sequence.goToPrevGapInTrack",
-    "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
-  },
-  "sequence.inspect": {
-    "label": "Inspect Sequence",
-    "disposition": "shipped",
-    "eep": "sequence.inspect",
-    "note": "non-mutating stats: tracks, clips, duration, marks, compound flag"
-  },
-  "sequence.joinThroughEdits": {
-    "label": "Join Through Edits",
-    "disposition": "na",
-    "note": "no through-edit model; adjacent clips join via ripple delete"
-  },
-  "sequence.lift": {
-    "label": "Lift",
-    "disposition": "shipped",
-    "eep": "sequence.lift"
-  },
-  "sequence.linkedSelection": {
-    "label": "Linked Selection",
-    "disposition": "new"
-  },
-  "sequence.makeSubsequence": {
-    "label": "Make Subsequence",
-    "disposition": "equivalent",
-    "eep": "timeline.create_compound_clip",
-    "note": "selected clips nest into a compound clip backed by a stored sequence"
-  },
-  "sequence.matchFrame": {
-    "label": "Match Frame",
-    "disposition": "equivalent",
-    "eep": "media.reveal",
-    "note": "EEP has no source monitor; the gesture selects the clip's media in the project panel and reports the playhead position"
-  },
-  "sequence.moveTab": {
-    "label": "Move Sequence Tab",
-    "disposition": "na",
-    "note": "sequences live in a header switcher, not reorderable timeline tabs"
-  },
-  "sequence.nestSequences": {
-    "label": "Insert and overwrite sequences as nests or individual clips",
-    "disposition": "equivalent",
-    "eep": "timeline.create_compound_clip",
-    "note": "nesting inserts the selection as one compound clip"
-  },
-  "sequence.normalizeMixTrack": {
-    "label": "Normalize Mix Track…",
-    "disposition": "na",
-    "note": "no mix-track loudness normalization pass in the audio engine"
-  },
-  "sequence.open": {
-    "label": "Open in Timeline",
-    "disposition": "equivalent",
-    "eep": "project.switch_sequence",
-    "note": "opening a sequence in the timeline"
-  },
-  "sequence.removeTransition": {
-    "label": "Clear Transition",
-    "disposition": "equivalent",
-    "eep": "timeline.remove_transition"
-  },
-  "sequence.renderAudio": {
-    "label": "Render Audio",
-    "disposition": "equivalent",
-    "eep": "export.quick",
-    "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
-  },
-  "sequence.renderBar": {
-    "label": "Render Bar",
-    "disposition": "na",
-    "note": "no preview render bar; the export queue reports render progress"
-  },
-  "sequence.renderEffectsInToOut": {
-    "label": "Render Effects In to Out",
-    "disposition": "equivalent",
-    "eep": "export.quick",
-    "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
-  },
-  "sequence.renderInToOut": {
-    "label": "Render In to Out",
-    "disposition": "equivalent",
-    "eep": "export.quick",
-    "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
-  },
-  "sequence.renderSelection": {
-    "label": "Render Selection",
-    "disposition": "equivalent",
-    "eep": "export.quick",
-    "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
-  },
-  "sequence.revealInProject": {
-    "label": "Reveal Sequence in Project",
-    "disposition": "na",
-    "note": "sequences are not shown in the media panel; nested ones open via sequence.reveal_nested"
-  },
-  "sequence.revealNested": {
-    "label": "Reveal Nested Sequence",
-    "disposition": "shipped",
-    "eep": "sequence.reveal_nested",
-    "note": "non-mutating resolution of the compound clip's nested sequence id; the inspector chains into project.switch_sequence to open it"
-  },
-  "sequence.reverseMatchFrame": {
-    "label": "Reverse Match Frame",
-    "disposition": "equivalent",
-    "eep": "media.reveal",
-    "note": "same reveal gesture; the timeline is the only sequence view"
-  },
-  "sequence.selectionFollowsPlayhead": {
-    "label": "Selection Follows Playhead",
-    "disposition": "new"
-  },
-  "sequence.setTransition": {
-    "label": "Edit Transition Settings",
-    "disposition": "equivalent",
-    "eep": "timeline.update_transition"
-  },
-  "sequence.settings": {
-    "label": "Sequence Settings…",
-    "disposition": "shipped",
-    "eep": "sequence.settings",
-    "note": "width/height validated 16..8192 and rational frame rate on the active sequence"
-  },
-  "sequence.showThroughEdits": {
-    "label": "Show Through Edits",
-    "disposition": "na",
-    "note": "no through-edit model to display"
-  },
-  "sequence.simplify": {
-    "label": "Simplify Sequence…",
-    "disposition": "equivalent",
-    "eep": "edit.consolidate_duplicates",
-    "note": "removes later duplicate placements of identical source usage"
-  },
-  "sequence.snap": {
-    "label": "Snap in Timeline",
-    "disposition": "equivalent",
-    "eep": "view.toggle_snap"
-  },
-  "sequence.throughEdits": {
-    "label": "List Through Edits",
-    "disposition": "na",
-    "note": "no through-edit model to toggle"
-  },
-  "sequence.transcribe": {
-    "label": "Transcribe Sequence…",
-    "disposition": "equivalent",
-    "eep": "speech.transcribe_to_subtitles"
-  },
-  "shortcuts.audit": {
-    "label": "Shortcut Audit",
-    "disposition": "new",
-    "eep": "shortcuts.audit",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.clear": {
-    "label": "Clear Shortcut",
-    "disposition": "new",
-    "eep": "shortcuts.clear",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.conflicts": {
-    "label": "Shortcut Conflicts",
-    "disposition": "new",
-    "eep": "shortcuts.conflicts",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.deletePreset": {
-    "label": "Delete Shortcut Preset",
-    "disposition": "new",
-    "eep": "shortcuts.delete_preset",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.export": {
-    "label": "Export Keyboard Shortcuts",
-    "disposition": "new",
-    "eep": "shortcuts.export",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.forKey": {
-    "label": "Shortcuts on a Key",
-    "disposition": "new",
-    "eep": "shortcuts.for_key",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.get": {
-    "label": "Get Shortcuts of a Command",
-    "disposition": "new",
-    "eep": "shortcuts.get",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.import": {
-    "label": "Import Keyboard Shortcuts",
-    "disposition": "shipped",
-    "eep": "shortcuts.import"
-  },
-  "shortcuts.list": {
-    "label": "List Keyboard Shortcuts",
-    "disposition": "shipped",
-    "eep": "shortcuts.list"
-  },
-  "shortcuts.loadPreset": {
-    "label": "Load Shortcut Preset",
-    "disposition": "new",
-    "eep": "shortcuts.load_preset",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.presets": {
-    "label": "Keyboard Shortcut Presets",
-    "disposition": "new",
-    "eep": "shortcuts.presets",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.redo": {
-    "label": "Redo Shortcut Change",
-    "disposition": "new",
-    "eep": "shortcuts.redo",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.resolve": {
-    "label": "Resolve Shortcut",
-    "disposition": "new",
-    "eep": "shortcuts.resolve",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.savePreset": {
-    "label": "Save Shortcut Preset As",
-    "disposition": "new",
-    "eep": "shortcuts.save_preset",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "shortcuts.set": {
-    "label": "Assign Shortcut",
-    "disposition": "shipped",
-    "eep": "shortcuts.set"
-  },
-  "shortcuts.undo": {
-    "label": "Undo Shortcut Change",
-    "disposition": "new",
-    "eep": "shortcuts.undo",
-    "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
-  },
-  "timeline.move": {
-    "label": "Move Clips",
-    "disposition": "equivalent",
-    "eep": "timeline.move_clips_batch"
-  },
-  "timeline.moveAudioTargetsDown": {
-    "label": "Move All Audio Targets Down",
-    "disposition": "new",
-    "eep": "timeline.moveAudioTargetsDown",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.moveAudioTargetsUp": {
-    "label": "Move All Audio Targets Up",
-    "disposition": "new",
-    "eep": "timeline.moveAudioTargetsUp",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.moveVideoTargetsDown": {
-    "label": "Move All Video Targets Down",
-    "disposition": "new",
-    "eep": "timeline.moveVideoTargetsDown",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.moveVideoTargetsUp": {
-    "label": "Move All Video Targets Up",
-    "disposition": "new",
-    "eep": "timeline.moveVideoTargetsUp",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.nudgeDown": {
-    "label": "Nudge Clip Selection Down",
-    "disposition": "equivalent",
-    "eep": "timeline.move_clip",
-    "note": "track change moves the clip"
-  },
-  "timeline.nudgeLeft": {
-    "label": "Nudge Clip Selection Left One Frame",
-    "disposition": "equivalent",
-    "eep": "timeline.move_clips_batch",
-    "note": "one-frame reposition of the selection"
-  },
-  "timeline.nudgeLeft5": {
-    "label": "Nudge Clip Selection Left Five Frames",
-    "disposition": "equivalent",
-    "eep": "timeline.move_clips_batch",
-    "note": "five-frame reposition of the selection"
-  },
-  "timeline.nudgeRight": {
-    "label": "Nudge Clip Selection Right One Frame",
-    "disposition": "equivalent",
-    "eep": "timeline.move_clips_batch",
-    "note": "one-frame reposition of the selection"
-  },
-  "timeline.nudgeRight5": {
-    "label": "Nudge Clip Selection Right Five Frames",
-    "disposition": "equivalent",
-    "eep": "timeline.move_clips_batch",
-    "note": "five-frame reposition of the selection"
-  },
-  "timeline.nudgeUp": {
-    "label": "Nudge Clip Selection Up",
-    "disposition": "equivalent",
-    "eep": "timeline.move_clip",
-    "note": "track change moves the clip"
-  },
-  "timeline.place": {
-    "label": "Place Clip",
-    "disposition": "equivalent",
-    "eep": "timeline.add_clip",
-    "note": "append/overwrite placement of a source clip"
-  },
-  "timeline.rateStretch": {
-    "label": "Rate Stretch",
-    "disposition": "equivalent",
-    "eep": "timeline.rate_stretch"
-  },
-  "timeline.razor": {
-    "label": "Razor",
-    "disposition": "equivalent",
-    "eep": "timeline.split_clip",
-    "note": "split_clip splits the clip at a playhead position (razor)"
-  },
-  "timeline.roll": {
-    "label": "Rolling Edit",
-    "disposition": "equivalent",
-    "eep": "timeline.roll_edit"
-  },
-  "timeline.select": {
-    "label": "Select Clips",
-    "disposition": "new",
-    "eep": "timeline.select",
-    "note": "implemented in 0.4.0 (alpha.23); frontend-only prompt"
-  },
-  "timeline.selectClipAtPlayhead": {
-    "label": "Select Clip at Playhead",
-    "disposition": "equivalent",
-    "eep": "edit.select_clip_at_playhead"
-  },
-  "timeline.selectGap": {
-    "label": "Select Gap",
-    "disposition": "new",
-    "eep": "timeline.selectGap",
-    "note": "implemented in 0.4.0 (alpha.23); frontend-only; marks the gap in/out at the playhead"
-  },
-  "timeline.selectNextClip": {
-    "label": "Select Next Clip",
-    "disposition": "new",
-    "eep": "timeline.selectNextClip",
-    "note": "implemented in 0.4.0 (alpha.23); frontend-only timeline-order stepping"
-  },
-  "timeline.selectPrevClip": {
-    "label": "Select Previous Clip",
-    "disposition": "new",
-    "eep": "timeline.selectPrevClip",
-    "note": "implemented in 0.4.0 (alpha.23); frontend-only timeline-order stepping"
-  },
-  "timeline.setTargeting": {
-    "label": "Track Targeting",
-    "disposition": "new",
-    "eep": "timeline.setTargeting",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.setTrack": {
-    "label": "Track Settings",
-    "disposition": "equivalent",
-    "eep": "track.set_gain_db",
-    "note": "per-property track.set_gain_db / set_pan / set_muted / set_solo / set_locked"
-  },
-  "timeline.slide": {
-    "label": "Slide",
-    "disposition": "equivalent",
-    "eep": "timeline.slide_clip"
-  },
-  "timeline.slideLeft": {
-    "label": "Slide Clip Selection Left One Frame",
-    "disposition": "equivalent",
-    "eep": "timeline.slide_clip",
-    "note": "one-frame slide delta"
-  },
-  "timeline.slideLeft5": {
-    "label": "Slide Clip Selection Left Five Frames",
-    "disposition": "equivalent",
-    "eep": "timeline.slide_clip",
-    "note": "five-frame slide delta"
-  },
-  "timeline.slideRight": {
-    "label": "Slide Clip Selection Right One Frame",
-    "disposition": "equivalent",
-    "eep": "timeline.slide_clip",
-    "note": "one-frame slide delta"
-  },
-  "timeline.slideRight5": {
-    "label": "Slide Clip Selection Right Five Frames",
-    "disposition": "equivalent",
-    "eep": "timeline.slide_clip",
-    "note": "five-frame slide delta"
-  },
-  "timeline.slip": {
-    "label": "Slip",
-    "disposition": "equivalent",
-    "eep": "timeline.slip_clip"
-  },
-  "timeline.slipLeft": {
-    "label": "Slip Clip Selection Left One Frame",
-    "disposition": "equivalent",
-    "eep": "timeline.slip_clip",
-    "note": "one-frame slip delta"
-  },
-  "timeline.slipLeft5": {
-    "label": "Slip Clip Selection Left Five Frames",
-    "disposition": "equivalent",
-    "eep": "timeline.slip_clip",
-    "note": "five-frame slip delta"
-  },
-  "timeline.slipRight": {
-    "label": "Slip Clip Selection Right One Frame",
-    "disposition": "equivalent",
-    "eep": "timeline.slip_clip",
-    "note": "one-frame slip delta"
-  },
-  "timeline.slipRight5": {
-    "label": "Slip Clip Selection Right Five Frames",
-    "disposition": "equivalent",
-    "eep": "timeline.slip_clip",
-    "note": "five-frame slip delta"
-  },
-  "timeline.toggleAllAudioTargets": {
-    "label": "Toggle All Audio Targets",
-    "disposition": "new",
-    "eep": "timeline.toggleAllAudioTargets",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleAllSourceAudio": {
-    "label": "Toggle All Source Audio",
-    "disposition": "new",
-    "eep": "timeline.toggleAllSourceAudio",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleAllSourceVideo": {
-    "label": "Toggle All Source Video",
-    "disposition": "new",
-    "eep": "timeline.toggleAllSourceVideo",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleAllVideoTargets": {
-    "label": "Toggle All Video Targets",
-    "disposition": "new",
-    "eep": "timeline.toggleAllVideoTargets",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleMuteTargetedAudio": {
-    "label": "Toggle Mute for All Targeted Audio Tracks",
-    "disposition": "new",
-    "eep": "timeline.toggleMuteTargetedAudio",
-    "note": "implemented in 0.4.0 (alpha.23); flips Track muted/solo on the targeted tracks"
-  },
-  "timeline.toggleOutputTargetedVideo": {
-    "label": "Toggle Track Output for All Targeted Video Tracks",
-    "disposition": "new",
-    "eep": "timeline.toggleOutputTargetedVideo",
-    "note": "implemented in 0.4.0 (alpha.23); flips Track muted/solo on the targeted tracks"
-  },
-  "timeline.toggleSoloTargetedAudio": {
-    "label": "Toggle Solo for All Targeted Audio Tracks",
-    "disposition": "new",
-    "eep": "timeline.toggleSoloTargetedAudio",
-    "note": "implemented in 0.4.0 (alpha.23); flips Track muted/solo on the targeted tracks"
-  },
-  "timeline.toggleTargetA1": {
-    "label": "Toggle Target Audio 1",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetA1",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetA2": {
-    "label": "Toggle Target Audio 2",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetA2",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetA3": {
-    "label": "Toggle Target Audio 3",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetA3",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetA4": {
-    "label": "Toggle Target Audio 4",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetA4",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetA5": {
-    "label": "Toggle Target Audio 5",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetA5",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetA6": {
-    "label": "Toggle Target Audio 6",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetA6",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetA7": {
-    "label": "Toggle Target Audio 7",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetA7",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetA8": {
-    "label": "Toggle Target Audio 8",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetA8",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetV1": {
-    "label": "Toggle Target Video 1",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetV1",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetV2": {
-    "label": "Toggle Target Video 2",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetV2",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetV3": {
-    "label": "Toggle Target Video 3",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetV3",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetV4": {
-    "label": "Toggle Target Video 4",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetV4",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetV5": {
-    "label": "Toggle Target Video 5",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetV5",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetV6": {
-    "label": "Toggle Target Video 6",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetV6",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetV7": {
-    "label": "Toggle Target Video 7",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetV7",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.toggleTargetV8": {
-    "label": "Toggle Target Video 8",
-    "disposition": "new",
-    "eep": "timeline.toggleTargetV8",
-    "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
-  },
-  "timeline.trim": {
-    "label": "Trim Edit",
-    "disposition": "equivalent",
-    "eep": "trim.enter",
-    "note": "Trim Edit enters trim mode"
-  },
-  "trim.applyDefaultTransition": {
-    "label": "Apply Default Transitions to Selection",
-    "disposition": "new",
-    "eep": "trim.applyDefaultTransition"
-  },
-  "trim.backward": {
-    "label": "Trim Backward",
-    "disposition": "new",
-    "eep": "trim.backward"
-  },
-  "trim.backwardMany": {
-    "label": "Trim Backward Many",
-    "disposition": "new",
-    "eep": "trim.backwardMany"
-  },
-  "trim.cancelDynamic": {
-    "label": "Cancel Dynamic Trim",
-    "disposition": "new",
-    "eep": "trim.cancelDynamic"
-  },
-  "trim.clear": {
-    "label": "Clear Edit Point Selection",
-    "disposition": "new",
-    "eep": "trim.clear"
-  },
-  "trim.edit": {
-    "label": "Trim Edit",
-    "disposition": "new",
-    "eep": "trim.edit"
-  },
-  "trim.extendNextEdit": {
-    "label": "Extend Next Edit To Playhead",
-    "disposition": "new",
-    "eep": "trim.extendNextEdit"
-  },
-  "trim.extendPreviousEdit": {
-    "label": "Extend Previous Edit To Playhead",
-    "disposition": "new",
-    "eep": "trim.extendPreviousEdit"
-  },
-  "trim.extendToPlayhead": {
-    "label": "Extend Selected Edit to Playhead",
-    "disposition": "new",
-    "eep": "trim.extendToPlayhead"
-  },
-  "trim.forward": {
-    "label": "Trim Forward",
-    "disposition": "new",
-    "eep": "trim.forward"
-  },
-  "trim.forwardMany": {
-    "label": "Trim Forward Many",
-    "disposition": "new",
-    "eep": "trim.forwardMany"
-  },
-  "trim.monitor": {
-    "label": "Trim Monitor State",
-    "disposition": "new",
-    "eep": "trim.monitor"
-  },
-  "trim.next": {
-    "label": "Trim Next Edit to Playhead",
-    "disposition": "new",
-    "eep": "trim.next"
-  },
-  "trim.nudge": {
-    "label": "Trim by Frames",
-    "disposition": "new",
-    "eep": "trim.nudge"
-  },
-  "trim.playAround": {
-    "label": "Play Around Edit",
-    "disposition": "new",
-    "eep": "trim.playAround"
-  },
-  "trim.previous": {
-    "label": "Trim Previous Edit to Playhead",
-    "disposition": "new",
-    "eep": "trim.previous"
-  },
-  "trim.rippleNext": {
-    "label": "Ripple Trim Next Edit to Playhead",
-    "disposition": "new",
-    "eep": "trim.rippleNext"
-  },
-  "trim.ripplePrevious": {
-    "label": "Ripple Trim Previous Edit to Playhead",
-    "disposition": "new",
-    "eep": "trim.ripplePrevious"
-  },
-  "trim.selectEditPoint": {
-    "label": "Select Edit Point",
-    "disposition": "new",
-    "eep": "trim.selectEditPoint"
-  },
-  "trim.selectNearest": {
-    "label": "Select Nearest Edit Point",
-    "disposition": "new",
-    "eep": "trim.selectNearest"
-  },
-  "trim.shuttle": {
-    "label": "Dynamic Trim (Shuttle)",
-    "disposition": "new",
-    "eep": "trim.shuttle"
-  },
-  "trim.shuttleStop": {
-    "label": "Dynamic Trim Stop",
-    "disposition": "new",
-    "eep": "trim.shuttleStop"
-  },
-  "trim.tick": {
-    "label": "Advance Trim Playback",
-    "disposition": "new",
-    "eep": "trim.tick"
-  },
-  "trim.toggleType": {
-    "label": "Toggle Trim Type",
-    "disposition": "new",
-    "eep": "trim.toggleType"
-  }
+ "captions.add": {
+  "label": "Add Caption at Playhead",
+  "disposition": "equivalent",
+  "eep": "caption.cue_add"
+ },
+ "captions.delete": {
+  "label": "Delete Captions",
+  "disposition": "new",
+  "eep": "caption.cue_delete",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "captions.deleteTrack": {
+  "label": "Delete Caption Track",
+  "disposition": "equivalent",
+  "eep": "caption.track_remove"
+ },
+ "captions.export": {
+  "label": "Captions…",
+  "disposition": "equivalent",
+  "eep": "caption.export"
+ },
+ "captions.goTo": {
+  "label": "Go to Caption",
+  "disposition": "new",
+  "eep": "caption.go_to",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "captions.hideAll": {
+  "label": "Hide All Caption Tracks",
+  "disposition": "new",
+  "eep": "caption.tracks_hide",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "captions.import": {
+  "label": "Import Captions…",
+  "disposition": "equivalent",
+  "eep": "caption.import"
+ },
+ "captions.list": {
+  "label": "List Captions",
+  "disposition": "new",
+  "eep": "caption.list",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "captions.merge": {
+  "label": "Merge Captions",
+  "disposition": "new",
+  "eep": "caption.cue_merge",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "captions.move": {
+  "label": "Move Captions",
+  "disposition": "equivalent",
+  "eep": "caption.cue_nudge",
+  "note": "moving a caption in time is the cue timing nudge"
+ },
+ "captions.newTrack": {
+  "label": "Add New Caption Track…",
+  "disposition": "equivalent",
+  "eep": "caption.track_add"
+ },
+ "captions.next": {
+  "label": "Go to Next Caption Segment",
+  "disposition": "new",
+  "eep": "caption.next",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "captions.previous": {
+  "label": "Go to Previous Caption Segment",
+  "disposition": "new",
+  "eep": "caption.previous",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "captions.select": {
+  "label": "Select Captions",
+  "disposition": "new",
+  "eep": "caption.cue_select",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "captions.setStyle": {
+  "label": "Caption Track Style",
+  "disposition": "equivalent",
+  "eep": "caption.style_set",
+  "note": "per-track style folds into the caption style set"
+ },
+ "captions.setText": {
+  "label": "Edit Caption Text",
+  "disposition": "equivalent",
+  "eep": "caption.cue_update",
+  "note": "cue_update edits text and timing"
+ },
+ "captions.setTimes": {
+  "label": "Set Caption In/Out",
+  "disposition": "equivalent",
+  "eep": "caption.cue_update",
+  "note": "cue_update edits text and timing"
+ },
+ "captions.setTrack": {
+  "label": "Caption Track Settings",
+  "disposition": "equivalent",
+  "eep": "caption.track_rename",
+  "note": "EEP per-track settings are the track name; looks are per-track styles via caption.style_set"
+ },
+ "captions.showActiveOnly": {
+  "label": "Show Active Caption Tracks Only",
+  "disposition": "new"
+ },
+ "captions.showAll": {
+  "label": "Show All Caption Tracks",
+  "disposition": "new",
+  "eep": "caption.tracks_show",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "captions.split": {
+  "label": "Split Caption",
+  "disposition": "new",
+  "eep": "caption.cue_split",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "captions.trim": {
+  "label": "Trim Caption",
+  "disposition": "equivalent",
+  "eep": "caption.cue_nudge",
+  "note": "timing trim of a cue"
+ },
+ "clip.audioChannels": {
+  "label": "Audio Channels…",
+  "disposition": "equivalent",
+  "eep": "media.update_properties",
+  "note": "interpreted channel count is recorded on the asset metadata"
+ },
+ "clip.audioGain": {
+  "label": "Audio Gain…",
+  "disposition": "shipped",
+  "eep": "clip.set_volume_db",
+  "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
+ },
+ "clip.audioPeak": {
+  "label": "Audio Clip Peak Amplitude",
+  "disposition": "na",
+  "note": "no per-clip peak amplitude readout"
+ },
+ "clip.automateToSequence": {
+  "label": "Automate to Sequence…",
+  "disposition": "na",
+  "note": "clip volume is a static dB trim in EEP, not keyframed, so there are no clip gain keyframes to copy onto mix-track automation"
+ },
+ "clip.breakoutToMono": {
+  "label": "Breakout to Mono",
+  "disposition": "na",
+  "note": "no channel-split render path; clips reference whole assets"
+ },
+ "clip.clearPosterFrame": {
+  "label": "Clear Poster Frame",
+  "disposition": "na",
+  "note": "no thumbnail/poster preview pipeline"
+ },
+ "clip.createMulticam": {
+  "label": "Create Multi-Camera Source Sequence…",
+  "disposition": "equivalent",
+  "eep": "multicam.create",
+  "note": "multi-camera source sequence creation"
+ },
+ "clip.editOffline": {
+  "label": "Edit Offline…",
+  "disposition": "equivalent",
+  "eep": "project.relink_media",
+  "note": "offline clips are relinked to a chosen path rather than edited offline"
+ },
+ "clip.editSubclip": {
+  "label": "Edit Subclip…",
+  "disposition": "shipped",
+  "eep": "media.reveal",
+  "note": "subclip assets open as panel-selected media; EEP edits subclip content in place on the timeline, there is no separate subclip editor"
+ },
+ "clip.enable": {
+  "label": "Enable",
+  "disposition": "new"
+ },
+ "clip.extractAudio": {
+  "label": "Extract Audio",
+  "disposition": "na",
+  "note": "EEP renders non-audio media on audio tracks as an error; audio plays with its video clip, so there is no separate audio event to extract into"
+ },
+ "clip.fieldOptions": {
+  "label": "Field Options…",
+  "disposition": "na",
+  "note": "no interlaced-field pipeline in the render path"
+ },
+ "clip.fillFrame": {
+  "label": "Fill frame",
+  "disposition": "shipped",
+  "eep": "clip.frame_fit",
+  "note": "scale keyframes computed from media vs project aspect; 'fill' covers the native letterbox fit, 'fit' resets to identity"
+ },
+ "clip.fitToFrame": {
+  "label": "Fit to frame",
+  "disposition": "shipped",
+  "eep": "clip.frame_fit",
+  "note": "scale keyframes computed from media vs project aspect; 'fill' covers the native letterbox fit, 'fit' resets to identity"
+ },
+ "clip.frameHold": {
+  "label": "Add Frame Hold",
+  "disposition": "na",
+  "note": "no freeze-frame segment support in the clip model"
+ },
+ "clip.frameHoldOptions": {
+  "label": "Frame Hold Options…",
+  "disposition": "na",
+  "note": "no freeze-frame segment support in the clip model"
+ },
+ "clip.generateAudioWaveform": {
+  "label": "Generate Audio Waveform",
+  "disposition": "na",
+  "note": "waveforms auto-generate for imported audio; there is no manual regenerate"
+ },
+ "clip.group": {
+  "label": "Group",
+  "disposition": "equivalent",
+  "eep": "timeline.link_clips",
+  "note": "clips link/unlink as a group; all linked edits stay selected together"
+ },
+ "clip.insertFrameHoldSegment": {
+  "label": "Insert Frame Hold Segment",
+  "disposition": "na",
+  "note": "no freeze-frame segment support in the clip model"
+ },
+ "clip.interpretFootage": {
+  "label": "Interpret Footage…",
+  "disposition": "equivalent",
+  "eep": "media.update_properties",
+  "note": "colorspace and gamma interpretation metadata are recorded on the asset"
+ },
+ "clip.link": {
+  "label": "Link",
+  "disposition": "equivalent",
+  "eep": "timeline.link_clips"
+ },
+ "clip.makeSubclip": {
+  "label": "Make Subclip…",
+  "disposition": "shipped",
+  "eep": "clip.make_subclip",
+  "note": "new media asset cloning the source with the clip range as source marks"
+ },
+ "clip.mergeClips": {
+  "label": "Merge Clips…",
+  "disposition": "equivalent",
+  "eep": "timeline.create_compound_clip",
+  "note": "selected clips merge into a compound clip backed by a nested sequence"
+ },
+ "clip.modifyTimecode": {
+  "label": "Timecode…",
+  "disposition": "na",
+  "note": "no timecode display or burn-in in the player"
+ },
+ "clip.multicamEnable": {
+  "label": "Enable",
+  "disposition": "equivalent",
+  "eep": "multicam.create",
+  "note": "the clip becomes multicam via a multicam group with angle switching"
+ },
+ "clip.multicamFlatten": {
+  "label": "Flatten",
+  "disposition": "shipped",
+  "eep": "multicam.flatten",
+  "note": "clears the multicam linkage, keeping the active angle's media as a plain clip"
+ },
+ "clip.nest": {
+  "label": "Nest…",
+  "disposition": "equivalent",
+  "eep": "timeline.create_compound_clip",
+  "note": "nesting creates a compound clip"
+ },
+ "clip.nudgeVolumeDown1": {
+  "label": "Nudge Volume -1dB",
+  "disposition": "shipped",
+  "eep": "clip.set_volume_db",
+  "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
+ },
+ "clip.nudgeVolumeDown3": {
+  "label": "Nudge Volume -3dB",
+  "disposition": "shipped",
+  "eep": "clip.set_volume_db",
+  "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
+ },
+ "clip.nudgeVolumeUp1": {
+  "label": "Nudge Volume +1dB",
+  "disposition": "shipped",
+  "eep": "clip.set_volume_db",
+  "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
+ },
+ "clip.nudgeVolumeUp3": {
+  "label": "Nudge Volume +3dB",
+  "disposition": "shipped",
+  "eep": "clip.set_volume_db",
+  "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
+ },
+ "clip.remix": {
+  "label": "Remix",
+  "disposition": "na",
+  "note": "no music-remix/ducking analysis in the engine"
+ },
+ "clip.remix.enable": {
+  "label": "Enable Remix",
+  "disposition": "na",
+  "note": "no music-remix/ducking analysis in the engine"
+ },
+ "clip.remix.properties": {
+  "label": "Remix Properties…",
+  "disposition": "na",
+  "note": "no music-remix/ducking analysis in the engine"
+ },
+ "clip.remix.revert": {
+  "label": "Revert Remix",
+  "disposition": "na",
+  "note": "no music-remix/ducking analysis in the engine"
+ },
+ "clip.rename": {
+  "label": "Rename…",
+  "disposition": "na",
+  "note": "timeline clips carry label colours, not names; show as media name"
+ },
+ "clip.replaceFromBin": {
+  "label": "From Bin",
+  "disposition": "shipped",
+  "eep": "timeline.replace_media",
+  "note": "swaps the clip's source asset, keeping position, duration and effects; panel-selected media replaces the bin/source-monitor pickers"
+ },
+ "clip.replaceFromSource": {
+  "label": "From Source Monitor",
+  "disposition": "shipped",
+  "eep": "timeline.replace_media",
+  "note": "swaps the clip's source asset, keeping position, duration and effects; panel-selected media replaces the bin/source-monitor pickers"
+ },
+ "clip.replaceFromSourceMatchFrame": {
+  "label": "From Source Monitor, Match Frame",
+  "disposition": "shipped",
+  "eep": "timeline.replace_media",
+  "note": "swaps the clip's source asset, keeping position, duration and effects; panel-selected media replaces the bin/source-monitor pickers"
+ },
+ "clip.restoreCaptionsFromSource": {
+  "label": "Restore Captions from Source Clip",
+  "disposition": "equivalent",
+  "eep": "caption.import",
+  "note": "captions come back from the source caption track/import pipeline"
+ },
+ "clip.revealInProject": {
+  "label": "Reveal in Project",
+  "disposition": "shipped",
+  "eep": "media.reveal",
+  "note": "ui_only: selects the clip's media in the project panel and reports the playhead position; EEP has no source monitor window"
+ },
+ "clip.scaleToFrameSize": {
+  "label": "Scale to Frame Size",
+  "disposition": "shipped",
+  "eep": "clip.frame_fit",
+  "note": "scale-to-frame-size resets the transform scale to the native letterbox fit (scale100 mode, identical maths to fit in EEP)"
+ },
+ "clip.sceneEditDetection": {
+  "label": "Scene Edit Detection…",
+  "disposition": "na",
+  "note": "no scene-cut analysis pass in the engine"
+ },
+ "clip.setPosterFrame": {
+  "label": "Set Poster Frame",
+  "disposition": "na",
+  "note": "no thumbnail/poster preview pipeline"
+ },
+ "clip.setTimeInterpolation": {
+  "label": "Set Time Interpolation",
+  "disposition": "equivalent",
+  "eep": "clip.set_speed_ramp",
+  "note": "time interpolation rides on the clip speed ramp"
+ },
+ "clip.sourceSettings": {
+  "label": "Source Settings…",
+  "disposition": "na",
+  "note": "asset interpret metadata (colorspace/gamma/channels) is edited via media.update_properties instead of a source settings dialog"
+ },
+ "clip.speedDuration": {
+  "label": "Speed/Duration…",
+  "disposition": "equivalent",
+  "eep": "timeline.rate_stretch"
+ },
+ "clip.synchronize": {
+  "label": "Synchronize…",
+  "disposition": "equivalent",
+  "eep": "multicam.sync",
+  "note": "sync angles by audio waveform correlation with manual offsets"
+ },
+ "clip.timeInterpolation.frameBlending": {
+  "label": "Frame Blending",
+  "disposition": "equivalent",
+  "eep": "clip.set_speed_ramp",
+  "note": "frame-blend flag on the speed ramp"
+ },
+ "clip.timeInterpolation.frameSampling": {
+  "label": "Frame Sampling",
+  "disposition": "equivalent",
+  "eep": "clip.set_speed_ramp",
+  "note": "frame sampling = both interpolation flags off"
+ },
+ "clip.timeInterpolation.opticalFlow": {
+  "label": "Optical Flow",
+  "disposition": "equivalent",
+  "eep": "clip.set_speed_ramp",
+  "note": "optical-flow interpolation flag on the speed ramp"
+ },
+ "clip.ungroup": {
+  "label": "Ungroup",
+  "disposition": "equivalent",
+  "eep": "timeline.unlink_clips"
+ },
+ "clip.updateMetadata": {
+  "label": "Update Metadata…",
+  "disposition": "equivalent",
+  "eep": "media.update_properties"
+ },
+ "clip.volumeDown": {
+  "label": "Decrease Clip Volume",
+  "disposition": "shipped",
+  "eep": "clip.set_volume_db",
+  "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
+ },
+ "clip.volumeDownMany": {
+  "label": "Decrease Clip Volume Many",
+  "disposition": "shipped",
+  "eep": "clip.set_volume_db",
+  "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
+ },
+ "clip.volumeUp": {
+  "label": "Increase Clip Volume",
+  "disposition": "shipped",
+  "eep": "clip.set_volume_db",
+  "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
+ },
+ "clip.volumeUpMany": {
+  "label": "Increase Clip Volume Many",
+  "disposition": "shipped",
+  "eep": "clip.set_volume_db",
+  "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
+ },
+ "edit.clear": {
+  "label": "Clear",
+  "disposition": "equivalent",
+  "eep": "edit.delete",
+  "note": "edit.delete carries the 'clear' alias"
+ },
+ "edit.consolidateDuplicates": {
+  "label": "Consolidate Duplicates",
+  "disposition": "new",
+  "eep": "edit.consolidate_duplicates"
+ },
+ "edit.copy": {
+  "label": "Copy",
+  "disposition": "shipped",
+  "eep": "edit.copy"
+ },
+ "edit.cut": {
+  "label": "Cut",
+  "disposition": "shipped",
+  "eep": "edit.cut"
+ },
+ "edit.deselectAll": {
+  "label": "Deselect All",
+  "disposition": "equivalent",
+  "eep": "edit.deselect_all"
+ },
+ "edit.duplicate": {
+  "label": "Duplicate",
+  "disposition": "new",
+  "eep": "edit.duplicate"
+ },
+ "edit.editOriginal": {
+  "label": "Edit Original",
+  "disposition": "new",
+  "eep": "edit.edit_original"
+ },
+ "edit.find": {
+  "label": "Find…",
+  "disposition": "new",
+  "eep": "edit.find"
+ },
+ "edit.findNext": {
+  "label": "Find Next",
+  "disposition": "new",
+  "eep": "edit.find_next"
+ },
+ "edit.label": {
+  "label": "Label",
+  "disposition": "na",
+  "note": "submenu parent, not a command"
+ },
+ "edit.label.blue": {
+  "label": "Blue",
+  "disposition": "new",
+  "eep": "edit.label.blue"
+ },
+ "edit.label.brown": {
+  "label": "Brown",
+  "disposition": "new",
+  "eep": "edit.label.brown"
+ },
+ "edit.label.caribbean": {
+  "label": "Caribbean",
+  "disposition": "new",
+  "eep": "edit.label.caribbean"
+ },
+ "edit.label.cerulean": {
+  "label": "Cerulean",
+  "disposition": "new",
+  "eep": "edit.label.cerulean"
+ },
+ "edit.label.forest": {
+  "label": "Forest",
+  "disposition": "new",
+  "eep": "edit.label.forest"
+ },
+ "edit.label.green": {
+  "label": "Green",
+  "disposition": "new",
+  "eep": "edit.label.green"
+ },
+ "edit.label.iris": {
+  "label": "Iris",
+  "disposition": "new",
+  "eep": "edit.label.iris"
+ },
+ "edit.label.lavender": {
+  "label": "Lavender",
+  "disposition": "new",
+  "eep": "edit.label.lavender"
+ },
+ "edit.label.magenta": {
+  "label": "Magenta",
+  "disposition": "new",
+  "eep": "edit.label.magenta"
+ },
+ "edit.label.mango": {
+  "label": "Mango",
+  "disposition": "new",
+  "eep": "edit.label.mango"
+ },
+ "edit.label.purple": {
+  "label": "Purple",
+  "disposition": "new",
+  "eep": "edit.label.purple"
+ },
+ "edit.label.rose": {
+  "label": "Rose",
+  "disposition": "new",
+  "eep": "edit.label.rose"
+ },
+ "edit.label.tan": {
+  "label": "Tan",
+  "disposition": "new",
+  "eep": "edit.label.tan"
+ },
+ "edit.label.teal": {
+  "label": "Teal",
+  "disposition": "new",
+  "eep": "edit.label.teal"
+ },
+ "edit.label.violet": {
+  "label": "Violet",
+  "disposition": "new",
+  "eep": "edit.label.violet"
+ },
+ "edit.label.yellow": {
+  "label": "Yellow",
+  "disposition": "new",
+  "eep": "edit.label.yellow"
+ },
+ "edit.paste": {
+  "label": "Paste",
+  "disposition": "shipped",
+  "eep": "edit.paste"
+ },
+ "edit.pasteAttributes": {
+  "label": "Paste Attributes…",
+  "disposition": "new",
+  "eep": "edit.paste_attributes"
+ },
+ "edit.pasteInsert": {
+  "label": "Paste Insert",
+  "disposition": "new",
+  "eep": "edit.paste_insert"
+ },
+ "edit.pasteMedia": {
+  "label": "Paste Media",
+  "disposition": "new",
+  "eep": "edit.paste_media"
+ },
+ "edit.redo": {
+  "label": "Redo",
+  "disposition": "shipped",
+  "eep": "edit.redo"
+ },
+ "edit.removeAttributes": {
+  "label": "Remove Attributes…",
+  "disposition": "new",
+  "eep": "edit.remove_attributes"
+ },
+ "edit.removeUnused": {
+  "label": "Remove Unused",
+  "disposition": "new",
+  "eep": "edit.remove_unused_media"
+ },
+ "edit.rippleDelete": {
+  "label": "Ripple Delete",
+  "disposition": "equivalent",
+  "eep": "timeline.ripple_delete"
+ },
+ "edit.rippleDeleteHead": {
+  "label": "Ripple Delete Head Frame",
+  "disposition": "new",
+  "eep": "edit.ripple_delete_head"
+ },
+ "edit.selectAll": {
+  "label": "Select All",
+  "disposition": "equivalent",
+  "eep": "edit.select_all"
+ },
+ "edit.selectAllMatching": {
+  "label": "Select All Matching",
+  "disposition": "new",
+  "eep": "edit.select_all_matching"
+ },
+ "edit.selectLabelGroup": {
+  "label": "Select Label Group",
+  "disposition": "new",
+  "eep": "edit.select_label_group"
+ },
+ "edit.undo": {
+  "label": "Undo",
+  "disposition": "shipped",
+  "eep": "edit.undo"
+ },
+ "export.formats": {
+  "label": "List Export Formats",
+  "disposition": "new",
+  "eep": "export.formats",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.presets.delete": {
+  "label": "Delete Export Preset",
+  "disposition": "new",
+  "eep": "export.presets.delete",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.presets.export": {
+  "label": "Export Export Presets",
+  "disposition": "new",
+  "eep": "export.presets.export",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.presets.favorite": {
+  "label": "Favorite Export Preset",
+  "disposition": "new",
+  "eep": "export.presets.favorite",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.presets.get": {
+  "label": "Get Export Preset",
+  "disposition": "new",
+  "eep": "export.presets.get",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.presets.import": {
+  "label": "Import Export Presets",
+  "disposition": "new",
+  "eep": "export.presets.import",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.presets.list": {
+  "label": "List Export Presets",
+  "disposition": "new",
+  "eep": "export.presets",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.presets.save": {
+  "label": "Save Export Preset",
+  "disposition": "new",
+  "eep": "export.presets.save",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.queue.add": {
+  "label": "Send to Export Queue",
+  "disposition": "new",
+  "eep": "export.queue.add",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.queue.cancel": {
+  "label": "Cancel Queued Export",
+  "disposition": "new",
+  "eep": "export.queue.cancel",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.queue.clear": {
+  "label": "Clear Finished Exports",
+  "disposition": "new",
+  "eep": "export.queue.clear",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.queue.list": {
+  "label": "List Export Queue",
+  "disposition": "new",
+  "eep": "export.queue.list",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.queue.move": {
+  "label": "Reorder Queued Export",
+  "disposition": "new",
+  "eep": "export.queue.move",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.queue.remove": {
+  "label": "Remove Queued Export",
+  "disposition": "new",
+  "eep": "export.queue.remove",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.queue.retry": {
+  "label": "Retry Queued Export",
+  "disposition": "new",
+  "eep": "export.queue.retry",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.queue.start": {
+  "label": "Start Export Queue",
+  "disposition": "new",
+  "eep": "export.queue.start",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.queue.stop": {
+  "label": "Stop Export Queue",
+  "disposition": "new",
+  "eep": "export.queue.stop",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.quick": {
+  "label": "Quick Export",
+  "disposition": "new",
+  "eep": "export.quick",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "export.resolve": {
+  "label": "Resolve Export Settings",
+  "disposition": "new",
+  "eep": "export.resolve",
+  "note": "implemented in 0.2.1 (alpha.20); presets/formats/resolve engine-backed, queue+quick ui_only over the shell JobManager"
+ },
+ "file.autoSaveNow": {
+  "label": "Auto Save Now",
+  "disposition": "shipped",
+  "eep": "project.autosave.now"
+ },
+ "file.autoSaveStatus": {
+  "label": "Auto Save Status",
+  "disposition": "shipped",
+  "eep": "project.autosave.status"
+ },
+ "file.close": {
+  "label": "Close",
+  "disposition": "shipped",
+  "eep": "file.close"
+ },
+ "file.closeAllOtherProjects": {
+  "label": "Close All Other Projects",
+  "disposition": "na",
+  "note": "one project per window; nothing to close \"elsewhere\""
+ },
+ "file.closeAllProjects": {
+  "label": "Close All Projects",
+  "disposition": "na",
+  "note": "one project per window; there is no multi-project session to close"
+ },
+ "file.closeProject": {
+  "label": "Close Project",
+  "disposition": "equivalent",
+  "eep": "file.close",
+  "note": "one project per window; close resets to the welcome screen"
+ },
+ "file.discardRecovery": {
+  "label": "Discard Unsaved Changes",
+  "disposition": "shipped",
+  "eep": "project.recovery.discard"
+ },
+ "file.exportAaf": {
+  "label": "AAF…",
+  "disposition": "na",
+  "note": "no AAF writer in the interop layer"
+ },
+ "file.exportAle": {
+  "label": "Avid Log Exchange…",
+  "disposition": "na",
+  "note": "no Avid Log Exchange writer"
+ },
+ "file.exportEdl": {
+  "label": "EDL…",
+  "disposition": "shipped",
+  "eep": "interop.export_edl"
+ },
+ "file.exportFcp7Xml": {
+  "label": "Final Cut Pro XML…",
+  "disposition": "shipped",
+  "eep": "interop.export_premiere_xml"
+ },
+ "file.exportFcpxml": {
+  "label": "FCPXML…",
+  "disposition": "shipped",
+  "eep": "interop.export_fcpxml"
+ },
+ "file.exportFrame": {
+  "label": "Export Frame",
+  "disposition": "shipped",
+  "eep": "export.frame"
+ },
+ "file.exportGraphicsTemplate": {
+  "label": "Motion Graphics Template…",
+  "disposition": "na",
+  "note": "no mogrt-style motion graphics template pipeline"
+ },
+ "file.exportInterchange": {
+  "label": "Export Interchange",
+  "disposition": "equivalent",
+  "eep": "interop.export_otio",
+  "note": "generic interchange export is OpenTimelineIO"
+ },
+ "file.exportMedia": {
+  "label": "Media…",
+  "disposition": "equivalent",
+  "eep": "export.quick",
+  "note": "quick export renders the sequence to media"
+ },
+ "file.exportOmf": {
+  "label": "OMF…",
+  "disposition": "na",
+  "note": "no OMF writer"
+ },
+ "file.exportOtio": {
+  "label": "OpenTimelineIO…",
+  "disposition": "shipped",
+  "eep": "interop.export_otio"
+ },
+ "file.exportSelectionProject": {
+  "label": "Selection as FilmCraft Project…",
+  "disposition": "na",
+  "note": "no selection-subset project serializer"
+ },
+ "file.import": {
+  "label": "Import…",
+  "disposition": "equivalent",
+  "eep": "project.add_media",
+  "note": "generic import dialog"
+ },
+ "file.importAaf": {
+  "label": "Import AAF…",
+  "disposition": "na",
+  "note": "no AAF reader in the interop layer"
+ },
+ "file.importDemoFootage": {
+  "label": "Demo Footage",
+  "disposition": "na",
+  "note": "no bundled demo footage corpus"
+ },
+ "file.importFromMediaBrowser": {
+  "label": "Import from Media Browser",
+  "disposition": "na",
+  "note": "media browser is Tier-3 and not wired to import"
+ },
+ "file.importImageSequence": {
+  "label": "Import Image Sequence…",
+  "disposition": "na",
+  "note": "no image-sequence asset importer (single stills import)"
+ },
+ "file.listAutoSaves": {
+  "label": "Browse Auto-Saves",
+  "disposition": "equivalent",
+  "eep": "project.autosave.status",
+  "note": "single-rotation autosave slot; status reports it"
+ },
+ "file.mediaProperties": {
+  "label": "Selection…",
+  "disposition": "equivalent",
+  "eep": "media.update_properties",
+  "note": "Media Properties dialog drives update properties on the selection"
+ },
+ "file.mediaPropertiesFile": {
+  "label": "File…",
+  "disposition": "equivalent",
+  "eep": "media.update_properties",
+  "note": "same dialog targeting the file-backed asset"
+ },
+ "file.newAdjustmentLayer": {
+  "label": "Adjustment Layer…",
+  "disposition": "na",
+  "note": "no overlay adjustment-layer clip model"
+ },
+ "file.newBarsAndTone": {
+  "label": "Bars and Tone…",
+  "disposition": "shipped",
+  "eep": "media.generate_bars_and_tone"
+ },
+ "file.newBin": {
+  "label": "Bin",
+  "disposition": "equivalent",
+  "eep": "media.create_bin"
+ },
+ "file.newBinFromSelection": {
+  "label": "Bin From Selection",
+  "disposition": "equivalent",
+  "eep": "media.create_bin",
+  "note": "combined with media.move_to_bin for the selected assets"
+ },
+ "file.newBlackVideo": {
+  "label": "Black Video…",
+  "disposition": "shipped",
+  "eep": "media.generate_black_video"
+ },
+ "file.newColorMatte": {
+  "label": "Color Matte…",
+  "disposition": "shipped",
+  "eep": "media.generate_color_matte"
+ },
+ "file.newCountingLeader": {
+  "label": "Universal Counting Leader…",
+  "disposition": "na",
+  "note": "no universal counting leader generator"
+ },
+ "file.newOfflineFile": {
+  "label": "Offline File…",
+  "disposition": "na",
+  "note": "no offline-file placeholder asset kind"
+ },
+ "file.newProject": {
+  "label": "Project…",
+  "disposition": "equivalent",
+  "eep": "project.new"
+ },
+ "file.newProjectFromTemplate": {
+  "label": "New Project from Template",
+  "disposition": "na",
+  "note": "no template storage subsystem"
+ },
+ "file.newSearchBin": {
+  "label": "Search Bin",
+  "disposition": "equivalent",
+  "eep": "project.searchBin.set",
+  "note": "saved search bin with a live query"
+ },
+ "file.newSequence": {
+  "label": "Sequence…",
+  "disposition": "equivalent",
+  "eep": "sequence.create"
+ },
+ "file.newSequenceFromClip": {
+  "label": "Sequence From Clip",
+  "disposition": "equivalent",
+  "eep": "timeline.create_compound_clip",
+  "note": "one-clip nest of the selected clip"
+ },
+ "file.newTransparentVideo": {
+  "label": "Transparent Video…",
+  "disposition": "shipped",
+  "eep": "media.generate_transparent_video"
+ },
+ "file.open": {
+  "label": "Open Project…",
+  "disposition": "shipped",
+  "eep": "file.open"
+ },
+ "file.openDemoProject": {
+  "label": "Demo Project",
+  "disposition": "na",
+  "note": "no bundled demo project"
+ },
+ "file.projectManager": {
+  "label": "Project Manager…",
+  "disposition": "na",
+  "note": "no consolidated/transfer project manager"
+ },
+ "file.projectSettings.general": {
+  "label": "General…",
+  "disposition": "equivalent",
+  "eep": "sequence.settings",
+  "note": "geometry and frame rate live with the sequence"
+ },
+ "file.projectSettings.scratchDisks": {
+  "label": "Scratch Disks…",
+  "disposition": "na",
+  "note": "no scratch-disk routing; renders go next to the project"
+ },
+ "file.recover": {
+  "label": "Recover Unsaved Changes…",
+  "disposition": "shipped",
+  "eep": "project.recovery.restore"
+ },
+ "file.recoveryList": {
+  "label": "List Recoverable Sessions",
+  "disposition": "equivalent",
+  "eep": "project.autosave.status",
+  "note": "single-rotation autosave slot; status reports it"
+ },
+ "file.replaceFonts": {
+  "label": "Replace Fonts in Projects…",
+  "disposition": "na",
+  "note": "no cross-project font replacement"
+ },
+ "file.reveal": {
+  "label": "Reveal in Finder",
+  "disposition": "shipped",
+  "eep": "file.reveal"
+ },
+ "file.revert": {
+  "label": "Revert",
+  "disposition": "shipped",
+  "eep": "file.revert"
+ },
+ "file.save": {
+  "label": "Save",
+  "disposition": "shipped",
+  "eep": "file.save"
+ },
+ "file.saveAll": {
+  "label": "Save All",
+  "disposition": "equivalent",
+  "eep": "file.save",
+  "note": "single-document model: one open project already saves everything"
+ },
+ "file.saveAs": {
+  "label": "Save As…",
+  "disposition": "shipped",
+  "eep": "file.saveAs"
+ },
+ "file.saveAsTemplate": {
+  "label": "Save as Template…",
+  "disposition": "na",
+  "note": "no template storage subsystem"
+ },
+ "file.saveCopy": {
+  "label": "Save a Copy…",
+  "disposition": "shipped",
+  "eep": "file.saveCopy"
+ },
+ "file.templates": {
+  "label": "List Project Templates",
+  "disposition": "na",
+  "note": "no template storage subsystem"
+ },
+ "history.list": {
+  "label": "List History",
+  "disposition": "new",
+  "eep": "history.list",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "markers.add": {
+  "label": "Add Marker",
+  "disposition": "equivalent",
+  "eep": "marker.add"
+ },
+ "markers.addChapter": {
+  "label": "Add Chapter Marker…",
+  "disposition": "new",
+  "eep": "marker.add_chapter"
+ },
+ "markers.addFlashCue": {
+  "label": "Add Flash Cue Marker…",
+  "disposition": "new",
+  "eep": "marker.add_flash_cue"
+ },
+ "markers.addRange": {
+  "label": "Add Range Marker",
+  "disposition": "equivalent",
+  "eep": "marker.add_range"
+ },
+ "markers.addRangeInOut": {
+  "label": "Add Range Marker to In and Out",
+  "disposition": "new",
+  "eep": "marker.add_range_in_out"
+ },
+ "markers.clearAll": {
+  "label": "Clear Markers",
+  "disposition": "equivalent",
+  "eep": "marker.clear"
+ },
+ "markers.clearCurrent": {
+  "label": "Clear Selected Marker",
+  "disposition": "equivalent",
+  "eep": "marker.remove",
+  "note": "selected marker removed by id"
+ },
+ "markers.clearIn": {
+  "label": "Clear In",
+  "disposition": "new",
+  "eep": "timeline.clear_mark_in"
+ },
+ "markers.clearInOut": {
+  "label": "Clear In and Out",
+  "disposition": "equivalent",
+  "eep": "timeline.clear_marks"
+ },
+ "markers.clearOut": {
+  "label": "Clear Out",
+  "disposition": "new",
+  "eep": "timeline.clear_mark_out"
+ },
+ "markers.copyPasteIncludesSequenceMarkers": {
+  "label": "Copy Paste Includes Sequence Markers",
+  "disposition": "new",
+  "eep": "marker.set_copy_paste_includes"
+ },
+ "markers.edit": {
+  "label": "Edit Marker…",
+  "disposition": "equivalent",
+  "eep": "marker.update"
+ },
+ "markers.exportCsv": {
+  "label": "Export Markers as CSV…",
+  "disposition": "equivalent",
+  "eep": "marker.export_csv"
+ },
+ "markers.filterColors": {
+  "label": "Marker Colour Filter",
+  "disposition": "new",
+  "eep": "marker.set_color_filter"
+ },
+ "markers.goNext": {
+  "label": "Go to Next Marker",
+  "disposition": "equivalent",
+  "eep": "marker.next"
+ },
+ "markers.goPrev": {
+  "label": "Go to Previous Marker",
+  "disposition": "equivalent",
+  "eep": "marker.previous"
+ },
+ "markers.goToIn": {
+  "label": "Go to In",
+  "disposition": "equivalent",
+  "eep": "playhead.go_to_in"
+ },
+ "markers.goToOut": {
+  "label": "Go to Out",
+  "disposition": "equivalent",
+  "eep": "playhead.go_to_out"
+ },
+ "markers.goToSplitAudioIn": {
+  "label": "Audio In",
+  "disposition": "new",
+  "eep": "marker.go_to_split_audio_in",
+  "note": "ui_only navigation over split marker domains"
+ },
+ "markers.goToSplitAudioOut": {
+  "label": "Audio Out",
+  "disposition": "new",
+  "eep": "marker.go_to_split_audio_out",
+  "note": "ui_only navigation over split marker domains"
+ },
+ "markers.goToSplitVideoIn": {
+  "label": "Video In",
+  "disposition": "new",
+  "eep": "marker.go_to_split_video_in",
+  "note": "ui_only navigation over split marker domains"
+ },
+ "markers.goToSplitVideoOut": {
+  "label": "Video Out",
+  "disposition": "new",
+  "eep": "marker.go_to_split_video_out",
+  "note": "ui_only navigation over split marker domains"
+ },
+ "markers.markClip": {
+  "label": "Mark Clip",
+  "disposition": "new",
+  "eep": "timeline.mark_clip"
+ },
+ "markers.markIn": {
+  "label": "Mark In",
+  "disposition": "equivalent",
+  "eep": "timeline.set_mark_in"
+ },
+ "markers.markOut": {
+  "label": "Mark Out",
+  "disposition": "equivalent",
+  "eep": "timeline.set_mark_out"
+ },
+ "markers.markSelection": {
+  "label": "Mark Selection",
+  "disposition": "new",
+  "eep": "timeline.mark_selection"
+ },
+ "markers.markSplitAudioIn": {
+  "label": "Audio In",
+  "disposition": "new",
+  "eep": "marker.set_split_audio",
+  "note": "split marker domains share the marker duration"
+ },
+ "markers.markSplitAudioOut": {
+  "label": "Audio Out",
+  "disposition": "new",
+  "eep": "marker.set_split_audio_out",
+  "note": "split marker domains share the marker duration"
+ },
+ "markers.markSplitVideoIn": {
+  "label": "Video In",
+  "disposition": "new",
+  "eep": "marker.set_split_video",
+  "note": "split marker domains share the marker duration"
+ },
+ "markers.markSplitVideoOut": {
+  "label": "Video Out",
+  "disposition": "new",
+  "eep": "marker.set_split_video_out",
+  "note": "split marker domains share the marker duration"
+ },
+ "markers.rippleSequenceMarkers": {
+  "label": "Ripple Sequence Markers",
+  "disposition": "equivalent",
+  "eep": "marker.ripple"
+ },
+ "markers.showAllMarkerColors": {
+  "label": "Show All Marker Colors",
+  "disposition": "new",
+  "eep": "marker.show_all_colors"
+ },
+ "media.attachProxies": {
+  "label": "Attach Proxies…",
+  "disposition": "new",
+  "eep": "media.attach_proxy",
+  "note": "implemented in 0.2.1 (alpha.18)"
+ },
+ "media.autoRelink": {
+  "label": "Relink Moved Media",
+  "disposition": "new",
+  "eep": "media.auto_relink",
+  "note": "implemented in 0.2.1 (alpha.18)"
+ },
+ "media.colorInfo": {
+  "label": "Media Colour Info",
+  "disposition": "new",
+  "eep": "media.color_info",
+  "note": "implemented in 0.2.1 (alpha.18)"
+ },
+ "media.createProxies": {
+  "label": "Create Proxies…",
+  "disposition": "new"
+ },
+ "media.detachProxies": {
+  "label": "Detach Proxies",
+  "disposition": "new",
+  "eep": "media.detach_proxy",
+  "note": "implemented in 0.2.1 (alpha.18)"
+ },
+ "media.findMissing": {
+  "label": "Find Missing Media",
+  "disposition": "equivalent",
+  "eep": "media.check_missing",
+  "note": "the check scans every file-backed asset and reports the missing ids; the panel shows the same list"
+ },
+ "media.linkMedia": {
+  "label": "Link Media…",
+  "disposition": "equivalent",
+  "eep": "project.relink_media",
+  "note": "linking an offline item to a new file IS the relink; clips reference the asset, so it re-links everywhere"
+ },
+ "media.makeOffline": {
+  "label": "Make Offline…",
+  "disposition": "new",
+  "eep": "media.make_offline",
+  "note": "implemented in 0.2.1 (alpha.18)"
+ },
+ "media.offlineAll": {
+  "label": "Offline All",
+  "disposition": "new",
+  "eep": "media.offline_all",
+  "note": "implemented in 0.2.1 (alpha.18)"
+ },
+ "media.proxyPresets": {
+  "label": "Proxy Presets",
+  "disposition": "new"
+ },
+ "media.reconnectFullRes": {
+  "label": "Reconnect Full Resolution Media…",
+  "disposition": "equivalent",
+  "eep": "project.relink_media",
+  "note": "EEP has no separate proxy-resolution layer; restoring the source path is the relink"
+ },
+ "media.refreshChanged": {
+  "label": "Refresh Changed Media",
+  "disposition": "new",
+  "eep": "media.refresh_changed",
+  "note": "implemented in 0.2.1 (alpha.18)"
+ },
+ "media.relink": {
+  "label": "Relink Media",
+  "disposition": "equivalent",
+  "eep": "project.relink_media",
+  "note": "Relink Missing Media"
+ },
+ "media.replaceFootage": {
+  "label": "Replace Footage…",
+  "disposition": "equivalent",
+  "eep": "project.relink_media",
+  "note": "clips reference the asset id, so relinking replaces the footage in every edit"
+ },
+ "media.search": {
+  "label": "Search for Media",
+  "disposition": "new",
+  "eep": "media.search",
+  "note": "implemented in 0.2.1 (alpha.18)"
+ },
+ "media.status": {
+  "label": "Media Status",
+  "disposition": "equivalent",
+  "eep": "media.check_missing",
+  "note": "the check's counts are the status breakdown; media.list returns per-asset detail"
+ },
+ "media.toggleProxies": {
+  "label": "Toggle Proxies",
+  "disposition": "new",
+  "eep": "media.toggle_proxies",
+  "note": "implemented in 0.2.1 (alpha.18)"
+ },
+ "playhead.end": {
+  "label": "Go to Sequence End",
+  "disposition": "shipped",
+  "eep": "playhead.end"
+ },
+ "playhead.nextEdit": {
+  "label": "Go to Next Edit Point",
+  "disposition": "equivalent",
+  "eep": "playhead.next_edit"
+ },
+ "playhead.nextEditAnyTrack": {
+  "label": "Go to Next Edit Point on Any Track",
+  "disposition": "equivalent",
+  "eep": "playhead.next_edit",
+  "note": "EEP has no track targeting; next_edit scans every track, which is the any-track semantics"
+ },
+ "playhead.prevEdit": {
+  "label": "Go to Previous Edit Point",
+  "disposition": "equivalent",
+  "eep": "playhead.previous_edit"
+ },
+ "playhead.prevEditAnyTrack": {
+  "label": "Go to Previous Edit Point on Any Track",
+  "disposition": "equivalent",
+  "eep": "playhead.previous_edit",
+  "note": "EEP has no track targeting; previous_edit scans every track"
+ },
+ "playhead.selectedClipEnd": {
+  "label": "Go to Selected Clip End",
+  "disposition": "equivalent",
+  "eep": "playhead.go_to_clip_end"
+ },
+ "playhead.selectedClipStart": {
+  "label": "Go to Selected Clip Start",
+  "disposition": "equivalent",
+  "eep": "playhead.go_to_clip_start"
+ },
+ "playhead.set": {
+  "label": "Set Playhead",
+  "disposition": "equivalent",
+  "eep": "playhead.go_to_timecode",
+  "note": "the playhead is set to a time entered in the Go to Timecode dialog"
+ },
+ "playhead.start": {
+  "label": "Go to Sequence Start",
+  "disposition": "shipped",
+  "eep": "playhead.start"
+ },
+ "playhead.step": {
+  "label": "Step Frames",
+  "disposition": "equivalent",
+  "eep": "playhead.nudge_forward_1",
+  "note": "EEP exposes frame stepping through the +-1/+-5 nudge commands"
+ },
+ "playhead.stepBack": {
+  "label": "Step Back One Frame",
+  "disposition": "equivalent",
+  "eep": "playhead.nudge_back_1"
+ },
+ "playhead.stepBack5": {
+  "label": "Step Back Five Frames",
+  "disposition": "equivalent",
+  "eep": "playhead.nudge_back_5"
+ },
+ "playhead.stepForward": {
+  "label": "Step Forward One Frame",
+  "disposition": "equivalent",
+  "eep": "playhead.nudge_forward_1"
+ },
+ "playhead.stepForward5": {
+  "label": "Step Forward Five Frames",
+  "disposition": "equivalent",
+  "eep": "playhead.nudge_forward_5"
+ },
+ "prefs.get": {
+  "label": "Get Preferences",
+  "disposition": "shipped",
+  "eep": "prefs.get"
+ },
+ "prefs.reset": {
+  "label": "Reset Preferences",
+  "disposition": "shipped",
+  "eep": "prefs.reset"
+ },
+ "prefs.schema": {
+  "label": "Settings Schema",
+  "disposition": "new",
+  "eep": "prefs.schema",
+  "note": "implemented in 0.2.1 (alpha.17)"
+ },
+ "prefs.set": {
+  "label": "Set Preferences",
+  "disposition": "shipped",
+  "eep": "prefs.set"
+ },
+ "project.columns.list": {
+  "label": "List Project Columns",
+  "disposition": "new",
+  "eep": "project.columns.list"
+ },
+ "project.columns.resize": {
+  "label": "Resize Column",
+  "disposition": "new",
+  "eep": "project.columns.resize"
+ },
+ "project.columns.set": {
+  "label": "Metadata Display",
+  "disposition": "new",
+  "eep": "project.columns.set"
+ },
+ "project.delete": {
+  "label": "Clear",
+  "disposition": "new",
+  "eep": "project.remove",
+  "note": "implemented in 0.4.0 (alpha.23); removes the selected media items, refusing in-use media"
+ },
+ "project.deleteSearchBin": {
+  "label": "Delete Search Bin",
+  "disposition": "new",
+  "eep": "project.searchBin.delete",
+  "note": "implemented in 0.4.0 (alpha.23); saved-query search bins in the shared prefs store"
+ },
+ "project.deselectAll": {
+  "label": "Deselect All Project Items",
+  "disposition": "new",
+  "eep": "project.deselectAll"
+ },
+ "project.editSearchBin": {
+  "label": "Edit Search Bin",
+  "disposition": "new",
+  "eep": "project.searchBin.set",
+  "note": "implemented in 0.4.0 (alpha.23); saved-query search bins in the shared prefs store"
+ },
+ "project.freeform.alignToGrid": {
+  "label": "Align to Grid",
+  "disposition": "new",
+  "eep": "project.freeform.alignToGrid",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.freeform.arrangements": {
+  "label": "List Arrangements",
+  "disposition": "new",
+  "eep": "project.freeform.arrangements",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.freeform.deleteArrangement": {
+  "label": "Delete Arrangement",
+  "disposition": "new",
+  "eep": "project.freeform.deleteArrangement",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.freeform.layout": {
+  "label": "Freeform Layout",
+  "disposition": "new",
+  "eep": "project.freeform.layout",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.freeform.move": {
+  "label": "Move Clip Cards",
+  "disposition": "new",
+  "eep": "project.freeform.move",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.freeform.options": {
+  "label": "Freeform View Options…",
+  "disposition": "new",
+  "eep": "project.freeform.options",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.freeform.reset": {
+  "label": "Reset to Grid",
+  "disposition": "new",
+  "eep": "project.freeform.reset",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.freeform.resize": {
+  "label": "Clip Size",
+  "disposition": "new",
+  "eep": "project.freeform.resize",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.freeform.restoreArrangement": {
+  "label": "Restore Arrangement",
+  "disposition": "new",
+  "eep": "project.freeform.restoreArrangement",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.freeform.saveArrangement": {
+  "label": "Save Arrangement",
+  "disposition": "new",
+  "eep": "project.freeform.saveArrangement",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.freeform.stack": {
+  "label": "Stack Clips",
+  "disposition": "new",
+  "eep": "project.freeform.stack",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.freeform.unstack": {
+  "label": "Unstack Clips",
+  "disposition": "new",
+  "eep": "project.freeform.unstack",
+  "note": "implemented in 0.4.0 (alpha.23); prefs-backed freeform layout"
+ },
+ "project.ingestSettings": {
+  "label": "Ingest Settings…",
+  "disposition": "na",
+  "note": "EEP imports reference media in place; there is no ingest/copy pipeline to configure"
+ },
+ "project.inspect": {
+  "label": "Inspect Project",
+  "disposition": "shipped",
+  "eep": "project.inspect"
+ },
+ "project.items": {
+  "label": "List Project Panel Rows",
+  "disposition": "new",
+  "eep": "project.items"
+ },
+ "project.matteColor": {
+  "label": "Color Matte Color…",
+  "disposition": "na",
+  "note": "EEP has no colour-matte generator yet; revisited alongside file.newColorMatte"
+ },
+ "project.moveToBin": {
+  "label": "Move to Bin",
+  "disposition": "equivalent",
+  "eep": "media.move_to_bin"
+ },
+ "project.notes": {
+  "label": "Get Project Notes",
+  "disposition": "new",
+  "eep": "project.notes"
+ },
+ "project.renameBin": {
+  "label": "Rename Bin",
+  "disposition": "equivalent",
+  "eep": "media.rename_bin"
+ },
+ "project.searchBinItems": {
+  "label": "Search Bin Contents",
+  "disposition": "new",
+  "eep": "project.searchBin.items",
+  "note": "implemented in 0.4.0 (alpha.23); saved-query search bins in the shared prefs store"
+ },
+ "project.select": {
+  "label": "Select Project Items",
+  "disposition": "new",
+  "eep": "project.select",
+  "note": "implemented in 0.4.0 (alpha.23); frontend-only prompt matching panel items by name or kind"
+ },
+ "project.selectAll": {
+  "label": "Select All Project Items",
+  "disposition": "new",
+  "eep": "project.selectAll"
+ },
+ "project.setMarks": {
+  "label": "Set Source In/Out",
+  "disposition": "new",
+  "eep": "project.setMarks"
+ },
+ "project.setNotes": {
+  "label": "Edit Project Notes",
+  "disposition": "new",
+  "eep": "project.setNotes"
+ },
+ "project.sort": {
+  "label": "Sort Project Items",
+  "disposition": "new",
+  "eep": "project.sort"
+ },
+ "project.view.get": {
+  "label": "Project Panel View",
+  "disposition": "new",
+  "eep": "project.view.get"
+ },
+ "project.view.set": {
+  "label": "Set Project Panel View",
+  "disposition": "new",
+  "eep": "project.view.set"
+ },
+ "project.viewPreset.delete": {
+  "label": "Delete View Preset",
+  "disposition": "new",
+  "eep": "project.viewPreset.delete"
+ },
+ "project.viewPreset.list": {
+  "label": "List View Presets",
+  "disposition": "new",
+  "eep": "project.viewPreset.list"
+ },
+ "project.viewPreset.rename": {
+  "label": "Rename View Preset",
+  "disposition": "new",
+  "eep": "project.viewPreset.rename"
+ },
+ "project.viewPreset.restore": {
+  "label": "Restore View Preset",
+  "disposition": "new",
+  "eep": "project.viewPreset.restore"
+ },
+ "project.viewPreset.save": {
+  "label": "Save Current View Preset",
+  "disposition": "new",
+  "eep": "project.viewPreset.save"
+ },
+ "project.viewPreset.saveAs": {
+  "label": "Save As New View Preset",
+  "disposition": "new",
+  "eep": "project.viewPreset.saveAs"
+ },
+ "sequence.addEdit": {
+  "label": "Add Edit",
+  "disposition": "equivalent",
+  "eep": "timeline.split_clip",
+  "note": "razor at playhead on targeted tracks"
+ },
+ "sequence.addEditAllTracks": {
+  "label": "Add Edit to All Tracks",
+  "disposition": "shipped",
+  "eep": "sequence.add_edit_all_tracks",
+  "note": "razor cut at the playhead on every unlocked track, descending clip index keeps targeting valid across insertions"
+ },
+ "sequence.addTracks": {
+  "label": "Add Tracks…",
+  "disposition": "equivalent",
+  "eep": "timeline.add_track",
+  "note": "track addition, repeated per track"
+ },
+ "sequence.applyAudioTransition": {
+  "label": "Apply Audio Transition",
+  "disposition": "equivalent",
+  "eep": "timeline.add_transition",
+  "note": "audio crossfades route through the same transition commands"
+ },
+ "sequence.applyVideoTransition": {
+  "label": "Apply Video Transition",
+  "disposition": "equivalent",
+  "eep": "timeline.add_transition"
+ },
+ "sequence.close": {
+  "label": "Close Sequence",
+  "disposition": "shipped",
+  "eep": "sequence.close",
+  "note": "parks the active sequence in the project list and activates the first stored one; the last remaining sequence cannot be closed"
+ },
+ "sequence.closeGap": {
+  "label": "Close Gap",
+  "disposition": "equivalent",
+  "eep": "timeline.ripple_delete_gap",
+  "note": "gap removal under the playhead"
+ },
+ "sequence.closeOthers": {
+  "label": "Close Other Timeline Panels",
+  "disposition": "na",
+  "note": "sequences live in a header switcher, not closable timeline panels"
+ },
+ "sequence.colorSettings": {
+  "label": "Color Management…",
+  "disposition": "na",
+  "note": "no sequence-level color management pipeline in the render path"
+ },
+ "sequence.deleteRenderFiles": {
+  "label": "Delete Render Files",
+  "disposition": "na",
+  "note": "no preview render-file cache; playback decodes media directly"
+ },
+ "sequence.deleteRenderFilesInToOut": {
+  "label": "Delete Render Files In to Out",
+  "disposition": "na",
+  "note": "no preview render-file cache; playback decodes media directly"
+ },
+ "sequence.deleteTrack": {
+  "label": "Delete Track",
+  "disposition": "equivalent",
+  "eep": "timeline.remove_track",
+  "note": "single-track removal"
+ },
+ "sequence.deleteTracks": {
+  "label": "Delete Tracks…",
+  "disposition": "equivalent",
+  "eep": "timeline.remove_track",
+  "note": "track removal, repeated per track"
+ },
+ "sequence.extract": {
+  "label": "Extract",
+  "disposition": "shipped",
+  "eep": "sequence.extract"
+ },
+ "sequence.goToNextGap": {
+  "label": "Next in Sequence",
+  "disposition": "shipped",
+  "eep": "sequence.goToNextGap",
+  "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
+ },
+ "sequence.goToNextGapInTrack": {
+  "label": "Next in Track",
+  "disposition": "shipped",
+  "eep": "sequence.goToNextGapInTrack",
+  "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
+ },
+ "sequence.goToPrevGap": {
+  "label": "Previous in Sequence",
+  "disposition": "shipped",
+  "eep": "sequence.goToPrevGap",
+  "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
+ },
+ "sequence.goToPrevGapInTrack": {
+  "label": "Previous in Track",
+  "disposition": "shipped",
+  "eep": "sequence.goToPrevGapInTrack",
+  "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
+ },
+ "sequence.inspect": {
+  "label": "Inspect Sequence",
+  "disposition": "shipped",
+  "eep": "sequence.inspect",
+  "note": "non-mutating stats: tracks, clips, duration, marks, compound flag"
+ },
+ "sequence.joinThroughEdits": {
+  "label": "Join Through Edits",
+  "disposition": "na",
+  "note": "no through-edit model; adjacent clips join via ripple delete"
+ },
+ "sequence.lift": {
+  "label": "Lift",
+  "disposition": "shipped",
+  "eep": "sequence.lift"
+ },
+ "sequence.linkedSelection": {
+  "label": "Linked Selection",
+  "disposition": "new"
+ },
+ "sequence.makeSubsequence": {
+  "label": "Make Subsequence",
+  "disposition": "equivalent",
+  "eep": "timeline.create_compound_clip",
+  "note": "selected clips nest into a compound clip backed by a stored sequence"
+ },
+ "sequence.matchFrame": {
+  "label": "Match Frame",
+  "disposition": "equivalent",
+  "eep": "media.reveal",
+  "note": "EEP has no source monitor; the gesture selects the clip's media in the project panel and reports the playhead position"
+ },
+ "sequence.moveTab": {
+  "label": "Move Sequence Tab",
+  "disposition": "na",
+  "note": "sequences live in a header switcher, not reorderable timeline tabs"
+ },
+ "sequence.nestSequences": {
+  "label": "Insert and overwrite sequences as nests or individual clips",
+  "disposition": "equivalent",
+  "eep": "timeline.create_compound_clip",
+  "note": "nesting inserts the selection as one compound clip"
+ },
+ "sequence.normalizeMixTrack": {
+  "label": "Normalize Mix Track…",
+  "disposition": "na",
+  "note": "no mix-track loudness normalization pass in the audio engine"
+ },
+ "sequence.open": {
+  "label": "Open in Timeline",
+  "disposition": "equivalent",
+  "eep": "project.switch_sequence",
+  "note": "opening a sequence in the timeline"
+ },
+ "sequence.removeTransition": {
+  "label": "Clear Transition",
+  "disposition": "equivalent",
+  "eep": "timeline.remove_transition"
+ },
+ "sequence.renderAudio": {
+  "label": "Render Audio",
+  "disposition": "equivalent",
+  "eep": "export.quick",
+  "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
+ },
+ "sequence.renderBar": {
+  "label": "Render Bar",
+  "disposition": "na",
+  "note": "no preview render bar; the export queue reports render progress"
+ },
+ "sequence.renderEffectsInToOut": {
+  "label": "Render Effects In to Out",
+  "disposition": "equivalent",
+  "eep": "export.quick",
+  "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
+ },
+ "sequence.renderInToOut": {
+  "label": "Render In to Out",
+  "disposition": "equivalent",
+  "eep": "export.quick",
+  "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
+ },
+ "sequence.renderSelection": {
+  "label": "Render Selection",
+  "disposition": "equivalent",
+  "eep": "export.quick",
+  "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
+ },
+ "sequence.revealInProject": {
+  "label": "Reveal Sequence in Project",
+  "disposition": "na",
+  "note": "sequences are not shown in the media panel; nested ones open via sequence.reveal_nested"
+ },
+ "sequence.revealNested": {
+  "label": "Reveal Nested Sequence",
+  "disposition": "shipped",
+  "eep": "sequence.reveal_nested",
+  "note": "non-mutating resolution of the compound clip's nested sequence id; the inspector chains into project.switch_sequence to open it"
+ },
+ "sequence.reverseMatchFrame": {
+  "label": "Reverse Match Frame",
+  "disposition": "equivalent",
+  "eep": "media.reveal",
+  "note": "same reveal gesture; the timeline is the only sequence view"
+ },
+ "sequence.selectionFollowsPlayhead": {
+  "label": "Selection Follows Playhead",
+  "disposition": "new"
+ },
+ "sequence.setTransition": {
+  "label": "Edit Transition Settings",
+  "disposition": "equivalent",
+  "eep": "timeline.update_transition"
+ },
+ "sequence.settings": {
+  "label": "Sequence Settings…",
+  "disposition": "shipped",
+  "eep": "sequence.settings",
+  "note": "width/height validated 16..8192 and rational frame rate on the active sequence"
+ },
+ "sequence.showThroughEdits": {
+  "label": "Show Through Edits",
+  "disposition": "na",
+  "note": "no through-edit model to display"
+ },
+ "sequence.simplify": {
+  "label": "Simplify Sequence…",
+  "disposition": "equivalent",
+  "eep": "edit.consolidate_duplicates",
+  "note": "removes later duplicate placements of identical source usage"
+ },
+ "sequence.snap": {
+  "label": "Snap in Timeline",
+  "disposition": "equivalent",
+  "eep": "view.toggle_snap"
+ },
+ "sequence.throughEdits": {
+  "label": "List Through Edits",
+  "disposition": "na",
+  "note": "no through-edit model to toggle"
+ },
+ "sequence.transcribe": {
+  "label": "Transcribe Sequence…",
+  "disposition": "equivalent",
+  "eep": "speech.transcribe_to_subtitles"
+ },
+ "shortcuts.audit": {
+  "label": "Shortcut Audit",
+  "disposition": "new",
+  "eep": "shortcuts.audit",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.clear": {
+  "label": "Clear Shortcut",
+  "disposition": "new",
+  "eep": "shortcuts.clear",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.conflicts": {
+  "label": "Shortcut Conflicts",
+  "disposition": "new",
+  "eep": "shortcuts.conflicts",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.deletePreset": {
+  "label": "Delete Shortcut Preset",
+  "disposition": "new",
+  "eep": "shortcuts.delete_preset",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.export": {
+  "label": "Export Keyboard Shortcuts",
+  "disposition": "new",
+  "eep": "shortcuts.export",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.forKey": {
+  "label": "Shortcuts on a Key",
+  "disposition": "new",
+  "eep": "shortcuts.for_key",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.get": {
+  "label": "Get Shortcuts of a Command",
+  "disposition": "new",
+  "eep": "shortcuts.get",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.import": {
+  "label": "Import Keyboard Shortcuts",
+  "disposition": "shipped",
+  "eep": "shortcuts.import"
+ },
+ "shortcuts.list": {
+  "label": "List Keyboard Shortcuts",
+  "disposition": "shipped",
+  "eep": "shortcuts.list"
+ },
+ "shortcuts.loadPreset": {
+  "label": "Load Shortcut Preset",
+  "disposition": "new",
+  "eep": "shortcuts.load_preset",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.presets": {
+  "label": "Keyboard Shortcut Presets",
+  "disposition": "new",
+  "eep": "shortcuts.presets",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.redo": {
+  "label": "Redo Shortcut Change",
+  "disposition": "new",
+  "eep": "shortcuts.redo",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.resolve": {
+  "label": "Resolve Shortcut",
+  "disposition": "new",
+  "eep": "shortcuts.resolve",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.savePreset": {
+  "label": "Save Shortcut Preset As",
+  "disposition": "new",
+  "eep": "shortcuts.save_preset",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "shortcuts.set": {
+  "label": "Assign Shortcut",
+  "disposition": "shipped",
+  "eep": "shortcuts.set"
+ },
+ "shortcuts.undo": {
+  "label": "Undo Shortcut Change",
+  "disposition": "new",
+  "eep": "shortcuts.undo",
+  "note": "implemented in 0.2.1 (alpha.19); settings-scoped undo/redo, engine presets store"
+ },
+ "timeline.move": {
+  "label": "Move Clips",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clips_batch"
+ },
+ "timeline.moveAudioTargetsDown": {
+  "label": "Move All Audio Targets Down",
+  "disposition": "new",
+  "eep": "timeline.moveAudioTargetsDown",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.moveAudioTargetsUp": {
+  "label": "Move All Audio Targets Up",
+  "disposition": "new",
+  "eep": "timeline.moveAudioTargetsUp",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.moveVideoTargetsDown": {
+  "label": "Move All Video Targets Down",
+  "disposition": "new",
+  "eep": "timeline.moveVideoTargetsDown",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.moveVideoTargetsUp": {
+  "label": "Move All Video Targets Up",
+  "disposition": "new",
+  "eep": "timeline.moveVideoTargetsUp",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.nudgeDown": {
+  "label": "Nudge Clip Selection Down",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clip",
+  "note": "track change moves the clip"
+ },
+ "timeline.nudgeLeft": {
+  "label": "Nudge Clip Selection Left One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clips_batch",
+  "note": "one-frame reposition of the selection"
+ },
+ "timeline.nudgeLeft5": {
+  "label": "Nudge Clip Selection Left Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clips_batch",
+  "note": "five-frame reposition of the selection"
+ },
+ "timeline.nudgeRight": {
+  "label": "Nudge Clip Selection Right One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clips_batch",
+  "note": "one-frame reposition of the selection"
+ },
+ "timeline.nudgeRight5": {
+  "label": "Nudge Clip Selection Right Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clips_batch",
+  "note": "five-frame reposition of the selection"
+ },
+ "timeline.nudgeUp": {
+  "label": "Nudge Clip Selection Up",
+  "disposition": "equivalent",
+  "eep": "timeline.move_clip",
+  "note": "track change moves the clip"
+ },
+ "timeline.place": {
+  "label": "Place Clip",
+  "disposition": "equivalent",
+  "eep": "timeline.add_clip",
+  "note": "append/overwrite placement of a source clip"
+ },
+ "timeline.rateStretch": {
+  "label": "Rate Stretch",
+  "disposition": "equivalent",
+  "eep": "timeline.rate_stretch"
+ },
+ "timeline.razor": {
+  "label": "Razor",
+  "disposition": "equivalent",
+  "eep": "timeline.split_clip",
+  "note": "split_clip splits the clip at a playhead position (razor)"
+ },
+ "timeline.roll": {
+  "label": "Rolling Edit",
+  "disposition": "equivalent",
+  "eep": "timeline.roll_edit"
+ },
+ "timeline.select": {
+  "label": "Select Clips",
+  "disposition": "new",
+  "eep": "timeline.select",
+  "note": "implemented in 0.4.0 (alpha.23); frontend-only prompt"
+ },
+ "timeline.selectClipAtPlayhead": {
+  "label": "Select Clip at Playhead",
+  "disposition": "equivalent",
+  "eep": "edit.select_clip_at_playhead"
+ },
+ "timeline.selectGap": {
+  "label": "Select Gap",
+  "disposition": "new",
+  "eep": "timeline.selectGap",
+  "note": "implemented in 0.4.0 (alpha.23); frontend-only; marks the gap in/out at the playhead"
+ },
+ "timeline.selectNextClip": {
+  "label": "Select Next Clip",
+  "disposition": "new",
+  "eep": "timeline.selectNextClip",
+  "note": "implemented in 0.4.0 (alpha.23); frontend-only timeline-order stepping"
+ },
+ "timeline.selectPrevClip": {
+  "label": "Select Previous Clip",
+  "disposition": "new",
+  "eep": "timeline.selectPrevClip",
+  "note": "implemented in 0.4.0 (alpha.23); frontend-only timeline-order stepping"
+ },
+ "timeline.setTargeting": {
+  "label": "Track Targeting",
+  "disposition": "new",
+  "eep": "timeline.setTargeting",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.setTrack": {
+  "label": "Track Settings",
+  "disposition": "equivalent",
+  "eep": "track.set_gain_db",
+  "note": "per-property track.set_gain_db / set_pan / set_muted / set_solo / set_locked"
+ },
+ "timeline.slide": {
+  "label": "Slide",
+  "disposition": "equivalent",
+  "eep": "timeline.slide_clip"
+ },
+ "timeline.slideLeft": {
+  "label": "Slide Clip Selection Left One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.slide_clip",
+  "note": "one-frame slide delta"
+ },
+ "timeline.slideLeft5": {
+  "label": "Slide Clip Selection Left Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.slide_clip",
+  "note": "five-frame slide delta"
+ },
+ "timeline.slideRight": {
+  "label": "Slide Clip Selection Right One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.slide_clip",
+  "note": "one-frame slide delta"
+ },
+ "timeline.slideRight5": {
+  "label": "Slide Clip Selection Right Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.slide_clip",
+  "note": "five-frame slide delta"
+ },
+ "timeline.slip": {
+  "label": "Slip",
+  "disposition": "equivalent",
+  "eep": "timeline.slip_clip"
+ },
+ "timeline.slipLeft": {
+  "label": "Slip Clip Selection Left One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.slip_clip",
+  "note": "one-frame slip delta"
+ },
+ "timeline.slipLeft5": {
+  "label": "Slip Clip Selection Left Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.slip_clip",
+  "note": "five-frame slip delta"
+ },
+ "timeline.slipRight": {
+  "label": "Slip Clip Selection Right One Frame",
+  "disposition": "equivalent",
+  "eep": "timeline.slip_clip",
+  "note": "one-frame slip delta"
+ },
+ "timeline.slipRight5": {
+  "label": "Slip Clip Selection Right Five Frames",
+  "disposition": "equivalent",
+  "eep": "timeline.slip_clip",
+  "note": "five-frame slip delta"
+ },
+ "timeline.toggleAllAudioTargets": {
+  "label": "Toggle All Audio Targets",
+  "disposition": "new",
+  "eep": "timeline.toggleAllAudioTargets",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleAllSourceAudio": {
+  "label": "Toggle All Source Audio",
+  "disposition": "new",
+  "eep": "timeline.toggleAllSourceAudio",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleAllSourceVideo": {
+  "label": "Toggle All Source Video",
+  "disposition": "new",
+  "eep": "timeline.toggleAllSourceVideo",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleAllVideoTargets": {
+  "label": "Toggle All Video Targets",
+  "disposition": "new",
+  "eep": "timeline.toggleAllVideoTargets",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleMuteTargetedAudio": {
+  "label": "Toggle Mute for All Targeted Audio Tracks",
+  "disposition": "new",
+  "eep": "timeline.toggleMuteTargetedAudio",
+  "note": "implemented in 0.4.0 (alpha.23); flips Track muted/solo on the targeted tracks"
+ },
+ "timeline.toggleOutputTargetedVideo": {
+  "label": "Toggle Track Output for All Targeted Video Tracks",
+  "disposition": "new",
+  "eep": "timeline.toggleOutputTargetedVideo",
+  "note": "implemented in 0.4.0 (alpha.23); flips Track muted/solo on the targeted tracks"
+ },
+ "timeline.toggleSoloTargetedAudio": {
+  "label": "Toggle Solo for All Targeted Audio Tracks",
+  "disposition": "new",
+  "eep": "timeline.toggleSoloTargetedAudio",
+  "note": "implemented in 0.4.0 (alpha.23); flips Track muted/solo on the targeted tracks"
+ },
+ "timeline.toggleTargetA1": {
+  "label": "Toggle Target Audio 1",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetA1",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetA2": {
+  "label": "Toggle Target Audio 2",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetA2",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetA3": {
+  "label": "Toggle Target Audio 3",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetA3",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetA4": {
+  "label": "Toggle Target Audio 4",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetA4",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetA5": {
+  "label": "Toggle Target Audio 5",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetA5",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetA6": {
+  "label": "Toggle Target Audio 6",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetA6",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetA7": {
+  "label": "Toggle Target Audio 7",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetA7",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetA8": {
+  "label": "Toggle Target Audio 8",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetA8",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetV1": {
+  "label": "Toggle Target Video 1",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetV1",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetV2": {
+  "label": "Toggle Target Video 2",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetV2",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetV3": {
+  "label": "Toggle Target Video 3",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetV3",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetV4": {
+  "label": "Toggle Target Video 4",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetV4",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetV5": {
+  "label": "Toggle Target Video 5",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetV5",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetV6": {
+  "label": "Toggle Target Video 6",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetV6",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetV7": {
+  "label": "Toggle Target Video 7",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetV7",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.toggleTargetV8": {
+  "label": "Toggle Target Video 8",
+  "disposition": "new",
+  "eep": "timeline.toggleTargetV8",
+  "note": "implemented in 0.4.0 (alpha.23); editor-state targeting"
+ },
+ "timeline.trim": {
+  "label": "Trim Edit",
+  "disposition": "equivalent",
+  "eep": "trim.enter",
+  "note": "Trim Edit enters trim mode"
+ },
+ "trim.applyDefaultTransition": {
+  "label": "Apply Default Transitions to Selection",
+  "disposition": "new",
+  "eep": "trim.applyDefaultTransition"
+ },
+ "trim.backward": {
+  "label": "Trim Backward",
+  "disposition": "new",
+  "eep": "trim.backward"
+ },
+ "trim.backwardMany": {
+  "label": "Trim Backward Many",
+  "disposition": "new",
+  "eep": "trim.backwardMany"
+ },
+ "trim.cancelDynamic": {
+  "label": "Cancel Dynamic Trim",
+  "disposition": "new",
+  "eep": "trim.cancelDynamic"
+ },
+ "trim.clear": {
+  "label": "Clear Edit Point Selection",
+  "disposition": "new",
+  "eep": "trim.clear"
+ },
+ "trim.edit": {
+  "label": "Trim Edit",
+  "disposition": "new",
+  "eep": "trim.edit"
+ },
+ "trim.extendNextEdit": {
+  "label": "Extend Next Edit To Playhead",
+  "disposition": "new",
+  "eep": "trim.extendNextEdit"
+ },
+ "trim.extendPreviousEdit": {
+  "label": "Extend Previous Edit To Playhead",
+  "disposition": "new",
+  "eep": "trim.extendPreviousEdit"
+ },
+ "trim.extendToPlayhead": {
+  "label": "Extend Selected Edit to Playhead",
+  "disposition": "new",
+  "eep": "trim.extendToPlayhead"
+ },
+ "trim.forward": {
+  "label": "Trim Forward",
+  "disposition": "new",
+  "eep": "trim.forward"
+ },
+ "trim.forwardMany": {
+  "label": "Trim Forward Many",
+  "disposition": "new",
+  "eep": "trim.forwardMany"
+ },
+ "trim.monitor": {
+  "label": "Trim Monitor State",
+  "disposition": "new",
+  "eep": "trim.monitor"
+ },
+ "trim.next": {
+  "label": "Trim Next Edit to Playhead",
+  "disposition": "new",
+  "eep": "trim.next"
+ },
+ "trim.nudge": {
+  "label": "Trim by Frames",
+  "disposition": "new",
+  "eep": "trim.nudge"
+ },
+ "trim.playAround": {
+  "label": "Play Around Edit",
+  "disposition": "new",
+  "eep": "trim.playAround"
+ },
+ "trim.previous": {
+  "label": "Trim Previous Edit to Playhead",
+  "disposition": "new",
+  "eep": "trim.previous"
+ },
+ "trim.rippleNext": {
+  "label": "Ripple Trim Next Edit to Playhead",
+  "disposition": "new",
+  "eep": "trim.rippleNext"
+ },
+ "trim.ripplePrevious": {
+  "label": "Ripple Trim Previous Edit to Playhead",
+  "disposition": "new",
+  "eep": "trim.ripplePrevious"
+ },
+ "trim.selectEditPoint": {
+  "label": "Select Edit Point",
+  "disposition": "new",
+  "eep": "trim.selectEditPoint"
+ },
+ "trim.selectNearest": {
+  "label": "Select Nearest Edit Point",
+  "disposition": "new",
+  "eep": "trim.selectNearest"
+ },
+ "trim.shuttle": {
+  "label": "Dynamic Trim (Shuttle)",
+  "disposition": "new",
+  "eep": "trim.shuttle"
+ },
+ "trim.shuttleStop": {
+  "label": "Dynamic Trim Stop",
+  "disposition": "new",
+  "eep": "trim.shuttleStop"
+ },
+ "trim.tick": {
+  "label": "Advance Trim Playback",
+  "disposition": "new",
+  "eep": "trim.tick"
+ },
+ "trim.toggleType": {
+  "label": "Toggle Trim Type",
+  "disposition": "new",
+  "eep": "trim.toggleType"
+ }
 }

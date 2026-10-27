@@ -6078,3 +6078,118 @@ fn switch_by_id(engine: &mut EditorEngine, sequence_id: u64) {
         ))
         .unwrap();
 }
+
+#[test]
+fn interop_export_round_trip_and_save_copy_workflow() {
+    use saturn_core::{ProjectDocument, TICKS_PER_SECOND};
+
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name":"Interop Export Test"}),
+        ))
+        .unwrap();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name":"a.mp4", "path":"/assets/a.mp4", "kind":"video", "duration": 30 * TICKS_PER_SECOND}),
+        ))
+        .unwrap()["media_id"]
+        .as_u64()
+        .unwrap();
+    let v_track_id = engine.document().project.sequence.tracks[0].id;
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"track_id": v_track_id, "media_id": media, "timeline_start": 0, "source_in": 0, "duration": 4 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+
+    let dir = std::env::temp_dir().join(format!("eep-interop-export-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+
+    // All four interchange exports write non-empty files and re-import into a
+    // fresh engine carrying the clip.
+    let cases = [
+        ("interop.export_edl", "test.edl"),
+        ("interop.export_fcpxml", "test.fcpxml"),
+        ("interop.export_premiere_xml", "test.xml"),
+        ("interop.export_otio", "test.otio"),
+    ];
+    for (command, file_name) in cases {
+        let path = dir.join(file_name);
+        let res = engine
+            .execute(CommandRequest::new(command, json!({"path": path})))
+            .unwrap();
+        assert!(res["bytes"].as_u64().unwrap() > 0, "{command} wrote bytes");
+        let content = std::fs::read_to_string(&path).unwrap();
+        let mut fresh = EditorEngine::default();
+        fresh
+            .execute(CommandRequest::new("project.new", json!({})))
+            .unwrap();
+        let (import_command, params) = match command {
+            "interop.export_edl" => (
+                "interop.import_edl",
+                json!({"edl": content, "project_name": "Round Trip"}),
+            ),
+            "interop.export_fcpxml" => ("interop.import_fcpxml", json!({"xml": content})),
+            "interop.export_premiere_xml" => ("interop.import_premiere_xml", json!({"xml": content})),
+            _ => (
+                "interop.import_otio",
+                json!({"content": content, "project_name": "Round Trip"}),
+            ),
+        };
+        fresh
+            .execute(CommandRequest::new(import_command, params))
+            .unwrap();
+        let imported_clips: usize = fresh
+            .document()
+            .project
+            .sequence
+            .tracks
+            .iter()
+            .map(|track| track.clips.len())
+            .sum();
+        assert!(
+            imported_clips >= 1,
+            "{command} round trip lost the clip (imported {imported_clips})"
+        );
+    }
+
+    // file.save with copy:true writes the file but keeps the editor path.
+    let main_path = dir.join("main.saturn");
+    let copy_path = dir.join("copy.saturn");
+    engine
+        .execute(CommandRequest::new("file.save", json!({"path": main_path})))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"track_id": v_track_id, "media_id": media, "timeline_start": 8 * TICKS_PER_SECOND, "source_in": 0, "duration": 2 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+    let res = engine
+        .execute(CommandRequest::new(
+            "file.save",
+            json!({"path": copy_path, "copy": true}),
+        ))
+        .unwrap();
+    assert_eq!(res["copy"].as_bool(), Some(true));
+    let status = engine
+        .execute(CommandRequest::new("project.status", serde_json::Value::Null))
+        .unwrap();
+    let editor_path = status["path"].as_str().unwrap();
+    assert!(editor_path.ends_with("main.saturn"), "kept editing {editor_path}");
+    let copy_doc = ProjectDocument::load(&copy_path).unwrap();
+    let copy_clips: usize = copy_doc
+        .project
+        .sequence
+        .tracks
+        .iter()
+        .map(|track| track.clips.len())
+        .sum();
+    assert_eq!(copy_clips, 2, "copy carries the unsaved-pre-copy edits");
+
+    std::fs::remove_dir_all(&dir).ok();
+}

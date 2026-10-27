@@ -2537,6 +2537,346 @@
     "undoGroup": "none"
   },
   {
+    "aliases": [
+      "export edl",
+      "cmx 3600 export"
+    ],
+    "category": "File",
+    "id": "interop.export_edl",
+    "label": "Export EDL (CMX 3600)",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"path\":path}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "export fcpxml"
+    ],
+    "category": "File",
+    "id": "interop.export_fcpxml",
+    "label": "Export FCPXML",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"path\":path}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "export premiere xml",
+      "export fcp7 xml"
+    ],
+    "category": "File",
+    "id": "interop.export_premiere_xml",
+    "label": "Export Final Cut Pro 7 XML",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"path\":path}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "export otio",
+      "interchange export"
+    ],
+    "category": "File",
+    "id": "interop.export_otio",
+    "label": "Export OpenTimelineIO",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{\"path\":path}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "save project as"
+    ],
+    "category": "File",
+    "id": "file.saveAs",
+    "label": "Save As",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": "Ctrl+Shift+S",
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "save copy of project"
+    ],
+    "category": "File",
+    "id": "file.saveCopy",
+    "label": "Save a Copy",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "reload project from disk"
+    ],
+    "category": "File",
+    "id": "file.revert",
+    "label": "Revert Project",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "File",
+    "id": "file.close",
+    "label": "Close Project",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "reveal in finder",
+      "show on disk"
+    ],
+    "category": "File",
+    "id": "file.reveal",
+    "label": "Reveal in File Manager",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "generate black video",
+      "black still"
+    ],
+    "category": "File",
+    "id": "media.generate_black_video",
+    "label": "Black Video",
+    "menu": [
+      "File",
+      "New"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "generate color matte",
+      "solid colour"
+    ],
+    "category": "File",
+    "id": "media.generate_color_matte",
+    "label": "Color Matte",
+    "menu": [
+      "File",
+      "New"
+    ],
+    "mutating": false,
+    "params": "{\"color\":str?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "generate transparent video",
+      "alpha still"
+    ],
+    "category": "File",
+    "id": "media.generate_transparent_video",
+    "label": "Transparent Video",
+    "menu": [
+      "File",
+      "New"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "smpte bars",
+      "test tone"
+    ],
+    "category": "File",
+    "id": "media.generate_bars_and_tone",
+    "label": "Bars and Tone",
+    "menu": [
+      "File",
+      "New"
+    ],
+    "mutating": false,
+    "params": "{\"duration_secs\":num?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "save recovery snapshot"
+    ],
+    "category": "File",
+    "id": "project.autosave.now",
+    "label": "Auto Save Now",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "recovery status"
+    ],
+    "category": "File",
+    "id": "project.autosave.status",
+    "label": "Auto Save Status",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "restore autosave"
+    ],
+    "category": "File",
+    "id": "project.recovery.restore",
+    "label": "Recover Unsaved Changes",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "discard autosave"
+    ],
+    "category": "File",
+    "id": "project.recovery.discard",
+    "label": "Discard Unsaved Changes",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "export still frame",
+      "grab frame"
+    ],
+    "category": "File",
+    "id": "export.frame",
+    "label": "Export Frame (PNG)",
+    "menu": [
+      "File",
+      "Export"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
     "aliases": [],
     "category": "Graphics",
     "id": "caption.track_add",

@@ -1,6 +1,22 @@
 use super::*;
 
 impl EditorEngine {
+    /// Write exported interop text to disk. Non-document IO: export commands
+    /// serialize the current document without touching editor state.
+    fn write_export(path: &std::path::Path, content: &str) -> Result<(), DispatchError> {
+        let parent = path
+            .parent()
+            .filter(|parent| !parent.as_os_str().is_empty())
+            .ok_or_else(|| {
+                DispatchError::InvalidParameters("Export path has no parent directory".into())
+            })?;
+        std::fs::create_dir_all(parent).map_err(|error| {
+            DispatchError::Operation(format!("Cannot create export directory: {error}"))
+        })?;
+        std::fs::write(path, content)
+            .map_err(|error| DispatchError::Operation(format!("Cannot write export: {error}")))
+    }
+
     pub(super) fn dispatch_project(
         &mut self,
         id: &str,
@@ -29,13 +45,15 @@ impl EditorEngine {
                 Ok(json!({"name": self.document.project.name}))
             })()),
             "file.save" => Some((|| {
-                let params: FilePathParams = parse_params(params)?;
+                let params: SaveAsParams = parse_params(params)?;
                 self.document
                     .save_atomic(&params.path)
                     .map_err(DispatchError::Operation)?;
-                self.current_path = Some(params.path.clone());
+                if !params.copy {
+                    self.current_path = Some(params.path.clone());
+                }
                 self.saved_snapshot = serde_json::to_string(&self.document).unwrap_or_default();
-                Ok(json!({"path": params.path}))
+                Ok(json!({"path": params.path, "copy": params.copy}))
             })()),
             "file.open" => Some((|| {
                 let params: FilePathParams = parse_params(params)?;
@@ -145,6 +163,34 @@ impl EditorEngine {
                 "path": self.current_path.as_ref(),
                 "is_dirty": self.is_dirty(),
             }))),
+            "interop.export_edl" => Some((|| {
+                let params: FilePathParams = parse_params(params)?;
+                let content = crate::interop::export_cmx3600_edl(&self.document)
+                    .map_err(DispatchError::Operation)?;
+                Self::write_export(&params.path, &content)?;
+                Ok(json!({"path": params.path, "bytes": content.len()}))
+            })()),
+            "interop.export_fcpxml" => Some((|| {
+                let params: FilePathParams = parse_params(params)?;
+                let content = crate::interop::export_fcpxml(&self.document)
+                    .map_err(DispatchError::Operation)?;
+                Self::write_export(&params.path, &content)?;
+                Ok(json!({"path": params.path, "bytes": content.len()}))
+            })()),
+            "interop.export_premiere_xml" => Some((|| {
+                let params: FilePathParams = parse_params(params)?;
+                let content = crate::interop::export_premiere_xml(&self.document)
+                    .map_err(DispatchError::Operation)?;
+                Self::write_export(&params.path, &content)?;
+                Ok(json!({"path": params.path, "bytes": content.len()}))
+            })()),
+            "interop.export_otio" => Some((|| {
+                let params: FilePathParams = parse_params(params)?;
+                let content = crate::interop::export_otio(&self.document)
+                    .map_err(DispatchError::Operation)?;
+                Self::write_export(&params.path, &content)?;
+                Ok(json!({"path": params.path, "bytes": content.len()}))
+            })()),
             _ => self.dispatch_project_panel(id, params),
         }
     }

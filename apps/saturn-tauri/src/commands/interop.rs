@@ -88,3 +88,27 @@ pub async fn import_timeline_interop(
         .map_err(|e| e.to_string())?;
     Ok(res)
 }
+
+/// Reveal a filesystem path in the system file manager (FC "Reveal in
+/// Finder"). Opens the containing directory so the file itself stays visible;
+/// plain shell-out, no plugin dependency.
+#[tauri::command]
+pub fn reveal_path(path: String) -> Result<(), String> {
+    let target = std::path::PathBuf::from(&path);
+    let directory = if target.is_dir() {
+        target
+    } else {
+        target
+            .parent()
+            .map(std::path::Path::to_path_buf)
+            .ok_or_else(|| format!("Path has no parent directory: {path}"))?
+    };
+    if !directory.is_dir() {
+        return Err(format!("Directory not found: {}", directory.display()));
+    }
+    std::process::Command::new("xdg-open")
+        .arg(&directory)
+        .spawn()
+        .map(|_| ())
+        .map_err(|error| format!("Could not open file manager: {error}"))
+}

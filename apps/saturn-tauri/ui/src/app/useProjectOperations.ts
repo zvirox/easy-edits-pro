@@ -25,33 +25,19 @@ import {
 } from "./menuCommandParams";
 import { createEnqueueExport } from "./enqueueExport";
 import { useSpeechOperations } from "./useSpeechOperations";
+import { createFileProjectFlows } from "./useFileProjectFlows";
+import {
+  frameRateOptions,
+  recentProjectsKey,
+  resolutionPresets,
+} from "../types";
 
-const recentProjectsKey = "easy-edits-pro.recent-projects.v1";
 const projectFilters = [{ name: "Easy Edits Pro project", extensions: ["saturn"] }];
 
 export type RecentProject = { name: string; path: string };
 export type AppStage = "welcome" | "loading" | "editor";
 
-export const resolutionPresets = [
-  { value: "1920x1080", label: "Full HD · 1920 × 1080", width: 1920, height: 1080 },
-  { value: "3840x2160", label: "Ultra HD · 3840 × 2160", width: 3840, height: 2160 },
-  { value: "2560x1440", label: "QHD · 2560 × 1440", width: 2560, height: 1440 },
-  { value: "1280x720", label: "HD · 1280 × 720", width: 1280, height: 720 },
-  { value: "1080x1920", label: "Vertical · 1080 × 1920", width: 1080, height: 1920 },
-  { value: "1080x1080", label: "Square · 1080 × 1080 (1:1)", width: 1080, height: 1080 },
-  { value: "custom", label: "Custom resolution", width: 1920, height: 1080 },
-];
-
-export const frameRateOptions = [
-  { value: "24000/1001", label: "23.976 fps", numerator: 24_000, denominator: 1_001 },
-  { value: "24/1", label: "24 fps", numerator: 24, denominator: 1 },
-  { value: "25/1", label: "25 fps", numerator: 25, denominator: 1 },
-  { value: "30000/1001", label: "29.97 fps", numerator: 30_000, denominator: 1_001 },
-  { value: "30/1", label: "30 fps", numerator: 30, denominator: 1 },
-  { value: "50/1", label: "50 fps", numerator: 50, denominator: 1 },
-  { value: "60000/1001", label: "59.94 fps", numerator: 60_000, denominator: 1_001 },
-  { value: "60/1", label: "60 fps", numerator: 60, denominator: 1 },
-];
+export { frameRateOptions, resolutionPresets };
 
 export interface UseProjectOperationsOptions {
   projectState: ProjectStatus | null;
@@ -172,6 +158,23 @@ export function useProjectOperations({
       kind: "warning",
     });
   }, [projectState?.is_dirty]);
+
+  const closeToWelcome = useCallback(() => {
+    setSelectedClip(null);
+    setSelectedClips([]);
+    setSelectedTransition(null);
+    setSelectedMediaId(null);
+    setPlayhead(0);
+    setWelcomeMode("home");
+    setAppStage("welcome");
+  }, [setSelectedClip, setSelectedClips, setSelectedTransition, setSelectedMediaId, setPlayhead]);
+
+  const fileFlows = createFileProjectFlows({
+    project, projectPath: projectState?.path ?? null, perform, runCommand, setNotice,
+    refreshProject, rememberProject,
+    getPlayhead: () => getMenuContext().playhead,
+    closeToWelcome,
+  });
 
   const loadProjectFromPath = useCallback(
     async (path: string) => {
@@ -537,14 +540,11 @@ export function useProjectOperations({
     );
   }, [project, perform, setNotice]);
 
-  /**
-   * Menu, palette, and toolbar entry point.
-   *
-   * Commands that need timeline context get their parameters from the current
-   * selection and playhead, so a menu item never fires with an empty payload.
-   */
+  /** Menu, palette, and toolbar entry point. Commands that need timeline
+   * context get their parameters from the current selection and playhead. */
   const invokeMenuCommand = useCallback(
     async (id: string, explicitParams?: unknown) => {
+      if (await fileFlows.handleFileCommand(id)) return;
       switch (id) {
         case "project.new":
           setNewProjectOpen(true);
@@ -705,7 +705,7 @@ export function useProjectOperations({
         setNotice("Timeline imported");
       }
     },
-    [openProject, saveProject, toggleFullscreen, perform, getMenuContext, project]
+    [openProject, saveProject, toggleFullscreen, perform, getMenuContext, project, fileFlows]
   );
 
   return {

@@ -19,8 +19,8 @@ coverage.
 
 | Tier | FilmCraft | N/A | Covered | Coverage |
 |---|---:|---:|---:|---:|
-| Tier 1 | 443 | 33 | 353 | 86% |
-| Tier 2 | 207 | - | - | audit pending |
+| Tier 1 | 443 | 54 | 383 | 98% |
+| Tier 2 | 207 | 84 | 123 | 100% |
 | Tier 3 | 17 | - | - | audit pending |
 
 Tier 1 targets Beta 1; Tier 2 comes after Beta 1; Tier 3 is later.
@@ -31,7 +31,7 @@ Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
 | Family | Tier | FilmCraft | Covered | N/A | Gap |
 |---|---|---:|---:|---:|---:|
 | clip | 1 | 57 | 37 | 19 | 1 |
-| file | 1 | 57 | 6 | 0 | 51 |
+| file | 1 | 57 | 36 | 21 |  |
 | timeline | 1 | 56 | 56 | 0 |  |
 | sequence | 1 | 45 | 32 | 11 | 2 |
 | project | 1 | 40 | 38 | 2 |  |
@@ -45,18 +45,18 @@ Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
 | playhead | 1 | 14 | 14 | 0 |  |
 | prefs | 1 | 4 | 4 | 0 |  |
 | history | 1 | 1 | 1 | 0 |  |
-| graphics | 2 | 82 | - | - | |
-| multicam | 2 | 35 | - | - | |
-| mixer | 2 | 20 | - | - | |
-| effects | 2 | 16 | - | - | |
-| transcript | 2 | 14 | - | - | |
-| masks | 2 | 12 | - | - | |
-| lumetri | 2 | 7 | - | - | |
-| presets | 2 | 7 | - | - | |
-| audio | 2 | 5 | - | - | |
-| clipMixer | 2 | 4 | - | - | |
-| lut | 2 | 4 | - | - | |
-| color | 2 | 1 | - | - | |
+| graphics | 2 | 82 | 59 | 23 |  |
+| multicam | 2 | 35 | 23 | 12 |  |
+| mixer | 2 | 20 | 11 | 9 |  |
+| effects | 2 | 16 | 14 | 2 |  |
+| transcript | 2 | 14 | 9 | 5 |  |
+| masks | 2 | 12 | 3 | 9 |  |
+| lumetri | 2 | 7 | 1 | 6 |  |
+| presets | 2 | 7 | 0 | 7 |  |
+| audio | 2 | 5 | 0 | 5 |  |
+| clipMixer | 2 | 4 | 2 | 2 |  |
+| lut | 2 | 4 | 0 | 4 |  |
+| color | 2 | 1 | 1 | 0 |  |
 | mediaBrowser | 3 | 10 | - | - | |
 | tts | 3 | 7 | - | - | |
 | essentialSound | - | 9 | - | - | |
@@ -83,6 +83,6 @@ Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
 
 FilmCraft commands: 701
 
-EEP commands: 417 (417 shipped, 0 planned)
+EEP commands: 435 (435 shipped, 0 planned)
 
 App-only families (no FilmCraft counterpart): bus, interop, nodegraph, track, view, workspace

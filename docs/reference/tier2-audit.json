@@ -1,0 +1,923 @@
+{
+ "multicam.switchAngle": {
+  "disposition": "shipped",
+  "eep": "multicam.switch_angle"
+ },
+ "multicam.cut": {
+  "disposition": "equivalent",
+  "eep": "multicam.switch_angle",
+  "note": "cut and switch are one operation in EEP: the cut lands on the selected timeline clip"
+ },
+ "multicam.cutToCamera": {
+  "disposition": "equivalent",
+  "eep": "multicam.switch_angle",
+  "note": "parameterised cut; EEP exposes angles 1-9 as fixed keys"
+ },
+ "multicam.cutToCamera1": {
+  "disposition": "shipped",
+  "eep": "multicam.switch_angle"
+ },
+ "multicam.selectCamera1": {
+  "disposition": "equivalent",
+  "eep": "multicam.switch_angle",
+  "note": "angle selection without cutting happens by mouse in the multicam grid monitor; keys 1-9 cut"
+ },
+ "multicam.cutToCamera2": {
+  "disposition": "shipped",
+  "eep": "multicam.switch_angle"
+ },
+ "multicam.selectCamera2": {
+  "disposition": "equivalent",
+  "eep": "multicam.switch_angle",
+  "note": "angle selection without cutting happens by mouse in the multicam grid monitor; keys 1-9 cut"
+ },
+ "multicam.cutToCamera3": {
+  "disposition": "shipped",
+  "eep": "multicam.switch_angle"
+ },
+ "multicam.selectCamera3": {
+  "disposition": "equivalent",
+  "eep": "multicam.switch_angle",
+  "note": "angle selection without cutting happens by mouse in the multicam grid monitor; keys 1-9 cut"
+ },
+ "multicam.cutToCamera4": {
+  "disposition": "shipped",
+  "eep": "multicam.switch_angle"
+ },
+ "multicam.selectCamera4": {
+  "disposition": "equivalent",
+  "eep": "multicam.switch_angle",
+  "note": "angle selection without cutting happens by mouse in the multicam grid monitor; keys 1-9 cut"
+ },
+ "multicam.cutToCamera5": {
+  "disposition": "shipped",
+  "eep": "multicam.switch_angle"
+ },
+ "multicam.selectCamera5": {
+  "disposition": "equivalent",
+  "eep": "multicam.switch_angle",
+  "note": "angle selection without cutting happens by mouse in the multicam grid monitor; keys 1-9 cut"
+ },
+ "multicam.cutToCamera6": {
+  "disposition": "shipped",
+  "eep": "multicam.switch_angle"
+ },
+ "multicam.selectCamera6": {
+  "disposition": "equivalent",
+  "eep": "multicam.switch_angle",
+  "note": "angle selection without cutting happens by mouse in the multicam grid monitor; keys 1-9 cut"
+ },
+ "multicam.cutToCamera7": {
+  "disposition": "shipped",
+  "eep": "multicam.switch_angle"
+ },
+ "multicam.selectCamera7": {
+  "disposition": "equivalent",
+  "eep": "multicam.switch_angle",
+  "note": "angle selection without cutting happens by mouse in the multicam grid monitor; keys 1-9 cut"
+ },
+ "multicam.cutToCamera8": {
+  "disposition": "shipped",
+  "eep": "multicam.switch_angle"
+ },
+ "multicam.selectCamera8": {
+  "disposition": "equivalent",
+  "eep": "multicam.switch_angle",
+  "note": "angle selection without cutting happens by mouse in the multicam grid monitor; keys 1-9 cut"
+ },
+ "multicam.cutToCamera9": {
+  "disposition": "shipped",
+  "eep": "multicam.switch_angle"
+ },
+ "multicam.selectCamera9": {
+  "disposition": "equivalent",
+  "eep": "multicam.switch_angle",
+  "note": "angle selection without cutting happens by mouse in the multicam grid monitor; keys 1-9 cut"
+ },
+ "multicam.editCameras": {
+  "disposition": "equivalent",
+  "eep": "multicam.create",
+  "note": "EEP rebuilds the angle set by creating a fresh multicam clip from selected media, up to nine angles"
+ },
+ "multicam.grid": {
+  "disposition": "na",
+  "note": "the Program monitor has a built-in multicam grid mode reachable from the deck UI; there is no separate grid command"
+ },
+ "multicam.gridLayout": {
+  "disposition": "na",
+  "note": "the multicam grid is a fixed layout sized to the angle count; no layout editor"
+ },
+ "multicam.inspect": {
+  "disposition": "na",
+  "note": "multicam properties appear in the clip inspector (with the flatten control), but there is no dedicated multicam inspector"
+ },
+ "multicam.nextPage": {
+  "disposition": "na",
+  "note": "single-page grid; up to nine angles per multicam clip"
+ },
+ "multicam.prevPage": {
+  "disposition": "na",
+  "note": "single-page grid; up to nine angles per multicam clip"
+ },
+ "multicam.page": {
+  "disposition": "na",
+  "note": "single-page grid; up to nine angles per multicam clip"
+ },
+ "multicam.recordStart": {
+  "disposition": "na",
+  "note": "no capture/recording pipeline"
+ },
+ "multicam.recordStop": {
+  "disposition": "na",
+  "note": "no capture/recording pipeline"
+ },
+ "multicam.transmitView": {
+  "disposition": "na",
+  "note": "no NDI/stream transmit path"
+ },
+ "multicam.audioFollowsVideo": {
+  "disposition": "na",
+  "note": "EEP multicam clips keep one audio offset per angle fixed at sync; no audio-follow-video toggle during playback"
+ },
+ "multicam.autoAdjustQuality": {
+  "disposition": "equivalent",
+  "eep": "media.toggle_proxies",
+  "note": "playback-quality relief for multicam cutting is served by the proxy toggle"
+ },
+ "multicam.selectionTopDown": {
+  "disposition": "na",
+  "note": "no top-down multicam selection priority; selection works per track"
+ },
+ "multicam.showPreviewMonitor": {
+  "disposition": "na",
+  "note": "the multicam preview is a monitor mode selected directly in the deck UI, not a command"
+ },
+ "effects.apply": {
+  "disposition": "shipped",
+  "eep": "clip.add_effect"
+ },
+ "effects.remove": {
+  "disposition": "shipped",
+  "eep": "clip.remove_effect"
+ },
+ "effects.toggleEnabled": {
+  "disposition": "shipped",
+  "eep": "clip.toggle_effect"
+ },
+ "effects.setParam": {
+  "disposition": "equivalent",
+  "eep": "clip.update_effect",
+  "note": "effect parameter updates go through clip.update_effect"
+ },
+ "effects.list": {
+  "disposition": "equivalent",
+  "eep": "project.inspect",
+  "note": "applied effects are listed in the clip inspector and the JSON project inspector"
+ },
+ "effects.select": {
+  "disposition": "na",
+  "note": "effects are edited in place in the inspector; there is no effect-selection model"
+ },
+ "effects.reset": {
+  "disposition": "equivalent",
+  "eep": "clip.update_effect",
+  "note": "rewriting all parameters restores defaults; no one-click reset command"
+ },
+ "effects.resetParam": {
+  "disposition": "equivalent",
+  "eep": "clip.update_effect",
+  "note": "rewriting the parameter restores its value; no per-parameter reset button"
+ },
+ "effects.addKeyframe": {
+  "disposition": "shipped",
+  "eep": "clip.set_keyframe"
+ },
+ "effects.deleteKeyframe": {
+  "disposition": "shipped",
+  "eep": "clip.remove_keyframe"
+ },
+ "effects.setKeyframe": {
+  "disposition": "equivalent",
+  "eep": "clip.set_keyframe",
+  "note": "editing a keyframe = setting it at the same time"
+ },
+ "effects.moveKeyframe": {
+  "disposition": "equivalent",
+  "eep": "clip.set_keyframe",
+  "note": "move = set at the new time + clip.remove_keyframe at the old"
+ },
+ "effects.moveKeyframes": {
+  "disposition": "equivalent",
+  "eep": "clip.set_keyframe",
+  "note": "batch move = repeated set/remove pairs"
+ },
+ "effects.setInterpolation": {
+  "disposition": "equivalent",
+  "eep": "clip.set_keyframe",
+  "note": "the keyframe command carries interpolation plus in/out handles"
+ },
+ "effects.toggleAnimation": {
+  "disposition": "equivalent",
+  "eep": "clip.set_keyframe",
+  "note": "the first keyframe enables animation on the property"
+ },
+ "effects.setDefaultTransition": {
+  "disposition": "na",
+  "note": "transitions are added explicitly per edit; there is no default-transition concept"
+ },
+ "masks.add": {
+  "disposition": "shipped",
+  "eep": "nodegraph.add_mask"
+ },
+ "masks.set": {
+  "disposition": "equivalent",
+  "eep": "nodegraph.update_node",
+  "note": "mask nodes are reconfigured through node property updates"
+ },
+ "masks.translate": {
+  "disposition": "equivalent",
+  "eep": "nodegraph.update_node",
+  "note": "moving a mask = updating its node properties"
+ },
+ "masks.list": {
+  "disposition": "na",
+  "note": "masks render as nodes in the node graph; there is no mask list command"
+ },
+ "masks.select": {
+  "disposition": "na",
+  "note": "mask selection happens directly in the node graph UI"
+ },
+ "masks.addVertex": {
+  "disposition": "na",
+  "note": "roto-spline masks exist as nodes; vertex-level editing is not exposed"
+ },
+ "masks.moveVertex": {
+  "disposition": "na",
+  "note": "roto-spline masks exist as nodes; vertex-level editing is not exposed"
+ },
+ "masks.removeVertex": {
+  "disposition": "na",
+  "note": "roto-spline masks exist as nodes; vertex-level editing is not exposed"
+ },
+ "masks.toggleVertexSmooth": {
+  "disposition": "na",
+  "note": "no per-vertex smoothing control"
+ },
+ "masks.roundCorners": {
+  "disposition": "na",
+  "note": "no corner rounding on masks"
+ },
+ "masks.track": {
+  "disposition": "na",
+  "note": "no mask tracking; whole-clip motion tracking exists via clip.set_motion_tracking"
+ },
+ "masks.remove": {
+  "disposition": "na",
+  "note": "mask nodes are removed through the node graph; there is no dedicated mask remove command"
+ },
+ "lumetri.setLook": {
+  "disposition": "equivalent",
+  "eep": "clip.set_color_wheels",
+  "note": "creative look adjustments are served by the color wheels (plus RGB curves and HSL qualifier commands)"
+ },
+ "lumetri.applyPreset": {
+  "disposition": "na",
+  "note": "no lumetri preset store; grading goes through the color wheels, RGB curves and HSL qualifier commands"
+ },
+ "lumetri.presets": {
+  "disposition": "na",
+  "note": "no lumetri preset store"
+ },
+ "lumetri.presetThumbnails": {
+  "disposition": "na",
+  "note": "no lumetri preset store, hence no thumbnails"
+ },
+ "lumetri.setInputLut": {
+  "disposition": "na",
+  "note": "the Color workspace loads .cube files from disk via a file loader, but LUT application is not a catalogue command"
+ },
+ "lumetri.applyMatch": {
+  "disposition": "na",
+  "note": "no shot-match implementation"
+ },
+ "lumetri.setSection": {
+  "disposition": "na",
+  "note": "grading sections are fixed in the inspector; no section toggles"
+ },
+ "lut.import": {
+  "disposition": "na",
+  "note": "the Color workspace loads .cube files via a local file loader; there is no import-into-library command"
+ },
+ "lut.list": {
+  "disposition": "na",
+  "note": "no LUT library; LUTs are loaded per use from disk"
+ },
+ "lut.export": {
+  "disposition": "na",
+  "note": "no .cube writer"
+ },
+ "lut.remove": {
+  "disposition": "na",
+  "note": "no LUT library to remove from"
+ },
+ "presets.apply": {
+  "disposition": "na",
+  "note": "no effect-preset store; the export.presets.* commands cover export presets, a different domain"
+ },
+ "presets.delete": {
+  "disposition": "na",
+  "note": "no effect-preset store; the export.presets.* commands cover export presets, a different domain"
+ },
+ "presets.export": {
+  "disposition": "na",
+  "note": "no effect-preset store; the export.presets.* commands cover export presets, a different domain"
+ },
+ "presets.import": {
+  "disposition": "na",
+  "note": "no effect-preset store; the export.presets.* commands cover export presets, a different domain"
+ },
+ "presets.list": {
+  "disposition": "na",
+  "note": "no effect-preset store; the export.presets.* commands cover export presets, a different domain"
+ },
+ "presets.rename": {
+  "disposition": "na",
+  "note": "no effect-preset store; the export.presets.* commands cover export presets, a different domain"
+ },
+ "presets.save": {
+  "disposition": "na",
+  "note": "no effect-preset store; the export.presets.* commands cover export presets, a different domain"
+ },
+ "color.spaces": {
+  "disposition": "equivalent",
+  "eep": "media.color_info",
+  "note": "colour space information is reported per media asset"
+ },
+ "mixer.setStrip": {
+  "disposition": "equivalent",
+  "eep": "track.set_gain_db",
+  "note": "strip settings map onto the track.set_gain_db / set_pan / set_muted / set_solo commands"
+ },
+ "mixer.setValue": {
+  "disposition": "equivalent",
+  "eep": "track.set_pan",
+  "note": "single mixer controls map onto the track gain/pan/mute/solo commands and bus.set_gain_db"
+ },
+ "mixer.touch": {
+  "disposition": "equivalent",
+  "eep": "track.set_automation_mode",
+  "note": "touch is one of the supported track automation modes"
+ },
+ "mixer.writeAutomation": {
+  "disposition": "equivalent",
+  "eep": "track.add_automation_point",
+  "note": "writing automation = adding track automation points"
+ },
+ "mixer.recordStart": {
+  "disposition": "equivalent",
+  "eep": "track.set_automation_mode",
+  "note": "starting an automation pass = latch or write mode on the track"
+ },
+ "mixer.recordStop": {
+  "disposition": "equivalent",
+  "eep": "track.set_automation_mode",
+  "note": "ending an automation pass returns the track to read mode"
+ },
+ "mixer.release": {
+  "disposition": "equivalent",
+  "eep": "track.set_automation_mode",
+  "note": "releasing manual control returns the track to read mode"
+ },
+ "mixer.clearLane": {
+  "disposition": "equivalent",
+  "eep": "track.clear_automation",
+  "note": "clearing a lane = clearing the track's automation"
+ },
+ "mixer.deleteKeyframe": {
+  "disposition": "equivalent",
+  "eep": "track.remove_automation_point",
+  "note": "track keyframes are automation points"
+ },
+ "mixer.moveKeyframe": {
+  "disposition": "equivalent",
+  "eep": "track.add_automation_point",
+  "note": "move = add at the new time + remove the old point"
+ },
+ "mixer.setKeyframe": {
+  "disposition": "equivalent",
+  "eep": "track.add_automation_point",
+  "note": "track keyframes are automation points"
+ },
+ "mixer.inspect": {
+  "disposition": "na",
+  "note": "the mixer is the Fairlight workspace UI itself; there is no inspect command"
+ },
+ "mixer.addSend": {
+  "disposition": "na",
+  "note": "no per-track send model; tracks route to buses via track.set_bus_route"
+ },
+ "mixer.setSend": {
+  "disposition": "na",
+  "note": "no per-track send model; tracks route to buses via track.set_bus_route"
+ },
+ "mixer.removeSend": {
+  "disposition": "na",
+  "note": "no per-track send model; tracks route to buses via track.set_bus_route"
+ },
+ "mixer.addInsert": {
+  "disposition": "na",
+  "note": "no track-level effect inserts; effects are per clip"
+ },
+ "mixer.setInsert": {
+  "disposition": "na",
+  "note": "no track-level effect inserts; effects are per clip"
+ },
+ "mixer.removeInsert": {
+  "disposition": "na",
+  "note": "no track-level effect inserts; effects are per clip"
+ },
+ "mixer.addSubmix": {
+  "disposition": "na",
+  "note": "audio buses exist for routing; there is no submix-track entity"
+ },
+ "mixer.deleteSubmix": {
+  "disposition": "na",
+  "note": "audio buses exist for routing; there is no submix-track entity"
+ },
+ "clipMixer.set": {
+  "disposition": "equivalent",
+  "eep": "clip.set_volume_db",
+  "note": "clip mixer level = clip volume"
+ },
+ "clipMixer.touch": {
+  "disposition": "equivalent",
+  "eep": "clip.set_keyframe",
+  "note": "clip volume automation is keyframe-based; no touch state"
+ },
+ "clipMixer.setMode": {
+  "disposition": "na",
+  "note": "no clip-level automation modes"
+ },
+ "clipMixer.release": {
+  "disposition": "na",
+  "note": "no clip-mixer control state to release"
+ },
+ "audio.toggleScrubbing": {
+  "disposition": "na",
+  "note": "audio behaviour during scrubbing follows the shuttle implementation; there is no toggle"
+ },
+ "audio.voiceover.settings": {
+  "disposition": "na",
+  "note": "no voice-over recording pipeline; narration is recorded externally and imported"
+ },
+ "audio.voiceover.start": {
+  "disposition": "na",
+  "note": "no voice-over recording pipeline; narration is recorded externally and imported"
+ },
+ "audio.voiceover.stop": {
+  "disposition": "na",
+  "note": "no voice-over recording pipeline; narration is recorded externally and imported"
+ },
+ "audio.voiceover.sync": {
+  "disposition": "na",
+  "note": "no voice-over capture to sync"
+ },
+ "transcript.generate": {
+  "disposition": "equivalent",
+  "eep": "speech.transcribe_to_subtitles",
+  "note": "whisper transcription lands as a caption track"
+ },
+ "transcript.createCaptions": {
+  "disposition": "shipped",
+  "eep": "speech.transcribe_to_subtitles"
+ },
+ "transcript.removeFillers": {
+  "disposition": "shipped",
+  "eep": "speech.ripple_delete_fillers"
+ },
+ "transcript.removePauses": {
+  "disposition": "equivalent",
+  "eep": "speech.ripple_delete_silence",
+  "note": "silence ripple delete covers pause removal"
+ },
+ "transcript.set": {
+  "disposition": "equivalent",
+  "eep": "caption.import",
+  "note": "transcript import lands as a caption track"
+ },
+ "transcript.delete": {
+  "disposition": "equivalent",
+  "eep": "caption.track_remove",
+  "note": "deleting the transcript = removing its caption track"
+ },
+ "transcript.inspect": {
+  "disposition": "equivalent",
+  "eep": "caption.list",
+  "note": "transcript content is the caption track; listing is via caption.list"
+ },
+ "transcript.models": {
+  "disposition": "equivalent",
+  "eep": "speech.transcribe_to_subtitles",
+  "note": "model and language pickers live in the transcription modal"
+ },
+ "transcript.downloadModel": {
+  "disposition": "equivalent",
+  "eep": "speech.transcribe_to_subtitles",
+  "note": "the whisper model downloads on first transcription"
+ },
+ "transcript.search": {
+  "disposition": "na",
+  "note": "caption cues are browsable in the captions panel; there is no transcript text search"
+ },
+ "transcript.extract": {
+  "disposition": "na",
+  "note": "no transcript text editor to extract from"
+ },
+ "transcript.lift": {
+  "disposition": "na",
+  "note": "no transcript text selection to lift from"
+ },
+ "transcript.select": {
+  "disposition": "na",
+  "note": "no transcript text selection model"
+ },
+ "transcript.renameSpeaker": {
+  "disposition": "na",
+  "note": "no speaker diarisation"
+ },
+ "graphics.align": {
+  "disposition": "shipped",
+  "eep": "graphic.align"
+ },
+ "graphics.arrangeLayer": {
+  "disposition": "shipped",
+  "eep": "graphic.arrange"
+ },
+ "graphics.deleteLayer": {
+  "disposition": "shipped",
+  "eep": "graphic.remove"
+ },
+ "graphics.distribute": {
+  "disposition": "shipped",
+  "eep": "graphic.distribute"
+ },
+ "graphics.distributeHorizontally": {
+  "disposition": "shipped",
+  "eep": "graphic.distribute"
+ },
+ "graphics.distributeVertically": {
+  "disposition": "shipped",
+  "eep": "graphic.distribute"
+ },
+ "graphics.fonts.used": {
+  "disposition": "shipped",
+  "eep": "fonts.list"
+ },
+ "graphics.newRectangle": {
+  "disposition": "shipped",
+  "eep": "graphic.add"
+ },
+ "graphics.newEllipse": {
+  "disposition": "shipped",
+  "eep": "graphic.add"
+ },
+ "graphics.newPolygon": {
+  "disposition": "shipped",
+  "eep": "graphic.add"
+ },
+ "graphics.newText": {
+  "disposition": "shipped",
+  "eep": "graphic.add"
+ },
+ "graphics.template.apply": {
+  "disposition": "shipped",
+  "eep": "graphic.template_apply"
+ },
+ "graphics.alignFrame.bottom": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignFrame.hcenter": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignFrame.left": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignFrame.right": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignFrame.top": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignFrame.vcenter": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignGroup.bottom": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignGroup.hcenter": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignGroup.left": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignGroup.right": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignGroup.top": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignGroup.vcenter": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignSelection.bottom": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignSelection.hcenter": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignSelection.left": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignSelection.right": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignSelection.top": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignSelection.vcenter": {
+  "disposition": "equivalent",
+  "eep": "graphic.align",
+  "note": "all alignments resolve to the selection-bounds align modes of graphic.align"
+ },
+ "graphics.alignTextCenter": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "text style edits (align, font size, leading) are properties of graphic.set_text"
+ },
+ "graphics.alignTextLeft": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "text style edits (align, font size, leading) are properties of graphic.set_text"
+ },
+ "graphics.alignTextRight": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "text style edits (align, font size, leading) are properties of graphic.set_text"
+ },
+ "graphics.fontSizeUp": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "text style edits (align, font size, leading) are properties of graphic.set_text"
+ },
+ "graphics.fontSizeUp5": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "text style edits (align, font size, leading) are properties of graphic.set_text"
+ },
+ "graphics.fontSizeDown": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "text style edits (align, font size, leading) are properties of graphic.set_text"
+ },
+ "graphics.fontSizeDown5": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "text style edits (align, font size, leading) are properties of graphic.set_text"
+ },
+ "graphics.leadingUp": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "text style edits (align, font size, leading) are properties of graphic.set_text"
+ },
+ "graphics.leadingUp5": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "text style edits (align, font size, leading) are properties of graphic.set_text"
+ },
+ "graphics.leadingDown": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "text style edits (align, font size, leading) are properties of graphic.set_text"
+ },
+ "graphics.leadingDown5": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "text style edits (align, font size, leading) are properties of graphic.set_text"
+ },
+ "graphics.bringForward": {
+  "disposition": "equivalent",
+  "eep": "graphic.arrange",
+  "note": "arrange carries the front/back/forward/backward orders"
+ },
+ "graphics.bringToFront": {
+  "disposition": "equivalent",
+  "eep": "graphic.arrange",
+  "note": "arrange carries the front/back/forward/backward orders"
+ },
+ "graphics.sendBackward": {
+  "disposition": "equivalent",
+  "eep": "graphic.arrange",
+  "note": "arrange carries the front/back/forward/backward orders"
+ },
+ "graphics.sendToBack": {
+  "disposition": "equivalent",
+  "eep": "graphic.arrange",
+  "note": "arrange carries the front/back/forward/backward orders"
+ },
+ "graphics.distributeSpaceHorizontally": {
+  "disposition": "equivalent",
+  "eep": "graphic.distribute",
+  "note": "even space distribution across the same axes"
+ },
+ "graphics.distributeSpaceVertically": {
+  "disposition": "equivalent",
+  "eep": "graphic.distribute",
+  "note": "even space distribution across the same axes"
+ },
+ "graphics.newVerticalText": {
+  "disposition": "equivalent",
+  "eep": "graphic.add",
+  "note": "added as a text graphic, then graphic.set_text with vertical:true (exactly what the graphics panel does)"
+ },
+ "graphics.newShape": {
+  "disposition": "equivalent",
+  "eep": "graphic.add",
+  "note": "generic shape resolves to the rectangle/ellipse/polygon kinds"
+ },
+ "graphics.newFromFile": {
+  "disposition": "na",
+  "note": "no vector/raster file import into the graphics layer stack"
+ },
+ "graphics.list": {
+  "disposition": "na",
+  "note": "the graphics panel lists layers directly; there is no list command"
+ },
+ "graphics.selectLayer": {
+  "disposition": "na",
+  "note": "layer selection happens directly in the graphics panel"
+ },
+ "graphics.selectNextGraphic": {
+  "disposition": "na",
+  "note": "no select-next/previous model; layers are picked directly"
+ },
+ "graphics.selectNextLayer": {
+  "disposition": "na",
+  "note": "no select-next/previous model; layers are picked directly"
+ },
+ "graphics.selectPreviousGraphic": {
+  "disposition": "na",
+  "note": "no select-next/previous model; layers are picked directly"
+ },
+ "graphics.selectPreviousLayer": {
+  "disposition": "na",
+  "note": "no select-next/previous model; layers are picked directly"
+ },
+ "graphics.nudgeUp": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_transform",
+  "note": "nudge = a one/five-unit transform patch"
+ },
+ "graphics.nudgeUp5": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_transform",
+  "note": "nudge = a one/five-unit transform patch"
+ },
+ "graphics.nudgeDown": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_transform",
+  "note": "nudge = a one/five-unit transform patch"
+ },
+ "graphics.nudgeDown5": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_transform",
+  "note": "nudge = a one/five-unit transform patch"
+ },
+ "graphics.nudgeLeft": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_transform",
+  "note": "nudge = a one/five-unit transform patch"
+ },
+ "graphics.nudgeLeft5": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_transform",
+  "note": "nudge = a one/five-unit transform patch"
+ },
+ "graphics.nudgeRight": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_transform",
+  "note": "nudge = a one/five-unit transform patch"
+ },
+ "graphics.nudgeRight5": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_transform",
+  "note": "nudge = a one/five-unit transform patch"
+ },
+ "graphics.set": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_transform",
+  "note": "property setting is the set_transform / set_text / set_fill / set_stroke / set_shadow family"
+ },
+ "graphics.setText": {
+  "disposition": "equivalent",
+  "eep": "graphic.set_text",
+  "note": "flow text edits go through graphic.set_text"
+ },
+ "graphics.pin": {
+  "disposition": "na",
+  "note": "no responsive-design position pinning"
+ },
+ "graphics.setResponsiveTime": {
+  "disposition": "na",
+  "note": "no responsive-design time rules"
+ },
+ "graphics.resetAllParameters": {
+  "disposition": "na",
+  "note": "no reset-all for graphic properties; properties are edited individually"
+ },
+ "graphics.resetDuration": {
+  "disposition": "na",
+  "note": "graphic clip duration is set at creation; no reset command"
+ },
+ "graphics.setRoll": {
+  "disposition": "na",
+  "note": "no roll/crawl animation controls"
+ },
+ "graphics.setTextType": {
+  "disposition": "na",
+  "note": "one text layer type; no point/paragraph typing"
+ },
+ "graphics.setCharStyle": {
+  "disposition": "na",
+  "note": "no character style store"
+ },
+ "graphics.template.controls": {
+  "disposition": "na",
+  "note": "templates carry their full property set; there is no exposed template property list"
+ },
+ "graphics.template.export": {
+  "disposition": "na",
+  "note": "no .mogrt-style template export"
+ },
+ "graphics.template.install": {
+  "disposition": "na",
+  "note": "no external template installation"
+ },
+ "graphics.template.list": {
+  "disposition": "na",
+  "note": "saved templates are applied by id from the graphics panel; there is no list command"
+ },
+ "graphics.template.remove": {
+  "disposition": "na",
+  "note": "no template removal command"
+ },
+ "graphics.template.set": {
+  "disposition": "na",
+  "note": "no per-property template override"
+ },
+ "graphics.template.thumbnail": {
+  "disposition": "na",
+  "note": "no template thumbnail pipeline"
+ },
+ "graphics.upgradeCaption": {
+  "disposition": "na",
+  "note": "no caption-to-graphic upgrade"
+ },
+ "graphics.upgradeToSourceGraphic": {
+  "disposition": "na",
+  "note": "no source-graphic upgrade"
+ }
+}

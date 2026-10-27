@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-417 commands.
+435 commands.
 
 ## File
 
@@ -53,6 +53,24 @@ Generated from the command catalogue. Do not edit by hand.
 | Clear Finished Exports | `export.queue.clear` | shipped |  | `{}` |
 | Start Export Queue | `export.queue.start` | shipped |  | `{}` |
 | Stop Export Queue | `export.queue.stop` | shipped |  | `{}` |
+| Export EDL (CMX 3600) | `interop.export_edl` | shipped |  | `{"path":path}` |
+| Export FCPXML | `interop.export_fcpxml` | shipped |  | `{"path":path}` |
+| Export Final Cut Pro 7 XML | `interop.export_premiere_xml` | shipped |  | `{"path":path}` |
+| Export OpenTimelineIO | `interop.export_otio` | shipped |  | `{"path":path}` |
+| Save As | `file.saveAs` | shipped | Ctrl+Shift+S | `{}` |
+| Save a Copy | `file.saveCopy` | shipped |  | `{}` |
+| Revert Project | `file.revert` | shipped |  | `{}` |
+| Close Project | `file.close` | shipped |  | `{}` |
+| Reveal in File Manager | `file.reveal` | shipped |  | `{}` |
+| Black Video | `media.generate_black_video` | shipped |  | `{}` |
+| Color Matte | `media.generate_color_matte` | shipped |  | `{"color":str?}` |
+| Transparent Video | `media.generate_transparent_video` | shipped |  | `{}` |
+| Bars and Tone | `media.generate_bars_and_tone` | shipped |  | `{"duration_secs":num?}` |
+| Auto Save Now | `project.autosave.now` | shipped |  | `{}` |
+| Auto Save Status | `project.autosave.status` | shipped |  | `{}` |
+| Recover Unsaved Changes | `project.recovery.restore` | shipped |  | `{}` |
+| Discard Unsaved Changes | `project.recovery.discard` | shipped |  | `{}` |
+| Export Frame (PNG) | `export.frame` | shipped |  | `{}` |
 | Freeform Layout | `project.freeform.layout` | shipped |  | `{"enabled":bool?}` |
 | Move Clip Cards | `project.freeform.move` | shipped |  | `{"media_ids":int[],"dx":num,"dy":num}` |
 | Clip Size | `project.freeform.resize` | shipped |  | `{"media_ids":int[],"scale":num}` |

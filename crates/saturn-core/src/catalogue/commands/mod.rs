@@ -4,6 +4,7 @@ pub(super) mod edit;
 pub(super) mod effects;
 pub(super) mod engine;
 pub(super) mod file;
+pub(super) mod file_flows;
 pub(super) mod graphics;
 pub(super) mod help;
 pub(super) mod markers;

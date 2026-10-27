@@ -196,6 +196,16 @@ pub(in crate::engine) struct FilePathParams {
     pub(in crate::engine) path: PathBuf,
 }
 
+/// Destination path plus copy semantics for file.save: when `copy` is true
+/// the document is written to `path` but the editor keeps editing the
+/// original file (FC "Save a Copy").
+#[derive(Deserialize)]
+pub(in crate::engine) struct SaveAsParams {
+    pub(in crate::engine) path: PathBuf,
+    #[serde(default)]
+    pub(in crate::engine) copy: bool,
+}
+
 #[derive(Deserialize)]
 pub(in crate::engine) struct AddClipParams {
     pub(in crate::engine) media_id: u64,
