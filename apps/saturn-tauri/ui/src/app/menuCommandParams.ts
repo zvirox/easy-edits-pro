@@ -264,6 +264,29 @@ export function buildEditCommandParams(
         },
       };
     }
+    case "clip.set_volume_db":
+    case "clip.frame_fit":
+    case "clip.make_subclip":
+    case "multicam.flatten": {
+      if (!ctx.selectedClip) {
+        return { notice: "Select a timeline clip first", cancel: true };
+      }
+      const params: Record<string, unknown> = {
+        track_id: ctx.selectedClip.track_id,
+        clip_index: ctx.selectedClip.clip_index,
+      };
+      if (id === "clip.set_volume_db") {
+        const track = ctx.project?.sequence.tracks.find(
+          (item) => item.id === ctx.selectedClip?.track_id,
+        );
+        const clip = track?.clips[ctx.selectedClip.clip_index];
+        params.volume_db = clip?.volume_db ?? 0;
+      }
+      if (id === "clip.frame_fit") {
+        params.mode = "fit";
+      }
+      return { params };
+    }
     case "edit.consolidate_duplicates":
     case "edit.remove_unused_media":
       return { params: {} };

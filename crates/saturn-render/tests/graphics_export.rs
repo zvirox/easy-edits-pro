@@ -139,6 +139,7 @@ fn document_with_title_and_graphic() -> ProjectDocument {
             motion_blur: None,
             compound_sequence_id: None,
             label: String::new(),
+            volume_db: 0.0,
         }],
         transitions: vec![],
     });

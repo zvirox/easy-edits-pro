@@ -132,6 +132,7 @@ export type Clip = {
   node_graph?: NodeGraph | null;
   compound_sequence_id?: number | null;
   label?: string;
+  volume_db?: number;
 };
 export type Track = {
   id: number;

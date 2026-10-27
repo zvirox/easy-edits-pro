@@ -50,6 +50,8 @@ import {
   isTrimTransportCommand,
 } from "./app/trimTransports";
 import { handleInspectMenuCommand } from "./app/editInspect";
+import { openDockPanelCommand } from "./app/dockPanelCommands";
+import { resolveRevealTarget } from "./app/revealMedia";
 import { EDIT_CLIPBOARD_COMMANDS, useEditClipboard } from "./app/useEditClipboard";
 import { TIMELINE_SELECTION_COMMANDS, useTimelineSelection } from "./app/useTimelineSelection";
 import type { CommandSpec, SelectedClip } from "./types";
@@ -415,15 +417,9 @@ function EditorApp() {
         await runShortcutMachineCommand(id);
         return;
       }
-      if (id === "marker.panel" || id === "caption.panel" || id === "graphic.panel") {
-        // The docked-adjacent panels live in the Edit workspace; switching
-        // there and announcing the panel keeps the gesture one step.
-        selectDavinciWorkspace("edit");
-        if (id === "marker.panel") markerOps.openPanel();
-        else if (id === "caption.panel") captionsOps.openPanel();
-        else graphicsOps.openPanel();
-        return;
-      }
+      if (
+        openDockPanelCommand(id, { selectDavinciWorkspace, openMarkerPanel: () => markerOps.openPanel(), openCaptionPanel: () => captionsOps.openPanel(), openGraphicPanel: () => graphicsOps.openPanel() })
+      ) return;
       if (id.startsWith("caption.") && (await captionsOps.handleMenuCommand(id))) {
         return;
       }
@@ -515,6 +511,12 @@ function EditorApp() {
         case "project.add_media":
           await mediaOps.importMedia();
           return;
+        case "media.reveal": {
+          const reveal = resolveRevealTarget(media, selectedTimelineClip, playback.playhead);
+          if (reveal.media) mediaOps.setSelectedMediaId(reveal.media.id);
+          setNotice(reveal.message);
+          return;
+        }
         case "project.update_media":
           await mediaOps.updateMediaMetadata();
           return;
@@ -560,7 +562,7 @@ function EditorApp() {
       }
       await projectOps.invokeMenuCommand(id);
     },
-    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps, markerOps, project, playback, runEditClipboard, runTimelineSelection, handlePanelCommand, runShortcutMachineCommand, mediaHygiene]
+    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps, markerOps, project, playback, runEditClipboard, runTimelineSelection, handlePanelCommand, runShortcutMachineCommand, mediaHygiene, media, selectedTimelineClip, setNotice]
   );
 
   const shortcuts = useShortcuts({

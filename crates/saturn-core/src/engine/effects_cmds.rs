@@ -321,6 +321,7 @@ impl EditorEngine {
                     motion_blur: None,
                     compound_sequence_id: None,
                 label: String::new(),
+                volume_db: 0.0,
                 };
                 let track = &mut self.document.project.sequence.tracks[track_index];
                 track.clips.push(clip);
@@ -483,6 +484,53 @@ impl EditorEngine {
                     }
                 }
                 Ok(json!({"synced": true, "multicam_id": params.multicam_id}))
+            })()),
+            "multicam.flatten" => Some((|| {
+                let params: EditClipTargetParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                let media_id = clip.media_id;
+                let multicam_id = clip.multicam_id;
+                let angle_id = clip.multicam_angle_id;
+                let Some(group_id) = multicam_id else {
+                    return Err(DispatchError::InvalidParameters(
+                        "Timeline clip is not a multicam clip".into(),
+                    ));
+                };
+                let group = self
+                    .document
+                    .project
+                    .sequence
+                    .multicam_clips
+                    .iter()
+                    .find(|g| g.id == group_id)
+                    .ok_or_else(|| {
+                        DispatchError::InvalidParameters("Multicam group not found".into())
+                    })?;
+                // A clip switched to an angle already carries that angle's
+                // media; otherwise resolve the group's active angle.
+                let resolved_media_id = if angle_id.is_some() {
+                    media_id
+                } else {
+                    group
+                        .angles
+                        .iter()
+                        .find(|a| a.id == group.active_angle_id)
+                        .map(|a| a.media_id)
+                        .unwrap_or(media_id)
+                };
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips
+                    [params.clip_index];
+                clip.media_id = resolved_media_id;
+                clip.multicam_id = None;
+                clip.multicam_angle_id = None;
+                Ok(json!({
+                    "flattened": true,
+                    "track_id": params.track_id,
+                    "clip_index": params.clip_index,
+                    "media_id": clip.media_id,
+                }))
             })()),
             "clip.set_motion_tracking" => Some((|| {
                 let params: SetMotionTrackingParams = parse_params(params)?;

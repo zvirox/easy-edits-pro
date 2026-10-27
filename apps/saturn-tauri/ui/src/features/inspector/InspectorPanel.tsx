@@ -137,6 +137,11 @@ export interface InspectorPanelProps {
   runMotionTracker: (forward: boolean) => Promise<void>;
   saveSpeedRamp: (speedRamp: SpeedRamp) => Promise<void>;
   saveMotionBlur: (motionBlur: MotionBlurParams) => Promise<void>;
+  saveClipVolumeDb: (volumeDb: number) => Promise<void>;
+  frameFit: (mode: "fill" | "fit" | "scale100") => Promise<void>;
+  makeSubclip: () => Promise<void>;
+  flattenMulticam: () => Promise<void>;
+  revealClipMedia: () => void;
 
   perform?: (cmd: string, params?: unknown) => Promise<unknown>;
   updateEffectPayload?: (id: number, payload: EffectPayload) => Promise<void>;
@@ -468,6 +473,11 @@ export function InspectorPanel(props: InspectorPanelProps) {
             runMotionTracker={props.runMotionTracker}
             saveSpeedRamp={props.saveSpeedRamp}
             saveMotionBlur={props.saveMotionBlur}
+            saveClipVolumeDb={props.saveClipVolumeDb}
+            frameFit={props.frameFit}
+            makeSubclip={props.makeSubclip}
+            flattenMulticam={props.flattenMulticam}
+            revealClipMedia={props.revealClipMedia}
           />
         );
     }

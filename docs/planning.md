@@ -775,6 +775,111 @@ gate stack and the native + Linux Packages verification.
 
 ---
 
+## 6c. Alpha.24 Batch Plan — Sequence (32) + Clip (52), milestone 350 (2026-10-26)
+
+Baseline: 302 Tier-1 covered. Every disposition below maps into the audit and
+must survive `node scripts/check-parity.mjs` regeneration before release
+planning. Sub-batch 1 = clip family (schema + engine + render hookup), then
+sub-batch 2 = sequence family + ui_only routing.
+
+### C.1 Clip schema + render hookup (real feature work)
+- `Clip.volume_db: f64` (serde default 0.0) in `timeline.rs`; fix 7 engine
+  `Clip {` sites + any saturn-render testsites from the alpha.22 pattern.
+- Render: at the `apply_clip_effects` call site (`saturn-render/src/lib.rs`
+  ~851) pass `effective_gain_db + clip.volume_db` (per-clip GES `volume`
+  effect already exists; automation branch keeps override semantics).
+- New engine arm `clip.set_volume_db {track_id, clip_index, volume_db}` in a
+  new `clip_volume_cmds`-style file (params file + catalogue registration +
+  fallthrough delegate from `clip_cmds.rs`).
+- New arms `clip.make_subclip {track_id, clip_index, name?}` (new MediaAsset,
+  same path/kind/dims, source marks = clip range — MediaAsset fields at
+  media.rs:112 all serde-default beyond id/name/path/kind),
+  `clip.frame_fit {track_id, clip_index, mode: "fill"|"fit"|"scale100"}`
+  (scale/transform keyframes from media×project dims),
+  `timeline.replace_media {track_id, clip_index, media_id}`,
+  `clip.extract_audio {track_id, clip_index, target_track_id}` (audio-side
+  copy clip referencing same media), `multicam.flatten {track_id, clip_index}`
+  (drop multicam_id, keep active angle's media as a plain clip).
+- Extend `media.update_properties` with `audio_channels: u32?`
+  (field already exists on MediaAsset).
+
+### C.2 New ui_only surface (App routing, keep App.tsx ≤800 lines)
+- `media.reveal {media_id, at_tick?}` — panel select + notice. Covers
+  clip.revealInProject, sequence.matchFrame / reverseMatchFrame (note: no
+  source monitor; at_tick reported), clip.editSubclip.
+- Gap navigation ×4 (`sequence.goToNextGap|PrevGap|NextGapInTrack|PrevGapInTrack`)
+  as ui_only with pure helpers in `playheadNavigation.ts`
+  (`nextGapStart` / `prevGapEnd` reusing per-track gap logic from
+  useTimelineSelection.findGapAtPlayhead) + node tests.
+
+### C.3 Sequence engine arms (in `sequence_cmds.rs`)
+- `sequence.add_edit_all_tracks {at}` — split every clip under `at` on
+  unlocked tracks; reuse split logic from clip_cmds.rs:142.
+- `sequence.settings {width?, height?, frame_rate?}` — ProjectSettings edits.
+- `sequence.inspect` — non-mutating stats {tracks, clips, duration, marks}.
+- `sequence.close` — push active into `project.sequences`, activate another
+  (data preserved, never delete); header not last-sequence.
+
+### C.4 Audit equivalents (no new code)
+- clip.group/ungroup → timeline.link_clips / timeline.unlink_clips.
+- clip.synchronize → multicam.sync; clip.multicamEnable → multicam.create.
+- clip.mergeClips, sequence.nestSequences, sequence.makeSubsequence →
+  timeline.create_compound_clip (notes: compound/nest semantics).
+- clip.timeInterpolation ×3 + setTimeInterpolation → clip.set_speed_ramp
+  (SpeedRamp carries optical_flow_interpolation + frame_blend; frameSampling
+  = both false).
+- sequence.revealNested → equivalent→ compound/nested sequence reveal note
+  (verify vs sequence.open need; if a real arm is cheap, `sequence.open`
+  stays out — only mapped commands get added).
+- clip.restoreCaptionsFromSource → caption.import;
+  clip.editOffline → project.relink_media;
+  clip.interpretFootage → media.update_properties (colorspace/gamma);
+  clip.audioChannels → media.update_properties (audio_channels ext).
+- sequence.renderInToOut / renderSelection / renderEffectsInToOut /
+  renderAudio → export.quick (note: EEP renders through the export queue;
+  ui_only flow, no preview cache).
+
+### C.5 UI builders + wiring
+- Volume nudges (audioGain, volumeUp/Down/Many, nudgeVolumeUp1/Down1/Up3/Down3
+  = 8 FC entries) → clip.set_volume_db with builders in `menuCommandParams.ts`
+  reading current clip volume via BatchMenuContext (project + selectedClip).
+- replaceFromBin/Source/SourceMatchFrame ×3 → timeline.replace_media with
+  builder reading panel `selectedMediaId` (PanelMenuContext already carries
+  selectedMediaIds; add selectedMediaId singular if needed).
+- makeSubclip/frameFit/extractAudio/flatten builders pass track/clip ctx.
+- ui_only routing blocks in App.tsx near existing edit-inspect route;
+  extract helpers if headroom is tight (794/800).
+
+### C.6 Mapped-count target
+Covered adds: clip ~29 (volume 8, replace 3, group/ungroup 2, sync 1,
+multicamEnable 1, merge 1, makeSubclip 1, editSubclip 1, reveal 1, frameFit 3,
+timeInterp 4, restoreCaptions 1, editOffline 1, interpretFootage 1,
+audioChannels 1) + extractAudio 1 + multicamFlatten 1; sequence ~17
+(arms 4, gaps 4, nest/makeSub 2, matchFrame 2, revealNested 1, render→export 4).
+Total ~302+48 = 350. Floor: close at 350 or better via regenerated PARITY
+before tagging; drop-in replacements from the na list (below) if an arm
+proves inapplicable.
+
+### C.7 na (genuinely inapplicable, denominator shrinks)
+clip.remix ×4 (no ducking), clip.audioPeak, clip.generateAudioWaveform
+(auto waveforms), clip.breakoutToMono, clip.fieldOptions, clip.sourceSettings,
+clip.automateToSequence, clip.sceneEditDetection, clip.posterFrame ×2,
+clip.frameHold ×3, clip.modifyTimecode, clip.editOffline-alternates…
+sequence.colorSettings, joinThroughEdits / throughEdits / showThroughEdits,
+normalizeMixTrack, renderBar, deleteRenderFiles ×2, closeOthers, moveTab,
+revealInProject, linkedSelection + selectionFollowsPlayhead stay **deferred
+unmapped** (applicable-undone, not na).
+
+### C.8 Verification order
+Sub-batch gates (cargo test --workspace + pnpm build/test + check:glass +
+check:commands + check:parity + check:source-size), Rust workflow test +
+playheadNavigation tests, e2e (port 1420 free first), two commits (clip,
+sequence), check-parity regen confirms 350+, then §6b release rule
+(CHANGELOG → tag v0.1.0-alpha.24 → CI watch → native → linux-packages →
+`gh release view`).
+
+---
+
 ## 7. Master Agentic Execution Rules
 
 All coding agents working on Easy Edits Pro must strictly adhere to these six execution directives:

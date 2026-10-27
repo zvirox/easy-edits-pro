@@ -856,10 +856,13 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
                 None
             };
 
+            let effective_clip_gain_db =
+                if is_audible { effective_gain_db + clip.volume_db } else { -120.0 };
+
             apply_clip_effects(
                 &ges_clip,
                 clip,
-                effective_gain_db,
+                effective_clip_gain_db,
                 &track.audio_processing,
                 track_automation_payload,
                 keyframe_clip_key,

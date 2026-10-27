@@ -334,6 +334,31 @@ export function useMediaOperations({
     [perform, setMissingMediaIds]
   );
 
+  /** Swap the selected timeline clip's source for the selected panel asset
+   * (FC replace-from-bin). Keeps the clip's position, duration and effects. */
+  const replaceSelectedClipMedia = useCallback(
+    async () => {
+      if (!selectedMediaId) {
+        setNotice("Select a media asset in the project panel first");
+        return;
+      }
+      if (!selectedClip) {
+        setNotice("Select a timeline clip first");
+        return;
+      }
+      await perform(
+        "timeline.replace_media",
+        {
+          track_id: selectedClip.track_id,
+          clip_index: selectedClip.clip_index,
+          media_id: selectedMediaId,
+        },
+        "Timeline clip media replaced",
+      );
+    },
+    [selectedMediaId, selectedClip, perform, setNotice],
+  );
+
   const createMediaBin = useCallback(
     async (name: string, color?: string) => {
       if (!name.trim()) return;
@@ -739,6 +764,7 @@ export function useMediaOperations({
     setTitleDraft,
     importMedia,
     relinkMedia,
+    replaceSelectedClipMedia,
     updateMediaMetadata,
     createMediaBin,
     renameMediaBin,

@@ -447,6 +447,50 @@ export function useInspectorOperations({
     [selectedClip, perform]
   );
 
+  const saveClipVolumeDb = useCallback(
+    async (volumeDb: number) => {
+      if (!selectedClip) return;
+      await perform(
+        "clip.set_volume_db",
+        { ...selectedClip, volume_db: volumeDb },
+        `Clip volume set to ${volumeDb} dB`,
+      );
+    },
+    [selectedClip, perform],
+  );
+
+  const frameFit = useCallback(
+    async (mode: "fill" | "fit" | "scale100") => {
+      if (!selectedClip) return;
+      await perform(
+        "clip.frame_fit",
+        { ...selectedClip, mode },
+        `Frame fit applied (${mode})`,
+      );
+    },
+    [selectedClip, perform],
+  );
+
+  const makeSubclip = useCallback(
+    async (name?: string) => {
+      if (!selectedClip) return;
+      await perform(
+        "clip.make_subclip",
+        { ...selectedClip, name },
+        "Subclip created in the project media pool",
+      );
+    },
+    [selectedClip, perform],
+  );
+
+  const flattenMulticam = useCallback(
+    async () => {
+      if (!selectedClip) return;
+      await perform("multicam.flatten", { ...selectedClip }, "Multicam clip flattened to its active angle");
+    },
+    [selectedClip, perform],
+  );
+
   return {
     colorDraft,
     setColorDraft,
@@ -506,5 +550,9 @@ export function useInspectorOperations({
     runMotionTracker,
     saveSpeedRamp,
     saveMotionBlur,
+    saveClipVolumeDb,
+    frameFit,
+    makeSubclip,
+    flattenMulticam,
   };
 }

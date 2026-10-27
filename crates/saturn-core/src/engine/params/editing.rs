@@ -599,6 +599,10 @@ pub(in crate::engine) struct UpdateMediaPropertiesParams {
     pub(in crate::engine) colorspace: Option<String>,
     #[serde(default)]
     pub(in crate::engine) gamma: Option<String>,
+    /// Interpreted channel count (FC Modify > Audio Channels); recorded on
+    /// the asset metadata, does not remix the source files.
+    #[serde(default)]
+    pub(in crate::engine) audio_channels: Option<u32>,
 }
 
 #[derive(Deserialize)]

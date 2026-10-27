@@ -26,3 +26,40 @@ pub(in crate::engine) struct RippleDeleteHeadParams {
 pub(in crate::engine) fn default_ripple_head_frames() -> i64 {
     1
 }
+
+#[derive(Clone, Copy, Deserialize)]
+pub(in crate::engine) struct SetClipVolumeParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) clip_index: usize,
+    pub(in crate::engine) volume_db: f64,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct MakeSubclipParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) clip_index: usize,
+    #[serde(default)]
+    pub(in crate::engine) name: Option<String>,
+}
+
+#[derive(Clone, Copy, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub(in crate::engine) enum FrameFitMode {
+    Fill,
+    Fit,
+    Scale100,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct FrameFitParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) clip_index: usize,
+    pub(in crate::engine) mode: FrameFitMode,
+}
+
+#[derive(Clone, Copy, Deserialize)]
+pub(in crate::engine) struct ReplaceMediaParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) clip_index: usize,
+    pub(in crate::engine) media_id: u64,
+}

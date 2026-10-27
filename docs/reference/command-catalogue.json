@@ -664,7 +664,7 @@
       "Clip"
     ],
     "mutating": true,
-    "params": "{\"media_id\":int,\"name\":str?,\"color_label\":str?,\"tags\":[str]?,\"comment\":str?,\"scene\":str?,\"take\":str?,\"colorspace\":str?,\"gamma\":str?}",
+    "params": "{\"media_id\":int,\"name\":str?,\"color_label\":str?,\"tags\":[str]?,\"comment\":str?,\"scene\":str?,\"take\":str?,\"colorspace\":str?,\"gamma\":str?,\"audio_channels\":int?}",
     "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
@@ -738,6 +738,123 @@
     "since": "0.1.0",
     "uiOnly": false,
     "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "audio gain"
+    ],
+    "category": "Clip",
+    "id": "clip.set_volume_db",
+    "label": "Set Clip Volume",
+    "menu": [
+      "Clip",
+      "Audio"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"volume_db\":num}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "create subclip"
+    ],
+    "category": "Clip",
+    "id": "clip.make_subclip",
+    "label": "Make Subclip",
+    "menu": [
+      "Clip",
+      "Subclip"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"name\":str?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "fill frame",
+      "fit to frame",
+      "scale to frame size"
+    ],
+    "category": "Clip",
+    "id": "clip.frame_fit",
+    "label": "Frame Fit",
+    "menu": [
+      "Clip",
+      "Transform"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"mode\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "replace from bin",
+      "replace edit"
+    ],
+    "category": "Clip",
+    "id": "timeline.replace_media",
+    "label": "Replace Clip Media",
+    "menu": [
+      "Clip",
+      "Replace"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"media_id\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "multicam flatten"
+    ],
+    "category": "Multi-Cam",
+    "id": "multicam.flatten",
+    "label": "Flatten Multicam Clip",
+    "menu": [
+      "Clip",
+      "Multicam"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "reveal in project",
+      "match frame"
+    ],
+    "category": "Clip",
+    "id": "media.reveal",
+    "label": "Reveal Media in Project Panel",
+    "menu": [
+      "Clip"
+    ],
+    "mutating": false,
+    "params": "{\"media_id\":int,\"at_tick\":int?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
   },
   {
     "aliases": [],

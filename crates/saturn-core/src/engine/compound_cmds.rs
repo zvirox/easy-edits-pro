@@ -224,6 +224,7 @@ impl EditorEngine {
                     motion_blur: None,
                     compound_sequence_id: Some(compound_media_id),
                 label: String::new(),
+                volume_db: 0.0,
                 };
 
                 target_track.clips.push(compound_clip);

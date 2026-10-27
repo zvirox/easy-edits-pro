@@ -262,6 +262,9 @@ impl EditorEngine {
                 if let Some(gamma) = params.gamma {
                     media.gamma = Some(gamma);
                 }
+                if let Some(audio_channels) = params.audio_channels {
+                    media.audio_channels = Some(audio_channels);
+                }
                 Ok(json!({
                     "updated": true,
                     "media_id": params.media_id,

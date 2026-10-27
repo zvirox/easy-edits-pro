@@ -138,6 +138,7 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
                     motion_blur: None,
                     compound_sequence_id: None,
                 label: String::new(),
+                volume_db: 0.0,
                 };
 
                 if track_type.starts_with('V') {

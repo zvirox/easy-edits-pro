@@ -25,6 +25,11 @@ export interface ClipInspectorProps {
   runMotionTracker: (forward: boolean) => Promise<void>;
   saveSpeedRamp: (speedRamp: SpeedRamp) => Promise<void>;
   saveMotionBlur: (motionBlur: MotionBlurParams) => Promise<void>;
+  saveClipVolumeDb: (volumeDb: number) => Promise<void>;
+  frameFit: (mode: "fill" | "fit" | "scale100") => Promise<void>;
+  makeSubclip: () => Promise<void>;
+  flattenMulticam: () => Promise<void>;
+  revealClipMedia: () => void;
 }
 
 export function ClipInspector({
@@ -48,7 +53,13 @@ export function ClipInspector({
   runMotionTracker,
   saveSpeedRamp,
   saveMotionBlur,
+  saveClipVolumeDb,
+  frameFit,
+  makeSubclip,
+  flattenMulticam,
+  revealClipMedia,
 }: ClipInspectorProps) {
+  const clampVolume = (value: number) => Math.min(12, Math.max(-60, value));
   if (selectedTimelineClip && selectedClip) {
     const mediaForClip = media.find((item) => item.id === selectedTimelineClip.media_id);
     return (
@@ -79,6 +90,73 @@ export function ClipInspector({
         {selectedTimelineClip.group_id != null ? (
           <InteriorButton className="secondary" onClick={() => void unlinkSelectedClips()} disabled={busy}>
             Unlink from group
+          </InteriorButton>
+        ) : null}
+
+        {/* Per-clip audio trim (FC audio gain / volume nudges) */}
+        <div className="control">
+          Volume{" "}
+          <span>{(selectedTimelineClip.volume_db ?? 0).toFixed(1)} dB</span>
+        </div>
+        <div className="speed-ramp-presets">
+          {[-3, -1, 1, 3].map((delta) => (
+            <InteriorButton
+              key={delta}
+              type="button"
+              className="speed-preset-btn"
+              disabled={busy}
+              onClick={() =>
+                void saveClipVolumeDb(
+                  clampVolume((selectedTimelineClip.volume_db ?? 0) + delta),
+                )
+              }
+            >
+              {delta > 0 ? `+${delta}` : delta} dB
+            </InteriorButton>
+          ))}
+          <InteriorButton
+            type="button"
+            className="speed-preset-btn"
+            disabled={busy}
+            onClick={() => void saveClipVolumeDb(0)}
+          >
+            0 dB
+          </InteriorButton>
+        </div>
+
+        {/* Frame fit + clip-to-media actions */}
+        <div className="speed-ramp-inspector-card">
+          <div className="speed-ramp-header">
+            <strong>Frame Fit &amp; Clip Actions</strong>
+          </div>
+          <div className="speed-ramp-presets">
+            <InteriorButton type="button" className="speed-preset-btn" disabled={busy}
+              onClick={() => void frameFit("fill")}>
+              Fill
+            </InteriorButton>
+            <InteriorButton type="button" className="speed-preset-btn" disabled={busy}
+              onClick={() => void frameFit("fit")}>
+              Fit
+            </InteriorButton>
+            <InteriorButton type="button" className="speed-preset-btn" disabled={busy}
+              onClick={() => void frameFit("scale100")}>
+              100%
+            </InteriorButton>
+          </div>
+          <div className="speed-ramp-presets">
+            <InteriorButton type="button" className="speed-preset-btn" disabled={busy}
+              onClick={() => void makeSubclip()}>
+              Make Subclip
+            </InteriorButton>
+            <InteriorButton type="button" className="speed-preset-btn" disabled={busy}
+              onClick={() => revealClipMedia()}>
+              Reveal in Project
+            </InteriorButton>
+          </div>
+        </div>
+        {selectedTimelineClip.multicam_id != null ? (
+          <InteriorButton className="secondary" onClick={() => void flattenMulticam()} disabled={busy}>
+            Flatten multicam to active angle
           </InteriorButton>
         ) : null}
 

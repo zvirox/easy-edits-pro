@@ -103,6 +103,7 @@ impl EditorEngine {
                     motion_blur: None,
                     compound_sequence_id: None,
                 label: String::new(),
+                volume_db: 0.0,
                 });
                 Ok(json!({"track_id": track.id, "clip_index": track.clips.len() - 1}))
             })()),
@@ -352,6 +353,170 @@ impl EditorEngine {
                         DispatchError::Operation("Moved clip could not be found".into())
                     })?;
                 Ok(json!({"moved": true, "track_id": target_track_id, "clip_index": clip_index}))
+            })()),
+            "clip.set_volume_db" => Some((|| {
+                let params: SetClipVolumeParams = parse_params(params)?;
+                if !params.volume_db.is_finite() || !(-60.0..=12.0).contains(&params.volume_db) {
+                    return Err(DispatchError::InvalidParameters(
+                        "Clip volume must be between -60 and +12 dB".into(),
+                    ));
+                }
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips
+                    [params.clip_index];
+                clip.volume_db = params.volume_db;
+                Ok(json!({
+                    "clip_index": params.clip_index,
+                    "track_id": params.track_id,
+                    "volume_db": clip.volume_db,
+                }))
+            })()),
+            "timeline.replace_media" => Some((|| {
+                let params: ReplaceMediaParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                if !self
+                    .document
+                    .project
+                    .media
+                    .iter()
+                    .any(|item| item.id == params.media_id)
+                {
+                    return Err(DispatchError::InvalidParameters(format!(
+                        "Media item {} does not exist",
+                        params.media_id
+                    )));
+                }
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips
+                    [params.clip_index];
+                clip.media_id = params.media_id;
+                // The replacement media is not a multicam angle; drop stale
+                // multicam linkage the same way a source relink would.
+                clip.multicam_id = None;
+                clip.multicam_angle_id = None;
+                Ok(json!({
+                    "replaced": true,
+                    "track_id": params.track_id,
+                    "clip_index": params.clip_index,
+                    "media_id": clip.media_id,
+                }))
+            })()),
+            "clip.make_subclip" => Some((|| {
+                let params: MakeSubclipParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                let source = self
+                    .document
+                    .project
+                    .media
+                    .iter()
+                    .find(|item| item.id == clip.media_id)
+                    .ok_or_else(|| {
+                        DispatchError::InvalidParameters(format!(
+                            "Timeline clip references missing media {}",
+                            clip.media_id
+                        ))
+                    })?;
+                let name = params.name.unwrap_or_else(|| {
+                    format!("Subclip of {}", source.name)
+                });
+                if name.trim().is_empty() {
+                    return Err(DispatchError::InvalidParameters(
+                        "Subclip name cannot be empty".into(),
+                    ));
+                }
+                let clip_duration = clip.duration;
+                let clip_source_in = clip.source_in;
+                let mut subclip = source.clone();
+                subclip.id = 0;
+                subclip.name = name;
+                subclip.duration = Some(clip_duration);
+                subclip.tags = vec!["subclip".into()];
+                subclip.comment = format!(
+                    "Made from clip at {} on track {}",
+                    clip.timeline_start.0, params.track_id
+                );
+                subclip.source_mark_in = Some(clip_source_in);
+                subclip.source_mark_out = Some(Tick(
+                    clip_source_in.0.saturating_add(clip_duration.0),
+                ));
+                subclip.title = None;
+                subclip.nested_sequence = None;
+                self.checkpoint();
+                let id = self.document.project.next_id;
+                self.document.project.next_id = id.saturating_add(1);
+                subclip.id = id;
+                let subclip_id = subclip.id;
+                let subclip_name = subclip.name.clone();
+                self.document.project.media.push(subclip);
+                Ok(json!({
+                    "media_id": subclip_id,
+                    "name": subclip_name,
+                    "duration": clip_duration.0,
+                }))
+            })()),
+            "clip.frame_fit" => Some((|| {
+                let params: FrameFitParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                let source = self
+                    .document
+                    .project
+                    .media
+                    .iter()
+                    .find(|item| item.id == clip.media_id)
+                    .ok_or_else(|| {
+                        DispatchError::InvalidParameters(format!(
+                            "Timeline clip references missing media {}",
+                            clip.media_id
+                        ))
+                    })?;
+                let (Some(media_w), Some(media_h)) = (source.width, source.height) else {
+                    return Err(DispatchError::InvalidParameters(
+                        "Media has no intrinsic dimensions for frame fit".into(),
+                    ));
+                };
+                if media_w == 0 || media_h == 0 {
+                    return Err(DispatchError::InvalidParameters(
+                        "Media dimensions must be positive".into(),
+                    ));
+                }
+                // GES letterbox-fits media into the project frame, so a scale
+                // multiplier of 1.0 is the "fit" state and filling needs the
+                // cover factor over that fit.
+                let settings = &self.document.project.settings;
+                let media_aspect = media_w as f64 / media_h as f64;
+                let frame_aspect = settings.width as f64 / settings.height as f64;
+                let scale = match params.mode {
+                    FrameFitMode::Fit | FrameFitMode::Scale100 => 1.0,
+                    FrameFitMode::Fill => {
+                        let raw = if media_aspect >= frame_aspect {
+                            media_aspect / frame_aspect
+                        } else {
+                            frame_aspect / media_aspect
+                        };
+                        raw.clamp(0.01, 100.0)
+                    }
+                };
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips
+                    [params.clip_index];
+                clip.keyframes
+                    .retain(|key| key.property != KeyframeProperty::Scale);
+                clip.keyframes
+                    .push(Keyframe::new(KeyframeProperty::Scale, Tick(0), scale));
+                Ok(json!({
+                    "mode": match params.mode {
+                        FrameFitMode::Fill => "fill",
+                        FrameFitMode::Fit => "fit",
+                        FrameFitMode::Scale100 => "scale100",
+                    },
+                    "scale": scale,
+                    "clip_index": params.clip_index,
+                }))
             })()),
             _ => None,
         }

@@ -5722,3 +5722,201 @@ fn project_freeform_remove_and_search_bins_workflow() {
         ))
         .is_err());
 }
+
+#[test]
+fn clip_volume_subclip_frame_fit_replace_and_multicam_flatten_workflow_with_undo() {
+    use saturn_core::TICKS_PER_SECOND;
+
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name":"Clip Batch Test"}),
+        ))
+        .unwrap();
+    let media_a = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name":"a.mp4", "path":"/assets/a.mp4", "kind":"video", "width":1440, "height":1080, "duration": 30 * TICKS_PER_SECOND}),
+        ))
+        .unwrap()["media_id"]
+        .as_u64()
+        .unwrap();
+    let media_b = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name":"b.mp4", "path":"/assets/b.mp4", "kind":"video", "width":1280, "height":720, "duration": 30 * TICKS_PER_SECOND}),
+        ))
+        .unwrap()["media_id"]
+        .as_u64()
+        .unwrap();
+    let v_track_id = engine.document().project.sequence.tracks[0].id;
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"track_id": v_track_id, "media_id": media_a, "timeline_start": 0, "source_in": 0, "duration": 4 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+
+    // 1. Per-clip volume: set, clamp bounds, undo back to 0 dB.
+    let res = engine
+        .execute(CommandRequest::new(
+            "clip.set_volume_db",
+            json!({"track_id": v_track_id, "clip_index": 0, "volume_db": -3.5}),
+        ))
+        .unwrap();
+    assert_eq!(res["volume_db"].as_f64().unwrap(), -3.5);
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].volume_db,
+        -3.5
+    );
+    assert!(engine
+        .execute(CommandRequest::new(
+            "clip.set_volume_db",
+            json!({"track_id": v_track_id, "clip_index": 0, "volume_db": 40.0}),
+        ))
+        .is_err());
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].volume_db,
+        0.0
+    );
+
+    // 2. Frame fit: "fill" covers the project frame over the letterbox fit,
+    // "fit" resets the scale back to identity; no intrinsic dims rejected.
+    let res = engine
+        .execute(CommandRequest::new(
+            "clip.frame_fit",
+            json!({"track_id": v_track_id, "clip_index": 0, "mode": "fill"}),
+        ))
+        .unwrap();
+    let scale = res["scale"].as_f64().unwrap();
+    assert!((scale - (16.0 / 12.0)).abs() < 1e-9, "fill scale {scale}");
+    engine
+        .execute(CommandRequest::new(
+            "clip.frame_fit",
+            json!({"track_id": v_track_id, "clip_index": 0, "mode": "fit"}),
+        ))
+        .unwrap();
+    let keys = &engine.document().project.sequence.tracks[0].clips[0].keyframes;
+    assert_eq!(keys.len(), 1);
+    assert_eq!(keys[0].property, saturn_core::KeyframeProperty::Scale);
+    assert!((keys[0].value - 1.0).abs() < 1e-9);
+    assert!(engine
+        .execute(CommandRequest::new(
+            "clip.frame_fit",
+            json!({"track_id": v_track_id, "clip_index": 0, "mode": "scale100"}),
+        ))
+        .is_ok());
+
+    // 3. Replace clip media with undo.
+    engine
+        .execute(CommandRequest::new(
+            "timeline.replace_media",
+            json!({"track_id": v_track_id, "clip_index": 0, "media_id": media_b}),
+        ))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].media_id,
+        media_b
+    );
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].media_id,
+        media_a
+    );
+
+    // 4. Make subclip: new asset carrying the clip range as source marks.
+    let res = engine
+        .execute(CommandRequest::new(
+            "clip.make_subclip",
+            json!({"track_id": v_track_id, "clip_index": 0, "name":"Interview A - pick"}),
+        ))
+        .unwrap();
+    let subclip_id = res["media_id"].as_u64().unwrap();
+    let subclip = engine
+        .document()
+        .project
+        .media
+        .iter()
+        .find(|item| item.id == subclip_id)
+        .unwrap();
+    assert_eq!(subclip.name, "Interview A - pick");
+    assert_eq!(subclip.source_mark_in.map(|t| t.0), Some(0));
+    assert_eq!(
+        subclip.source_mark_out.map(|t| t.0),
+        Some(4 * TICKS_PER_SECOND)
+    );
+
+    // 4b. media.update_properties records the interpreted channel count.
+    engine
+        .execute(CommandRequest::new(
+            "media.update_properties",
+            json!({"media_id": media_b, "audio_channels": 2}),
+        ))
+        .unwrap();
+    let channels = engine
+        .document()
+        .project
+        .media
+        .iter()
+        .find(|item| item.id == media_b)
+        .unwrap()
+        .audio_channels;
+    assert_eq!(channels, Some(2));
+
+    // 5. Multicam: create -> switch the clip to an angle -> flatten back to
+    // a plain clip on the active angle.
+    let group = engine
+        .execute(CommandRequest::new(
+            "multicam.create",
+            json!({
+                "name":"Interview",
+                "angles": [
+                    {"id": 101, "name":"A", "media_id": media_a},
+                    {"id": 102, "name":"B", "media_id": media_b}
+                ]
+            }),
+        ))
+        .unwrap();
+    let group_id = group["id"].as_u64().unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "multicam.switch_angle",
+            json!({"track_id": v_track_id, "clip_index": 0, "angle_id": 102}),
+        ))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].multicam_id,
+        Some(group_id)
+    );
+    let res = engine
+        .execute(CommandRequest::new(
+            "multicam.flatten",
+            json!({"track_id": v_track_id, "clip_index": 0}),
+        ))
+        .unwrap();
+    assert_eq!(res["media_id"].as_u64(), Some(media_b));
+    let clip = &engine.document().project.sequence.tracks[0].clips[0];
+    assert!(clip.multicam_id.is_none());
+    assert!(clip.multicam_angle_id.is_none());
+    // Flattening a non-multicam clip is rejected.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "multicam.flatten",
+            json!({"track_id": v_track_id, "clip_index": 0}),
+        ))
+        .is_err());
+    // Undo restores the multicam linkage.
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips[0].multicam_id,
+        Some(group_id)
+    );
+}

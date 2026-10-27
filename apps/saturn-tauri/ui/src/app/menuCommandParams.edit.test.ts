@@ -54,3 +54,44 @@ test("repair commands run without params and unknown ids fall through", () => {
   assert.equal(buildEditCommandParams("edit.copy", ctx()), null);
   assert.equal(buildEditCommandParams("timeline.add_clip", ctx()), null);
 });
+
+test("clip volume builders read the current volume from the project", () => {
+  const project = {
+    sequence: {
+      tracks: [
+        { id: 7, clips: [{ volume_db: -3.5 }, { volume_db: 2 }, { volume_db: 0 }] },
+      ],
+    },
+  };
+  const volume = buildEditCommandParams("clip.set_volume_db", ctx({
+    selectedClip: { track_id: 7, clip_index: 1 },
+    project,
+  }));
+  assert.deepEqual(volume, {
+    params: { track_id: 7, clip_index: 1, volume_db: 2 },
+  });
+  const fallback = buildEditCommandParams("clip.set_volume_db", ctx({
+    selectedClip: { track_id: 4, clip_index: 0 },
+  }));
+  assert.deepEqual(fallback, {
+    params: { track_id: 4, clip_index: 0, volume_db: 0 },
+  });
+  const missing = buildEditCommandParams("clip.set_volume_db", ctx());
+  assert.equal(missing?.cancel, true);
+});
+
+test("clip action builders carry the selection and sensible defaults", () => {
+  const sel = { track_id: 7, clip_index: 2 };
+  assert.deepEqual(buildEditCommandParams("clip.frame_fit", ctx({ selectedClip: sel })), {
+    params: { track_id: 7, clip_index: 2, mode: "fit" },
+  });
+  assert.deepEqual(buildEditCommandParams("clip.make_subclip", ctx({ selectedClip: sel })), {
+    params: { track_id: 7, clip_index: 2 },
+  });
+  assert.deepEqual(buildEditCommandParams("multicam.flatten", ctx({ selectedClip: sel })), {
+    params: { track_id: 7, clip_index: 2 },
+  });
+  for (const id of ["clip.frame_fit", "clip.make_subclip", "multicam.flatten"]) {
+    assert.equal(buildEditCommandParams(id, ctx())?.cancel, true, id);
+  }
+});

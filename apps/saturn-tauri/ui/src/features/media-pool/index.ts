@@ -4,8 +4,7 @@ export {
   MediaPanel,
   type MediaPanelProps,
   filmoraTabs,
-  titlePresets,
-  transitionPresets,
   type FilmoraTab,
   type OpenverseAsset,
 } from "./MediaPanel";
+export { titlePresets, transitionPresets } from "./presets";

@@ -221,4 +221,7 @@ pub struct Clip {
     /// FC-style label colour name ("blue", "mango", ...); empty = unlabelled.
     #[serde(default)]
     pub label: String,
+    /// Per-clip audio trim in dB, applied on top of the track gain.
+    #[serde(default)]
+    pub volume_db: f64,
 }

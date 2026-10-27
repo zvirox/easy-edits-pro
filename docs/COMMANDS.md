@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-402 commands.
+408 commands.
 
 ## File
 
@@ -198,11 +198,17 @@ Generated from the command catalogue. Do not edit by hand.
 | Create Compound Clip | `timeline.create_compound_clip` | shipped | Ctrl+G | `{"name":str?,"target_track_id":int?,"clips":[obj]}` |
 | Decompose Compound Clip in Place | `timeline.decompose_compound_clip` | shipped | Ctrl+Shift+G | `{"track_id":int,"clip_index":int}` |
 | Move Media to Bin | `media.move_to_bin` | shipped |  | `{"media_id":int,"bin_id":int?}` |
-| Update Media Properties | `media.update_properties` | shipped |  | `{"media_id":int,"name":str?,"color_label":str?,"tags":[str]?,"comment":str?,"scene":str?,"take":str?,"colorspace":str?,"gamma":str?}` |
+| Update Media Properties | `media.update_properties` | shipped |  | `{"media_id":int,"name":str?,"color_label":str?,"tags":[str]?,"comment":str?,"scene":str?,"take":str?,"colorspace":str?,"gamma":str?,"audio_channels":int?}` |
 | Update Clip RGB Curves | `clip.update_rgb_curves` | shipped |  | `{"track_id":int,"clip_index":int,"curves":obj}` |
 | Update Clip HSL Qualifier | `clip.update_hsl_qualifier` | shipped |  | `{"track_id":int,"clip_index":int,"qualifier":obj}` |
 | Add Custom GLSL Shader | `clip.add_custom_shader` | shipped |  | `{"track_id":int,"clip_index":int,"name":str?,"shader_code":str?,"preset_id":str?,"uniforms":obj?}` |
 | Update Custom GLSL Shader | `clip.update_custom_shader` | shipped |  | `{"track_id":int,"clip_index":int,"effect_id":int,"name":str?,"shader_code":str?,"preset_id":str?,"uniforms":obj?}` |
+| Set Clip Volume | `clip.set_volume_db` | shipped |  | `{"track_id":int,"clip_index":int,"volume_db":num}` |
+| Make Subclip | `clip.make_subclip` | shipped |  | `{"track_id":int,"clip_index":int,"name":str?}` |
+| Frame Fit | `clip.frame_fit` | shipped |  | `{"track_id":int,"clip_index":int,"mode":str}` |
+| Replace Clip Media | `timeline.replace_media` | shipped |  | `{"track_id":int,"clip_index":int,"media_id":int}` |
+| Flatten Multicam Clip | `multicam.flatten` | shipped |  | `{"track_id":int,"clip_index":int}` |
+| Reveal Media in Project Panel | `media.reveal` | shipped |  | `{"media_id":int,"at_tick":int?}` |
 | Slip Clip Source | `timeline.slip_clip` | shipped |  | `{"track_id":int,"clip_index":int,"delta":obj}` |
 | Inspect Edit Point | `timeline.inspect` | shipped |  | `{"track_id":int?,"clip_index":int?,"at":obj?}` |
 | Inspect Trim Point | `trim.inspect` | shipped |  | `{"track_id":int,"clip_index":int,"edge":"start"\|"end"}` |

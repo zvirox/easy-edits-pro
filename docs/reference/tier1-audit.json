@@ -126,27 +126,35 @@
   },
   "clip.audioChannels": {
     "label": "Audio Channels…",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "media.update_properties",
+    "note": "interpreted channel count is recorded on the asset metadata"
   },
   "clip.audioGain": {
     "label": "Audio Gain…",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.set_volume_db",
+    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
   },
   "clip.audioPeak": {
     "label": "Audio Clip Peak Amplitude",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no per-clip peak amplitude readout"
   },
   "clip.automateToSequence": {
     "label": "Automate to Sequence…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "clip volume is a static dB trim in EEP, not keyframed, so there are no clip gain keyframes to copy onto mix-track automation"
   },
   "clip.breakoutToMono": {
     "label": "Breakout to Mono",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no channel-split render path; clips reference whole assets"
   },
   "clip.clearPosterFrame": {
     "label": "Clear Poster Frame",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no thumbnail/poster preview pipeline"
   },
   "clip.createMulticam": {
     "label": "Create Multi-Camera Source Sequence…",
@@ -156,11 +164,15 @@
   },
   "clip.editOffline": {
     "label": "Edit Offline…",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "project.relink_media",
+    "note": "offline clips are relinked to a chosen path rather than edited offline"
   },
   "clip.editSubclip": {
     "label": "Edit Subclip…",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "media.reveal",
+    "note": "subclip assets open as panel-selected media; EEP edits subclip content in place on the timeline, there is no separate subclip editor"
   },
   "clip.enable": {
     "label": "Enable",
@@ -168,43 +180,57 @@
   },
   "clip.extractAudio": {
     "label": "Extract Audio",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "EEP renders non-audio media on audio tracks as an error; audio plays with its video clip, so there is no separate audio event to extract into"
   },
   "clip.fieldOptions": {
     "label": "Field Options…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no interlaced-field pipeline in the render path"
   },
   "clip.fillFrame": {
     "label": "Fill frame",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.frame_fit",
+    "note": "scale keyframes computed from media vs project aspect; 'fill' covers the native letterbox fit, 'fit' resets to identity"
   },
   "clip.fitToFrame": {
     "label": "Fit to frame",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.frame_fit",
+    "note": "scale keyframes computed from media vs project aspect; 'fill' covers the native letterbox fit, 'fit' resets to identity"
   },
   "clip.frameHold": {
     "label": "Add Frame Hold",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no freeze-frame segment support in the clip model"
   },
   "clip.frameHoldOptions": {
     "label": "Frame Hold Options…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no freeze-frame segment support in the clip model"
   },
   "clip.generateAudioWaveform": {
     "label": "Generate Audio Waveform",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "waveforms auto-generate for imported audio; there is no manual regenerate"
   },
   "clip.group": {
     "label": "Group",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "timeline.link_clips",
+    "note": "clips link/unlink as a group; all linked edits stay selected together"
   },
   "clip.insertFrameHoldSegment": {
     "label": "Insert Frame Hold Segment",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no freeze-frame segment support in the clip model"
   },
   "clip.interpretFootage": {
     "label": "Interpret Footage…",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "media.update_properties",
+    "note": "colorspace and gamma interpretation metadata are recorded on the asset"
   },
   "clip.link": {
     "label": "Link",
@@ -213,23 +239,32 @@
   },
   "clip.makeSubclip": {
     "label": "Make Subclip…",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.make_subclip",
+    "note": "new media asset cloning the source with the clip range as source marks"
   },
   "clip.mergeClips": {
     "label": "Merge Clips…",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "timeline.create_compound_clip",
+    "note": "selected clips merge into a compound clip backed by a nested sequence"
   },
   "clip.modifyTimecode": {
     "label": "Timecode…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no timecode display or burn-in in the player"
   },
   "clip.multicamEnable": {
     "label": "Enable",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "multicam.create",
+    "note": "the clip becomes multicam via a multicam group with angle switching"
   },
   "clip.multicamFlatten": {
     "label": "Flatten",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "multicam.flatten",
+    "note": "clears the multicam linkage, keeping the active angle's media as a plain clip"
   },
   "clip.nest": {
     "label": "Nest…",
@@ -239,79 +274,109 @@
   },
   "clip.nudgeVolumeDown1": {
     "label": "Nudge Volume -1dB",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.set_volume_db",
+    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
   },
   "clip.nudgeVolumeDown3": {
     "label": "Nudge Volume -3dB",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.set_volume_db",
+    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
   },
   "clip.nudgeVolumeUp1": {
     "label": "Nudge Volume +1dB",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.set_volume_db",
+    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
   },
   "clip.nudgeVolumeUp3": {
     "label": "Nudge Volume +3dB",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.set_volume_db",
+    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
   },
   "clip.remix": {
     "label": "Remix",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no music-remix/ducking analysis in the engine"
   },
   "clip.remix.enable": {
     "label": "Enable Remix",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no music-remix/ducking analysis in the engine"
   },
   "clip.remix.properties": {
     "label": "Remix Properties…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no music-remix/ducking analysis in the engine"
   },
   "clip.remix.revert": {
     "label": "Revert Remix",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no music-remix/ducking analysis in the engine"
   },
   "clip.rename": {
     "label": "Rename…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "timeline clips carry label colours, not names; show as media name"
   },
   "clip.replaceFromBin": {
     "label": "From Bin",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "timeline.replace_media",
+    "note": "swaps the clip's source asset, keeping position, duration and effects; panel-selected media replaces the bin/source-monitor pickers"
   },
   "clip.replaceFromSource": {
     "label": "From Source Monitor",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "timeline.replace_media",
+    "note": "swaps the clip's source asset, keeping position, duration and effects; panel-selected media replaces the bin/source-monitor pickers"
   },
   "clip.replaceFromSourceMatchFrame": {
     "label": "From Source Monitor, Match Frame",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "timeline.replace_media",
+    "note": "swaps the clip's source asset, keeping position, duration and effects; panel-selected media replaces the bin/source-monitor pickers"
   },
   "clip.restoreCaptionsFromSource": {
     "label": "Restore Captions from Source Clip",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "caption.import",
+    "note": "captions come back from the source caption track/import pipeline"
   },
   "clip.revealInProject": {
     "label": "Reveal in Project",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "media.reveal",
+    "note": "ui_only: selects the clip's media in the project panel and reports the playhead position; EEP has no source monitor window"
   },
   "clip.scaleToFrameSize": {
     "label": "Scale to Frame Size",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.frame_fit",
+    "note": "scale-to-frame-size resets the transform scale to the native letterbox fit (scale100 mode, identical maths to fit in EEP)"
   },
   "clip.sceneEditDetection": {
     "label": "Scene Edit Detection…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no scene-cut analysis pass in the engine"
   },
   "clip.setPosterFrame": {
     "label": "Set Poster Frame",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no thumbnail/poster preview pipeline"
   },
   "clip.setTimeInterpolation": {
     "label": "Set Time Interpolation",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "clip.set_speed_ramp",
+    "note": "time interpolation rides on the clip speed ramp"
   },
   "clip.sourceSettings": {
     "label": "Source Settings…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "asset interpret metadata (colorspace/gamma/channels) is edited via media.update_properties instead of a source settings dialog"
   },
   "clip.speedDuration": {
     "label": "Speed/Duration…",
@@ -320,23 +385,32 @@
   },
   "clip.synchronize": {
     "label": "Synchronize…",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "multicam.sync",
+    "note": "sync angles by audio waveform correlation with manual offsets"
   },
   "clip.timeInterpolation.frameBlending": {
     "label": "Frame Blending",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "clip.set_speed_ramp",
+    "note": "frame-blend flag on the speed ramp"
   },
   "clip.timeInterpolation.frameSampling": {
     "label": "Frame Sampling",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "clip.set_speed_ramp",
+    "note": "frame sampling = both interpolation flags off"
   },
   "clip.timeInterpolation.opticalFlow": {
     "label": "Optical Flow",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "clip.set_speed_ramp",
+    "note": "optical-flow interpolation flag on the speed ramp"
   },
   "clip.ungroup": {
     "label": "Ungroup",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "timeline.unlink_clips"
   },
   "clip.updateMetadata": {
     "label": "Update Metadata…",
@@ -345,19 +419,27 @@
   },
   "clip.volumeDown": {
     "label": "Decrease Clip Volume",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.set_volume_db",
+    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
   },
   "clip.volumeDownMany": {
     "label": "Decrease Clip Volume Many",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.set_volume_db",
+    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
   },
   "clip.volumeUp": {
     "label": "Increase Clip Volume",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.set_volume_db",
+    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
   },
   "clip.volumeUpMany": {
     "label": "Increase Clip Volume Many",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "clip.set_volume_db",
+    "note": "per-clip dB trim on top of track gain; nudges compute the new absolute volume from the current clip value in the UI builders"
   },
   "edit.clear": {
     "label": "Clear",

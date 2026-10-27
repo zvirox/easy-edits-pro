@@ -373,6 +373,7 @@ mod tests {
             motion_blur: None,
             compound_sequence_id: None,
                 label: String::new(),
+                volume_db: 0.0,
         });
         video_track.clips.push(Clip {
             media_id: 2,
@@ -392,6 +393,7 @@ mod tests {
             motion_blur: None,
             compound_sequence_id: None,
                 label: String::new(),
+                volume_db: 0.0,
         });
         video_track.transitions.push(Transition {
             id: 1,
@@ -449,6 +451,7 @@ mod tests {
             motion_blur: None,
             compound_sequence_id: None,
                 label: String::new(),
+                volume_db: 0.0,
         };
 
         clip.effects.push(EffectInstance::new_color_correction(
