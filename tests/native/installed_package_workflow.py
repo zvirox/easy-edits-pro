@@ -139,6 +139,20 @@ def deb_lint(deb: Path, work: Path) -> dict:
     icons = list((data / "usr" / "share" / "icons").rglob("*.png"))
     if not icons:
         fail("lint", "no hicolor icons shipped")
+    validate = subprocess.run(
+        ["desktop-file-validate", str(desktops[0])], capture_output=True, text=True
+    )
+    if validate.returncode != 0 or "error" in validate.stderr.lower():
+        fail("lint", f"desktop-file-validate error on {desktops[0].name!r}: {validate.stderr.strip()[:300]}")
+    allowed_roots = ("usr/bin", "usr/share/applications", "usr/share/icons",
+                     "usr/lib/saturn-tauri", "usr/share/saturn-tauri",
+                     "usr/share/metainfo")
+    outside = sorted(
+        str(p.relative_to(data)) for p in data.rglob("*")
+        if p.is_file() and not str(p.relative_to(data)).startswith(allowed_roots)
+    )
+    if outside:
+        fail("lint", f"{len(outside)} file(s) outside app-private prefixes: {outside[:5]}")
     missing = subprocess.run(
         ["ldd", str(next(b for b in binaries if b.is_file() and not b.is_symlink()))],
         capture_output=True, text=True,
@@ -230,11 +244,89 @@ def bridge_call(sock_path: Path, method: str, params=None, timeout=30):
     return response.get("result")
 
 
+def rpm_lint(rpm: Path, work: Path) -> dict:
+    """Lint the .rpm without rpm tooling (bsdtar/libarchive reads the header
+    and payload): metadata sanity from the header tag area, payload inventory,
+    desktop validation, and a file-conflict scan. The rpm still has no
+    recorded *install* result - this is the E.5 lint gate only.
+    """
+    step("rpm lint: payload inventory via bsdtar, desktop + conflict checks")
+    listing = subprocess.run(["bsdtar", "-tf", str(rpm)], capture_output=True, text=True)
+    if listing.returncode != 0:
+        fail("rpm-lint", f"bsdtar could not read {rpm.name}: {listing.stderr[:300]}")
+    entries = [ln[2:] if ln.startswith("./") else ln for ln in listing.stdout.splitlines() if ln.strip()]
+    binaries = [p for p in entries if p.startswith("usr/bin/") and not p.endswith("/")]
+    if not binaries:
+        fail("rpm-lint", f"no program in usr/bin: {entries[:8]}")
+    desktops = [p for p in entries if p.startswith("usr/share/applications/") and p.endswith(".desktop")]
+    if not desktops:
+        fail("rpm-lint", f"no desktop entry shipped: {entries[:8]}")
+    icons = [p for p in entries if p.startswith("usr/share/icons/") and p.endswith(".png")]
+    if not icons:
+        fail("rpm-lint", "no hicolor icons shipped")
+
+    payload = work / "rpm-data"
+    payload.mkdir(exist_ok=True)
+    extract = subprocess.run(["bsdtar", "-xf", str(rpm), "-C", str(payload)],
+                             capture_output=True, text=True)
+    if extract.returncode != 0:
+        fail("rpm-lint", f"could not unpack payload: {extract.stderr[:300]}")
+
+    desktop = payload / desktops[0]
+    validate = subprocess.run(["desktop-file-validate", str(desktop)], capture_output=True, text=True)
+    if validate.returncode != 0 or "error" in validate.stderr.lower():
+        fail("rpm-lint", f"desktop-file-validate error on {desktops[0]!r}: {validate.stderr.strip()[:300]}")
+
+    # File-conflict scan: everything must live under app-private prefixes.
+    # Anything outside these roots can collide with files a distro package owns.
+    allowed_roots = ("usr/bin", "usr/share/applications", "usr/share/icons",
+                     "usr/lib/saturn-tauri", "usr/share/saturn-tauri",
+                     "usr/share/metainfo")
+    outside = [p for p in entries if p and not p.endswith("/") and not p.startswith(allowed_roots)]
+    if outside:
+        fail("rpm-lint", f"{len(outside)} file(s) outside app-private prefixes: {outside[:5]}")
+
+    exec_name = ""
+    for line in desktop.read_text().splitlines():
+        if line.startswith("Exec="):
+            exec_name = line[5:].strip().split(" ")[0]
+            break
+    if not exec_name or f"usr/bin/{exec_name}" not in binaries:
+        fail("rpm-lint", f"desktop Exec={exec_name!r} does not match a packaged binary")
+
+    warnings = []
+    if " " in desktops[0]:
+        warnings.append(f"desktop file name contains a space: {desktops[0]!r}")
+    metainfo = [p for p in entries if p.startswith("usr/share/metainfo/")]
+    if not metainfo:
+        warnings.append("no appstream metainfo in the payload (appstore metadata gap)")
+    binary = payload / binaries[0]
+    ldd = subprocess.run(["ldd", str(binary)], capture_output=True, text=True)
+    unresolved = [ln for ln in ldd.stdout.splitlines() if "not found" in ln]
+    if unresolved:
+        warnings.append(f"{len(unresolved)} host-unresolved libs (informational on a non-RPM host; the deb lint records the same caveat)")
+    print(f"[pkg] rpm warnings: {warnings if warnings else 'none'}")
+    return {
+        "payload_files": len(entries),
+        "binaries": binaries,
+        "desktop": desktops[0],
+        "icons": len(icons),
+        "conflicts": outside,
+        "warnings": warnings,
+        "source": rpm.name,
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--deb", help="path to a .deb (default: newest alpha release)")
+    parser.add_argument("--rpm", help="path to a .rpm; run the RPM lint pass only (the rpm cannot be installed on this host)")
     parser.add_argument("--container", action="store_true",
                         help="real dpkg install inside debian:12 (needs a container daemon)")
+    parser.add_argument("--flatpak", action="store_true",
+                        help="E.5 spike: launch the installed flatpak and drive edit-to-render")
+    parser.add_argument("--flatpak-env", action="append", default=[],
+                        help="extra VAR=VALUE passed into the sandbox (repeatable), e.g. GST_DEBUG=...")
     parser.add_argument("--work", default=None, help="reuse a work directory")
     args = parser.parse_args()
     if args.work:
@@ -243,6 +335,18 @@ def main():
     else:
         args.work = Path(tempfile.mkdtemp(prefix="eep-pkg-"))
     work = args.work
+
+    if args.flatpak:
+        return flatpak_mode(args)
+
+    if args.rpm:
+        rpm = Path(args.rpm)
+        if not rpm.is_file():
+            fail("locate", f"--rpm {rpm} is not a file")
+        result = rpm_lint(rpm, work)
+        print(json.dumps(result, indent=2))
+        step("rpm lint complete (no install/launch evidence recorded; see delivery matrix)")
+        return
 
     deb = locate_deb(args)
     info = deb_lint(deb, work)
@@ -301,121 +405,7 @@ def main():
         if socket.socket(socket.AF_UNIX, socket.SOCK_STREAM).connect_ex(str(sock_path)) != 0:
             fail("launch", f"socket exists but refuses connections: {sock_path}")
         print(f"[pkg] bridge listening at {sock_path}")
-
-        # Launch sanity: the app reports a fresh document.
-        step("doc_inspect on the fresh session")
-        doc = bridge_call(sock_path, "doc_inspect")
-        if doc.get("is_dirty") is None:
-            fail("inspect", f"unexpected doc_inspect shape: {list(doc)}")
-
-        # Drive a small edit through shipped engine commands.
-        step("import fixture through command_run (ffprobe-derived metadata)")
-        ffprobe = subprocess.run([
-            "ffprobe", "-v", "error", "-print_format", "json",
-            "-show_streams", "-show_format", str(FIXTURE),
-        ], capture_output=True, text=True)
-        if ffprobe.returncode != 0:
-            fail("fixture", f"ffprobe failed: {ffprobe.stderr[:300]}")
-        probe = json.loads(ffprobe.stdout)
-        video = next(s for s in probe["streams"] if s.get("codec_type") == "video")
-        seconds = float(probe["format"]["duration"])
-        ticks = lambda s: round(s * 254_016_000_000)
-        numerator, _, denominator = video["avg_frame_rate"].partition("/")
-        bridge_call(sock_path, "command_run", {
-            "id": "project.new", "params": {"name": "Package Acceptance"},
-        })
-        doc = bridge_call(sock_path, "doc_inspect")
-        settings = doc["project"]["project"]["settings"]
-        bridge_call(sock_path, "command_run", {
-            "id": "project.add_media",
-            "params": {
-                "name": FIXTURE.name, "path": str(FIXTURE), "kind": "video",
-                "duration": ticks(seconds), "width": video["width"],
-                "height": video["height"],
-                "fps": round(int(numerator) / float(denominator or 1), 6),
-                "codec": video.get("codec_name", "vp8"),
-            },
-        })
-        doc = bridge_call(sock_path, "doc_inspect")
-        project = doc["project"]["project"]
-        media_id = project["media"][0]["id"]
-        video_track = next(t for t in project["sequence"]["tracks"] if t["kind"] == "video")
-
-        step("timeline edit: add clip, split at midpoint, save through the app")
-        bridge_call(sock_path, "command_run", {
-            "id": "timeline.add_clip",
-            "params": {"track_id": video_track["id"], "media_id": media_id},
-        })
-        bridge_call(sock_path, "command_run", {
-            "id": "timeline.split_clip",
-            "params": {
-                "track_id": video_track["id"], "clip_index": 0,
-                "at": ticks(seconds / 2),
-            },
-        })
-        save_path = work / "package-edit.saturn"
-        bridge_call(sock_path, "command_run", {
-            "id": "file.save", "params": {"path": str(save_path)},
-        })
-        if not save_path.is_file():
-            fail("save", f"file.save reported ok but {save_path} is missing")
-
-        sequence = bridge_call(sock_path, "sequence_inspect")
-        saved_track = next(t for t in sequence["tracks"] if t["kind"] == "video")
-        if len(saved_track["clips"]) != 2:
-            fail("verify", f"expected 2 clips after split, got {len(saved_track['clips'])}")
-
-        # Render through the GUI's own job queue, then ffprobe the output.
-        step("render MP4 through the GUI job queue (render_start)")
-        output_path = work / "package-out.mp4"
-        started = bridge_call(sock_path, "render_start", {
-            "output_path": str(output_path),
-            "range": {"start_ticks": 0, "end_ticks": ticks(seconds)},
-        })
-        job_id = started["job_id"]
-        deadline = time.time() + RENDER_TIMEOUT_SECONDS
-        last_report = 0.0
-        while time.time() < deadline:
-            status = bridge_call(sock_path, "render_status", {"job_id": job_id})
-            state = status.get("state")
-            now = time.time()
-            if now - last_report > 15:
-                last_report = now
-                print(f"[pkg] render status after {int(now - (deadline - RENDER_TIMEOUT_SECONDS))}s: {json.dumps(state)[:200]}", flush=True)
-            if isinstance(state, dict):
-                # JobState serializes as {"status": "running"|"completed"|...
-                # with "phase"/"progress" while running, "output" when done}.
-                tag = state.get("status")
-                if tag == "completed":
-                    break
-                if tag == "failed":
-                    fail("render", f"render job failed: {state}")
-            elif state == "failed":
-                fail("render", f"render job failed: {status}")
-            if app.poll() is not None:
-                fail("render", f"app exited during render with {app.returncode}")
-            time.sleep(2)
-        else:
-            fail("render", f"render job {job_id} did not finish in {RENDER_TIMEOUT_SECONDS}s")
-        if not output_path.is_file():
-            fail("render", f"render completed without output at {output_path}")
-
-        step("verify render output with ffprobe")
-        probed = json.loads(subprocess.run(
-            ["ffprobe", "-v", "error", "-print_format", "json",
-             "-show_streams", "-show_format", str(output_path)],
-            capture_output=True, text=True).stdout)
-        vstream = next(s for s in probed["streams"] if s.get("codec_type") == "video")
-        if vstream.get("codec_name") != "h264":
-            fail("ffprobe", f"expected h264, got {vstream.get('codec_name')}")
-        out_seconds = float(probed["format"]["duration"])
-        if not math.isclose(out_seconds, seconds, abs_tol=0.6):
-            fail("ffprobe", f"duration drifted: {out_seconds:.2f}s vs source {seconds:.2f}s")
-        # The render honors the project's settings, not the source media size
-        # (an upscaled fixture is expected).
-        if vstream["width"] != settings["width"] or vstream["height"] != settings["height"]:
-            fail("ffprobe", f"output is {vstream['width']}x{vstream['height']}, "
-                            f"project settings are {settings['width']}x{settings['height']}")
+        summary = drive_edit_to_render(sock_path, work, app)
     finally:
         if app.poll() is None:
             app.terminate()
@@ -429,10 +419,205 @@ def main():
     print(f"[pkg] app exit code after SIGTERM: {app.returncode}")
     # The work dir is kept: it is the evidence trail (lint output, saved
     # project, rendered MP4, app stderr) for the acceptance record.
+    fixture_media = summary["fixture_media"]
     print(f"[pkg] PASS - extracted-prefix launch of {deb.name}: "
-          f"h264 {video['width']}x{video['height']}, {out_seconds:.2f}s, "
-          f"{output_path.stat().st_size} bytes, work dir {work}")
+          f"h264 {fixture_media['width']}x{fixture_media['height']}, "
+          f"{summary['output_seconds']:.2f}s, "
+          f"{summary['output_path'].stat().st_size} bytes, work dir {work}")
     return 0
+
+
+def flatpak_mode(args) -> int:
+    """E.5 Flatpak spike: launch the installed app and run the identical
+    edit-to-render drive (fixture import, split, save, GUI-queue render,
+    ffprobe). The sandbox provides WebKitGTK/GStreamer; the host provides
+    nothing except the flatpak session. Skips the deb extraction entirely."""
+    app_id = "io.github.zvirox.EasyEditsPro"
+    check = subprocess.run(["flatpak", "info", "--user", app_id],
+                           capture_output=True, text=True)
+    if check.returncode != 0:
+        fail("flatpak", f"{app_id} is not installed for this user: "
+                        f"{check.stderr.strip()[:200]}")
+    runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
+    if not runtime_dir:
+        fail("environment", "XDG_RUNTIME_DIR is not set; launch the test from a desktop session")
+    sock_path = Path(runtime_dir) / MCP_SOCKET_RELATIVE
+    sock_path.unlink(missing_ok=True)
+    work = args.work
+    if not FIXTURE.is_file():
+        fail("fixture", f"missing maintained fixture: {FIXTURE}")
+    stderr_log = (work / "flatpak-stderr.log").open("wb")
+    step(f"launch installed flatpak {app_id} (sandboxed HOME)")
+    launch_cmd = ["flatpak", "run"]
+    for pair in getattr(args, "flatpak_env", []):
+        if "=" in pair:
+            launch_cmd.append(f"--env={pair}")
+    launch_cmd.append(app_id)
+    app = subprocess.Popen(
+        launch_cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=stderr_log,
+    )
+    try:
+        deadline = time.time() + LAUNCH_TIMEOUT_SECONDS
+        while time.time() < deadline:
+            if app.poll() is not None:
+                fail("launch", f"flatpak run exited early with {app.returncode}; "
+                               f"see {work / 'flatpak-stderr.log'}")
+            if sock_path.exists():
+                break
+            time.sleep(0.5)
+        else:
+            fail("launch", f"MCP socket never appeared at {sock_path}; the manifest "
+                           f"needs --filesystem=xdg-run/easy-edits-pro-mcp.sock and "
+                           f"--share=network")
+        print(f"[pkg] bridge listening at {sock_path}")
+        # Save/render inside the sandbox-visible home; driver artifacts
+        # (logs, harness files) stay in the work dir.
+        io_root = Path.home() / ".eep-flatpak-spike"
+        io_root.mkdir(exist_ok=True)
+        summary = drive_edit_to_render(sock_path, work, app, io_root=io_root)
+    finally:
+        subprocess.run(["flatpak", "kill", app_id], capture_output=True)
+        try:
+            app.wait(timeout=15)
+        except subprocess.Popen.TimeoutExpired:
+            app.kill()
+            app.wait(timeout=10)
+        stderr_log.close()
+    output_path = summary["output_path"]
+    print(f"[pkg] PASS - flatpak spike of {app_id}: h264 render verified, "
+          f"{summary['output_seconds']:.2f}s, {output_path.stat().st_size} bytes, "
+          f"work dir {work}")
+    return 0
+
+def drive_edit_to_render(sock_path, work: Path, app: subprocess.Popen,
+                         io_root: Path | None = None) -> dict:
+    """The shared acceptance drive: doc inspect, fixture import, timeline
+    split, save, render through the GUI job queue, ffprobe verification.
+    Used verbatim by the extracted-prefix run and the Flatpak spike.
+    io_root overrides where the project + render land (the flatpak sandbox
+    can only write where the manifest exposes a filesystem permission)."""
+    io_root = io_root or work
+    # Launch sanity: the app reports a fresh document.
+    step("doc_inspect on the fresh session")
+    doc = bridge_call(sock_path, "doc_inspect")
+    if doc.get("is_dirty") is None:
+        fail("inspect", f"unexpected doc_inspect shape: {list(doc)}")
+
+    # Drive a small edit through shipped engine commands.
+    step("import fixture through command_run (ffprobe-derived metadata)")
+    ffprobe = subprocess.run([
+        "ffprobe", "-v", "error", "-print_format", "json",
+        "-show_streams", "-show_format", str(FIXTURE),
+    ], capture_output=True, text=True)
+    if ffprobe.returncode != 0:
+        fail("fixture", f"ffprobe failed: {ffprobe.stderr[:300]}")
+    probe = json.loads(ffprobe.stdout)
+    video = next(s for s in probe["streams"] if s.get("codec_type") == "video")
+    seconds = float(probe["format"]["duration"])
+    ticks = lambda s: round(s * 254_016_000_000)
+    numerator, _, denominator = video["avg_frame_rate"].partition("/")
+    bridge_call(sock_path, "command_run", {
+        "id": "project.new", "params": {"name": "Package Acceptance"},
+    })
+    doc = bridge_call(sock_path, "doc_inspect")
+    settings = doc["project"]["project"]["settings"]
+    bridge_call(sock_path, "command_run", {
+        "id": "project.add_media",
+        "params": {
+            "name": FIXTURE.name, "path": str(FIXTURE), "kind": "video",
+            "duration": ticks(seconds), "width": video["width"],
+            "height": video["height"],
+            "fps": round(int(numerator) / float(denominator or 1), 6),
+            "codec": video.get("codec_name", "vp8"),
+        },
+    })
+    doc = bridge_call(sock_path, "doc_inspect")
+    project = doc["project"]["project"]
+    media_id = project["media"][0]["id"]
+    video_track = next(t for t in project["sequence"]["tracks"] if t["kind"] == "video")
+
+    step("timeline edit: add clip, split at midpoint, save through the app")
+    bridge_call(sock_path, "command_run", {
+        "id": "timeline.add_clip",
+        "params": {"track_id": video_track["id"], "media_id": media_id},
+    })
+    bridge_call(sock_path, "command_run", {
+        "id": "timeline.split_clip",
+        "params": {
+            "track_id": video_track["id"], "clip_index": 0,
+            "at": ticks(seconds / 2),
+        },
+    })
+    save_path = io_root / "package-edit.saturn"
+    bridge_call(sock_path, "command_run", {
+        "id": "file.save", "params": {"path": str(save_path)},
+    })
+    if not save_path.is_file():
+        fail("save", f"file.save reported ok but {save_path} is missing")
+
+    sequence = bridge_call(sock_path, "sequence_inspect")
+    saved_track = next(t for t in sequence["tracks"] if t["kind"] == "video")
+    if len(saved_track["clips"]) != 2:
+        fail("verify", f"expected 2 clips after split, got {len(saved_track['clips'])}")
+
+    # Render through the GUI's own job queue, then ffprobe the output.
+    step("render MP4 through the GUI job queue (render_start)")
+    output_path = io_root / "package-out.mp4"
+    started = bridge_call(sock_path, "render_start", {
+        "output_path": str(output_path),
+        "range": {"start_ticks": 0, "end_ticks": ticks(seconds)},
+    })
+    job_id = started["job_id"]
+    deadline = time.time() + RENDER_TIMEOUT_SECONDS
+    last_report = 0.0
+    while time.time() < deadline:
+        status = bridge_call(sock_path, "render_status", {"job_id": job_id})
+        state = status.get("state")
+        now = time.time()
+        if now - last_report > 15:
+            last_report = now
+            print(f"[pkg] render status after {int(now - (deadline - RENDER_TIMEOUT_SECONDS))}s: {json.dumps(state)[:200]}", flush=True)
+        if isinstance(state, dict):
+            # JobState serializes as {"status": "running"|"completed"|...
+            # with "phase"/"progress" while running, "output" when done}.
+            tag = state.get("status")
+            if tag == "completed":
+                break
+            if tag == "failed":
+                fail("render", f"render job failed: {state}")
+        elif state == "failed":
+            fail("render", f"render job failed: {status}")
+        if app.poll() is not None:
+            fail("render", f"app exited during render with {app.returncode}")
+        time.sleep(2)
+    else:
+        fail("render", f"render job {job_id} did not finish in {RENDER_TIMEOUT_SECONDS}s")
+    if not output_path.is_file():
+        fail("render", f"render completed without output at {output_path}")
+
+    step("verify render output with ffprobe")
+    probed = json.loads(subprocess.run(
+        ["ffprobe", "-v", "error", "-print_format", "json",
+         "-show_streams", "-show_format", str(output_path)],
+        capture_output=True, text=True).stdout)
+    vstream = next(s for s in probed["streams"] if s.get("codec_type") == "video")
+    if vstream.get("codec_name") != "h264":
+        fail("ffprobe", f"expected h264, got {vstream.get('codec_name')}")
+    out_seconds = float(probed["format"]["duration"])
+    if not math.isclose(out_seconds, seconds, abs_tol=0.6):
+        fail("ffprobe", f"duration drifted: {out_seconds:.2f}s vs source {seconds:.2f}s")
+    # The render honors the project's settings, not the source media size
+    # (an upscaled fixture is expected).
+    if vstream["width"] != settings["width"] or vstream["height"] != settings["height"]:
+        fail("ffprobe", f"output is {vstream['width']}x{vstream['height']}, "
+                        f"project settings are {settings['width']}x{settings['height']}")
+    return {
+        "fixture_media": {"width": video["width"], "height": video["height"]},
+        "output_seconds": out_seconds,
+        "output_path": output_path,
+    }
 
 
 if __name__ == "__main__":

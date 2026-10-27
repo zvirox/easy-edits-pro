@@ -219,6 +219,30 @@ fn prefer_software_h264_encoder() -> EncoderRankOverrides {
     EncoderRankOverrides(overrides)
 }
 
+/// libav builds its AAC encoder at rank NONE, and encodebin only considers
+/// encoders at rank MARGINAL and above for a caps-based profile. Hosts that
+/// ship faac/vaacenc still export fine, but a sandboxed runtime with libav as
+/// the only AAC encoder (the Flatpak spike) fails MP4 export with
+/// "Couldn't create encoder for audio/mpeg mpegversion=4". Raise whichever
+/// audio encoder the format needs, exactly like the video path above; the
+/// override restores the real ranks on drop.
+fn prefer_software_audio_encoder(format: OutputFormat) -> EncoderRankOverrides {
+    let candidates: &[&[&str]] = match format {
+        OutputFormat::Mp4 => &[&["avenc_aac", "faac", "voaacenc"]],
+        OutputFormat::WebM => &[&["vorbisenc"]],
+    };
+    let mut overrides = Vec::new();
+    for names in candidates {
+        for name in *names {
+            if let Some(factory) = gst::ElementFactory::find(name) {
+                overrides.push((factory.clone(), factory.rank()));
+                factory.set_rank(gst::Rank::PRIMARY);
+            }
+        }
+    }
+    EncoderRankOverrides(overrides)
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum OutputFormat {
     Mp4,
@@ -368,6 +392,9 @@ pub fn render_project_range_with_control(
     });
     let timeline = build_timeline(render_document)?;
     let profile = encoding_profile(format)?;
+    // Held for both the hardware and software attempts: the audio encoder
+    // must stay above encodebin's MARGINAL lookup for the whole render.
+    let _audio_encoder_rank_overrides = prefer_software_audio_encoder(format);
     let output_uri = gst::glib::filename_to_uri(&output_path, None)
         .map_err(|error| format!("Output path is not a valid file URI: {error}"))?;
 
@@ -1267,6 +1294,30 @@ mod tests {
         assert_eq!(result.unwrap_err(), "Render cancelled");
         assert!(decoy.is_file(), "pre-existing output must be untouched");
         let _ = std::fs::remove_file(&decoy);
+    }
+
+    #[test]
+    fn audio_encoder_rank_override_is_visible_to_encodebin_and_restored() {
+        // The Flatpak-spike failure: encodebin looks up audio encoders at
+        // rank MARGINAL and above, but libav registers avenc_aac at rank
+        // NONE; the override must lift it for the render and restore the
+        // real rank afterwards.
+        gst::init().unwrap();
+        let factory = gst::ElementFactory::find("avenc_aac");
+        let factory = match factory {
+            Some(factory) => factory,
+            None => return, // no libav in this environment; nothing to lift
+        };
+        let original = factory.rank();
+        {
+            let _override = prefer_software_audio_encoder(OutputFormat::Mp4);
+            assert!(
+                factory.rank() >= gst::Rank::MARGINAL,
+                "encodebin only considers >= MARGINAL; got {}",
+                factory.rank()
+            );
+        }
+        assert_eq!(factory.rank(), original, "override must restore ranks");
     }
 
     #[test]

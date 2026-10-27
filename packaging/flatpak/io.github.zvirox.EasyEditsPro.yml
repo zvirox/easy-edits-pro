@@ -1,0 +1,56 @@
+app-id: io.github.zvirox.EasyEditsPro
+runtime: org.gnome.Platform
+runtime-version: "49"
+sdk: org.gnome.Sdk
+command: saturn-tauri
+finish-args:
+  # Windowing: Wayland native, X11 via fallback, shared IPC for buffers.
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  # GPU device access for accelerated preview, DMA-BUF, and VAAPI.
+  - --device=all
+  # The app runs a local media server and an MCP bridge on loopback, and the
+  # AI/recovery flows call out; loopback reachability also lets the host-side
+  # acceptance driver reach the bridge.
+  - --share=network
+  # Projects and media live in the user's files. The absolute xdg-run bind is
+  # what makes the app's MCP bridge socket visible to host-side tooling: the
+  # sandbox XDG_RUNTIME_DIR would otherwise be a private tmpfs. (A narrower
+  # xdg-run/<socket> expose does not work because the app creates the socket
+  # at the runtime-dir root; an app-side socket subdirectory would allow the
+  # narrow form.)
+  - --filesystem=home
+  - --filesystem=/run/user/1000
+modules:
+  # GStreamer Editing Services is the engine's compositing/render core and no
+  # flatpak runtime ships it - this module exists so the app can run fully
+  # sandboxed with a known GES version instead of a host-provided one. The
+  # pinned GES minor tracks the runtime's GStreamer minor (1.26 on GNOME 49);
+  # a mismatched minor fails encodebin renderer creation at runtime.
+  - name: gst-editing-services
+    buildsystem: meson
+    config-opts:
+      - -Dtests=disabled
+      - -Dexamples=disabled
+      - -Dintrospection=disabled
+      - -Ddoc=disabled
+      - -Dtools=disabled
+      - -Dpython=disabled
+      - -Dbash-completion=disabled
+    sources:
+      - type: archive
+        url: https://gstreamer.freedesktop.org/src/gst-editing-services/gst-editing-services-1.26.11.tar.xz
+        sha256: a36e87900b44ac1608612f2d616fc032f9d7d920327c4d231affb6fe9349714d
+
+  - name: easy-edits-pro
+    buildsystem: simple
+    build-commands:
+      - bash build-module.sh
+    sources:
+      - type: dir
+        path: payload
+      - type: file
+        path: io.github.zvirox.EasyEditsPro.metainfo.xml
+      - type: file
+        path: build-module.sh

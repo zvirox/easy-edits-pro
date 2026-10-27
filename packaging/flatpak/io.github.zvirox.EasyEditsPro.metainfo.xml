@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.zvirox.EasyEditsPro</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-Proprietary</project_license>
+  <name>Easy Edits Pro</name>
+  <summary>Open source video editor for Linux</summary>
+  <description>
+    <p>Easy Edits Pro is a multitrack video editor with a timeline, captioning,
+    markers, and a job-queued H.264 export driven by a Rust engine core.</p>
+  </description>
+  <launchable type="desktop-id">io.github.zvirox.EasyEditsPro.desktop</launchable>
+  <categories>
+    <category>AudioVideo</category>
+    <category>Video</category>
+  </categories>
+  <url type="homepage">https://github.com/zvirox/easy-edits-pro</url>
+  <url type="bugtracker">https://github.com/zvirox/easy-edits-pro/issues</url>
+  <provides>
+    <binary>saturn-tauri</binary>
+  </provides>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <!-- release info is updated with each tagged release -->
+    <release version="0.1.0-alpha.26" date="2026-10-27" type="development"/>
+  </releases>
+</component>

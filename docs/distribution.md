@@ -36,9 +36,9 @@ table at the bottom of this document is the actual record.
 
 | Artifact | Build | Install | Launch and edit-to-render | Remaining step |
 |---|---|---|---|---|
-| .deb | CI-proven since alpha.1 | Extracted-prefix acceptance PASS (alpha.26); real dpkg install implemented in `--container` mode, awaiting a container daemon | Recorded via the acceptance runbook (one host, Arch laptop) | Container-mode run + one non-dev-machine report |
-| .rpm | CI-proven since alpha.1 | **Never installed anywhere** | **No evidence** | dnf install + launch on an RPM host, or drop the artifact |
-| Flatpak | Manifest does not exist | - | - | E.5 spike: build, install, launch, render once, decide for or against |
+| .deb | CI-proven since alpha.1 | Extracted-prefix acceptance PASS (alpha.26, re-run with the extended lint); real dpkg install implemented in `--container` mode, awaiting a container daemon | Recorded via the acceptance runbook (one host, Arch laptop) | Container-mode run + one non-dev-machine report |
+| .rpm | CI-proven since alpha.1 | **Never installed anywhere** — E.5 lint PASS (alpha.26 via `--rpm`): payload, desktop-file-validate, icon set, zero conflict-prone paths; 2 recorded warnings (desktop filename contains a space, no appstream metainfo) | **No evidence** | dnf install + launch on an RPM host, or drop the artifact |
+| Flatpak | Manifest now exists (`packaging/flatpak/`); E.5 spike in progress | - | - | build + install + launch + render once, then decide for or against |
 | SHA256SUMS | Verified in release assets | - | - | - |
 | Windows / macOS | Not built | - | - | Out of scope for Beta 1 |
 
@@ -84,7 +84,12 @@ check for packaged builds:
    (downloaded read-only via gh - no release is created).
 2. Package lint: control metadata (Package/Version/Architecture), data
    inventory (`usr/bin` binary, desktop entry whose `Exec` matches a
-   packaged binary, hicolor icons), and a shared-library check.
+   packaged binary, hicolor icons), a shared-library check, desktop
+   validation via `desktop-file-validate`, and a file-conflict scan
+   (nothing outside app-private prefixes: `/usr/bin`,
+   `/usr/share/{applications,icons,saturn-tauri,metainfo}`,
+   `/usr/lib/saturn-tauri`). The rpm runs the same gates offline (`--rpm`)
+   through bsdtar/libarchive — no rpm tooling required.
 3. Install: `--container` does a real `apt install` inside debian:12 and
    hard-fails on any unresolved library before launch; the default mode
    extracts the data archive to a temp prefix (this laptop is Arch with

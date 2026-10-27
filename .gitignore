@@ -51,3 +51,9 @@ apps/saturn-tauri/ui/public/glass-spike.mp4
 
 # graphify knowledge-graph build outputs
 graphify-out/
+
+# Flatpak spike build artifacts (payload is produced by make-payload.sh)
+/.flatpak-builder/
+packaging/flatpak/payload/
+packaging/flatpak/build/
+packaging/flatpak/spike-repo/
