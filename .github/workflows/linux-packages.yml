@@ -169,6 +169,11 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq flatpak flatpak-builder xvfb ffmpeg dbus dbus-x11
+          # flatpak-builder's export step shells out to appstream-compose;
+          # distros split it from the appstream package, try both names.
+          sudo apt-get install -y -qq appstream-compose \
+            || sudo apt-get install -y -qq appstream
+          which appstream-compose
 
       - name: Session runtime dir (the runner uid is 1001, not the manifest's /run/user/1000)
         run: |
