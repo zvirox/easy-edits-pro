@@ -150,3 +150,79 @@ export function promptGoToTimecode(
   }
   return { status: "ok", ticks: target };
 }
+
+/** Outcome of a gap-navigation command: a seek tick or a user-facing notice. */
+export type GapResolution = { tick: number | null; notice: string | null };
+
+const GAP_COMMAND_IDS = new Set([
+  "sequence.goToNextGap",
+  "sequence.goToPrevGap",
+  "sequence.goToNextGapInTrack",
+  "sequence.goToPrevGapInTrack",
+]);
+
+/** Merge a track's clips into covered [start, end) intervals, ascending. */
+function coveredIntervals(
+  clips: { timeline_start: number; duration: number }[],
+): { start: number; end: number }[] {
+  const sorted = [...clips]
+    .filter((clip) => clip.duration > 0)
+    .sort((a, b) => a.timeline_start - b.timeline_start);
+  const intervals: { start: number; end: number }[] = [];
+  for (const clip of sorted) {
+    const last = intervals[intervals.length - 1];
+    if (last && clip.timeline_start <= last.end) {
+      last.end = Math.max(last.end, clip.timeline_start + clip.duration);
+    } else {
+      intervals.push({ start: clip.timeline_start, end: clip.timeline_start + clip.duration });
+    }
+  }
+  return intervals;
+}
+
+/**
+ * Resolve the sequence.goTo*Gap family to a playhead tick. "In sequence"
+ * scans every unlocked track; "in track" restricts to the selected clip's
+ * track. Returns null when `id` is not a gap command; `tick: null` means
+ * nothing to seek at and `notice` explains why.
+ */
+export function resolveGapCommand(
+  id: string,
+  ctx: PlayheadContext,
+): GapResolution | null {
+  if (!GAP_COMMAND_IDS.has(id)) return null;
+  const { project, selected, playhead } = ctx;
+  const inTrack = id.endsWith("InTrack");
+  const tracks = (project?.sequence.tracks ?? []).filter(
+    (track) => (inTrack ? track.id === selected?.track_id : true) && !track.locked,
+  );
+  if (inTrack && !selected) {
+    return { tick: null, notice: "Select a clip on the target track first" };
+  }
+  let best: number | null = null;
+  for (const track of tracks) {
+    const intervals = coveredIntervals(track.clips);
+    for (let index = 0; index <= intervals.length; index += 1) {
+      // Gap between the previous interval's end and this interval's start;
+      // the trailing gap uses the last interval's end as its start.
+      const gapStart = index === 0 ? 0 : intervals[index - 1].end;
+      if (id.startsWith("sequence.goToNext")) {
+        if (gapStart > playhead && (best === null || gapStart < best)) best = gapStart;
+      } else {
+        const gapEnd = index === intervals.length ? null : intervals[index].start;
+        if (gapEnd !== null && gapEnd < playhead && (best === null || gapEnd > best)) {
+          best = gapEnd;
+        }
+      }
+    }
+  }
+  if (best === null) {
+    return {
+      tick: null,
+      notice: inTrack
+        ? "No gap on the selected track in that direction"
+        : "No gap in the sequence in that direction",
+    };
+  }
+  return { tick: best, notice: null };
+}

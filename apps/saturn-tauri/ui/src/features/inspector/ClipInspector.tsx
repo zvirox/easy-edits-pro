@@ -30,6 +30,7 @@ export interface ClipInspectorProps {
   makeSubclip: () => Promise<void>;
   flattenMulticam: () => Promise<void>;
   revealClipMedia: () => void;
+  releaseNestedSequence: () => Promise<void>;
 }
 
 export function ClipInspector({
@@ -58,6 +59,7 @@ export function ClipInspector({
   makeSubclip,
   flattenMulticam,
   revealClipMedia,
+  releaseNestedSequence,
 }: ClipInspectorProps) {
   const clampVolume = (value: number) => Math.min(12, Math.max(-60, value));
   if (selectedTimelineClip && selectedClip) {
@@ -157,6 +159,11 @@ export function ClipInspector({
         {selectedTimelineClip.multicam_id != null ? (
           <InteriorButton className="secondary" onClick={() => void flattenMulticam()} disabled={busy}>
             Flatten multicam to active angle
+          </InteriorButton>
+        ) : null}
+        {selectedTimelineClip.compound_sequence_id != null ? (
+          <InteriorButton className="secondary" onClick={() => void releaseNestedSequence()} disabled={busy}>
+            Open nested sequence
           </InteriorButton>
         ) : null}
 

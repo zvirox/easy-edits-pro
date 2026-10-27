@@ -142,6 +142,7 @@ export interface InspectorPanelProps {
   makeSubclip: () => Promise<void>;
   flattenMulticam: () => Promise<void>;
   revealClipMedia: () => void;
+  releaseNestedSequence: () => Promise<void>;
 
   perform?: (cmd: string, params?: unknown) => Promise<unknown>;
   updateEffectPayload?: (id: number, payload: EffectPayload) => Promise<void>;
@@ -478,6 +479,7 @@ export function InspectorPanel(props: InspectorPanelProps) {
             makeSubclip={props.makeSubclip}
             flattenMulticam={props.flattenMulticam}
             revealClipMedia={props.revealClipMedia}
+            releaseNestedSequence={props.releaseNestedSequence}
           />
         );
     }

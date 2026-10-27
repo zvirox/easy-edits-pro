@@ -5339,6 +5339,177 @@
   },
   {
     "aliases": [
+      "razor all tracks",
+      "add edit"
+    ],
+    "category": "Sequence",
+    "id": "sequence.add_edit_all_tracks",
+    "label": "Add Edit to All Tracks",
+    "menu": [
+      "Sequence",
+      "Add Edit"
+    ],
+    "mutating": true,
+    "params": "{\"at\":ticks}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
+      "sequence settings dialog",
+      "change frame size"
+    ],
+    "category": "Sequence",
+    "id": "sequence.settings",
+    "label": "Sequence Settings",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{\"width\":int?,\"height\":int?,\"frame_rate\":obj?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "sequence stats"
+    ],
+    "category": "Sequence",
+    "id": "sequence.inspect",
+    "label": "Inspect Sequence",
+    "menu": [
+      "Sequence",
+      "Inspect"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "close timeline"
+    ],
+    "category": "Sequence",
+    "id": "sequence.close",
+    "label": "Close Sequence",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": true,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "open nested sequence"
+    ],
+    "category": "Sequence",
+    "id": "sequence.reveal_nested",
+    "label": "Reveal Nested Sequence",
+    "menu": [
+      "Sequence",
+      "Inspect"
+    ],
+    "mutating": false,
+    "params": "{\"track_id\":int,\"clip_index\":int}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "next gap"
+    ],
+    "category": "Sequence",
+    "id": "sequence.goToNextGap",
+    "label": "Next in Sequence",
+    "menu": [
+      "Sequence",
+      "Gap Navigation"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "previous gap"
+    ],
+    "category": "Sequence",
+    "id": "sequence.goToPrevGap",
+    "label": "Previous in Sequence",
+    "menu": [
+      "Sequence",
+      "Gap Navigation"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "next gap in track"
+    ],
+    "category": "Sequence",
+    "id": "sequence.goToNextGapInTrack",
+    "label": "Next in Track",
+    "menu": [
+      "Sequence",
+      "Gap Navigation"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "previous gap in track"
+    ],
+    "category": "Sequence",
+    "id": "sequence.goToPrevGapInTrack",
+    "label": "Previous in Track",
+    "menu": [
+      "Sequence",
+      "Gap Navigation"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
       "settings"
     ],
     "category": "Edit",

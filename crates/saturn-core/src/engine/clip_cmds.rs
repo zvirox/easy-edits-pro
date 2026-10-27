@@ -146,61 +146,23 @@ impl EditorEngine {
                 if self.document.project.sequence.tracks[track_index].locked {
                     return Err(DispatchError::Operation("Track is locked".into()));
                 }
-                let track = &self.document.project.sequence.tracks[track_index];
-                let clip = track.clips.get(params.clip_index).ok_or_else(|| {
-                    DispatchError::InvalidParameters("Timeline clip does not exist".into())
-                })?;
-                let split_offset = params.at.0.saturating_sub(clip.timeline_start.0);
-                if split_offset <= 0 || split_offset >= clip.duration.0 {
-                    return Err(DispatchError::InvalidParameters(
-                        "Playhead must be inside the selected clip, away from its edges".into(),
-                    ));
-                }
-                let mut left = clip.clone();
-                let mut right = clip.clone();
-                left.duration = Tick(split_offset);
-                right.timeline_start = params.at;
-                right.source_in.0 = right.source_in.0.saturating_add(split_offset);
-                right.duration.0 = clip.duration.0 - split_offset;
-                let mut properties = Vec::new();
-                for key in &clip.keyframes {
-                    if !properties.contains(&key.property) {
-                        properties.push(key.property.clone());
-                    }
-                }
-                for property in &properties {
-                    if let Some(value) = keyframe_value_at(&clip.keyframes, property, split_offset)
-                    {
-                        if !left
-                            .keyframes
-                            .iter()
-                            .any(|key| &key.property == property && key.time.0 == split_offset)
-                        {
-                            left.keyframes.push(Keyframe::new(
-                                property.clone(),
-                                Tick(split_offset),
-                                value,
-                            ));
-                        }
-                    }
-                }
-                left.keyframes.retain(|key| key.time.0 <= split_offset);
-                right.keyframes.retain(|key| key.time.0 > split_offset);
-                for key in &mut right.keyframes {
-                    key.time.0 -= split_offset;
-                }
-                for property in properties {
-                    if let Some(value) = keyframe_value_at(&clip.keyframes, &property, split_offset)
-                    {
-                        right
-                            .keyframes
-                            .push(Keyframe::new(property, Tick(0), value));
+                {
+                    let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                    let offset = params.at.0.saturating_sub(clip.timeline_start.0);
+                    if offset <= 0 || offset >= clip.duration.0 {
+                        return Err(DispatchError::InvalidParameters(
+                            "Playhead must be inside the selected clip, away from its edges"
+                                .into(),
+                        ));
                     }
                 }
                 self.checkpoint();
-                let clips = &mut self.document.project.sequence.tracks[track_index].clips;
-                clips[params.clip_index] = left;
-                clips.insert(params.clip_index + 1, right);
+                apply_clip_split(
+                    &mut self.document,
+                    track_index,
+                    params.clip_index,
+                    params.at,
+                )?;
                 Ok(
                     json!({"split": true, "track_id": params.track_id, "left_index": params.clip_index, "right_index": params.clip_index + 1}),
                 )

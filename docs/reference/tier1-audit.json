@@ -1579,7 +1579,9 @@
   },
   "sequence.addEditAllTracks": {
     "label": "Add Edit to All Tracks",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "sequence.add_edit_all_tracks",
+    "note": "razor cut at the playhead on every unlocked track, descending clip index keeps targeting valid across insertions"
   },
   "sequence.addTracks": {
     "label": "Add Tracks…",
@@ -1589,7 +1591,9 @@
   },
   "sequence.applyAudioTransition": {
     "label": "Apply Audio Transition",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "timeline.add_transition",
+    "note": "audio crossfades route through the same transition commands"
   },
   "sequence.applyVideoTransition": {
     "label": "Apply Video Transition",
@@ -1598,7 +1602,9 @@
   },
   "sequence.close": {
     "label": "Close Sequence",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "sequence.close",
+    "note": "parks the active sequence in the project list and activates the first stored one; the last remaining sequence cannot be closed"
   },
   "sequence.closeGap": {
     "label": "Close Gap",
@@ -1608,19 +1614,23 @@
   },
   "sequence.closeOthers": {
     "label": "Close Other Timeline Panels",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "sequences live in a header switcher, not closable timeline panels"
   },
   "sequence.colorSettings": {
     "label": "Color Management…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no sequence-level color management pipeline in the render path"
   },
   "sequence.deleteRenderFiles": {
     "label": "Delete Render Files",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no preview render-file cache; playback decodes media directly"
   },
   "sequence.deleteRenderFilesInToOut": {
     "label": "Delete Render Files In to Out",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no preview render-file cache; playback decodes media directly"
   },
   "sequence.deleteTrack": {
     "label": "Delete Track",
@@ -1641,27 +1651,38 @@
   },
   "sequence.goToNextGap": {
     "label": "Next in Sequence",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "sequence.goToNextGap",
+    "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
   },
   "sequence.goToNextGapInTrack": {
     "label": "Next in Track",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "sequence.goToNextGapInTrack",
+    "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
   },
   "sequence.goToPrevGap": {
     "label": "Previous in Sequence",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "sequence.goToPrevGap",
+    "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
   },
   "sequence.goToPrevGapInTrack": {
     "label": "Previous in Track",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "sequence.goToPrevGapInTrack",
+    "note": "ui_only: seeks to the nearest gap edge across unlocked tracks (in-track variants restrict to the selected clip's track)"
   },
   "sequence.inspect": {
     "label": "Inspect Sequence",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "sequence.inspect",
+    "note": "non-mutating stats: tracks, clips, duration, marks, compound flag"
   },
   "sequence.joinThroughEdits": {
     "label": "Join Through Edits",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no through-edit model; adjacent clips join via ripple delete"
   },
   "sequence.lift": {
     "label": "Lift",
@@ -1674,23 +1695,31 @@
   },
   "sequence.makeSubsequence": {
     "label": "Make Subsequence",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "timeline.create_compound_clip",
+    "note": "selected clips nest into a compound clip backed by a stored sequence"
   },
   "sequence.matchFrame": {
     "label": "Match Frame",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "media.reveal",
+    "note": "EEP has no source monitor; the gesture selects the clip's media in the project panel and reports the playhead position"
   },
   "sequence.moveTab": {
     "label": "Move Sequence Tab",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "sequences live in a header switcher, not reorderable timeline tabs"
   },
   "sequence.nestSequences": {
     "label": "Insert and overwrite sequences as nests or individual clips",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "timeline.create_compound_clip",
+    "note": "nesting inserts the selection as one compound clip"
   },
   "sequence.normalizeMixTrack": {
     "label": "Normalize Mix Track…",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no mix-track loudness normalization pass in the audio engine"
   },
   "sequence.open": {
     "label": "Open in Timeline",
@@ -1705,35 +1734,49 @@
   },
   "sequence.renderAudio": {
     "label": "Render Audio",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "export.quick",
+    "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
   },
   "sequence.renderBar": {
     "label": "Render Bar",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no preview render bar; the export queue reports render progress"
   },
   "sequence.renderEffectsInToOut": {
     "label": "Render Effects In to Out",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "export.quick",
+    "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
   },
   "sequence.renderInToOut": {
     "label": "Render In to Out",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "export.quick",
+    "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
   },
   "sequence.renderSelection": {
     "label": "Render Selection",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "export.quick",
+    "note": "range-limited preview renders route through the export queue (seeded range, then export.quick)"
   },
   "sequence.revealInProject": {
     "label": "Reveal Sequence in Project",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "sequences are not shown in the media panel; nested ones open via sequence.reveal_nested"
   },
   "sequence.revealNested": {
     "label": "Reveal Nested Sequence",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "sequence.reveal_nested",
+    "note": "non-mutating resolution of the compound clip's nested sequence id; the inspector chains into project.switch_sequence to open it"
   },
   "sequence.reverseMatchFrame": {
     "label": "Reverse Match Frame",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "media.reveal",
+    "note": "same reveal gesture; the timeline is the only sequence view"
   },
   "sequence.selectionFollowsPlayhead": {
     "label": "Selection Follows Playhead",
@@ -1746,15 +1789,20 @@
   },
   "sequence.settings": {
     "label": "Sequence Settings…",
-    "disposition": "new"
+    "disposition": "shipped",
+    "eep": "sequence.settings",
+    "note": "width/height validated 16..8192 and rational frame rate on the active sequence"
   },
   "sequence.showThroughEdits": {
     "label": "Show Through Edits",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no through-edit model to display"
   },
   "sequence.simplify": {
     "label": "Simplify Sequence…",
-    "disposition": "new"
+    "disposition": "equivalent",
+    "eep": "edit.consolidate_duplicates",
+    "note": "removes later duplicate placements of identical source usage"
   },
   "sequence.snap": {
     "label": "Snap in Timeline",
@@ -1763,7 +1811,8 @@
   },
   "sequence.throughEdits": {
     "label": "List Through Edits",
-    "disposition": "new"
+    "disposition": "na",
+    "note": "no through-edit model to toggle"
   },
   "sequence.transcribe": {
     "label": "Transcribe Sequence…",

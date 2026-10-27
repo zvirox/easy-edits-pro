@@ -30,6 +30,71 @@ pub(super) fn find_clip(
         .ok_or_else(|| DispatchError::InvalidParameters("Timeline clip does not exist".into()))
 }
 
+/// Split the clip at `track_index`/`clip_index` at absolute tick `at`,
+/// redistributing keyframe values across both halves. Applies the edit
+/// directly; the call site computes one checkpoint beforehand.
+pub(super) fn apply_clip_split(
+    document: &mut ProjectDocument,
+    track_index: usize,
+    clip_index: usize,
+    at: Tick,
+) -> Result<(), DispatchError> {
+    let track = document
+        .project
+        .sequence
+        .tracks
+        .get(track_index)
+        .ok_or_else(|| DispatchError::InvalidParameters("Timeline track does not exist".into()))?;
+    let clip = track.clips.get(clip_index).ok_or_else(|| {
+        DispatchError::InvalidParameters("Timeline clip does not exist".into())
+    })?;
+    let split_offset = at.0.saturating_sub(clip.timeline_start.0);
+    if split_offset <= 0 || split_offset >= clip.duration.0 {
+        return Err(DispatchError::InvalidParameters(
+            "Playhead must be inside the selected clip, away from its edges".into(),
+        ));
+    }
+    // Owned copies up front so the source borrow can end before the mutation.
+    let mut left = clip.clone();
+    let mut right = clip.clone();
+    left.duration = Tick(split_offset);
+    right.timeline_start = at;
+    right.source_in.0 = right.source_in.0.saturating_add(split_offset);
+    right.duration.0 -= split_offset;
+    let mut properties = Vec::new();
+    for key in &left.keyframes {
+        if !properties.contains(&key.property) {
+            properties.push(key.property.clone());
+        }
+    }
+    for property in &properties {
+        if let Some(value) = keyframe_value_at(&left.keyframes, property, split_offset) {
+            if !left
+                .keyframes
+                .iter()
+                .any(|key| &key.property == property && key.time.0 == split_offset)
+            {
+                left.keyframes
+                    .push(Keyframe::new(property.clone(), Tick(split_offset), value));
+            }
+        }
+    }
+    left.keyframes.retain(|key| key.time.0 <= split_offset);
+    right.keyframes.retain(|key| key.time.0 > split_offset);
+    for key in &mut right.keyframes {
+        key.time.0 -= split_offset;
+    }
+    for property in properties {
+        if let Some(value) = keyframe_value_at(&left.keyframes, &property, split_offset) {
+            right.keyframes.push(Keyframe::new(property, Tick(0), value));
+        }
+    }
+    let clips = &mut document.project.sequence.tracks[track_index].clips;
+    clips[clip_index] = left;
+    clips.insert(clip_index + 1, right);
+    Ok(())
+}
+
 pub(super) fn valid_keyframe_value(property: &KeyframeProperty, value: f64) -> bool {
     match property {
         KeyframeProperty::PositionX | KeyframeProperty::PositionY => {

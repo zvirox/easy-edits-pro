@@ -491,6 +491,21 @@ export function useInspectorOperations({
     [selectedClip, perform],
   );
 
+  /** sequence.revealNested: open the compound clip's nested sequence. */
+  const releaseNestedSequence = useCallback(async () => {
+    if (!selectedClip) return;
+    try {
+      const nested = await runCommand<{ sequence_id: number; name: string }>(
+        "sequence.reveal_nested",
+        { track_id: selectedClip.track_id, clip_index: selectedClip.clip_index },
+      );
+      await perform("project.switch_sequence", { sequence_id: nested.sequence_id });
+      setNotice(`Opened nested sequence "${nested.name}"`);
+    } catch (error) {
+      setNotice(String(error));
+    }
+  }, [selectedClip, runCommand, perform, setNotice]);
+
   return {
     colorDraft,
     setColorDraft,
@@ -554,5 +569,6 @@ export function useInspectorOperations({
     frameFit,
     makeSubclip,
     flattenMulticam,
+    releaseNestedSequence,
   };
 }

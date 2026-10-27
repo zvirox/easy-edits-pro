@@ -562,6 +562,7 @@ export function WorkspaceRouter({
         makeSubclip: inspectorOps.makeSubclip,
         flattenMulticam: inspectorOps.flattenMulticam,
         revealClipMedia: () => void invokeMenuCommand("media.reveal"),
+        releaseNestedSequence: () => inspectorOps.releaseNestedSequence(),
         masterVu: { left: -60, right: -60, peakDb: -60 },
         vuLevels: {},
         loudnessReport: undefined,

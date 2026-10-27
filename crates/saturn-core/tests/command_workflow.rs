@@ -5920,3 +5920,161 @@ fn clip_volume_subclip_frame_fit_replace_and_multicam_flatten_workflow_with_undo
         Some(group_id)
     );
 }
+
+#[test]
+fn sequence_settings_split_inspect_close_and_nested_reveal_workflow() {
+    use saturn_core::TICKS_PER_SECOND;
+
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name":"Sequence Batch Test"}),
+        ))
+        .unwrap();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name":"a.mp4", "path":"/assets/a.mp4", "kind":"video", "duration": 30 * TICKS_PER_SECOND}),
+        ))
+        .unwrap()["media_id"]
+        .as_u64()
+        .unwrap();
+    let v_track_id = engine.document().project.sequence.tracks[0].id;
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"track_id": v_track_id, "media_id": media, "timeline_start": 0, "source_in": 0, "duration": 4 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+
+    // 1. Add Edit to All Tracks splits every unlocked clip under the tick.
+    let res = engine
+        .execute(CommandRequest::new(
+            "sequence.add_edit_all_tracks",
+            json!({"at": 2 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+    assert_eq!(res["added_edits"].as_u64(), Some(1));
+    assert_eq!(
+        engine.document().project.sequence.tracks[0].clips.len(),
+        2
+    );
+    // A tick outside any clip is rejected.
+    assert!(engine
+        .execute(CommandRequest::new(
+            "sequence.add_edit_all_tracks",
+            json!({"at": 6 * TICKS_PER_SECOND}),
+        ))
+        .is_err());
+
+    // 2. Sequence settings round-trips and validates.
+    let res = engine
+        .execute(CommandRequest::new(
+            "sequence.settings",
+            json!({"width": 1280, "height": 720, "frame_rate": {"numerator": 25, "denominator": 1}}),
+        ))
+        .unwrap();
+    assert_eq!(res["width"].as_u64(), Some(1280));
+    assert_eq!(res["frame_rate"]["numerator"].as_u64(), Some(25));
+    assert_eq!(
+        engine.document().project.settings.width,
+        1280
+    );
+    assert!(engine
+        .execute(CommandRequest::new(
+            "sequence.settings",
+            json!({"width": 8}),
+        ))
+        .is_err());
+    assert!(engine
+        .execute(CommandRequest::new(
+            "sequence.settings",
+            json!({"frame_rate": {"numerator": 0, "denominator": 1}}),
+        ))
+        .is_err());
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert_eq!(
+        engine.document().project.settings.width,
+        1920
+    );
+
+    // 3. Inspect reports live stats without mutating.
+    let res = engine
+        .execute(CommandRequest::new(
+            "sequence.inspect",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    assert_eq!(res["clips"].as_u64(), Some(2));
+    assert_eq!(res["tracks"].as_u64(), Some(2));
+    assert_eq!(res["duration"].as_i64(), Some(4 * TICKS_PER_SECOND));
+    assert_eq!(res["compound"].as_bool(), Some(false));
+
+    // 4. Close parks the active sequence and activates a stored one.
+    engine
+        .execute(CommandRequest::new(
+            "sequence.create",
+            json!({"name": "Spare"}),
+        ))
+        .unwrap();
+    let spare_id = engine.document().project.sequence.id;
+    assert_ne!(spare_id, 1);
+    let res = engine
+        .execute(CommandRequest::new(
+            "sequence.close",
+            serde_json::Value::Null,
+        ))
+        .unwrap();
+    assert_eq!(res["closed"].as_bool(), Some(true));
+    assert_eq!(engine.document().project.sequence.id, 1);
+    // Closing the last remaining sequence is impossible, so switch away and
+    // try again later; here two sequences exist, closed already.
+
+    // 5. Nested reveal: compound the split clips, then open the nested copy.
+    let compound_res = engine
+        .execute(CommandRequest::new(
+            "timeline.create_compound_clip",
+            json!({
+                "name": "Batch Compound",
+                "target_track_id": v_track_id,
+                "clips": [
+                    {"track_id": v_track_id, "clip_index": 0},
+                    {"track_id": v_track_id, "clip_index": 1}
+                ]
+            }),
+        ))
+        .unwrap();
+    let nested_seq_id = compound_res["sequence_id"].as_u64().unwrap();
+    let res = engine
+        .execute(CommandRequest::new(
+            "sequence.reveal_nested",
+            json!({"track_id": v_track_id, "clip_index": 0}),
+        ))
+        .unwrap();
+    assert_eq!(res["sequence_id"].as_u64(), Some(nested_seq_id));
+    // The nested copy keeps only the tracks that contributed clips.
+    assert_eq!(res["tracks"].as_u64(), Some(1));
+    switch_by_id(&mut engine, nested_seq_id);
+    assert_eq!(engine.document().project.sequence.id, nested_seq_id);
+    // A plain clip is not compound-backed.
+    let inner_track_id = engine.document().project.sequence.tracks[0].id;
+    assert!(engine
+        .execute(CommandRequest::new(
+            "sequence.reveal_nested",
+            json!({"track_id": inner_track_id, "clip_index": 0}),
+        ))
+        .is_err());
+    switch_by_id(&mut engine, 1);
+}
+
+fn switch_by_id(engine: &mut EditorEngine, sequence_id: u64) {
+    engine
+        .execute(CommandRequest::new(
+            "project.switch_sequence",
+            json!({"sequence_id": sequence_id}),
+        ))
+        .unwrap();
+}

@@ -317,6 +317,162 @@ impl EditorEngine {
                 .map_err(DispatchError::Operation)?;
                 Ok(serde_json::to_value(&report).unwrap_or(json!({"extracted": true})))
             })()),
+            "sequence.add_edit_all_tracks" => Some((|| {
+                let params: SequenceAddEditAllTracksParams = parse_params(params)?;
+                if params.at.0 <= 0 {
+                    return Err(DispatchError::InvalidParameters(
+                        "Add Edit needs a playhead position past time zero".into(),
+                    ));
+                }
+                // Collect (track_index, clip_index) for every unlocked clip
+                // spanning `at`; descending clip index keeps the indices
+                // valid while earlier splits insert right-neighbours.
+                let mut targets = Vec::new();
+                for (track_index, track) in
+                    self.document.project.sequence.tracks.iter().enumerate()
+                {
+                    if track.locked {
+                        continue;
+                    }
+                    for (clip_index, clip) in track.clips.iter().enumerate() {
+                        let start = clip.timeline_start.0;
+                        if start < params.at.0 && params.at.0 < start + clip.duration.0 {
+                            targets.push((track_index, clip_index));
+                        }
+                    }
+                }
+                if targets.is_empty() {
+                    return Err(DispatchError::Operation(
+                        "No clips under the playhead to add edits to".into(),
+                    ));
+                }
+                targets.sort_by_key(|&(_, clip_index)| std::cmp::Reverse(clip_index));
+                let added = targets.len();
+                self.checkpoint();
+                for (track_index, clip_index) in targets {
+                    apply_clip_split(&mut self.document, track_index, clip_index, params.at)?;
+                }
+                Ok(json!({"added_edits": added, "at": params.at.0}))
+            })()),
+            "sequence.settings" => Some((|| {
+                let params: SequenceSettingsParams = parse_params(params)?;
+                if let Some(width) = params.width {
+                    if !(16..=8192).contains(&width) {
+                        return Err(DispatchError::InvalidParameters(
+                            "Sequence width must be between 16 and 8192".into(),
+                        ));
+                    }
+                }
+                if let Some(height) = params.height {
+                    if !(16..=8192).contains(&height) {
+                        return Err(DispatchError::InvalidParameters(
+                            "Sequence height must be between 16 and 8192".into(),
+                        ));
+                    }
+                }
+                if let Some(frame_rate) = params.frame_rate {
+                    if frame_rate.numerator == 0 || frame_rate.denominator == 0 {
+                        return Err(DispatchError::InvalidParameters(
+                            "Frame rate numerator and denominator must be positive".into(),
+                        ));
+                    }
+                }
+                self.checkpoint();
+                let settings = &mut self.document.project.settings;
+                if let Some(width) = params.width {
+                    settings.width = width;
+                }
+                if let Some(height) = params.height {
+                    settings.height = height;
+                }
+                if let Some(frame_rate) = params.frame_rate {
+                    settings.frame_rate = frame_rate;
+                }
+                Ok(json!({
+                    "width": settings.width,
+                    "height": settings.height,
+                    "frame_rate": {
+                        "numerator": settings.frame_rate.numerator,
+                        "denominator": settings.frame_rate.denominator,
+                    },
+                }))
+            })()),
+            "sequence.inspect" => Some((|| {
+                let sequence = &self.document.project.sequence;
+                let clip_total: usize = sequence.tracks.iter().map(|t| t.clips.len()).sum();
+                let last_tick = sequence
+                    .tracks
+                    .iter()
+                    .flat_map(|track| track.clips.iter())
+                    .map(|clip| clip.timeline_start.0 + clip.duration.0)
+                    .max()
+                    .unwrap_or(0);
+                let marks = usize::from(sequence.mark_in.is_some())
+                    + usize::from(sequence.mark_out.is_some());
+                Ok(json!({
+                    "sequence_id": sequence.id,
+                    "name": sequence.name,
+                    "tracks": sequence.tracks.len(),
+                    "clips": clip_total,
+                    "duration": last_tick,
+                    "marks": marks,
+                    "markers": sequence.markers.len(),
+                    "compound": self.sequence_is_compound(sequence.id),
+                }))
+            })()),
+            "sequence.close" => Some((|| {
+                let total = 1 + self.document.project.sequences.len();
+                if total <= 1 {
+                    return Err(DispatchError::Operation(
+                        "The last remaining sequence cannot be closed".into(),
+                    ));
+                }
+                // Closing parks the active sequence in the project list and
+                // activates the first stored one; nothing is deleted.
+                self.checkpoint();
+                let previous = std::mem::replace(
+                    &mut self.document.project.sequence,
+                    self.document.project.sequences.remove(0),
+                );
+                self.document.project.sequences.push(previous);
+                let name = self.document.project.sequence.name.clone();
+                self.document.view.active_sequence = Some(name.clone());
+                Ok(json!({
+                    "closed": true,
+                    "active_sequence_id": self.document.project.sequence.id,
+                    "active_sequence_name": name,
+                }))
+            })()),
+            "sequence.reveal_nested" => Some((|| {
+                let params: RevealNestedSequenceParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                let media_id = clip
+                    .compound_sequence_id
+                    .ok_or_else(|| {
+                        DispatchError::InvalidParameters(
+                            "Timeline clip is not a compound/nested clip".into(),
+                        )
+                    })?;
+                let nested = self
+                    .document
+                    .project
+                    .media
+                    .iter()
+                    .find(|media| media.id == media_id)
+                    .and_then(|media| media.nested_sequence.as_ref())
+                    .ok_or_else(|| {
+                        DispatchError::Operation(
+                            "The compound clip does not carry a nested sequence".into(),
+                        )
+                    })?;
+                Ok(json!({
+                    "sequence_id": nested.id,
+                    "name": nested.name,
+                    "tracks": nested.tracks.len(),
+                    "clips": nested.tracks.iter().map(|t| t.clips.len()).sum::<usize>(),
+                }))
+            })()),
             _ => None,
         }
     }

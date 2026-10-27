@@ -41,10 +41,7 @@ import {
 } from "./features/preferences/preferences";
 import { setReducedMotionOverride } from "./motion/variants";
 import { formatTrimStatus } from "./app/timelineTrim";
-import {
-  promptGoToTimecode,
-  resolvePlayheadCommand,
-} from "./app/playheadNavigation";
+import { promptGoToTimecode, resolveGapCommand, resolvePlayheadCommand } from "./app/playheadNavigation";
 import {
   handleTrimTransportCommand,
   isTrimTransportCommand,
@@ -220,8 +217,8 @@ function EditorApp() {
     30,
     ...media.map((item) => (item.duration ?? 0) / TICKS_PER_SECOND),
     ...(project?.sequence.tracks ?? []).flatMap((track) =>
-      track.clips.map((clip) => (clip.timeline_start + clip.duration) / TICKS_PER_SECOND)
-    )
+      track.clips.map((clip) => (clip.timeline_start + clip.duration) / TICKS_PER_SECOND),
+    ),
   );
 
   const timelineOps = useTimelineOperations({
@@ -458,6 +455,12 @@ function EditorApp() {
           playhead: playback.playhead,
         });
         if (target !== null) playback.seekProgramTo(target);
+        return;
+      }
+      const gap = resolveGapCommand(id, { project, selected: timelineOps.selectedClip, playhead: playback.playhead });
+      if (gap !== null) {
+        if (gap.tick !== null) playback.seekProgramTo(gap.tick);
+        if (gap.notice) setNotice(gap.notice);
         return;
       }
       if (id === "trim.enter") {

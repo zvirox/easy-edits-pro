@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-408 commands.
+417 commands.
 
 ## File
 
@@ -263,6 +263,15 @@ Generated from the command catalogue. Do not edit by hand.
 | Set Track Group Properties | `timeline.set_track_group_properties` | shipped |  | `{"group_id":int,"name":str?,"color":str?,"muted":bool?,"solo":bool?,"locked":bool?}` |
 | Lift | `sequence.lift` | shipped | ; | `{"ranges":obj}` |
 | Extract | `sequence.extract` | shipped | ' | `{"ranges":obj}` |
+| Add Edit to All Tracks | `sequence.add_edit_all_tracks` | shipped |  | `{"at":ticks}` |
+| Sequence Settings | `sequence.settings` | shipped |  | `{"width":int?,"height":int?,"frame_rate":obj?}` |
+| Inspect Sequence | `sequence.inspect` | shipped |  | `{}` |
+| Close Sequence | `sequence.close` | shipped |  | `{}` |
+| Reveal Nested Sequence | `sequence.reveal_nested` | shipped |  | `{"track_id":int,"clip_index":int}` |
+| Next in Sequence | `sequence.goToNextGap` | shipped |  | `{}` |
+| Previous in Sequence | `sequence.goToPrevGap` | shipped |  | `{}` |
+| Next in Track | `sequence.goToNextGapInTrack` | shipped |  | `{}` |
+| Previous in Track | `sequence.goToPrevGapInTrack` | shipped |  | `{}` |
 | Track Targeting | `timeline.setTargeting` | shipped |  | `{"video":int[]?,"audio":int[]?}` |
 | Toggle Target Video 1 | `timeline.toggleTargetV1` | shipped |  | `{}` |
 | Toggle Target Video 2 | `timeline.toggleTargetV2` | shipped |  | `{}` |

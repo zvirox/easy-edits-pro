@@ -6,6 +6,7 @@ mod markers;
 mod project_freeform;
 mod project_media;
 mod project_panel;
+mod sequence;
 mod trim;
 mod timeline_targeting;
 
@@ -15,5 +16,6 @@ pub(super) use markers::*;
 pub(super) use project_freeform::*;
 pub(super) use project_media::*;
 pub(super) use project_panel::*;
+pub(super) use sequence::*;
 pub(super) use timeline_targeting::*;
 pub(super) use trim::*;
