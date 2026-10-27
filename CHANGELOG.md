@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.24] - 2026-10-27
+
+Tier-1 milestone release: **353/410 (86%)** — the 350 milestone closes
+with the clip + sequence families (69 FC commands newly mapped). The
+clip family reaches 37/57 covered (1 deferral: clip.enable). Real
+per-clip audio lands: Clip.volume_db (render applies track gain +
+clip volume), inspector volume nudges (-3/-1/+1/+3/0 dB), frame-fit
+presets (fill/fit/100% computed from media vs project aspect), Make
+Subclip (source marks cloned into a new asset), Replace Clip
+(timeline.replace_media keeps timing and effects), and multicam
+flatten. The sequence family reaches 32/45 covered (2 deferrals:
+linkedSelection, selectionFollowsPlayhead): Add Edit to All Tracks
+(razor everywhere), Sequence Settings (validated width/height/frame
+rate), Inspect Sequence, Close Sequence, nested-sequence reveal
+(compound clip -> embedded Sequence -> open), and FC gap navigation
+(next/previous in sequence/in track). media.reveal gives Match Frame
+and Reveal in Project a shared gesture. Honest na recorded where the
+model diverges (no A/V split for extract audio, no remix/ducking, no
+freeze frames, no preview render cache, no through-edits).
+
 ## [0.1.0-alpha.23] - 2026-10-26
 
 Tier-1 milestone release: **302/440 (69%)** — the 300 milestone is
