@@ -213,23 +213,29 @@ def container_mode(deb: Path, work: Path):
         "-v", f"{FIXTURE}:/fixture/editor-smoke.webm:ro",
         "-v", f"{REPO_ROOT}/tests/native/container_driver.py:/driver.py:ro",
         "debian:12", "bash", "-lc",
+        # `;`-separated commands under set -e: every failure is terminal and
+        # traced (an `A && B` list swallows mid-list failures under set -e).
+        "set -euxo pipefail; "
         "export DEBIAN_FRONTEND=noninteractive; "
-        "apt-get update -qq && apt-get install -y -qq "
+        "apt-get update; "
+        "apt-get install -y --no-install-recommends "
         "libwebkit2gtk-4.1-0 libxdo3 libayatana-appindicator3-1 "
         "libgstreamer1.0-0 libgstreamer-plugins-base1.0-0 "
         "libgstreamer-plugins-bad1.0-0 libges-1.0-0 gstreamer1.0-plugins-good "
         "gstreamer1.0-plugins-ugly gstreamer1.0-libav xvfb x11-utils "
-        "gstreamer1.0-tools ffmpeg python3-minimal python3 >/dev/null && "
-        "apt-get install -y -qq /pkg/app.deb && "
+        "gstreamer1.0-tools ffmpeg python3-minimal python3; "
+        "apt-get install -y /pkg/app.deb; "
+        "test -x /usr/bin/saturn-tauri; "
         "ldd /usr/bin/saturn-tauri | tee /tmp/ldd.txt; "
-        "if grep -q 'not found' /tmp/ldd.txt; then echo 'FAIL unresolved libs'; exit 3; fi; "
+        "! grep -q 'not found' /tmp/ldd.txt; "
         "Xvfb :99 -screen 0 1280x800x24 & "
         "sleep 2; DISPLAY=:99 WEBKIT_DISABLE_DMABUF_RENDERER=1 "
         "LIBGL_ALWAYS_SOFTWARE=1 HOME=/root python3 /driver.py --binary /usr/bin/saturn-tauri "
         "--fixture /fixture/editor-smoke.webm --work /root/work",
     ]
     result = subprocess.run(run_in, capture_output=True, text=True, timeout=1800)
-    print(result.stdout[-3000:])
+    (work / "container-stdout.log").write_text(result.stdout)
+    print(result.stdout[-6000:])
     if result.returncode != 0:
         fail("container", f"exit {result.returncode}: {result.stderr[-2000:]}")
     if "[pkg] PASS" not in result.stdout:
@@ -256,23 +262,27 @@ def rpm_container_mode(rpm: Path, work: Path):
         "-v", f"{FIXTURE}:/fixture/editor-smoke.webm:ro",
         "-v", f"{REPO_ROOT}/tests/native/container_driver.py:/driver.py:ro",
         "fedora:latest", "bash", "-lc",
-        "set -e; "
-        "dnf install -y --setopt=install_weak_deps=False -q "
+        # `;`-separated commands under set -e: every failure is terminal and
+        # traced (an `A && B` list swallows mid-list failures under set -e,
+        # which is how run 40493639963 failed silently inside dnf).
+        "set -euxo pipefail; "
+        "dnf -y install --setopt=install_weak_deps=False "
         "webkit2gtk4.1 libxdo libayatana-appindicator-gtk3 "
         "gstreamer1 gstreamer1-plugins-base gstreamer1-plugins-base-tools "
         "gstreamer1-plugins-good gstreamer1-plugins-bad-free "
-        "gst-editing-services xorg-x11-server-Xvfb python3 >/dev/null && "
-        "dnf install -y -q /pkg/app.rpm >/dev/null && "
-        "test -x /usr/bin/saturn-tauri && "
+        "gst-editing-services xorg-x11-server-Xvfb python3; "
+        "dnf -y install /pkg/app.rpm; "
+        "test -x /usr/bin/saturn-tauri; "
         "ldd /usr/bin/saturn-tauri | tee /tmp/ldd.txt; "
-        "if grep -q 'not found' /tmp/ldd.txt; then echo 'FAIL unresolved libs'; exit 3; fi; "
+        "! grep -q 'not found' /tmp/ldd.txt; "
         "Xvfb :99 -screen 0 1280x800x24 & "
         "sleep 2; DISPLAY=:99 WEBKIT_DISABLE_DMABUF_RENDERER=1 "
         "LIBGL_ALWAYS_SOFTWARE=1 HOME=/root python3 /driver.py --binary /usr/bin/saturn-tauri "
         "--fixture /fixture/editor-smoke.webm --work /root/work --format webm",
     ]
     result = subprocess.run(run_in, capture_output=True, text=True, timeout=2400)
-    print(result.stdout[-3000:])
+    (work / "container-stdout.log").write_text(result.stdout)
+    print(result.stdout[-6000:])
     if result.returncode != 0:
         fail("rpm-container", f"exit {result.returncode}: {result.stderr[-2000:]}")
     if "[pkg] PASS" not in result.stdout:
