@@ -31,11 +31,23 @@ the dev laptop). Not wired into CI because GitHub runners do not ship the
 GStreamer `ges`/`libav` runtime plugins; CI covers the mocked-browser
 contract, the python CLI harness covers engine commands.
 
-## Latest recorded run (2026-10-23, dev laptop)
+## Latest recorded run (2026-10-27, dev laptop, commit `0cd7e48`)
 
-Two runs recorded for the v0.1.0-alpha.2 / v0.1.0-alpha.3 releases:
+```
+[native] build saturn-cli (real engine)
+[native] create project
+[native] probe and import fixture
+[native] reopen and edit timeline
+[native] verify saved timeline
+[native] render MP4 (real GStreamer)
+[native] verify render output with ffprobe
+[native] PASS - h264 1920x1080, 6.06s, 1625096 bytes
+```
 
-- Commit `6d5f48a` (alpha.3/G7 tag target, current main):
+Two earlier runs were recorded for the v0.1.0-alpha.2 / v0.1.0-alpha.3
+releases:
+
+- Commit `6d5f48a` (alpha.3/G7 tag target, current main of that day):
 
 ```
 [native] build saturn-cli (real engine)
@@ -94,3 +106,15 @@ pins the complementary boundary: a cancel before the pipeline starts never
 touches a pre-existing file at the output path. Failed (non-cancel) renders
 also remove their partial output, enforced inside
 `render_project_range_with_control`.
+
+## Related native runbooks
+
+- `tests/native/installed_package_workflow.py` (planning.md 6e E.1) applies
+  the same evidence standard to a *shipped package*: deb lint, launch of the
+  packaged binary with an isolated HOME, an edit driven over the desktop
+  app's local MCP bridge, a render through the GUI job queue, ffprobe
+  verification, and clean quit. Usage and honest limits (extracted-prefix
+  vs real container install) are documented in docs/distribution.md.
+- `tests/native/sample_projects.py` (planning.md 6e E.2) builds and rot-guards
+  the maintained sample bundles through the same engine path this workflow
+  exercises; see samples/README.md.

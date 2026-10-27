@@ -1060,6 +1060,20 @@ documents regeneration, provenance, and the absolute-media-path/relink
 caveat. Tail deliberately deferred: shipping the samples in the package
 or a first-run offer is planned with E.5 packaging polish.
 
+**E.3 (Done 2026-10-27):** README refreshed against the installed-package
+perspective (install quick-start with deb/rpm commands, corrected command
+counts 440/440 shipped and tier coverage, alpha.26 as the current release,
+honest install-evidence limitation entry, .saturn path fixes, native
+runbook pointers). docs/native-workflow.md records a fresh laptop-workflow
+run at `0cd7e48` (PASS, h264 6.06s) and points at the two newer native
+runbooks; docs/architecture.md module map gains mcp_bridge.rs and
+gpu_detect.rs. docs/distribution.md gains the beta delivery matrix
+(deb: extracted-prefix verified / container mode pending; rpm: never
+installed; Flatpak: manifest missing - claim forbidden until it does).
+docs/release-notes/BETA-TEMPLATE.md fixes the beta release-notes format
+with mandatory breaking-risk sections (GStreamer floor, proxy format,
+schema, absolute media paths).
+
 ### E.3 Documentation freshness pass
 
 - README quick-start against the *installed* package (not cargo-dev

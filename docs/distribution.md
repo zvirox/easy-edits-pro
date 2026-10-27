@@ -1,6 +1,6 @@
 # Distribution and releases
 
-**Updated:** 2026-10-23
+**Updated:** 2026-10-27
 
 ## Current release evidence
 
@@ -27,6 +27,24 @@ installed package launches or completes an edit on another system.
 - AppImage is not part of the current delivery plan.
 - Future alpha and beta releases gather compatibility feedback through issue
   reports. The project does not maintain a planned external hardware matrix.
+
+### Beta delivery matrix (live status, planning.md 6e E.3)
+
+A checkmark below means a *recorded launch result exists*, never merely a
+successful build. The table is a status snapshot; the per-release evidence
+table at the bottom of this document is the actual record.
+
+| Artifact | Build | Install | Launch and edit-to-render | Remaining step |
+|---|---|---|---|---|
+| .deb | CI-proven since alpha.1 | Extracted-prefix acceptance PASS (alpha.26); real dpkg install implemented in `--container` mode, awaiting a container daemon | Recorded via the acceptance runbook (one host, Arch laptop) | Container-mode run + one non-dev-machine report |
+| .rpm | CI-proven since alpha.1 | **Never installed anywhere** | **No evidence** | dnf install + launch on an RPM host, or drop the artifact |
+| Flatpak | Manifest does not exist | - | - | E.5 spike: build, install, launch, render once, decide for or against |
+| SHA256SUMS | Verified in release assets | - | - | - |
+| Windows / macOS | Not built | - | - | Out of scope for Beta 1 |
+
+Before beta, either every row above is honest or the artifact is removed from
+the release; a row with no launch result may still ship only when the notes
+say so explicitly (the beta release-notes template makes this mandatory).
 
 ## Publishing an alpha
 

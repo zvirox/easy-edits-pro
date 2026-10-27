@@ -83,6 +83,11 @@ playback engine. Export work is sent to `saturn-render` through Tauri commands.
 - `apps/saturn-tauri/src/recovery.rs` stores and restores project autosaves.
   `register_project_media` is the shared allow-list registration path used by
   project changes, startup, and recovery.
+- `apps/saturn-tauri/src/mcp_bridge.rs` serves the same-user local Unix-socket
+  bridge (`doc_inspect`, `command_run`, `render_start`) used by agents and the
+  packaged-build acceptance runbook to drive the live desktop editor.
+- `apps/saturn-tauri/src/gpu_detect.rs` probes the GPU and enables WebKit
+  DMA-BUF rendering by default (`EEP_DISABLE_DMABUF` is the escape hatch).
 - `crates/saturn-core/src/project/` separates schema domains, migrations, and
   project I/O. `crates/saturn-core/src/engine/` separates command domains,
   helpers, parameter types, history, and tests. Keep project serialization and
