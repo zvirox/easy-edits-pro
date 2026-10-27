@@ -1045,6 +1045,21 @@ workstreams below.
 - A native or engine test that opens each sample and asserts expected
   track/clip counts, so samples cannot rot silently.
 
+**E.2 (Done 2026-10-27):** `tests/native/sample_projects.py` generates two
+maintained bundles entirely through the engine (`saturn-cli control`
+sessions) - *First Cut* (import, split, marks, marker, GES title on a
+dedicated Titles track) and *Captions and Colour* (3 caption cues,
+per-clip colour grade, marker, two-angle multicam) - and its `--verify`
+mode is the rot-guard: fresh-build into a temp dir, assert the persisted
+structure (track/clip counts, marks, title asset, cues, grade, multicam
+group), render First Cut through the real GStreamer pipeline, ffprobe
+the output. PASS on the dev laptop (6.06s H.264). Samples are generated,
+never committed as artifacts; all footage is repository-generated
+FFmpeg testsrc2 (no open-license question at all). `samples/README.md`
+documents regeneration, provenance, and the absolute-media-path/relink
+caveat. Tail deliberately deferred: shipping the samples in the package
+or a first-run offer is planned with E.5 packaging polish.
+
 ### E.3 Documentation freshness pass
 
 - README quick-start against the *installed* package (not cargo-dev
