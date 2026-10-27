@@ -401,6 +401,11 @@ def main():
                         help="E.5 spike: launch the installed flatpak and drive edit-to-render")
     parser.add_argument("--flatpak-env", action="append", default=[],
                         help="extra VAR=VALUE passed into the sandbox (repeatable), e.g. GST_DEBUG=...")
+    parser.add_argument("--flatpak-file", action="append", default=[],
+                        help="extra --filesystem grant passed into the sandbox "
+                        "(repeatable), e.g. the host XDG_RUNTIME_DIR when the "
+                        "manifest binds /run/user/1000 but the session uid "
+                        "differs (CI runner uid 1001)")
     parser.add_argument("--work", default=None, help="reuse a work directory")
     args = parser.parse_args()
     if args.work:
@@ -528,6 +533,8 @@ def flatpak_mode(args) -> int:
     for pair in getattr(args, "flatpak_env", []):
         if "=" in pair:
             launch_cmd.append(f"--env={pair}")
+    for grant in getattr(args, "flatpak_file", []):
+        launch_cmd.append(f"--filesystem={grant}")
     launch_cmd.append(app_id)
     app = subprocess.Popen(
         launch_cmd,

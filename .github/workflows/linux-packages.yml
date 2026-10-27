@@ -151,3 +151,77 @@ jobs:
           path: |
             /tmp/eep-pkg-*/
           if-no-files-found: ignore
+
+  install-proof-flatpak:
+    needs: packages
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download built packages
+        uses: actions/download-artifact@v4
+        with:
+          name: easy-edits-pro-linux-packages
+          path: pkg
+
+      - name: Install flatpak toolchain and host-side drive tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq flatpak flatpak-builder xvfb ffmpeg dbus dbus-x11
+
+      - name: Session runtime dir (the runner uid is 1001, not the manifest's /run/user/1000)
+        run: |
+          RD=/run/user/$(id -u)
+          sudo mkdir -p "$RD"
+          sudo chown "$(id -u):$(id -g)" "$RD"
+          sudo chmod 700 "$RD"
+          echo "RD=$RD" >> "$GITHUB_ENV"
+
+      - name: Install the GNOME 49 runtime + SDK (flathub)
+        run: |
+          flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install -y --user flathub org.gnome.Platform//49 org.gnome.Sdk//49
+
+      - name: Prepare the payload from the built .deb
+        run: DEB="$(find pkg -name '*.deb' | head -1)" bash packaging/flatpak/make-payload.sh
+
+      - name: flatpak-builder build (compiles GES 1.26.11 in the sandbox)
+        run: |
+          flatpak-builder --user --install-deps-from=flathub --force-clean \
+            --repo=flatpak-ci-repo \
+            packaging/flatpak/build packaging/flatpak/io.github.zvirox.EasyEditsPro.yml
+
+      - name: Install locally + export a bundle artifact
+        run: |
+          flatpak install -y --user flatpak-ci-repo io.github.zvirox.EasyEditsPro
+          flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
+            flatpak-ci-repo easy-edits-pro-linux-x86_64.flatpak io.github.zvirox.EasyEditsPro
+          ls -la easy-edits-pro-linux-x86_64.flatpak
+
+      - name: Acceptance drive (MCP edit-to-render inside the sandbox)
+        run: |
+          Xvfb :99 -screen 0 1280x800x24 -nolisten tcp &
+          sleep 2
+          dbus-run-session -- bash -c \
+            'export DISPLAY=:99 XDG_RUNTIME_DIR="$RD"; \
+             python3 tests/native/installed_package_workflow.py --flatpak \
+               --flatpak-env LIBGL_ALWAYS_SOFTWARE=1 \
+               --flatpak-env WEBKIT_DISABLE_DMABUF_RENDERER=1 \
+               --flatpak-file "$RD"'
+
+      - name: Upload the flatpak bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: easy-edits-pro-flatpak-bundle
+          path: easy-edits-pro-linux-x86_64.flatpak
+          if-no-files-found: ignore
+
+      - name: Upload acceptance evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-proof-flatpak-evidence
+          path: |
+            /tmp/eep-pkg-*/
+          if-no-files-found: ignore
