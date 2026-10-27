@@ -1,0 +1,88 @@
+{
+ "mediaBrowser.roots": {
+  "label": "Media Browser Locations",
+  "disposition": "na",
+  "note": "no in-app filesystem browser panel; media enters through OS file dialogs into the media pool"
+ },
+ "mediaBrowser.list": {
+  "label": "List Directory",
+  "disposition": "na",
+  "note": "directory listing lives in the OS file dialogs; the media pool lists imported assets, not folders"
+ },
+ "mediaBrowser.navigate": {
+  "label": "Go to Directory",
+  "disposition": "na",
+  "note": "no in-app browser to navigate; folders are picked through the OS dialog"
+ },
+ "mediaBrowser.select": {
+  "label": "Select Files",
+  "disposition": "na",
+  "note": "file selection happens in the OS file dialogs on import; there is no in-app browser selection state"
+ },
+ "mediaBrowser.favorite": {
+  "label": "Add to Favorites",
+  "disposition": "na",
+  "note": "no browser panel, so no favorites; recents and bookmarks live outside the app"
+ },
+ "mediaBrowser.clearRecent": {
+  "label": "Clear Recent Directories",
+  "disposition": "na",
+  "note": "click-to-import recents are tracked by the OS file dialogs, not by the app"
+ },
+ "mediaBrowser.import": {
+  "label": "Import",
+  "disposition": "na",
+  "note": "consistent with the Tier-1 file.importFromMediaBrowser na: import is served by the media pool file dialog (file.import maps to project.add_media), not by a browser"
+ },
+ "mediaBrowser.openInSource": {
+  "label": "Open In Source Monitor",
+  "disposition": "na",
+  "note": "the Program monitor has a source mode: double-clicking a pool item or timeline clip loads it into the source monitor (multicam.grid precedent); there is no separate command"
+ },
+ "mediaBrowser.probe": {
+  "label": "Media File Properties",
+  "disposition": "equivalent",
+  "eep": "media.update_properties",
+  "note": "the Properties dialog shows and edits the selected asset's file properties (Tier-1 file.mediaProperties precedent); media.color_info probes codec/width/height/colour"
+ },
+ "mediaBrowser.settings": {
+  "label": "Media Browser Settings",
+  "disposition": "na",
+  "note": "no browser panel to configure; preferences cover app-level settings (prefs.get/set)"
+ },
+ "tts.create": {
+  "label": "New Narration",
+  "disposition": "na",
+  "note": "text-to-speech narration does not exist; EEP does the opposite direction - speech-to-text via speech.transcribe_to_subtitles"
+ },
+ "tts.downloadVoices": {
+  "label": "Download Natural Voices",
+  "disposition": "na",
+  "note": "no TTS engine and no third-party voice service integration (audio.voiceover.sync precedent: no capture/synthesis pipeline)"
+ },
+ "tts.edit": {
+  "label": "Edit Narration",
+  "disposition": "na",
+  "note": "no narration clips to edit; synthesized-speech tracks do not exist"
+ },
+ "tts.inspect": {
+  "label": "Inspect Narration",
+  "disposition": "na",
+  "note": "no narration clips; inspection covers timeline clips (sequence.inspect) and media instead"
+ },
+ "tts.preview": {
+  "label": "Preview Narration",
+  "disposition": "na",
+  "note": "no TTS synthesis to preview; media plays back through the source/program monitors"
+ },
+ "tts.render": {
+  "label": "Synthesize Narration",
+  "disposition": "na",
+  "note": "no TTS synthesis; audio on the timeline comes from imported media or generated tone/bars fixtures"
+ },
+ "tts.voices": {
+  "label": "List Narration Voices",
+  "disposition": "na",
+  "note": "no TTS voices to list; speech tooling is transcription-only (speech.transcribe_to_subtitles)"
+ }
+}

@@ -21,7 +21,7 @@ coverage.
 |---|---:|---:|---:|---:|
 | Tier 1 | 443 | 55 | 388 | 100% |
 | Tier 2 | 207 | 84 | 123 | 100% |
-| Tier 3 | 17 | - | - | audit pending |
+| Tier 3 | 17 | 16 | 1 | 100% |
 
 Tier 1 targets Beta 1; Tier 2 comes after Beta 1; Tier 3 is later.
 Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
@@ -57,8 +57,8 @@ Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.
 | clipMixer | 2 | 4 | 2 | 2 |  |
 | lut | 2 | 4 | 0 | 4 |  |
 | color | 2 | 1 | 1 | 0 |  |
-| mediaBrowser | 3 | 10 | - | - | |
-| tts | 3 | 7 | - | - | |
+| mediaBrowser | 3 | 10 | 1 | 9 |  |
+| tts | 3 | 7 | 0 | 7 |  |
 | essentialSound | - | 9 | - | - | |
 | source | - | 7 | - | - | |
 | labels | - | 4 | - | - | |

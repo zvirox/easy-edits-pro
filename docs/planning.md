@@ -1010,3 +1010,77 @@ bars-tone generation smoke test (skip if gstreamer unavailable),
 export arm round-trip through interop import tests, source-size cap
 (useProjectOperations.ts currently 784 lines - extract file-flow
 helpers if needed).
+
+## 6e. Beta 1 Plan — Parity Book Closed, Readiness Begins (2026-10-27)
+
+User directive: **no new alpha/beta releases until explicitly told.**
+Batches land on `main` with the full gate stack green; tags wait for
+authorization.
+
+With alpha.26 the parity campaign ends: Tier 1 388/388 (55 na), Tier 2
+123/123 (84 na), Tier 3 1/1 (16 na, newly audited this batch) — every
+tier 100% effective. Parity is no longer the organizing metric. Beta 1
+readiness is. The plan's own Beta 1 candidates (P12) become the
+workstreams below.
+
+### E.1 Beta acceptance runbook (scripted, evidence-producing)
+
+- Install-and-launch verification on this laptop: install the built
+  .deb (and .rpm where the distro permits) via the system package
+  manager, launch from the installed prefix, and drive a small end-to-
+  end edit (import fixture -> timeline edit -> export) before asserting
+  success. distribution.md's rule stands: build success is not
+  compatibility evidence; only recorded install/launch/edit results
+  count.
+- Formalize as `tests/native/installed_package_workflow.py` following
+  the laptop_workflow pattern (PASS line format, work-dir artifacts).
+- Capture versions: ldd of bundled WebKitGTK/GStreamer, desktop-file
+  correctness, MIME association, icon + AppStream metadata presence.
+
+### E.2 Sample projects (ships with the app or first-run offer)
+
+- One or two small bundles (project .saturn + open-license media
+  fixtures) exercising the headline paths: standard cut, caption flow,
+  multicam sync, color adjustments.
+- A native or engine test that opens each sample and asserts expected
+  track/clip counts, so samples cannot rot silently.
+
+### E.3 Documentation freshness pass
+
+- README quick-start against the *installed* package (not cargo-dev
+  assumptions); docs/architecture.md and native-workflow.md re-check;
+  CHANGELOG/release-notes format for beta (breaking-risk sections:
+  GStreamer version floor, proxy format).
+- docs/distribution.md gains the beta delivery matrix (deb/rpm
+  verified; Flatpak manifest decision recorded before any claim).
+
+### E.4 QAT hardening of the audited seams
+
+- Sweep the twelve audited command families for interactive edge cases:
+  undo across autosave checkpoints, save/reopen with disabled
+  clips (new field), proxy attach vs missing cache, caption-track solo
+  state after sequence switch, selection-mode flags across project
+  switches.
+- Each reproduced quirk gets a regression test per the triage playbook.
+
+### E.5 Packaging polish (before any beta tag)
+
+- Flatpak manifest spike (distribution.md names Flatpak the intended
+  supported route): build, install, launch, render once. Decision
+  documented either way; no claim without the launch result.
+- rpm/deb lint pass (file conflicts, desktop validation), SHA256SUMS
+  already proven.
+
+### E.6 Known-limits review (docs-facing, optional)
+
+- Confirm the recorded limits are still true and visible to users
+  (motion-tracking setup persists but analysis runs at render; single
+  fixed proxy profile; no TTS - transcription only).
+
+### Order and gates
+
+E.1 first (acceptance runbook defines "ready"), then E.2/E.3 in
+parallel, E.4 as an ongoing sweep per triage, E.5 before any tag.
+Gate stack unchanged (§ packet A4); parity scripts now include the
+tier-3 audit - `check-parity --check` must stay green. A beta tag is
+released **only** on explicit user instruction.
