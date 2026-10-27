@@ -343,11 +343,18 @@ per id. Parity is no longer the organizing metric; Beta 1 readiness is.
   decision **FOR Beta 1**; audio-encoder rank fix landed. Spike drive ran
   on a CI dispatch build of main; release-asset re-verification is open.
 
-### E.6 Known-limits review (docs-facing, optional)
+### E.6 Known-limits review — DONE (2026-10-27)
 
-- Confirm the recorded limits are still true and visible to users
-  (motion-tracking setup persists but analysis runs at render; single
-  fixed proxy profile; no TTS - transcription only).
+- Re-verified against code: motion tracking still runs at render (the
+  preview-side `analyze_motion_tracking` reports simulated points), proxies
+  are still the single 1280x720 VP9 WebM profile, and TTS is absent
+  (transcription-only via `speech.transcribe_to_subtitles`; catalogue ships
+  zero `tts.*` commands).
+- README "Known limitations" gained the user-visible motion-tracking,
+  proxy-profile, and no-TTS lines, and the stale install-evidence bullet was
+  corrected (Flatpak spike passed; not yet a shipped artifact; rpm lint
+  PASS vs never-installed distinction). BETA-TEMPLATE's snapshot rule picks
+  the corrected list up automatically.
 
 ### Open tails
 

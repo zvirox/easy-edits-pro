@@ -92,3 +92,57 @@ jobs:
             apps/saturn-tauri/target/release/bundle/deb/*.deb
             apps/saturn-tauri/target/release/bundle/rpm/*.rpm
             apps/saturn-tauri/target/release/bundle/SHA256SUMS
+
+  install-proof-deb:
+    needs: packages
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download built packages
+        uses: actions/download-artifact@v4
+        with:
+          name: easy-edits-pro-linux-packages
+          path: pkg
+
+      - name: Real dpkg install + edit-to-render proof (debian:12, headless)
+        run: |
+          python3 tests/native/installed_package_workflow.py \
+            --deb "$(find pkg -name '*.deb' | head -1)" --container
+
+      - name: Upload acceptance evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-proof-deb-evidence
+          path: |
+            /tmp/eep-pkg-*/
+          if-no-files-found: ignore
+
+  install-proof-rpm:
+    needs: packages
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download built packages
+        uses: actions/download-artifact@v4
+        with:
+          name: easy-edits-pro-linux-packages
+          path: pkg
+
+      - name: Real dnf install + edit-to-render proof (fedora:latest, WebM/VP8)
+        run: |
+          python3 tests/native/installed_package_workflow.py \
+            --rpm "$(find pkg -name '*.rpm' | head -1)" --rpm-container
+
+      - name: Upload acceptance evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-proof-rpm-evidence
+          path: |
+            /tmp/eep-pkg-*/
+          if-no-files-found: ignore

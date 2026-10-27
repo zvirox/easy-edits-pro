@@ -26,6 +26,10 @@ Modes (this laptop is Arch - no dpkg - so the default mode extracts):
                running docker/podman daemon): apt-get install the .deb,
                verify every dependency resolves, launch under Xvfb, drive
                the same workflow, then ffprobe inside the container.
+  --rpm-container  real dnf install inside fedora:latest (with --rpm):
+               same proof on the RPM side; renders WebM/VP8 because Fedora
+               free repositories ship no x264; probes via
+               gst-discoverer-1.0.
 
 Usage:
   python3 tests/native/installed_package_workflow.py [--deb PATH] [--container]
@@ -220,6 +224,48 @@ def container_mode(deb: Path, work: Path):
     return 0
 
 
+def rpm_container_mode(rpm: Path, work: Path):
+    """Real dnf install + launch inside fedora:latest, driven over the bridge.
+
+    Fedora free repos ship no x264/libav, so the render target is
+    WebM/VP8 (gstreamer1-plugins-good: vpx + vorbisenc + webmmux) and the
+    output probe falls back to gst-discoverer-1.0 (package names verified
+    against packages.fedoraproject.org on 2026-10-27: gst-editing-services,
+    gstreamer1-plugins-base-tools carries gst-discoverer-1.0).
+    """
+    step("rpm container: real dnf install of the package")
+    cmd = pick_container_cmd()
+    run_in = [
+        *cmd, "run", "--rm",
+        "-v", f"{rpm}:/pkg/app.rpm:ro",
+        "-v", f"{FIXTURE}:/fixture/editor-smoke.webm:ro",
+        "-v", f"{REPO_ROOT}/tests/native/container_driver.py:/driver.py:ro",
+        "fedora:latest", "bash", "-lc",
+        "set -e; "
+        "dnf install -y --setopt=install_weak_deps=False -q "
+        "webkit2gtk4.1 libxdo libayatana-appindicator-gtk3 "
+        "gstreamer1 gstreamer1-plugins-base gstreamer1-plugins-base-tools "
+        "gstreamer1-plugins-good gstreamer1-plugins-bad-free "
+        "gst-editing-services xorg-x11-server-Xvfb python3 >/dev/null && "
+        "dnf install -y -q /pkg/app.rpm >/dev/null && "
+        "test -x /usr/bin/saturn-tauri && "
+        "ldd /usr/bin/saturn-tauri | tee /tmp/ldd.txt; "
+        "if grep -q 'not found' /tmp/ldd.txt; then echo 'FAIL unresolved libs'; exit 3; fi; "
+        "Xvfb :99 -screen 0 1280x800x24 & "
+        "sleep 2; DISPLAY=:99 WEBKIT_DISABLE_DMABUF_RENDERER=1 "
+        "LIBGL_ALWAYS_SOFTWARE=1 HOME=/root python3 /driver.py --binary /usr/bin/saturn-tauri "
+        "--fixture /fixture/editor-smoke.webm --work /root/work --format webm",
+    ]
+    result = subprocess.run(run_in, capture_output=True, text=True, timeout=2400)
+    print(result.stdout[-3000:])
+    if result.returncode != 0:
+        fail("rpm-container", f"exit {result.returncode}: {result.stderr[-2000:]}")
+    if "[pkg] PASS" not in result.stdout:
+        fail("rpm-container", "driver did not report PASS")
+    print(f"[pkg] PASS - rpm container install ({rpm.name})")
+    return 0
+
+
 def bridge_call(sock_path: Path, method: str, params=None, timeout=30):
     """One JSONL request over the app's local MCP bridge; return result."""
     client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -323,6 +369,9 @@ def main():
     parser.add_argument("--rpm", help="path to a .rpm; run the RPM lint pass only (the rpm cannot be installed on this host)")
     parser.add_argument("--container", action="store_true",
                         help="real dpkg install inside debian:12 (needs a container daemon)")
+    parser.add_argument("--rpm-container", action="store_true",
+                        help="real dnf install inside fedora:latest (needs --rpm; "
+                        "renders WebM/VP8 - Fedora free repos have no x264)")
     parser.add_argument("--flatpak", action="store_true",
                         help="E.5 spike: launch the installed flatpak and drive edit-to-render")
     parser.add_argument("--flatpak-env", action="append", default=[],
@@ -343,6 +392,8 @@ def main():
         rpm = Path(args.rpm)
         if not rpm.is_file():
             fail("locate", f"--rpm {rpm} is not a file")
+        if args.rpm_container:
+            return rpm_container_mode(rpm, work)
         result = rpm_lint(rpm, work)
         print(json.dumps(result, indent=2))
         step("rpm lint complete (no install/launch evidence recorded; see delivery matrix)")

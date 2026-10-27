@@ -3,9 +3,10 @@
 
 Runs INSIDE the debian:12 container (mounted by
 installed_package_workflow.py --container). The package has been
-dpkg-installed by the wrapper; this script launches the real binary under
+dpkg/dnf-installed by the wrapper; this script launches the real binary under
 Xvfb, waits for the app's local MCP bridge, and drives the same
-edit-to-render workflow, then ffprobes the result inside the container.
+edit-to-render workflow, then probes the result inside the container
+(ffprobe when present, gst-discoverer-1.0 otherwise).
 
 Usage: python3 container_driver.py --binary /usr/bin/saturn-tauri \
          --fixture /fixture/editor-smoke.webm --work /root/work
@@ -14,6 +15,9 @@ Usage: python3 container_driver.py --binary /usr/bin/saturn-tauri \
 import argparse
 import json
 import math
+import os
+import re
+import shutil
 import socket
 import subprocess
 import sys
@@ -57,11 +61,63 @@ def bridge_call(sock_path, method, params=None, timeout=60):
     return response.get("result")
 
 
+def probe_media(path: Path) -> dict:
+    """Return {video_codec, width, height, duration} for a media file.
+    ffprobe when present; gst-discoverer-1.0 as the fallback for distros
+    without ffmpeg (stock Fedora legal repos)."""
+    if shutil.which("ffprobe"):
+        out = json.loads(subprocess.run(
+            ["ffprobe", "-v", "error", "-print_format", "json",
+             "-show_streams", "-show_format", str(path)],
+            capture_output=True, text=True, check=True).stdout)
+        vstream = next(s for s in out["streams"]
+                       if s.get("codec_type") == "video")
+        num, _, den = vstream.get("avg_frame_rate", "30/1").partition("/")
+        fps = (int(num) / float(den or 1)) if num not in ("0", "") else 0.0
+        return {
+            "video_codec": vstream.get("codec_name"),
+            "width": vstream.get("width"),
+            "height": vstream.get("height"),
+            "duration": float(out["format"]["duration"]),
+            "fps": fps,
+        }
+    # gst-discoverer-1.0 fallback (grounded 2026-10-27 output shape):
+    #   Duration: 0:00:06.000000000
+    #   video #1: video/x-vp8, width=(int)640, height=(int)360, ...
+    text = subprocess.run(
+        ["gst-discoverer-1.0", "-v", str(path)],
+        capture_output=True, text=True, check=True).stdout
+    codec = width = height = None
+    fps = None
+    stream = re.search(
+        r"^\s+video #\d+: ([^,\s]+), width=\(int\)(\d+), height=\(int\)(\d+)",
+        text, re.MULTILINE)
+    if stream:
+        codec, width, height = stream.group(1), int(stream.group(2)), int(stream.group(3))
+    duration = None
+    dur = re.search(r"Duration:\s*(\d+):(\d+):([\d.]+)", text)
+    if dur:
+        duration = int(dur.group(1)) * 3600 + int(dur.group(2)) * 60 + float(dur.group(3))
+    rate = re.search(r"Frame rate:\s*(\d+)/(\d+)", text)
+    if rate and int(rate.group(2)):
+        fps = int(rate.group(1)) / int(rate.group(2))
+    if codec is None or duration is None:
+        fail("probe", f"could not parse gst-discoverer output for {path}: "
+                      f"{text[:300]}")
+    # normalize caps subname: x-h264 -> h264 (media asset codec field style)
+    codec = codec.split("/")[-1].replace("x-", "")
+    return {"video_codec": codec, "width": width, "height": height,
+            "duration": duration, "fps": fps or 0.0}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--binary", required=True)
     parser.add_argument("--fixture", required=True)
     parser.add_argument("--work", required=True)
+    parser.add_argument("--format", choices=["mp4", "webm"], default="mp4",
+                        help="render target: mp4 (h264, needs ffmpeg-capable "
+                        "repos) or webm (VP8, ships in stock Fedora)")
     args = parser.parse_args()
     work = Path(args.work)
     work.mkdir(parents=True, exist_ok=True)
@@ -108,14 +164,13 @@ def main():
         print(f"[pkg] bridge listening at {sock_path}")
 
         step("import fixture through command_run")
-        probe = json.loads(subprocess.run(
-            ["ffprobe", "-v", "error", "-print_format", "json",
-             "-show_streams", "-show_format", str(fixture)],
-            capture_output=True, text=True, check=True).stdout)
-        video = next(s for s in probe["streams"] if s.get("codec_type") == "video")
-        seconds = float(probe["format"]["duration"])
+        probe = probe_media(fixture)
+        fixture_codec = probe["video_codec"].replace("x-", "")
+        video = {"width": probe["width"], "height": probe["height"],
+                 "avg_frame_rate": "30/1", "codec_name": fixture_codec}
+        seconds = probe["duration"]
         ticks = lambda s: round(s * TICKS_PER_SECOND)
-        numerator, _, denominator = video["avg_frame_rate"].partition("/")
+        fps = round(probe.get("fps") or 30.0, 6)
 
         bridge_call(sock_path, "command_run", {
             "id": "project.new", "params": {"name": "Package Acceptance"},
@@ -126,7 +181,7 @@ def main():
                 "name": fixture.name, "path": str(fixture), "kind": "video",
                 "duration": ticks(seconds), "width": video["width"],
                 "height": video["height"],
-                "fps": round(int(numerator) / float(denominator or 1), 6),
+                "fps": fps,
                 "codec": video.get("codec_name", "vp8"),
             },
         })
@@ -160,8 +215,8 @@ def main():
         if len(saved_track["clips"]) != 2:
             fail("verify", f"expected 2 clips after split, got {len(saved_track['clips'])}")
 
-        step("render MP4 through the GUI job queue")
-        output_path = work / "container-out.mp4"
+        step(f"render {args.format.upper()} through the GUI job queue")
+        output_path = work / f"container-out.{args.format}"
         started = bridge_call(sock_path, "render_start", {
             "output_path": str(output_path),
             "range": {"start_ticks": 0, "end_ticks": ticks(seconds)},
@@ -189,19 +244,17 @@ def main():
         if not output_path.is_file():
             fail("render", f"render completed without output at {output_path}")
 
-        step("verify render output with ffprobe")
-        out = json.loads(subprocess.run(
-            ["ffprobe", "-v", "error", "-print_format", "json",
-             "-show_streams", "-show_format", str(output_path)],
-            capture_output=True, text=True, check=True).stdout)
-        vstream = next(s for s in out["streams"] if s.get("codec_type") == "video")
-        if vstream.get("codec_name") != "h264":
-            fail("ffprobe", f"expected h264, got {vstream.get('codec_name')}")
-        out_seconds = float(out["format"]["duration"])
+        step(f"verify render output with probe_media ({args.format})")
+        expected_codec = {"mp4": "h264", "webm": "vp8"}[args.format]
+        out = probe_media(output_path)
+        if out["video_codec"] != expected_codec:
+            fail("verify", f"expected {expected_codec}, got {out['video_codec']}")
+        out_seconds = out["duration"]
         if not math.isclose(out_seconds, seconds, abs_tol=0.6):
-            fail("ffprobe", f"duration drifted: {out_seconds:.2f}s vs {seconds:.2f}s")
+            fail("verify", f"duration drifted: {out_seconds:.2f}s vs {seconds:.2f}s")
 
-        print(f"[pkg] PASS - container install: h264 {vstream['width']}x{vstream['height']}, "
+        print(f"[pkg] PASS - container install: {expected_codec} "
+              f"{out['width']}x{out['height']}, "
               f"{out_seconds:.2f}s, {output_path.stat().st_size} bytes, work dir {work}")
     finally:
         if app.poll() is None:
