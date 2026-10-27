@@ -357,7 +357,7 @@ impl JobManager {
     }
 
     /// Drop a job from the queue entirely: pending jobs are removed without
-    /// a history entry (the FC "Remove from Queue" gesture), history entries
+    /// a history entry (the reference editor's "Remove from Queue" gesture), history entries
     /// are erased. Running jobs must be cancelled first and report false.
     pub fn remove(&self, id: JobId) -> bool {
         let mut state = self.inner.queue.lock().unwrap();

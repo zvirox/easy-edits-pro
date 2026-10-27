@@ -6,7 +6,7 @@ import { usePlayback } from "./features/preview";
 import { useEncoderCapabilities, useJobs } from "./app/useJobs";
 import { useRecovery, ProjectWelcomeScreen } from "./features/welcome";
 import { useMediaServer } from "./features/media-pool";
-import { useShortcuts, type DavinciWorkspace } from "./app/useShortcuts";
+import { useShortcuts, type EditorWorkspace } from "./app/useShortcuts";
 import { useMediaOperations } from "./app/useMediaOperations";
 import { useProjectPanel } from "./app/useProjectPanel";
 import { useTimelineOperations } from "./app/useTimelineOperations";
@@ -343,8 +343,8 @@ function EditorApp() {
 
   const selectedMedia = media.find((item) => item.id === mediaOps.selectedMediaId) ?? null;
 
-  const selectDavinciWorkspace = useCallback((ws: DavinciWorkspace) => {
-    projectOps.setDavinciWorkspace(ws);
+  const selectEditorWorkspace = useCallback((ws: EditorWorkspace) => {
+    projectOps.setEditorWorkspace(ws);
     if (ws === "edit") projectOps.setWorkspace("edit");
     else if (ws === "color") projectOps.setWorkspace("color");
     else if (ws === "effects") projectOps.setWorkspace("effects");
@@ -412,7 +412,7 @@ function EditorApp() {
         return;
       }
       if (
-        openDockPanelCommand(id, { selectDavinciWorkspace, openMarkerPanel: () => markerOps.openPanel(), openCaptionPanel: () => captionsOps.openPanel(), openGraphicPanel: () => graphicsOps.openPanel() })
+        openDockPanelCommand(id, { selectEditorWorkspace, openMarkerPanel: () => markerOps.openPanel(), openCaptionPanel: () => captionsOps.openPanel(), openGraphicPanel: () => graphicsOps.openPanel() })
       ) return;
       if (id.startsWith("caption.") && (await captionsOps.handleMenuCommand(id))) {
         return;
@@ -501,7 +501,7 @@ function EditorApp() {
         if (!handled) return;
       }
       if (id.startsWith("workspace.")) {
-        selectDavinciWorkspace(id.slice("workspace.".length) as DavinciWorkspace);
+        selectEditorWorkspace(id.slice("workspace.".length) as EditorWorkspace);
         return;
       }
       switch (id) {
@@ -565,7 +565,7 @@ function EditorApp() {
       }
       await projectOps.invokeMenuCommand(id);
     },
-    [selectDavinciWorkspace, projectOps, mediaOps, timelineOps, markerOps, project, playback, runEditClipboard, runTimelineSelection, handlePanelCommand, runShortcutMachineCommand, mediaHygiene, media, selectedTimelineClip, setNotice]
+    [selectEditorWorkspace, projectOps, mediaOps, timelineOps, markerOps, project, playback, runEditClipboard, runTimelineSelection, handlePanelCommand, runShortcutMachineCommand, mediaHygiene, media, selectedTimelineClip, setNotice]
   );
 
   const shortcuts = useShortcuts({
@@ -595,7 +595,7 @@ function EditorApp() {
     setCompoundClipNameDraft: projectOps.setCompoundClipNameDraft,
     setCompoundClipModalOpen: projectOps.setCompoundClipModalOpen,
     toggleTheme,
-    selectDavinciWorkspace,
+    selectEditorWorkspace,
     setTimelineTool: timelineOps.setTimelineTool,
     setSnapEnabled: timelineOps.setSnapEnabled,
     zoomTimeline: timelineOps.zoomTimeline,
@@ -666,8 +666,8 @@ function EditorApp() {
         selectedMedia={selectedMedia}
         snapEnabled={timelineOps.snapEnabled}
         workspace={projectOps.workspace as any}
-        davinciWorkspace={projectOps.davinciWorkspace}
-        selectDavinciWorkspace={selectDavinciWorkspace}
+        editorWorkspace={projectOps.editorWorkspace}
+        selectEditorWorkspace={selectEditorWorkspace}
         invokeMenuCommand={dispatchCommand}
         ensureDiscardIsOkay={projectOps.ensureDiscardIsOkay}
         setNewProjectName={projectOps.setNewProjectName}
@@ -690,11 +690,11 @@ function EditorApp() {
       />
 
       <div className="app-workspace-region">
-        <ErrorBoundary fallbackTitle="Workspace Rendering Issue" onReset={() => projectOps.setDavinciWorkspace("edit")}>
+        <ErrorBoundary fallbackTitle="Workspace Rendering Issue" onReset={() => projectOps.setEditorWorkspace("edit")}>
         <WorkspaceRouter
           commands={commands}
           encoderInfo={encoderInfo}
-          davinciWorkspace={projectOps.davinciWorkspace}
+          editorWorkspace={projectOps.editorWorkspace}
           project={project} media={media} getMediaUrl={getMediaUrl}
           selectedTimelineClip={selectedTimelineClip}
           selectedMedia={selectedMedia}
@@ -702,7 +702,7 @@ function EditorApp() {
           mediaServerPort={mediaServerPort}
           relinkMedia={(mediaId) => mediaOps.relinkMedia(mediaId)}
           timelineWidth={timelineWidth} timelineEndSeconds={timelineEndSeconds}
-          selectDavinciWorkspace={selectDavinciWorkspace} playback={playback}
+          selectEditorWorkspace={selectEditorWorkspace} playback={playback}
           mediaOps={mediaOps} timelineOps={timelineOps}
           inspectorOps={inspectorOps} projectOps={projectOps}
           invokeMenuCommand={dispatchCommand}

@@ -36,7 +36,7 @@ export interface SpecialPanelProps {
  * version — do not dock it, do not modify its layout.
  */
 export interface SpecialModeDockArgs {
-  davinciWorkspace: string;
+  editorWorkspace: string;
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
   selectedMedia: MediaAsset | null;
@@ -44,7 +44,7 @@ export interface SpecialModeDockArgs {
   busy: boolean;
   missingMediaIds: Set<number>;
   timelineWidth: number;
-  selectDavinciWorkspace: (ws: unknown) => void;
+  selectEditorWorkspace: (ws: unknown) => void;
   playback: any;
   mediaOps: any;
   timelineOps: any;
@@ -58,14 +58,14 @@ export interface SpecialModeDockArgs {
 }
 
 export function specialModeDocks({
-  davinciWorkspace,
+  editorWorkspace,
   project,
   media,
   selectedTimelineClip,
   busy,
   missingMediaIds,
   timelineWidth,
-  selectDavinciWorkspace,
+  selectEditorWorkspace,
   playback,
   mediaOps,
   timelineOps,
@@ -75,7 +75,7 @@ export function specialModeDocks({
   perform,
   panelProps,
 }: SpecialModeDockArgs): { left: ReactNode; right: ReactNode } {
-  if (davinciWorkspace === "media") {
+  if (editorWorkspace === "media") {
     return {
       left: (
         <MediaDockLeft
@@ -86,7 +86,7 @@ export function specialModeDocks({
           setSelectedMediaId={mediaOps.setSelectedMediaId}
           setSelectedClip={timelineOps.setSelectedClip}
           setSelectedClips={timelineOps.setSelectedClips}
-          selectDavinciWorkspace={selectDavinciWorkspace}
+          selectEditorWorkspace={selectEditorWorkspace}
           importMedia={mediaOps.importMedia}
           setNetworkImportModalOpen={mediaOps.setNetworkImportModalOpen}
           search={mediaOps.search}
@@ -107,7 +107,7 @@ export function specialModeDocks({
     };
   }
 
-  if (davinciWorkspace === "fusion") {
+  if (editorWorkspace === "fusion") {
     return {
       left: <MediaPoolDockLeft mediaPanelProps={panelProps.media} ariaLabel="Fusion dock" />,
       right: (
@@ -140,7 +140,7 @@ export function specialModeDocks({
     };
   }
 
-  if (davinciWorkspace === "audio") {
+  if (editorWorkspace === "audio") {
     const fairlightLeft = (
       <FairlightDockLeft
         tracks={project?.sequence.tracks ?? []}

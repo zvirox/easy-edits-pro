@@ -6,18 +6,18 @@ import { titlePresets, transitionPresets } from "./presets";
 import { LoadingButton } from "../../components/interior/loading-button";
 import { formatTime } from "../../utils/formatters";
 import type {
-  FilmoraTab,
+  AssetTab,
   MediaAsset,
   OpenverseAsset,
   ProjectDocument,
   TransitionKind,
 } from "../../app/projectTypes";
 
-export type { FilmoraTab, OpenverseAsset };
+export type { AssetTab, OpenverseAsset };
 
 export interface MediaPanelProps {
-  filmoraTab: FilmoraTab;
-  setFilmoraTab: (tab: FilmoraTab) => void;
+  assetTab: AssetTab;
+  setAssetTab: (tab: AssetTab) => void;
   media: MediaAsset[];
   visibleMedia?: MediaAsset[];
   selectedMediaId: number | null;
@@ -69,7 +69,7 @@ export interface MediaPanelProps {
   aiReply: string;
 }
 
-export const filmoraTabs: { id: FilmoraTab; label: string; icon: IconName; tooltip: string }[] = [
+export const assetTabs: { id: AssetTab; label: string; icon: IconName; tooltip: string }[] = [
   { id: "media", label: "Media", icon: "media", tooltip: "Project Media Bin" },
   { id: "titles", label: "Titles", icon: "title", tooltip: "Titles & Lower-Thirds" },
   { id: "transitions", label: "Transitions", icon: "transition", tooltip: "Visual Transitions" },
@@ -85,8 +85,8 @@ function getMediaIconName(kind: MediaAsset["kind"]): IconName {
 }
 
 export function MediaPanel({
-  filmoraTab,
-  setFilmoraTab,
+  assetTab,
+  setAssetTab,
   media,
   visibleMedia,
   selectedMediaId,
@@ -146,16 +146,16 @@ export function MediaPanel({
   }, [hygiene.searchFocusTick]);
   return (
     <aside className="media-panel">
-      <div className="filmora-tabs" role="tablist" aria-label="Filmora Asset Categories">
-        {filmoraTabs.map((tab) => (
+      <div className="asset-tabs" role="tablist" aria-label="Media asset categories">
+        {assetTabs.map((tab) => (
           <InteriorButton
             key={tab.id}
-            className={`filmora-tab-btn ${filmoraTab === tab.id ? "active" : ""}`}
-            onClick={() => setFilmoraTab(tab.id)}
+            className={`asset-tab-btn ${assetTab === tab.id ? "active" : ""}`}
+            onClick={() => setAssetTab(tab.id)}
             data-tooltip={tab.tooltip}
             data-tooltip-pos="bottom"
             role="tab"
-            aria-selected={filmoraTab === tab.id}
+            aria-selected={assetTab === tab.id}
           >
             <Icon name={tab.icon} />
             <span>{tab.label}</span>
@@ -163,7 +163,7 @@ export function MediaPanel({
         ))}
         <InteriorButton
           type="button"
-          className="filmora-tab-btn add-tab-btn"
+          className="asset-tab-btn add-tab-btn"
           onClick={() => void importMedia()}
           data-tooltip="Import Media or Add Assets"
           data-tooltip-pos="bottom"
@@ -173,8 +173,8 @@ export function MediaPanel({
         </InteriorButton>
       </div>
 
-      <div className="filmora-panel-content">
-        {filmoraTab === "media" && (
+      <div className="asset-panel-content">
+        {assetTab === "media" && (
           <>
             <div className="panel-heading">
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -483,59 +483,59 @@ export function MediaPanel({
           </>
         )}
 
-        {filmoraTab === "titles" && (
+        {assetTab === "titles" && (
           <>
             <div className="panel-heading">
               <strong>Title Presets</strong>
               <small>1-Click Add</small>
             </div>
-            <div className="filmora-preset-grid">
+            <div className="asset-preset-grid">
               {titlePresets.map((preset) => (
                 <InteriorButton
                   key={preset.id}
-                  className="filmora-preset-card"
+                  className="asset-preset-card"
                   onClick={() => void addPresetTitle(preset)}
                   data-tooltip={`Add ${preset.name} at playhead (${formatTime(playhead)})`}
                   data-tooltip-pos="right"
                 >
-                  <div className="filmora-preset-preview">
+                  <div className="asset-preset-preview">
                     <span>{preset.preview}</span>
                   </div>
-                  <span className="filmora-preset-name">{preset.name}</span>
-                  <span className="filmora-preset-desc">{preset.desc}</span>
+                  <span className="asset-preset-name">{preset.name}</span>
+                  <span className="asset-preset-desc">{preset.desc}</span>
                 </InteriorButton>
               ))}
             </div>
           </>
         )}
 
-        {filmoraTab === "transitions" && (
+        {assetTab === "transitions" && (
           <>
             <div className="panel-heading">
               <strong>Transitions</strong>
               <small>1-Click Apply</small>
             </div>
-            <div className="filmora-preset-grid">
+            <div className="asset-preset-grid">
               {transitionPresets.map((preset) => (
                 <InteriorButton
                   key={preset.id}
-                  className="filmora-preset-card"
+                  className="asset-preset-card"
                   onClick={() => void addPresetTransition(preset.id)}
                   data-tooltip={`Apply ${preset.name} at cut/playhead`}
                   data-tooltip-pos="right"
                 >
-                  <div className="filmora-preset-preview">
+                  <div className="asset-preset-preview">
                     <span style={{ fontSize: "16px" }}>{preset.iconSymbol}</span>
                   </div>
-                  <span className="filmora-preset-name">{preset.name}</span>
-                  <span className="filmora-preset-desc">{preset.desc}</span>
+                  <span className="asset-preset-name">{preset.name}</span>
+                  <span className="asset-preset-desc">{preset.desc}</span>
                 </InteriorButton>
               ))}
             </div>
           </>
         )}
 
-        {filmoraTab === "audio" && (
+        {assetTab === "audio" && (
           <>
             <div className="panel-heading">
               <strong>Audio Clips</strong>
@@ -573,7 +573,7 @@ export function MediaPanel({
           </>
         )}
 
-        {filmoraTab === "stock" && (
+        {assetTab === "stock" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             <div className="panel-heading">
               <strong>Stock Media</strong>
@@ -632,7 +632,7 @@ export function MediaPanel({
           </div>
         )}
 
-        {filmoraTab === "ai" && (
+        {assetTab === "ai" && (
           <div style={{ padding: "4px 9px", display: "flex", flexDirection: "column", gap: "10px" }}>
             {/* Offline Whisper AI & Ripple Deletion Card */}
             <div

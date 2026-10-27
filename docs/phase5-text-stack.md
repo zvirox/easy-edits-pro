@@ -1,7 +1,7 @@
 # Phase 5 spike — text stack for `saturn-text`
 
 **Date:** 2026-10-22 · **Status:** design decision record for the text-rendering workstream
-**Context:** FilmCraft parity Phase 5 (graphics, text, captions), as scoped at the time
+**Context:** Reference-editor parity Phase 5 (graphics, text, captions), as scoped at the time
 **Decision required by the plan:** shape with `rustybuzz` + `swash`, or adopt
 `cosmic-text` if it covers vertical text. Required capabilities: ligatures, kerning,
 RTL, CJK, vertical layout, variable fonts.

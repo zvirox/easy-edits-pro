@@ -1422,7 +1422,7 @@
  },
  {
   "id": "file.exportSelectionProject",
-  "label": "Selection as FilmCraft Project\u2026",
+  "label": "Selection as Reference Editor Project\u2026",
   "menu": [
    "File",
    "Export"

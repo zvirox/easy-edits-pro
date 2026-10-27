@@ -22,7 +22,7 @@ export interface ExportWorkspaceProps {
   toggleQueuePause: () => void | Promise<void>;
   deliverDestination: "render" | "interop";
   setDeliverDestination: (dest: "render" | "interop") => void;
-  handleExportTimelineInterop: (format: "fcpxml" | "premiere_xml" | "edl") => Promise<void>;
+  handleExportTimelineInterop: (format: "fcpxml" | "xmeml" | "edl") => Promise<void>;
   handleImportTimelineInterop: () => Promise<void>;
   isInteropBusy: boolean;
   interopContent: string;
@@ -149,7 +149,7 @@ export function ExportWorkspace({
           <Icon name="deliver" />
           <span>
             <strong>Timeline Interchange</strong>
-            <small>FCPXML · Premiere · EDL</small>
+            <small>FCPXML · Editor XML · EDL</small>
           </span>
         </InteriorButton>
         <div className="batch-queue-container">
@@ -286,7 +286,7 @@ export function ExportWorkspace({
               </div>
             </div>
 
-            {/* Adobe Premiere XML Card */}
+            {/* Editor XML (xmeml) Card */}
             <div
               className="interop-card"
               style={{
@@ -300,7 +300,7 @@ export function ExportWorkspace({
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "14px", color: "var(--accent-violet)" }}>Adobe Premiere Pro</strong>
+                <strong style={{ fontSize: "14px", color: "var(--accent-violet)" }}>Editor XML (xmeml)</strong>
                 <span
                   style={{
                     fontSize: "10px",
@@ -315,17 +315,17 @@ export function ExportWorkspace({
                 </span>
               </div>
               <p style={{ margin: 0, fontSize: "11.5px", color: "var(--text-sub)", lineHeight: 1.5 }}>
-                Standard Premiere Pro sequence exchange format preserving track layouts, in/out ticks, and frame rates.
+                Standard sequence exchange format (xmeml) preserving track layouts, in/out ticks, and frame rates.
               </p>
               <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
                 <InteriorButton
                   type="button"
                   className="primary"
                   style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
-                  onClick={() => void handleExportTimelineInterop("premiere_xml")}
+                  onClick={() => void handleExportTimelineInterop("xmeml")}
                   disabled={isInteropBusy}
                 >
-                  📤 Export Premiere
+                  📤 Export XML
                 </InteriorButton>
                 <InteriorButton
                   type="button"
@@ -334,7 +334,7 @@ export function ExportWorkspace({
                   onClick={() => void handleImportTimelineInterop()}
                   disabled={isInteropBusy}
                 >
-                  📥 Import Premiere
+                  📥 Import XML
                 </InteriorButton>
               </div>
             </div>
@@ -368,7 +368,7 @@ export function ExportWorkspace({
                 </span>
               </div>
               <p style={{ margin: 0, fontSize: "11.5px", color: "var(--text-sub)", lineHeight: 1.5 }}>
-                SMPTE standard non-drop frame edit decision list for conform in DaVinci Resolve color suites.
+                SMPTE standard non-drop frame edit decision list for conform in color-suite-style editors.
               </p>
               <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
                 <InteriorButton

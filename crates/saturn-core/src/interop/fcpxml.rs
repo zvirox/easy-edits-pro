@@ -185,5 +185,5 @@ pub fn import_fcpxml(xml: &str) -> Result<ProjectDocument, String> {
 }
 
 // =========================================================================
-// 3. Premiere Pro XML (xmeml v5) Export & Import
+// 3. Editor XML exchange (xmeml v5) Export & Import
 // =========================================================================

@@ -1,6 +1,6 @@
 export interface DockPanelOps {
   // The helper only ever selects the Edit workspace.
-  selectDavinciWorkspace: (ws: "edit") => void;
+  selectEditorWorkspace: (ws: "edit") => void;
   openMarkerPanel: () => void | Promise<void>;
   openCaptionPanel: () => void | Promise<void>;
   openGraphicPanel: () => void | Promise<void>;
@@ -13,7 +13,7 @@ export function openDockPanelCommand(id: string, ops: DockPanelOps): boolean {
   if (id !== "marker.panel" && id !== "caption.panel" && id !== "graphic.panel") {
     return false;
   }
-  ops.selectDavinciWorkspace("edit");
+  ops.selectEditorWorkspace("edit");
   if (id === "marker.panel") void ops.openMarkerPanel();
   else if (id === "caption.panel") void ops.openCaptionPanel();
   else void ops.openGraphicPanel();

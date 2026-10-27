@@ -9,7 +9,7 @@ import { Channel, invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import type {
-  DavinciWorkspace,
+  EditorWorkspace,
   GpuMetrics,
   ProjectDocument,
   ProjectStatus,
@@ -103,7 +103,7 @@ export function useProjectOperations({
   const [setupFrameRate, setSetupFrameRate] = useState("30/1");
 
   const [workspace, setWorkspace] = useState<string>("edit");
-  const [davinciWorkspace, setDavinciWorkspace] = useState<DavinciWorkspace>("edit");
+  const [editorWorkspace, setEditorWorkspace] = useState<EditorWorkspace>("edit");
 
   const [newProjectName, setNewProjectName] = useState("Untitled project");
   const [newProjectOpen, setNewProjectOpen] = useState(false);
@@ -124,7 +124,7 @@ export function useProjectOperations({
   // Interop modal
   const [interopModalOpen, setInteropModalOpen] = useState(false);
   const [interopMode, setInteropMode] = useState<"export" | "import">("export");
-  const [interopFormat, setInteropFormat] = useState<"fcpxml" | "premiere_xml" | "edl" | "otio">("fcpxml");
+  const [interopFormat, setInteropFormat] = useState<"fcpxml" | "xmeml" | "edl" | "otio">("fcpxml");
   const [interopContent, setInteropContent] = useState("");
   const [interopProjectName, setInteropProjectName] = useState("Interop Sequence");
   const [isInteropBusy, setIsInteropBusy] = useState(false);
@@ -645,8 +645,8 @@ export function useProjectOperations({
               ? [{ name: "CMX 3600 EDL", extensions: ["edl"] }]
               : id === "interop.import_fcpxml"
                 ? [{ name: "Final Cut Pro XML", extensions: ["fcpxml", "xml"] }]
-                : id === "interop.import_premiere_xml"
-                  ? [{ name: "Premiere Pro XML", extensions: ["xml"] }]
+                : id === "interop.import_xmeml_xml"
+                  ? [{ name: "Editor XML (xmeml)", extensions: ["xml"] }]
                   : [{ name: "OpenTimelineIO", extensions: ["otio", "json"] }];
           const selectedPath = await open({
             title: "Import timeline file",
@@ -730,8 +730,8 @@ export function useProjectOperations({
     setSetupFrameRate,
     workspace,
     setWorkspace,
-    davinciWorkspace,
-    setDavinciWorkspace,
+    editorWorkspace,
+    setEditorWorkspace,
     newProjectName,
     setNewProjectName,
     newProjectOpen,

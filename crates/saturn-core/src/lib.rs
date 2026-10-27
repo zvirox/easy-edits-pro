@@ -19,8 +19,8 @@ pub use command::{
 };
 pub use engine::{DispatchError, EditorEngine};
 pub use interop::{
-    export_cmx3600_edl, export_fcpxml, export_otio, export_premiere_xml, import_cmx3600_edl,
-    import_fcpxml, import_otio, import_premiere_xml, ticks_to_timecode, timecode_to_ticks,
+    export_cmx3600_edl, export_fcpxml, export_otio, export_xmeml_xml, import_cmx3600_edl,
+    import_fcpxml, import_otio, import_xmeml_xml, ticks_to_timecode, timecode_to_ticks,
 };
 pub use job::{
     CancellationToken, JobContext, JobId, JobInfo, JobKind, JobListener, JobManager, JobPriority,

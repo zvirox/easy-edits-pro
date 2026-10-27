@@ -73,7 +73,7 @@ catalogue changed: pnpm catalogue:sync and commit the generated output)
 # Task card: D3 — parity backlog generator
 
 ## Goal
-`scripts/parity-backlog.mjs` prints the missing FilmCraft ids for one family,
+`scripts/parity-backlog.mjs` prints the missing reference-editor ids for one family,
 so agents get task lists without guessing.
 
 ## Owned paths

@@ -1,7 +1,7 @@
 use gstreamer_pbutils::prelude::*;
 use gstreamer_pbutils::Discoverer;
 use saturn_core::{
-    command_catalogue, export_cmx3600_edl, export_fcpxml, export_otio, export_premiere_xml,
+    command_catalogue, export_cmx3600_edl, export_fcpxml, export_otio, export_xmeml_xml,
     is_filler_word, CommandRequest, CommandStatus, JobId, JobInfo, JobKind, JobPriority, MediaKind,
     Tick, TICKS_PER_SECOND,
 };

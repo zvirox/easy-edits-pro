@@ -10,7 +10,7 @@ export interface InteropFormat {
 export const INTEROP_EXPORTS: Record<string, InteropFormat> = {
   "interop.export_edl": { extension: "edl", label: "CMX 3600 EDL" },
   "interop.export_fcpxml": { extension: "fcpxml", label: "FCPXML" },
-  "interop.export_premiere_xml": { extension: "xml", label: "Final Cut Pro 7 XML" },
+  "interop.export_xmeml_xml": { extension: "xml", label: "Final Cut Pro 7 XML" },
   "interop.export_otio": { extension: "otio", label: "OpenTimelineIO" },
 };
 

@@ -532,7 +532,7 @@ export function PreviewSection({
             }
             onCanPlay={() => setCurrentError(null)}
             onLoadedMetadata={(event) => {
-              // Timeline picks land on the clip's In point, like FilmCraft's source viewer.
+              // Timeline picks land on the clip's In point, like the reference editor's source viewer.
               if (startSeconds > 0.01) {
                 try {
                   event.currentTarget.currentTime = startSeconds;

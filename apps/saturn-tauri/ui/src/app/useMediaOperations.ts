@@ -13,7 +13,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { formatTime } from "../utils/formatters";
 import type {
   Clip,
-  FilmoraTab,
+  AssetTab,
   OpenverseAsset,
   ProjectDocument,
   ProjectStatus,
@@ -98,7 +98,7 @@ export function useMediaOperations({
 }: UseMediaOperationsOptions) {
   const [selectedMediaId, setSelectedMediaId] = useState<number | null>(null);
   const [selectedMediaIds, setSelectedMediaIds] = useState<number[]>([]);
-  const [filmoraTab, setFilmoraTab] = useState<FilmoraTab>("media");
+  const [assetTab, setAssetTab] = useState<AssetTab>("media");
   const [search, setSearch] = useState("");
   const [activeBinId, setActiveBinId] = useState<number | null>(null);
   const [mediaViewMode, setMediaViewMode] = useState<"grid" | "list">("grid");
@@ -707,8 +707,8 @@ export function useMediaOperations({
     setSelectedMediaId,
     selectedMediaIds,
     setSelectedMediaIds,
-    filmoraTab,
-    setFilmoraTab,
+    assetTab,
+    setAssetTab,
     search,
     setSearch,
     activeBinId,

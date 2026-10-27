@@ -1,6 +1,6 @@
 # saturn-timeline
 
-Professional NLE timeline library for Easy Edits Pro, inspired by FilmCraft's architecture.
+Professional NLE timeline library for Easy Edits Pro, inspired by the reference editor's architecture.
 
 ## Features
 
@@ -25,7 +25,7 @@ Professional NLE timeline library for Easy Edits Pro, inspired by FilmCraft's ar
 
 ## Timebase
 
-The timeline uses a fixed integer tick rate of **254,016,000,000 ticks/second** (FilmCraft resolution). This value is evenly divisible by:
+The timeline uses a fixed integer tick rate of **254,016,000,000 ticks/second** (reference-editor resolution). This value is evenly divisible by:
 
 - Video frame rates: 23.976, 24, 25, 29.97, 30, 48, 50, 59.94, 60 fps
 - Audio sample rates: 44.1kHz, 48kHz, 96kHz, 192kHz

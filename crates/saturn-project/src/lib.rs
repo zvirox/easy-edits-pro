@@ -1,7 +1,7 @@
 //! Project Templates and Search Bins
 //!
 //! Provides project template system and smart search bins for media organization
-//! similar to FilmCraft's project templates and search bins.
+//! similar to the reference editor's project templates and search bins.
 //!
 //! Each type is defined exactly once, in the module that owns it. This module
 //! only declares modules and re-exports their public surface.

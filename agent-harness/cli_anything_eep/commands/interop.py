@@ -21,7 +21,7 @@ def _read_input(file, text, label):
 
 @click.group(name='interop')
 def interop_group():
-    """Import EDL, FCPXML, OTIO, and Premiere XML timelines."""
+    """Import EDL, FCPXML, OTIO, and editor XML (xmeml) timelines."""
     pass
 
 
@@ -52,17 +52,17 @@ def interop_fcpxml(ctx: click.Context, file, text):
     )
 
 
-@interop_group.command('premiere')
-@click.option('--file', type=click.Path(exists=True, dir_okay=False), help='Premiere XML file')
-@click.option('--text', help='Premiere XML contents')
+@interop_group.command('xmeml')
+@click.option('--file', type=click.Path(exists=True, dir_okay=False), help='Editor XML (xmeml) file')
+@click.option('--text', help='Editor XML (xmeml) contents')
 @click.pass_context
-def interop_premiere(ctx: click.Context, file, text):
-    """Import a Premiere Pro XML timeline."""
+def interop_xmeml(ctx: click.Context, file, text):
+    """Import an editor XML (xmeml) timeline."""
     _engine.run_engine(
         ctx,
-        "interop.import_premiere_xml",
-        {"xml": _read_input(file, text, "interop premiere")},
-        success="Premiere XML imported",
+        "interop.import_xmeml_xml",
+        {"xml": _read_input(file, text, "interop xmeml")},
+        success="Editor XML (xmeml) imported",
     )
 
 

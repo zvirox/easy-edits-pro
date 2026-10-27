@@ -820,7 +820,7 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
         let layer = timeline.append_layer();
         for (clip_index, clip) in track.clips.iter().enumerate() {
             if !clip.enabled {
-                // FC Enable: disabled clips stay on the timeline but render
+                // Reference-editor Enable: disabled clips stay on the timeline but render
                 // nothing (no picture, no sound).
                 continue;
             }

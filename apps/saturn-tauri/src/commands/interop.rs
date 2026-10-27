@@ -15,11 +15,11 @@ pub async fn export_timeline_interop(
     let content = match format.to_lowercase().as_str() {
         "edl" | "cmx3600" => export_cmx3600_edl(doc)?,
         "fcpxml" | "fcp" => export_fcpxml(doc)?,
-        "premiere_xml" | "premiere" | "xml" | "xmeml" => export_premiere_xml(doc)?,
+        "premiere_xml" | "premiere" | "xml" | "xmeml" => export_xmeml_xml(doc)?,
         "otio" | "opentimelineio" => export_otio(doc)?,
         _ => {
             return Err(format!(
-                "Unsupported interchange format: {format}. Supported: 'edl', 'fcpxml', 'premiere_xml', 'otio'"
+                "Unsupported interchange format: {format}. Supported: 'edl', 'fcpxml', 'xmeml' (premiere_xml alias), 'otio'"
             ));
         }
     };
@@ -62,7 +62,7 @@ pub async fn import_timeline_interop(
     let cmd_name = match format.to_lowercase().as_str() {
         "edl" | "cmx3600" => "interop.import_edl",
         "fcpxml" | "fcp" => "interop.import_fcpxml",
-        "premiere_xml" | "premiere" | "xml" | "xmeml" => "interop.import_premiere_xml",
+        "premiere_xml" | "premiere" | "xml" | "xmeml" => "interop.import_xmeml_xml",
         "otio" | "opentimelineio" => "interop.import_otio",
         _ => return Err(format!("Unsupported interchange format: {format}")),
     };
@@ -89,8 +89,8 @@ pub async fn import_timeline_interop(
     Ok(res)
 }
 
-/// Reveal a filesystem path in the system file manager (FC "Reveal in
-/// Finder"). Opens the containing directory so the file itself stays visible;
+/// Reveal a filesystem path in the system file manager (the reference
+/// editor's "Reveal in/// Finder"). Opens the containing directory so the file itself stays visible;
 /// plain shell-out, no plugin dependency.
 #[tauri::command]
 pub fn reveal_path(path: String) -> Result<(), String> {

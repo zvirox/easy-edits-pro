@@ -1,13 +1,13 @@
 import { useCallback, useEffect, type KeyboardEvent } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type {
-  DavinciWorkspace,
+  EditorWorkspace,
   ProjectStatus,
   SelectedClip,
   TimelineTool,
 } from "./projectTypes";
 
-export type { DavinciWorkspace, TimelineTool, SelectedClip };
+export type { EditorWorkspace, TimelineTool, SelectedClip };
 export type SelectedTransition = { track_id: number; transition: { id: number; kind: string; cut_at: number; duration: number } };
 export type ShortcutCommand = { id: string; shortcut: string | null };
 export type ShortcutTimelineTool = { id: TimelineTool; shortcut: string };
@@ -39,7 +39,7 @@ type Options = {
   setCompoundClipNameDraft: (name: string) => void;
   setCompoundClipModalOpen: (open: boolean) => void;
   toggleTheme: () => void;
-  selectDavinciWorkspace: (workspace: DavinciWorkspace) => void;
+  selectEditorWorkspace: (workspace: EditorWorkspace) => void;
   setTimelineTool: (tool: TimelineTool) => void;
   setSnapEnabled: (updater: (enabled: boolean) => boolean) => void;
   zoomTimeline: (factor: number) => void;

@@ -60,7 +60,7 @@ const QUICK_ACTIONS = [
   },
   {
     label: "📐 Export to OpenTimelineIO",
-    prompt: "Guide me through exporting the current sequence to OpenTimelineIO (.otio) format for interchange with DaVinci Resolve.",
+    prompt: "Guide me through exporting the current sequence to OpenTimelineIO (.otio) format for interchange with other editors.",
     actionKey: "export_otio",
   },
 ];
@@ -170,7 +170,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
       return "RobustVideoMatting (RVM) extracts clean human alpha mattes temporally without requiring a green screen. Adjust feathering and threshold in the AI Matting panel.";
     }
     if (q.includes("otio") || q.includes("opentimelineio")) {
-      return "You can export the entire sequence to OpenTimelineIO via File > Export > OpenTimelineIO (.otio) to seamlessly interchange with DaVinci Resolve or Final Cut Pro.";
+      return "You can export the entire sequence to OpenTimelineIO via File > Export > OpenTimelineIO (.otio) to seamlessly interchange with Final Cut Pro or other editors.";
     }
     return "Saturn AI is ready to assist with timeline edits, color grading, audio routing, and visual effects.";
   };

@@ -20,7 +20,7 @@ export interface KeyframesInspectorProps {
   keyframeHandleOutY: number;
   selectedKeyframeTime: number | null;
   setSelectedKeyframeTime: (time: number | null) => void;
-  selectDavinciWorkspace: (ws: any) => void;
+  selectEditorWorkspace: (ws: any) => void;
   saveKeyframe: (
     property: KeyframeProperty,
     value: number,
@@ -50,7 +50,7 @@ export function KeyframesInspector({
   keyframeHandleOutY,
   selectedKeyframeTime,
   setSelectedKeyframeTime,
-  selectDavinciWorkspace,
+  selectEditorWorkspace,
   saveKeyframe,
   deleteKeyframe,
 }: KeyframesInspectorProps) {
@@ -66,7 +66,7 @@ export function KeyframesInspector({
         <InteriorButton
           type="button"
           className="btn-primary-subtle"
-          onClick={() => selectDavinciWorkspace("keyframes")}
+          onClick={() => selectEditorWorkspace("keyframes")}
           title="Open Dedicated Full-Screen Curve Editor (Shift+6)"
         >
           📈 Full Curve Editor

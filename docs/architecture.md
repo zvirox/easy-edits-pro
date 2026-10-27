@@ -32,7 +32,7 @@
 |     |-- media.rs      (import validation, binning, local streaming)                                |
 |     |-- playback.rs   (render preview control, transport sync)                                     |
 |     |-- export.rs     (render job dispatch, hardware encoder detection)                            |
-|     `-- interop.rs    (EDL, FCPXML, Premiere XML import/export)                                    |
+|     `-- interop.rs    (EDL, FCPXML, editor XML (xmeml) import/export)                              |
 |                                                                                                    |
 |  [media_server.rs]    Token-authenticated local HTTP streaming server                              |
 |  [net.rs]             DNS pinning, SSRF prevention, IP validation                                  |

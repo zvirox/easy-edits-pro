@@ -1,7 +1,7 @@
 //! Enhanced Timeline Data Model
 //!
 //! Provides nested sequences, atomic edits, and advanced timeline features
-//! inspired by FilmCraft's 254B ticks/sec timeline model.
+//! inspired by the reference editor's 254B ticks/sec timeline model.
 
 pub mod atomic;
 pub mod clip;

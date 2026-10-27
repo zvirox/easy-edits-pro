@@ -11,4 +11,4 @@ Place application assets in the matching folder:
 
 The bundled Inter Variable font is from the official [Inter project](https://github.com/rsms/inter) and is covered by `fonts/OFL.txt`.
 
-For every third-party asset, record its creator, source, and license in a neighboring `.attribution` file. Keep its license text alongside it when required. Do not add FilmCraft branding or app-logo artwork; Easy Edits Pro uses its own identity.
+For every third-party asset, record its creator, source, and license in a neighboring `.attribution` file. Keep its license text alongside it when required. Do not add other editors' branding or app-logo artwork; Easy Edits Pro uses its own identity.

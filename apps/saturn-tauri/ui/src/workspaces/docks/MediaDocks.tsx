@@ -1,6 +1,6 @@
 import { InteriorButton } from "../../components/interior/interior-button";
 import { DockCard } from "../../features/dock/DockCard";
-import type { SelectedClip, MediaAsset, ProjectDocument, DavinciWorkspace } from "../../types";
+import type { SelectedClip, MediaAsset, ProjectDocument, EditorWorkspace } from "../../types";
 import { Icon } from "../../components/Icon";
 import { formatTime } from "../../utils/formatters";
 
@@ -12,7 +12,7 @@ export interface MediaDockProps {
   setSelectedMediaId: (id: number | null) => void;
   setSelectedClip: (val: SelectedClip | null) => void;
   setSelectedClips: (val: SelectedClip[]) => void;
-  selectDavinciWorkspace: (ws: DavinciWorkspace) => void;
+  selectEditorWorkspace: (ws: EditorWorkspace) => void;
   importMedia: () => Promise<void> | void;
   setNetworkImportModalOpen: (val: boolean) => void;
   search: string;
@@ -29,7 +29,7 @@ export function MediaDockLeft({
   setSelectedMediaId,
   setSelectedClip,
   setSelectedClips,
-  selectDavinciWorkspace,
+  selectEditorWorkspace,
   importMedia,
   setNetworkImportModalOpen,
   search,
@@ -139,7 +139,7 @@ export function MediaDockLeft({
                   setSelectedMediaId(item.id);
                   setSelectedClip(null);
                   setSelectedClips([]);
-                  selectDavinciWorkspace("edit");
+                  selectEditorWorkspace("edit");
                 }}
                 title="Select this media and open the Edit workspace"
                 style={{

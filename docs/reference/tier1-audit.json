@@ -809,7 +809,7 @@
  "file.exportFcp7Xml": {
   "label": "Final Cut Pro XML…",
   "disposition": "shipped",
-  "eep": "interop.export_premiere_xml"
+  "eep": "interop.export_xmeml_xml"
  },
  "file.exportFcpxml": {
   "label": "FCPXML…",
@@ -849,7 +849,7 @@
   "eep": "interop.export_otio"
  },
  "file.exportSelectionProject": {
-  "label": "Selection as FilmCraft Project…",
+  "label": "Selection as Reference Editor Project…",
   "disposition": "na",
   "note": "no selection-subset project serializer"
  },

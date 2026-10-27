@@ -228,7 +228,7 @@ pub struct Clip {
     /// Per-clip audio trim in dB, applied on top of the track gain.
     #[serde(default)]
     pub volume_db: f64,
-    /// FC Enable: disabled clips stay on the timeline but render nothing.
+    /// Reference-editor Enable: disabled clips stay on the timeline but render nothing.
     #[serde(default = "default_true")]
     pub enabled: bool,
 }

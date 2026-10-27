@@ -34,7 +34,7 @@ pub(in crate::engine) struct SetClipVolumeParams {
     pub(in crate::engine) volume_db: f64,
 }
 
-/// FC Enable: `enabled` omitted means toggle the current state.
+/// Reference-editor Enable: `enabled` omitted means toggle the current state.
 #[derive(Clone, Copy, Deserialize)]
 pub(in crate::engine) struct SetClipEnabledParams {
     pub(in crate::engine) track_id: u64,

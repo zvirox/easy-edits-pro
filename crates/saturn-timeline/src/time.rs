@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 /// Timeline position in ticks (254,016,000,000 ticks per second = 1/254016000000s resolution)
 pub type Ticks = i64;
 
-/// Ticks per second constant (matching FilmCraft's 254B ticks/sec)
+/// Ticks per second constant (matching the reference editor's 254B ticks/sec)
 pub const TICKS_PER_SECOND: Ticks = 254_016_000_000;
 
 /// Frame rates supported

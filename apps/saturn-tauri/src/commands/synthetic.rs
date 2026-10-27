@@ -1,4 +1,4 @@
-//! Synthetic media generation for FC File > New items: solid-colour stills
+//! Synthetic media generation for the reference editor's File > New items: solid-colour stills
 //! (black video, colour matte, transparent video) written as hand-encoded
 //! RGBA PNGs, and SMPTE bars + 1 kHz tone as a real MP4 via GStreamer.
 //! Pure Rust, no new dependencies.

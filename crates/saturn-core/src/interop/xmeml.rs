@@ -3,8 +3,8 @@ use crate::project::{Clip, MediaAsset, MediaKind, ProjectDocument, Track, TrackK
 use crate::time::{FrameRate, Tick};
 use std::path::PathBuf;
 
-/// Exports a `ProjectDocument` into standard Premiere Pro XML (xmeml v5).
-pub fn export_premiere_xml(doc: &ProjectDocument) -> Result<String, String> {
+/// Exports a `ProjectDocument` into editor XML exchange format (xmeml v5).
+pub fn export_xmeml_xml(doc: &ProjectDocument) -> Result<String, String> {
     let settings = &doc.project.settings;
     let timebase = (settings.frame_rate.numerator / settings.frame_rate.denominator.max(1)).max(1);
     let frame_dur = settings
@@ -119,11 +119,11 @@ pub fn export_premiere_xml(doc: &ProjectDocument) -> Result<String, String> {
     Ok(out)
 }
 
-/// Imports a Premiere Pro XML (xmeml v5) string into a `ProjectDocument`.
-pub fn import_premiere_xml(xml: &str) -> Result<ProjectDocument, String> {
+/// Imports an editor XML exchange (xmeml v5) string into a `ProjectDocument`.
+pub fn import_xmeml_xml(xml: &str) -> Result<ProjectDocument, String> {
     let mut media_list = Vec::new();
     let mut clips = Vec::new();
-    let mut proj_name = "Imported Premiere Project".to_string();
+    let mut proj_name = "Imported Editor Project".to_string();
     let fps = FrameRate::FPS_24;
     let frame_dur = fps.frame_ticks().unwrap_or(10_584_000_000);
 

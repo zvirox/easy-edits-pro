@@ -73,7 +73,7 @@ export interface InspectorPanelProps {
   keyframeHandleOutY: number;
   selectedKeyframeTime: number | null;
   setSelectedKeyframeTime: (time: number | null) => void;
-  selectDavinciWorkspace: (ws: any) => void;
+  selectEditorWorkspace: (ws: any) => void;
   saveKeyframe: (
     property: KeyframeProperty,
     value: number,
@@ -283,7 +283,7 @@ export function InspectorPanel(props: InspectorPanelProps) {
             keyframeHandleOutY={props.keyframeHandleOutY}
             selectedKeyframeTime={props.selectedKeyframeTime}
             setSelectedKeyframeTime={props.setSelectedKeyframeTime}
-            selectDavinciWorkspace={props.selectDavinciWorkspace}
+            selectEditorWorkspace={props.selectEditorWorkspace}
             saveKeyframe={props.saveKeyframe}
             deleteKeyframe={props.deleteKeyframe}
           />

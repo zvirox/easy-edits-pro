@@ -12,14 +12,14 @@ import type { CommandStatus } from "../../app/ProjectProvider";
 import { formatShortcut } from "../shortcuts/shortcuts.ts";
 import { rankCommands } from "./ranking.ts";
 import type {
-  DavinciWorkspace,
+  EditorWorkspace,
   MediaAsset,
   ProjectDocument,
   ProjectStatus,
   SelectedClip,
 } from "../../app/projectTypes";
 
-export type { DavinciWorkspace, SelectedClip };
+export type { EditorWorkspace, SelectedClip };
 export type Workspace = "edit" | "color" | "effects" | "audio" | "keyframes" | "export" | "library" | "ai";
 export type CommandSpec = {
   id: string;
@@ -36,7 +36,7 @@ export type CommandSpec = {
   uiOnly: boolean;
 };
 
-export const davinciWorkspaces: { id: DavinciWorkspace; label: string; shortcut: string; icon: string; isExperimental?: boolean }[] = [
+export const editorWorkspaces: { id: EditorWorkspace; label: string; shortcut: string; icon: string; isExperimental?: boolean }[] = [
   { id: "media", label: "Media", shortcut: "Shift+1", icon: "media" },
   { id: "edit", label: "Edit", shortcut: "Shift+2", icon: "edit" },
   { id: "fusion", label: "Fusion", shortcut: "Shift+3", icon: "effects", isExperimental: true },
@@ -68,8 +68,8 @@ export interface AppHeaderProps {
   selectedMedia: MediaAsset | null;
   snapEnabled: boolean;
   workspace: Workspace;
-  davinciWorkspace: DavinciWorkspace;
-  selectDavinciWorkspace: (ws: DavinciWorkspace) => void;
+  editorWorkspace: EditorWorkspace;
+  selectEditorWorkspace: (ws: EditorWorkspace) => void;
   invokeMenuCommand: (id: string) => Promise<void>;
   ensureDiscardIsOkay: () => Promise<boolean>;
   setNewProjectName: (name: string) => void;
@@ -101,8 +101,8 @@ export function AppHeader({
   selectedMedia,
   snapEnabled,
   workspace,
-  davinciWorkspace,
-  selectDavinciWorkspace,
+  editorWorkspace,
+  selectEditorWorkspace,
   invokeMenuCommand,
   ensureDiscardIsOkay,
   setNewProjectName,
@@ -199,7 +199,7 @@ export function AppHeader({
       const section = command.menu.length > 1 ? command.menu[1] : "";
       const activeWorkspace =
         command.id.startsWith("workspace.") &&
-        (command.id.slice("workspace.".length) === davinciWorkspace ||
+        (command.id.slice("workspace.".length) === editorWorkspace ||
           command.id.slice("workspace.".length) === workspace);
       const entry = {
         id: command.id,
@@ -520,9 +520,9 @@ export function AppHeader({
       <div className="workspace-bar-tier2">
         <SegmentedControl
           label="Workspaces"
-          options={davinciWorkspaces.map((w) => ({ value: w.id, label: w.label }))}
-          value={davinciWorkspace}
-          onValueChange={(val) => selectDavinciWorkspace(val as DavinciWorkspace)}
+          options={editorWorkspaces.map((w) => ({ value: w.id, label: w.label }))}
+          value={editorWorkspace}
+          onValueChange={(val) => selectEditorWorkspace(val as EditorWorkspace)}
         />
       </div>
     </header>

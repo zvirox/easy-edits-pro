@@ -3,8 +3,8 @@ export { useMediaServer } from "../../app/useMediaServer";
 export {
   MediaPanel,
   type MediaPanelProps,
-  filmoraTabs,
-  type FilmoraTab,
+  assetTabs,
+  type AssetTab,
   type OpenverseAsset,
 } from "./MediaPanel";
 export { titlePresets, transitionPresets } from "./presets";

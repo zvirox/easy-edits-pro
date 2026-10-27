@@ -634,4 +634,4 @@ export interface PresentationMetrics {
   isHardwareAccelerated: boolean;
 }
 
-export type InteropFormat = "edl" | "fcpxml" | "premiere_xml" | "otio";
+export type InteropFormat = "edl" | "fcpxml" | "xmeml" | "otio";

@@ -90,9 +90,9 @@ impl EditorEngine {
                 self.current_path = None;
                 Ok(json!({"imported": true, "name": name}))
             })()),
-            "interop.import_premiere_xml" => Some((|| {
+            "interop.import_xmeml_xml" => Some((|| {
                 let params: ImportXmlParams = parse_params(params)?;
-                let imported = crate::interop::import_premiere_xml(&params.xml)
+                let imported = crate::interop::import_xmeml_xml(&params.xml)
                     .map_err(DispatchError::Operation)?;
                 let name = imported.project.name.clone();
                 self.checkpoint();
@@ -177,9 +177,9 @@ impl EditorEngine {
                 Self::write_export(&params.path, &content)?;
                 Ok(json!({"path": params.path, "bytes": content.len()}))
             })()),
-            "interop.export_premiere_xml" => Some((|| {
+            "interop.export_xmeml_xml" => Some((|| {
                 let params: FilePathParams = parse_params(params)?;
-                let content = crate::interop::export_premiere_xml(&self.document)
+                let content = crate::interop::export_xmeml_xml(&self.document)
                     .map_err(DispatchError::Operation)?;
                 Self::write_export(&params.path, &content)?;
                 Ok(json!({"path": params.path, "bytes": content.len()}))

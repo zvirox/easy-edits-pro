@@ -3,9 +3,9 @@ export { SegmentedControl } from "../../components/interior/segmented-control";
 export {
   AppHeader,
   type AppHeaderProps,
-  davinciWorkspaces,
+  editorWorkspaces,
   workspaces,
-  type DavinciWorkspace,
+  type EditorWorkspace,
   type Workspace,
   type SelectedClip,
   type CommandSpec,

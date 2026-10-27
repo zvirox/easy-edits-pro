@@ -86,8 +86,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         ui_only: false,
     },
     CommandSpec {
-        id: "interop.import_premiere_xml",
-        label: "Import Premiere Pro XML",
+        id: "interop.import_xmeml_xml",
+        label: "Import Editor XML (xmeml)",
         menu: &["File", "Import"],
         shortcut: None,
         params: "{\"xml\":str}",

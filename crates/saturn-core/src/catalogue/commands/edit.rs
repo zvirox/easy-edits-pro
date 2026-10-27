@@ -212,7 +212,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         ui_only: false,
     },
 
-    // Edit batch (0.4.0): FC labels, the attribute clipboard, and
+    // Edit batch (0.4.0): reference-editor labels, the attribute clipboard, and
     // duplicate/repair commands.
     CommandSpec {
         id: "edit.label.blue",

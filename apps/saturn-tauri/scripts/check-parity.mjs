@@ -1,22 +1,23 @@
 #!/usr/bin/env node
 /**
- * FilmCraft parity report (packet D1, extended P13).
+ * Reference-editor parity report (packet D1, extended P13).
  *
  * Compares the checked-in EEP catalogue with the inventory recorded from the
- * installed FilmCraft 0.8.0 (`filmcraft-cli describe`) on 2026-10-21.
+ * reference editor on 2026-10-21 (the recorded inventory of that product's
+ * command catalogue; see docs/reference/reference-editor-commands.json).
  *
- * - A family alias map maps EEP family prefixes onto the canonical FilmCraft
+ * - A family alias map maps EEP family prefixes onto the canonical reference-editor
  *   family names they serve (`graphic` -> `graphics`, `subtitle` -> `captions`,
  *   `speech` -> `tts`, ...).
  * - Coverage is **per id**, not per count. `docs/reference/tier<N>-audit.json`
- *   maps every FilmCraft Tier-N command to a disposition:
+ *   maps every reference-editor tier command to a disposition:
  *     `shipped`    - the same id exists in the EEP catalogue and ships;
  *     `equivalent` - a shipped EEP command fulfils the behavior (documented
  *                    semantic mapping, may use a different id);
  *     `new`        - a genuine gap; once implemented the entry carries an
  *                    `eep` id that must exist and ship in the catalogue;
  *     `na`         - documented divergence (excluded from the denominator).
- * - A tier without an audit file reports its FilmCraft count without a
+ * - A tier without an audit file reports its reference-editor count without a
  *   coverage claim, so coverage is never asserted without id-level evidence.
  * - Families are grouped by parity tier (see the plan, section 5.2).
  * - The report is written to `docs/PARITY.md`. Run with `--check` to verify
@@ -34,19 +35,19 @@ const appRoot = resolve(import.meta.dirname, "..");
 const eep = JSON.parse(
   readFileSync(resolve(root, "docs/reference/command-catalogue.json"), "utf8"),
 );
-const filmcraft = JSON.parse(
-  readFileSync(resolve(root, "docs/reference/filmcraft-commands.json"), "utf8"),
+const referenceEditor = JSON.parse(
+  readFileSync(resolve(root, "docs/reference/reference-editor-commands.json"), "utf8"),
 );
 const reportPath = resolve(root, "docs/PARITY.md");
 const checkOnly = process.argv.includes("--check");
 
-if (!Array.isArray(eep) || !Array.isArray(filmcraft)) {
+if (!Array.isArray(eep) || !Array.isArray(referenceEditor)) {
   console.error("Parity check failed: reference files must be arrays");
   process.exit(1);
 }
 
-// EEP family prefix -> canonical FilmCraft family. Families that do not map
-// to a FilmCraft family (workspace plumbing, node graph, interop, ...) stay
+// EEP family prefix -> canonical reference-editor family. Families that do not map
+// to a reference-editor family (workspace plumbing, node graph, interop, ...) stay
 // as-is and land under "app-only" in the report.
 const familyAlias = {
   graphic: "graphics",
@@ -57,7 +58,7 @@ const familyAlias = {
   speech: "tts",
 };
 
-// Tier assignment per FilmCraft family (plan section 5.2). Anything unlisted
+// Tier assignment per reference-editor family (plan section 5.2). Anything unlisted
 // is app plumbing and is reported outside the tiers.
 const tierByFamily = {
   1: ["file", "project", "sequence", "clip", "timeline", "edit", "trim", "playhead", "markers", "captions", "export", "media", "shortcuts", "prefs", "history"],
@@ -82,7 +83,7 @@ for (const tier of [1, 2, 3]) {
   if (!existsSync(path)) continue;
   const raw = JSON.parse(readFileSync(path, "utf8"));
   const byId = new Map(Object.entries(raw));
-  const fcInTier = filmcraft.filter(
+  const fcInTier = referenceEditor.filter(
     (item) => familyTier.get(familyOf(item.id)) === tier,
   );
   const errors = [];
@@ -138,7 +139,7 @@ const tally = (items) => {
 };
 
 const fcCounts = new Map();
-for (const item of filmcraft) {
+for (const item of referenceEditor) {
   const family = familyOf(item.id);
   fcCounts.set(family, (fcCounts.get(family) ?? 0) + 1);
 }
@@ -156,31 +157,31 @@ const rows = families.map((family) => {
   let na = 0;
   if (audit) {
     covered = 0;
-    for (const item of filmcraft) {
+    for (const item of referenceEditor) {
       if (familyOf(item.id) === family) {
         if (audit.covered.has(item.id)) covered += 1;
         if (audit.na.has(item.id)) na += 1;
       }
     }
   }
-  const filmcraftCount = fcCounts.get(family) ?? 0;
+  const referenceEditorCount = fcCounts.get(family) ?? 0;
   const tallyRow = eepTally.get(family) ?? { shipped: 0, planned: 0 };
   return {
     family,
     tier,
-    filmcraft: filmcraftCount,
+    referenceEditor: referenceEditorCount,
     covered,
     na,
     gap:
       covered === null
         ? ""
-        : Math.max(0, filmcraftCount - na - covered) || "",
+        : Math.max(0, referenceEditorCount - na - covered) || "",
   };
 });
 
 const tierSummary = [1, 2, 3].map((tier) => {
   const tierRows = rows.filter((row) => row.tier === tier);
-  const fc = tierRows.reduce((sum, row) => sum + row.filmcraft, 0);
+  const fc = tierRows.reduce((sum, row) => sum + row.referenceEditor, 0);
   const audit = audits.get(tier);
   const covered = audit ? audit.covered.size : null;
   const na = audit ? audit.na.size : 0;
@@ -190,18 +191,18 @@ const tierSummary = [1, 2, 3].map((tier) => {
 
 // --- Markdown report -------------------------------------------------------
 const lines = [
-  "# FilmCraft parity report",
+  "# Reference-editor parity report",
   "",
   "<!-- Generated by apps/saturn-tauri/scripts/check-parity.mjs from",
   "     docs/reference/command-catalogue.json,",
-  "     docs/reference/filmcraft-commands.json, and",
+  "     docs/reference/reference-editor-commands.json, and",
   "     docs/reference/tier<N>-audit.json. Regenerate with",
   "     `pnpm check:parity`; CI verifies this file with `--check`. -->",
   "",
   "Verified-before-done rule: a command counts as shipped only with a UI",
   "affordance, a test, and `shipped: true` in the catalogue.",
   "",
-  "Coverage is per id: a FilmCraft command counts as covered when the audit",
+  "Coverage is per id: a reference-editor command counts as covered when the audit",
   "maps it to a shipped EEP command (`shipped` id match, documented",
   "`equivalent`, or an implemented `new` entry). Documented `na` divergences",
   "are excluded from the denominator. Tiers without an audit file report no",
@@ -209,7 +210,7 @@ const lines = [
   "",
   "## Tier coverage",
   "",
-  "| Tier | FilmCraft | N/A | Covered | Coverage |",
+  "| Tier | Reference editor | N/A | Covered | Coverage |",
   "|---|---:|---:|---:|---:|",
   ...tierSummary.map((entry) =>
     entry.covered === null
@@ -218,26 +219,26 @@ const lines = [
   ),
   "",
   "Tier 1 targets Beta 1; Tier 2 comes after Beta 1; Tier 3 is later.",
-  "Full parity (all FilmCraft commands) is explicitly **not** a Beta goal.",
+  "Full parity (all reference-editor commands) is explicitly **not** a Beta goal.",
   "",
   "## Per-family coverage",
   "",
-  "| Family | Tier | FilmCraft | Covered | N/A | Gap |",
+  "| Family | Tier | Reference editor | Covered | N/A | Gap |",
   "|---|---|---:|---:|---:|---:|",
   ...rows.map((row) =>
     row.covered === null
-      ? `| ${row.family} | ${row.tier ?? "-"} | ${row.filmcraft} | - | - | |`
-      : `| ${row.family} | ${row.tier ?? "-"} | ${row.filmcraft} | ${row.covered} | ${row.na} | ${row.gap} |`,
+      ? `| ${row.family} | ${row.tier ?? "-"} | ${row.referenceEditor} | - | - | |`
+      : `| ${row.family} | ${row.tier ?? "-"} | ${row.referenceEditor} | ${row.covered} | ${row.na} | ${row.gap} |`,
   ),
   "",
   "## Totals",
   "",
-  `FilmCraft commands: ${filmcraft.length}`,
+  `Reference-editor commands: ${referenceEditor.length}`,
   "",
   `EEP commands: ${eep.length} (${eep.filter((item) => item.shipped).length} shipped, ${eep.filter((item) => !item.shipped).length} planned)`,
   "",
-  "App-only families (no FilmCraft counterpart): " +
-    rows.filter((row) => row.tier === null && row.filmcraft === 0).map((row) => row.family).sort().join(", "),
+  "App-only families (no reference-editor counterpart): " +
+    rows.filter((row) => row.tier === null && row.referenceEditor === 0).map((row) => row.family).sort().join(", "),
   "",
 ];
 const report = lines.join("\n");
@@ -260,11 +261,11 @@ if (checkOnly) {
   );
   for (const row of rows) {
     console.log(
-      `${row.family.padEnd(width)}  ${String(row.tier ?? "-").padStart(4)}  ${String(row.filmcraft).padStart(5)}  ${row.covered === null ? "-".padStart(7) : String(row.covered).padStart(7)}  ${row.covered === null ? "-".padStart(4) : String(row.na).padStart(4)}  ${row.gap || ""}`,
+      `${row.family.padEnd(width)}  ${String(row.tier ?? "-").padStart(4)}  ${String(row.referenceEditor).padStart(5)}  ${row.covered === null ? "-".padStart(7) : String(row.covered).padStart(7)}  ${row.covered === null ? "-".padStart(4) : String(row.na).padStart(4)}  ${row.gap || ""}`,
     );
   }
   console.log("");
-  console.log(`FilmCraft commands: ${filmcraft.length}`);
+  console.log(`Reference-editor commands: ${referenceEditor.length}`);
   console.log(
     `EEP commands:       ${eep.length} (${eep.filter((item) => item.shipped).length} shipped, ${eep.filter((item) => !item.shipped).length} planned)`,
   );

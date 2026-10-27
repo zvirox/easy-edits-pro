@@ -1,6 +1,6 @@
-//! Graphics Templates (.fcgt-like format)
+//! Graphics Templates
 //!
-//! Provides graphics template system similar to FilmCraft's .fcgt format
+//! Provides a graphics template system with a JSON template format.
 //! for reusable motion graphics, lower thirds, transitions, etc.
 
 use indexmap::IndexMap;
@@ -870,7 +870,7 @@ pub enum TemplateError {
     SerializationError(#[from] serde_json::Error),
 }
 
-/// Template file format (similar to .fcgt)
+/// Template file format
 pub mod format {
     use super::*;
     use std::io::{Read, Write};

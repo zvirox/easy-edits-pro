@@ -1,6 +1,6 @@
 # EEP UI Correction Plan v4: Fixed Glass Cards + One Consistent Workspace Shell
 
-> **v4 changes:** (1) **Colours are locked.** No existing colour token changes. (2) Merged the findings from your research PDF (`Easy_Edits_Pro_Overhaul_Plan.pdf`); see §13. (3) Per-workspace column presets are allowed (FilmCraft does this). Timeline, toolbox, meters and bars stay identical.
+> **v4 changes:** (1) **Colours are locked.** No existing colour token changes. (2) Merged the findings from your research PDF (`Easy_Edits_Pro_Overhaul_Plan.pdf`); see §13. (3) Per-workspace column presets are allowed (the reference editor does this). Timeline, toolbox, meters and bars stay identical.
 
 Replaces v3, `glass-ui-plan.md`, `glass-ui-plan-v2.md` and the floating-panel parts of `final-implementation-plan.md` (WS-C).  
 Visual target mock: `eep-glass-cards-mock.html` (open it in a browser, click the workspace tabs, resize the window).
@@ -13,7 +13,7 @@ Visual target mock: `eep-glass-cards-mock.html` (open it in a browser, click the
 2. **"Floating" is a visual style, not behaviour.** The window has a frosted, tinted, colourful backdrop. Every block (header, media, program monitor, inspector, toolbox, timeline, meters, status bar) is a rounded glass card that looks lifted off the backdrop by depth: border, soft shadow, inner highlight. This is the Motrix look.
 3. **Colours stay exactly as they are.** Same plum/magenta surfaces, same accent, same text colours, same stage gradient. Only spacing, shape and elevation change.
 4. **Size-responsive.** Cards reflow and shrink with the window. They never overlap each other.
-5. **One shell for every workspace (FilmCraft).** Program monitor, toolbox, timeline and meters sit in the same slots in every workspace. A workspace only changes the *tab content* of the side cards, and may pick a different column ratio from a small fixed table.
+5. **One shell for every workspace (reference-editor model).** Program monitor, toolbox, timeline and meters sit in the same slots in every workspace. A workspace only changes the *tab content* of the side cards, and may pick a different column ratio from a small fixed table.
 6. **Organised, not cluttered.** Grouped toolbar, compact track headers, consistent spacing.
 
 The prior drag/dock/snap/minimise panel engine is to be **deleted**, not tuned.
@@ -123,7 +123,7 @@ Replacement primitive:
 
 ---
 
-## 5. One Shell, Many Workspaces (FilmCraft Model)
+## 5. One Shell, Many Workspaces (Reference-Editor Model)
 
 ```
 ┌───────────────────────── Top bar card: brand · menus · workspace tabs · actions ────────────────────────┐

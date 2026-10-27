@@ -19,7 +19,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Import Media… | `project.add_media` | shipped | Ctrl+I | `{"name":str,"path":path,"kind":str?,"duration":ticks?,"width":int?,"height":int?,"fps":num?,"audio_channels":int?,"codec":str?,"bin_id":int?,"color_label":str?,"tags":[str]?,"title":obj?,"waveform":[int]?}` |
 | Import CMX 3600 EDL | `interop.import_edl` | shipped |  | `{"edl":str,"project_name":str?}` |
 | Import Final Cut Pro XML | `interop.import_fcpxml` | shipped |  | `{"xml":str}` |
-| Import Premiere Pro XML | `interop.import_premiere_xml` | shipped |  | `{"xml":str}` |
+| Import Editor XML (xmeml) | `interop.import_xmeml_xml` | shipped |  | `{"xml":str}` |
 | Create Media Bin | `media.create_bin` | shipped |  | `{"name":str,"parent_id":int?,"color":str?}` |
 | Rename Media Bin | `media.rename_bin` | shipped |  | `{"bin_id":int,"name":str}` |
 | Delete Media Bin | `media.delete_bin` | shipped |  | `{"bin_id":int}` |
@@ -55,7 +55,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Stop Export Queue | `export.queue.stop` | shipped |  | `{}` |
 | Export EDL (CMX 3600) | `interop.export_edl` | shipped |  | `{"path":path}` |
 | Export FCPXML | `interop.export_fcpxml` | shipped |  | `{"path":path}` |
-| Export Final Cut Pro 7 XML | `interop.export_premiere_xml` | shipped |  | `{"path":path}` |
+| Export Final Cut Pro 7 XML | `interop.export_xmeml_xml` | shipped |  | `{"path":path}` |
 | Export OpenTimelineIO | `interop.export_otio` | shipped |  | `{"path":path}` |
 | Save As | `file.saveAs` | shipped | Ctrl+Shift+S | `{}` |
 | Save a Copy | `file.saveCopy` | shipped |  | `{}` |

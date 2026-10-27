@@ -6,8 +6,8 @@ export interface InteropModalProps {
   isOpen: boolean;
   onClose: () => void;
   interopMode: "export" | "import";
-  interopFormat: "fcpxml" | "premiere_xml" | "edl" | "otio";
-  setInteropFormat: (fmt: "fcpxml" | "premiere_xml" | "edl" | "otio") => void;
+  interopFormat: "fcpxml" | "xmeml" | "edl" | "otio";
+  setInteropFormat: (fmt: "fcpxml" | "xmeml" | "edl" | "otio") => void;
   interopContent: string;
   setInteropContent: (c: string) => void;
   interopProjectName: string;
@@ -50,7 +50,7 @@ export function InteropModal({
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
         <div style={{ display: "flex", gap: "6px", marginBottom: "12px" }}>
-          {(["fcpxml", "premiere_xml", "edl", "otio"] as const).map((fmt) => (
+          {(["fcpxml", "xmeml", "edl", "otio"] as const).map((fmt) => (
             <InteriorButton
               key={fmt}
               type="button"
@@ -60,7 +60,7 @@ export function InteropModal({
                 if (interopMode === "export") void handleExportTimelineInterop(fmt);
               }}
             >
-              {fmt === "fcpxml" ? "Apple FCPXML v1.9" : fmt === "premiere_xml" ? "Adobe Premiere XML" : fmt === "edl" ? "CMX 3600 EDL" : "OpenTimelineIO (.otio)"}
+              {fmt === "fcpxml" ? "Apple FCPXML v1.9" : fmt === "xmeml" ? "Editor XML (xmeml)" : fmt === "edl" ? "CMX 3600 EDL" : "OpenTimelineIO (.otio)"}
             </InteriorButton>
           ))}
         </div>
@@ -121,7 +121,7 @@ export function InteropModal({
               Paste XML or EDL Content Below
               <textarea
                 rows={8}
-                placeholder="Paste FCPXML, Premiere XML, or CMX 3600 EDL text here..."
+                placeholder="Paste FCPXML, editor XML (xmeml), or CMX 3600 EDL text here..."
                 value={interopContent}
                 onChange={(e) => setInteropContent(e.target.value)}
                 style={{

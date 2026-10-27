@@ -1,5 +1,5 @@
 /**
- * Timeline ruler step sizing, ported from FilmCraft's `ruler_steps`:
+ * Timeline ruler step sizing, ported from the reference editor's `ruler_steps`:
  * labels sit at least ~110px apart and minor ticks at least ~12px apart,
  * so the density adapts to the current zoom (px per second).
  */

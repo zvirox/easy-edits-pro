@@ -1,6 +1,7 @@
 /* ============================================================================
    150-timeline-refresh.css
-   Timeline + preview monitor redesign modelled on FilmCraft's timeline panel:
+   Timeline + preview monitor redesign modelled on the reference editor's
+   timeline panel:
    blue playhead, adaptive ruler with minor/major ticks, filmstrip clips,
    compact track headers, one unified preview monitor.
    Token-only colors (raw colours live in styles/01-editor.css).
@@ -39,7 +40,7 @@
 }
 
 /* ------------------------------------------------------------------
-   Ruler (FilmCraft): fixed 30px band, labels on top, minor/major ticks
+   Ruler (reference-editor style): fixed 30px band, labels on top, minor/major ticks
    anchored to the bottom edge, no "Time" spacer so coordinates line up.
    ------------------------------------------------------------------ */
 .timeline-ruler {
@@ -62,7 +63,7 @@
 .ruler-tick.major { top: 20px; height: 9px; }
 
 /* Playhead grip inside the ruler keeps the head triangle at the ruler's
-   bottom edge, tip pointing down at the line start (FilmCraft look). */
+   bottom edge, tip pointing down at the line start (reference-editor look). */
 .timeline-ruler .playhead-grip::before {
   top: auto;
   bottom: 0;
@@ -72,7 +73,7 @@
 }
 
 /* ------------------------------------------------------------------
-   Clips: FilmCraft-style flat clip body with a name plate pinned
+   Clips: reference-editor-style flat clip body with a name plate pinned
    top-left, filmstrip frame lines over the picture area, and the
    waveform riding over everything. Audio clips keep their green body.
    ------------------------------------------------------------------ */
@@ -119,14 +120,14 @@
 }
 
 /* ------------------------------------------------------------------
-   Track rows: subtle alternating banding (FilmCraft even-row tint).
+   Track rows: subtle alternating banding (reference-style even-row tint).
    ------------------------------------------------------------------ */
 .track-row:nth-child(even) > .track-lane:not(.media-drop-target) {
   background: color-mix(in srgb, var(--color-white) 2%, transparent);
 }
 
 /* ------------------------------------------------------------------
-   Track headers: compact FilmCraft headers with kind-tinted badges.
+   Track headers: compact reference-editor headers with kind-tinted badges.
    ------------------------------------------------------------------ */
 .track-label { background: var(--bg-subpanel); }
 .track-kind-badge.video {

@@ -313,8 +313,8 @@ impl ShortcutManager {
     pub fn load_preset(&self, name: &str) -> Result<(), ShortcutError> {
         match name {
             "default" => self.load_default_preset(),
-            "premiere" => self.load_premiere_preset(),
-            "davinci" => self.load_davinci_preset(),
+            "pro_editing" => self.load_pro_editing_preset(),
+            "color_editing" => self.load_color_editing_preset(),
             "final_cut" => self.load_final_cut_preset(),
             _ => Err(ShortcutError::NotFound(name.to_string())),
         }
@@ -340,7 +340,7 @@ impl ShortcutManager {
         Ok(())
     }
 
-    fn load_premiere_preset(&self) -> Result<(), ShortcutError> {
+    fn load_pro_editing_preset(&self) -> Result<(), ShortcutError> {
         self.load_default_preset()?;
         self.register(ShortcutSpec::new(
             CommandId::new("timeline.razor"),
@@ -349,7 +349,7 @@ impl ShortcutManager {
         Ok(())
     }
 
-    fn load_davinci_preset(&self) -> Result<(), ShortcutError> {
+    fn load_color_editing_preset(&self) -> Result<(), ShortcutError> {
         self.load_default_preset()?;
         self.register(ShortcutSpec::new(
             CommandId::new("timeline.razor"),
@@ -370,8 +370,8 @@ impl ShortcutManager {
     pub fn presets(&self) -> Vec<String> {
         vec![
             "default".to_string(),
-            "premiere".to_string(),
-            "davinci".to_string(),
+            "pro_editing".to_string(),
+            "color_editing".to_string(),
             "final_cut".to_string(),
         ]
     }

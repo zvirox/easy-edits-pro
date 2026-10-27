@@ -198,7 +198,7 @@ pub(in crate::engine) struct FilePathParams {
 
 /// Destination path plus copy semantics for file.save: when `copy` is true
 /// the document is written to `path` but the editor keeps editing the
-/// original file (FC "Save a Copy").
+/// original file (the reference editor's "Save a Copy").
 #[derive(Deserialize)]
 pub(in crate::engine) struct SaveAsParams {
     pub(in crate::engine) path: PathBuf,

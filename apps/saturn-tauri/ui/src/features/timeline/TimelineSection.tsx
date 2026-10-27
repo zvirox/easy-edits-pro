@@ -497,7 +497,7 @@ export function TimelineSection({
               onSelect={onSelectMarker}
               onOpenPanel={onOpenMarkerPanel}
             />
-            {/* FilmCraft-style ruler: adaptive labels + minor/major ticks.
+            {/* Reference-editor-style ruler: adaptive labels + minor/major ticks.
                 No spacer here — the ruler lane shares the track lanes' origin so
                 the playhead, ruler labels and clips all line up on one x-axis. */}
             <div className="timeline-ruler">

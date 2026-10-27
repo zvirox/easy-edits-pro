@@ -1975,8 +1975,8 @@
   {
     "aliases": [],
     "category": "File",
-    "id": "interop.import_premiere_xml",
-    "label": "Import Premiere Pro XML",
+    "id": "interop.import_xmeml_xml",
+    "label": "Import Editor XML (xmeml)",
     "menu": [
       "File",
       "Import"
@@ -2597,11 +2597,12 @@
   },
   {
     "aliases": [
-      "export premiere xml",
-      "export fcp7 xml"
+      "export xmeml xml",
+      "export fcp7 xml",
+      "export editor xml"
     ],
     "category": "File",
-    "id": "interop.export_premiere_xml",
+    "id": "interop.export_xmeml_xml",
     "label": "Export Final Cut Pro 7 XML",
     "menu": [
       "File",

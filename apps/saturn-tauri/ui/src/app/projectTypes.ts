@@ -192,7 +192,7 @@ export type RecoveryStatus = { available: boolean; projectName?: string; savedAt
 // app-level modules that import their UI types from here.
 export type { SelectedClip } from "../types";
 
-export type DavinciWorkspace =
+export type EditorWorkspace =
   | "media"
   | "edit"
   | "fusion"
@@ -210,7 +210,7 @@ export interface GpuMetrics {
   surfaceHeight: number;
 }
 
-export type FilmoraTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
+export type AssetTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
 
 export type OpenverseAsset = {
   id: string;

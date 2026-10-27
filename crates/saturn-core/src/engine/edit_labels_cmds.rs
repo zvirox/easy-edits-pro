@@ -8,7 +8,7 @@
 
 use super::*;
 
-/// The sixteen FC label colour names, shared by the engine validator and the
+/// The sixteen reference-editor label colour names, shared by the engine validator and the
 /// command catalogue (`edit.label.<color>`).
 pub const LABEL_COLORS: [&str; 16] = [
     "blue", "brown", "caribbean", "cerulean", "forest", "green", "iris", "lavender", "magenta",

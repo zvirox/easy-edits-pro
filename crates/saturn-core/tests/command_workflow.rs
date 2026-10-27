@@ -2002,7 +2002,7 @@ fn speech_to_subtitles_and_ripple_deletion_workflow_with_undo() {
 }
 
 #[test]
-fn timeline_interop_edl_fcpxml_premiere_workflow_with_undo() {
+fn timeline_interop_edl_fcpxml_xmeml_workflow_with_undo() {
     let mut engine = EditorEngine::default();
     let media = engine
         .execute(CommandRequest::new(
@@ -2061,13 +2061,13 @@ fn timeline_interop_edl_fcpxml_premiere_workflow_with_undo() {
         .unwrap();
     assert_eq!(res["imported"], true);
 
-    // 4. Export Premiere XML and re-import
-    let prem_xml = saturn_core::export_premiere_xml(engine.document()).unwrap();
+    // 4. Export xmeml XML and re-import
+    let prem_xml = saturn_core::export_xmeml_xml(engine.document()).unwrap();
     assert!(prem_xml.contains("<xmeml version=\"5\">"));
 
     let res = engine
         .execute(CommandRequest::new(
-            "interop.import_premiere_xml",
+            "interop.import_xmeml_xml",
             json!({ "xml": prem_xml }),
         ))
         .unwrap();
@@ -5043,7 +5043,7 @@ fn edit_labels_attributes_and_repair_family_workflow_with_undo() {
             .clone()
     };
 
-    // FC label colours apply to the listed clips and validate the colour name.
+    // Reference-editor label colours apply to the listed clips and validate the colour name.
     engine
         .execute(CommandRequest::new(
             "edit.label.blue",
@@ -6114,7 +6114,7 @@ fn interop_export_round_trip_and_save_copy_workflow() {
     let cases = [
         ("interop.export_edl", "test.edl"),
         ("interop.export_fcpxml", "test.fcpxml"),
-        ("interop.export_premiere_xml", "test.xml"),
+        ("interop.export_xmeml_xml", "test.xml"),
         ("interop.export_otio", "test.otio"),
     ];
     for (command, file_name) in cases {
@@ -6134,7 +6134,7 @@ fn interop_export_round_trip_and_save_copy_workflow() {
                 json!({"edl": content, "project_name": "Round Trip"}),
             ),
             "interop.export_fcpxml" => ("interop.import_fcpxml", json!({"xml": content})),
-            "interop.export_premiere_xml" => ("interop.import_premiere_xml", json!({"xml": content})),
+            "interop.export_xmeml_xml" => ("interop.import_xmeml_xml", json!({"xml": content})),
             _ => (
                 "interop.import_otio",
                 json!({"content": content, "project_name": "Round Trip"}),

@@ -36,7 +36,7 @@ import type { GraphicOperations } from "../features/graphics";
 export interface WorkspaceRouterProps {
   commands: CommandSpec[];
   encoderInfo: HardwareEncoderInfo | null;
-  davinciWorkspace: string;
+  editorWorkspace: string;
   project: ProjectDocument["project"] | null;
   media: MediaAsset[];
   getMediaUrl: (path: string) => string;
@@ -46,7 +46,7 @@ export interface WorkspaceRouterProps {
   busy: boolean;
   timelineWidth: number;
   timelineEndSeconds: number;
-  selectDavinciWorkspace: (ws: any) => void;
+  selectEditorWorkspace: (ws: any) => void;
   playback: any;
   mediaOps: any;
   mediaHygiene: MediaHygieneOps;
@@ -70,7 +70,7 @@ export interface WorkspaceRouterProps {
 
 export function WorkspaceRouter({
   commands,
-  davinciWorkspace,
+  editorWorkspace,
   project,
   media,
   getMediaUrl,
@@ -80,7 +80,7 @@ export function WorkspaceRouter({
   busy,
   timelineWidth,
   timelineEndSeconds,
-  selectDavinciWorkspace,
+  selectEditorWorkspace,
   playback,
   mediaOps,
   mediaHygiene,
@@ -116,7 +116,7 @@ export function WorkspaceRouter({
     { id: number; name: string; format: string; resolution: string; status: "queued" | "running" | "paused" | "completed" | "failed" | "cancelled"; progress: number; outputPath: string }[]
   >([]);
   useEffect(() => {
-    if (davinciWorkspace !== "deliver") return;
+    if (editorWorkspace !== "deliver") return;
     let active = true;
     const tick = async () => {
       try {
@@ -157,7 +157,7 @@ export function WorkspaceRouter({
       active = false;
       window.clearInterval(timer);
     };
-  }, [davinciWorkspace]);
+  }, [editorWorkspace]);
 
   const mediaRef = useRef(media);
   useEffect(() => {
@@ -224,7 +224,7 @@ export function WorkspaceRouter({
   // Deliver is a full-page workspace by user decision (2026-10-23): route it
   // to the previous ExportWorkspace BEFORE the persistent shell. Do not dock
   // it, do not change its layout — the shell modes above/below are unchanged.
-  if (davinciWorkspace === "deliver") {
+  if (editorWorkspace === "deliver") {
     return (
       <ExportWorkspace
         project={project}
@@ -280,8 +280,8 @@ export function WorkspaceRouter({
   const mediaPanelProps: MediaPanelProps = {
         hygiene: mediaHygiene,
         useProxies: project?.settings.use_proxies ?? false,
-        filmoraTab: mediaOps.filmoraTab,
-        setFilmoraTab: mediaOps.setFilmoraTab,
+        assetTab: mediaOps.assetTab,
+        setAssetTab: mediaOps.setAssetTab,
         search: mediaOps.search,
         setSearch: mediaOps.setSearch,
         project,
@@ -508,7 +508,7 @@ export function WorkspaceRouter({
         keyframeHandleOutY: inspectorOps.keyframeHandleOutY,
         selectedKeyframeTime: inspectorOps.selectedKeyframeTime,
         setSelectedKeyframeTime: inspectorOps.setSelectedKeyframeTime,
-        selectDavinciWorkspace,
+        selectEditorWorkspace,
         saveKeyframe: inspectorOps.saveKeyframe,
         deleteKeyframe: inspectorOps.deleteKeyframe,
         project,
@@ -654,13 +654,13 @@ export function WorkspaceRouter({
   const shellTimeline = <TimelineSection {...timelineSectionProps} />;
   const shellCenter = <PreviewSection {...previewSectionProps} />;
   const isShellWorkspace =
-    davinciWorkspace === "media" ||
-    davinciWorkspace === "fusion" ||
-    davinciWorkspace === "audio" ||
-    davinciWorkspace === "keyframes";
+    editorWorkspace === "media" ||
+    editorWorkspace === "fusion" ||
+    editorWorkspace === "audio" ||
+    editorWorkspace === "keyframes";
   if (isShellWorkspace) {
     const docks = specialModeDocks({
-      davinciWorkspace,
+      editorWorkspace,
       project,
       media,
       selectedMedia,
@@ -668,7 +668,7 @@ export function WorkspaceRouter({
       busy,
       missingMediaIds,
       timelineWidth,
-      selectDavinciWorkspace,
+      selectEditorWorkspace,
       playback,
       mediaOps,
       timelineOps,
@@ -689,7 +689,7 @@ export function WorkspaceRouter({
     });
     return (
       <WorkspaceShell
-        mode={davinciWorkspace}
+        mode={editorWorkspace}
         left={docks.left}
         right={docks.right}
         center={shellCenter}
@@ -699,11 +699,11 @@ export function WorkspaceRouter({
     );
   }
 
-  if (davinciWorkspace === "color" || davinciWorkspace === "effects") {
-    const isColor = davinciWorkspace === "color";
+  if (editorWorkspace === "color" || editorWorkspace === "effects") {
+    const isColor = editorWorkspace === "color";
     return (
       <WorkspaceShell
-        mode={davinciWorkspace}
+        mode={editorWorkspace}
         left={
           isColor ? (
             <ColorDockLeft

@@ -119,8 +119,8 @@ export type TimelineTool =
   | "ellipse"
   | "type"
   | "verticalType";
-export type DavinciWorkspace = "media" | "edit" | "fusion" | "color" | "audio" | "effects" | "keyframes" | "deliver";
-export type FilmoraTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
+export type EditorWorkspace = "media" | "edit" | "fusion" | "color" | "audio" | "effects" | "keyframes" | "deliver";
+export type AssetTab = "media" | "titles" | "transitions" | "audio" | "stock" | "ai";
 export type MediaKind = "video" | "audio" | "image" | "title" | "compound_sequence" | "unknown";
 
 export type TitleProperties = {

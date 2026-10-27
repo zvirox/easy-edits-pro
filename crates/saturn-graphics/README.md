@@ -7,7 +7,7 @@ Graphics templates for Easy Edits Pro — motion graphics with keyframe animatio
 - **TemplateInstance** — Parameterized template instances with bindings
 - **Keyframe** — Cubic bezier interpolation with ease in/out tangents
 - **Layers** — Text, Shape, Image, Video, Solid with transform stack
-- **FCGT-compatible** — Cross-compatible with FilmCraft Graphics Templates
+- **FCGT-compatible** — Cross-compatible with reference-editor graphics templates
 - **Animation** — Position, scale, rotation, opacity, color keyframes
 
 ## Format (.sgt)

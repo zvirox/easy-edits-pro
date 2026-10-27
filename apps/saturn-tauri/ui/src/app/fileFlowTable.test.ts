@@ -14,11 +14,11 @@ test("interchange export table covers the four interop formats", () => {
   assert.deepEqual(Object.keys(INTEROP_EXPORTS), [
     "interop.export_edl",
     "interop.export_fcpxml",
-    "interop.export_premiere_xml",
+    "interop.export_xmeml_xml",
     "interop.export_otio",
   ]);
   assert.equal(INTEROP_EXPORTS["interop.export_edl"].extension, "edl");
-  assert.equal(INTEROP_EXPORTS["interop.export_premiere_xml"].extension, "xml");
+  assert.equal(INTEROP_EXPORTS["interop.export_xmeml_xml"].extension, "xml");
 });
 
 test("file flow command list carries the FC save/close/recovery set", () => {

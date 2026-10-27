@@ -1,4 +1,4 @@
-//! Project freeform family: FC freeform-view layout for the media pool.
+//! Project freeform family: reference-editor freeform-view layout for the media pool.
 //!
 //! Card positions and named arrangements persist in the shared "prefs"
 //! settings object (like the panel view state), so they survive restarts

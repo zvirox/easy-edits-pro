@@ -91,14 +91,14 @@ fn test_fcpxml_export_and_import() {
 }
 
 #[test]
-fn test_premiere_xml_export_and_import() {
+fn test_xmeml_xml_export_and_import() {
     let proj = sample_project();
-    let xml = export_premiere_xml(&proj).expect("premiere xml export succeeds");
+    let xml = export_xmeml_xml(&proj).expect("xmeml xml export succeeds");
     assert!(xml.contains("<xmeml version=\"5\">"));
     assert!(xml.contains("<clipitem id=\"clipitem-0-0\">"));
     assert!(xml.contains("<name>interview.mp4</name>"));
 
-    let imported = import_premiere_xml(&xml).expect("premiere xml import succeeds");
+    let imported = import_xmeml_xml(&xml).expect("xmeml xml import succeeds");
     assert_eq!(imported.project.sequence.tracks[0].clips.len(), 1);
     let c = &imported.project.sequence.tracks[0].clips[0];
     assert_eq!(c.timeline_start.as_millis(), 0);

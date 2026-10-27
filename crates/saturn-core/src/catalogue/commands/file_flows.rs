@@ -35,7 +35,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         ui_only: false,
     },
     CommandSpec {
-        id: "interop.export_premiere_xml",
+        id: "interop.export_xmeml_xml",
         label: "Export Final Cut Pro 7 XML",
         menu: &["File", "Export"],
         shortcut: None,
@@ -43,7 +43,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         category: Category::File,
         mutating: false,
         undo_group: UndoGroup::None,
-        aliases: &["export premiere xml", "export fcp7 xml"],
+        aliases: &["export xmeml xml", "export fcp7 xml", "export editor xml"],
         since: "0.1.0",
         shipped: true,
         ui_only: false,

@@ -12,7 +12,7 @@ editor, and an automation stack shared by the desktop app, CLI, MCP server,
 and control server.
 
 The generated catalogue contains **440 commands, all shipped** (each with a UI
-affordance and a test). The FilmCraft parity audits for all three tiers report
+affordance and a test). The reference-editor parity audits for all three tiers report
 **100% coverage** (documented `na` divergences excluded); see [the generated
 parity report](docs/PARITY.md) for the current numbers - it is the source of
 truth for coverage.
