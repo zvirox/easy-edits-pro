@@ -264,6 +264,7 @@ export function buildEditCommandParams(
         },
       };
     }
+    case "clip.set_enabled":
     case "clip.set_volume_db":
     case "clip.frame_fit":
     case "clip.make_subclip":

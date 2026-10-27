@@ -34,6 +34,15 @@ pub(in crate::engine) struct SetClipVolumeParams {
     pub(in crate::engine) volume_db: f64,
 }
 
+/// FC Enable: `enabled` omitted means toggle the current state.
+#[derive(Clone, Copy, Deserialize)]
+pub(in crate::engine) struct SetClipEnabledParams {
+    pub(in crate::engine) track_id: u64,
+    pub(in crate::engine) clip_index: usize,
+    #[serde(default)]
+    pub(in crate::engine) enabled: Option<bool>,
+}
+
 #[derive(Deserialize)]
 pub(in crate::engine) struct MakeSubclipParams {
     pub(in crate::engine) track_id: u64,

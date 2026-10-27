@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { getClipSelection, setMultiClips, setPrimaryClip, useClipSelection } from "./selectionStore";
+import { expandLinkedClip, isLinkedSelection } from "./selectionModes";
 import { useTrackGroupOperations } from "./useTrackGroupOperations";
 import type {
   Clip,
@@ -98,8 +99,14 @@ export function useTimelineOperations({
   const { clip: selectedClip, clips: selectedClips } = useClipSelection();
   const trackGroupOps = useTrackGroupOperations({ perform, project });
   const setSelectedClip = useCallback((clip: SetStateAction<SelectedClip | null>) => {
-    setPrimaryClip(typeof clip === "function" ? clip(getClipSelection().clip) : clip);
-  }, []);
+    const resolved = typeof clip === "function" ? clip(getClipSelection().clip) : clip;
+    // Linked Selection: a click on a linked clip selects its whole link group.
+    if (resolved && isLinkedSelection()) {
+      const linked = expandLinkedClip(project ?? null, resolved);
+      if (linked && linked.length > 1) setMultiClips(linked);
+    }
+    setPrimaryClip(resolved);
+  }, [project]);
   const setSelectedClips = useCallback((clips: SetStateAction<SelectedClip[]>) => {
     setMultiClips(typeof clips === "function" ? clips(getClipSelection().clips) : clips);
   }, []);

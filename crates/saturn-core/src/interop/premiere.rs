@@ -183,6 +183,7 @@ pub fn import_premiere_xml(xml: &str) -> Result<ProjectDocument, String> {
             compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                enabled: true,
         });
     }
 

@@ -314,6 +314,8 @@ export interface Clip {
   speed_ramp?: SpeedRamp | null;
   motion_blur?: MotionBlurParams | null;
   compound_sequence_id?: number | null;
+  /** FC Enable: disabled clips stay on the timeline but play nothing. */
+  enabled?: boolean;
 }
 
 export interface TrackAudioProcessing {

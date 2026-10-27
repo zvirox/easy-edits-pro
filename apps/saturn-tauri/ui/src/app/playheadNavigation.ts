@@ -16,6 +16,28 @@ export function sequenceDuration(project: ProjectDocument["project"] | null): nu
   );
 }
 
+/**
+ * Selection Follows Playhead: the clip under the playhead on the topmost
+ * video track carrying one, or null. Disabled (clip.enabled === false) clips
+ * never get selected — they play nothing, so they are not "active".
+ */
+export function findClipAtPlayhead(
+  project: ProjectDocument["project"] | null,
+  playhead: number,
+): SelectedClip | null {
+  for (const track of project?.sequence.tracks ?? []) {
+    if (track.kind !== "video") continue;
+    for (let clip_index = 0; clip_index < track.clips.length; clip_index += 1) {
+      const clip = track.clips[clip_index];
+      if (clip.enabled === false) continue;
+      if (playhead >= clip.timeline_start && playhead < clip.timeline_start + clip.duration) {
+        return { track_id: track.id, clip_index };
+      }
+    }
+  }
+  return null;
+}
+
 export function selectedClipFrom(
   project: ProjectDocument["project"] | null,
   selected: SelectedClip | null,

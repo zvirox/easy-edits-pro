@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-435 commands.
+440 commands.
 
 ## File
 
@@ -66,6 +66,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Color Matte | `media.generate_color_matte` | shipped |  | `{"color":str?}` |
 | Transparent Video | `media.generate_transparent_video` | shipped |  | `{}` |
 | Bars and Tone | `media.generate_bars_and_tone` | shipped |  | `{"duration_secs":num?}` |
+| Create Proxies | `media.create_proxies` | shipped |  | `{}` |
 | Auto Save Now | `project.autosave.now` | shipped |  | `{}` |
 | Auto Save Status | `project.autosave.status` | shipped |  | `{}` |
 | Recover Unsaved Changes | `project.recovery.restore` | shipped |  | `{}` |
@@ -222,6 +223,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Add Custom GLSL Shader | `clip.add_custom_shader` | shipped |  | `{"track_id":int,"clip_index":int,"name":str?,"shader_code":str?,"preset_id":str?,"uniforms":obj?}` |
 | Update Custom GLSL Shader | `clip.update_custom_shader` | shipped |  | `{"track_id":int,"clip_index":int,"effect_id":int,"name":str?,"shader_code":str?,"preset_id":str?,"uniforms":obj?}` |
 | Set Clip Volume | `clip.set_volume_db` | shipped |  | `{"track_id":int,"clip_index":int,"volume_db":num}` |
+| Enable Clip | `clip.set_enabled` | shipped |  | `{"track_id":int,"clip_index":int,"enabled":bool?}` |
 | Make Subclip | `clip.make_subclip` | shipped |  | `{"track_id":int,"clip_index":int,"name":str?}` |
 | Frame Fit | `clip.frame_fit` | shipped |  | `{"track_id":int,"clip_index":int,"mode":str}` |
 | Replace Clip Media | `timeline.replace_media` | shipped |  | `{"track_id":int,"clip_index":int,"media_id":int}` |
@@ -239,6 +241,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Go to Previous Caption Segment | `caption.previous` | shipped |  | `{"from":obj,"track_id":int?}` |
 | Hide All Caption Tracks | `caption.tracks_hide` | shipped |  | `{"track_ids":[int]?}` |
 | Show All Caption Tracks | `caption.tracks_show` | shipped |  | `{"track_ids":[int]?}` |
+| Show Active Caption Track Only | `caption.show_active_only` | shipped |  | `{}` |
 | Go to Sequence Start | `playhead.start` | shipped | Home | `{}` |
 | Go to Sequence End | `playhead.end` | shipped | End | `{}` |
 | Next Edit Point | `playhead.next_edit` | shipped | Down | `{}` |
@@ -283,6 +286,8 @@ Generated from the command catalogue. Do not edit by hand.
 | Extract | `sequence.extract` | shipped | ' | `{"ranges":obj}` |
 | Add Edit to All Tracks | `sequence.add_edit_all_tracks` | shipped |  | `{"at":ticks}` |
 | Sequence Settings | `sequence.settings` | shipped |  | `{"width":int?,"height":int?,"frame_rate":obj?}` |
+| Linked Selection | `sequence.linked_selection` | shipped |  | `{}` |
+| Selection Follows Playhead | `sequence.selection_follows_playhead` | shipped |  | `{}` |
 | Inspect Sequence | `sequence.inspect` | shipped |  | `{}` |
 | Close Sequence | `sequence.close` | shipped |  | `{}` |
 | Reveal Nested Sequence | `sequence.reveal_nested` | shipped |  | `{"track_id":int,"clip_index":int}` |

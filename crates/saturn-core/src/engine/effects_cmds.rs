@@ -322,6 +322,7 @@ impl EditorEngine {
                     compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                enabled: true,
                 };
                 let track = &mut self.document.project.sequence.tracks[track_index];
                 track.clips.push(clip);

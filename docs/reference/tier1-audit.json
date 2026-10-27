@@ -104,7 +104,9 @@
  },
  "captions.showActiveOnly": {
   "label": "Show Active Caption Tracks Only",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "caption.show_active_only",
+  "note": "hides every track then shows activeTrackId via caption.tracks_hide/show"
  },
  "captions.showAll": {
   "label": "Show All Caption Tracks",
@@ -176,7 +178,9 @@
  },
  "clip.enable": {
   "label": "Enable",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "clip.set_enabled",
+  "note": "engine toggles when enabled omitted; disabled clips render and play nothing"
  },
  "clip.extractAudio": {
   "label": "Extract Audio",
@@ -1244,7 +1248,9 @@
  },
  "media.createProxies": {
   "label": "Create Proxies…",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "media.create_proxies",
+  "note": "prepare_video_preview job per video asset without a proxy, then media.attach_proxy"
  },
  "media.detachProxies": {
   "label": "Detach Proxies",
@@ -1278,7 +1284,8 @@
  },
  "media.proxyPresets": {
   "label": "Proxy Presets",
-  "disposition": "new"
+  "disposition": "na",
+  "note": "single fixed proxy profile: 1280x720 VP9 webm preview proxies; no preset system"
  },
  "media.reconnectFullRes": {
   "label": "Reconnect Full Resolution Media…",
@@ -1754,7 +1761,9 @@
  },
  "sequence.linkedSelection": {
   "label": "Linked Selection",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "sequence.linked_selection",
+  "note": "editor-held mode; clip selection expands across Clip.group_id link groups"
  },
  "sequence.makeSubsequence": {
   "label": "Make Subsequence",
@@ -1843,7 +1852,9 @@
  },
  "sequence.selectionFollowsPlayhead": {
   "label": "Selection Follows Playhead",
-  "disposition": "new"
+  "disposition": "new",
+  "eep": "sequence.selection_follows_playhead",
+  "note": "editor-held mode; playhead moves select the clip under them"
  },
  "sequence.setTransition": {
   "label": "Edit Transition Settings",

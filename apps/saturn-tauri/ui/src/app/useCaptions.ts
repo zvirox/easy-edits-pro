@@ -320,6 +320,24 @@ export function useCaptions({
     }
   }, [runCommand, refreshProject, setNotice]);
 
+  /** FC Show Active Caption Tracks Only: solo the active track. */
+  const showActiveTrackOnly = useCallback(async () => {
+    if (activeTrackId == null) {
+      setNotice("No active caption track to keep visible");
+      return;
+    }
+    try {
+      await runCommand("caption.tracks_hide", {});
+      await runCommand<{ shown: number }>("caption.tracks_show", {
+        track_ids: [activeTrackId],
+      });
+      await refreshProject();
+      setNotice("Showing the active caption track only");
+    } catch (error) {
+      setNotice(String(error));
+    }
+  }, [activeTrackId, runCommand, refreshProject, setNotice]);
+
   const importCues = useCallback(async () => {
     const selected = await open({ multiple: false, filters: SRT_VTT_FILTERS });
     if (typeof selected !== "string" || !selected) return;
@@ -526,6 +544,10 @@ export function useCaptions({
         await showAllTracks();
         return true;
       }
+      if (id === "caption.show_active_only") {
+        await showActiveTrackOnly();
+        return true;
+      }
       if (id === "caption.cue_select") {
         // UI-only: the selection lives in the panel; the engine stays out.
         selectAllCues();
@@ -549,6 +571,7 @@ export function useCaptions({
       previousCue,
       hideAllTracks,
       showAllTracks,
+      showActiveTrackOnly,
       selectAllCues,
       revealActiveCue,
       handlePanelGesture,

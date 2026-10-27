@@ -792,6 +792,11 @@ fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline, String> {
         let effective_gain_db = if is_audible { track.gain_db } else { -120.0 };
         let layer = timeline.append_layer();
         for (clip_index, clip) in track.clips.iter().enumerate() {
+            if !clip.enabled {
+                // FC Enable: disabled clips stay on the timeline but render
+                // nothing (no picture, no sound).
+                continue;
+            }
             let (render_start, render_source_in, render_duration) =
                 transition_clip_timing(track, clip);
             let media = document

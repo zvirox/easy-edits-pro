@@ -214,6 +214,8 @@ export type Clip = {
   node_graph?: NodeGraph | null;
   compound_sequence_id?: number | null;
   label?: string;
+  /** FC Enable: disabled clips stay on the timeline but play nothing. */
+  enabled?: boolean;
 };
 
 export type Track = {

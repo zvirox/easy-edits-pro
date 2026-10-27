@@ -185,7 +185,12 @@ const emptyResult: TimelinePlaybackSnapshot = {
 
 if (!project) return emptyResult;
 
-const tracks = project.project.sequence.tracks;
+// FC Enable: disabled clips stay on the timeline but play nothing, so every
+// downstream gather (audio, title, visual) sees them filtered out here.
+const tracks = project.project.sequence.tracks.map((track) => ({
+  ...track,
+  clips: track.clips.filter((clip) => clip.enabled !== false),
+}));
 const projectWidth = project.project.settings.width || 1920;
 const projectHeight = project.project.settings.height || 1080;
 const subtitles = (project.project.sequence.caption_tracks ?? [])

@@ -104,6 +104,7 @@ impl EditorEngine {
                     compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                enabled: true,
                 });
                 Ok(json!({"track_id": track.id, "clip_index": track.clips.len() - 1}))
             })()),
@@ -333,6 +334,20 @@ impl EditorEngine {
                     "clip_index": params.clip_index,
                     "track_id": params.track_id,
                     "volume_db": clip.volume_db,
+                }))
+            })()),
+            "clip.set_enabled" => Some((|| {
+                let params: SetClipEnabledParams = parse_params(params)?;
+                let track_index = find_track_index(&self.document, params.track_id)?;
+                find_clip(&self.document, track_index, params.clip_index)?;
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[track_index].clips
+                    [params.clip_index];
+                clip.enabled = params.enabled.unwrap_or(!clip.enabled);
+                Ok(json!({
+                    "clip_index": params.clip_index,
+                    "track_id": params.track_id,
+                    "enabled": clip.enabled,
                 }))
             })()),
             "timeline.replace_media" => Some((|| {

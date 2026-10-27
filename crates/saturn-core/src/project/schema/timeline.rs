@@ -16,6 +16,10 @@ pub struct TrackGroup {
     pub locked: bool,
 }
 
+fn default_true() -> bool {
+    true
+}
+
 fn default_track_group_color() -> String {
     "#a855f7".into()
 }
@@ -224,4 +228,7 @@ pub struct Clip {
     /// Per-clip audio trim in dB, applied on top of the track gain.
     #[serde(default)]
     pub volume_db: f64,
+    /// FC Enable: disabled clips stay on the timeline but render nothing.
+    #[serde(default = "default_true")]
+    pub enabled: bool,
 }

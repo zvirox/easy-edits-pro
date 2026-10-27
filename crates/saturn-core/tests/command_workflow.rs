@@ -6193,3 +6193,94 @@ fn interop_export_round_trip_and_save_copy_workflow() {
 
     std::fs::remove_dir_all(&dir).ok();
 }
+
+#[test]
+fn clip_set_enabled_toggle_explicit_and_persistence_workflow() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.new",
+            json!({"name":"Enable Test"}),
+        ))
+        .unwrap();
+    let media = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name":"a.mp4", "path":"/assets/a.mp4", "kind":"video", "width":1280, "height":720, "duration": 30 * TICKS_PER_SECOND}),
+        ))
+        .unwrap()["media_id"]
+        .as_u64()
+        .unwrap();
+    let track_id = engine.document().project.sequence.tracks[0].id;
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"track_id": track_id, "media_id": media, "timeline_start": 0, "source_in": 0, "duration": 4 * TICKS_PER_SECOND}),
+        ))
+        .unwrap();
+
+    // New clips default to enabled (serde default covers pre-alpha.26 files).
+    assert!(engine.document().project.sequence.tracks[0].clips[0].enabled);
+
+    // Omitted `enabled` toggles to disabled.
+    let res = engine
+        .execute(CommandRequest::new(
+            "clip.set_enabled",
+            json!({"track_id": track_id, "clip_index": 0}),
+        ))
+        .unwrap();
+    assert_eq!(res["enabled"].as_bool(), Some(false));
+    assert!(!engine.document().project.sequence.tracks[0].clips[0].enabled);
+
+    // Explicit true re-enables; explicit false disables again.
+    let res = engine
+        .execute(CommandRequest::new(
+            "clip.set_enabled",
+            json!({"track_id": track_id, "clip_index": 0, "enabled": true}),
+        ))
+        .unwrap();
+    assert_eq!(res["enabled"].as_bool(), Some(true));
+    engine
+        .execute(CommandRequest::new(
+            "clip.set_enabled",
+            json!({"track_id": track_id, "clip_index": 0, "enabled": false}),
+        ))
+        .unwrap();
+    assert!(!engine.document().project.sequence.tracks[0].clips[0].enabled);
+
+    // Undo walks the explicit-set history back one step.
+    engine
+        .execute(CommandRequest::new("edit.undo", serde_json::Value::Null))
+        .unwrap();
+    assert!(engine.document().project.sequence.tracks[0].clips[0].enabled);
+
+    // The disabled state survives a save/load round-trip; a project saved
+    // before this field existed (the key stripped from the JSON) loads as
+    // enabled through the serde default.
+    let dir = std::env::temp_dir().join("saturn-clip-set-enabled-test");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "clip.set_enabled",
+            json!({"track_id": track_id, "clip_index": 0, "enabled": false}),
+        ))
+        .unwrap();
+    let path = dir.join("enabled.saturn");
+    engine
+        .execute(CommandRequest::new("file.save", json!({"path": path})))
+        .unwrap();
+    let loaded = saturn_core::ProjectDocument::load(&path).unwrap();
+    assert!(!loaded.project.sequence.tracks[0].clips[0].enabled);
+
+    // Pre-alpha.26 documents carry no `enabled` key at all.
+    let mut legacy_value =
+        serde_json::to_value(&saturn_core::ProjectDocument::load(&path).unwrap()).unwrap();
+    legacy_value["project"]["sequence"]["tracks"][0]["clips"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("enabled");
+    let legacy_doc: saturn_core::ProjectDocument = serde_json::from_value(legacy_value).unwrap();
+    assert!(legacy_doc.project.sequence.tracks[0].clips[0].enabled);
+    std::fs::remove_dir_all(&dir).ok();
+}

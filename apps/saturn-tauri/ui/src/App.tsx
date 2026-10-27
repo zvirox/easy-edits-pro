@@ -11,6 +11,7 @@ import { useMediaOperations } from "./app/useMediaOperations";
 import { useProjectPanel } from "./app/useProjectPanel";
 import { useTimelineOperations } from "./app/useTimelineOperations";
 import { pickFirstTimelineClip, setPrimaryClip } from "./app/selectionStore";
+import { useSelectionFollowsPlayhead } from "./app/useSelectionFollowsPlayhead";
 import { useInspectorOperations } from "./app/useInspectorOperations";
 import { useProjectOperations } from "./app/useProjectOperations";
 import { useAudioWorkspace } from "./app/useAudioWorkspace";
@@ -261,12 +262,8 @@ function EditorApp() {
     setNotice,
   });
 
-  const mediaHygiene = useMediaHygiene({
-    runCommand,
-    refreshProject,
-    setNotice,
-    setBusy,
-  });
+  const mediaHygiene = useMediaHygiene({ runCommand, refreshProject, setNotice, setBusy, media });
+  useSelectionFollowsPlayhead(project, playback.playhead);
 
   const nodeGraphOps = useNodeGraph({
     project,
@@ -292,12 +289,7 @@ function EditorApp() {
   }, [timelineOps.timelineTrackHeight]);
 
   useEffect(() => {
-    menuContext.current = {
-      selectedClip: timelineOps.selectedClip,
-      selectedClips: timelineOps.selectedClips,
-      playhead: playback.playhead,
-      project,
-    };
+    menuContext.current = { selectedClip: timelineOps.selectedClip, selectedClips: timelineOps.selectedClips, playhead: playback.playhead, project };
   }, [timelineOps.selectedClip, timelineOps.selectedClips, playback.playhead, project]);
 
   // F1: auto-select the first V1 clip once per sequence load so the
@@ -541,6 +533,9 @@ function EditorApp() {
           return;
         case "media.toggle_proxies":
           void mediaHygiene.toggleProxies();
+          return;
+        case "media.create_proxies":
+          void mediaHygiene.createProxies();
           return;
         case "history.list":
           setHistoryOpen(true);

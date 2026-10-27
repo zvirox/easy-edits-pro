@@ -760,6 +760,26 @@
   },
   {
     "aliases": [
+      "enable",
+      "disable clip",
+      "toggle clip"
+    ],
+    "category": "Clip",
+    "id": "clip.set_enabled",
+    "label": "Enable Clip",
+    "menu": [
+      "Clip"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"enabled\":bool?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "gesture"
+  },
+  {
+    "aliases": [
       "create subclip"
     ],
     "category": "Clip",
@@ -2786,6 +2806,25 @@
   },
   {
     "aliases": [
+      "generate proxies",
+      "proxy media"
+    ],
+    "category": "File",
+    "id": "media.create_proxies",
+    "label": "Create Proxies",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
       "save recovery snapshot"
     ],
     "category": "File",
@@ -3216,6 +3255,25 @@
     "since": "0.2.1",
     "uiOnly": false,
     "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "solo caption track"
+    ],
+    "category": "Sequence",
+    "id": "caption.show_active_only",
+    "label": "Show Active Caption Track Only",
+    "menu": [
+      "Sequence",
+      "Captions"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
   },
   {
     "aliases": [
@@ -5715,6 +5773,43 @@
     "since": "0.1.0",
     "uiOnly": false,
     "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "linked select",
+      "group selection follows"
+    ],
+    "category": "Sequence",
+    "id": "sequence.linked_selection",
+    "label": "Linked Selection",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "auto select at playhead"
+    ],
+    "category": "Sequence",
+    "id": "sequence.selection_follows_playhead",
+    "label": "Selection Follows Playhead",
+    "menu": [
+      "Sequence"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "uiOnly": true,
+    "undoGroup": "none"
   },
   {
     "aliases": [

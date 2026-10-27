@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
 
 /**
  * Media lifecycle plumbing behind the File menu and the media pool: offline
@@ -31,6 +32,8 @@ export interface MediaHygieneOps {
   /** Picks a proxy file for the asset. */
   attachProxy: (mediaId: number) => Promise<void>;
   detachProxy: (mediaId: number) => Promise<void>;
+  /** Generates preview proxies for video assets missing one. */
+  createProxies: () => Promise<void>;
   /** Flips the project-wide proxy playback flag. */
   toggleProxies: () => Promise<void>;
   colorInfo: (mediaId: number) => Promise<ColorInfo | null>;
@@ -41,11 +44,14 @@ export function useMediaHygiene({
   refreshProject,
   setNotice,
   setBusy,
+  media,
 }: {
   runCommand: <T = unknown>(id: string, params?: unknown) => Promise<T>;
   refreshProject: () => Promise<unknown>;
   setNotice: (message: string) => void;
   setBusy: (busy: boolean) => void;
+  /** The media pool; Create Proxies scans video assets against it. */
+  media: Array<{ id: number; kind: string; path: string; proxy_path?: string | null }>;
 }): MediaHygieneOps {
   const [searchFocusTick, setSearchFocusTick] = useState(0);
 
@@ -171,6 +177,46 @@ export function useMediaHygiene({
     }
   }, [runCommand, refreshProject, setNotice]);
 
+  /** FC Create Proxies: decode preview proxies for video assets missing one. */
+  const createProxies = useCallback(async () => {
+    const pending = media.filter(
+      (asset) => asset.kind === "video" && !asset.proxy_path,
+    );
+    if (pending.length === 0) {
+      setNotice("Every video asset already has a proxy");
+      return;
+    }
+    setBusy(true);
+    let created = 0;
+    let failed = 0;
+    try {
+      for (const asset of pending) {
+        try {
+          const proxyPath = await invoke<string>("prepare_video_preview", {
+            path: asset.path,
+          });
+          // WebM sources already decode natively; the job returns the source
+          // path itself, so there is nothing to attach.
+          if (proxyPath && proxyPath !== asset.path) {
+            await runCommand("media.attach_proxy", {
+              media_id: asset.id,
+              path: proxyPath,
+            });
+          }
+          created += 1;
+        } catch {
+          failed += 1;
+        }
+      }
+      await refreshProject();
+      setNotice(
+        `Proxies: ${created} created` + (failed ? `, ${failed} failed` : ""),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }, [media, runCommand, refreshProject, setNotice, setBusy]);
+
   const colorInfo = useCallback(
     async (mediaId: number) => {
       try {
@@ -192,6 +238,7 @@ export function useMediaHygiene({
     makeOffline,
     attachProxy,
     detachProxy,
+    createProxies,
     toggleProxies,
     colorInfo,
   };

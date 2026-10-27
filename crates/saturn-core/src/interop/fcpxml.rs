@@ -153,6 +153,7 @@ pub fn import_fcpxml(xml: &str) -> Result<ProjectDocument, String> {
                     compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                enabled: true,
                 });
             }
         }

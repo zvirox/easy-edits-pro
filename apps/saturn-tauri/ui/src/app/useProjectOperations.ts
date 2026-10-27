@@ -26,6 +26,7 @@ import {
 import { createEnqueueExport } from "./enqueueExport";
 import { useSpeechOperations } from "./useSpeechOperations";
 import { createFileProjectFlows } from "./useFileProjectFlows";
+import { isSelectionModeCommand, toggleSelectionModeCommand } from "./selectionModes";
 import {
   frameRateOptions,
   recentProjectsKey,
@@ -36,8 +37,6 @@ const projectFilters = [{ name: "Easy Edits Pro project", extensions: ["saturn"]
 
 export type RecentProject = { name: string; path: string };
 export type AppStage = "welcome" | "loading" | "editor";
-
-export { frameRateOptions, resolutionPresets };
 
 export interface UseProjectOperationsOptions {
   projectState: ProjectStatus | null;
@@ -153,10 +152,7 @@ export function useProjectOperations({
 
   const ensureDiscardIsOkay = useCallback(async () => {
     if (!projectState?.is_dirty) return true;
-    return confirm("Discard unsaved changes?", {
-      title: "Easy Edits Pro",
-      kind: "warning",
-    });
+    return confirm("Discard unsaved changes?", { title: "Easy Edits Pro", kind: "warning" });
   }, [projectState?.is_dirty]);
 
   const closeToWelcome = useCallback(() => {
@@ -545,6 +541,11 @@ export function useProjectOperations({
   const invokeMenuCommand = useCallback(
     async (id: string, explicitParams?: unknown) => {
       if (await fileFlows.handleFileCommand(id)) return;
+      // Editor-held modes never reach the engine: intercept before fall-through.
+      if (isSelectionModeCommand(id)) {
+        setNotice(toggleSelectionModeCommand(id));
+        return;
+      }
       switch (id) {
         case "project.new":
           setNewProjectOpen(true);

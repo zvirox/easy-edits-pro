@@ -140,6 +140,7 @@ fn document_with_title_and_graphic() -> ProjectDocument {
             compound_sequence_id: None,
             label: String::new(),
             volume_db: 0.0,
+                enabled: true,
         }],
         transitions: vec![],
     });

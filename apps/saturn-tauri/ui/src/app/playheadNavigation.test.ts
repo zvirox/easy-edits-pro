@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  findClipAtPlayhead,
   parseTimecode,
   resolveGapCommand,
   resolvePlayheadCommand,
@@ -227,4 +228,65 @@ test("non-gap ids fall through as null", () => {
     }),
     null,
   );
+});
+
+const t = (start: number, duration: number, enabled?: boolean) => ({
+  timeline_start: start,
+  duration,
+  ...(enabled === undefined ? {} : { enabled }),
+});
+const layeredProject = {
+  sequence: {
+    tracks: [
+      {
+        id: 2,
+        kind: "video",
+        clips: [t(0, 2), t(2, 2)],
+      },
+      {
+        id: 1,
+        kind: "video",
+        clips: [t(0, 4)],
+      },
+      {
+        id: 3,
+        kind: "audio",
+        clips: [t(0, 4)],
+      },
+      {
+        id: 4,
+        kind: "video",
+        clips: [t(0, 1), t(1, 3, false)],
+      },
+    ],
+  },
+} as unknown as ProjectDocument["project"];
+
+test("findClipAtPlayhead picks the clip under the playhead, topmost video track", () => {
+  assert.deepEqual(findClipAtPlayhead(layeredProject, 0), { track_id: 2, clip_index: 0 });
+  assert.deepEqual(findClipAtPlayhead(layeredProject, 3), { track_id: 2, clip_index: 1 });
+});
+
+test("findClipAtPlayhead skips disabled clips and falls through to lower tracks", () => {
+  // Track 4 is topmost here? No: track 2 covers it. Disable track 2's clips to
+  // exercise the fall-through path.
+  const disabledTop = {
+    sequence: {
+      tracks: [
+        { id: 2, kind: "video", clips: [t(0, 4, false)] },
+        { id: 1, kind: "video", clips: [t(0, 4, true)] },
+      ],
+    },
+  } as unknown as ProjectDocument["project"];
+  assert.deepEqual(findClipAtPlayhead(disabledTop, 1), { track_id: 1, clip_index: 0 });
+  // Disabled clip fully covering the playhead on the only video track.
+  const disabledOnly = {
+    sequence: { tracks: [{ id: 5, kind: "video", clips: [t(0, 4, false)] }] },
+  } as unknown as ProjectDocument["project"];
+  assert.equal(findClipAtPlayhead(disabledOnly, 1), null);
+});
+
+test("findClipAtPlayhead returns null off-clip and for null projects", () => {
+  assert.equal(findClipAtPlayhead(layeredProject, 99), null);
+  assert.equal(findClipAtPlayhead(null, 0), null);
 });
