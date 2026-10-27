@@ -165,13 +165,6 @@ export function useProjectOperations({
     setAppStage("welcome");
   }, [setSelectedClip, setSelectedClips, setSelectedTransition, setSelectedMediaId, setPlayhead]);
 
-  const fileFlows = createFileProjectFlows({
-    project, projectPath: projectState?.path ?? null, perform, runCommand, setNotice,
-    refreshProject, rememberProject,
-    getPlayhead: () => getMenuContext().playhead,
-    closeToWelcome,
-  });
-
   const loadProjectFromPath = useCallback(
     async (path: string) => {
       const previousStage = appStage;
@@ -197,6 +190,13 @@ export function useProjectOperations({
     },
     [appStage, runCommand, setSelectedClip, setSelectedClips, setSelectedTransition, setSelectedMediaId, setPlayhead, refreshProject, rememberProject, setNotice]
   );
+
+  const fileFlows = createFileProjectFlows({
+    project, projectPath: projectState?.path ?? null, perform, setNotice,
+    refreshProject, rememberProject, closeToWelcome,
+    getPlayhead: () => getMenuContext().playhead,
+    loadProjectFromPath,
+  });
 
   const openProject = useCallback(
     async (path?: string) => {

@@ -5,6 +5,7 @@ import {
   isLinkedSelection,
   isSelectionModeCommand,
   isSelectionFollowsPlayhead,
+  sequenceAutoSelectIdentity,
   setLinkedSelection,
   setSelectionFollowsPlayhead,
   toggleSelectionModeCommand,
@@ -56,4 +57,31 @@ test("expandLinkedClip returns null for unlinked clips, empty projects, and out-
   assert.equal(expandLinkedClip(project, { track_id: 3, clip_index: 0 }), null);
   assert.equal(expandLinkedClip(null, { track_id: 1, clip_index: 0 }), null);
   assert.equal(expandLinkedClip(project, { track_id: 99, clip_index: 0 }), null);
+});
+
+// E.4 seam: F1 auto-select across projects. Every fresh project's default
+// sequence has id 1, so a guard keyed on the bare sequence id meant opening a
+// second project never auto-selected (Inspector docks came up dead). The key
+// must mix in the document identity so the same sequence id in another
+// document produces a different key.
+
+test("sequenceAutoSelectIdentity separates two projects sharing sequence id 1", () => {
+  const first = sequenceAutoSelectIdentity("/a/movie.saturn", "Movie A", 1);
+  const second = sequenceAutoSelectIdentity("/b/movie.saturn", "Movie B", 1);
+  assert.notEqual(first, second, "project B's sequence 1 must not match project A's");
+});
+
+test("sequenceAutoSelectIdentity is stable for the same document and sequence", () => {
+  const key = sequenceAutoSelectIdentity("/a/movie.saturn", "Movie A", 1);
+  assert.equal(sequenceAutoSelectIdentity("/a/movie.saturn", "Movie A", 1), key);
+  // A different sequence id in the same document re-arms the auto-select
+  // (switching tabs should pick that sequence's first clip).
+  assert.notEqual(sequenceAutoSelectIdentity("/a/movie.saturn", "Movie A", 2), key);
+});
+
+test("sequenceAutoSelectIdentity distinguishes an unsaved draft from a saved path", () => {
+  assert.notEqual(
+    sequenceAutoSelectIdentity(null, "Draft", 1),
+    sequenceAutoSelectIdentity("/tmp/draft.saturn", "Draft", 1),
+  );
 });

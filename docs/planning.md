@@ -1083,7 +1083,7 @@ schema, absolute media paths).
 - docs/distribution.md gains the beta delivery matrix (deb/rpm
   verified; Flatpak manifest decision recorded before any claim).
 
-### E.4 QAT hardening of the audited seams
+### E.4 QAT hardening of the audited seams — DONE (first sweep batch)
 
 - Sweep the twelve audited command families for interactive edge cases:
   undo across autosave checkpoints, save/reopen with disabled
@@ -1091,6 +1091,34 @@ schema, absolute media paths).
   state after sequence switch, selection-mode flags across project
   switches.
 - Each reproduced quirk gets a regression test per the triage playbook.
+- Dispositions (all pinned by regression tests, engine-side in
+  `saturn-core/src/engine/tests/`, UI-side as node tests over pure helpers):
+  - *Undo across autosave*: safe by construction — `restore_recovery`
+    clears undo/redo/labels and re-arms the autosave; pinned by
+    `restore_recovery_clears_history_and_re_arms_autosave`.
+  - *Disabled clips (clip.set_enabled)*: undoable, persists through
+    save/reopen, legacy projects without the `enabled` field load with
+    clips enabled; pinned by the history round-trip tests.
+  - *Proxy attach vs missing cache*: `media.attach_proxy` validates the
+    file exists; detach of nothing errors honestly. Known tail moved to
+    E.5: nothing consumes `proxy_path`/`use_proxies` for playback yet
+    (`preparedPreviews` stays `{}`), so a cache-pruned stale attachment
+    blocks regeneration — resolve when proxy playback ships.
+  - *Caption solo after sequence switch*: real quirk fixed. The editor
+    held `activeTrackId` across document switches; soloing hid all tracks
+    and showed none. Now `resolveCaptionTrackId` resolves the stored id
+    against the live sequence (stale id falls back to the first track);
+    engine contract (unknown ids are no-ops) pinned.
+  - *Auto-select across project switches*: real quirk fixed. The F1
+    auto-select guard was keyed on the bare sequence id, which every fresh
+    project shares (id 1), suppressing the second project's auto-select.
+    Now keyed by `sequenceAutoSelectIdentity(path, name, sequenceId)`.
+    The linked-selection / follows-playhead toggles are session
+    preferences by design (the engine never sees selection) — carried
+    across projects intentionally.
+  - *Bonus quirk*: `file.revert` bypassed the shared open flow and left
+    editor-held selection/playhead stale; it now routes through
+    `loadProjectFromPath` (guarded by a node wiring test).
 
 ### E.5 Packaging polish (before any beta tag)
 
@@ -1099,6 +1127,10 @@ schema, absolute media paths).
   documented either way; no claim without the launch result.
 - rpm/deb lint pass (file conflicts, desktop validation), SHA256SUMS
   already proven.
+- Proxy playback tail from E.4: `proxy_path`/`use_proxies` are persisted
+  but nothing consumes them for playback yet; when proxy playback ships,
+  resolve regeneration over stale/pruned cache attachments (an attached
+  path can dangle after the age-based startup prune).
 
 ### E.6 Known-limits review (docs-facing, optional)
 

@@ -18,3 +18,22 @@ export function defaultCaptionTrack(sequence: SequenceLike): CaptionTrack | null
 export function defaultCaptionCues(sequence: SequenceLike): SubtitleItem[] {
   return defaultCaptionTrack(sequence)?.cues ?? [];
 }
+
+/**
+ * The caption track id the editor should act on: the stored active track when
+ * the live sequence still carries it, else the first track, else `null`.
+ * The editor holds `activeTrackId` across sequence and document switches, so
+ * the stored id can go stale; sending a stale id to the engine is harmful -
+ * `caption.tracks_hide/show` match unknown ids against nothing, which turns
+ * "solo this track" into "hide every track and show none".
+ */
+export function resolveCaptionTrackId(
+  activeTrackId: number | null,
+  tracks: Array<{ id: number }> | null | undefined,
+): number | null {
+  if (!tracks || tracks.length === 0) return null;
+  if (activeTrackId != null && tracks.some((track) => track.id === activeTrackId)) {
+    return activeTrackId;
+  }
+  return tracks[0].id;
+}

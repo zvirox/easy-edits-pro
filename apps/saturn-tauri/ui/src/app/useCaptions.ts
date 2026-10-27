@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import type { CaptionStyle, CaptionTrack, ProjectDocument, SubtitleItem } from "./projectTypes";
+import { resolveCaptionTrackId } from "./captions";
 import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
 import { TICKS_PER_SECOND } from "../utils/formatters.ts";
 
@@ -84,8 +85,8 @@ export function useCaptions({
 
   const captionTracks = useMemo(() => project?.sequence.caption_tracks ?? [], [project?.sequence]);
   const track = useMemo(() => {
-    if (captionTracks.length === 0) return null;
-    return captionTracks.find((entry) => entry.id === activeTrackId) ?? captionTracks[0];
+    const id = resolveCaptionTrackId(activeTrackId, captionTracks);
+    return captionTracks.find((entry) => entry.id === id) ?? null;
   }, [captionTracks, activeTrackId]);
   const cues = useMemo(() => track?.cues ?? [], [track]);
 
@@ -320,23 +321,27 @@ export function useCaptions({
     }
   }, [runCommand, refreshProject, setNotice]);
 
-  /** FC Show Active Caption Tracks Only: solo the active track. */
+  /** FC Show Active Caption Tracks Only: solo the active track. The id is
+   * resolved against the live sequence first - a stale activeTrackId from a
+   * previous sequence/document would solo nothing and hide everything
+   * (the engine matches unknown ids against no track). */
   const showActiveTrackOnly = useCallback(async () => {
-    if (activeTrackId == null) {
+    const trackId = resolveCaptionTrackId(activeTrackId, captionTracks);
+    if (trackId == null) {
       setNotice("No active caption track to keep visible");
       return;
     }
     try {
       await runCommand("caption.tracks_hide", {});
       await runCommand<{ shown: number }>("caption.tracks_show", {
-        track_ids: [activeTrackId],
+        track_ids: [trackId],
       });
       await refreshProject();
       setNotice("Showing the active caption track only");
     } catch (error) {
       setNotice(String(error));
     }
-  }, [activeTrackId, runCommand, refreshProject, setNotice]);
+  }, [activeTrackId, captionTracks, runCommand, refreshProject, setNotice]);
 
   const importCues = useCallback(async () => {
     const selected = await open({ multiple: false, filters: SRT_VTT_FILTERS });

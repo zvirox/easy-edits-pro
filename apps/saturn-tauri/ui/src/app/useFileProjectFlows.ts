@@ -13,12 +13,14 @@ export interface FileFlowOptions {
   project: { name: string } | null;
   projectPath: string | null;
   perform: (id: string, params?: unknown, msg?: string) => Promise<boolean>;
-  runCommand: <T = unknown>(id: string, params?: unknown) => Promise<T>;
   setNotice: (msg: string) => void;
   refreshProject: () => Promise<{ document: { project: { name: string } }; path: string | null }>;
   rememberProject: (name: string, path: string) => void;
   getPlayhead: () => number;
   closeToWelcome: () => void;
+  /** The shared open-project flow: revert routes through it so the editor
+   * resets selection/playhead exactly like File > Open does. */
+  loadProjectFromPath: (path: string) => Promise<void>;
 }
 
 const projectFilters = [{ name: "Easy Edits Pro project", extensions: ["saturn"] }];
@@ -29,7 +31,7 @@ const projectFilters = [{ name: "Easy Edits Pro project", extensions: ["saturn"]
  * the owner of project state, these only drive it through existing commands.
  */
 export function createFileProjectFlows(options: FileFlowOptions) {
-  const { project, projectPath, perform, runCommand, setNotice, getPlayhead, closeToWelcome } =
+  const { project, projectPath, perform, setNotice, getPlayhead, closeToWelcome, loadProjectFromPath } =
     options;
 
   const saveTo = async (copy: boolean) => {
@@ -189,9 +191,11 @@ export function createFileProjectFlows(options: FileFlowOptions) {
           { title: "Revert project", kind: "warning" },
         );
         if (!proceed) return true;
-        const restored = await runCommand<{ name: string }>("file.open", { path: projectPath });
-        await options.refreshProject();
-        setNotice(`Reverted to ${restored.name}`);
+        // Route through the shared open flow instead of a bare file.open:
+        // reverting replaces the document, so editor-held selection and the
+        // playhead must reset the same way File > Open resets them.
+        await loadProjectFromPath(projectPath);
+        setNotice(`Reverted to ${project?.name ?? "the saved project"}`);
         return true;
       }
       case "file.close":

@@ -52,6 +52,18 @@ export function setSelectionFollowsPlayhead(on: boolean): boolean {
   return selectionFollowsPlayhead;
 }
 
+/** One auto-select per (document, sequence) load. The key must include the
+ * document identity, not the bare sequence id: every fresh project's default
+ * sequence has id 1, so a bare id suppresses the auto-select of the NEXT
+ * project opened (Inspector docks come up dead until a manual click). */
+export function sequenceAutoSelectIdentity(
+  path: string | null | undefined,
+  projectName: string | null | undefined,
+  sequenceId: number,
+): string {
+  return `${path ?? "unsaved"}#${projectName ?? ""}#${sequenceId}`;
+}
+
 /** Every catalogue id this module owns (captions/media flows live elsewhere). */
 const SELECTION_MODE_COMMANDS = new Set([
   "sequence.linked_selection",

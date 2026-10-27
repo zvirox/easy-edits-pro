@@ -8,6 +8,29 @@ import { invoke } from "@tauri-apps/api/core";
  * proxy state commands (attach/detach/toggle). Mutations run through the
  * Rust engine; the UI only collects gestures and reports results.
  */
+
+/** The video assets Create Proxies should serve. A proxy path is only
+ * validated at attach time while the preview cache prunes by age, so an
+ * attached path can later dangle; nothing reads proxy_path for playback yet,
+ * and probing every video asset through prepare_video_preview (cache hit =
+ * cheap) would spam the job queue, so regeneration over stale attachments is
+ * the recorded E.5 tail. The predicate pins today's "missing one" contract. */
+export function videoAssetsMissingProxy(
+  media: Array<{ id: number; kind: string; path: string; proxy_path?: string | null }>,
+): Array<{ id: number; kind: string; path: string; proxy_path?: string | null }> {
+  return media.filter((asset) => asset.kind === "video" && !asset.proxy_path);
+}
+
+/** Whether a prepared proxy job result changes the asset state: WebM sources
+ * come back as the source path itself (decode natively, attach nothing), and
+ * an already-attached identical path is a no-op revalidate. */
+export function shouldAttachPreparedProxy(
+  asset: { path: string; proxy_path?: string | null },
+  prepared: string | null | undefined,
+): boolean {
+  return Boolean(prepared) && prepared !== asset.path && prepared !== asset.proxy_path;
+}
+
 export type ColorInfo = {
   media_id: number;
   name: string;
@@ -179,9 +202,7 @@ export function useMediaHygiene({
 
   /** FC Create Proxies: decode preview proxies for video assets missing one. */
   const createProxies = useCallback(async () => {
-    const pending = media.filter(
-      (asset) => asset.kind === "video" && !asset.proxy_path,
-    );
+    const pending = videoAssetsMissingProxy(media);
     if (pending.length === 0) {
       setNotice("Every video asset already has a proxy");
       return;
@@ -195,9 +216,7 @@ export function useMediaHygiene({
           const proxyPath = await invoke<string>("prepare_video_preview", {
             path: asset.path,
           });
-          // WebM sources already decode natively; the job returns the source
-          // path itself, so there is nothing to attach.
-          if (proxyPath && proxyPath !== asset.path) {
+          if (shouldAttachPreparedProxy(asset, proxyPath)) {
             await runCommand("media.attach_proxy", {
               media_id: asset.id,
               path: proxyPath,

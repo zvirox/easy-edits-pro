@@ -11,6 +11,7 @@ import { useMediaOperations } from "./app/useMediaOperations";
 import { useProjectPanel } from "./app/useProjectPanel";
 import { useTimelineOperations } from "./app/useTimelineOperations";
 import { pickFirstTimelineClip, setPrimaryClip } from "./app/selectionStore";
+import { sequenceAutoSelectIdentity } from "./app/selectionModes";
 import { useSelectionFollowsPlayhead } from "./app/useSelectionFollowsPlayhead";
 import { useInspectorOperations } from "./app/useInspectorOperations";
 import { useProjectOperations } from "./app/useProjectOperations";
@@ -294,17 +295,21 @@ function EditorApp() {
 
   // F1: auto-select the first V1 clip once per sequence load so the
   // Inspector, Effects, Color, and Curves docks come up live without a
-  // manual click. Per-sequence guard avoids re-selecting after a delete.
-  const autoSelectedSequenceRef = useRef<number | null>(null);
+  // manual click. Guard keyed by (document, sequence) - a bare sequence id
+  // is shared by every fresh project, which suppressed the auto-select of
+  // the second opened project. The per-sequence guard still avoids
+  // re-selecting after a delete within one document.
+  const autoSelectedSequenceRef = useRef<string | null>(null);
   useEffect(() => {
     const sequenceId = project?.sequence.id;
     if (sequenceId == null) return;
-    if (autoSelectedSequenceRef.current === sequenceId) return;
-    autoSelectedSequenceRef.current = sequenceId;
+    const identity = sequenceAutoSelectIdentity(projectState?.path, project?.name, sequenceId);
+    if (autoSelectedSequenceRef.current === identity) return;
+    autoSelectedSequenceRef.current = identity;
     if (timelineOps.selectedClip) return;
     const first = pickFirstTimelineClip(project ?? null);
     if (first) setPrimaryClip(first);
-  }, [project, timelineOps.selectedClip]);
+  }, [project, projectState?.path, timelineOps.selectedClip]);
 
   const audioOps = useAudioWorkspace(project, perform, playback.programPlaying);
 
