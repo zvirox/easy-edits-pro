@@ -21,9 +21,14 @@ installed package launches or completes an edit on another system.
 - Software H.264 export is the verified local render path. Hardware encoding
   remains optional and unverified.
 - Flatpak is the intended supported delivery route because it can bundle known
-  WebKitGTK and GStreamer versions. A Flatpak manifest, CI artifact, and
-  install-and-launch result do not yet exist, so it is not a supported artifact
-  today.
+  WebKitGTK and GStreamer versions. The E.5 spike (2026-10-27) proved the full
+  loop inside the sandbox on GNOME 49 - build (manifest + pinned GES module in
+  `packaging/flatpak/`), user-scope install, launch, MCP-driven edit, H.264
+  render verified by ffprobe - so the decision is FOR Beta 1. It is not yet a
+  *published* artifact: no tagged release has shipped one, and the spike drive
+  used a CI dispatch build of main rather than a release asset. It becomes a
+  supported route once the manifest runs in CI against a tagged release and a
+  launch result is recorded for it.
 - AppImage is not part of the current delivery plan.
 - Future alpha and beta releases gather compatibility feedback through issue
   reports. The project does not maintain a planned external hardware matrix.
@@ -38,7 +43,7 @@ table at the bottom of this document is the actual record.
 |---|---|---|---|---|
 | .deb | CI-proven since alpha.1 | Extracted-prefix acceptance PASS (alpha.26, re-run with the extended lint); real dpkg install implemented in `--container` mode, awaiting a container daemon | Recorded via the acceptance runbook (one host, Arch laptop) | Container-mode run + one non-dev-machine report |
 | .rpm | CI-proven since alpha.1 | **Never installed anywhere** — E.5 lint PASS (alpha.26 via `--rpm`): payload, desktop-file-validate, icon set, zero conflict-prone paths; 2 recorded warnings (desktop filename contains a space, no appstream metainfo) | **No evidence** | dnf install + launch on an RPM host, or drop the artifact |
-| Flatpak | Manifest now exists (`packaging/flatpak/`); E.5 spike in progress | - | - | build + install + launch + render once, then decide for or against |
+| Flatpak | Manifest + GES module exist (`packaging/flatpak/`), built with flatpak-builder against `org.gnome.Platform//49` | Installed via a local user-scope remote (spike route; the beta CI route is the same manifest with an archive source) | **Spike PASS (E.5, 2026-10-27)** - sandboxed launch, MCP import/split/save, GUI-queued H.264 render ffprobe-verified (6.02s) on GNOME 49 `/49` with a CI dispatch build of main@3accbf9 | Decision: **FOR Beta 1**. Re-run the drive against a tagged release asset after the next tag; then one non-dev-machine report |
 | SHA256SUMS | Verified in release assets | - | - | - |
 | Windows / macOS | Not built | - | - | Out of scope for Beta 1 |
 

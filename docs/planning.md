@@ -1120,14 +1120,36 @@ schema, absolute media paths).
     editor-held selection/playhead stale; it now routes through
     `loadProjectFromPath` (guarded by a node wiring test).
 
-### E.5 Packaging polish (before any beta tag)
+### E.5 Packaging polish — DONE (2026-10-27)
 
-- Flatpak manifest spike (distribution.md names Flatpak the intended
-  supported route): build, install, launch, render once. Decision
-  documented either way; no claim without the launch result.
-- rpm/deb lint pass (file conflicts, desktop validation), SHA256SUMS
-  already proven.
-- Proxy playback tail from E.4: `proxy_path`/`use_proxies` are persisted
+- **Flatpak spike: PASS. Decision: FOR Beta 1.**
+  `packaging/flatpak/` (manifest targeting `org.gnome.Platform//49`,
+  pinned GES 1.26.11 module compiled in - no runtime ships libges,
+  validating metainfo, `make-payload.sh` from the release .deb, README
+  with the learned facts). The acceptance drive ran the full loop inside
+  the sandbox on GNOME 49: launch, MCP-bridge handshake, fixture import,
+  timeline split, save, GUI-queued render, H.264 output verified by
+  ffprobe (6.02s, work dir kept as evidence). Honest caveat: the payload
+  binary is a CI dispatch build of main@3accbf9 (the first build carrying
+  the audio-encoder rank fix below); published release assets predate it,
+  so re-run of the evidence against a tagged release asset follows the
+  next tag. Two engine facts learned and fixed en route:
+  - libav's `avenc_aac` registers at rank NONE and encodebin ignores it,
+    which broke MP4 export on runtimes without faac/vaacenc;
+    `prefer_software_audio_encoder` in `saturn-render` lifts the needed
+    audio encoder (regression test included).
+  - the sandbox `XDG_RUNTIME_DIR` is a private tmpfs; the MCP socket is
+    host-visible only through the `/run/user/<uid>` bind in the manifest.
+- **rpm/deb lint pass: DONE.** `deb_lint` extended (desktop-file-validate,
+  file-conflict scan); new `rpm_lint` + `--rpm` flag (bsdtar, no rpm
+  tooling). RPM lint PASS on alpha.26 with 2 recorded warnings (desktop
+  filename contains a space, no appstream metainfo); deb acceptance
+  re-run PASS after the runbook refactor (h264 640x360, 6.06s). Install
+  status is unchanged and honestly recorded in distribution.md: deb =
+  extracted-prefix only, rpm = never installed (lint does not change
+  that; the E.1 blocker remains a container daemon / RPM host).
+- **Proxy playback tail from E.4:** deferred until proxy playback ships
+  (unchanged): `proxy_path`/`use_proxies` are persisted
   but nothing consumes them for playback yet; when proxy playback ships,
   resolve regeneration over stale/pruned cache attachments (an attached
   path can dangle after the age-based startup prune).
