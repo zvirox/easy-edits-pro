@@ -61,14 +61,15 @@ run of the alpha.26 .deb on the development laptop (see *Known limitations*).
   Denoise is currently a high-pass filter, and full render-DSP parity is open.
 - Fusion actions, advanced Color controls, effect parameter/reordering controls,
   keyframe handle editing, and the export queue need further implementation.
-- Install evidence is honest but narrow: the alpha.26 .deb passed the scripted
-  extracted-prefix acceptance workflow (lint, launch, edit, render) on one
-  machine, which is **not** a dependency-managed install proof - the host is
-  Arch with no dpkg. The .rpm has passed lint but has never been installed
-  anywhere; the container-based real-install mode of the acceptance runbook
-  awaits a container daemon. The Flatpak spike passed on GNOME 49 (launch,
-  edit, H.264 render) and the route is planned for Beta 1, but no Flatpak
-  build has shipped in a release yet. Record your own result per
+- Install evidence is honest and recorded: the alpha.26 .deb passed the
+  scripted extracted-prefix acceptance workflow on the dev laptop, and the
+  CI install-proof jobs have proven both packages with real dependency-
+  managed installs (2026-10-27: dpkg install in debian:12 + H.264 render
+  PASS, dnf install in fedora:latest + WebM/VP8 render PASS; the .rpm
+  Requires were fixed - they named rpmfusion-only plugins). Remaining:
+  one non-dev-machine report each. The Flatpak spike passed on GNOME 49
+  (launch, edit, H.264 render) and the route is planned for Beta 1, but no
+  Flatpak build has shipped in a release yet. Record your own result per
   [docs/distribution.md](docs/distribution.md).
 - `.saturn` project files embed absolute media paths; moving a project or its
   media shows clips offline until they are relinked.

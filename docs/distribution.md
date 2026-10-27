@@ -41,8 +41,8 @@ table at the bottom of this document is the actual record.
 
 | Artifact | Build | Install | Launch and edit-to-render | Remaining step |
 |---|---|---|---|---|
-| .deb | CI-proven since alpha.1 | Extracted-prefix acceptance PASS (alpha.26, re-run with the extended lint); real dpkg install implemented in `--container` mode, awaiting a container daemon | Recorded via the acceptance runbook (one host, Arch laptop) | Container-mode run + one non-dev-machine report |
-| .rpm | CI-proven since alpha.1 | **Never installed anywhere** — E.5 lint PASS (alpha.26 via `--rpm`): payload, desktop-file-validate, icon set, zero conflict-prone paths; 2 recorded warnings (desktop filename contains a space, no appstream metainfo) | **No evidence** | dnf install + launch on an RPM host, or drop the artifact |
+| .deb | CI-proven since alpha.1 | **Container install PASS (2026-10-27, run 40495646190)**: real `apt install` inside debian:12 on the CI runner, ldd cleared, launched under Xvfb; extracted-prefix PASS (alpha.26) | **Container edit-to-render PASS (2026-10-27)**: import + split + save + H.264 MP4 render verified in-container (1920x1080, 6.02s) via the acceptance runbook | One non-dev-machine report |
+| .rpm | CI-proven since alpha.1 | **Container install PASS (2026-10-27, run 40495646190)**: real `dnf install` inside fedora:latest after the Requires fix (rpm used to require rpmfusion-only gstreamer1-plugins-ugly/libav, uninstallable on stock Fedora); ldd cleared; launched under Xvfb. E.5 lint PASS (alpha.26); 2 recorded warnings carry (desktop filename contains a space, no appstream metainfo) | **Container edit-to-render PASS (2026-10-27)**: import + split + save + WebM/VP8 render verified in-container via gst-discoverer (1920x1080, 6.03s); renders as WebM on stock Fedora (free repos only) | One non-dev-machine report |
 | Flatpak | Manifest + GES module exist (`packaging/flatpak/`), built with flatpak-builder against `org.gnome.Platform//49` | Installed via a local user-scope remote (spike route; the beta CI route is the same manifest with an archive source) | **Spike PASS (E.5, 2026-10-27)** - sandboxed launch, MCP import/split/save, GUI-queued H.264 render ffprobe-verified (6.02s) on GNOME 49 `/49` with a CI dispatch build of main@3accbf9 | Decision: **FOR Beta 1**. Re-run the drive against a tagged release asset after the next tag; then one non-dev-machine report |
 | SHA256SUMS | Verified in release assets | - | - | - |
 | Windows / macOS | Not built | - | - | Out of scope for Beta 1 |
@@ -74,6 +74,7 @@ When a tester or maintainer runs an artifact, record only supplied evidence:
 | v0.1.0-alpha.2 | .deb/.rpm | Not yet recorded | Not yet recorded | Native laptop workflow PASS at the exact release commit (`c9ecc2f`), software H.264 | Pale-glass UI overhaul part 1: tokens, MDI teardown, persistent shell, compact timeline |
 | v0.1.0-alpha.3 | .deb/.rpm | Not yet recorded | Not yet recorded | Native laptop workflow PASS at the exact release commit (`6d5f48a`), software H.264 | Pale-glass UI overhaul part 2: all eight workspaces docked, invariance across every mode, menu/status/icon/motion polish |
 | v0.1.0-alpha.26 | .deb | Arch Linux dev laptop (the only verification host) | **Extracted-prefix launch PASS** (`tests/native/installed_package_workflow.py`) - packaged `usr/bin/saturn-tauri` launched with an isolated HOME from the deb's data layout; this is NOT a dependency-managed install: the host is Arch (no dpkg), ldd reports 0 unresolved libraries | Import + timeline split + save + H.264 render (6.06s, hits h264/duration/frame-size checks) driven over the app's local MCP bridge | Package lint green: control fields, desktop entry (Exec matches the shipped binary), 4 hicolor icons. Container mode (real dpkg install in debian:12) is implemented in the same script and awaits a running docker/podman daemon; the .rpm has never been installed anywhere and remains unproven |
+| main dispatch (unreleased, `1112645`) | .deb/.rpm | debian:12 and fedora:latest containers on the CI runner (ubuntu-22.04 host, Xvfb, software WebKit) - run 40495646190, 2026-10-27 | **Real-install PASS, both packages**: apt/dnf install of the built artifact, ldd zero unresolved, bridge bound. This run also fixed a blocker the proof caught: the .rpm Requires listed rpmfusion-only/SUSE-style names (gstreamer1-plugins-ugly, gstreamer1-libav, gstreamer1-editing-services) and was uninstallable on stock Fedora | Import + timeline split + save + render verified in-container: .deb → H.264 MP4 1920x1080/6.02s (ffmpeg); .rpm → WebM/VP8 1920x1080/6.03s (gst-discoverer; Fedora free repos only) | Evidence: workflow run logs + container stdout in the job log; PASS lines quoted above |
 
 A useful alpha report includes release version, package, desktop session,
 diagnostics, imported media codec, reproduction steps, and resulting output or
@@ -96,9 +97,12 @@ check for packaged builds:
    `/usr/lib/saturn-tauri`). The rpm runs the same gates offline (`--rpm`)
    through bsdtar/libarchive — no rpm tooling required.
 3. Install: `--container` does a real `apt install` inside debian:12 and
-   hard-fails on any unresolved library before launch; the default mode
+   hard-fails on any unresolved library before launch; `--rpm-container`
+   does the same via `dnf install` inside fedora:latest (renders WebM/VP8;
+   Fedora free repositories ship no x264, so the package Requires cover
+   only free GStreamer plugins); the default mode
    extracts the data archive to a temp prefix (this laptop is Arch with
-   no dpkg, and the container daemon is not running) - the PASS line
+   no dpkg) - the PASS line
    always states the mode so an extracted-prefix result can never be
    mistaken for an install proof.
 4. Launch: the packaged binary runs with an isolated HOME/XDG dirs on
@@ -106,10 +110,11 @@ check for packaged builds:
    editor already owns the MCP bridge socket.
 5. Edit: the local MCP bridge (`$XDG_RUNTIME_DIR/easy-edits-pro-mcp.sock`,
    same JSONL protocol the desktop app serves) drives project.new,
-   project.add_media (ffprobe-derived metadata), timeline.add_clip,
+   project.add_media (probe_media-derived metadata), timeline.add_clip,
    timeline.split_clip, and file.save - then asserts the split survived.
 6. Render: `render_start`/`render_status` through the GUI's own job
-   queue, then ffprobe verifies codec, duration, and frame size.
+   queue, then probe_media (ffprobe, or gst-discoverer-1.0 where ffmpeg
+   is absent) verifies codec, duration, and frame size.
 7. Quit: SIGTERM, exit recorded.
 
 The PASS line printed on success is the single line to quote in release

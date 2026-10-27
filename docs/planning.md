@@ -329,7 +329,7 @@ per id. Parity is no longer the organizing metric; Beta 1 readiness is.
 * **E.1 (Done 2026-10-27):** the scripted acceptance runbook
   `tests/native/installed_package_workflow.py` (+ `container_driver.py`)
   produces real install/launch/edit-to-render evidence; PASS on the dev
-  laptop. Container mode awaits a docker/podman daemon.
+  laptop and in CI container mode (see Open tails).
 * **E.2 (Done 2026-10-27):** `tests/native/sample_projects.py` generates two
   maintained sample bundles through the engine with a `--verify` rot-guard
   (render + ffprobe PASS). Samples ship with the app via E.5 tail (open).
@@ -366,8 +366,15 @@ per id. Parity is no longer the organizing metric; Beta 1 readiness is.
 - Flatpak: run the manifest in CI against a tagged release (archive source)
   and re-verify the acceptance drive on the release asset; then one
   non-dev-machine report.
-- Container-mode .deb install proof + an RPM-host install/launch result
-  (see docs/distribution.md delivery matrix).
+- Container-mode .deb + .rpm install proofs: **DONE (2026-10-27, pass
+  `1112645`, run 40495646190)** - CI jobs deb+dpkg in debian:12 and
+  rpm+dnf in fedora:latest both PASS (real dependency-managed install,
+  Xvfb launch, edit-to-render: .deb H.264 MP4 1920x1080/6.02s, .rpm
+  WebM/VP8 1920x1080/6.03s verified in-container). The proof caught two
+  real bugs fixed on the way: bash `set -e` AND-list swallowing mid-list
+  dnf failures, and the .rpm Requires naming rpmfusion-only/SUSE-style
+  packages (uninstallable on stock Fedora). Remaining per package: one
+  non-dev-machine report.
 
 ### Gates
 
