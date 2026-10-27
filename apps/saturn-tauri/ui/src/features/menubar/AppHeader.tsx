@@ -1,5 +1,6 @@
 import { InteriorButton } from "../../components/interior/interior-button";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { backdropVariants, dialogVariants, menuVariants, useMotionPreset } from "../../motion/variants";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -129,7 +130,13 @@ export function AppHeader({
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  // The dropdown is portaled to <body>: the menu strip has overflow-x: auto
+  // (narrow-width overflow rules), and an overflow:auto ancestor clips
+  // absolutely-positioned descendants — the popover used to open into a
+  // hidden, scrollable 32px strip. Fixed-position anchor from the trigger.
+  const [menuAnchor, setMenuAnchor] = useState<{ top: number; left: number } | null>(null);
   const menuBarRef = useRef<HTMLElement | null>(null);
+  const menuPopoverRef = useRef<HTMLDivElement | null>(null);
   const jobDrawerRef = useRef<HTMLDivElement | null>(null);
   const commandSearchRef = useRef<HTMLInputElement | null>(null);
   const motionPreset = useMotionPreset();
@@ -162,13 +169,23 @@ export function AppHeader({
       if (event.key === "Escape") setOpenMenu(null);
     };
     const closeOnOutsidePointer = (event: PointerEvent) => {
-      if (menuBarRef.current && !menuBarRef.current.contains(event.target as Node)) setOpenMenu(null);
+      const target = event.target as Node;
+      if (menuBarRef.current?.contains(target)) return;
+      if (menuPopoverRef.current?.contains(target)) return;
+      setOpenMenu(null);
     };
+    const closeOnViewportChange = () => setOpenMenu(null);
+    // The popover is fixed-positioned and the header is stationary (the app
+    // is a full-viewport shell, so only a window resize moves the trigger
+    // under it). Scroll deliberately does NOT close: panels and the timeline
+    // scroll ambiently (auto-follow playhead) and must not snap the menu shut.
     window.addEventListener("keydown", closeOnEscape);
     window.addEventListener("pointerdown", closeOnOutsidePointer);
+    window.addEventListener("resize", closeOnViewportChange);
     return () => {
       window.removeEventListener("keydown", closeOnEscape);
       window.removeEventListener("pointerdown", closeOnOutsidePointer);
+      window.removeEventListener("resize", closeOnViewportChange);
     };
   }, [openMenu]);
 
@@ -222,49 +239,72 @@ export function AppHeader({
           className="app-menu-trigger"
           aria-haspopup="menu"
           aria-expanded={openMenu === menu}
-          onClick={() => setOpenMenu((current) => (current === menu ? null : menu))}
+          onClick={(event) => {
+            if (openMenu === menu) {
+              setOpenMenu(null);
+              return;
+            }
+            const rect = event.currentTarget.getBoundingClientRect();
+            // Anchor under the trigger; clamp so the popover never spills off
+            // the right edge (Help/Window sit near it at narrow widths).
+            setMenuAnchor({
+              top: rect.bottom + 4,
+              left: Math.max(8, Math.min(rect.left, window.innerWidth - 236)),
+            });
+            setOpenMenu(menu);
+          }}
         >
           {menu}
         </button>
-        <AnimatePresence>
-          {openMenu === menu && (
-            <motion.div
-              className="menu-popover glass"
-              data-elev="3"
-              role="menu"
-              initial={motionPreset.initial}
-              animate="animate"
-              exit="exit"
-              variants={menuVariants}
-              transition={motionPreset.transition}
-              style={{ transformOrigin: "top left" }}
-            >
-              {groups.size === 0 && <div className="menu-section-label">No commands yet</div>}
-              {[...groups.entries()].map(([section, items]) => (
-                <div className="menu-section" key={section || "root"}>
-                  {section && <div className="menu-section-label">{section}</div>}
-                  {items.map((item) => (
-                    <InteriorButton
-                      key={item.id}
-                      title={item.reason ?? undefined}
-                      disabled={item.reason !== null}
-                      onClick={(event) => {
-                        setOpenMenu(null);
-                        event.currentTarget.blur();
-                        void invokeMenuCommand(item.id).catch((error: unknown) =>
-                          setNotice(String(error)),
-                        );
-                      }}
-                    >
-                      <span>{item.label}</span>
-                      {item.shortcut && <small>{formatShortcut(item.shortcut)}</small>}
-                    </InteriorButton>
-                  ))}
-                </div>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Portal + fixed position: the strip has overflow rules, and an
+            overflow:auto ancestor clips absolutely-positioned children.
+            No AnimatePresence wrapper here: it cannot track a createPortal
+            child, and the conditional unmount (openMenu === null) would
+            bypass exit animation with or without it. */}
+        {openMenu === menu && menuAnchor && createPortal(
+          <motion.div
+            ref={menuPopoverRef}
+            className="menu-popover glass"
+            data-elev="3"
+            role="menu"
+            initial={motionPreset.initial}
+            animate="animate"
+            variants={menuVariants}
+            transition={motionPreset.transition}
+            style={{
+              position: "fixed",
+              top: menuAnchor.top,
+              left: menuAnchor.left,
+              maxHeight: `min(70vh, calc(100vh - ${menuAnchor.top + 8}px))`,
+              transformOrigin: "top left",
+            }}
+          >
+            {groups.size === 0 && <div className="menu-section-label">No commands yet</div>}
+            {[...groups.entries()].map(([section, items]) => (
+              <div className="menu-section" key={section || "root"}>
+                {section && <div className="menu-section-label">{section}</div>}
+                {items.map((item) => (
+                  <InteriorButton
+                    key={item.id}
+                    title={item.reason ?? undefined}
+                    disabled={item.reason !== null}
+                    onClick={(event) => {
+                      setOpenMenu(null);
+                      event.currentTarget.blur();
+                      void invokeMenuCommand(item.id).catch((error: unknown) =>
+                        setNotice(String(error)),
+                      );
+                    }}
+                  >
+                    <span>{item.label}</span>
+                    {item.shortcut && <small>{formatShortcut(item.shortcut)}</small>}
+                  </InteriorButton>
+                ))}
+              </div>
+            ))}
+          </motion.div>,
+          document.body,
+        )}
       </div>
     );
   }

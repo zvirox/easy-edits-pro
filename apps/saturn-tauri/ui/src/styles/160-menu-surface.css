@@ -7,10 +7,13 @@
  */
 
 /* `.glass` sets `position: relative` for its sheen layer and loads after the
- * base menu rules, so an anchored popover must re-assert absolute positioning
- * at matching specificity. */
+ * base menu rules, so an anchored popover must re-assert its positioning at
+ * matching specificity. The popover is portaled to <body> and fixed-positioned
+ * from the trigger (the .menu-bar strip has overflow-x: auto at narrow
+ * widths, and an overflow:auto ancestor clips absolutely-positioned
+ * descendants — the pre-portal popover opened into a hidden 32px strip). */
 .menu-popover.glass {
-  position: absolute;
+  position: fixed;
 }
 
 .menu-popover {
