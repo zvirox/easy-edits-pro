@@ -193,18 +193,23 @@ jobs:
 
       - name: flatpak-builder build (compiles GES 1.26.11 in the sandbox)
         run: |
-          flatpak run org.flatpak.Builder --install-deps-from=flathub --force-clean \
-            --repo=flatpak-ci-repo \
-            packaging/flatpak/build packaging/flatpak/io.github.zvirox.EasyEditsPro.yml
+          # --user: resolve the runtime from the user installation (already
+          # installed); dbus-run-session: Builder delegates flatpak ops to
+          # the host CLI via the session bus, absent on a headless runner.
+          dbus-run-session -- bash -c \
+            'flatpak run org.flatpak.Builder --user --install-deps-from=flathub \
+               --force-clean --repo=flatpak-ci-repo \
+               packaging/flatpak/build packaging/flatpak/io.github.zvirox.EasyEditsPro.yml'
 
       - name: Install locally + export a bundle artifact
         run: |
-          flatpak install -y --user flatpak-ci-repo io.github.zvirox.EasyEditsPro
-          flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
-            flatpak-ci-repo easy-edits-pro-linux-x86_64.flatpak io.github.zvirox.EasyEditsPro
-          sha256sum easy-edits-pro-linux-x86_64.flatpak \
-            > easy-edits-pro-linux-x86_64.flatpak.sha256
-          ls -la easy-edits-pro-linux-x86_64.flatpak
+          dbus-run-session -- bash -c \
+            'flatpak install -y --user flatpak-ci-repo io.github.zvirox.EasyEditsPro
+             flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
+               flatpak-ci-repo easy-edits-pro-linux-x86_64.flatpak io.github.zvirox.EasyEditsPro
+             sha256sum easy-edits-pro-linux-x86_64.flatpak \
+               > easy-edits-pro-linux-x86_64.flatpak.sha256
+             ls -la easy-edits-pro-linux-x86_64.flatpak'
 
       - name: Attach the bundle + checksum to the release
         if: startsWith(github.ref, 'refs/tags/v')
