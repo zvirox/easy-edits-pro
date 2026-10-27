@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.1-alpha.1] - 2026-10-27
+
+Beta-readiness evidence release: every Linux package route now carries a
+**recorded real-install proof**, and the flatpak route ships its first
+build artifact. The .deb installs via real dpkg in a debian:12 CI
+container and renders H.264 MP4 (1920x1080, 6.02s verified in-container);
+the .rpm installs via real dnf in fedora:latest and renders WebM/VP8
+(1920x1080, 6.03s verified via gst-discoverer) — and the proof caught the
+.rpm listing rpmfusion-only/SUSE-style Requires, making it uninstallable
+on stock Fedora; the dependency set is fixed to the verified free-repo
+packages. The flatpak is built and acceptance-driven in CI (GNOME 49
+runtime, GES 1.26.11 in-sandbox) and attached as a single-file bundle.
+Also since 0.1.0-alpha.26: competitor product names are scrubbed from
+identifiers, UI copy, and live docs in favor of generic wording (the
+interchange formats keep their factual names; the xmeml import retains
+back-compat input aliases), planning.md is condensed to live state, the
+known-limits review (E.6) is recorded in the README, and the acceptance
+runbook gained gst-discoverer probing, format-aware render verification,
+and hardened container tracing. Known limitations and per-route evidence
+gaps (one non-dev-machine report per package) are stated in the README
+and docs/distribution.md.
+
 ## [0.1.0-alpha.26] - 2026-10-27
 
 Tier-1 closure release: the final six Tier-1 gaps resolve and Tier 1

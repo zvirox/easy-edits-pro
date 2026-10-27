@@ -197,7 +197,18 @@ jobs:
           flatpak install -y --user flatpak-ci-repo io.github.zvirox.EasyEditsPro
           flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
             flatpak-ci-repo easy-edits-pro-linux-x86_64.flatpak io.github.zvirox.EasyEditsPro
+          sha256sum easy-edits-pro-linux-x86_64.flatpak \
+            > easy-edits-pro-linux-x86_64.flatpak.sha256
           ls -la easy-edits-pro-linux-x86_64.flatpak
+
+      - name: Attach the bundle + checksum to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" --clobber \
+            easy-edits-pro-linux-x86_64.flatpak \
+            easy-edits-pro-linux-x86_64.flatpak.sha256
 
       - name: Acceptance drive (MCP edit-to-render inside the sandbox)
         run: |
@@ -214,7 +225,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: easy-edits-pro-flatpak-bundle
-          path: easy-edits-pro-linux-x86_64.flatpak
+          path: |
+            easy-edits-pro-linux-x86_64.flatpak
+            easy-edits-pro-linux-x86_64.flatpak.sha256
           if-no-files-found: ignore
 
       - name: Upload acceptance evidence on failure
