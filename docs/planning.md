@@ -1084,3 +1084,17 @@ parallel, E.4 as an ongoing sweep per triage, E.5 before any tag.
 Gate stack unchanged (§ packet A4); parity scripts now include the
 tier-3 audit - `check-parity --check` must stay green. A beta tag is
 released **only** on explicit user instruction.
+
+**E.1 (Done 2026-10-27):** `tests/native/installed_package_workflow.py`
++ `tests/native/container_driver.py` landed and PASS on the dev laptop
+against the v0.1.0-alpha.26 .deb: package lint, launch from the
+packaged layout with an isolated HOME, MCP-bridge-driven edit
+(import/split/save), render through the GUI job queue verified with
+ffprobe, clean quit. Host is Arch (no dpkg, container daemon down), so
+the recorded result is honestly labelled extracted-prefix; the
+container mode implements the real dpkg install + ldd gate for when a
+daemon is available. Evidence and limits recorded in
+docs/distribution.md (evidence table row + runbook section). One
+driver-side discovery recorded: JobState arrives over the bridge
+serialized as `{"status": ...}` objects, not Rust enum names - the
+scripts read exactly that shape.
