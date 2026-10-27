@@ -165,15 +165,10 @@ jobs:
           name: easy-edits-pro-linux-packages
           path: pkg
 
-      - name: Install flatpak toolchain and host-side drive tools
+      - name: Install host-side drive tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq flatpak flatpak-builder xvfb ffmpeg dbus dbus-x11
-          # flatpak-builder's export step shells out to appstream-compose;
-          # distros split it from the appstream package, try both names.
-          sudo apt-get install -y -qq appstream-compose \
-            || sudo apt-get install -y -qq appstream
-          which appstream-compose
+          sudo apt-get install -y -qq flatpak xvfb ffmpeg dbus dbus-x11
 
       - name: Session runtime dir (the runner uid is 1001, not the manifest's /run/user/1000)
         run: |
@@ -182,10 +177,15 @@ jobs:
           sudo chown "$(id -u):$(id -g)" "$RD"
           sudo chmod 700 "$RD"
           echo "RD=$RD" >> "$GITHUB_ENV"
+          echo "XDG_RUNTIME_DIR=$RD" >> "$GITHUB_ENV"
 
-      - name: Install the GNOME 49 runtime + SDK (flathub)
+      - name: Install Builder + the GNOME 49 runtime + SDK (flathub)
         run: |
           flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
+          # apt's flatpak-builder (1.2.x, jammy) lacks the appstream-compose
+          # CLI its export step calls; the flathub Builder bundles a current
+          # toolchain and is the same route the E.5 spike used locally.
+          flatpak install -y --user flathub org.flatpak.Builder
           flatpak install -y --user flathub org.gnome.Platform//49 org.gnome.Sdk//49
 
       - name: Prepare the payload from the built .deb
@@ -193,7 +193,7 @@ jobs:
 
       - name: flatpak-builder build (compiles GES 1.26.11 in the sandbox)
         run: |
-          flatpak-builder --user --install-deps-from=flathub --force-clean \
+          flatpak run org.flatpak.Builder --install-deps-from=flathub --force-clean \
             --repo=flatpak-ci-repo \
             packaging/flatpak/build packaging/flatpak/io.github.zvirox.EasyEditsPro.yml
 
