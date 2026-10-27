@@ -189,10 +189,24 @@ def pick_container_cmd() -> list:
     fail("container", "no running docker/podman daemon; start one or use default (extracted-prefix) mode")
 
 
+def stage_package(pkg: Path, work: Path) -> Path:
+    """Docker rejects `-v` sources whose names contain spaces (relative
+    names fall back to named volumes, which disallow spaces), and the
+    built package is named 'Easy Edits Pro-...'. Stage a space-free,
+    absolute copy for mounting."""
+    pkg = pkg.resolve()
+    if " " not in pkg.name:
+        return pkg
+    dest = work / pkg.name.replace(" ", "-")
+    shutil.copy2(pkg, dest)
+    return dest
+
+
 def container_mode(deb: Path, work: Path):
     """Real dpkg install + launch inside debian:12, driven over the bridge."""
     step("container: real apt install of the package")
     cmd = pick_container_cmd()
+    deb = stage_package(deb, work)
     run_in = [
         *cmd, "run", "--rm",
         "-v", f"{deb}:/pkg/app.deb:ro",
@@ -235,6 +249,7 @@ def rpm_container_mode(rpm: Path, work: Path):
     """
     step("rpm container: real dnf install of the package")
     cmd = pick_container_cmd()
+    rpm = stage_package(rpm, work)
     run_in = [
         *cmd, "run", "--rm",
         "-v", f"{rpm}:/pkg/app.rpm:ro",
