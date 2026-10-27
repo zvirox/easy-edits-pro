@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.0-alpha.25] - 2026-10-27
+
+Tier-1 milestone release crossing **400 covered**: 383/443 Tier 1 (98%)
+plus the first Tier-2 audit - 123/207, for **506 covered overall**. The
+file family goes 6/57 -> 36/57: engine-side interchange exports (EDL /
+FCPXML / Final Cut Pro 7 XML / OpenTimelineIO, round-trip tested
+through the import arms), Save As / Save a Copy (file.save copy
+semantics keep the editor on the original path), Revert, Close
+Project, Reveal in File Manager, Export Frame, autosave + recovery
+flows on the existing Tauri snapshot infra, and the File > New
+synthetic media generators - black video, colour matte and
+transparent video written as hand-encoded RGBA PNGs (own crc32/
+adler32, no new dependencies) and SMPTE bars + 1 kHz tone rendered to
+MP4 via GStreamer. The Tier-2 audit opens with honest mappings:
+graphics 59/82, multicam 23/35 (keys 1-9 cut through
+multicam.switch_angle), mixer 11/20, effects 11/16; documented na
+where the model diverges (no submixes/sends, no mogrt export, no
+capture pipeline). 21 file-family divergences recorded (no AAF/ALE/
+OMF, no templates, one project per window).
+
 ## [0.1.0-alpha.24] - 2026-10-27
 
 Tier-1 milestone release: **353/410 (86%)** — the 350 milestone closes
