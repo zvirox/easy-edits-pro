@@ -103,6 +103,11 @@ pub fn reveal_path(path: String) -> Result<(), String> {
             .map(std::path::Path::to_path_buf)
             .ok_or_else(|| format!("Path has no parent directory: {path}"))?
     };
+    // Canonicalize so the opened path is a real, existing directory (this
+    // also resolves `..` and symlink chains before they reach xdg-open).
+    let directory = directory
+        .canonicalize()
+        .map_err(|error| format!("Directory not accessible: {error}"))?;
     if !directory.is_dir() {
         return Err(format!("Directory not found: {}", directory.display()));
     }

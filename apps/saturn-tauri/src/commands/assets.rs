@@ -52,6 +52,15 @@ pub async fn search_openverse(
         .into_iter()
         .filter_map(|item| {
             let media_url = item.get("url")?.as_str()?.to_owned();
+            // Rendered as an <a href> in the inspector: only http(s)
+            // landing links are accepted (blocks javascript:/data:).
+            let landing_url = item
+                .get("foreign_landing_url")
+                .or_else(|| item.get("detail_url"))?
+                .as_str()
+                .map(str::trim)
+                .filter(|url| url.starts_with("http://") || url.starts_with("https://"))?
+                .to_owned();
             Some(OpenverseAsset {
                 id: item
                     .get("id")
@@ -65,11 +74,7 @@ pub async fn search_openverse(
                     .unwrap_or("Untitled media")
                     .to_owned(),
                 media_url,
-                source_url: item
-                    .get("foreign_landing_url")
-                    .or_else(|| item.get("detail_url"))?
-                    .as_str()?
-                    .to_owned(),
+                source_url: landing_url,
                 thumbnail_url: item
                     .get("thumbnail")
                     .and_then(Value::as_str)

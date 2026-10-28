@@ -24,12 +24,29 @@ pub fn execute_command_with_state(
     request: CommandRequest,
 ) -> Result<Value, String> {
     let command_id = request.id.clone();
-    let result = state
-        .0
-        .lock()
-        .map_err(|_| "Editor state is unavailable".to_string())?
-        .execute(request)
-        .map_err(|error| error.to_string())?;
+    let result = {
+        // catch_unwind inside the lock scope: a panicking command used to
+        // poison the state mutex and brick every later command ("Editor
+        // state is unavailable"). A panic is now reported as a plain error
+        // and the guard still drops normally.
+        let mut guard = state
+            .0
+            .lock()
+            .map_err(|_| "Editor state is unavailable".to_string())?;
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| guard.execute(request)))
+            .map_err(|payload| {
+                let detail = if let Some(message) = payload.downcast_ref::<&str>() {
+                    (*message).to_string()
+                } else if let Some(message) = payload.downcast_ref::<String>() {
+                    message.clone()
+                } else {
+                    "internal engine panic".to_string()
+                };
+                eprintln!("Engine command '{command_id}' panicked: {detail}");
+                format!("Internal engine error in '{command_id}': {detail}")
+            })
+            .and_then(|inner| inner.map_err(|error| error.to_string()))?
+    };
 
     if matches!(
         command_id.as_str(),

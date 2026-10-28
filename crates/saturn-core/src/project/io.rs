@@ -54,9 +54,24 @@ impl ProjectDocument {
     }
 
     pub fn load(path: &Path) -> Result<Self, String> {
+        // A project file is structured JSON; anything beyond this bound is
+        // not a project - refuse it before reading it into memory.
+        const MAX_PROJECT_BYTES: u64 = 256 * 1024 * 1024;
         let mut file = File::open(path).map_err(|e| format!("Could not open project: {e}"))?;
+        if let Ok(metadata) = file.metadata() {
+            if metadata.len() > MAX_PROJECT_BYTES {
+                return Err(format!(
+                    "Project file is too large: {} bytes (maximum is {MAX_PROJECT_BYTES})",
+                    metadata.len()
+                ));
+            }
+        }
         let mut bytes = Vec::new();
-        file.read_to_end(&mut bytes)
+        // take() bounds the read even if the file grows between the stat and
+        // the read.
+        (&mut file)
+            .take(MAX_PROJECT_BYTES)
+            .read_to_end(&mut bytes)
             .map_err(|e| format!("Could not read project: {e}"))?;
         let mut value: serde_json::Value = serde_json::from_slice(&bytes)
             .map_err(|e| format!("Project file is not valid JSON: {e}"))?;
