@@ -159,3 +159,60 @@ Eight commands mutate the document without pushing an undo entry (`clip.remove_k
    MCP-agent-driven `file.save`/`export*`).
 6. Bounded xmeml block extraction; scheme-validate Openverse `source_url`; put
    `reveal_path` behind `validate_read_path`.
+
+## Resolution (post-audit fixes, commits 9791f89 / 3be00c4 / b52e931 / f41f075)
+
+1. **HIGH — Tick-overflow panic: FIXED.** `ProjectDocument::validate()` rejects
+   `timeline_start < 0` and `timeline_start + duration` overflow at load;
+   `caption.cue_nudge` uses `checked_add` and returns
+   "Nudge would overflow the cue timing"; `sequence.inspect` /
+   `timeline.ripple_delete_gap` saturate their gap scans; compound-clip
+   duration uses `checked_sub`; `[profile.release] overflow-checks = true`.
+   The live PoC now returns a clean error, the app stays responsive, and no
+   panic reaches stderr.
+2. **Panic containment: FIXED.** `execute_command_with_state` (shared by Tauri
+   IPC and the MCP bridge) runs the dispatch under `catch_unwind` inside the
+   lock scope: a panicking command now yields `Internal engine error in
+   '<id>'` instead of poisoning the state mutex. Belt-and-braces behind the
+   per-site fixes above.
+3. **MEDIUM — imported media paths: FIXED (the traversal class).** All four
+   importers (xmeml `pathurl`, FCPXML `src`, OTIO `target_url`, EDL clip
+   names) route through a shared lexical sanitizer: percent-decode first,
+   strip `file://`, drop `.` components, collapse interior `..` like OS
+   resolution. Relative paths that still climb above their root are rejected
+   (asset imports unlinked with an empty path); an import can never store a
+   parent-escaping `..` path. **Residual:** absolute paths are still adopted
+   as media references (same as user-chosen projects); per-item import
+   confirmation remains a product decision, not applied here.
+4. **MEDIUM — quadratic xmeml parser: VERIFIED FALSE POSITIVE.** Rust's
+   `str::split` already bounds each block between successive `<clipitem`
+   occurrences. Measured in-crate: 2k→20k→40k clipitems import in
+   3 ms→37 ms→104 ms (release), linear even with adversarial missing-close-tag
+   content. No parser rewrite was made; a 20k-clipitem scale guard test was
+   added so a future quadratic regression cannot land unnoticed.
+5. **LOW — Openverse `source_url`: FIXED.** Only http(s) landing URLs are
+   accepted in Rust; `javascript:`/`data:` are dropped before they can ever
+   render as an `href`.
+6. **LOW — `reveal_path`: FIXED** (differently than suggested). It now
+   canonicalizes the directory and requires it to exist before `xdg-open`.
+   Deliberately *not* put behind `validate_read_path`: reveal targets
+   user-chosen project/media directories that the validator's roots do not
+   include.
+7. **LOW — uncapped project read: FIXED.** `ProjectDocument::load` rejects
+   files beyond 256 MiB (stat up front) and bounds the actual read with
+   `take()`.
+8. **Matrix undo drift: FIXED.** `project.update_media` now checkpoints only
+   on real change (engine, 9791f89). The other seven are accounting, not
+   engine bugs: `media.check_missing`/`media.refresh_changed` are
+   deliberately undo-blind (pinned by `phase4_media.rs`: "a missing-media
+   scan changes flags, not undo history"); `edit.redo`'s undo+redo hook pair
+   self-restores; no-op success results (`removed:false`, `relinked:0`,
+   `offline:0`, `split:0`, `updated:false`) push no undo entry. The matrix
+   harness was corrected (f41f075) and a rerun of all eight commands reports
+   `ok=8 … undo_drift=0`.
+
+**Still open (tracked, not fixed here):** priority item 5 — reuse the
+`path_validation` allow-roots for engine-level path commands
+(`file.save`, `export*`, MCP-agent write surface). This needs a product
+decision about the confirmation UX for writes outside allow-listed roots and
+is the main residual from the original audit.
