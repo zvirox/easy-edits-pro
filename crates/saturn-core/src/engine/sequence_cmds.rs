@@ -404,7 +404,7 @@ impl EditorEngine {
                     .tracks
                     .iter()
                     .flat_map(|track| track.clips.iter())
-                    .map(|clip| clip.timeline_start.0 + clip.duration.0)
+                    .map(|clip| clip.timeline_start.0.saturating_add(clip.duration.0))
                     .max()
                     .unwrap_or(0);
                 let marks = usize::from(sequence.mark_in.is_some())

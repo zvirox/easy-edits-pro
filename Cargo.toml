@@ -12,3 +12,8 @@ members = [
     "crates/saturn-text",
 ]
 resolver = "3"
+
+# Convert integer-overflow corruption into catchable panics in shipped
+# builds; dev builds already default to overflow-checks = true.
+[profile.release]
+overflow-checks = true

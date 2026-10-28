@@ -75,7 +75,12 @@ impl EditorEngine {
                     return Err(DispatchError::Operation("Invalid clip time ranges".into()));
                 }
 
-                let compound_duration = Tick(latest_end - earliest_start);
+                let Some(duration) = latest_end.checked_sub(earliest_start) else {
+                    return Err(DispatchError::Operation(
+                        "Invalid clip time ranges".into(),
+                    ));
+                };
+                let compound_duration = Tick(duration);
                 let earliest_tick = Tick(earliest_start);
 
                 self.checkpoint();

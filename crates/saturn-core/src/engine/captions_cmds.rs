@@ -304,9 +304,17 @@ impl EditorEngine {
                             params.id
                         )));
                     };
-                    let new_start = Tick(cue.start_ticks.0 + params.delta_ticks);
-                    let new_end = Tick(cue.end_ticks.0 + params.delta_ticks);
-                    validate_cue_timing(new_start, new_end, &cue.text)?;
+                    let Some(new_start) = cue.start_ticks.0.checked_add(params.delta_ticks) else {
+                        return Err(DispatchError::InvalidParameters(
+                            "Nudge would overflow the cue timing".into(),
+                        ));
+                    };
+                    let Some(new_end) = cue.end_ticks.0.checked_add(params.delta_ticks) else {
+                        return Err(DispatchError::InvalidParameters(
+                            "Nudge would overflow the cue timing".into(),
+                        ));
+                    };
+                    validate_cue_timing(Tick(new_start), Tick(new_end), &cue.text)?;
                 }
                 self.checkpoint();
                 let track = track_mut(self, params.track_id).expect("verified above");
@@ -315,8 +323,8 @@ impl EditorEngine {
                     .iter_mut()
                     .find(|cue| cue.id == params.id)
                     .expect("verified above");
-                cue.start_ticks = Tick(cue.start_ticks.0 + params.delta_ticks);
-                cue.end_ticks = Tick(cue.end_ticks.0 + params.delta_ticks);
+                cue.start_ticks = Tick(cue.start_ticks.0.checked_add(params.delta_ticks).expect("validated above"));
+                cue.end_ticks = Tick(cue.end_ticks.0.checked_add(params.delta_ticks).expect("validated above"));
                 let (new_start, new_end) = (cue.start_ticks, cue.end_ticks);
                 track.cues.sort_by_key(|cue| cue.start_ticks);
                 Ok(json!({

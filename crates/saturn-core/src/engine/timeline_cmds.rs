@@ -266,7 +266,7 @@ impl EditorEngine {
                     } else {
                         let mut found = None;
                         for i in 0..clips.len() - 1 {
-                            let end_prev = clips[i].timeline_start.0 + clips[i].duration.0;
+                            let end_prev = clips[i].timeline_start.0.saturating_add(clips[i].duration.0);
                             let start_next = clips[i + 1].timeline_start.0;
                             if at >= end_prev && at < start_next {
                                 found = Some((end_prev, start_next));
@@ -289,7 +289,7 @@ impl EditorEngine {
                     for track in &self.document.project.sequence.tracks {
                         for clip in &track.clips {
                             let start = clip.timeline_start.0;
-                            let end = start + clip.duration.0;
+                            let end = start.saturating_add(clip.duration.0);
                             if at >= start && at < end {
                                 return Err(DispatchError::Operation(
                                     "Playhead is inside a clip, not an empty gap".into(),

@@ -144,6 +144,12 @@ impl ProjectDocument {
             }
             for clip in &track.clips {
                 if clip.duration.0 <= 0
+                    || clip.timeline_start.0 < 0
+                    || clip
+                        .timeline_start
+                        .0
+                        .checked_add(clip.duration.0)
+                        .is_none()
                     || !clip.color.exposure.is_finite()
                     || !(-5.0..=5.0).contains(&clip.color.exposure)
                     || !clip.color.contrast.is_finite()
@@ -153,6 +159,18 @@ impl ProjectDocument {
                     || !clip.color.hue.is_finite()
                     || !(-1.0..=1.0).contains(&clip.color.hue)
                 {
+                    if clip.duration.0 <= 0 {
+                        return Err("Project contains a clip with non-positive duration".into());
+                    }
+                    if clip.timeline_start.0 < 0
+                        || clip
+                            .timeline_start
+                            .0
+                            .checked_add(clip.duration.0)
+                            .is_none()
+                    {
+                        return Err("Project contains a clip with timeline bounds that overflow".into());
+                    }
                     return Err("Project contains invalid clip properties".into());
                 }
                 for effect in &clip.effects {

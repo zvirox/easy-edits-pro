@@ -55,23 +55,44 @@ impl EditorEngine {
             })()),
             "project.update_media" => Some((|| {
                 let params: UpdateMediaParams = parse_params(params)?;
-                let Some(item) = self
+                let (media_id, changed) = {
+                    let Some(item) = self
+                        .document
+                        .project
+                        .media
+                        .iter()
+                        .find(|item| item.path == params.path)
+                    else {
+                        return Ok(json!({"updated": false}));
+                    };
+                    let changed = item.kind != params.kind
+                        || item.duration != params.duration
+                        || item.width != params.width
+                        || item.height != params.height
+                        || params.waveform.is_some();
+                    (item.id, changed)
+                };
+                // Checkpoint only when something actually changes: a no-op
+                // update must not consume an undo slot.
+                if changed {
+                    self.checkpoint();
+                }
+                if let Some(item) = self
                     .document
                     .project
                     .media
                     .iter_mut()
                     .find(|item| item.path == params.path)
-                else {
-                    return Ok(json!({"updated": false}));
-                };
-                item.kind = params.kind;
-                item.duration = params.duration;
-                item.width = params.width;
-                item.height = params.height;
-                if params.waveform.is_some() {
-                    item.waveform = params.waveform;
+                {
+                    item.kind = params.kind;
+                    item.duration = params.duration;
+                    item.width = params.width;
+                    item.height = params.height;
+                    if params.waveform.is_some() {
+                        item.waveform = params.waveform;
+                    }
                 }
-                Ok(json!({"updated": true, "media_id": item.id}))
+                Ok(json!({"updated": true, "media_id": media_id}))
             })()),
             "project.relink_media" => Some((|| {
                 let params: RelinkMediaParams = parse_params(params)?;
