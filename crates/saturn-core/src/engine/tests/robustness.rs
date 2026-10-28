@@ -1,6 +1,6 @@
 use crate::command::CommandRequest;
 use crate::engine::EditorEngine;
-use serde_json::{json, Value};
+use serde_json::json;
 
 fn engine_with_video_media() -> EditorEngine {
     let mut engine = EditorEngine::default();
