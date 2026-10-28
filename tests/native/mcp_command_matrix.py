@@ -778,6 +778,32 @@ SETTINGS_NO_UNDO = {"prefs.set", "prefs.reset",
                     "project.viewPreset.rename"}
 SKIP_UNDO = RESET_AFTER | {"file.save", "edit.undo", "edit.redo"} | SETTINGS_NO_UNDO
 
+# Disk-derived hygiene scans: deliberately mutating-but-undo-blind (pinned by
+# phase4_media: "a missing-media scan changes flags, not undo history").
+SCAN_NO_UNDO = {"media.check_missing", "media.refresh_changed"}
+SKIP_UNDO |= SCAN_NO_UNDO
+
+# Success results that report "nothing changed": the engine pushes no undo
+# entry for them, so popping one would steal baseline state and read as drift.
+NOOP_FLAG_KEYS = {"clip.remove_keyframe": "removed", "project.update_media": "updated"}
+NOOP_COUNT_KEYS = {"media.auto_relink": "relinked", "media.make_offline": "offline",
+                   "marker.split": "split"}
+
+
+def is_noop_result(cid: str, result) -> bool:
+    if not isinstance(result, dict):
+        return False
+    if cid in NOOP_FLAG_KEYS and result.get(NOOP_FLAG_KEYS[cid]) is False:
+        return True
+    if cid in NOOP_COUNT_KEYS and result.get(NOOP_COUNT_KEYS[cid]) == 0:
+        return True
+    return False
+
+
+# Hooks that restore the editor to where they found it (edit.redo's
+# undo+redo pair): their mutation must NOT be undone again afterwards.
+SELF_RESTORING_HOOKS = {"edit.redo"}
+
 
 # ------------------------------------------------------------------- main
 
@@ -939,17 +965,19 @@ def main() -> int:
                 cls = "error"
                 stats["error"] += 1
             record(cmd, params, cls, result)
+            noop = okk and is_noop_result(cid, result)
             if cls in ("ok", "error") and "bridge I/O" in str(result):
                 print(f"[matrix] bridge died at {cid}; stopping")
                 break
 
             # -- restore the baseline -------------------------------
-            if okk and cid in SKIP_UNDO:
-                undoes = mut_hooks
+            restoring_hooks = -1 if cid in SELF_RESTORING_HOOKS else 0
+            if okk and (cid in SKIP_UNDO or noop):
+                undoes = max(0, mut_hooks + restoring_hooks)
             elif okk and cmd.get("mutating"):
-                undoes = 1 + mut_hooks
+                undoes = max(0, 1 + mut_hooks + restoring_hooks)
             else:
-                undoes = mut_hooks
+                undoes = max(0, mut_hooks + restoring_hooks)
             broken = False
             for _ in range(undoes):
                 uok, _ = run_cmd(sock_path, "edit.undo")
