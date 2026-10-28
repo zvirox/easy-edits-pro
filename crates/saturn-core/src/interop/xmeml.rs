@@ -1,4 +1,4 @@
-use super::xml_utils::{escape_xml, extract_tag_content};
+use super::xml_utils::{escape_xml, extract_tag_content, sanitize_untrusted_media_path};
 use crate::project::{Clip, MediaAsset, MediaKind, ProjectDocument, Track, TrackKind};
 use crate::time::{FrameRate, Tick};
 use std::path::PathBuf;
@@ -141,7 +141,10 @@ pub fn import_xmeml_xml(xml: &str) -> Result<ProjectDocument, String> {
         }
 
         let name = extract_tag_content(block, "name").unwrap_or_else(|| format!("Clip {}", idx));
-        let path = extract_tag_content(block, "pathurl").unwrap_or_default();
+        let path = extract_tag_content(block, "pathurl")
+            .as_deref()
+            .and_then(sanitize_untrusted_media_path)
+            .unwrap_or_default();
         let start_f: i64 = extract_tag_content(block, "start")
             .and_then(|s| s.parse().ok())
             .unwrap_or(0);

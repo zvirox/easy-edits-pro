@@ -1,4 +1,4 @@
-use super::xml_utils::{escape_xml, extract_attr, parse_seconds_attr};
+use super::xml_utils::{escape_xml, extract_attr, parse_seconds_attr, sanitize_untrusted_media_path};
 use crate::project::{Clip, MediaAsset, MediaKind, ProjectDocument, Track, TrackKind};
 use crate::time::Tick;
 use std::path::PathBuf;
@@ -114,7 +114,9 @@ pub fn import_fcpxml(xml: &str) -> Result<ProjectDocument, String> {
                 media_list.push(MediaAsset {
                     id,
                     name,
-                    path: PathBuf::from(src),
+                    path: sanitize_untrusted_media_path(&src)
+                        .map(PathBuf::from)
+                        .unwrap_or_default(),
                     kind: MediaKind::Video,
                     duration: Some(Tick::from_millis(60_000)),
                     width: Some(1920),

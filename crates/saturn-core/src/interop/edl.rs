@@ -1,4 +1,5 @@
 use super::timecode::{ticks_to_timecode, timecode_to_ticks};
+use super::xml_utils::sanitize_untrusted_media_path;
 use crate::project::{Clip, MediaAsset, MediaKind, ProjectDocument, Track, TrackKind};
 use crate::time::{FrameRate, Tick};
 use std::path::PathBuf;
@@ -106,7 +107,13 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
                     media_list.push(MediaAsset {
                         id,
                         name: clip_name.clone(),
-                        path: PathBuf::from(format!("assets/{}", clip_name)),
+                        // The `assets/` prefix does NOT neutralize a clip
+                        // name like `../../.ssh/id_rsa` - sanitize the
+                        // joined path so parent escapes are collapsed or
+                        // rejected, never stored.
+                        path: sanitize_untrusted_media_path(&format!("assets/{}", clip_name))
+                            .map(PathBuf::from)
+                            .unwrap_or_default(),
                         kind: if track_type.starts_with('V') {
                             MediaKind::Video
                         } else {

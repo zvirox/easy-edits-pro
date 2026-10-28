@@ -1,3 +1,4 @@
+use super::xml_utils::sanitize_untrusted_media_path;
 use crate::project::{Clip, MediaAsset, MediaKind, ProjectDocument, Track, TrackKind};
 use crate::time::Tick;
 use std::path::PathBuf;
@@ -211,12 +212,13 @@ pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument,
                         .pointer("/media_reference/target_url")
                         .and_then(|u| u.as_str())
                         .unwrap_or("");
-                    let clean_path = raw_url.strip_prefix("file://").unwrap_or(raw_url);
+                    let clean_path =
+                        sanitize_untrusted_media_path(raw_url).unwrap_or_default();
                     let clip_name =
                         item.get("name")
                             .and_then(|n| n.as_str())
                             .unwrap_or_else(|| {
-                                std::path::Path::new(clean_path)
+                                std::path::Path::new(&clean_path)
                                     .file_name()
                                     .and_then(|f| f.to_str())
                                     .unwrap_or("Asset")
