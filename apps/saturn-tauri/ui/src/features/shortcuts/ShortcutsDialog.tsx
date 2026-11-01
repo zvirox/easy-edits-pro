@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { GlassDialog } from "../../motion/GlassDialog";
+import { grantWrite } from "../../app/writeGrants.ts";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { Icon } from "../../components/Icon";
 import type { ShortcutsEngineOps } from "../../app/useShortcutsSync";
@@ -472,8 +473,8 @@ export function ShortcutsDialog({
                 })
                   .then((path) => {
                     if (typeof path !== "string" || !path) return;
-                    void engineOps
-                      .exportShortcuts(path)
+                    void grantWrite(path)
+                      .then(() => engineOps.exportShortcuts(path))
                       .then(() => setTransferText(serializeShortcuts(overrides)))
                       .catch((exportError) => setError(String(exportError)));
                   })

@@ -8,6 +8,8 @@ import {
 import { Channel, invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
+import { grantWrite } from "./writeGrants.ts";
+import { assertProjectSetup } from "./projectSetupRules.ts";
 import type {
   EditorWorkspace,
   GpuMetrics,
@@ -219,19 +221,8 @@ export function useProjectOperations({
     const sequenceName = setupSequenceName.trim();
     const width = Number(setupWidth);
     const height = Number(setupHeight);
+    assertProjectSetup(name, sequenceName, width, height);
     const frameRate = frameRateOptions.find((option) => option.value === setupFrameRate) ?? frameRateOptions[4];
-    if (
-      !name ||
-      !sequenceName ||
-      !Number.isInteger(width) ||
-      !Number.isInteger(height) ||
-      width <= 0 ||
-      height <= 0 ||
-      width > 16_384 ||
-      height > 16_384
-    ) {
-      throw new Error("Enter project and timeline names and dimensions between 1 and 16,384 pixels.");
-    }
     const selectedPath = await save({
       title: "Create Easy Edits Pro project",
       defaultPath: `${name.replace(/[\\/:*?"<>|]/g, "-")}.saturn`,
@@ -239,6 +230,7 @@ export function useProjectOperations({
     });
     if (!selectedPath) return;
     const path = selectedPath.toLowerCase().endsWith(".saturn") ? selectedPath : `${selectedPath}.saturn`;
+    await grantWrite(path);
 
     setLoadingMessage("Creating your project and setting up the timeline");
     setAppStage("loading");
@@ -307,6 +299,7 @@ export function useProjectOperations({
         defaultPath: `${project.name.replace(/[\\/:*?"<>|]/g, "-")}.saturn`,
         filters: projectFilters,
       });
+      if (path) await grantWrite(path);
     }
     if (!path) return;
     await perform("file.save", { path }, "Project saved");
@@ -322,6 +315,7 @@ export function useProjectOperations({
       filters: [{ name: extension === "mp4" ? "MP4 video" : "WebM video", extensions: [extension] }],
     });
     if (path) {
+      await grantWrite(path);
       setExportOutputPath(path);
       const filename = path.split(/[\\/]/).at(-1) ?? "";
       setExportFileName(filename.replace(/\.[^.]+$/, ""));

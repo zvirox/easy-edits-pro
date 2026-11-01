@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import type { CaptionStyle, CaptionTrack, ProjectDocument, SubtitleItem } from "./projectTypes";
 import { resolveCaptionTrackId } from "./captions";
+import { grantWrite } from "./writeGrants.ts";
 import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
 import { TICKS_PER_SECOND } from "../utils/formatters.ts";
 
@@ -368,6 +369,7 @@ export function useCaptions({
       });
       if (typeof selected !== "string" || !selected) return;
       // The Tauri command serialises the default track's current cues.
+      await grantWrite(selected);
       await invoke("export_subtitles_file", { path: selected, format });
       setNotice(`Captions exported as ${format.toUpperCase()}`);
     },

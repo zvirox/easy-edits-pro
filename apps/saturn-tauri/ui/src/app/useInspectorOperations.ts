@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
+import { grantWrite } from "./writeGrants.ts";
 import type {
   Clip,
   ColorAdjustments,
@@ -298,6 +299,7 @@ export function useInspectorOperations({
 
     try {
       const format = selected.toLowerCase().endsWith(".vtt") ? "vtt" : "srt";
+      await grantWrite(selected);
       await invoke("export_subtitles_file", { path: selected, format });
       setNotice(`Exported ${subtitles.length} subtitles to ${selected.split("/").pop()}`);
     } catch (err) {

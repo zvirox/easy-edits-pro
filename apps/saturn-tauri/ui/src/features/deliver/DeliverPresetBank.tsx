@@ -4,6 +4,7 @@ import { open, save } from "@tauri-apps/plugin-dialog";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { Icon } from "../../components/Icon";
 import { runCommand } from "../../app/ProjectProvider";
+import { grantWrite } from "../../app/writeGrants.ts";
 
 export interface EngineExportSettings {
   format?: string;
@@ -174,9 +175,12 @@ export function DeliverPresetBank({
     })
       .then((path) => {
         if (typeof path !== "string" || !path) return;
-        void runCommand<{ exported: number }>("export.presets.export", { path }).then((result) =>
-          onNotice(`Exported ${result.exported} preset(s) to ${path}`),
-        );
+        void grantWrite(path)
+          .then(() =>
+            runCommand<{ exported: number }>("export.presets.export", { path }),
+          )
+          .then((result) => onNotice(`Exported ${result.exported} preset(s) to ${path}`))
+          .catch((error) => onNotice(String(error)));
       })
       .catch((error) => onNotice(String(error)));
 

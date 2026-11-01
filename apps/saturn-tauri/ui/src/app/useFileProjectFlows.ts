@@ -6,6 +6,7 @@ import {
   sanitizeName,
   syntheticKindOf,
 } from "./fileFlowTable";
+import { grantWrite } from "./writeGrants.ts";
 
 export { FILE_FLOW_COMMANDS, INTEROP_EXPORTS, isFileFlowCommand } from "./fileFlowTable";
 
@@ -43,6 +44,7 @@ export function createFileProjectFlows(options: FileFlowOptions) {
         defaultPath: `${sanitizeName(project.name)}.saturn`,
         filters: projectFilters,
       });
+      if (path) await grantWrite(path);
     }
     if (!path) return;
     const ok = await perform(
@@ -76,6 +78,7 @@ export function createFileProjectFlows(options: FileFlowOptions) {
       filters: [{ name: "PNG image", extensions: ["png"] }],
     });
     if (!target) return;
+    await grantWrite(target);
     try {
       await invoke("export_frame", { outputPath: target, atTick: getPlayhead() });
       setNotice("Frame exported as PNG");
@@ -93,6 +96,7 @@ export function createFileProjectFlows(options: FileFlowOptions) {
       filters: [{ name: format.label, extensions: [format.extension] }],
     });
     if (!target) return;
+    await grantWrite(target);
     const ok = await perform(id, { path: target }, `Exported ${format.label}`);
     if (ok) options.rememberProject(project.name, projectPath ?? target);
   };

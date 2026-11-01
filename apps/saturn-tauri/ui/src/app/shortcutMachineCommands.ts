@@ -1,4 +1,5 @@
 import { save } from "@tauri-apps/plugin-dialog";
+import { grantWrite } from "./writeGrants.ts";
 import type { ShortcutsEngineOps } from "./useShortcutsSync";
 
 export interface ShortcutMachineDeps {
@@ -107,6 +108,7 @@ export function createShortcutMachineCommand({
             filters: [{ name: "JSON", extensions: ["json"] }],
           });
           if (typeof path !== "string" || !path) return;
+          await grantWrite(path);
           const count = await engineOps.exportShortcuts(path);
           setNotice(`Exported ${count} shortcut override(s) to ${path}`);
           return;

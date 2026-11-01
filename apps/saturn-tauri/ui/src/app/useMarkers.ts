@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import type { Marker, MarkerKind, ProjectDocument } from "./projectTypes";
 import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
+import { grantWrite } from "./writeGrants.ts";
 import { defaultMarkerRange, splitMarkerTarget, type SplitDomain, type SplitEdge } from "../features/markers/markerList";
 import { TICKS_PER_SECOND } from "./projectTypes";
 
@@ -217,6 +218,7 @@ export function useMarkers({
         filters: [{ name: "Marker CSV", extensions: ["csv"] }],
       });
       if (!path) return;
+      await grantWrite(path);
       await invoke("write_markers_file", { path, csv: result.csv });
       setNotice(`Exported ${result.count} markers`);
     } catch (error) {

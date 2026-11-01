@@ -3,6 +3,7 @@ import type { CSSProperties, RefObject, MutableRefObject } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
+import { grantWrite } from "../../app/writeGrants.ts";
 import { formatTime } from "../../utils/formatters";
 import { TICKS_PER_SECOND } from "../../engine/playback/constants";
 import { useProject } from "../../app/useProject";
@@ -145,6 +146,7 @@ export function PreviewSection({
       });
       if (!target) return;
       setTransportBusy(true);
+      await grantWrite(target);
       await invoke("export_frame", { outputPath: target, atTick: playhead });
       await refreshProject();
     } catch (error) {
