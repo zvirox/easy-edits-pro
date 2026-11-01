@@ -137,7 +137,7 @@ async fn dispatch(request: Value, app: &AppHandle, state: &AppState) -> Value {
                 .cloned()
                 .ok_or_else(|| "active sequence not found".to_owned())
         }),
-        "render_project" | "render_start" => start_render(state, &params),
+        "render_project" | "render_start" => start_render(&app, state, &params),
         "render_status" => render_status(state, &params),
         "render_cancel" => render_cancel(state, &params),
         "media_search" => media_search(state, &params),
@@ -199,12 +199,16 @@ fn inspect_document(state: &AppState) -> Result<Value, String> {
     }))
 }
 
-fn start_render(state: &AppState, params: &Value) -> Result<Value, String> {
+fn start_render(app: &AppHandle, state: &AppState, params: &Value) -> Result<Value, String> {
     let output = params
         .get("output_path")
         .and_then(Value::as_str)
         .ok_or_else(|| "render_project requires output_path".to_owned())?;
-    let output_path = std::path::PathBuf::from(output);
+    // Same write policy as command_run: an agent-driven render cannot target
+    // anything outside the roots/dialog grants (audit priority item 5 covers
+    // this write primitive too).
+    let project_dir = crate::commands::current_project_dir(state);
+    let output_path = crate::enforce_write_target(app, output, project_dir.as_deref())?;
     let explicit_range = params.get("range").map(|range| {
         let start = range.get("start_ticks").and_then(Value::as_i64)
             .ok_or_else(|| "range.start_ticks must be a non-negative integer".to_owned())?;

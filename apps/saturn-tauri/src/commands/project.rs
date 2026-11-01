@@ -1,4 +1,5 @@
 use super::super::*;
+use tauri::Manager;
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -24,6 +25,43 @@ pub fn execute_command_with_state(
     request: CommandRequest,
 ) -> Result<Value, String> {
     let command_id = request.id.clone();
+    // Write-policy gate (audit priority item 5): engine commands that take a
+    // raw `path` destination are checked against the allowed roots and the
+    // session write grants BEFORE dispatch, and their parameter is rewritten
+    // to the normalized spelling so the engine writes the canonical route.
+    // file.open/project.new also invalidate session grants (project switch).
+    let mut request = request;
+    if let Some(param) = engine_write_target_param(&command_id) {
+        let target = request
+            .params
+            .get(param)
+            .and_then(Value::as_str)
+            .map(str::to_string)
+            .ok_or_else(|| format!("{command_id} requires a string '{param}'"))?;
+        let project_dir = {
+            let guard = state
+                .0
+                .lock()
+                .map_err(|_| "Editor state is unavailable".to_string())?;
+            guard
+                .current_path()
+                .and_then(std::path::Path::parent)
+                .map(std::path::Path::to_path_buf)
+        };
+        let normalized = enforce_write_target(app, &target, project_dir.as_deref())?;
+        if let Some(params) = request.params.as_object_mut() {
+            params.insert(
+                param.to_string(),
+                Value::String(normalized.to_string_lossy().into_owned()),
+            );
+        }
+    }
+    if matches!(
+        command_id.as_str(),
+        "file.open" | "project.new" | "file.close" | "file.closeProject"
+    ) {
+        app.state::<WriteGrants>().clear();
+    }
     let result = {
         // catch_unwind inside the lock scope: a panicking command used to
         // poison the state mutex and brick every later command ("Editor
@@ -92,6 +130,29 @@ pub fn execute_command_with_state(
         register_project_media(&app, engine.document());
     }
     Ok(result)
+}
+
+/// Record a UI-dialog-picked destination as a session write grant (planning
+/// §6f policy). The dialog pick is the consent act; the grant makes exactly
+/// this normalized path writable for the rest of the session. There is no
+/// bridge method for this — only the UI (or the harness env bypass) can
+/// create grants.
+#[tauri::command]
+pub fn register_write_grant(app: AppHandle, path: String) -> Result<(), String> {
+    app.state::<WriteGrants>()
+        .grant(std::path::Path::new(&path))
+}
+
+/// Directory of the currently open project file, if any — one of the
+/// allowed write roots for the write policy (planning.md §6f).
+pub fn current_project_dir(state: &AppState) -> Option<std::path::PathBuf> {
+    state
+        .0
+        .lock()
+        .ok()?
+        .current_path()
+        .and_then(std::path::Path::parent)
+        .map(std::path::Path::to_path_buf)
 }
 
 #[tauri::command]

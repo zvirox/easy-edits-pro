@@ -48,7 +48,8 @@ pub async fn export_subtitles_file(
     } else {
         saturn_core::subtitles::export_srt(subtitles)
     };
-    let validated_path = validate_write_path(&app, &path, Some(10 * 1024 * 1024))
+    let project_dir = crate::commands::current_project_dir(&state);
+    let validated_path = enforce_write_target(&app, &path, project_dir.as_deref())
         .map_err(|e| format!("Invalid subtitle output path: {e}"))?;
     std::fs::write(&validated_path, text).map_err(|e| format!("Could not write subtitles: {e}"))
 }

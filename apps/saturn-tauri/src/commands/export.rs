@@ -9,12 +9,16 @@ pub struct RenderProgressEvent {
 
 #[tauri::command]
 pub async fn start_export(
+    app: AppHandle,
     state: State<'_, AppState>,
     output_path: String,
     use_mark_range: bool,
     settings: saturn_render::RenderSettings,
     on_progress: Channel<RenderProgressEvent>,
 ) -> Result<(), String> {
+    let project_dir = crate::commands::current_project_dir(&state);
+    let normalized = enforce_write_target(&app, &output_path, project_dir.as_deref())?;
+    let output_path = normalized.to_string_lossy().into_owned();
     let document = state
         .0
         .lock()
@@ -97,10 +101,14 @@ pub async fn queue_export(
 
 #[tauri::command]
 pub async fn export_frame(
+    app: AppHandle,
     state: State<'_, AppState>,
     output_path: String,
     at_tick: i64,
 ) -> Result<(), String> {
+    let project_dir = crate::commands::current_project_dir(&state);
+    let normalized = enforce_write_target(&app, &output_path, project_dir.as_deref())?;
+    let output_path = normalized.to_string_lossy().into_owned();
     let document = state
         .0
         .lock()

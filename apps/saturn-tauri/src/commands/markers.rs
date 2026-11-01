@@ -12,11 +12,17 @@ pub async fn read_markers_file(app: AppHandle, path: String) -> Result<String, S
 
 /// Write marker CSV produced by `marker.export_csv`.
 #[tauri::command]
-pub async fn write_markers_file(app: AppHandle, path: String, csv: String) -> Result<(), String> {
+pub async fn write_markers_file(
+    app: AppHandle,
+    app_state: State<'_, AppState>,
+    path: String,
+    csv: String,
+) -> Result<(), String> {
     if csv.len() > 4 * 1024 * 1024 {
         return Err("Marker CSV is larger than the 4 MB limit".into());
     }
-    let validated_path = validate_write_path(&app, &path, Some(4 * 1024 * 1024))
+    let project_dir = crate::commands::current_project_dir(&app_state);
+    let validated_path = enforce_write_target(&app, &path, project_dir.as_deref())
         .map_err(|error| format!("Invalid marker output path: {error}"))?;
     std::fs::write(&validated_path, csv).map_err(|error| format!("Could not write markers: {error}"))
 }

@@ -25,6 +25,7 @@ mod path_validation;
 mod preview_cache;
 mod recovery;
 mod state;
+mod write_grants;
 
 use commands::*;
 pub use state::AppState;
@@ -35,6 +36,9 @@ pub use media_server::{
 };
 pub use path_validation::{
     validate_dir_path, validate_read_path, validate_write_path, PathValidationError,
+};
+pub use write_grants::{
+    enforce_write_target, engine_write_target_param, normalize_target, WriteGrants,
 };
 pub use recovery::{
     autosave_once, discard_autosave, recovery_status, restore_autosave, start_autosave,
@@ -56,9 +60,11 @@ fn main() {
     start_media_server();
 
     let state = AppState::default();
+    let grants = WriteGrants::default();
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(state.clone())
+        .manage(grants)
         .manage(commands::ExportJobRegistry::default())
         .setup({
             let state = state.clone();
@@ -128,6 +134,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             execute_command,
+            register_write_grant,
             gpu_detect::glass_environment,
             gpu_detect::save_glass_report,
             prepare_video_preview,

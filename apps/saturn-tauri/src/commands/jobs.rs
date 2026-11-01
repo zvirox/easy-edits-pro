@@ -75,6 +75,11 @@ pub(super) fn spawn_queued_export(
     preset_name: String,
     settings: saturn_render::RenderSettings,
 ) -> Result<u64, String> {
+    // Retry re-uses the same destination; grants are session-scoped, so the
+    // dialog-authorized path from the original queue_export still passes here.
+    let project_dir = crate::commands::current_project_dir(state);
+    let normalized = enforce_write_target(app, &output_path, project_dir.as_deref())?;
+    let output_path = normalized.to_string_lossy().into_owned();
     let document = state
         .0
         .lock()
