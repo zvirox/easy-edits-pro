@@ -139,6 +139,9 @@ def main():
     env = dict(os.environ)
     env["XDG_RUNTIME_DIR"] = str(runtime_dir)
     env.setdefault("HOME", "/root")
+    # Container harness saves/renders into the harness work dir, outside the
+    # app's allowed write roots (planning.md §6f); harnesses opt in explicitly.
+    env["SATURN_ALLOW_ANY_WRITE_TARGETS"] = "1"
     step("launch the dpkg-installed binary under Xvfb")
     app = subprocess.Popen(
         [args.binary],

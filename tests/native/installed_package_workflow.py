@@ -399,8 +399,10 @@ def main():
                         "renders WebM/VP8 - Fedora free repos have no x264)")
     parser.add_argument("--flatpak", action="store_true",
                         help="E.5 spike: launch the installed flatpak and drive edit-to-render")
-    parser.add_argument("--flatpak-env", action="append", default=[],
-                        help="extra VAR=VALUE passed into the sandbox (repeatable), e.g. GST_DEBUG=...")
+    parser.add_argument("--flatpak-env", action="append",
+                        default=["SATURN_ALLOW_ANY_WRITE_TARGETS=1"],
+                        help="extra VAR=VALUE passed into the sandbox (repeatable), e.g. GST_DEBUG=... "
+                             "(defaults to the §6f headless harness write-policy opt-in)")
     parser.add_argument("--flatpak-file", action="append", default=[],
                         help="extra --filesystem grant passed into the sandbox "
                         "(repeatable), e.g. the host XDG_RUNTIME_DIR when the "
@@ -462,6 +464,9 @@ def main():
         "XDG_DATA_HOME": str(home / ".local" / "share"),
         "XDG_CONFIG_HOME": str(home / ".config"),
         "XDG_CACHE_HOME": str(home / ".cache"),
+        # The acceptance drive saves/renders into the work dir, outside the
+        # app's allowed write roots (planning.md §6f); harnesses opt in.
+        "SATURN_ALLOW_ANY_WRITE_TARGETS": "1",
     })
     if not FIXTURE.is_file():
         fail("fixture", f"missing maintained fixture: {FIXTURE}")

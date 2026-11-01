@@ -872,6 +872,10 @@ def main() -> int:
         "LIBGL_ALWAYS_SOFTWARE": "1",
         "WEBKIT_DISABLE_DMABUF_RENDERER": "1",
         "RUST_BACKTRACE": "1",
+        # The matrix drives bridge renders/saves into the harness work dir,
+        # outside the app's allowed write roots (planning.md §6f); headless
+        # harnesses opt in explicitly.
+        "SATURN_ALLOW_ANY_WRITE_TARGETS": "1",
     })
     for key in ("HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_RUNTIME_DIR"):
         os.makedirs(env[key], mode=0o700, exist_ok=True)

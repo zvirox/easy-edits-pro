@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+**Security batch on `main` (untagged, beta tags wait for explicit
+authorization):** the last open security-audit finding (MEDIUM-LOW, engine
+write commands outside the path validator — a silent write-any-file-as-the-user
+primitive for a bridge agent or compromised renderer following injected text)
+is closed with a strict write-root policy plus session dialog grants
+(`docs/planning.md` §6f, `docs/security-audit-report.md` Resolution 2).
+Engine-dispatched writes (`file.save`, `interop.export_*`, `shortcuts.export`,
+`export.presets.export`) and the raw-path shell wrappers
+(`start_export`, `queue_export`/`retry_export`, `export_frame`,
+bridge `render_start`) only accept destinations under the app data dir, app
+cache, active project directory, or a session grant minted through the UI's
+native Save/Export dialogs (`register_write_grant`); the bridge cannot create
+grants and headless harnesses opt in via `SATURN_ALLOW_ANY_WRITE_TARGETS=1`.
+The subtitle/marker/interop exporters now honor dialog-picked destinations
+(their previous roots-only validation could never accept user paths). The
+batch also closed the audit's earlier write-surface enumeration gap:
+`render_start`'s bridge output path is the same primitive and is now
+gated identically. New acceptance
+evidence: `tests/native/write_policy_workflow.py` (bridge rejections named
+and physical, in-roots writes land, grants unreachable from the bridge, the
+documented bypass works).
+
 ## [0.1.1-alpha.1] - 2026-10-27
 
 Beta-readiness evidence release: every Linux package route now carries a

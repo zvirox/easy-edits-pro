@@ -216,3 +216,31 @@ Eight commands mutate the document without pushing an undo entry (`clip.remove_k
 (`file.save`, `export*`, MCP-agent write surface). This needs a product
 decision about the confirmation UX for writes outside allow-listed roots and
 is the main residual from the original audit.
+
+## Resolution 2 — write-policy batch (2026-11-01, closes priority item 5)
+
+5. **MEDIUM-LOW — engine commands bypass the path validator: FIXED** with the
+   "strict allowlist + dialog grants" design validated in `docs/planning.md`
+   §6f. `execute_command_with_state` (the shared Tauri-IPC/bridge choke point)
+   gates every engine command with a path destination (`file.save`,
+   `interop.export_*`, `shortcuts.export`, `export.presets.export`) against
+   the allowed roots — app data, app cache, active project directory — plus
+   session write grants; the parameter is rewritten to the normalized
+   spelling before dispatch. The raw-path Tauri wrappers are gated too
+   (`start_export`, `queue_export`/`retry_export`, `export_frame`, bridge
+   `render_start` — the last one is the same primitive discovered during this
+   batch), and the subtitle/marker/interop exporters that previously verified
+   roots-only now honor the same policy. The UI forwards every native
+   Save/Export dialog pick through a new `register_write_grant` command
+   (session-scoped, exact-path, cleared on project switch — the dialog pick is
+   the consent act, so no legitimate flow regressed); the bridge exposes no
+   way to mint grants, and headless harnesses opt in via
+   `SATURN_ALLOW_ANY_WRITE_TARGETS=1` documented in the runbooks. Live
+   evidence: `tests/native/write_policy_workflow.py` rejects
+   `file.save`/`interop.export_edl`/`shortcuts.export`/`export.presets.export`
+   /`render_start` outside the roots with the named error and no file on
+   disk, allows the in-roots save, proves the bridge cannot create grants,
+   and proves the documented bypass works. **Residual (design, accepted):**
+   `file.open` and other read paths remain out of scope; a fully compromised
+   renderer can still grant itself a destination (equivalent to today's IPC
+   trust level, and no worse than pre-audit behavior).
