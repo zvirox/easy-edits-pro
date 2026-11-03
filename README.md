@@ -1,8 +1,27 @@
-# Easy Edits Pro
+<p align="center">
+  <img src="docs/assets/easy-edits-pro-logo.png" alt="Easy Edits Pro logo" width="220" />
+</p>
 
-**An alpha Linux desktop video editor built with Rust, Tauri, React, and GStreamer.**
+<h1 align="center">Easy Edits Pro</h1>
 
-[Documentation](docs/planning.md) · [Architecture](docs/architecture.md) · [Releases](https://github.com/zvirox/easy-edits-pro/releases)
+<p align="center">
+  <strong>An alpha Linux desktop video editor built with Rust, Tauri, React, and GStreamer.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/zvirox/easy-edits-pro/releases"><img src="https://img.shields.io/github/v/release/zvirox/easy-edits-pro?include_prereleases&amp;label=latest%20release" alt="Latest release" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/zvirox/easy-edits-pro" alt="License" /></a>
+  <a href="https://github.com/zvirox/easy-edits-pro/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/zvirox/easy-edits-pro/ci.yml?label=CI" alt="CI status" /></a>
+</p>
+
+<p align="center">
+  <a href="docs/planning.md">Documentation</a> ·
+  <a href="docs/architecture.md">Architecture</a> ·
+  <a href="https://github.com/zvirox/easy-edits-pro/releases">Releases</a> ·
+  <a href="#what-currently-works">Features</a> ·
+  <a href="#install-and-try-it-alpha-packages">Install</a> ·
+  <a href="#development-setup">Development</a>
+</p>
 
 ## Project status
 
