@@ -60,3 +60,6 @@ packaging/flatpak/spike-repo/
 
 # Planning docs stay local-only (2026-11-01 user directive)
 docs/planning.md
+
+# Design plan docs stay local-only (same policy as docs/planning.md)
+design-plans/
