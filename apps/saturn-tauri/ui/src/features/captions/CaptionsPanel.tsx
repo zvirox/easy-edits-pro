@@ -103,7 +103,7 @@ function CueRow({
         onClick={(event) =>
           onSelect(cue.id, event.shiftKey || event.metaKey || event.ctrlKey)
         }
-        title="Seek to cue start (shift-click to multi-select)"
+        data-tooltip="Seek to cue start (shift-click to multi-select)"
       >
         {formatTimecodeFrames(cue.start_ticks, frameRate)}
       </button>
@@ -132,19 +132,19 @@ function CueRow({
         <InteriorButton
           size="sm"
           onClick={() => onNudge(cue.id, -frameStep)}
-          title="Nudge one frame earlier"
+          data-tooltip="Nudge one frame earlier"
         >
           −1f
         </InteriorButton>
         <InteriorButton
           size="sm"
           onClick={() => onNudge(cue.id, frameStep)}
-          title="Nudge one frame later"
+          data-tooltip="Nudge one frame later"
         >
           +1f
         </InteriorButton>
       </span>
-      <InteriorButton size="sm" onClick={() => onDelete(cue.id)} title="Delete cue">
+      <InteriorButton size="sm" onClick={() => onDelete(cue.id)} data-tooltip="Delete cue">
         <Icon name="close" />
       </InteriorButton>
     </li>
@@ -241,14 +241,14 @@ export function CaptionsPanel({
             </option>
           ))}
         </select>
-        <InteriorButton size="sm" onClick={onTrackAdd} title="Add a caption track">
+        <InteriorButton size="sm" onClick={onTrackAdd} data-tooltip="Add a caption track">
           <Icon name="add" />
         </InteriorButton>
         <InteriorButton
           size="sm"
           onClick={renameTrack}
           disabled={!track}
-          title="Rename this caption track"
+          data-tooltip="Rename this caption track"
         >
           <Icon name="pen" />
         </InteriorButton>
@@ -256,7 +256,7 @@ export function CaptionsPanel({
           size="sm"
           onClick={() => track && onTrackRemove(track.id)}
           disabled={!track || captionTracks.length <= 1}
-          title={
+          data-tooltip={
             captionTracks.length <= 1
               ? "The last caption track cannot be removed"
               : "Remove this caption track"
@@ -269,16 +269,16 @@ export function CaptionsPanel({
           size="sm"
           onClick={() => track && onToggleTrackVisible(track.id, !(track.visible ?? true))}
           disabled={!track}
-          title={
+          data-tooltip={
             (track?.visible ?? true) ? "Hide this caption track" : "Show this caption track"
           }
         >
           <Icon name={(track?.visible ?? true) ? "eye" : "eyeOff"} />
         </InteriorButton>
-        <InteriorButton size="sm" onClick={onHideAllTracks} title="Hide all caption tracks">
+        <InteriorButton size="sm" onClick={onHideAllTracks} data-tooltip="Hide all caption tracks">
           <Icon name="eyeOff" /> All
         </InteriorButton>
-        <InteriorButton size="sm" onClick={onShowAllTracks} title="Show all caption tracks">
+        <InteriorButton size="sm" onClick={onShowAllTracks} data-tooltip="Show all caption tracks">
           <Icon name="eye" /> All
         </InteriorButton>
       </div>
@@ -353,31 +353,31 @@ export function CaptionsPanel({
         <InteriorButton
           size="sm"
           disabled={!track}
-          title="Save this look to the selected caption track"
+          data-tooltip="Save this look to the selected caption track"
           onClick={() => onSaveStyle(styleDraft)}
         >
           Apply
         </InteriorButton>
       </div>
       <div className="captions-panel-toolbar">
-        <InteriorButton size="sm" onClick={onAdd} title="Add a caption cue at the playhead">
+        <InteriorButton size="sm" onClick={onAdd} data-tooltip="Add a caption cue at the playhead">
           <Icon name="add" /> Cue
         </InteriorButton>
         <span className="captions-panel-spacer" />
-        <InteriorButton size="sm" onClick={onPrevious} title="Go to previous caption segment">
+        <InteriorButton size="sm" onClick={onPrevious} data-tooltip="Go to previous caption segment">
           <Icon name="trackBackward" />
         </InteriorButton>
-        <InteriorButton size="sm" onClick={onNext} title="Go to next caption segment">
+        <InteriorButton size="sm" onClick={onNext} data-tooltip="Go to next caption segment">
           <Icon name="trackForward" />
         </InteriorButton>
-        <InteriorButton size="sm" onClick={onSplit} title="Split the cue under the playhead">
+        <InteriorButton size="sm" onClick={onSplit} data-tooltip="Split the cue under the playhead">
           <Icon name="split" />
         </InteriorButton>
         <InteriorButton
           size="sm"
           onClick={onMerge}
           disabled={selectedCueIds.length < 2}
-          title="Merge the selected cues"
+          data-tooltip="Merge the selected cues"
         >
           <Icon name="link" />
         </InteriorButton>
@@ -385,20 +385,20 @@ export function CaptionsPanel({
           size="sm"
           onClick={onDeleteSelected}
           disabled={selectedCueIds.length === 0}
-          title="Delete the selected cues"
+          data-tooltip="Delete the selected cues"
         >
           <Icon name="remove" />
         </InteriorButton>
-        <InteriorButton size="sm" onClick={onSelectAll} title="Select all cues on this track">
+        <InteriorButton size="sm" onClick={onSelectAll} data-tooltip="Select all cues on this track">
           <Icon name="select" />
         </InteriorButton>
-        <InteriorButton size="sm" onClick={onImport} title="Import SRT/VTT into this track">
+        <InteriorButton size="sm" onClick={onImport} data-tooltip="Import SRT/VTT into this track">
           <Icon name="import" />
         </InteriorButton>
-        <InteriorButton size="sm" onClick={() => onExport("srt")} title="Export as SubRip (.srt)">
+        <InteriorButton size="sm" onClick={() => onExport("srt")} data-tooltip="Export as SubRip (.srt)">
           SRT
         </InteriorButton>
-        <InteriorButton size="sm" onClick={() => onExport("vtt")} title="Export as WebVTT (.vtt)">
+        <InteriorButton size="sm" onClick={() => onExport("vtt")} data-tooltip="Export as WebVTT (.vtt)">
           VTT
         </InteriorButton>
       </div>

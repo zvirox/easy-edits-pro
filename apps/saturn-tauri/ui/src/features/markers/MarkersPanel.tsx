@@ -48,17 +48,17 @@ export function MarkersPanel({
   return (
     <section className="markers-panel" aria-label="Markers">
       <div className="markers-panel-toolbar">
-        <InteriorButton size="sm" onClick={onAdd} title="Add a marker at the playhead (M)">
+        <InteriorButton size="sm" onClick={onAdd} data-tooltip="Add a marker at the playhead (M)">
           <Icon name="add" /> Marker
         </InteriorButton>
-        <InteriorButton size="sm" onClick={onAddRange} title="Add a range marker (Shift+M)">
+        <InteriorButton size="sm" onClick={onAddRange} data-tooltip="Add a range marker (Shift+M)">
           Range
         </InteriorButton>
         <span className="markers-panel-spacer" />
-        <InteriorButton size="sm" onClick={onImport} title="Import markers from CSV">
+        <InteriorButton size="sm" onClick={onImport} data-tooltip="Import markers from CSV">
           <Icon name="import" />
         </InteriorButton>
-        <InteriorButton size="sm" onClick={onExport} title="Export markers to CSV">
+        <InteriorButton size="sm" onClick={onExport} data-tooltip="Export markers to CSV">
           <Icon name="export" />
         </InteriorButton>
       </div>
@@ -78,7 +78,7 @@ export function MarkersPanel({
               <button
                 type="button"
                 className="marker-jump"
-                title="Go to this marker"
+                data-tooltip="Go to this marker"
                 onClick={() => {
                   onSelect(marker.id);
                   onSeek(marker.start_ticks);
@@ -131,7 +131,7 @@ export function MarkersPanel({
               <button
                 type="button"
                 className="marker-delete"
-                title={`Delete ${marker.name}`}
+                data-tooltip={`Delete ${marker.name}`}
                 aria-label={`Delete ${marker.name}`}
                 onClick={() => onDelete(marker.id)}
               >
@@ -146,7 +146,7 @@ export function MarkersPanel({
         <div className="markers-panel-footer">
           <form
             className="markers-ripple"
-            title="Shift every marker at or after the playhead by a signed frame amount"
+            data-tooltip="Shift every marker at or after the playhead by a signed frame amount"
             onSubmit={(event) => {
               event.preventDefault();
               const frames = Number(shiftFrames.trim());

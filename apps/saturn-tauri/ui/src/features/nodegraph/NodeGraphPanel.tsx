@@ -141,10 +141,10 @@ export function NodeGraphPanel({
             </option>
           ))}
         </select>
-        <InteriorButton size="sm" onClick={() => onAddNode(addKind)} title="Add a compositing node">
+        <InteriorButton size="sm" onClick={() => onAddNode(addKind)} data-tooltip="Add a compositing node">
           <Icon name="add" /> Node
         </InteriorButton>
-        <InteriorButton size="sm" onClick={onAddMask} title="Add a four-point roto-spline mask">
+        <InteriorButton size="sm" onClick={onAddMask} data-tooltip="Add a four-point roto-spline mask">
           <Icon name="pen" /> Mask
         </InteriorButton>
       </div>
@@ -199,7 +199,7 @@ export function NodeGraphPanel({
           size="sm"
           onClick={handleConnect}
           disabled={fromNode === "" || toNode === ""}
-          title="Connect the two nodes"
+          data-tooltip="Connect the two nodes"
         >
           <Icon name="link" />
         </InteriorButton>

@@ -118,7 +118,7 @@ export function EffectsInspector({
                   <InteriorButton
                     type="button"
                     className={`effect-toggle-btn ${eff.enabled ? "enabled" : "bypassed"}`}
-                    title={eff.enabled ? "Bypass (Disable) Effect" : "Enable Effect"}
+                    data-tooltip={eff.enabled ? "Bypass (Disable) Effect" : "Enable Effect"}
                     onClick={() => void toggleEffect(eff.id, !eff.enabled)}
                   >
                     {eff.enabled ? "👁" : "👁‍🗨"}
@@ -132,7 +132,7 @@ export function EffectsInspector({
                       type="button"
                       className="effect-action-btn"
                       disabled={idx === 0}
-                      title="Move Up"
+                      data-tooltip="Move Up"
                       onClick={() => void reorderEffect(idx, idx - 1)}
                     >
                       ▲
@@ -141,7 +141,7 @@ export function EffectsInspector({
                       type="button"
                       className="effect-action-btn"
                       disabled={idx === effects.length - 1}
-                      title="Move Down"
+                      data-tooltip="Move Down"
                       onClick={() => void reorderEffect(idx, idx + 1)}
                     >
                       ▼
@@ -149,7 +149,7 @@ export function EffectsInspector({
                     <InteriorButton
                       type="button"
                       className="effect-action-btn delete"
-                      title="Remove Effect"
+                      data-tooltip="Remove Effect"
                       onClick={() => void removeEffect(eff.id)}
                     >
                       ×
