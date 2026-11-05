@@ -173,7 +173,10 @@ impl EditorEngine {
                 let track = &mut self.document.project.sequence.tracks[track_index];
                 track
                     .transitions
-                    .retain(|t| (t.cut_at.0 - params.cut_at.0).abs() > TICKS_PER_SECOND / 10);
+                    .retain(|t| {
+                        (i128::from(t.cut_at.0) - i128::from(params.cut_at.0)).abs()
+                            > i128::from(TICKS_PER_SECOND / 10)
+                    });
                 track.transitions.push(Transition {
                     id,
                     kind,
@@ -298,7 +301,7 @@ impl EditorEngine {
                     track
                         .clips
                         .iter()
-                        .map(|c| c.timeline_start.0 + c.duration.0)
+                        .map(|c| c.timeline_start.saturating_add(c.duration.0).0)
                         .max()
                         .unwrap_or(0)
                         .into()

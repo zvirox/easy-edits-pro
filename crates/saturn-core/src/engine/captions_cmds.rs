@@ -553,9 +553,9 @@ impl EditorEngine {
                             params.at_ticks.0, cue.id, cue.start_ticks.0, cue.end_ticks.0
                         )));
                     }
-                    let total = cue.end_ticks.0 - cue.start_ticks.0;
-                    let into = params.at_ticks.0 - cue.start_ticks.0;
-                    let cut = ((cue.text.chars().count() as i64 * into) / total) as usize;
+                    let total = i128::from(cue.end_ticks.0) - i128::from(cue.start_ticks.0);
+                    let into = i128::from(params.at_ticks.0) - i128::from(cue.start_ticks.0);
+                    let cut = ((cue.text.chars().count() as i128 * into) / total) as usize;
                     if cut == 0 || cut >= cue.text.chars().count() {
                         return Err(DispatchError::InvalidParameters(
                             "The split point does not divide the caption text".into(),
@@ -573,9 +573,9 @@ impl EditorEngine {
                 let original_end = track.cues[index].end_ticks;
                 let first = &mut track.cues[index];
                 let at = params.at_ticks.0;
-                let total = first.end_ticks.0 - first.start_ticks.0;
-                let into = at - first.start_ticks.0;
-                let cut = (first.text.chars().count() as i64 * into / total) as usize;
+                let total = i128::from(first.end_ticks.0) - i128::from(first.start_ticks.0);
+                let into = i128::from(at) - i128::from(first.start_ticks.0);
+                let cut = (first.text.chars().count() as i128 * into / total) as usize;
                 let second_chars: Vec<char> = first.text.chars().collect();
                 let second_text = second_chars[cut..]
                     .iter()

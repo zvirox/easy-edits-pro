@@ -321,10 +321,12 @@ impl EditorEngine {
                     (start, end)
                 };
 
-                let gap_duration = gap_end - gap_start;
-                if gap_duration <= 0 {
-                    return Err(DispatchError::Operation("Gap duration is zero".into()));
-                }
+                let gap_duration = gap_end
+                    .checked_sub(gap_start)
+                    .filter(|duration| *duration > 0)
+                    .ok_or_else(|| {
+                        DispatchError::Operation("Gap duration is zero".into())
+                    })?;
 
                 self.checkpoint();
 
@@ -333,12 +335,25 @@ impl EditorEngine {
                     let t_idx = find_track_index(&self.document, t_id)?;
                     for clip in &mut self.document.project.sequence.tracks[t_idx].clips {
                         if clip.timeline_start.0 >= gap_end {
-                            clip.timeline_start = Tick(clip.timeline_start.0 - gap_duration);
+                            clip.timeline_start = clip
+                                .timeline_start
+                                .checked_sub(gap_duration)
+                                .ok_or_else(|| {
+                                    DispatchError::Operation(
+                                        "Closing that gap would underflow a clip position".into(),
+                                    )
+                                })?;
                         }
                     }
                     for trans in &mut self.document.project.sequence.tracks[t_idx].transitions {
                         if trans.cut_at.0 >= gap_end {
-                            trans.cut_at = Tick(trans.cut_at.0 - gap_duration);
+                            trans.cut_at = trans.cut_at.checked_sub(gap_duration).ok_or_else(
+                                || {
+                                    DispatchError::Operation(
+                                        "Closing that gap would underflow a transition".into(),
+                                    )
+                                },
+                            )?;
                         }
                     }
                 } else {
@@ -346,13 +361,27 @@ impl EditorEngine {
                         if !track.locked {
                             for clip in &mut track.clips {
                                 if clip.timeline_start.0 >= gap_end {
-                                    clip.timeline_start =
-                                        Tick(clip.timeline_start.0 - gap_duration);
+                                    clip.timeline_start = clip
+                                        .timeline_start
+                                        .checked_sub(gap_duration)
+                                        .ok_or_else(|| {
+                                            DispatchError::Operation(
+                                                "Closing that gap would underflow a clip position"
+                                                    .into(),
+                                            )
+                                        })?;
                                 }
                             }
                             for trans in &mut track.transitions {
                                 if trans.cut_at.0 >= gap_end {
-                                    trans.cut_at = Tick(trans.cut_at.0 - gap_duration);
+                                    trans.cut_at = trans.cut_at.checked_sub(gap_duration).ok_or_else(
+                                        || {
+                                            DispatchError::Operation(
+                                                "Closing that gap would underflow a transition"
+                                                    .into(),
+                                            )
+                                        },
+                                    )?;
                                 }
                             }
                         }

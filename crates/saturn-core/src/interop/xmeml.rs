@@ -3,6 +3,19 @@ use crate::project::{Clip, MediaAsset, MediaKind, ProjectDocument, Track, TrackK
 use crate::time::{FrameRate, Tick};
 use std::path::PathBuf;
 
+/// Upper bound on `<clipitem>` blocks parsed per import (security-audit §10.1):
+/// untrusted documents must not be able to allocate unbounded project state.
+const MAX_IMPORT_CLIPS: usize = 50_000;
+
+/// Convert a frame position to ticks with overflow checks; malformed or
+/// malicious XML must return an error instead of panicking the engine.
+fn frames_to_ticks(frames: i64, frame_dur: i64) -> Result<Tick, String> {
+    frames
+        .checked_mul(frame_dur)
+        .map(Tick)
+        .ok_or_else(|| "clipitem frame position overflows the tick range".to_owned())
+}
+
 /// Exports a `ProjectDocument` into editor XML exchange format (xmeml v5).
 pub fn export_xmeml_xml(doc: &ProjectDocument) -> Result<String, String> {
     let settings = &doc.project.settings;
@@ -60,7 +73,7 @@ pub fn export_xmeml_xml(doc: &ProjectDocument) -> Result<String, String> {
         out.push_str("            <track>\n");
         for (c_idx, clip) in track.clips.iter().enumerate() {
             let start_f = clip.timeline_start.0 / frame_dur;
-            let end_f = (clip.timeline_start.0 + clip.duration.0) / frame_dur;
+            let end_f = clip.timeline_start.saturating_add(clip.duration.0).0 / frame_dur;
             let in_f = clip.source_in.0 / frame_dur;
             let out_f = (clip.source_in.0 + clip.duration.0) / frame_dur;
 
@@ -129,6 +142,13 @@ pub fn import_xmeml_xml(xml: &str) -> Result<ProjectDocument, String> {
 
     let normalized = xml.replace("\r\n", "\n").replace('\r', "\n");
     let clipitem_blocks = normalized.split("<clipitem");
+    let block_count = normalized.matches("<clipitem").count();
+    if block_count > MAX_IMPORT_CLIPS {
+        return Err(format!(
+            "XMEML import contains {} clip items, exceeding the {} limit",
+            block_count, MAX_IMPORT_CLIPS
+        ));
+    }
 
     for (idx, block) in clipitem_blocks.enumerate() {
         if idx == 0 {
@@ -150,10 +170,17 @@ pub fn import_xmeml_xml(xml: &str) -> Result<ProjectDocument, String> {
             .unwrap_or(0);
         let end_f: i64 = extract_tag_content(block, "end")
             .and_then(|s| s.parse().ok())
-            .unwrap_or(start_f + 120);
+            .unwrap_or(start_f.saturating_add(120));
         let in_f: i64 = extract_tag_content(block, "in")
             .and_then(|s| s.parse().ok())
             .unwrap_or(0);
+        let duration_f = end_f
+            .checked_sub(start_f)
+            .map(|difference| difference.max(1))
+            .ok_or_else(|| "clipitem start/end frame range overflows".to_owned())?;
+        let duration_ticks = frames_to_ticks(duration_f, frame_dur)?;
+        let timeline_start = frames_to_ticks(start_f, frame_dur)?;
+        let source_in = frames_to_ticks(in_f, frame_dur)?;
 
         let media_id = idx as u64;
         media_list.push(MediaAsset {
@@ -161,7 +188,7 @@ pub fn import_xmeml_xml(xml: &str) -> Result<ProjectDocument, String> {
             name: name.clone(),
             path: PathBuf::from(path),
             kind: MediaKind::Video,
-            duration: Some(Tick((end_f - start_f).max(1) * frame_dur)),
+            duration: Some(duration_ticks),
             width: Some(1920),
             height: Some(1080),
             ..Default::default()
@@ -169,9 +196,9 @@ pub fn import_xmeml_xml(xml: &str) -> Result<ProjectDocument, String> {
 
         clips.push(Clip {
             media_id,
-            timeline_start: Tick(start_f * frame_dur),
-            source_in: Tick(in_f * frame_dur),
-            duration: Tick((end_f - start_f).max(1) * frame_dur),
+            timeline_start,
+            source_in,
+            duration: duration_ticks,
             speed: 1.0,
             group_id: None,
             color: Default::default(),

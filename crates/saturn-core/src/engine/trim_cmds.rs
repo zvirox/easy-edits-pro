@@ -113,7 +113,11 @@ impl EditorEngine {
                 let points = collect_all_edit_points(&self.document)?;
                 let best = *points
                     .iter()
-                    .min_by_key(|point| (point.tick - at).abs())
+                    .min_by_key(|point| {
+                        // i128 intermediates: `at` is an unvalidated parameter
+                        // and must not be able to overflow the difference.
+                        (i128::from(point.tick) - i128::from(at)).abs()
+                    })
                     .expect("collect_all_edit_points errors on empty");
                 let selection = TrimSelection {
                     track_id: best.track_id,
@@ -207,7 +211,15 @@ impl EditorEngine {
                 let params: TrimAtParams = parse_params(params)?;
                 let selected = self.require_selection()?;
                 let tick = edit_tick(&self.document, selected)?;
-                let delta = params.at.0 - tick;
+                let delta = params
+                    .at
+                    .0
+                    .checked_sub(tick)
+                    .ok_or_else(|| {
+                        DispatchError::InvalidParameters(
+                            "Playhead is outside the representable timeline range".into(),
+                        )
+                    })?;
                 if delta == 0 {
                     return Ok(json!({
                         "trimmed": false,

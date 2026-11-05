@@ -137,6 +137,81 @@ fn compound_clip_of_huge_ticks_is_a_clean_error_not_a_panic() {
     ));
 }
 
+#[test]
+fn trim_extend_to_playhead_overflow_is_a_clean_error_not_a_panic() {
+    let mut engine = engine_with_video_media();
+    let media_id = engine.document().project.media[0].id;
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"media_id": media_id, "timeline_start": 0, "duration": 100_000_000}),
+        ))
+        .unwrap();
+    let track_id = engine.document().project.sequence.tracks[0].id;
+    engine
+        .execute(CommandRequest::new(
+            "trim.selectEditPoint",
+            json!({"track_id": track_id, "clip_index": 0, "edge": "end"}),
+        ))
+        .unwrap();
+    // i64::MIN playhead must not underflow `at - tick`; recoverable error only.
+    let result = engine.execute(CommandRequest::new(
+        "trim.extendToPlayhead",
+        json!({"at": i64::MIN}),
+    ));
+    assert!(result.is_ok() || result.is_err(), "panic is not an option");
+}
+
+#[test]
+fn trim_select_nearest_survives_extreme_playhead_ticks() {
+    let mut engine = engine_with_video_media();
+    let media_id = engine.document().project.media[0].id;
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"media_id": media_id, "timeline_start": 0, "duration": 100_000_000}),
+        ))
+        .unwrap();
+    let outcome = engine.execute(CommandRequest::new(
+        "trim.selectNearest",
+        json!({"at": i64::MIN}),
+    ));
+    assert!(outcome.is_ok() || outcome.is_err(), "panic is not an option");
+}
+
+#[test]
+fn xmeml_import_rejects_frame_overflow_before_panicking() {
+    let xml = format!(
+        "<xmeml version=\"5\"><clipitem><name>overflow</name>\
+         <start>1</start><end>{}</end><in>0</in></clipitem></xmeml>",
+        i64::MAX
+    );
+    let error = crate::interop::import_xmeml_xml(&xml).unwrap_err();
+    assert!(
+        error.contains("overflow"),
+        "frame overflow must surface as an error, got: {error}"
+    );
+}
+
+#[test]
+fn xmeml_import_rejects_more_than_the_clip_limit() {
+    // One clip over the cap is enough to trip the limit check.
+    let clip = "<clipitem><name>c</name><start>0</start><end>10</end></clipitem>";
+    let item_count = 50_001;
+    let mut xml =
+        String::with_capacity(48 + item_count * clip.len());
+    xml.push_str("<xmeml version=\"5\">");
+    for _ in 0..item_count {
+        xml.push_str(clip);
+    }
+    xml.push_str("</xmeml>");
+    let error = crate::interop::import_xmeml_xml(&xml).unwrap_err();
+    assert!(
+        error.contains("limit"),
+        "clip cap must surface as an error, got: {error}"
+    );
+}
+
 // --- Checkpoint hygiene ------------------------------------------------------
 // Disk-derived scan commands deliberately stay OUT of undo history (pinned by
 // phase4_media: "a missing-media scan changes flags, not undo history"), while

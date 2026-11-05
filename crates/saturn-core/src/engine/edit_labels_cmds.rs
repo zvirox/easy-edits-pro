@@ -339,7 +339,7 @@ impl EditorEngine {
         })?;
         let start = clip.timeline_start.0;
         let source_in = clip.source_in.0;
-        if clip.duration.0 <= head {
+        if head < 0 || clip.duration.0 <= head {
             return Err(DispatchError::Operation(
                 "Removing that many head frames would erase the clip".into(),
             ));
@@ -348,7 +348,14 @@ impl EditorEngine {
         let clips = &mut self.document.project.sequence.tracks[track_index].clips;
         if let Some(clip) = clips.get_mut(params.clip_index) {
             clip.source_in = Tick(source_in.saturating_add(head));
-            clip.duration = Tick(clip.duration.0 - head);
+            clip.duration = clip
+                .duration
+                .checked_sub(head)
+                .ok_or_else(|| {
+                    DispatchError::Operation(
+                        "Removing that many head frames would underflow the clip".into(),
+                    )
+                })?;
         }
         // Ripple-close: everything on the track that starts after the
         // removed head range shifts left by `head`.

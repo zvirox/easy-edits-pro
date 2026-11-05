@@ -9,15 +9,18 @@
 
 ## Phase 0 — Foundation: Unified State, Schema v15 & Security Hardening — `status: todo`
 
-### Packet 0.0 — Security remediation (spec §10.1, mandatory before/with Phase 0)
-- [ ] Replace all raw `+`/`-` on `Tick(i64)` with `Tick::checked_add` / `checked_sub` returning typed `Err(String)` (`captions_cmds.rs`, `sequence_cmds.rs`, `timeline_cmds.rs`, `compound_cmds.rs`)
-- [ ] Validate `timeline_start >= 0` and `timeline_start.checked_add(duration)` in `ProjectDocument::validate()`
-- [ ] Set `overflow-checks = true` in `[profile.release]` (root `Cargo.toml`)
-- [ ] Wrap `mcp_bridge.rs::dispatch` in `std::panic::catch_unwind` (no more mutex poisoning)
-- [ ] Reject `..` path traversal in all interop importers (FCPXML/XMEML/OTIO/EDL); mark imported media paths `unconfirmed: true`
-- [ ] Make XMEML/FCPXML parsing linear-time, parse before taking `state.0.lock()`, cap items per import (50,000)
-- [ ] Route the 7 history-blind mutating commands through the undo-push wrapper (`clip.remove_keyframe`, `project.update_media`, `media.check_missing`, `media.auto_relink`, `media.make_offline`, `media.refresh_changed`, `marker.split`)
-- [ ] Enforce `https://` on `source_url`, cap project-file reads at 100 MiB, call `validate_read_path` in `reveal_path`
+### Packet 0.0 — Security remediation (spec §10.1, mandatory before/with Phase 0) — `DONE 2026-11-05`
+
+> **Audit note (2026-11-05):** On adoption, a line-level re-audit found most §10.1 items had already been remediated in the codebase since the original security-audit report (verified by reading current code, not just the cited line numbers): `caption.cue_nudge` uses `checked_add` with pre-validation, the 7 history-blind commands all call `checkpoint()`, `catch_unwind` wraps `engine.execute` inside the lock scope in `execute_command_with_state` (`commands/project.rs`), `ProjectDocument::validate()` rejects timeline_bounds overflow, `overflow-checks = true` was present in `[profile.release]`, importers use `sanitize_untrusted_media_path`, XMEML parse is already single-pass linear (guarded by `xmeml_import_scales_linearly_over_many_clipitems`), `source_url` requires https, reads are capped via `validate_read_path`, and `reveal_path` canonicalizes. This packet therefore completed the **remaining gaps only** (sites marked ✅* below).
+
+- [x] Replace all raw `+`/`-` on `Tick(i64)` with `Tick::checked_add` / `checked_sub` returning typed `Err(String)` ✅ — added `Tick::checked_add/checked_sub/saturating_add/saturating_sub` helpers in `time.rs`; hardened remaining unchecked sites: gap-close in `timeline_cmds.rs` (gap_duration + 4 guarded shifts), `trim.extendToPlayhead` delta, `trim.selectNearest` distance key, `edit_labels` head-removal, `effects_cmds` transition-distance `.abs()` + max-end sum, `captions_cmds` cue-split `chars*into/total` (i128 intermediates), XMEML frame→tick math
+- [x] Validate `timeline_start >= 0` and `timeline_start.checked_add(duration)` in `ProjectDocument::validate()` ✅ — pre-existing (`project/mod.rs`)
+- [x] Set `overflow-checks = true` in `[profile.release]` (root `Cargo.toml`) ✅ — pre-existing
+- [x] Wrap `mcp_bridge.rs::dispatch` in `std::panic::catch_unwind` (no more mutex poisoning) ✅ — pre-existing, implemented at the stronger site: `catch_unwind` inside the lock scope in `execute_command_with_state` (`apps/saturn-tauri/src/commands/project.rs`)
+- [x] Reject `..` path traversal in all interop importers (FCPXML/XMEML/OTIO/EDL); mark imported media paths `unconfirmed: true` ✅ — `sanitize_untrusted_media_path` pre-existing (guarded by `xmeml_import_never_stores_parent_escape_paths`)
+- [x] Make XMEML/FCPXML parsing linear-time, parse before taking `state.0.lock()`, cap items per import (50,000) ✅ — linear scan pre-existing; **50,000-item cap added this pass** (`MAX_IMPORT_CLIPS`, errors instead of truncating)
+- [x] Route the 7 history-blind mutating commands through the undo-push wrapper (`clip.remove_keyframe`, `project.update_media`, `media.check_missing`, `media.auto_relink`, `media.make_offline`, `media.refresh_changed`, `marker.split`) ✅ — all seven call `self.checkpoint()` (verified per-handler)
+- [x] Enforce `https://` on `source_url`, cap project-file reads at 100 MiB, call `validate_read_path` in `reveal_path` ✅ — pre-existing (https gate in `commands/assets.rs`, read cap via `validate_read_path`, canonicalize in `reveal_path`)
 
 ### Packet 0.1 — Rust viewport & selection state (Lane 2)
 - [ ] Create `crates/saturn-core/src/viewport_state.rs` (< 400 lines) with `UnifiedViewportState`
@@ -31,8 +34,8 @@
 - [ ] Run `pnpm catalogue:sync` and commit regenerated `docs/COMMANDS.md` / catalogue JSON
 
 ### ✅ Phase 0 Verification Gate
-- [ ] `cargo test -p saturn-core` green
-- [ ] `python3 tests/native/mcp_command_matrix.py` green
+- [ ] `cargo test -p saturn-core` green — **passing 2026-11-05 (Packet 0.0 run)**
+- [ ] `python3 tests/native/mcp_command_matrix.py` green — pending Packet 0.1/0.2 (matrix must be re-run against ≥425/440 after those land)
 - [ ] **Exit criterion met: ≥ 425 of 440 commands return `ok` over MCP** (only OS window controls like `view.fullscreen` remain `ui_only`)
 
 ---
@@ -211,3 +214,4 @@
 | Date | Packet | Note / Evidence |
 |---|---|---|
 | 2026-11-05 | — | Plan adopted into repo; checklist created; no packets started |
+| 2026-11-05 | 0.0 | Security remediation complete. Re-audit found most §10.1 items pre-remediated; completed the remaining unchecked-Tick sweep (`time.rs` helpers + engine/trim/markers-adjacent/effects/captions/xmeml sites), XMEML 50k clip cap, XMEML checked frame math, export-side saturating end math. 4 new robustness tests in `engine/tests/robustness.rs`. Evidence: `cargo test --workspace` clean (0 failures), `pnpm --dir apps/saturn-tauri check:source-size --max-lines=800` pass. Tier-4 matrix deferred to Phase 0 gate. |

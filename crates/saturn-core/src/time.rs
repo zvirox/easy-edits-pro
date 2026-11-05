@@ -33,6 +33,29 @@ impl Tick {
     pub fn as_millis(self) -> i64 {
         self.0 / (TICKS_PER_SECOND / 1000)
     }
+
+    /// Overflow-checked addition (security-audit §10.1): every mutating path
+    /// that advances a timeline position must use checked arithmetic and
+    /// surface a typed error instead of panicking the worker thread.
+    pub fn checked_add(self, rhs: i64) -> Option<Self> {
+        self.0.checked_add(rhs).map(Self)
+    }
+
+    /// Overflow-checked subtraction; see [`Self::checked_add`].
+    pub fn checked_sub(self, rhs: i64) -> Option<Self> {
+        self.0.checked_sub(rhs).map(Self)
+    }
+
+    /// Saturating addition for derived queries (max end computations) where
+    /// clamping cannot corrupt stored state.
+    pub fn saturating_add(self, rhs: i64) -> Self {
+        Self(self.0.saturating_add(rhs))
+    }
+
+    /// Saturating subtraction for derived queries; see [`Self::saturating_add`].
+    pub fn saturating_sub(self, rhs: i64) -> Self {
+        Self(self.0.saturating_sub(rhs))
+    }
 }
 
 impl From<i64> for Tick {
