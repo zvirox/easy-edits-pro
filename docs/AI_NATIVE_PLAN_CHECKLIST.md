@@ -7,6 +7,20 @@
 
 ---
 
+## Compliance documents (binding for every packet)
+
+> **Adopted 2026-11-05, per user directive.** While working on this plan, the documents below are compliance requirements, not reading suggestions. Where a document conflicts with a packet in the checklist, the document's constraint wins and the packet is reshaped accordingly; record the change in the progress log.
+
+| Document | Type | Binding consequence for plan work |
+|---|---|---|
+| [AGENTS.md §Provenance and third-party material](../../AGENTS.md) (added via [provenance-notice.patch](audit/provenance-notice.patch)) | Repo rule | Study but never paste third-party code; log every reuse in `NOTICE` **in the same change**; only MIT/Apache-2.0/BSD/ISC/Zlib sources; never GPL/AGPL/LGPL deps or non-commercial model weights without maintainer approval; no third-party product names in UI/docs/identifiers; never the ArtCraft/FilmCraft names or logos. |
+| [NOTICE](../../NOTICE) | Legal record | The FilmCraft derivation is documented (command inventory + `CommandSpec` shape, MIT OR Apache-2.0 texts under `licenses/`). Any new third-party reuse must add an entry here in the same commit. |
+| [eep-ai-native-plan-review.md](audit/eep-ai-native-plan-review.md) | Independent plan review | Design constraints absorbed into the packets below: no `/dev/shm` ring (Packet 1.1 uses MCP image blocks / `$XDG_RUNTIME_DIR` previews); contact-sheet budget with token controls (Packet 1.1); no invented scalar "Murch score" — measurable telemetry only (Packet 1.2); no ethnicity-labelled skin-tone logic; no OCIO dependency (fix a small WGSL transform set); BLAKE3 is a *fingerprint*, not a content hash (Packet 0.2); branch merge v1 is whole-branch accept/reject only (Packet 0.2); per-session viewport cursors for Packet 5.2 (human/agent do not share one selection); treat media-derived text as untrusted data; curated ~20–30 default agent tool profile for MCP; headless daemon milestone (review §5 stage C) before any hosting work. |
+| [dual-licensing-plan.md](planning/dual-licensing-plan.md) | Licensing brief (not legal advice) | Before any outside-PR merge: CLA first, DCO stays; before any licence change/bundle decision: `cargo deny` / `pnpm licenses list` gates; never bundle x264 or non-commercial model weights in anything sold; target licence direction AGPL-3.0 (or GPL) + commercial — decisions flagged to the maintainer, never executed by an agent alone. |
+| [filmcraft-provenance-check.md](audit/filmcraft-provenance-check.md) | Provenance audit | Evidence base for NOTICE. Reminder: check parity header and `docs/PARITY.md` credit FilmCraft; do not introduce more verbatim surface without a NOTICE entry. |
+
+---
+
 ## Phase 0 — Foundation: Unified State, Schema v15 & Security Hardening — `status: todo`
 
 ### Packet 0.0 — Security remediation (spec §10.1, mandatory before/with Phase 0) — `DONE 2026-11-05`
@@ -27,9 +41,12 @@
 - [x] Convert `playhead.*`, `timeline.select*`, `edit.select_*`, `export.queue.*` commands to mutate `UnifiedViewportState` in `EditorEngine` — **plus `workspace.*` (8 ids), `project.select`/`selectAll`, `sequence.selection_follows_playhead` and the new `viewport.inspect` query; 41 ids flipped from `ui_only: false`, docs regenerated via `pnpm catalogue:sync` (441 commands, 71 stay UI-only)**
 
 ### Packet 0.2 — Schema v15: BLAKE3 fingerprints & CoW timeline branches (Lane 2)
+
+> **Plan-review constraints apply (docs/audit/eep-ai-native-plan-review.md §4.11, §4.10):** BLAKE3 head/tail/size is a *fingerprint*, not a content hash — name it `fingerprint`, and use it only to *suggest* relinks with user confirmation, never as silent truth. Branch merge v1 must be **whole-branch accept/reject only**; per-range merges wait for a written conflict rule.
+
 - [ ] Create `crates/saturn-core/src/branch.rs` (`TimelineBranch`, diff report types)
-- [ ] Add `project.branch_create` / `branch_switch` / `branch_diff` / `branch_merge` commands
-- [ ] Schema v15: BLAKE3 head/tail hash + relative paths + auto-relink on moved project folders
+- [ ] Add `project.branch_create` / `branch_switch` / `branch_diff` / `branch_merge` commands — **v1: `branch_merge` accepts or rejects the whole branch (no range merges)**
+- [ ] Schema v15: BLAKE3 fingerprint (head/tail/size, named `fingerprint`) + relative paths + relink *suggestion* flow on moved project folders
 - [ ] v1 → v15 lossless migration in `migrations.rs`
 - [ ] Run `pnpm catalogue:sync` and commit regenerated `docs/COMMANDS.md` / catalogue JSON
 
@@ -42,15 +59,21 @@
 
 ## Phase 1 — Perceptual Feedback Loop (AI Eyes & Ears) — `status: todo`
 
-### Packet 1.1 — Shared-memory ring & frame/contact-sheet extractor (Lane 2 + 4)
+### Packet 1.1 — Frame & contact-sheet extraction (Lane 2 + 4)
+
+> **Plan-review revision (docs/audit/eep-ai-native-plan-review.md §4.2, §4.3):** the `/dev/shm` zero-copy ring is **dropped** — a language model cannot read shared memory. Frames are returned as MCP image content blocks (size-capped JPEG/PNG) or paths under `$XDG_RUNTIME_DIR/easy-edits-pro/previews/` (`0700`). Contact-sheet target is 1–2 s from the import-time thumbnail/proxy cache, with a token budget (tile count, tile size, JPEG quality), per §10.2 write-policy containment.
+
 - [ ] Split `crates/saturn-render/src/lib.rs` (currently 1,483 lines) below 800 lines first
-- [ ] Create `crates/saturn-render/src/shm_ring.rs` (`0600`, `O_CREAT|O_EXCL`, ≤ 64 MiB / 4 slots, Drop guard)
-- [ ] Create `crates/saturn-render/src/frame_extractor.rs` (GStreamer appsink, single frame + `columns × rows` contact sheet, < 150 ms)
-- [ ] `media_preview` returns real still frames; add `vision_extract_frame_sheet` + `render_preview_clip_proxy`
+- [ ] Create `crates/saturn-render/src/frame_extractor.rs` (GStreamer appsink, single frame + `columns × rows` contact sheet, < 2 s from cache, token budget on tile count/size/quality)
+- [ ] `media_preview` returns real still frames (MCP image content blocks or `0700` previews dir); add `vision_extract_frame_sheet` + `render_preview_clip_proxy`
+- [ ] Import-time thumbnail/proxy cache feeding the contact sheet
 - [ ] All extractor outputs go through `enforce_write_target` or the isolated `previews/` runtime dir (spec §10.2)
 
 ### Packet 1.2 — Video scopes telemetry (Lane 2 + 4)
-- [ ] Create `crates/saturn-render/src/scopes_gpu.rs` (`ScopeTelemetryReport`: IRE percentiles, clip/crush %, parade, saturation, skin-tone I-line)
+
+> **Plan-review revision (docs/audit/eep-ai-native-plan-review.md §4.4, §4.5):** no invented combined "Murch score" — expose measurable telemetry only (luma jump, ΔE2000, audio boundary pop, optical-flow direction); any aggregate is labelled `heuristic` and gated against human-labelled good/bad cuts before it can block anything. Skin-tone measurement is relative to a reference shot or user-set target, never by ethnicity label; the vectorscope skin-tone line stays a guide only.
+
+- [ ] Create `crates/saturn-render/src/scopes_gpu.rs` (`ScopeTelemetryReport`: IRE percentiles, clip/crush %, parade, saturation)
 - [ ] Expose `color_read_scopes` over MCP + desktop bridge
 
 ### Packet 1.3 — Audio telemetry (Lane 2 + 4)
@@ -93,8 +116,11 @@
 ## Phase 3 — Scene-Referred 32-Bit Float GPU Color Engine — `status: todo`
 
 ### Packet 3.1 — Real wgpu `Rgba32Float` pipeline & OCIO v2 ACEScg (Lane 2)
-- [ ] Create `src/gpu_context.rs` + `src/ocio_pipeline.rs` (real `wgpu::Device/Queue`, `Rgba32Float`, Linux DMA-BUF import)
-- [ ] Implement `ocio.set_pipeline` + `ocio.set_media_idt` (ARRI LogC4, RED Log3G10, Sony S-Log3, BM Gen5, Apple Log → ACEScg/ACEScct → Rec.709 / P3 / Rec.2020 PQ ODTs)
+
+> **Plan-review revision (docs/audit/eep-ai-native-plan-review.md §4.6):** no OpenColorIO C++ dependency. Implement a **fixed, small WGSL transform set**: ACEScg/ACEScct matrices, a handful of camera log curves, and Rec.709/sRGB/P3 outputs; add more only on user pull. The module keeps the `ocio_pipeline` name for API continuity but must not link OCIO.
+
+- [ ] Create `src/gpu_context.rs` + `src/ocio_pipeline.rs` (real `wgpu::Device/Queue`, `Rgba32Float`, Linux DMA-BUF import — **pure WGSL transforms, no OCIO dep**)
+- [ ] Implement `ocio.set_pipeline` + `ocio.set_media_idt` (camera log curves → ACEScg/ACEScct → Rec.709 / P3 output transforms, in WGSL)
 
 ### Packet 3.2 — WGSL color node graph, power windows & film emulation (Lane 2)
 - [ ] Create `src/color_nodes_gpu.rs` + `src/film_emulation.rs` (wheels, HDR zones, curves, 3D LUTs, HSL, warper, power windows, halation + grain)
@@ -143,6 +169,9 @@
 - [ ] Run `pnpm catalogue:sync`, commit regenerated docs
 
 ### Packet 5.2 — Co-editing React 19 panels (Lane 1)
+
+> **Plan-review constraint (docs/audit/eep-ai-native-plan-review.md §4.9):** human and agent get **separate viewport cursors/selections** — the human's lives in the GUI session, the agent's in its command session; they do not overwrite each other. Viewport state stays out of undo and out of dirty-state. Also gated on the glass-card shell (build after G3 of the UI plan); branch diff ribbon works with Packet 0.2's whole-branch accept/reject v1.
+
 - [ ] `ui/src/features/timeline/AiBranchDiffRibbon.tsx` (ghost playhead, accept/reject via `project.branch_merge`)
 - [ ] `ui/src/features/preview/VideoScopesPanel.tsx` (raw canvas — no glass over scope surfaces)
 - [ ] `ui/src/features/captions/ScriptSyncPanel.tsx` (word-level ripple cutting, multi-take carousel)
@@ -216,3 +245,4 @@
 | 2026-11-05 | — | Plan adopted into repo; checklist created; no packets started |
 | 2026-11-05 | 0.0 | Security remediation complete. Re-audit found most §10.1 items pre-remediated; completed the remaining unchecked-Tick sweep (`time.rs` helpers + engine/trim/markers-adjacent/effects/captions/xmeml sites), XMEML 50k clip cap, XMEML checked frame math, export-side saturating end math. 4 new robustness tests in `engine/tests/robustness.rs`. Evidence: `cargo test --workspace` clean (0 failures), `pnpm --dir apps/saturn-tauri check:source-size --max-lines=800` pass. Tier-4 matrix deferred to Phase 0 gate. Commit `c8c20a0`. |
 | 2026-11-05 | 0.1 | Engine-owned unified viewport state: `UnifiedViewportState` in `viewport_state.rs` (playhead + AI ghost field, clip/gap/media selection, workspace, branch, export queue capped at 500); `viewport_cmds.rs` dispatches 55 ids (playhead 13, workspace 8, timeline.select 4, edit.select 4, bin/marks 3, export.queue 9, viewport.inspect) returning a `viewport` snapshot; 41 catalogue specs flipped backend (`uiOnly:false`, new params), catalogue JSON/COMMANDS.md regenerated. Targeting stays single-sourced in `TargetingState` (snapshot accessor). 16 new engine tests; strict no-junk-params for `params:"{}"` viewport cmds. Gates: cargo test --workspace 0 failures, pnpm build + 168 UI tests green, check:commands (441 cmds / 71 UI-only) + source-size pass. UI convergence deferred to Packet 5.2. Commit `031a7bc`. |
+| 2026-11-05 | — | **Compliance docs adopted** (user directive): provenance rules land in `AGENTS.md` + `NOTICE` + `licenses/` via `provenance-notice.patch` (FilmCraft derivation credited; parity checker header updated); `docs/audit/filmcraft-provenance-check.md` (evidence base), `docs/audit/eep-ai-native-plan-review.md` (independent review — design constraints now annotated into Packets 0.2, 1.1, 1.2, 3.1, 5.2), `docs/planning/dual-licensing-plan.md` (licensing brief; CLA-before-merge and no-bundling constraints noted). See "Compliance documents (binding for every packet)" at the top of this file. |

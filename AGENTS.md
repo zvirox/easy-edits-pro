@@ -68,6 +68,26 @@ These rules are enforced by gates or review. Violating them is a failed packet.
 - **Project state is owned by the Rust core.** The UI sends commands and
   renders snapshots; never fork state client-side.
 
+## Provenance and third-party material
+
+- **Study other products freely; do not paste their code.** Writing the same
+  behaviour in your own words is fine. Copying source, assets, icons, fonts,
+  translations or docs from another project is not, unless its licence allows
+  it and you record it.
+- **Log any reuse in `NOTICE` in the same change** (project, URL, copyright,
+  licence, what was taken). Put the licence text under `licenses/`.
+- **Only permissive sources (MIT, Apache-2.0, BSD, ISC, Zlib) may be reused.**
+  Never bring in GPL, AGPL, LGPL or unlicensed code, or non-commercial model
+  weights, without the maintainer's written approval.
+- **No third-party product names, logos or trademarks** in UI labels, docs or
+  identifiers (for example another editor's panel names). Use generic wording.
+- **Do not use the ArtCraft or FilmCraft names or logos.**
+- **Background + rationale:** `docs/audit/filmcraft-provenance-check.md`
+  (evidence), `NOTICE` (the reuse record — update it in the same change you
+  reuse something), and `docs/planning/dual-licensing-plan.md` (licensing
+  constraints: CLA before any outside-PR merge; never bundle GPL-only codecs
+  or non-commercial model weights in anything sold).
+
 ## Generated files — never hand-edit or hand-merge
 
 - `docs/COMMANDS.md`, `docs/reference/command-catalogue.json`,

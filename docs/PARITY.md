@@ -6,6 +6,12 @@
      docs/reference/tier<N>-audit.json. Regenerate with
      `pnpm check:parity`; CI verifies this file with `--check`. -->
 
+Provenance: the reference-editor command inventory is derived from
+FilmCraft (https://github.com/storytold/filmcraft), Copyright (c) 2026
+ArtCraft Team and the FilmCraft contributors, licensed MIT OR
+Apache-2.0 (see NOTICE and licenses/). No FilmCraft source code,
+assets or documentation are included in EEP.
+
 Verified-before-done rule: a command counts as shipped only with a UI
 affordance, a test, and `shipped: true` in the catalogue.
 
@@ -76,6 +82,7 @@ Full parity (all reference-editor commands) is explicitly **not** a Beta goal.
 | bus | - | 0 | - | - | |
 | nodegraph | - | 0 | - | - | |
 | interop | - | 0 | - | - | |
+| viewport | - | 0 | - | - | |
 | view | - | 0 | - | - | |
 | workspace | - | 0 | - | - | |
 
@@ -83,6 +90,6 @@ Full parity (all reference-editor commands) is explicitly **not** a Beta goal.
 
 Reference-editor commands: 701
 
-EEP commands: 440 (440 shipped, 0 planned)
+EEP commands: 441 (441 shipped, 0 planned)
 
-App-only families (no reference-editor counterpart): bus, interop, nodegraph, track, view, workspace
+App-only families (no reference-editor counterpart): bus, interop, nodegraph, track, view, viewport, workspace

@@ -5,6 +5,8 @@
  * Compares the checked-in EEP catalogue with the inventory recorded from the
  * reference editor on 2026-10-21 (the recorded inventory of that product's
  * command catalogue; see docs/reference/reference-editor-commands.json).
+ * The inventory is derived from FilmCraft (https://github.com/storytold/filmcraft,
+ * MIT OR Apache-2.0); see NOTICE and licenses/.
  *
  * - A family alias map maps EEP family prefixes onto the canonical reference-editor
  *   family names they serve (`graphic` -> `graphics`, `subtitle` -> `captions`,
@@ -198,6 +200,12 @@ const lines = [
   "     docs/reference/reference-editor-commands.json, and",
   "     docs/reference/tier<N>-audit.json. Regenerate with",
   "     `pnpm check:parity`; CI verifies this file with `--check`. -->",
+  "",
+  "Provenance: the reference-editor command inventory is derived from",
+  "FilmCraft (https://github.com/storytold/filmcraft), Copyright (c) 2026",
+  "ArtCraft Team and the FilmCraft contributors, licensed MIT OR",
+  "Apache-2.0 (see NOTICE and licenses/). No FilmCraft source code,",
+  "assets or documentation are included in EEP.",
   "",
   "Verified-before-done rule: a command counts as shipped only with a UI",
   "affordance, a test, and `shipped: true` in the catalogue.",

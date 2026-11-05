@@ -1,0 +1,53 @@
+Easy Edits Pro
+Copyright (c) 2026 the Easy Edits Pro authors.
+Licensed under GPL-3.0-or-later (see LICENSE). [Placeholder: update this line
+when the licence and copyright holder are finalised; see the dual-licensing plan.]
+
+This file lists third-party material and the places where EEP is derived from,
+or was informed by, other projects. It is the single place to record reuse. If
+you reuse anything from another project, add an entry here in the same change.
+
+--------------------------------------------------------------------------
+Derived from FilmCraft
+--------------------------------------------------------------------------
+Project:   FilmCraft  https://github.com/storytold/filmcraft
+Copyright: (c) 2026 ArtCraft Team and the FilmCraft contributors
+Licence:   MIT OR Apache-2.0 (texts in licenses/FilmCraft-MIT.txt and
+           licenses/FilmCraft-Apache-2.0.txt). EEP uses it under the MIT terms
+           for the portions below.
+
+What was taken:
+  - The inventory of command ids, labels, menu paths and shortcuts recorded in
+    docs/reference/reference-editor-commands.json (701 entries; every id also
+    appears in FilmCraft's sources).
+  - The field layout of the CommandSpec data structure in
+    crates/saturn-core/src/catalogue/mod.rs (id, label, menu, shortcut,
+    params), which mirrors FilmCraft's crates/engine/src/commands.rs.
+
+Not taken: FilmCraft source code, assets, icons, fonts, translations or
+documentation. A comparison of both code bases on 2026-11-05 found no other
+verbatim reuse (0.01% exact overlap at 40 tokens; no identical files other than
+the standard font licence text).
+
+The names "ArtCraft" and "FilmCraft", their logos and app icon are trademarks
+of the ArtCraft Team and are not licensed to EEP. EEP does not use them.
+
+--------------------------------------------------------------------------
+Bundled fonts
+--------------------------------------------------------------------------
+Inter (assets/fonts/InterVariable.ttf)
+  Copyright (c) 2016 The Inter Project Authors, https://github.com/rsms/inter
+  SIL Open Font License 1.1 (assets/fonts/OFL.txt).
+
+--------------------------------------------------------------------------
+Dependencies
+--------------------------------------------------------------------------
+Rust crates and npm packages keep their own licences. Generate the list with
+`cargo about` / `cargo deny list` and `pnpm licenses list`. System libraries
+such as GStreamer are loaded dynamically from the user's system.
+
+--------------------------------------------------------------------------
+Model weights
+--------------------------------------------------------------------------
+None are bundled today. Before bundling or downloading any model, add a row to
+docs/model-licences.md (name, source, licence, allowed for commercial use?).
