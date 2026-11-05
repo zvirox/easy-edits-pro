@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Phase 4 media organisation: sequence markers.
 //!
 //! Every case drives the engine through the same `execute` path the UI, CLI,

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 use saturn_core::{CommandRequest, EditorEngine, command_catalogue};
 use saturn_graphics::format::{load_template, save_template};
 use saturn_graphics::{GraphicsTemplate, TemplateCategory, TemplateMetadata};

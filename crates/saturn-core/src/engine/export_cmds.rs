@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Export machinery the Rust side truly owns: the supported-format table,
 //! named export presets, and settings resolution. The GStreamer render
 //! itself runs in the Tauri shell (queue commands are ui_only and route to

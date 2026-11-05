@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Three-point editing and edit-point inspection.
 //!
 //! `timeline.insert_clip` and `timeline.overwrite_clip` are the engine half of

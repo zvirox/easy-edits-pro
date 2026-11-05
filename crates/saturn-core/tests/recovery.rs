@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Crash-recovery contract (planning.md M1.1): an autosave snapshot must
 //! restore into a fresh engine with the edits intact, undo history cleared,
 //! an explicit dirty flag, and the recovered document must survive a normal

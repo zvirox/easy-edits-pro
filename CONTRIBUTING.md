@@ -12,7 +12,7 @@ All contributors and participants agree to uphold the standards outlined in our 
 
 ## Developer Certificate of Origin (DCO)
 
-All code contributions to Easy Edits Pro must be accompanied by a Developer Certificate of Origin (DCO) sign-off in the git commit message. This certifies that you wrote the code or have the right to submit it under the project's GPL-3.0-or-later license.
+All code contributions to Easy Edits Pro must be accompanied by a Developer Certificate of Origin (DCO) sign-off in the git commit message. This certifies that you wrote the code or have the right to submit it under the project's AGPL-3.0-or-later license.
 
 To sign off on your commits, use the `-s` flag with `git commit`:
 ```bash
@@ -22,6 +22,30 @@ This appends a line like:
 ```text
 Signed-off-by: Your Name <your.email@example.com>
 ```
+
+---
+
+## Contributor Licence Agreement (CLA)
+
+Because Easy Edits Pro is dual licensed (open source under
+[AGPL-3.0-or-later](LICENSE) plus a
+[commercial licence](LICENSE-COMMERCIAL.md) — see
+[LICENSING.md](LICENSING.md)), every code contributor must accept the
+[CLA](CLA.md) so the project can keep offering both licences. You keep your
+copyright; you grant the project a licence, not an assignment.
+
+- **Sign once**: accepting the CLA is a one-time action per contributor. The
+  CLA Assistant bot asks for acceptance on your first non-trivial pull
+  request (CI enforces it while that is being configured via the
+  statement-based flow below).
+- **Until the bot is live**: add a comment on your pull request containing
+  exactly: `I accept the terms of CLA.md` (with your Git identity). A
+  maintainer records the acceptance.
+- Documentation-only and typo-only changes do not need a signed CLA, but do
+  need the DCO sign-off above.
+- If you cannot or will not sign the CLA, please open an issue describing the
+  change; maintainers will implement it themselves rather than merge your
+  code. Licensing questions: **info@zvirox.in** / **zvirox@proton.me**.
 
 ---
 
@@ -124,6 +148,9 @@ Before submitting a Pull Request, ensure that:
 2. `pnpm --dir apps/saturn-tauri build` completes with 0 type errors.
 3. `cargo check --manifest-path apps/saturn-tauri/Cargo.toml` succeeds.
 4. All commits include a DCO sign-off (`git commit -s`).
+5. If this is your first non-trivial code PR, the CLA in [CLA.md](CLA.md) is
+   accepted (bot signature or a PR comment stating `I accept the terms of
+   CLA.md`).
 5. New features include appropriate unit tests or regression tests.
 6. `pnpm --dir apps/saturn-tauri test`, `check:glass`, `check:commands`, and
    `check:source-size --max-lines=800` pass when the change touches the UI or

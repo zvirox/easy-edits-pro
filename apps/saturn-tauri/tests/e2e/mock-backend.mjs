@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 // In-page mock of the Tauri backend for the smoke suite. This intercepts
 // every `invoke` and answers from an in-memory project document, so the
 // suite exercises the UI without the real engine (see tests/e2e/README.md).

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Preview-proxy lifecycle (planning.md M1.1): deterministic cache keys for
 //! generated preview proxies and the stale-prune policy.
 //!

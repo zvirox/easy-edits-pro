@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 use crate::time::{FrameRate, Tick};
 
 /// Formats a time `Tick` into a standard SMPTE non-drop timecode `HH:MM:SS:FF`.

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -22,9 +25,30 @@ function visit(directory) {
     }
     const extension = path.slice(path.lastIndexOf("."));
     if (!extensions.has(extension)) continue;
-    const lines = readFileSync(path, "utf8").split("\n").length;
+    const lines = countSourceLines(readFileSync(path, "utf8"));
     if (lines > hardLimit) oversized.push({ path: relative(process.cwd(), path), lines });
   }
+}
+
+// The SPDX licence header (and any leading prose banner) is boilerplate added
+// by the licence gate, not source: strip the leading comment block so it never
+// counts against the size limit.
+function countSourceLines(text) {
+  const lines = text.split("\n");
+  let start = 0;
+  while (start < lines.length) {
+    const line = lines[start].trim();
+    const isBoilerplate =
+      line === "" ||
+      line.startsWith("#!") ||
+      line.startsWith("//") ||
+      line.startsWith("/*") ||
+      line.startsWith("*") ||
+      line.startsWith("*/");
+    if (!isBoilerplate) break;
+    start += 1;
+  }
+  return lines.length - start;
 }
 
 for (const root of sourceRoots) visit(root);

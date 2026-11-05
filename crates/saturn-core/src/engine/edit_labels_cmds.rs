@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Edit-family clip commands: FC-style label colours, the attribute
 //! clipboard (copy/paste/remove attributes), duplicate, consolidate
 //! duplicates, ripple-delete-head, and unused-media removal.

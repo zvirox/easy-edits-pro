@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 // Entry point for the Playwright UI smoke suite (`pnpm test:e2e`).
 // IMPORTANT: this suite runs the UI against a MOCKED backend — the in-page
 // Tauri mock in mock-backend.mjs answers every command from an in-memory

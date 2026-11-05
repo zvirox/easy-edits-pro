@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 // Smoke: media organisation - pointer move of a clip, then bins and asset
 // metadata. Bins used to call command ids that did not exist, so this
 // asserts the whole create -> rename -> assign -> delete path reaches the

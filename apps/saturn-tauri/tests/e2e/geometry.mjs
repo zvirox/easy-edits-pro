@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 // G3: Geometry Invariance (plan v4 directive 5). The persistent NLE skeleton
 // — program monitor, toolbox, timeline — is mounted once by WorkspaceShell and
 // must never move or remount when the workspace mode changes. Only the dock

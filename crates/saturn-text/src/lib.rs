@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Text shaping and rasterization for Easy Edits Pro.
 //!
 //! Phase 5 foundation (see `docs/phase5-text-stack.md`): `cosmic-text` owns

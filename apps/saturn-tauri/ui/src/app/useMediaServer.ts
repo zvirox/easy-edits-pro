@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 // F2: the media server must resolve its port and token BEFORE the editor
 // stage mounts. Recovery or open-project flows used to reach the editor while
 // this hook was still awaiting `get_media_server_port`, so previews built

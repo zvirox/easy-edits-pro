@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+# Also available under the EEP commercial licence — see LICENSING.md
 # Flatpak module build: install the packaged binary from the release payload
 # and re-namespace the desktop assets under the flatpak app id. Runs INSIDE
 # the flatpak-builder build sandbox; the dir source has copied the payload

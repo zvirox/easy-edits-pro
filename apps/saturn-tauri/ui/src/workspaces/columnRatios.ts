@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 /**
  * §5 column-ratio preset table (GLASS_CARDS_PLAN v4, "One Shell, Many
  * Workspaces"). A workspace switch re-tabs Dock L / Dock R and may pick a

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Pure geometry for Essential Graphics align/distribute (Phase 5).
 //!
 //! All maths operate on transform boxes in project pixels and never mutate

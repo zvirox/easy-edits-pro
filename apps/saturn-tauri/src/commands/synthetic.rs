@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Synthetic media generation for the reference editor's File > New items: solid-colour stills
 //! (black video, colour matte, transparent video) written as hand-encoded
 //! RGBA PNGs, and SMPTE bars + 1 kHz tone as a real MP4 via GStreamer.

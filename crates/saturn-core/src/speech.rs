@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 use crate::project::{Clip, Sequence, SubtitleItem};
 use crate::timeline_edits::{cut_track_clips_against_ranges, merge_time_ranges};
 use crate::time::Tick;

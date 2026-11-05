@@ -1,3 +1,8 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+ * Also available under the EEP commercial licence — see LICENSING.md
+ */
 /* Project welcome and loading screens - VoiceStudio Obsidian Aesthetic */
 .welcome-shell { position: relative; width: 100vw; height: 100vh; min-height: 650px; display: flex; flex-direction: column; overflow: auto; color: var(--color-text-primary, var(--text-primary)); background: var(--color-bg-base, var(--bg-canvas)); }
 .welcome-ambient-glow { position: fixed; top: -120px; left: 50%; transform: translateX(-50%); width: clamp(520px, 65vw, 960px); height: clamp(360px, 46vh, 580px); background: radial-gradient(ellipse at 50% 30%, var(--accent-glow) 0%, var(--accent-purple-glow) 38%, transparent 72%); pointer-events: none; z-index: 0; }

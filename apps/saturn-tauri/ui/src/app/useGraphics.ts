@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { GraphicItem, GraphicTemplate } from "../engine/playback/types";
 import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";

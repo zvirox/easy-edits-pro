@@ -16,6 +16,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  licences:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Licence gate for the dual-licensing plan
+      # (docs/planning/dual-licensing-plan.md §3.3): fails on copyleft-only,
+      # non-commercial or unlicensed dependencies across all target triples.
+      - name: Check dependency licences (cargo-deny)
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check licenses
+
+      # Every first-party source file must carry the AGPL SPDX header
+      # (docs/planning/dual-licensing-plan.md §5, §7).
+      - name: Check SPDX licence headers
+        run: node scripts/license-headers.mjs check
+
   python-cli-harness:
     runs-on: ubuntu-24.04
     # 15 minutes proved too tight when the apt mirror crawls: libges-1.0-dev

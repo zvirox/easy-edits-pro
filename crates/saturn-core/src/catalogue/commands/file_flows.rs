@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! File-menu flow commands: interop exports, save/close/revert/reveal
 //! orchestration, autosave + recovery, frame export, and synthetic media
 //! generation. All app-level: dispatched in the UI flows or via Tauri

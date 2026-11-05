@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Linux runtime probing for the WebKitGTK preview path.
 //!
 //! The editor used to force `WEBKIT_DISABLE_DMABUF_RENDERER=1` on every Linux

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 // Shared harness for the Playwright UI smoke suite (`pnpm test:e2e`).
 // It boots the Vite dev server, opens Chromium, installs the mocked media
 // route, and hands every area module the same `ctx` (page + shared state).

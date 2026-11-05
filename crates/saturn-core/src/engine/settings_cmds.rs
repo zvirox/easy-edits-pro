@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Durable application settings: preferences, shortcut overrides, and custom
 //! layout presets. The engine owns the data so the CLI and MCP bridge see the
 //! same values as the desktop UI; the Tauri shell points it at one JSON file in

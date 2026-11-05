@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+# Also available under the EEP commercial licence — see LICENSING.md
 """Installed-package acceptance workflow (planning.md 6e E.1).
 
 Proves the SHIPPED package can be installed/launched and complete a small

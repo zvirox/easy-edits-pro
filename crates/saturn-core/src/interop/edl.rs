@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 use super::timecode::{ticks_to_timecode, timecode_to_ticks};
 use super::xml_utils::sanitize_untrusted_media_path;
 use crate::project::{Clip, MediaAsset, MediaKind, ProjectDocument, Track, TrackKind};

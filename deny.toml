@@ -1,0 +1,51 @@
+# cargo-deny configuration: licence gate for the commercial/licensing plan.
+# CI runs `cargo deny check licenses` and fails on copyleft-only dependencies
+# (GPL/AGPL-only, non-commercial) and on unlicensed crates, so a commercial
+# build can never silently inherit duties it cannot satisfy.
+# Docs: https://embarkstudios.github.io/cargo-deny/
+
+[graph]
+targets = [
+    { triple = "aarch64-apple-darwin" },
+    { triple = "x86_64-apple-darwin" },
+    { triple = "x86_64-pc-windows-msvc" },
+    { triple = "x86_64-unknown-linux-gnu" },
+    { triple = "aarch64-unknown-linux-gnu" },
+]
+
+[licenses]
+version = 2
+# Allowed: permissive + weak-copyleft that is compatible with a commercial
+# offering per the dual-licensing plan (docs/planning/dual-licensing-plan.md §3.3).
+# MPL-2.0 is file-level copyleft: fine statically linked. LGPL appears only as
+# dynamically loaded system libraries (GStreamer), pulled via feature-declared
+# sys crates — the plan's "loaded dynamically from the user's system" carve-out.
+allow = [
+    "AGPL-3.0-or-later",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "MPL-2.0",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Zlib",
+    "BSL-1.0",
+    "AGPL-3.0",
+    "GPL-3.0-or-later",
+    "LGPL-3.0-or-later",
+]
+# The Athena/Unicode etc. exceptions land here if new identifiers appear.
+exceptions = []
+
+[bans]
+multiple-versions = "warn"
+deny = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

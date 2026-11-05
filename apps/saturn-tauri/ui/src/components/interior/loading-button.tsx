@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "./interior-button";
 // Adapted from Interior's MIT-licensed Loading Button: https://www.interior.dev/docs/loading-button
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";

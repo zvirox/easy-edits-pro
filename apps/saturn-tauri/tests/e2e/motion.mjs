@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 // Smoke: reduced motion is a hard contract. Emulating
 // `prefers-reduced-motion: reduce` must match the media query and collapse
 // every CSS animation to an instant frame, while mount/unmount surfaces

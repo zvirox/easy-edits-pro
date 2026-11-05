@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "./interior-button";
 // Adapted from Interior's MIT-licensed Segmented Control: https://www.interior.dev/docs/segmented-control
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";

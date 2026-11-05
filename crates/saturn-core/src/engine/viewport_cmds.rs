@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Viewport family: playhead navigation, clip/gap/bin selection and the
 //! export-queue state, all owned by [`UnifiedViewportState`](crate::viewport_state::UnifiedViewportState)
 //! (AI-native plan Packet 0.1).

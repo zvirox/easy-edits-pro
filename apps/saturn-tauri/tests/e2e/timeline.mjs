@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 // Smoke: timeline editing - media import, pointer drop, speed/duration,
 // clip context menu, tools (razor, track select, ripple), keyboard trim,
 // three-point edit, playhead commands, zoom, scrub, playback, frame steps.

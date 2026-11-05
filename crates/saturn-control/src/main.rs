@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 //! Control Server for External Automation in Easy Edits Pro
 //!
 //! Exposes the command registry over HTTP and WebSocket so external tools

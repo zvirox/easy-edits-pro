@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
 // Smoke: markers - M adds at the playhead, Shift+M marks a range, the lane
 // renders both, Shift+Right jumps to the next marker, and the Markers panel
 // lists and deletes them without leaving the editor.

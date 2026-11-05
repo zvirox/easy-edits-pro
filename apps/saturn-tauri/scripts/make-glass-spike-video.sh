@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+# Also available under the EEP commercial licence — see LICENSING.md
 # Generates the moving test clip the glass spike plays behind its panels.
 # Not committed: it is a build artifact of the spike, not an app asset.
 set -euo pipefail

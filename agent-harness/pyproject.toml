@@ -7,7 +7,7 @@ name = "cli-anything-eep"
 version = "0.1.0"
 description = "Agent-native CLI for Easy Edits Pro video editor"
 readme = "README.md"
-license = "GPL-3.0-or-later"
+license = "AGPL-3.0-or-later"
 authors = [{ name = "Easy Edits Pro Team", email = "team@easy-edits-pro.org" }]
 requires-python = ">=3.10"
 dependencies = [
