@@ -16,7 +16,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &["start", "beginning"],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.end",
@@ -30,7 +30,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &["end", "finish"],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.next_edit",
@@ -44,7 +44,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &["next cut", "next edit"],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.previous_edit",
@@ -58,7 +58,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &["previous cut", "previous edit"],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.go_to_in",
@@ -72,7 +72,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &["mark in"],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.go_to_out",
@@ -86,7 +86,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &["mark out"],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.go_to_clip_start",
@@ -100,7 +100,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.go_to_clip_end",
@@ -114,21 +114,21 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.go_to_timecode",
         label: "Go to Timecode…",
         menu: &["Sequence", "Playhead"],
         shortcut: None,
-        params: "{}",
+        params: "{\"timecode\": \"HH:MM:SS:FF\"}",
         category: Category::Sequence,
         mutating: false,
         undo_group: UndoGroup::None,
         aliases: &["timecode"],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.nudge_back_1",
@@ -142,7 +142,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &["nudge left"],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.nudge_forward_1",
@@ -156,7 +156,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &["nudge right"],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.nudge_back_5",
@@ -170,7 +170,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "playhead.nudge_forward_5",
@@ -184,6 +184,6 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
 ];

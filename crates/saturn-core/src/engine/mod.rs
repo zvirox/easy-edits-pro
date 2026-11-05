@@ -41,6 +41,7 @@ mod graphics_cmds;
 mod timeline_cmds;
 mod timeline_targeting;
 mod trim_cmds;
+mod viewport_cmds;
 use helpers::*;
 use params::*;
 
@@ -95,6 +96,9 @@ pub struct EditorEngine {
     /// Timeline targeting family state: the targeted video/audio track
     /// ordinals (editor state, not document state).
     targeting: timeline_targeting::TargetingState,
+    /// Unified playhead/selection/export-queue state (AI-native plan Packet
+    /// 0.1; editor state, not document state).
+    viewport: crate::viewport_state::UnifiedViewportState,
     /// Lazily-built shaping context (system font scan is expensive); shared
     /// so engine clones keep one font database.
     text: std::sync::Arc<
@@ -121,6 +125,7 @@ impl Default for EditorEngine {
             trim: trim_cmds::TrimState::default(),
             edit: edit_labels_cmds::EditState::default(),
             targeting: timeline_targeting::TargetingState::new(),
+            viewport: crate::viewport_state::UnifiedViewportState::new(),
             text: std::sync::Arc::new(std::sync::Mutex::new(None)),
         }
     }
@@ -263,6 +268,9 @@ impl EditorEngine {
             return result;
         }
         if let Some(result) = self.dispatch_compound(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_viewport(command.id, request.params.clone()) {
             return result;
         }
         Err(DispatchError::UnknownCommand(request.id))

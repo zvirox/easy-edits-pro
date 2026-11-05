@@ -79,9 +79,12 @@ test("stepSelectionIndex clamps and handles the no-selection anchor", () => {
   assert.equal(stepSelectionIndex(-1, 0, true), -1, "empty timeline");
 });
 
-test("TIMELINE_SELECTION_COMMANDS match the shipped ui_only catalogue ids", () => {
+test("TIMELINE_SELECTION_COMMANDS match the shipped engine-backed catalogue ids", () => {
   // catalogue:sync exports the catalogue next to docs; the glob-based node
   // runner resolves relative to the package root (apps/saturn-tauri).
+  // Packet 0.1 (AI-native plan): selection is engine-owned state now, so the
+  // specs are no longer ui_only — but they must stay shipped and reachable
+  // through the backend dispatch chain.
   const raw = readFileSync(
     new URL("../../../../../docs/reference/command-catalogue.json", import.meta.url),
     "utf8",
@@ -90,7 +93,7 @@ test("TIMELINE_SELECTION_COMMANDS match the shipped ui_only catalogue ids", () =
   for (const id of TIMELINE_SELECTION_COMMANDS) {
     const spec = catalogue.find((item) => item.id === id);
     assert.ok(spec, `${id} missing from the command catalogue`);
-    assert.equal(spec.uiOnly, true, `${id} must stay ui_only`);
+    assert.equal(spec.uiOnly, false, `${id} must be engine-backed (not ui_only)`);
     assert.equal(spec.shipped, true, `${id} must be shipped`);
   }
   assert.deepEqual([...TIMELINE_SELECTION_COMMANDS].sort(), [

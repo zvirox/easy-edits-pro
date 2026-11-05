@@ -48,6 +48,12 @@ impl TargetingState {
         list.dedup();
         *self.get_mut(kind) = list;
     }
+
+    /// Snapshot of the targeted 1-based ordinals for the unified viewport
+    /// state (AI-native plan Packet 0.1).
+    pub(in crate::engine) fn snapshot(&self) -> (Vec<u64>, Vec<u64>) {
+        (self.video.clone(), self.audio.clone())
+    }
 }
 
 /// The count of tracks of one kind, which bounds valid ordinals.

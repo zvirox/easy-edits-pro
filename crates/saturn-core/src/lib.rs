@@ -11,6 +11,7 @@ pub mod speech;
 pub mod timeline_edits;
 pub mod subtitles;
 pub mod time;
+pub mod viewport_state;
 
 pub use command::{
     Category, CommandRequest, CommandSpec, CommandStatus, MENU_BAR, UndoGroup,

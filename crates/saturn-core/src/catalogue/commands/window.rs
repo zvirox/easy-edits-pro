@@ -13,7 +13,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "workspace.edit",
@@ -27,7 +27,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "workspace.fusion",
@@ -41,7 +41,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "workspace.color",
@@ -55,7 +55,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "workspace.audio",
@@ -69,7 +69,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "workspace.effects",
@@ -83,7 +83,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "workspace.keyframes",
@@ -97,7 +97,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "workspace.deliver",
@@ -111,6 +111,6 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.1.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
 ];

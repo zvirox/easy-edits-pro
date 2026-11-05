@@ -435,14 +435,14 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         label: "Select Clips",
         menu: &["Edit", "Select"],
         shortcut: None,
-        params: "{}",
+        params: "{\"track_id\": int, \"clip_index\": int}",
         category: Category::Edit,
         mutating: false,
         undo_group: UndoGroup::None,
         aliases: &[],
         since: "0.4.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
 
     CommandSpec {
@@ -450,14 +450,14 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         label: "Select Gap",
         menu: &["Edit", "Select"],
         shortcut: None,
-        params: "{}",
+        params: "{\"track_id\": int, \"start_tick\": ticks?, \"end_tick\": ticks?}",
         category: Category::Edit,
         mutating: false,
         undo_group: UndoGroup::None,
         aliases: &[],
         since: "0.4.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
 
     CommandSpec {
@@ -472,7 +472,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.4.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
 
     CommandSpec {
@@ -487,7 +487,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.4.0",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
 
 ];

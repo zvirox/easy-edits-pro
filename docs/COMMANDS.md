@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-440 commands.
+441 commands.
 
 ## File
 
@@ -44,7 +44,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Export Export Presets | `export.presets.export` | shipped |  | `{"path":str}` |
 | Resolve Export Settings | `export.resolve` | shipped |  | `{"preset":str?,"format":str?,"resolution":str?,"frame_rate":str?,"use_mark_range":bool?,"use_hardware":bool?}` |
 | Quick Export | `export.quick` | shipped |  | `{}` |
-| Send to Export Queue | `export.queue.add` | shipped |  | `{}` |
+| Send to Export Queue | `export.queue.add` | shipped |  | `{"output_path": str, "settings": obj?}` |
 | List Export Queue | `export.queue.list` | shipped |  | `{}` |
 | Cancel Queued Export | `export.queue.cancel` | shipped |  | `{"id":int}` |
 | Remove Queued Export | `export.queue.remove` | shipped |  | `{"id":int}` |
@@ -106,7 +106,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Save Search Bin | `project.searchBin.set` | shipped |  | `{"name":str,"query":str}` |
 | Delete Search Bin | `project.searchBin.delete` | shipped |  | `{"name":str}` |
 | List Search Bin Items | `project.searchBin.items` | shipped |  | `{"name":str}` |
-| Select Project Items | `project.select` | shipped |  | `{}` |
+| Select Project Items | `project.select` | shipped |  | `{"media_ids": [int]?, "media_id": int?}` |
 | Read Preferences | `prefs.get` | shipped |  | `{"key":str?}` |
 | Write Preferences | `prefs.set` | shipped |  | `{"values":obj}` |
 | Reset Preferences | `prefs.reset` | shipped |  | `{}` |
@@ -157,8 +157,8 @@ Generated from the command catalogue. Do not edit by hand.
 | Paste Media | `edit.paste_media` | shipped |  | `{}` |
 | Find… | `edit.find` | shipped |  | `{}` |
 | Find Next | `edit.find_next` | shipped |  | `{}` |
-| Select All Matching | `edit.select_all_matching` | shipped |  | `{}` |
-| Select Label Group | `edit.select_label_group` | shipped |  | `{}` |
+| Select All Matching | `edit.select_all_matching` | shipped |  | `{"query": "label substring"}` |
+| Select Label Group | `edit.select_label_group` | shipped |  | `{"label": "label colour name"}` |
 | Edit Original | `edit.edit_original` | shipped |  | `{}` |
 | Begin Undo Gesture | `edit.begin_gesture` | shipped |  | `{"label":str?}` |
 | End Undo Gesture | `edit.end_gesture` | shipped |  | `{}` |
@@ -183,8 +183,8 @@ Generated from the command catalogue. Do not edit by hand.
 | Delete Shortcut Preset | `shortcuts.delete_preset` | shipped |  | `{"name":str}` |
 | Undo Shortcut Change | `shortcuts.undo` | shipped |  | `{}` |
 | Redo Shortcut Change | `shortcuts.redo` | shipped |  | `{}` |
-| Select Clips | `timeline.select` | shipped |  | `{}` |
-| Select Gap | `timeline.selectGap` | shipped |  | `{}` |
+| Select Clips | `timeline.select` | shipped |  | `{"track_id": int, "clip_index": int}` |
+| Select Gap | `timeline.selectGap` | shipped |  | `{"track_id": int, "start_tick": ticks?, "end_tick": ticks?}` |
 | Select Next Clip | `timeline.selectNextClip` | shipped |  | `{}` |
 | Select Previous Clip | `timeline.selectPrevClip` | shipped |  | `{}` |
 
@@ -250,7 +250,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Go to Out Point | `playhead.go_to_out` | shipped | Shift+O | `{}` |
 | Go to Selected Clip Start | `playhead.go_to_clip_start` | shipped | Shift+Home | `{}` |
 | Go to Selected Clip End | `playhead.go_to_clip_end` | shipped | Shift+End | `{}` |
-| Go to Timecode… | `playhead.go_to_timecode` | shipped |  | `{}` |
+| Go to Timecode… | `playhead.go_to_timecode` | shipped |  | `{"timecode": "HH:MM:SS:FF"}` |
 | Step Back One Frame | `playhead.nudge_back_1` | shipped | Alt+Left | `{}` |
 | Step Forward One Frame | `playhead.nudge_forward_1` | shipped | Alt+Right | `{}` |
 | Step Back Five Frames | `playhead.nudge_back_5` | shipped | Alt+Shift+Left | `{}` |
@@ -287,7 +287,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Add Edit to All Tracks | `sequence.add_edit_all_tracks` | shipped |  | `{"at":ticks}` |
 | Sequence Settings | `sequence.settings` | shipped |  | `{"width":int?,"height":int?,"frame_rate":obj?}` |
 | Linked Selection | `sequence.linked_selection` | shipped |  | `{}` |
-| Selection Follows Playhead | `sequence.selection_follows_playhead` | shipped |  | `{}` |
+| Selection Follows Playhead | `sequence.selection_follows_playhead` | shipped |  | `{"enabled": bool}` |
 | Inspect Sequence | `sequence.inspect` | shipped |  | `{}` |
 | Close Sequence | `sequence.close` | shipped |  | `{}` |
 | Reveal Nested Sequence | `sequence.reveal_nested` | shipped |  | `{"track_id":int,"clip_index":int}` |
@@ -463,6 +463,7 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Inspect Viewport State | `viewport.inspect` | shipped |  | `{}` |
 | Snap to Frame | `view.toggle_snap` | shipped | S | `{}` |
 | Zoom In | `view.zoom_in` | shipped | Ctrl++ | `{}` |
 | Zoom Out | `view.zoom_out` | shipped | Ctrl+- | `{}` |

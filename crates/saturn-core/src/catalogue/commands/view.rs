@@ -2,6 +2,20 @@ use crate::catalogue::{Category, CommandSpec, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
+        id: "viewport.inspect",
+        label: "Inspect Viewport State",
+        menu: &["View", "Inspect"],
+        shortcut: None,
+        params: "{}",
+        category: Category::View,
+        mutating: false,
+        undo_group: UndoGroup::None,
+        aliases: &["playhead state", "viewport snapshot"],
+        since: "0.3.0",
+        shipped: true,
+        ui_only: false,
+    },
+    CommandSpec {
         id: "view.toggle_snap",
         label: "Snap to Frame",
         menu: &["View"],

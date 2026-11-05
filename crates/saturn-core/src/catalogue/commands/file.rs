@@ -444,14 +444,14 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         label: "Send to Export Queue",
         menu: &["File", "Export"],
         shortcut: None,
-        params: "{}",
+        params: "{\"output_path\": str, \"settings\": obj?}",
         category: Category::File,
         mutating: false,
         undo_group: UndoGroup::None,
         aliases: &["queue export"],
         since: "0.2.1",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "export.queue.list",
@@ -465,7 +465,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.2.1",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "export.queue.cancel",
@@ -479,7 +479,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.2.1",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "export.queue.remove",
@@ -493,7 +493,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.2.1",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "export.queue.move",
@@ -507,7 +507,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.2.1",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "export.queue.retry",
@@ -521,7 +521,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.2.1",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "export.queue.clear",
@@ -535,7 +535,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.2.1",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     // Start/stop drive the JobManager's paused gate: start releases the
     // workers, stop stops pulling queued jobs (running ones finish).
@@ -551,7 +551,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.2.1",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
     CommandSpec {
         id: "export.queue.stop",
@@ -565,6 +565,6 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         aliases: &[],
         since: "0.2.1",
         shipped: true,
-        ui_only: true,
+        ui_only: false,
     },
 ];

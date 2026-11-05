@@ -5473,11 +5473,16 @@ fn timeline_targeting_workflow_with_state_and_undo() {
         .unwrap();
     assert!(engine.document().project.sequence.tracks[audio_positions[0]].solo);
 
-    // ui_only selection commands never reach the engine.
+    // engine-owned viewport selection: `timeline.select` is now a backend
+    // command (Packet 0.1), so empty params surface as a validation error
+    // instead of the old ui_only interface rejection.
     let result = engine.execute(CommandRequest::new("timeline.select", json!({})));
     match result {
-        Err(error) => assert!(format!("{error}").contains("interface")),
-        Ok(_) => panic!("timeline.select must be rejected by the engine"),
+        Err(error) => assert!(
+            format!("{error}").contains("track"),
+            "timeline.select now reaches the engine, got: {error}"
+        ),
+        Ok(_) => panic!("timeline.select without track params must still be rejected"),
     }
 }
 

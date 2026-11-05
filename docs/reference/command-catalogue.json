@@ -988,7 +988,7 @@
     "shipped": true,
     "shortcut": "Ctrl+A",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -1022,7 +1022,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -1589,11 +1589,11 @@
       "Edit"
     ],
     "mutating": true,
-    "params": "{}",
+    "params": "{\"query\": \"label substring\"}",
     "shipped": true,
     "shortcut": null,
     "since": "0.4.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -1605,11 +1605,11 @@
       "Edit"
     ],
     "mutating": true,
-    "params": "{}",
+    "params": "{\"label\": \"label colour name\"}",
     "shipped": true,
     "shortcut": null,
     "since": "0.4.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -2413,11 +2413,11 @@
       "Export"
     ],
     "mutating": false,
-    "params": "{}",
+    "params": "{\"output_path\": str, \"settings\": obj?}",
     "shipped": true,
     "shortcut": null,
     "since": "0.2.1",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -2434,7 +2434,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.2.1",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -2451,7 +2451,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.2.1",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -2468,7 +2468,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.2.1",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -2485,7 +2485,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.2.1",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -2502,7 +2502,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.2.1",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -2519,7 +2519,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.2.1",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -2536,7 +2536,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.2.1",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -2553,7 +2553,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.2.1",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4356,7 +4356,7 @@
     "shipped": true,
     "shortcut": "Home",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4376,7 +4376,7 @@
     "shipped": true,
     "shortcut": "End",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4396,7 +4396,7 @@
     "shipped": true,
     "shortcut": "Down",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4416,7 +4416,7 @@
     "shipped": true,
     "shortcut": "Up",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4435,7 +4435,7 @@
     "shipped": true,
     "shortcut": "Shift+I",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4454,7 +4454,7 @@
     "shipped": true,
     "shortcut": "Shift+O",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4471,7 +4471,7 @@
     "shipped": true,
     "shortcut": "Shift+Home",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4488,7 +4488,7 @@
     "shipped": true,
     "shortcut": "Shift+End",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4503,11 +4503,11 @@
       "Playhead"
     ],
     "mutating": false,
-    "params": "{}",
+    "params": "{\"timecode\": \"HH:MM:SS:FF\"}",
     "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4526,7 +4526,7 @@
     "shipped": true,
     "shortcut": "Alt+Left",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4545,7 +4545,7 @@
     "shipped": true,
     "shortcut": "Alt+Right",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4562,7 +4562,7 @@
     "shipped": true,
     "shortcut": "Alt+Shift+Left",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4579,7 +4579,7 @@
     "shipped": true,
     "shortcut": "Alt+Shift+Right",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -4970,7 +4970,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.4.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -5170,11 +5170,11 @@
       "Project Panel"
     ],
     "mutating": false,
-    "params": "{}",
+    "params": "{\"media_ids\": [int]?, \"media_id\": int?}",
     "shipped": true,
     "shortcut": null,
     "since": "0.4.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -5805,11 +5805,11 @@
       "Sequence"
     ],
     "mutating": false,
-    "params": "{}",
+    "params": "{\"enabled\": bool}",
     "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -6773,11 +6773,11 @@
       "Select"
     ],
     "mutating": false,
-    "params": "{}",
+    "params": "{\"track_id\": int, \"clip_index\": int}",
     "shipped": true,
     "shortcut": null,
     "since": "0.4.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -6790,11 +6790,11 @@
       "Select"
     ],
     "mutating": false,
-    "params": "{}",
+    "params": "{\"track_id\": int, \"start_tick\": ticks?, \"end_tick\": ticks?}",
     "shipped": true,
     "shortcut": null,
     "since": "0.4.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -6811,7 +6811,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.4.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -6828,7 +6828,7 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.4.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -7284,6 +7284,26 @@
     "undoGroup": "none"
   },
   {
+    "aliases": [
+      "playhead state",
+      "viewport snapshot"
+    ],
+    "category": "View",
+    "id": "viewport.inspect",
+    "label": "Inspect Viewport State",
+    "menu": [
+      "View",
+      "Inspect"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
     "aliases": [],
     "category": "View",
     "id": "view.toggle_snap",
@@ -7513,7 +7533,7 @@
     "shipped": true,
     "shortcut": "Shift+1",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -7530,7 +7550,7 @@
     "shipped": true,
     "shortcut": "Shift+2",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -7547,7 +7567,7 @@
     "shipped": true,
     "shortcut": "Shift+3",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -7564,7 +7584,7 @@
     "shipped": true,
     "shortcut": "Shift+4",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -7581,7 +7601,7 @@
     "shipped": true,
     "shortcut": "Shift+5",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -7598,7 +7618,7 @@
     "shipped": true,
     "shortcut": "Shift+6",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -7615,7 +7635,7 @@
     "shipped": true,
     "shortcut": "Shift+7",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   },
   {
@@ -7632,7 +7652,7 @@
     "shipped": true,
     "shortcut": "Shift+8",
     "since": "0.1.0",
-    "uiOnly": true,
+    "uiOnly": false,
     "undoGroup": "none"
   }
 ]
