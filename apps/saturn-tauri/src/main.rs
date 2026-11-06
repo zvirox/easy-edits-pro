@@ -152,6 +152,8 @@ fn main() {
             check_media_availability,
             import_media,
             probe_media_for_update,
+            media_semantic_index,
+            media_detect_shots,
             start_export,
             detect_encoder_capabilities,
             export_frame,

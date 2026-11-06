@@ -23,7 +23,6 @@ use saturn_core::{JobId, JobKind, JobManager, JobPriority};
 use serde_json::{Value, json};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-#[cfg(all(test, unix))]
 #[path = "server_tests.rs"]
 mod server_tests;
 #[path = "server_tools.rs"]
@@ -281,6 +280,8 @@ impl EditorMcp {
             "render_preview_clip_proxy" => self.render_preview_clip_proxy(&arguments).await,
             "color_read_scopes" => self.color_read_scopes(&arguments).await,
             "audio_read_telemetry" => self.audio_read_telemetry(&arguments).await,
+            "media_semantic_query" => self.media_semantic_query(&arguments).await,
+            "edit_evaluate_cut_continuity" => self.edit_evaluate_cut_continuity(&arguments).await,
             "render_start" => self.start_render(&arguments).await,
             "render_status" => self.render_job_status(&arguments).await,
             "render_cancel" => self.cancel_render(&arguments).await,
@@ -667,6 +668,61 @@ impl EditorMcp {
         })
         .await
         .map_err(|error| format!("audio telemetry task failed: {error}"))?
+    }
+
+    /// `media_semantic_query`: SigLIP vector scan over the semantic index
+    /// sidecar (perception runs offline; inference happens in a blocking
+    /// thread, never while the engine lock is held).
+    async fn media_semantic_query(&self, arguments: &Value) -> Result<Value, String> {
+        if matches!(&self.backend, Backend::Bridge(_)) {
+            return self
+                .bridge_call("media_semantic_query", arguments.clone())
+                .await;
+        }
+        let document = self.headless_document().await?;
+        let project_path = self.headless_project_path().await?;
+        let arguments = arguments.clone();
+        tokio::task::spawn_blocking(move || {
+            saturn_render::preview_tools::semantic_query_payload(
+                &document,
+                project_path.as_deref(),
+                &arguments,
+            )
+        })
+        .await
+        .map_err(|error| format!("semantic query task failed: {error}"))?
+    }
+
+    /// `edit_evaluate_cut_continuity`: measured continuity report for one
+    /// hard cut (frame decode + perception metrics in a blocking thread).
+    async fn edit_evaluate_cut_continuity(&self, arguments: &Value) -> Result<Value, String> {
+        if matches!(&self.backend, Backend::Bridge(_)) {
+            return self
+                .bridge_call("edit_evaluate_cut_continuity", arguments.clone())
+                .await;
+        }
+        let document = self.headless_document().await?;
+        let arguments = arguments.clone();
+        tokio::task::spawn_blocking(move || {
+            saturn_render::preview_tools::cut_continuity_payload(&document, &arguments)
+        })
+        .await
+        .map_err(|error| format!("cut continuity task failed: {error}"))?
+    }
+
+    /// The saved project file's path (in-memory documents have none — tools
+    /// that need sidecar files report that honestly).
+    async fn headless_project_path(&self) -> Result<Option<PathBuf>, String> {
+        let Backend::Headless(engine) = &self.backend else {
+            unreachable!("headless_project_path is only called after the bridge check")
+        };
+        let engine = engine.clone();
+        tokio::task::spawn_blocking(move || {
+            let engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
+            Ok(engine.current_path().map(PathBuf::from))
+        })
+        .await
+        .map_err(|error| format!("project path task failed: {error}"))?
     }
 }
 

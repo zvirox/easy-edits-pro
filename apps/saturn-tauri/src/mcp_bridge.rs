@@ -149,6 +149,8 @@ async fn dispatch(request: Value, app: &AppHandle, state: &AppState) -> Value {
         "render_preview_clip_proxy" => render_preview_clip_proxy(state, &params).await,
         "color_read_scopes" => color_read_scopes(state, &params).await,
         "audio_read_telemetry" => audio_read_telemetry(state, &params).await,
+        "media_semantic_query" => media_semantic_query(state, &params).await,
+        "edit_evaluate_cut_continuity" => edit_evaluate_cut_continuity(state, &params).await,
         _ => Err(format!("unknown bridge method: {method}")),
     };
     match result {
@@ -441,6 +443,45 @@ async fn audio_read_telemetry(state: &AppState, params: &Value) -> Result<Value,
     let params = params.clone();
     blocking_payload(move || {
         saturn_render::preview_tools::audio_telemetry_payload(&document, &params)
+    })
+    .await
+}
+
+/// `media_semantic_query`: SigLIP vector scan over the project's semantic
+/// index sidecar. Needs the saved project path — in-memory sessions are a
+/// typed error, never an empty result.
+async fn media_semantic_query(state: &AppState, params: &Value) -> Result<Value, String> {
+    // Snapshot document + project path while the engine lock is held, then
+    // release it before inference/blocking work starts.
+    let (document, project_path) = {
+        let engine = state
+            .0
+            .lock()
+            .map_err(|_| "Editor state is unavailable".to_owned())?;
+        (
+            engine.document().clone(),
+            engine.current_path().map(ToOwned::to_owned),
+        )
+    };
+    let params = params.clone();
+    blocking_payload(move || {
+        saturn_render::preview_tools::semantic_query_payload(
+            &document,
+            project_path.as_deref(),
+            &params,
+        )
+    })
+    .await
+}
+
+/// `edit_evaluate_cut_continuity`: measured continuity report for one hard
+/// cut — frame decode + perception metrics on the blocking pool, engine lock
+/// released first.
+async fn edit_evaluate_cut_continuity(state: &AppState, params: &Value) -> Result<Value, String> {
+    let document = document_snapshot(state)?;
+    let params = params.clone();
+    blocking_payload(move || {
+        saturn_render::preview_tools::cut_continuity_payload(&document, &params)
     })
     .await
 }

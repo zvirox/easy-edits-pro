@@ -12,8 +12,25 @@
 //! transcription output with measured timestamps; no invented confidence
 //! inflation, no speaker labels (diarization is reviewed as its own packet).
 
+pub mod color_metrics;
+pub mod embeddings;
+pub mod index_db;
+pub mod media_search;
 pub mod models;
+pub mod shot_detect;
+pub mod siglip_model;
 pub mod whisper;
 
+pub use color_metrics::ciede2000;
+pub use embeddings::{cosine_similarity, SiglipEmbedder, SIGLIP_EMBED_DIM};
+pub use index_db::{SearchHit, SemanticIndex};
+pub use media_search::{
+    decode_cut_frames, embed_media_frames, media_sample_ticks, query_media_index, FrameEmbedder,
+    MediaIndexOutcome,
+};
 pub use models::{ensure_model, verify_model, WhisperModel};
+pub use shot_detect::{
+    detect_shot_boundaries, evaluate_cut_continuity, CutContinuityScore, CutContext,
+    SampledFrame, ShotBoundary, ShotDetectOptions,
+};
 pub use whisper::{transcribe_pcm, TranscribeOptions, Transcript, WHISPER_SAMPLE_RATE};

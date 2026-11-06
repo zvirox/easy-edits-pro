@@ -12,7 +12,10 @@ pub use project::{
     execute_command_with_state, get_command_catalogue, register_write_grant,
 };
 mod media;
-pub use media::{import_media, prepare_video_preview, probe_media_for_update};
+pub use media::{
+    import_media, media_detect_shots, media_semantic_index, prepare_video_preview,
+    probe_media_for_update,
+};
 mod export;
 pub use export::{detect_encoder_capabilities, export_frame, queue_export, start_export};
 mod jobs;

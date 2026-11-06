@@ -207,6 +207,61 @@ async fn audio_read_telemetry_rejects_bad_requests_with_typed_errors() {
     assert!(error.contains("track-scoped"), "unexpected error: {error}");
 }
 
+#[tokio::test]
+async fn semantic_query_and_cut_continuity_reject_bad_requests_honestly() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(saturn_core::CommandRequest::new(
+            "project.new",
+            json!({"name": "MCP semantic"}),
+        ))
+        .unwrap();
+    engine
+        .execute(saturn_core::CommandRequest::new(
+            "project.add_media",
+            json!({"name": "clip.mp4", "path": "/tmp/nonexistent-clip.mp4", "kind": "video"}),
+        ))
+        .unwrap();
+    let media_id = engine.document().project.media[0].id;
+    let mcp = EditorMcp::new(engine);
+
+    // Blank / missing query is a usage error.
+    let error = mcp
+        .media_semantic_query(&json!({}))
+        .await
+        .expect_err("query required");
+    assert!(error.contains("query"), "unexpected: {error}");
+
+    // In-memory (never-saved) projects have no sidecar path — honest error,
+    // not an empty result.
+    let error = mcp
+        .media_semantic_query(&json!({"query": "green grass"}))
+        .await
+        .expect_err("unsaved project must error");
+    assert!(error.contains("saved project"), "unexpected: {error}");
+
+    // Unknown media id for the cut tool.
+    let error = mcp
+        .edit_evaluate_cut_continuity(&json!({"media_id": 4242, "cut_tick": 500}))
+        .await
+        .expect_err("unknown media must be a typed error");
+    assert!(error.contains("was not found"), "unexpected: {error}");
+
+    // Known media but missing source file: typed error naming the path.
+    let error = mcp
+        .edit_evaluate_cut_continuity(&json!({"media_id": media_id, "cut_tick": 500}))
+        .await
+        .expect_err("missing source must be a typed error");
+    assert!(error.contains("missing"), "unexpected: {error}");
+
+    // cut_tick 0 has no outgoing frame.
+    let error = mcp
+        .edit_evaluate_cut_continuity(&json!({"media_id": media_id, "cut_tick": 0}))
+        .await
+        .expect_err("cut at the first frame has no outgoing side");
+    assert!(error.contains("at least 1"), "unexpected: {error}");
+}
+
 #[test]
 fn image_block_in_the_response_becomes_a_real_image_content_block() {
     // continue_text_only strips the base64 blob; the text stays readable JSON.

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-//! Tool payload assembly for the vision/preview MCP surface (Packet 1.1).
+//! Tool payload assembly for the vision/preview MCP surface (Packet 1.1)
+//! and the Packet 2.2 perception tools (semantic search, cut continuity).
 //!
 //! Shared by the headless MCP server (`saturn-mcp`) and the desktop bridge
 //! (`saturn-tauri/src/mcp_bridge.rs`) so both seams return byte-identical
@@ -596,4 +597,184 @@ mod tests {    use super::*;
         // Unknown id → typed error.
         assert!(media_preview_payload(&document, 42, None).is_err());
     }
+}
+
+// ---------------------------------------------------------------------------
+// Packet 2.2: semantic media search + cut continuity (perception tools)
+// ---------------------------------------------------------------------------
+
+/// `media_semantic_query`: embed the natural-language query with the local
+/// SigLIP text encoder and cosine-scan the project's semantic index sidecar.
+/// Nothing is ranked by heuristics here — hits carry the exact stored cosine
+/// similarity, filtered to the current embedding-model revision.
+pub fn semantic_query_payload(
+    document: &ProjectDocument,
+    project_path: Option<&std::path::Path>,
+    arguments: &Value,
+) -> Result<Value, String> {
+    let query = arguments
+        .get("query")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|q| !q.is_empty())
+        .ok_or_else(|| "media_semantic_query requires a non-empty string \"query\"".to_owned())?;
+    let limit = arguments
+        .get("limit")
+        .and_then(Value::as_u64)
+        .unwrap_or(8)
+        .clamp(1, 50) as usize;
+    let media_filter = arguments
+        .get("media_id")
+        .and_then(Value::as_u64)
+        .map(|id| id.to_string());
+    let project_path = project_path.ok_or_else(|| {
+        "media_semantic_query needs a saved project (the index sidecar lives next to \
+         the project file); save the project first"
+            .to_owned()
+    })?;
+    let sidecar = saturn_perception::SemanticIndex::open_for_project(project_path)?;
+    // Only treat a *populated* index as usable; zero stored vectors is the
+    // honest "nothing indexed yet" state, not an empty result.
+    if sidecar.stored_vector_count()? == 0 {
+        return Err(format!(
+            "The semantic index at {} has no vectors yet — run the desktop \
+             \"Index media for semantic search\" command first (it embeds one \
+             sample frame every ~2 s of each media file)",
+            sidecar.path().display()
+        ));
+    }
+    let mut embedder = saturn_perception::SiglipEmbedder::load()?;
+    // When filtering to one media, scan everything and truncate after the
+    // filter, so the limit applies to what the caller actually receives.
+    let scan_limit = if media_filter.is_some() { 10_000 } else { limit };
+    let hits =
+        saturn_perception::query_media_index(&mut embedder, &sidecar, query, scan_limit)?;
+    let hit_values: Vec<Value> = hits
+        .into_iter()
+        .filter(|hit| match media_filter.as_deref() {
+            Some(id) => hit.media_id == id,
+            None => true,
+        })
+        .take(limit)
+        .map(|hit| {
+            let asset = hit
+                .media_id
+                .parse::<u64>()
+                .ok()
+                .and_then(|id| document.project.media.iter().find(|asset| asset.id == id));
+            json!({
+                "media_id": hit.media_id,
+                "name": asset.map(|asset| asset.name.clone()),
+                "source_path": asset.map(|asset| asset.path.display().to_string()),
+                "tick": hit.tick_ticks,
+                "similarity": hit.similarity,
+            })
+        })
+        .collect();
+    Ok(json!({
+        "query": query,
+        "hitCount": hit_values.len(),
+        "hits": hit_values,
+        "similarityMeaning": "cosine similarity in the SigLIP space of the pinned model revision; not a human relevance judgment",
+        "revision": saturn_perception::media_search::semantic_index_revision(),
+        "sidecar": sidecar.path().display().to_string(),
+    }))
+}
+
+/// `edit_evaluate_cut_continuity`: decode the boundary frames (plus same-shot
+/// neighbors, and ~150 ms of audio on each side when requested and present)
+/// and run the measured cut-continuity report.
+pub fn cut_continuity_payload(document: &ProjectDocument, arguments: &Value) -> Result<Value, String> {
+    let media_id = arguments
+        .get("media_id")
+        .and_then(Value::as_u64)
+        .ok_or_else(|| "edit_evaluate_cut_continuity requires media_id".to_owned())?;
+    let cut_tick = arguments
+        .get("cut_tick")
+        .and_then(Value::as_i64)
+        .ok_or_else(|| "edit_evaluate_cut_continuity requires cut_tick (source-media tick of the incoming frame)".to_owned())?;
+    if cut_tick < 1 {
+        return Err("cut_tick must be at least 1 (the incoming frame must exist)".into());
+    }
+    let include_audio = arguments
+        .get("include_audio")
+        .and_then(Value::as_bool)
+        .unwrap_or(true);
+    let asset = find_asset(document, media_id)?;
+    match decode_kind_allowed(&asset.kind) {
+        None => {}
+        Some(reason) => {
+            return Err(format!(
+                "edit_evaluate_cut_continuity: {reason}"
+            ));
+        }
+    }
+    if !asset.path.is_file() {
+        return Err(format!(
+            "edit_evaluate_cut_continuity: source file is missing: {}",
+            asset.path.display()
+        ));
+    }
+    // Neighbor gap: one frame when fps is known, else ≈25 fps.
+    let neighbor_step_ms = arguments
+        .get("neighbor_step_ms")
+        .and_then(Value::as_i64)
+        .unwrap_or_else(|| {
+            asset
+                .fps
+                .filter(|fps| *fps > 0.0)
+                .map(|fps| (1000.0 / fps).round() as i64)
+                .unwrap_or(40)
+                .clamp(1, 500)
+        });
+    let source = asset.path.clone();
+    let mut decode = |tick: Tick| -> Result<(u32, u32, Vec<u8>), String> {
+        frame_extractor::decode_frame_rgb(&source, tick)
+    };
+    let frames =
+        saturn_perception::decode_cut_frames(Tick(cut_tick), Tick(neighbor_step_ms), &mut decode)?;
+    // ~150 ms of mono 16 kHz audio on each side; a decode problem keeps the
+    // pop honestly None instead of failing a video-only review.
+    let (audio_before, audio_after): (Vec<f32>, Vec<f32>) = if include_audio {
+        let before = audio_pcm::decode_audio_pcm_mono_16k(
+            &asset.path,
+            Tick((cut_tick - 150).max(0)),
+            Some(Tick(cut_tick)),
+        )
+        .unwrap_or_default();
+        let after = audio_pcm::decode_audio_pcm_mono_16k(
+            &asset.path,
+            Tick(cut_tick),
+            Some(Tick(cut_tick + 150)),
+        )
+        .unwrap_or_default();
+        (before, after)
+    } else {
+        (Vec::new(), Vec::new())
+    };
+    let report = saturn_perception::shot_detect::evaluate_cut_continuity(
+        &frames.outgoing_last,
+        &frames.incoming_first,
+        &saturn_perception::shot_detect::CutContext {
+            audio_before: &audio_before,
+            audio_after: &audio_after,
+            outgoing_prev: frames.outgoing_prev.as_ref(),
+            incoming_next: frames.incoming_next.as_ref(),
+        },
+        Tick(cut_tick),
+    )?;
+    let mut value = serde_json::to_value(&report)
+        .map_err(|error| format!("could not serialize the cut report: {error}"))?;
+    if let Some(object) = value.as_object_mut() {
+        object.insert(
+            "notes".into(),
+            json!({
+                "heuristic_continuity_score": "unvalidated weighted combination (plan §4.4) — advisory only",
+                "focal_centroid_distance_norm": "luminance-centroid proxy, not measured eye-trace",
+                "screen_direction_preserved": "always null in this packet: the 180° rule needs a subject-orientation model",
+                "audioMeasured": include_audio && (!audio_before.is_empty() || !audio_after.is_empty()),
+            }),
+        );
+    }
+    Ok(value)
 }

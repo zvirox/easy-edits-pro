@@ -196,5 +196,32 @@ pub(super) fn tool_list() -> Vec<Tool> {
                     }
                 })),
             ),
+            Tool::new(
+                "media_semantic_query",
+                "Search the project's semantic media index with a natural-language query (SigLIP zero-shot image/text matching, offline local inference). Returns the stored frames whose embedded vectors are most cosine-similar to the query — media_id, source tick, and the exact similarity. Requires the sidecar index <project>.saturn-index.sqlite to be populated (index media on the desktop first); matches only vectors from the current embedding-model revision.",
+                schema(json!({
+                    "type": "object",
+                    "properties": {
+                        "query": { "type": "string", "minLength": 1 },
+                        "limit": { "type": "integer", "minimum": 1, "maximum": 50, "default": 8 },
+                        "media_id": { "type": "integer", "minimum": 0, "description": "Restrict results to one media asset (matched on its indexed id)" }
+                    },
+                    "required": ["query"]
+                })),
+            ),
+            Tool::new(
+                "edit_evaluate_cut_continuity",
+                "Measure the continuity of one hard cut in a source media file: luma jump (|ΔIRE|), CIEDE2000 mean-color change, luminance-centroid shift (eye-trace proxy, not measured gaze), within-shot motion-direction difference (None when either side is near-static), audio boundary pop (None when silent/absent), screen-direction always None (the 180° rule needs a subject-orientation model that is not implemented). heuristic_continuity_score is an unvalidated weighted combination — treat it as advisory only.",
+                schema(json!({
+                    "type": "object",
+                    "properties": {
+                        "media_id": { "type": "integer", "minimum": 0 },
+                        "cut_tick": { "type": "integer", "minimum": 1, "description": "Source-media tick of the first incoming frame" },
+                        "neighbor_step_ms": { "type": "integer", "minimum": 1, "maximum": 500, "default": 40, "description": "Gap to the same-shot neighbor frames used for motion direction; defaults to ≈1 frame at 25 fps (media fps used when known)" },
+                        "include_audio": { "type": "boolean", "default": true }
+                    },
+                    "required": ["media_id", "cut_tick"]
+                })),
+            ),
     ]
 }

@@ -20,3 +20,12 @@ native-tls = "0.2"
 # whisper.cpp (MIT) built from source via whisper-rs (public domain bindings).
 # Bundled bindings are used: see workspace .cargo/config.toml [env].
 whisper-rs = "0.14"
+# Packet 2.2: ONNX Runtime (MIT) via ort (MIT/Apache-2.0). Prebuilt runtime
+# binaries come from pyke's CDN at build time (download-binaries default).
+ort = "2.0.0-rc.15"
+# Packet 2.2: semantic index sidecar. Bundled SQLite (public domain) — the
+# embedding scan is a plain cosine pass over stored blobs; a vector extension
+# can replace it later if the index outgrows that.
+rusqlite = { version = "0.37", features = ["bundled"] }
+# SigLIP text encoder needs its tokenizer; loads the pinned tokenizer.json.
+tokenizers = { version = "0.21", default-features = false, features = ["onig"] }

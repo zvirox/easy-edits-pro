@@ -161,7 +161,8 @@ impl WhisperModel {
 }
 
 /// Root directory for cached models (`SATURN_MODELS_DIR` override, else
-/// XDG data home), `<root>/whisper/<file>`.
+/// XDG data home): `<root>/easy-edits-pro/models`. Per-family subdirectories
+/// (`whisper/`, `siglip/`) keep pinned catalogues separate.
 pub fn models_dir() -> Result<PathBuf, String> {
     let root = if let Some(overridden) = std::env::var_os("SATURN_MODELS_DIR") {
         PathBuf::from(overridden)
@@ -175,7 +176,7 @@ pub fn models_dir() -> Result<PathBuf, String> {
                 .to_owned(),
         );
     };
-    let dir = root.join("easy-edits-pro").join("models").join("whisper");
+    let dir = root.join("easy-edits-pro").join("models");
     std::fs::create_dir_all(&dir)
         .map_err(|error| format!("Could not create the models directory: {error}"))?;
     Ok(dir)
@@ -185,7 +186,9 @@ pub fn models_dir() -> Result<PathBuf, String> {
 /// run, plan-review §92). Verifies the SHA-256 on both fresh downloads and
 /// pre-existing files; corrupt or truncated files are re-downloaded.
 pub fn ensure_model(model: WhisperModel) -> Result<PathBuf, String> {
-    let dir = models_dir()?;
+    let dir = models_dir()?.join("whisper");
+    std::fs::create_dir_all(&dir)
+        .map_err(|error| format!("Could not create the whisper model directory: {error}"))?;
     let path = dir.join(model.file_name());
     if verify_model(&path, model).is_some() {
         // Missing, truncated or corrupt: (re)download from upstream.
@@ -242,7 +245,7 @@ pub fn verify_model(path: &Path, model: WhisperModel) -> Option<String> {
     }
 }
 
-fn sha256_file(path: &Path) -> Result<String, String> {
+pub(crate) fn sha256_file(path: &Path) -> Result<String, String> {
     let mut file =
         std::fs::File::open(path).map_err(|error| format!("Could not open: {error}"))?;
     let mut hasher = Sha256::new();
@@ -260,23 +263,38 @@ fn sha256_file(path: &Path) -> Result<String, String> {
 }
 
 fn download_model(path: &Path, model: WhisperModel) -> Result<(), String> {
+    fetch_verified(
+        &model.url(),
+        path,
+        model.sha256(),
+        model.name(),
+        Some(model.exact_size()),
+    )
+}
+
+/// Shared fetch-on-first-run installer: streams `url` into `path.part`,
+/// verifies the streamed bytes' SHA-256 (and optionally the exact size)
+/// before atomically renaming into place. `label` names the asset in errors.
+/// The caller is responsible for having verified the file beforehand (use
+/// [`verified_local_file`] to check an existing copy first).
+pub(crate) fn fetch_verified(
+    url: &str,
+    path: &Path,
+    expected_sha256: &str,
+    label: &str,
+    expected_size: Option<u64>,
+) -> Result<(), String> {
     let partial = path.with_extension("part");
     let tls_connector = native_tls::TlsConnector::new()
-        .map_err(|error| format!("Could not set up TLS for the model download: {error}"))?;
+        .map_err(|error| format!("Could not set up TLS for the {label} download: {error}"))?;
     let agent = ureq::AgentBuilder::new()
         .tls_connector(std::sync::Arc::new(tls_connector))
         .build();
     let response = agent
-        .get(&model.url())
+        .get(url)
         .timeout(std::time::Duration::from_secs(600))
         .call()
-        .map_err(|error| {
-            format!(
-                "Could not download model {} from {}: {error}",
-                model.name(),
-                model.url()
-            )
-        })?;
+        .map_err(|error| format!("Could not download {label} from {url}: {error}"))?;
     let mut reader = response.into_reader();
     let mut hasher = Sha256::new();
     let mut file_writer = std::fs::File::create(&partial).map_err(|error| {
@@ -290,23 +308,78 @@ fn download_model(path: &Path, model: WhisperModel) -> Result<(), String> {
         .and_then(|_| std::io::Write::flush(&mut file_writer))
     .map_err(|error| {
         let _ = std::fs::remove_file(&partial);
-        format!("Download of model {} failed: {error}", model.name())
+        format!("Download of {label} failed: {error}")
     })?;
+    if let Some(expected_size) = expected_size {
+        let actual_size = file_writer.metadata().map(|m| m.len()).unwrap_or(0);
+        if actual_size != expected_size {
+            let _ = std::fs::remove_file(&partial);
+            return Err(format!(
+                "Downloaded {label} is {actual_size} bytes, expected {expected_size}; refusing \
+                 to install — the upstream revision may have changed"
+            ));
+        }
+    }
     let actual = format!("{:x}", hasher.finalize());
-    if actual != model.sha256() {
+    if actual != expected_sha256 {
         let _ = std::fs::remove_file(&partial);
         return Err(format!(
-            "Downloaded model {} failed SHA-256 verification (got {actual}, expected {}); \
-             refusing to install — the upstream revision or mirror may have changed",
-            model.name(),
-            model.sha256()
+            "Downloaded {label} failed SHA-256 verification (got {actual}, expected \
+             {expected_sha256}); refusing to install — the upstream revision or mirror may \
+             have changed"
         ));
     }
     std::fs::rename(&partial, path).map_err(|error| {
         let _ = std::fs::remove_file(&partial);
-        format!("Could not install the model download: {error}")
+        format!("Could not install the {label} download: {error}")
     })?;
     Ok(())
+}
+
+/// `Some(problem)` when `path` is not a valid copy of the pinned asset
+/// (missing, wrong size, or SHA-256 mismatch). Used before considering
+/// a download; mirrors the whisper [`verify_model`] behaviour generically.
+pub(crate) fn verified_local_file(
+    path: &Path,
+    label: &str,
+    expected_size: u64,
+    expected_sha256: &str,
+    url: &str,
+) -> Option<String> {
+    match std::fs::metadata(path) {
+        Err(_) => Some(format!(
+            "{label} is not downloaded (expected at {}; it fetches on first use from {url} — \
+             offline: place the file there manually)",
+            path.display(),
+        )),
+        Ok(metadata) => {
+            if metadata.len() != expected_size {
+                return Some(format!(
+                    "{label} at {} is {} bytes, expected {expected_size} (delete it and retry \
+                     to re-download from {url})",
+                    path.display(),
+                    metadata.len(),
+                ));
+            }
+            let actual = match sha256_file(path) {
+                Ok(digest) => digest,
+                Err(error) => {
+                    return Some(format!(
+                        "{label} at {} is unreadable: {error}; delete it and re-download from {url}",
+                        path.display()
+                    ))
+                }
+            };
+            if actual != expected_sha256 {
+                return Some(format!(
+                    "{label} at {} failed SHA-256 verification (got {actual}, expected \
+                     {expected_sha256}); deleted and re-download needed from {url}",
+                    path.display()
+                ));
+            }
+            None
+        }
+    }
 }
 
 /// Locality wrapper so the download hash matches the bytes on disk.

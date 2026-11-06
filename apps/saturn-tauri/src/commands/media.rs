@@ -464,3 +464,209 @@ mod tests {
         assert_eq!(import_problem_reason(true, &MediaKind::Image), None);
     }
 }
+
+// ---------------------------------------------------------------------------
+// Packet 2.2: semantic search indexing + shot boundary detection
+// ---------------------------------------------------------------------------
+
+/// Index one media asset for semantic search: decode a sample frame roughly
+/// every 2 s (capped at 400 frames per media), embed each with the local
+/// SigLIP vision encoder, and store the vectors in the project's
+/// `<project>.saturn-index.sqlite` sidecar. Stale vectors from an earlier
+/// embedding-model revision are dropped when a media is re-indexed.
+#[tauri::command]
+pub async fn media_semantic_index(
+    state: State<'_, AppState>,
+    media_id: Option<u64>,
+) -> Result<serde_json::Value, String> {
+    let (project_path, targets) = {
+        let engine = state
+            .0
+            .lock()
+            .map_err(|_| "Editor state is unavailable".to_owned())?;
+        let document = engine.document().clone();
+        let project_path = engine
+            .current_path()
+            .map(ToOwned::to_owned)
+            .ok_or_else(|| {
+                "Save the project first — the semantic index lives next to the \
+                 project file"
+                    .to_owned()
+            })?;
+        let targets: Vec<_> = document
+            .project
+            .media
+            .iter()
+            .filter(|asset| {
+                matches!(asset.kind, MediaKind::Video | MediaKind::Image)
+                    && media_id.map_or(true, |id| asset.id == id)
+            })
+            .map(|asset| (asset.id, asset.name.clone(), asset.path.clone(), asset.duration))
+            .collect();
+        if let Some(id) = media_id {
+            if targets.is_empty() {
+                return Err(format!(
+                    "No indexable video/image media with id {id} in this project"
+                ));
+            }
+        }
+        (project_path, targets)
+    };
+    if targets.is_empty() {
+        return Err("This project has no video or image media to index".to_owned());
+    }
+
+    tauri::async_runtime::spawn_blocking(move || {
+        let index = saturn_perception::SemanticIndex::open_for_project(&project_path)?;
+        let mut embedder = saturn_perception::SiglipEmbedder::load()?;
+        let mut results = Vec::with_capacity(targets.len());
+        for (id, name, path, duration) in targets {
+            let result = if !path.is_file() {
+                Err(format!("source file is missing: {}", path.display()))
+            } else {
+                let ticks = saturn_perception::media_sample_ticks(
+                    duration.unwrap_or(saturn_core::Tick::from_millis(30_000)),
+                    saturn_core::Tick::from_millis(2_000),
+                    400,
+                );
+                let source = path.clone();
+                let mut decode = |tick: Tick| -> Result<(u32, u32, Vec<u8>), String> {
+                    saturn_render::frame_extractor::decode_frame_rgb(&source, tick)
+                };
+                saturn_perception::embed_media_frames(
+                    &mut embedder,
+                    &index,
+                    &id.to_string(),
+                    &path,
+                    &ticks,
+                    &mut decode,
+                )
+                .map(|outcome| {
+                    serde_json::to_value(&outcome).unwrap_or_else(|_| serde_json::Value::Null)
+                })
+            };
+            results.push(match result {
+                Ok(mut payload) => {
+                    if let Some(object) = payload.as_object_mut() {
+                        object.insert("mediaId".into(), serde_json::json!(id));
+                        object.insert("name".into(), serde_json::json!(name));
+                    }
+                    payload
+                }
+                Err(error) => serde_json::json!({
+                    "mediaId": id,
+                    "name": name,
+                    "error": error,
+                }),
+            });
+        }
+        Ok(serde_json::json!({
+            "sidecar": index.path().display().to_string(),
+            "revision": saturn_perception::media_search::semantic_index_revision(),
+            "results": results,
+        }))
+    })
+    .await
+    .map_err(|error| format!("semantic indexing task failed: {error}"))?
+}
+
+/// Detect hard shot boundaries in one media asset by decoding a bounded,
+/// evenly spaced frame sample (default ≈5 fps, scaled down for long media to
+/// stay under `max_frames`, default 800) and running the measured histogram +
+/// block difference detector. Dissolves and fades are not detected (they are
+/// gradual by design) — reported honestly in the response.
+#[tauri::command]
+pub async fn media_detect_shots(
+    state: State<'_, AppState>,
+    media_id: u64,
+    max_frames: Option<u32>,
+) -> Result<serde_json::Value, String> {
+    let (path, duration, fps) = {
+        let engine = state
+            .0
+            .lock()
+            .map_err(|_| "Editor state is unavailable".to_owned())?;
+        let asset = engine
+            .document()
+            .project
+            .media
+            .iter()
+            .find(|asset| asset.id == media_id)
+            .ok_or_else(|| format!("Media asset {media_id} was not found"))?;
+        match &asset.kind {
+            MediaKind::Video | MediaKind::Image => {}
+            other => {
+                return Err(format!(
+                    "media_detect_shots: {other:?} media has no video frames to scan"
+                ));
+            }
+        }
+        if !asset.path.is_file() {
+            return Err(format!(
+                "media_detect_shots: source file is missing: {}",
+                asset.path.display()
+            ));
+        }
+        (asset.path.clone(), asset.duration, asset.fps)
+    };
+
+    tauri::async_runtime::spawn_blocking(move || {
+        let max_frames = max_frames.unwrap_or(800).clamp(2, 2_000) as usize;
+        let duration = duration.unwrap_or(saturn_core::Tick::from_millis(30_000));
+        // Default target: 5 fps; long media stretches the step to stay bounded.
+        let default_step = fps
+            .filter(|fps| *fps > 0.0)
+            .map(|fps| (1000.0 / fps / 5.0).round() as i64)
+            .unwrap_or(200)
+            .clamp(20, 2_000);
+        let step = default_step.max((duration.0 / max_frames as i64).max(1));
+        let ticks = saturn_perception::media_sample_ticks(duration, saturn_core::Tick(step), max_frames);
+        let mut frames = Vec::with_capacity(ticks.len());
+        let mut decode_failures = 0_u64;
+        for tick in ticks {
+            match saturn_render::frame_extractor::decode_frame_rgb(&path, tick) {
+                Ok((width, height, rgb)) => frames.push(saturn_perception::shot_detect::SampledFrame {
+                    tick,
+                    width,
+                    height,
+                    rgb,
+                }),
+                Err(_) => decode_failures += 1,
+            }
+        }
+        if frames.len() < 2 {
+            return Err(
+                "media_detect_shots: could not decode enough frames to scan (the source \
+                 may be undecodable or its metadata duration is wrong)"
+                    .to_owned(),
+            );
+        }
+        let boundaries = saturn_perception::shot_detect::detect_shot_boundaries(
+            &frames,
+            &saturn_perception::shot_detect::ShotDetectOptions::default(),
+        );
+        let boundary_values: Vec<serde_json::Value> = boundaries
+            .iter()
+            .map(|boundary| {
+                serde_json::json!({
+                    "tick": boundary.tick.0,
+                    "score": boundary.score,
+                })
+            })
+            .collect();
+        Ok(serde_json::json!({
+            "mediaId": media_id,
+            "framesSampled": frames.len(),
+            "samplingStepTicks": step,
+            "undecodableSamples": decode_failures,
+            "boundaryCount": boundary_values.len(),
+            "boundaries": boundary_values,
+            "limitations": {
+                "dissolvesFades": "not detected — the detector finds hard cuts by frame difference; gradual transitions are invisible to it by design",
+                "score": "heuristic composite (histogram χ² + block difference); threshold 0.32 with a 0.5 s minimum shot gap",
+            },
+        }))
+    })
+    .await
+    .map_err(|error| format!("shot detection task failed: {error}"))?
+}
