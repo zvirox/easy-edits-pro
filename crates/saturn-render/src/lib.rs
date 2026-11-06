@@ -15,6 +15,8 @@ use saturn_core::{FrameRate, Tick};
 use std::path::Path;
 
 pub mod automation_element;
+pub mod audio_pcm;
+pub mod audio_telemetry;
 pub mod compositor;
 pub mod curves;
 pub mod encoders;
@@ -49,6 +51,8 @@ pub use hsl::{
     apply_hsl_qualifier_buffer, calculate_matte_factor, generate_hsl_matte, hsl_to_rgb, rgb_to_hsl,
 };
 pub use scopes_gpu::{analyze_rgb_scopes, ScopeTelemetryReport};
+pub use audio_telemetry::{AudioTelemetryReport, BAND_CENTER_HZ, analyze_pcm_audio_telemetry};
+pub use audio_pcm::decode_audio_pcm;
 pub use loudness::{EbuR128Meter, LoudnessReport, LoudnessStandard, analyze_pcm_loudness};
 pub use lut::{Lut3D, Lut3DInfo};
 pub use matting::{

@@ -148,6 +148,7 @@ async fn dispatch(request: Value, app: &AppHandle, state: &AppState) -> Value {
         "vision_extract_frame_sheet" => vision_extract_frame_sheet(state, &params).await,
         "render_preview_clip_proxy" => render_preview_clip_proxy(state, &params).await,
         "color_read_scopes" => color_read_scopes(state, &params).await,
+        "audio_read_telemetry" => audio_read_telemetry(state, &params).await,
         _ => Err(format!("unknown bridge method: {method}")),
     };
     match result {
@@ -428,6 +429,18 @@ async fn color_read_scopes(state: &AppState, params: &Value) -> Result<Value, St
     let params = params.clone();
     blocking_payload(move || {
         saturn_render::preview_tools::color_scopes_payload(&document, &params)
+    })
+    .await
+}
+
+/// `audio_read_telemetry`: measurable audio telemetry over one range —
+/// `media_id` analyzes a source file; `start_tick`+`end_tick` renders the
+/// sequence mix and analyzes that.
+async fn audio_read_telemetry(state: &AppState, params: &Value) -> Result<Value, String> {
+    let document = document_snapshot(state)?;
+    let params = params.clone();
+    blocking_payload(move || {
+        saturn_render::preview_tools::audio_telemetry_payload(&document, &params)
     })
     .await
 }

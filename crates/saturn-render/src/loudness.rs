@@ -102,13 +102,13 @@ impl Biquad {
 
 /// ITU-R BS.1770-4 K-weighting dual filter for a single audio channel.
 #[derive(Clone, Debug)]
-struct KWeightingFilter {
+pub(crate) struct KWeightingFilter {
     stage1_pre: Biquad,
     stage2_rlb: Biquad,
 }
 
 impl KWeightingFilter {
-    fn new(sample_rate: u32) -> Self {
+    pub(crate) fn new(sample_rate: u32) -> Self {
         let fs = sample_rate as f64;
 
         // BS.1770-4 Stage 1: High shelf filter (head-model)
@@ -176,6 +176,28 @@ impl KWeightingFilter {
         self.stage1_pre.reset();
         self.stage2_rlb.reset();
     }
+
+    /// Steady-state magnitude response at `frequency_hz`, measured through
+    /// the real biquad chain (test support for the calibrated EBU reference
+    /// test: the ITU reference level is defined by this exact filter).
+    #[cfg(test)]
+    pub(crate) fn steady_state_gain_at(&mut self, sample_rate: u32, frequency_hz: f64) -> f64 {
+        self.reset();
+        let period = sample_rate as f64 / frequency_hz;
+        let samples = (period * 20.0) as usize;
+        let transient = (period * 2.0) as usize;
+        let mut sum_sq_in = 0.0;
+        let mut sum_sq_out = 0.0;
+        for i in 0..samples {
+            let x = (2.0 * std::f64::consts::PI * (i as f64) / period).sin();
+            let y = self.process(x);
+            if i >= transient {
+                sum_sq_in += x * x;
+                sum_sq_out += y * y;
+            }
+        }
+        (sum_sq_out / sum_sq_in).sqrt()
+    }
 }
 
 /// Real-time streaming EBU R128 & ITU-R BS.1770-4 Loudness Meter.
@@ -214,6 +236,13 @@ pub struct EbuR128Meter {
 
     // True peak tracker with 4x oversampling
     max_true_peak_linear: f64,
+
+    // Stereo phase-correlation accumulators (sums over every frame pair):
+    // corr = Σ(L·R) / sqrt(ΣL²·ΣR²). Only meaningful for stereo (or the
+    // first two channels of a wider bus).
+    phase_lr_sum: f64,
+    phase_ll_sum: f64,
+    phase_rr_sum: f64,
 }
 
 impl EbuR128Meter {
@@ -250,6 +279,9 @@ impl EbuR128Meter {
             short_term_history: Vec::new(),
             step_samples_counter: 0,
             max_true_peak_linear: 0.0,
+            phase_lr_sum: 0.0,
+            phase_ll_sum: 0.0,
+            phase_rr_sum: 0.0,
         }
     }
 
@@ -259,6 +291,20 @@ impl EbuR128Meter {
 
     pub fn standard(&self) -> LoudnessStandard {
         self.standard
+    }
+
+    /// Stereo phase correlation over everything processed so far:
+    /// `+1.0` mono-coherent, `0.0` decorrelated, `-1.0` fully out of phase.
+    /// `None` for mono/non-stereo input or digital silence.
+    pub fn phase_correlation(&self) -> Option<f64> {
+        if self.channels < 2 || (self.phase_ll_sum <= 0.0 && self.phase_rr_sum <= 0.0) {
+            return None;
+        }
+        let denom = (self.phase_ll_sum * self.phase_rr_sum).sqrt();
+        if denom <= 0.0 {
+            return None;
+        }
+        Some(self.phase_lr_sum / denom)
     }
 
     pub fn set_standard(&mut self, standard: LoudnessStandard) {
@@ -286,6 +332,9 @@ impl EbuR128Meter {
         self.short_term_history.clear();
         self.step_samples_counter = 0;
         self.max_true_peak_linear = 0.0;
+        self.phase_lr_sum = 0.0;
+        self.phase_ll_sum = 0.0;
+        self.phase_rr_sum = 0.0;
     }
 
     /// Process an interleaved PCM audio buffer (e.g. [L0, R0, L1, R1, ...]).
@@ -305,6 +354,15 @@ impl EbuR128Meter {
                 let abs_s = s.abs();
                 if abs_s > frame_peak_linear {
                     frame_peak_linear = abs_s;
+                }
+
+                // Stereo phase-correlation accumulation (first two channels).
+                if ch == 0 {
+                    self.phase_ll_sum += s * s;
+                } else if ch == 1 {
+                    self.phase_rr_sum += s * s;
+                    let l = samples[frame_idx * self.channels] as f64;
+                    self.phase_lr_sum += l * s;
                 }
 
                 // Channel weight G_i (BS.1770 stereo: Left = 1.0, Right = 1.0)

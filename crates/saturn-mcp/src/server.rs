@@ -280,6 +280,7 @@ impl EditorMcp {
             "vision_extract_frame_sheet" => self.vision_extract_frame_sheet(&arguments).await,
             "render_preview_clip_proxy" => self.render_preview_clip_proxy(&arguments).await,
             "color_read_scopes" => self.color_read_scopes(&arguments).await,
+            "audio_read_telemetry" => self.audio_read_telemetry(&arguments).await,
             "render_start" => self.start_render(&arguments).await,
             "render_status" => self.render_job_status(&arguments).await,
             "render_cancel" => self.cancel_render(&arguments).await,
@@ -647,6 +648,25 @@ impl EditorMcp {
         })
         .await
         .map_err(|error| format!("scopes task failed: {error}"))?
+    }
+
+    /// `audio_read_telemetry`: measurable audio telemetry over one range —
+    /// source-file mode (`media_id` [+ `start_tick`/`end_tick`]) or mix mode
+    /// (`start_tick`+`end_tick`, rendering the sequence audio first). Bridge
+    /// mode delegates to the desktop app; headless analyzes its own session.
+    async fn audio_read_telemetry(&self, arguments: &Value) -> Result<Value, String> {
+        if matches!(&self.backend, Backend::Bridge(_)) {
+            return self
+                .bridge_call("audio_read_telemetry", arguments.clone())
+                .await;
+        }
+        let document = self.headless_document().await?;
+        let arguments = arguments.clone();
+        tokio::task::spawn_blocking(move || {
+            saturn_render::preview_tools::audio_telemetry_payload(&document, &arguments.clone())
+        })
+        .await
+        .map_err(|error| format!("audio telemetry task failed: {error}"))?
     }
 }
 

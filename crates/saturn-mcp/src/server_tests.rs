@@ -174,6 +174,39 @@ async fn color_read_scopes_rejects_bad_requests_with_typed_errors() {
     assert!(error.contains("audio"), "unexpected error: {error}");
 }
 
+#[tokio::test]
+async fn audio_read_telemetry_rejects_bad_requests_with_typed_errors() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(saturn_core::CommandRequest::new(
+            "project.new",
+            json!({"name": "MCP audio"}),
+        ))
+        .unwrap();
+    let mcp = EditorMcp::new(engine);
+
+    // Neither mode selected is a usage error, not a placeholder.
+    let error = mcp
+        .audio_read_telemetry(&json!({}))
+        .await
+        .expect_err("modeless call must be a typed error");
+    assert!(error.contains("media_id, or start_tick+end_tick"), "unexpected: {error}");
+
+    // Unknown media id.
+    let error = mcp
+        .audio_read_telemetry(&json!({"media_id": 4242}))
+        .await
+        .expect_err("unknown media must be a typed error");
+    assert!(error.contains("was not found"), "unexpected error: {error}");
+
+    // Track scoping is honestly rejected instead of silently ignored.
+    let error = mcp
+        .audio_read_telemetry(&json!({"start_tick": 0, "end_tick": 1, "track_id": 7}))
+        .await
+        .expect_err("track scoping must be rejected until implemented");
+    assert!(error.contains("track-scoped"), "unexpected error: {error}");
+}
+
 #[test]
 fn image_block_in_the_response_becomes_a_real_image_content_block() {
     // continue_text_only strips the base64 blob; the text stays readable JSON.

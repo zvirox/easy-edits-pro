@@ -20,6 +20,9 @@ use serde_json::{Value, json};
 use crate::frame_extractor::{
     self, MAX_INLINE_JPEG_BYTES, SheetRequest, StillOptions, default_poster_tick,
 };
+use crate::audio_pcm;
+use crate::audio_telemetry;
+use crate::loudness::LoudnessStandard;
 use crate::render_project_range_with_settings;
 use crate::scopes_gpu;
 use crate::{RenderRange, RenderSettings, render_frame};
@@ -420,9 +423,163 @@ pub fn color_scopes_payload(document: &ProjectDocument, params: &Value) -> Resul
     }))
 }
 
+/// Parse the optional loudness standard string into a
+/// [`LoudnessStandard`] (`ebu_r128` default).
+fn parse_standard(params: &Value) -> Result<LoudnessStandard, String> {
+    match params.get("standard").and_then(Value::as_str) {
+        None | Some("ebu_r128") | Some("ebu") => Ok(LoudnessStandard::EbuR128),
+        Some("streaming") => Ok(LoudnessStandard::Streaming),
+        Some("atsc_a85") | Some("atsc") => Ok(LoudnessStandard::AtscA85),
+        Some(other) => Err(format!(
+            "Unknown loudness standard {other:?}: use ebu_r128, streaming or atsc_a85"
+        )),
+    }
+}
+
+/// Parse optional `start_tick`/`end_tick` (both default-free; they bound
+/// the analyzed region in project ticks).
+fn parse_tick_range(params: &Value) -> Result<(Option<Tick>, Option<Tick>), String> {
+    let start = params
+        .get("start_tick")
+        .and_then(Value::as_i64)
+        .map(Tick)
+        .filter(|tick| tick.0 >= 0);
+    if params.get("start_tick").is_some() && start.is_none() {
+        return Err("start_tick must be a non-negative integer".into());
+    }
+    let end = params
+        .get("end_tick")
+        .and_then(Value::as_i64)
+        .map(Tick)
+        .filter(|tick| tick.0 >= 0);
+    if params.get("end_tick").is_some() && end.is_none() {
+        return Err("end_tick must be a non-negative integer".into());
+    }
+    Ok((start, end))
+}
+
+/// `audio_read_telemetry`: measurable audio telemetry (E. R128 loudness,
+/// octave-band spectrum, phase correlation, dialogue SNR) over one range.
+///
+/// Two modes, mirroring `color_read_scopes`:
+/// - `media_id` present: analyze a source file's audio (default: whole
+///   file, clamped to the analysis cap; `start_tick`/`end_tick` narrow it);
+/// - else `start_tick`+`end_tick`: render the active sequence mix for the
+///   range (the mixed, ducked, automated result — what the audience hears)
+///   into the previews directory and analyze that.
+///
+/// `standard` selects the loudness target (`ebu_r128` default). A provided
+/// `track_id` currently has no effect — telemetry always covers the
+/// analyzed range's full mix; the tool errors rather than pretending to
+/// scope it (plan §4.4 honesty).
+pub fn audio_telemetry_payload(
+    document: &ProjectDocument,
+    params: &Value,
+) -> Result<Value, String> {
+    if params.get("track_id").is_some() {
+        return Err(
+            "audio_read_telemetry: track-scoped telemetry is not implemented; \
+             analysis covers the range's full mix"
+                .into(),
+        );
+    }
+    let standard = parse_standard(params)?;
+    let report = if let Some(media_id) = params.get("media_id").and_then(Value::as_u64) {
+        let asset = find_asset(document, media_id)?;
+        match &asset.kind {
+            MediaKind::Audio | MediaKind::Video => {}
+            other => {
+                return Err(format!(
+                    "audio_read_telemetry: {other:?} media has no audio track to analyze"
+                ));
+            }
+        }
+        if !asset.path.is_file() {
+            return Err(format!(
+                "audio_read_telemetry: source file is missing: {}",
+                asset.path.display()
+            ));
+        }
+        let (start, end) = parse_tick_range(params)?;
+        let start = start.unwrap_or(Tick(0));
+        let decoded = audio_pcm::decode_audio_pcm(&asset.path, start, end)?;
+        let frames = (decoded.samples.len() / decoded.channels.max(1)) as i64;
+        let end_tick = match end {
+            Some(end) => end,
+            None => Tick(
+                start.0 + frames * saturn_core::time::TICKS_PER_SECOND as i64
+                    / decoded.sample_rate.max(1) as i64,
+            ),
+        };
+        audio_telemetry::analyze_pcm_audio_telemetry(
+            &decoded.samples,
+            decoded.channels,
+            decoded.sample_rate,
+            standard,
+            start,
+            end_tick,
+        )
+    } else {
+        // Sequence mode: render the range's mix, decode, analyze.
+        let (Some(start), Some(end)) = parse_tick_range(params)? else {
+            return Err(
+                "audio_read_telemetry requires media_id, or start_tick+end_tick for \
+                 sequence mode"
+                    .into(),
+            );
+        };
+        if end.0 <= start.0 {
+            return Err("end_tick must come after start_tick".into());
+        }
+        let previews = frame_extractor::previews_dir()?;
+        let snippet = previews.join(format!("audio-telemetry-{}-{}.mp4", start.0, end.0));
+        let result = render_project_range_with_settings(
+            document,
+            &snippet,
+            Some(RenderRange { start, end }),
+            RenderSettings {
+                use_hardware_encoding: false,
+                ..RenderSettings::from_project(document)
+            },
+            |_| {},
+        );
+        let decoded = result
+            .and_then(|()| audio_pcm::decode_audio_pcm(&snippet, Tick(0), None))
+            .map_err(|error| {
+                let _ = std::fs::remove_file(&snippet);
+                format!("Could not render/decode the sequence audio: {error}")
+            });
+        let _ = std::fs::remove_file(&snippet); // analysis temp, never an artifact
+        let decoded = decoded?;
+        audio_telemetry::analyze_pcm_audio_telemetry(
+            &decoded.samples,
+            decoded.channels,
+            decoded.sample_rate,
+            standard,
+            start,
+            end,
+        )
+    }?;
+
+    let report_value = serde_json::to_value(&report).map_err(|error| error.to_string())?;
+    let report_object = report_value.as_object().cloned().unwrap_or_default();
+    Ok(json!({
+        "source": if params.get("media_id").is_some() {
+            "media file".to_owned()
+        } else {
+            "sequence mix".to_owned()
+        },
+        "report": report_object,
+        "notes": {
+            "snr_and_warnings": "heuristics over band energies; no ASR transcript, no invented aggregate score",
+            "aggregate_score": null,
+            "sequence_mode_encoding": "analyzed through the preview snippet's audio encoder chain",
+        },
+    }))
+}
+
 #[cfg(test)]
-mod tests {
-    use super::*;
+mod tests {    use super::*;
 
     #[test]
     fn resolution_parsing_is_strict() {

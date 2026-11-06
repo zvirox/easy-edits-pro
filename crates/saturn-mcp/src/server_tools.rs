@@ -182,5 +182,19 @@ pub(super) fn tool_list() -> Vec<Tool> {
                     }
                 })),
             ),
+            Tool::new(
+                "audio_read_telemetry",
+                "Read measurable audio telemetry for one range: full EBU R128 / BS.1770-4 loudness block (momentary, short-term, integrated LUFS, LRA, true peak dBTP), a 10-band octave spectrum (31 Hz..16 kHz), stereo phase correlation (−1..+1), and a dialogue-to-background SNR estimate. Pass media_id to analyze a source file, or start_tick+end_tick to render and analyze the active sequence mix (verifies a mix change actually landed). Optional standard selects the loudness target (ebu_r128, streaming, atsc_a85).",
+                schema(json!({
+                    "type": "object",
+                    "properties": {
+                        "media_id": { "type": "integer", "minimum": 0 },
+                        "start_tick": { "type": "integer", "minimum": 0 },
+                        "end_tick": { "type": "integer", "minimum": 1 },
+                        "standard": { "type": "string", "enum": ["ebu_r128", "streaming", "atsc_a85"], "default": "ebu_r128" },
+                        "track_id": { "type": "integer", "minimum": 0, "description": "Reserved: track-scoped telemetry is not implemented; analysis covers the range's full mix" }
+                    }
+                })),
+            ),
     ]
 }
