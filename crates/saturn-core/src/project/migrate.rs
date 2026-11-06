@@ -55,6 +55,17 @@ pub(crate) fn migrate_project(value: &mut serde_json::Value) -> Result<(), Strin
     };
     match version {
         PROJECT_SCHEMA_VERSION => Ok(()),
+        14 => {
+            let object = value
+                .as_object_mut()
+                .ok_or_else(|| "Project root must be an object".to_string())?;
+            // v15 adds copy-on-write branches, per-media BLAKE3 fingerprints
+            // and relative media paths on save. All three are serde-default
+            // additions, so the migration is a lossless version bump: no
+            // existing field is rewritten or dropped (F.1-style).
+            object.insert("schema_version".into(), PROJECT_SCHEMA_VERSION.into());
+            Ok(())
+        }
         1 => {
             let object = value
                 .as_object_mut()
@@ -187,6 +198,52 @@ pub(crate) fn migrate_project(value: &mut serde_json::Value) -> Result<(), Strin
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn v14_project_migrates_losslessly_to_v15() {
+        // v14 documents carry no branches, fingerprints or relative paths;
+        // the v15 migration must be a pure version bump (new fields are
+        // serde-default), never a data rewrite.
+        let folder = tempfile::tempdir().unwrap();
+        let media_path = folder.path().join("clip.mov");
+        std::fs::write(&media_path, b"lossless migration").unwrap();
+
+        let mut doc = ProjectDocument::new("Cut");
+        doc.project.media.push(MediaAsset {
+            id: 1,
+            name: "clip.mov".into(),
+            path: media_path.clone(),
+            kind: MediaKind::Video,
+            duration: Some(Tick(90)),
+            ..Default::default()
+        });
+        doc.branches.push(crate::branch::TimelineBranch {
+            id: 1,
+            name: "stash".into(),
+            note: String::new(),
+            parent: None,
+            created_at_unix_ms: 7,
+            state: serde_json::json!({"name": "Cut", "media": []}),
+        });
+        let mut legacy = serde_json::to_value(&doc).unwrap();
+        legacy["schema_version"] = 14.into();
+        let before = legacy.clone();
+        migrate_project(&mut legacy).unwrap();
+        assert_eq!(legacy["schema_version"], serde_json::json!(PROJECT_SCHEMA_VERSION));
+        // Everything except schema_version survives byte-for-byte.
+        assert_eq!(
+            legacy["project"]["media"][0]["path"],
+            before["project"]["media"][0]["path"]
+        );
+        assert_eq!(
+            legacy["project"]["media"][0]["duration"],
+            before["project"]["media"][0]["duration"]
+        );
+        assert_eq!(legacy["branches"], before["branches"]);
+        let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
+        assert_eq!(loaded.branches[0].name, "stash");
+        assert_eq!(loaded.project.media[0].path, media_path);
+    }
 
     #[test]
     fn v9_project_migrates_to_v10_schema() {

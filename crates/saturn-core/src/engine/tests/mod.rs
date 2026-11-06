@@ -2,6 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 mod captions;
+mod branch;
 mod history;
 mod media;
 mod robustness;

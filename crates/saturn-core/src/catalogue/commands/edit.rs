@@ -605,7 +605,10 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         shortcut: None,
         params: "{\"query\": \"label substring\"}",
         category: Category::Edit,
-        mutating: true,
+        // Selection is editor viewport state, never document state: it
+        // deliberately stays out of undo (plan review §4.9), like the rest
+        // of the selection family.
+        mutating: false,
         undo_group: UndoGroup::None,
         aliases: &[],
         since: "0.4.0",
@@ -619,7 +622,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         shortcut: None,
         params: "{\"label\": \"label colour name\"}",
         category: Category::Edit,
-        mutating: true,
+        mutating: false,
         undo_group: UndoGroup::None,
         aliases: &[],
         since: "0.4.0",

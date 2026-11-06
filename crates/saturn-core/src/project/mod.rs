@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 pub const PROJECT_FORMAT: &str = "easy-edits-pro.project";
 pub const LEGACY_PROJECT_FORMAT: &str = "project-saturn.project";
-pub const PROJECT_SCHEMA_VERSION: u32 = 14;
+pub const PROJECT_SCHEMA_VERSION: u32 = 15;
 
 mod io;
 mod migrate;
@@ -97,6 +97,7 @@ impl ProjectDocument {
                 timeline_zoom: 1.0,
                 timeline_scroll: 0.0,
             },
+            branches: Vec::new(),
         }
     }
 
@@ -122,6 +123,28 @@ impl ProjectDocument {
             }
             if item.comment.len() > 4000 || item.scene.len() > 200 || item.take.len() > 200 {
                 return Err(format!("Media {} has oversized metadata", item.name));
+            }
+            reject_parent_escape(&item.path, item.name.as_str())?;
+            if let Some(proxy) = &item.proxy_path {
+                reject_parent_escape(proxy, item.name.as_str())?;
+            }
+        }
+        let mut branch_names = std::collections::HashSet::new();
+        for branch in &self.branches {
+            let name = branch.name.trim();
+            if name.is_empty() || name.len() > 120 {
+                return Err(format!("Project has an invalid branch name `{}`", branch.name));
+            }
+            // `main` is allowed here: the engine parks the live state in a
+            // reserved record of that name while another branch is active.
+            // User *creation* of `main` stays impossible (branch_create
+            // routes through `TimelineBranch::validate_name`).
+            let lower = name.to_lowercase();
+            if !branch_names.insert(lower) {
+                return Err(format!("Project has duplicate branch name `{}`", name));
+            }
+            if branch.state.is_null() {
+                return Err(format!("Branch `{}` carries no snapshot", branch.name));
             }
         }
         for track in &self.project.sequence.tracks {
@@ -344,6 +367,23 @@ impl ProjectDocument {
     }
 }
 
+/// Relative media/proxy paths (schema v15 moved-folder support) may only
+/// point deeper into the project folder, never escape it with `..`.
+fn reject_parent_escape(path: &std::path::Path, media_name: &str) -> Result<(), String> {
+    if path.is_absolute() {
+        return Ok(());
+    }
+    for component in path.components() {
+        if matches!(component, std::path::Component::ParentDir) {
+            return Err(format!(
+                "Media `{media_name}` has a relative path containing `..`: {}",
+                path.display()
+            ));
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -370,6 +410,138 @@ mod tests {
             PathBuf::from("/media/shot.mov")
         );
         assert_eq!(loaded.project.media[0].duration, Some(Tick(42)));
+    }
+
+    /// Schema v15: media under the project folder is stored as a relative
+    /// path and resolved against the project file's folder on load, so the
+    /// whole project folder can move and stay playable.
+    #[test]
+    fn media_inside_the_project_folder_saves_relatively_and_moves_with_it() {
+        let folder = tempfile::tempdir().unwrap();
+        let media_dir = folder.path().join("media");
+        std::fs::create_dir_all(&media_dir).unwrap();
+        let media_path = media_dir.join("shot.mov");
+        std::fs::write(&media_path, b"real file").unwrap();
+
+        let path = folder.path().join("cut.saturn");
+        let mut doc = ProjectDocument::new("Cut");
+        doc.project.media.push(MediaAsset {
+            id: 4,
+            name: "shot.mov".into(),
+            path: media_path.clone(),
+            kind: MediaKind::Video,
+            ..Default::default()
+        });
+        doc.save_atomic(&path).unwrap();
+
+        // The serialized file must carry the relative path.
+        let raw = std::fs::read_to_string(&path).unwrap();
+        assert!(
+            raw.contains("\"media/shot.mov\""),
+            "expected relative media path in project file"
+        );
+        assert!(!raw.contains(&media_path.to_string_lossy().to_string()));
+
+        // Loaded back, it resolves to the same absolute path.
+        let loaded = ProjectDocument::load(&path).unwrap();
+        assert_eq!(loaded.project.media[0].path, media_path);
+        assert!(loaded.project.media[0].path.is_file());
+
+        // Move the whole folder: resolution follows the new project root and
+        // the project still opens with its media intact.
+        let moved_root = tempfile::tempdir().unwrap();
+        let moved_project = moved_root.path().join("moved.saturn");
+        std::fs::copy(&path, &moved_project).unwrap();
+        std::fs::create_dir_all(moved_root.path().join("media")).unwrap();
+        std::fs::write(moved_root.path().join("media/shot.mov"), b"real file").unwrap();
+        let moved = ProjectDocument::load(&moved_project).unwrap();
+        assert!(moved.project.media[0].path.is_file());
+        assert_eq!(
+            moved.project.media[0].path,
+            moved_root.path().join("media/shot.mov")
+        );
+    }
+
+    /// Media outside the project folder keeps its absolute path everywhere.
+    #[test]
+    fn media_outside_the_project_folder_stays_absolute() {
+        let folder = tempfile::tempdir().unwrap();
+        let external = tempfile::tempdir().unwrap();
+        let external_media = external.path().join("external.mov");
+        std::fs::write(&external_media, b"external file").unwrap();
+
+        let path = folder.path().join("cut.saturn");
+        let mut doc = ProjectDocument::new("Cut");
+        doc.project.media.push(MediaAsset {
+            id: 1,
+            name: "external.mov".into(),
+            path: external_media.clone(),
+            kind: MediaKind::Video,
+            ..Default::default()
+        });
+        doc.save_atomic(&path).unwrap();
+        let raw = std::fs::read_to_string(&path).unwrap();
+        assert!(raw.contains(&external_media.to_string_lossy().to_string()));
+        let loaded = ProjectDocument::load(&path).unwrap();
+        assert_eq!(loaded.project.media[0].path, external_media);
+    }
+
+    /// A relative path trying to escape the project folder is rejected.
+    #[test]
+    fn relative_media_paths_may_not_escape_the_project_folder() {
+        let mut doc = ProjectDocument::new("Escape");
+        doc.project.media.push(MediaAsset {
+            id: 1,
+            name: "sneaky.mov".into(),
+            path: PathBuf::from("../outside.mov"),
+            kind: MediaKind::Video,
+            ..Default::default()
+        });
+        let error = doc.validate().unwrap_err();
+        assert!(error.contains(".."), "{error}");
+    }
+
+    /// Branch records survive save/load unchanged (lossless v15 storage).
+    #[test]
+    fn branches_roundtrip_through_the_project_file() {
+        use std::io::Write as _;
+        let folder = tempfile::tempdir().unwrap();
+        let path = folder.path().join("cut.saturn");
+        let media_path = folder.path().join("clip.mov");
+        std::fs::File::create(&media_path)
+            .and_then(|mut file| file.write_all(b"branch content"))
+            .unwrap();
+        let mut doc = ProjectDocument::new("Cut");
+        doc.project.media.push(MediaAsset {
+            id: 1,
+            name: "clip.mov".into(),
+            path: media_path.clone(),
+            kind: MediaKind::Video,
+            ..Default::default()
+        });
+        doc.branches.push(crate::branch::TimelineBranch {
+            id: 1,
+            name: "stash".into(),
+            note: "kept here".into(),
+            parent: Some(crate::branch::MAIN_BRANCH.into()),
+            created_at_unix_ms: 42,
+            state: serde_json::json!({"name": "Cut"}),
+        });
+        doc.save_atomic(&path).unwrap();
+        let loaded = ProjectDocument::load(&path).unwrap();
+        assert_eq!(loaded.branches.len(), 1);
+        assert_eq!(loaded.branches[0].name, "stash");
+        assert_eq!(loaded.branches[0].note, "kept here");
+        assert_eq!(loaded.branches[0].created_at_unix_ms, 42);
+        assert_eq!(loaded.branches[0].state["name"], serde_json::json!("Cut"));
+        // Fingerprint fields survive too.
+        let fingerprint = crate::media_fingerprint::compute_file(&media_path).unwrap();
+        let mut doc2 = loaded;
+        doc2.project.media[0].fingerprint = Some(fingerprint.clone());
+        let path2 = folder.path().join("cut2.saturn");
+        doc2.save_atomic(&path2).unwrap();
+        let loaded2 = ProjectDocument::load(&path2).unwrap();
+        assert_eq!(loaded2.project.media[0].fingerprint, Some(fingerprint));
     }
 
     #[test]

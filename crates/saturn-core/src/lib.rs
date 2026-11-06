@@ -2,12 +2,14 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 pub mod catalogue;
+pub mod branch;
 pub mod command;
 pub mod engine;
 pub mod graphics_layout;
 pub mod interop;
 pub mod job;
 pub mod local_control;
+pub mod media_fingerprint;
 pub mod markers;
 pub mod project;
 pub mod speech;

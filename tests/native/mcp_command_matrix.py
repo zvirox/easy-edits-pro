@@ -148,6 +148,7 @@ class Context:
         self.seq1_id = None
         self.node_id = None
         self.multicam_media_id = None
+        self.export_item_id = None
         self.saved_project = str(tmp / "baseline.eep")
         self.export_xml = None
 
@@ -249,6 +250,14 @@ def capture_result(ctx: Context, cid: str, result) -> None:
         ctx.node_id = grab("node_id", "id")
     elif cid == "multicam.create":
         ctx.multicam_media_id = grab("media_id", "id")
+    elif cid == "export.queue.add":
+        # The add response only carries the queue snapshot: the new item is
+        # the one with the highest id at the end of the list.
+        snapshot = result.get("viewport") or {}
+        items = snapshot.get("export_queue") or []
+        if isinstance(items, list) and items:
+            newest = max(items, key=lambda item: item.get("id", 0))
+            ctx.export_item_id = newest.get("id")
 
 
 def call_baseline(ctx: Context, sock, cid, params, errors: list):
@@ -511,6 +520,44 @@ def O(ctx: Context, cid: str):
         return {"track_id": v, "clip_index": 1, "delta": ticks(0.1)}
     if cid == "timeline.ripple_delete_gap":
         return {"track_id": v2, "at_tick": ticks(3.0)}
+    # --- AI-native Packets 0.1/0.2: stateful commands get real state ------
+    if cid == "playhead.go_to_timecode":
+        # Project default rate is 30 fps in the builder.
+        return {"timecode": "00:00:01:00"}
+    if cid == "project.branch_switch":
+        return {"name": "Matrix-branch"}
+    if cid == "project.branch_diff":
+        return {"branch": "Matrix-branch"}
+    # Reject keeps the live state untouched: deterministic and rollback-safe.
+    if cid == "project.branch_merge":
+        return {"branch": "Matrix-branch", "action": "reject"}
+    if cid == "media.relink_suggest":
+        # The fixture's folder always exists; the baseline media is present,
+        # so suggestions are empty but the full scan path executes read-only.
+        return {"search_dirs": [str(ctx.fixture.parent)]}
+    # Baseline V1 layout is clips at 0.0/2.0/4.0 with 1.9s durations: the
+    # 1.9-2.0s slot is a real gap on that track.
+    if cid == "timeline.selectGap":
+        return {"track_id": v, "start_tick": ticks(1.9), "end_tick": ticks(2.0)}
+    # Clip 0 is labelled blue by the hook; the label substring "blue" matches.
+    if cid == "edit.select_all_matching":
+        return {"query": "blue"}
+    if cid == "edit.select_label_group":
+        return {"label": "blue"}
+    if cid == "export.queue.add":
+        return {"output_path": str(ctx.tmp / "matrix-export.mp4")}
+    # The hooks staged a fresh item and captured its id; the standalone early
+    # commands (cancel/remove) run right after add, which made item 1.
+    if cid == "export.queue.cancel":
+        return {"id": ctx.export_item_id or 1}
+    if cid == "export.queue.remove":
+        return {"id": ctx.export_item_id or 1}
+    if cid == "export.queue.move":
+        return {"id": ctx.export_item_id or 1, "position": 0}
+    if cid == "export.queue.retry":
+        # The hooks staged a fresh item, captured its id and cancelled it
+        # (retry only accepts failed/cancelled items).
+        return {"id": ctx.export_item_id or 1}
     if cid == "timeline.rate_stretch":
         return {"track_id": v, "clip_index": 0, "speed": 1.5}
     if cid == "timeline.move_clips_batch":
@@ -765,6 +812,55 @@ HOOKS["marker.add_range_in_out"] = [
 # the delete test may have removed the bin (settings-like store, undo-blind)
 HOOKS["project.searchBin.items"] = [("project.searchBin.set",
                                      lambda c: {"name": "Matrix", "query": "shot"})]
+
+# --- AI-native Packets 0.1/0.2: branches, fingerprints, playhead ------------
+# A named branch must exist before switch/diff/merge can mean anything; the
+# hook creates one (mutating, undone by the standard hook rollback) and the
+# overrides then point all three commands at the same record. The merge must
+# also leave the target inactive: park the live state by switching to main
+# first (merge v1 only whole-branch accepts or rejects an inactive branch).
+_BRANCH = ("project.branch_create", lambda c: {"name": "Matrix-branch"})
+for _cid in ("project.branch_switch", "project.branch_diff"):
+    HOOKS[_cid] = [_BRANCH]
+HOOKS["project.branch_merge"] = [
+    _BRANCH,
+    ("project.branch_switch", lambda c: {"name": "main"}),
+]
+# Selection + playhead chains: configuration 1s lands inside baseline clip 0.
+_GOTO_1S = ("playhead.go_to_timecode", lambda c: {"timecode": "00:00:01:00"})
+HOOKS["playhead.next_edit"] = [_GOTO_1S]
+# Selection that survives the playhead set: select clip 0 by direct ref and
+# park the playhead on its timeline start — fully deterministic, no timecode
+# parsing and no scan ambiguity inside the command under test.
+# Selection that survives a degraded mid-run baseline: select *everything*
+# (all tracks), park the playhead on the last selected clip's start — the
+# command under test then finds a clip under the playhead on any video track
+# even when a single track was gutted by the documented undo-drift gap.
+_SELECT_ALL = ("edit.select_all", lambda c: {})
+_CLIP_AT_PLAYHEAD = [_SELECT_ALL, ("playhead.go_to_clip_start", lambda c: {})]
+HOOKS["edit.select_clip_at_playhead"] = _CLIP_AT_PLAYHEAD
+HOOKS["playhead.go_to_clip_start"] = _CLIP_AT_PLAYHEAD
+HOOKS["playhead.go_to_clip_end"] = _CLIP_AT_PLAYHEAD
+# Next/prev walk from the selected clip: select-all leaves many clips
+# selected; go_to_clip_start then walks within the current selection track.
+HOOKS["timeline.selectNextClip"] = [("timeline.select", lambda c: {"track_id": c.v_track, "clip_index": 1})]
+HOOKS["timeline.selectPrevClip"] = [("timeline.select", lambda c: {"track_id": c.v_track, "clip_index": 1})]
+HOOKS["playhead.go_to_in"] = [("timeline.set_mark_in", lambda c: {"at": ticks(0.5)})]
+HOOKS["playhead.go_to_out"] = [("timeline.set_mark_out", lambda c: {"at": ticks(1.5)})]
+# Label queries need a real FC-style label on a clip; the mutating hook sets
+# one on baseline clip 0 (blue) and is undone with the block.
+_LABEL_HOOK = ("edit.label.blue", lambda c: {"clips": [c.clip_ref()]})
+HOOKS["edit.select_all_matching"] = [_LABEL_HOOK]
+HOOKS["edit.select_label_group"] = [_LABEL_HOOK]
+# Export queue ids are generated at add time; the hooks stage fresh items and
+# the captured id feeds the cancel/move/retry overrides.
+_QUEUE_ADD = ("export.queue.add", lambda c: {"output_path": str(c.tmp / "matrix-export.mp4")})
+HOOKS["export.queue.move"] = [_QUEUE_ADD]
+HOOKS["export.queue.retry"] = [
+    _QUEUE_ADD,
+    # retry only accepts failed/cancelled items: cancel the fresh one first.
+    ("export.queue.cancel", lambda c: {"id": c.export_item_id}),
+]
 
 # document-replacing or history-exiting commands: rebuild baseline afterwards
 RESET_AFTER = {"file.open", "project.new", "project.switch_sequence",

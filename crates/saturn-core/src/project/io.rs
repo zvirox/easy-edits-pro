@@ -4,12 +4,38 @@
 use super::*;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 impl ProjectDocument {
+    /// Schema v15: media that lives inside the project folder is stored with
+    /// a path relative to the project file, so the whole folder can move.
+    /// Media outside the project folder keeps its absolute path.
+    fn for_saving(&self, project_dir: &Path) -> Self {
+        let mut out = self.clone();
+        for media in &mut out.project.media {
+            relativize(&mut media.path, project_dir);
+            if let Some(proxy) = &mut media.proxy_path {
+                relativize(proxy, project_dir);
+            }
+        }
+        out
+    }
+
+    /// In-memory documents always carry resolved paths: relative entries from
+    /// the file are joined against the project file's folder. A moved folder
+    /// therefore re-resolves media that moved with it.
+    fn resolve_saved_paths(&mut self, project_dir: &Path) {
+        for media in &mut self.project.media {
+            absolutize(&mut media.path, project_dir);
+            if let Some(proxy) = &mut media.proxy_path {
+                absolutize(proxy, project_dir);
+            }
+        }
+    }
+
     pub fn save_atomic(&self, path: &Path) -> Result<(), String> {
         self.validate()?;
         let parent = path
@@ -27,7 +53,7 @@ impl ProjectDocument {
             std::process::id(),
             suffix
         ));
-        let serialized = serde_json::to_vec_pretty(self)
+        let serialized = serde_json::to_vec_pretty(&self.for_saving(parent))
             .map_err(|e| format!("Could not serialize project: {e}"))?;
 
         let result = (|| {
@@ -79,9 +105,31 @@ impl ProjectDocument {
         let mut value: serde_json::Value = serde_json::from_slice(&bytes)
             .map_err(|e| format!("Project file is not valid JSON: {e}"))?;
         migrate_project(&mut value)?;
-        let document: Self = serde_json::from_value(value)
+        let mut document: Self = serde_json::from_value(value)
             .map_err(|e| format!("Project file has an invalid structure: {e}"))?;
+        document.resolve_saved_paths(path.parent().unwrap_or_else(|| Path::new(".")));
         document.validate()?;
         Ok(document)
+    }
+}
+
+/// Store an absolute path under `project_dir` as a relative path. Any path
+/// that is not under `project_dir` is written through unchanged.
+fn relativize(path: &mut PathBuf, project_dir: &Path) {
+    if path.is_absolute() {
+        if let Ok(relative) = path.strip_prefix(project_dir) {
+            // The prefix match guarantees the remainder can never contain `..`.
+            if !relative.as_os_str().is_empty() {
+                *path = relative.to_path_buf();
+            }
+        }
+    }
+}
+
+/// Join a relative stored path against the project folder on load.
+fn absolutize(path: &mut PathBuf, project_dir: &Path) {
+    if !path.is_absolute() && !path.as_os_str().is_empty() {
+        let joined = project_dir.join(&*path);
+        *path = joined;
     }
 }

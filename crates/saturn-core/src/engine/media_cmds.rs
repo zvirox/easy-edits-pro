@@ -51,6 +51,7 @@ impl EditorEngine {
                     modified_ms: None,
                     title: params.title,
                     waveform: params.waveform,
+                    fingerprint: None,
                     nested_sequence: None,
                 };
                 self.document.project.media.push(item);

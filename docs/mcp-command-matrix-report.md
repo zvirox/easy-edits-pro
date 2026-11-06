@@ -1,12 +1,12 @@
 # MCP command-matrix test report
 
 **Build under test:** dev build (`apps/saturn-tauri/target/debug/saturn-tauri`, debug profile)
-**Scope:** all 440 shipped commands from `docs/reference/command-catalogue.json`, driven over the
+**Scope:** all 448 shipped commands from `docs/reference/command-catalogue.json`, driven over the
 same-user MCP bridge (`$XDG_RUNTIME_DIR/easy-edits-pro-mcp.sock`) — the identical seam the MCP
 server and the desktop UI use.
 **Driver:** `tests/native/mcp_command_matrix.py`
-**Result JSON:** `/tmp/opencode/matrix/full3.json` (retained only for the session; the summary
-tables below are the durable record)
+**Result JSON:** `/tmp/opencode/matrix-p02/result5.json` (run 5, user-tag `packet-0.2`; retained
+only for the session; the summary tables below are the durable record)
 
 ## Environment isolation
 
@@ -36,7 +36,10 @@ plus a byte-copy as spare media, a title media asset, and an FCPXML export produ
   (decompose, reveal_nested), `timeline.set_mark_in/out` (marker.add_range_in_out),
   `marker.set_split_audio/video` (out-split variants), `media.attach_proxy` (detach),
   `nodegraph.add_node` (update_node), `shortcuts.set` (resolve), `project.searchBin.set` (items),
-  `edit.undo` (redo).
+  `edit.undo` (redo), `project.branch_create` (branch switch/diff/merge), `edit.label.blue`
+  (select_all_matching / select_label_group), `export.queue.add` (+`cancel` for `retry`;
+  queue-item ids captured from the add response), `timeline.select` + `playhead.go_to_clip_start`
+  (select_clip_at_playhead and playhead.go_to_clip_*).
 - **Rollback with verification.** Every mutating command that succeeds is undone with
   `edit.undo`. After each undo the harness compares a state signature (tracks × clip counts,
   markers, media, sequences) against the baseline. A mismatch means the command mutated without
@@ -57,25 +60,31 @@ plus a byte-copy as spare media, a title media asset, and an FCPXML export produ
 
 - `edit.undo`/`edit.redo` and the settings-store commands are excluded from undo verification by
   nature; a sentinel rebuild follows them.
-- commands whose semantics depend on the *playhead viewport* or live UI selection state that no
-  MCP command can set (e.g. `ripple_delete_gap`, `trim.next/previous`) can only be exercised as
-  far as the state the baseline provides.
+- Since Packet 0.1 the playhead and selection *are* engine state settable over MCP
+  (`playhead.go_to_timecode`, `timeline.select`, …), so the needs-state judgments below
+  are no longer about unreachable state in general, but about state the contiguous
+  full-run baseline cannot provide at the point each command runs (see §1).
 
 ## Results summary
 
-Full run against all 440 shipped commands (`full4`):
+Full run against all 448 shipped commands (run 5, post-Packets 0.1 + 0.2 — the unified
+viewport state and the branch/fingerprint commands flipped backend):
 
 | outcome | count | meaning |
 |---|---|---|
-| **ok** | **324** | bridge accepted and executed the command |
-| **ui_only** | **112** | answered “handled by the interface” — UI-layer by design |
-| **error** | **4** | engine rejected the crafted state (all four are needs-state, below) |
+| **ok** | **372** | bridge accepted and executed the command |
+| **ui_only** | **71** | answered “handled by the interface” — UI-layer by design |
+| **error** | **5** | engine rejected the crafted state (all five are needs-state, below) |
 
-Supporting stats: 19 baseline rebuilds, 209 undo operations, 8 commands detected as
-history-blind (see “undo drift” below), 0 hook failures, 0 bridge I/O failures, 0 panics.
+This is the Phase 0 exit criterion evidence: **372 + 71 = 443/448 non-error commands,
+above the ≥ 425 floor**.
+
+Supporting stats: 12 baseline rebuilds, 213 undo operations, 1 command detected as
+history-blind (see “undo drift” below), 0 hook failures inside the exercised commands,
+0 bridge I/O failures, 0 panics.
 
 Every command that succeeds is verified to restore the baseline exactly after undo;
-the 4 errors were individually re-probed and judged (next section).
+the 5 errors were individually re-probed and judged (next section).
 
 ## Per-menu results
 
@@ -83,20 +92,20 @@ the 4 errors were individually re-probed and judged (next section).
 |---|---|---|---|---|
 | Audio | 14 | 0 | 0 | 14 |
 | Clip | 38 | 1 | 1 | 40 |
-| Edit | 52 | 19 | 1 | 72 |
+| Edit | 59 | 11 | 2 | 72 |
 | Effects | 6 | 0 | 0 | 6 |
-| File | 73 | 29 | 0 | 102 |
+| File | 91 | 18 | 0 | 109 |
 | Graphics | 34 | 4 | 0 | 38 |
 | Help | 0 | 4 | 0 | 4 |
 | Markers | 28 | 5 | 0 | 33 |
-| Sequence | 79 | 29 | 2 | 110 |
-| View | 0 | 13 | 0 | 13 |
-| Window | 0 | 8 | 0 | 8 |
-| **total** | **324** | **112** | **4** | **440** |
+| Sequence | 93 | 15 | 2 | 110 |
+| View | 1 | 13 | 0 | 14 |
+| Window | 8 | 0 | 0 | 8 |
+| **total** | **372** | **71** | **5** | **448** |
 
 ## What works
 
-**324 commands across all ten functional menus execute correctly over MCP**, including
+**372 commands across all ten functional menus execute correctly over MCP**, including
 the hard families:
 
 - **Timeline editing** — add/move/trim/split/ripple/roll/slide/slip/rate-stretch clips,
@@ -107,70 +116,78 @@ the hard families:
   setting, SRT import/import-to-subtitles.
 - **Graphics** — text/rectangle/ellipse create, style setters, transforms, alignment,
   distribution, z-order, template save/apply.
-- **Media management** — bins, relink, proxies, offline/changed handling, color info.
+- **Media management** — bins, relink, proxies, offline/changed handling, color info,
+  BLAKE3 fingerprints & relink suggestions (Packet 0.2).
 - **Interchange** — FCPXML/XMEML import+export, OTIO import, EDL import, markers CSV
   import/export, project save/open.
 - **Audio** — track gain/pan/mute/solo/bus routing, EQ/compressor gates, automation
   points and interpolation, master bus gain.
 - **Settings** — prefs get/set/reset, shortcuts set/get/resolve/export/import, view
   presets, export presets (save/favorite/delete/import/export/resolve).
+- **Viewport & selection state** (Packet 0.1) — playhead moves, timeline and selection
+  targeting, workspace switches, export-queue management: all engine state now,
+  exercised end-to-end.
+- **Timeline branches** (Packet 0.2) — `project.branch_create/switch/diff/merge` run
+  against real CoW branch records (whole-branch accept/reject in v1).
 
 ## What does not work
 
-### 1. Four commands are not exercisable via MCP (needs-state, not bugs)
+### 1. Five commands are not exercisable via MCP in the full run (needs-state, not bugs)
 
-All four were verified to be *domain guards*: the engine refuses because the required
-editor state sits outside what any MCP command can establish:
+All five were verified to be *domain guards*: the engine refuses because the required
+editor state sits outside what the full-run baseline provides at that point:
 
 | command | error | why |
 |---|---|---|
 | `multicam.flatten` | “Timeline clip is not a multicam clip” | needs a multicam *clip placed on the timeline*; `multicam.create` yields media, and the driver has no way to place it as a multicam clip type |
-| `timeline.ripple_delete_gap` | “No gap found at specified playhead time” | depends on the live playhead position; the contiguous baseline has no gap at the requested time |
+| `timeline.ripple_delete_gap` | “No gap found at specified playhead time” | depends on the live playhead position; the contiguous baseline has no gap at the requested time (a real 1.9–2.0 s gap on V1 is targeted, but by this point in the run the playhead has moved) |
+| `edit.select_clip_at_playhead` | “No enabled video clip under the playhead” | passes standalone (dedicated `--only` diag run over the stateful families, evidence `/tmp/opencode/matrix-p02/diag.json`); in the full run it arrives after `speech.ripple_delete_silence`'s undo drift has emptied the timeline, and the engine correctly errors when no clip exists anywhere — same root cause as the drift item below |
 | `trim.next` | “Trim would remove the whole clip” | selects the *next* edit point after the playhead; guard is correct for the state given |
 | `trim.previous` | “No edit point before the playhead” | same playhead-relative selection domain |
 
-Neither the UI nor the MCP surface exposes the playhead state these need; exercising
-them requires dedicated UI-side tests.
+The engine-side command implementations are correct for these states; exercising them
+in the full run needs the undo-drift fix (below) plus multi-state matrix support.
 
-### 2. Eight commands mutate without pushing an undo entry (undo drift)
+### 2. One command mutates without pushing an undo entry (undo drift)
 
-The sentinel verification found these mutate the document but are not rolled back by
-`edit.undo` — the following undo consumes baseline state instead:
+The sentinel verification found this one command mutates the document but is not rolled
+back by `edit.undo` — the following undo consumes baseline state instead:
 
-`clip.remove_keyframe`, `edit.redo`, `project.update_media`, `media.check_missing`,
-`media.auto_relink`, `media.make_offline`, `media.refresh_changed`, `marker.split`
+`speech.ripple_delete_silence`
 
-This is a real engine/history-integration gap worth a follow-up ticket. The harness
-detects the drift and rebuilds the baseline, so results are honest.
+This is a real engine/history-integration gap worth a follow-up ticket (same class as
+the earlier eight-hook drift, most of which was fixed in Packet 0.0's checkpoint sweep;
+this speech-command site was added afterwards). The harness detects the drift and
+rebuilds the baseline, so results are honest — but the mutated timeline is what causes
+`edit.select_clip_at_playhead` to find no clip later in the run.
 
-### 3. 112 commands are ui_only (by design, not failures)
+### 3. 71 commands are ui_only (by design, not failures)
 
 These answered “handled by the interface”. They are UI-layer actions with no engine
-counterpart reachable over MCP: clipboard/selection (edit.*), playhead moves
-(playhead.*), view/theme/workspace switching, panel toggles, export queue management,
-media generation dialogs, help dialogs, and trim-mode transport keys
-(trim.enter/exit/tick/shuttle). Grouped:
+counterpart reachable over MCP: view/theme controls, panel toggles, clipboard,
+media-generation dialogs, help dialogs, and trim-mode transport keys. Grouped:
 
-- `edit.*` clipboard & selection (15): copy, cut, delete, deselect_all, edit_original,
-  find, find_next, paste, paste_insert, paste_media, preferences, select_all,
-  select_all_matching, select_clip_at_playhead, select_label_group
-- `playhead.*` (13): start, end, go_to_timecode, go_to_in/out, go_to_clip_start/end,
-  next_edit, previous_edit, nudge_*, etc.
-- `workspace.*` (8): media, edit, effects, fusion, audio, color, deliver, keyframes
-- `view.*` (13): theme, zoom, panels, glass modes, fullscreen, reduced_motion, snap
-- `export.*` queue & quick (11), `trim.*` transport (9), `media.*` dialogs (7),
-  `project.*` UI selection/recovery (7), `sequence.*` selection & gap nav (6),
-  `marker.*` go-to & panel (5), `file.*` dialogs (5), `help.*` (4), `caption.*` (4),
-  `timeline.*` selection (4), plus `graphic.panel`.
+- `view.*` (13): theme, zoom, glass modes, fullscreen, reduced_motion, snap, panels
+- `edit.*` clipboard & dialogs (11): cut, copy, paste*, delete, deselect_all, find*,
+  preferences, edit_original
+- `trim.*` transport (9): enter/exit/commit/cancel/commitDynamic/playAround/shuttle*,
+  tick
+- `media.*` dialogs (7): reveal, search, generators, create_proxies
+- `file.*` dialogs (5): saveAs, saveCopy, revert, close, reveal
+- `marker.*` go-to & panel (5), `project.*` autosave/recovery/deselect (5),
+  `sequence.*` gap nav & linked_selection (5), `caption.*` panel/nav (4), `help.*` (4),
+  `export.*` quick/frame (2), plus `graphic.panel`.
 
-If MCP parity for these is desired, they need explicit engine command counterparts;
-today the bridge deliberately routes them to the UI.
+(Playhead moves, selection state, workspace switches, and export-queue management —
+112 ui_only commands in the pre-0.1 run — are engine commands since Packet 0.1 and are
+counted under `ok`.)
 
 ## Verdict
 
-The MCP command bridge is in **good shape**: 324/440 commands (74%) execute and verify
-over the isolated dev build with zero crashes; a further 112 (25%) are
-ui_only by design; only 4 (<1%) are unreachable due to playhead/placement state, and 8
-commands have an undo-integration gap that should be fixed in the engine (they mutate
-fine but don't record history).
+The MCP command bridge is in **good shape**: 372/448 commands (83%) execute and verify
+over the isolated dev build with zero crashes, and a further 71 (16%) are ui_only by
+design — **443/448 (98.9%) non-error, clearing the Phase 0 ≥ 425 exit criterion**. Only
+5 errors remain, all judged needs-state (one of them passes standalone), and 1 command
+has an undo-integration gap that should be fixed in the engine (it mutates fine but
+doesn't record history).
 

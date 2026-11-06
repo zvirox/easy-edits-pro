@@ -11,6 +11,10 @@ pub struct ProjectDocument {
     pub project: Project,
     #[serde(default)]
     pub view: ProjectView,
+    /// Copy-on-write timeline branches (schema v15). The live edit state is
+    /// not a branch record; each record holds an independent snapshot.
+    #[serde(default)]
+    pub branches: Vec<crate::branch::TimelineBranch>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -170,6 +174,13 @@ pub struct MediaAsset {
     pub title: Option<TitleProperties>,
     #[serde(default)]
     pub waveform: Option<Vec<u8>>,
+    /// BLAKE3 fingerprint of the referenced file (head slice, tail slice,
+    /// size; schema v15). A relink-suggestion key over moved files, **not** a
+    /// content hash: nothing may relink silently on a fingerprint match, the
+    /// suggestion always requires explicit confirmation through
+    /// `project.relink_media`.
+    #[serde(default)]
+    pub fingerprint: Option<crate::media_fingerprint::MediaFingerprint>,
     #[serde(default)]
     pub nested_sequence: Option<Sequence>,
 }
@@ -203,6 +214,7 @@ impl Default for MediaAsset {
             modified_ms: None,
             title: None,
             waveform: None,
+            fingerprint: None,
             nested_sequence: None,
         }
     }

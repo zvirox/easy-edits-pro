@@ -19,6 +19,7 @@ use serde_json::{json, Value};
 use std::path::PathBuf;
 
 mod audio_cmds;
+mod branch_cmds;
 mod clip_advanced_cmds;
 mod clip_cmds;
 mod color_cmds;
@@ -211,6 +212,9 @@ impl EditorEngine {
         }
 
         if let Some(result) = self.dispatch_project(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_branch(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_project_freeform(command.id, request.params.clone()) {

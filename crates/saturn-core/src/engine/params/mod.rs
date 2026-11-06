@@ -4,6 +4,7 @@
 use super::*;
 
 mod editing;
+mod branch;
 mod edit_clip;
 mod markers;
 mod project_freeform;
@@ -14,6 +15,7 @@ mod trim;
 mod timeline_targeting;
 
 pub(super) use editing::*;
+pub(super) use branch::*;
 pub(super) use edit_clip::*;
 pub(super) use markers::*;
 pub(super) use project_freeform::*;

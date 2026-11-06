@@ -2,12 +2,18 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-441 commands.
+448 commands.
 
 ## File
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Create Timeline Branch | `project.branch_create` | shipped |  | `{"name":str,"note":str?}` |
+| List Timeline Branches | `project.branch_list` | shipped |  | `{}` |
+| Switch Timeline Branch | `project.branch_switch` | shipped |  | `{"name":str}` |
+| Compare Branch with Live Timeline | `project.branch_diff` | shipped |  | `{"branch":str}` |
+| Merge Branch (Accept Whole Branch) | `project.branch_merge` | shipped |  | `{"branch":str,"action":str}` |
+| Fingerprint Media Files | `project.fingerprint_media` | shipped |  | `{"media_ids":[int]?}` |
 | Update Media Metadata | `project.update_media` | shipped |  | `{"path":path,"kind":str?,"duration":ticks?,"width":int?,"height":int?,"waveform":[int]?}` |
 | Relink Missing Media | `project.relink_media` | shipped |  | `{"media_id":int,"path":path}` |
 | Inspect Project | `project.inspect` | shipped |  | `{}` |
@@ -26,6 +32,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Check Missing Media | `media.check_missing` | shipped |  | `{}` |
 | Import OpenTimelineIO | `interop.import_otio` | shipped |  | `{"content":str,"project_name":str?}` |
 | Relink Moved Media… | `media.auto_relink` | shipped |  | `{"search_dirs":[str]}` |
+| Find Relink Suggestions | `media.relink_suggest` | shipped |  | `{"search_dirs":[str]}` |
 | Make Offline | `media.make_offline` | shipped |  | `{"media_ids":[int]?}` |
 | Offline All | `media.offline_all` | shipped |  | `{}` |
 | Refresh Changed Media | `media.refresh_changed` | shipped |  | `{"media_ids":[int]?}` |

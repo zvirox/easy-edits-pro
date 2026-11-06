@@ -1588,7 +1588,7 @@
     "menu": [
       "Edit"
     ],
-    "mutating": true,
+    "mutating": false,
     "params": "{\"query\": \"label substring\"}",
     "shipped": true,
     "shortcut": null,
@@ -1604,7 +1604,7 @@
     "menu": [
       "Edit"
     ],
-    "mutating": true,
+    "mutating": false,
     "params": "{\"label\": \"label colour name\"}",
     "shipped": true,
     "shortcut": null,
@@ -1727,6 +1727,114 @@
     "shipped": true,
     "shortcut": null,
     "since": "0.1.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "branch"
+    ],
+    "category": "File",
+    "id": "project.branch_create",
+    "label": "Create Timeline Branch",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"name\":str,\"note\":str?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "branches"
+    ],
+    "category": "File",
+    "id": "project.branch_list",
+    "label": "List Timeline Branches",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "switch branch"
+    ],
+    "category": "File",
+    "id": "project.branch_switch",
+    "label": "Switch Timeline Branch",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"name\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "branch diff"
+    ],
+    "category": "File",
+    "id": "project.branch_diff",
+    "label": "Compare Branch with Live Timeline",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{\"branch\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "merge branch"
+    ],
+    "category": "File",
+    "id": "project.branch_merge",
+    "label": "Merge Branch (Accept Whole Branch)",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"branch\":str,\"action\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "fingerprint"
+    ],
+    "category": "File",
+    "id": "project.fingerprint_media",
+    "label": "Fingerprint Media Files",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"media_ids\":[int]?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
     "uiOnly": false,
     "undoGroup": "transaction"
   },
@@ -2090,6 +2198,24 @@
     "since": "0.2.1",
     "uiOnly": false,
     "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "relink suggestions"
+    ],
+    "category": "File",
+    "id": "media.relink_suggest",
+    "label": "Find Relink Suggestions",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{\"search_dirs\":[str]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "none"
   },
   {
     "aliases": [],
