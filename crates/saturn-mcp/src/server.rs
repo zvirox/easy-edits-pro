@@ -2,6 +2,8 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 //! MCP tools backed by the same command engine used by the desktop app.
+//!
+//! The tool catalogue lives in `server_tools`; its tests in `server_tests`.
 
 use std::{
     path::PathBuf,
@@ -12,14 +14,20 @@ use rmcp::{
     Error, ServerHandler,
     model::{
         AnnotateAble, CallToolRequestParam, CallToolResult, Implementation, ListToolsResult,
-        PaginatedRequestParam, RawContent, ServerCapabilities, ServerInfo, Tool,
+        PaginatedRequestParam, RawContent, ServerCapabilities, ServerInfo,
     },
     service::RequestContext,
 };
 use saturn_core::{CommandRequest, EditorEngine, command_catalogue};
 use saturn_core::{JobId, JobKind, JobManager, JobPriority};
-use serde_json::{Map, Value, json};
+use serde_json::{Value, json};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+#[cfg(all(test, unix))]
+#[path = "server_tests.rs"]
+mod server_tests;
+#[path = "server_tools.rs"]
+mod server_tools;
 #[cfg(unix)]
 use tokio::net::UnixStream;
 
@@ -29,83 +37,6 @@ pub struct EditorMcp {
     jobs: Arc<JobManager>,
 }
 
-#[cfg(all(test, unix))]
-mod tests {
-    use super::*;
-    use tokio::{
-        io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
-        net::UnixListener,
-    };
-
-    #[tokio::test]
-    async fn media_preview_never_returns_a_source_path_placeholder() {
-        let mut engine = EditorEngine::default();
-        engine
-            .execute(saturn_core::CommandRequest::new(
-                "project.new",
-                json!({"name": "MCP preview"}),
-            ))
-            .unwrap();
-        engine
-            .execute(saturn_core::CommandRequest::new(
-                "project.add_media",
-                json!({"name": "clip.mp4", "path": "/tmp/nonexistent-clip.mp4", "kind": "video"}),
-            ))
-            .unwrap();
-        let media_id = engine.document().project.media[0].id;
-
-        let mcp = EditorMcp::new(engine);
-        let result = mcp
-            .media_preview(&json!({"media_id": media_id}))
-            .await
-            .expect("media_preview on a real asset");
-        assert!(result.get("preview_path").is_none(), "no source-path placeholder");
-        assert_eq!(result["still_frame"]["available"], false);
-
-        // Unknown ids are a typed error, not a fabricated payload.
-        let missing = mcp.media_preview(&json!({"media_id": 4242})).await;
-        assert!(missing.is_err());
-    }
-
-    #[tokio::test]
-    async fn bridge_client_reconnects_after_server_restart() {
-        let path =
-            std::env::temp_dir().join(format!("eep-mcp-reconnect-{}.sock", std::process::id()));
-        let _ = std::fs::remove_file(&path);
-        let client = EditorMcp {
-            backend: Backend::Bridge(path.clone()),
-            jobs: Arc::new(JobManager::new(1)),
-        };
-
-        for expected in ["first", "second"] {
-            let listener = UnixListener::bind(&path).expect("bind bridge socket");
-            let response = expected.to_owned();
-            let server = tokio::spawn(async move {
-                let (stream, _) = listener.accept().await.expect("accept bridge request");
-                let (read, mut write) = stream.into_split();
-                let mut line = String::new();
-                BufReader::new(read)
-                    .read_line(&mut line)
-                    .await
-                    .expect("read request");
-                let request: Value = serde_json::from_str(&line).expect("valid request json");
-                assert_eq!(request["method"], "lifecycle_test");
-                write
-                    .write_all(json!({"result": response}).to_string().as_bytes())
-                    .await
-                    .expect("write response");
-                write.write_all(b"\n").await.expect("terminate response");
-            });
-            let result = client
-                .bridge_call("lifecycle_test", json!({}))
-                .await
-                .expect("bridge reconnect call");
-            assert_eq!(result, expected);
-            server.await.expect("mock bridge task");
-            let _ = std::fs::remove_file(&path);
-        }
-    }
-}
 
 #[derive(Clone)]
 enum Backend {
@@ -262,128 +193,6 @@ impl EditorMcp {
         .map_err(|error| format!("project inspection task failed: {error}"))?
     }
 
-    fn tools() -> Vec<Tool> {
-        vec![
-            Tool::new(
-                "command_list",
-                "Discover commands supported by the editor engine, including project, media, timeline, effects and audio operations.",
-                schema(json!({
-                    "type": "object",
-                    "properties": {
-                        "filter": { "type": "string", "description": "Optional case-insensitive id or label filter." },
-                        "enabled_only": { "type": "boolean", "description": "Only include commands enabled in the current project." }
-                    }
-                })),
-            ),
-            Tool::new(
-                "command_run",
-                "Run an editor command by id with its JSON parameters. Use command_list to discover ids.",
-                schema(json!({
-                    "type": "object",
-                    "properties": {
-                        "id": { "type": "string", "description": "Editor command id." },
-                        "params": { "type": "object", "description": "Command-specific parameters." }
-                    },
-                    "required": ["id"]
-                })),
-            ),
-            Tool::new(
-                "command_batch",
-                "Run editor commands in order. Each successful command is applied to the current project session.",
-                schema(json!({
-                    "type": "object",
-                    "properties": {
-                        "steps": { "type": "array", "items": { "type": "object", "properties": {
-                            "id": { "type": "string" }, "params": { "type": "object" }
-                        }, "required": ["id"] } },
-                        "stop_on_error": { "type": "boolean", "default": true }
-                    },
-                    "required": ["steps"]
-                })),
-            ),
-            Tool::new(
-                "doc_inspect",
-                "Inspect the current project document, including media, settings and active timeline.",
-                schema(json!({ "type": "object", "properties": {} })),
-            ),
-            Tool::new(
-                "sequence_inspect",
-                "Inspect the active sequence, including its tracks and timeline clips.",
-                schema(json!({ "type": "object", "properties": {} })),
-            ),
-            Tool::new(
-                "media_search",
-                "Search media already imported in the active project by name, path, and optional media kind.",
-                schema(json!({ "type": "object", "properties": {
-                    "query": { "type": "string" },
-                    "kind": { "type": "string", "enum": ["video", "audio", "image", "title", "compoundsequence", "unknown"] },
-                    "limit": { "type": "integer", "minimum": 1, "maximum": 500, "default": 100 }
-                } })),
-            ),
-            Tool::new(
-                "media_preview",
-                "Inspect one imported media asset and its timeline placements. Returns media metadata only: no image payload exists yet (still_frame.available is false), so clients must not treat it as a preview.",
-                schema(json!({ "type": "object", "properties": {
-                    "media_id": { "type": "integer", "minimum": 0 }
-                }, "required": ["media_id"] })),
-            ),
-            Tool::new(
-                "render_start",
-                "Start an asynchronous export and return its job_id. Poll render_status for progress or call render_cancel.",
-                schema(json!({
-                    "type": "object",
-                    "properties": {
-                        "output_path": { "type": "string" },
-                        "use_mark_range": { "type": "boolean", "default": false },
-                        "range": { "type": "object", "properties": {
-                            "start_ticks": { "type": "integer", "minimum": 0 },
-                            "end_ticks": { "type": "integer", "minimum": 1 }
-                        }, "required": ["start_ticks", "end_ticks"] },
-                        "settings": { "type": "object", "properties": {
-                            "width": { "type": "integer" }, "height": { "type": "integer" },
-                            "frameRateNumerator": { "type": "integer" }, "frameRateDenominator": { "type": "integer" },
-                            "useHardwareEncoding": { "type": "boolean" }
-                        } }
-                    }, "required": ["output_path"]
-                })),
-            ),
-            Tool::new(
-                "render_status",
-                "Read queued, running, completed, failed, or cancelled render state and progress.",
-                schema(
-                    json!({ "type": "object", "properties": { "job_id": { "type": "integer", "minimum": 1 } }, "required": ["job_id"] }),
-                ),
-            ),
-            Tool::new(
-                "render_cancel",
-                "Request cancellation of a queued or active render job.",
-                schema(
-                    json!({ "type": "object", "properties": { "job_id": { "type": "integer", "minimum": 1 } }, "required": ["job_id"] }),
-                ),
-            ),
-            Tool::new(
-                "render_project",
-                "Render the active sequence to MP4 or WebM. In bridge mode this renders the project open in the desktop app.",
-                schema(json!({
-                    "type": "object",
-                    "properties": {
-                        "output_path": { "type": "string", "description": "Absolute .mp4 or .webm output path." },
-                        "use_mark_range": { "type": "boolean", "default": false },
-                        "range": { "type": "object", "description": "Optional timeline render range in project ticks, e.g. {start_ticks: 0, end_ticks: 508032000000} for a two-second clip at 30 fps.", "properties": {
-                            "start_ticks": { "type": "integer", "minimum": 0 },
-                            "end_ticks": { "type": "integer", "minimum": 1 }
-                        }, "required": ["start_ticks", "end_ticks"] },
-                        "settings": { "type": "object", "properties": {
-                            "width": { "type": "integer" }, "height": { "type": "integer" },
-                            "frameRateNumerator": { "type": "integer" }, "frameRateDenominator": { "type": "integer" },
-                            "useHardwareEncoding": { "type": "boolean" }
-                        } }
-                    },
-                    "required": ["output_path"]
-                })),
-            ),
-        ]
-    }
 
     async fn call(&self, request: CallToolRequestParam) -> Result<CallToolResult, Error> {
         let arguments = Value::Object(request.arguments.unwrap_or_default());
@@ -468,6 +277,8 @@ impl EditorMcp {
             }),
             "media_search" => self.media_search(&arguments).await,
             "media_preview" => self.media_preview(&arguments).await,
+            "vision_extract_frame_sheet" => self.vision_extract_frame_sheet(&arguments).await,
+            "render_preview_clip_proxy" => self.render_preview_clip_proxy(&arguments).await,
             "render_start" => self.start_render(&arguments).await,
             "render_status" => self.render_job_status(&arguments).await,
             "render_cancel" => self.cancel_render(&arguments).await,
@@ -480,12 +291,37 @@ impl EditorMcp {
             }
         };
         Ok(match result {
-            Ok(value) => CallToolResult::success(vec![
-                RawContent::text(
-                    serde_json::to_string_pretty(&value).unwrap_or_else(|_| value.to_string()),
-                )
-                .optional_annotate(None),
-            ]),
+            Ok(value) => {
+                // In-band image convention (Packet 1.1): a payload may carry
+                // an `image_block` (base64 JPEG/PNG). The MCP response gets a
+                // real image content block; the text block keeps the JSON
+                // without the base64 blob so the payload is not duplicated.
+                let content = match value.get("image_block") {
+                    Some(block) => {
+                        let data = block.get("data").and_then(Value::as_str).unwrap_or("");
+                        let mime_type = block
+                            .get("mime_type")
+                            .and_then(Value::as_str)
+                            .unwrap_or("image/jpeg");
+                        if data.is_empty() {
+                            vec![RawContent::text(continue_text_only(&value))
+                                .optional_annotate(None)]
+                        } else {
+                            let slim = continue_text_only(&value);
+                            vec![
+                                RawContent::text(slim).optional_annotate(None),
+                                RawContent::image(data, mime_type).optional_annotate(None),
+                            ]
+                        }
+                    }
+                    None => vec![RawContent::text(
+                        serde_json::to_string_pretty(&value)
+                            .unwrap_or_else(|_| value.to_string()),
+                    )
+                    .optional_annotate(None)],
+                };
+                CallToolResult::success(content)
+            }
             Err(error) => {
                 CallToolResult::error(vec![RawContent::text(error).optional_annotate(None)])
             }
@@ -722,47 +558,97 @@ impl EditorMcp {
         Ok(json!({"job_id": id, "cancellation_requested": self.jobs.cancel(JobId(id))}))
     }
 
+    /// Snapshot of the typed project document. Bridge mode resolves documents on
+    /// the desktop-app side, so headless callers only.
+    async fn headless_document(&self) -> Result<saturn_core::ProjectDocument, String> {
+        let Backend::Headless(engine) = &self.backend else {
+            unreachable!("headless_document is only called after the bridge check")
+        };
+        let engine = engine.clone();
+        tokio::task::spawn_blocking(move || {
+            let engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
+            Ok(engine.document().clone())
+        })
+        .await
+        .map_err(|error| format!("project snapshot task failed: {error}"))?
+    }
+
     async fn media_preview(&self, arguments: &Value) -> Result<Value, String> {
         let id = arguments
             .get("media_id")
             .and_then(Value::as_u64)
             .ok_or_else(|| "media_preview requires an unsigned media_id".to_owned())?;
+        let poster_tick = arguments
+            .get("poster_tick")
+            .and_then(Value::as_i64)
+            .map(saturn_core::Tick);
         if matches!(&self.backend, Backend::Bridge(_)) {
             return self.bridge_call("media_preview", arguments.clone()).await;
         }
-        let document = self.document().await?;
-        let media = document
-            .pointer("/project/project/media")
-            .and_then(Value::as_array)
-            .ok_or_else(|| "Current project has no media collection".to_owned())?;
-        let asset = media
-            .iter()
-            .find(|item| item.get("id").and_then(Value::as_u64) == Some(id))
-            .cloned()
-            .ok_or_else(|| format!("Media asset {id} was not found"))?;
-        let sequence = document
-            .pointer("/project/project/sequence")
-            .ok_or_else(|| "Active sequence was not found".to_owned())?;
-        let mut placements = Vec::new();
-        if let Some(tracks) = sequence.get("tracks").and_then(Value::as_array) {
-            for track in tracks {
-                if let Some(clips) = track.get("clips").and_then(Value::as_array) {
-                    for clip in clips {
-                        if clip.get("media_id").and_then(Value::as_u64) == Some(id) {
-                            placements.push(json!({"track_id": track.get("id"), "clip": clip}));
-                        }
-                    }
-                }
-            }
+        let document = self.headless_document().await?;
+        tokio::task::spawn_blocking(move || {
+            saturn_render::preview_tools::media_preview_payload(&document, id, poster_tick)
+        })
+        .await
+        .map_err(|error| format!("preview task failed: {error}"))?
+    }
+
+    /// `vision_extract_frame_sheet`: tiled, timecode-burned contact sheet of one
+    /// media asset for visual inspection. Decode-bound; runs on the blocking
+    /// pool. Bridge mode delegates to the desktop app (same shared payload).
+    async fn vision_extract_frame_sheet(&self, arguments: &Value) -> Result<Value, String> {
+        if matches!(&self.backend, Backend::Bridge(_)) {
+            return self
+                .bridge_call("vision_extract_frame_sheet", arguments.clone())
+                .await;
         }
-        Ok(
-            json!({"media": asset, "timeline_placements": placements, "still_frame": {"available": false, "reason": "still-frame extraction is not implemented; no image payload exists yet"}}),
-        )
+        let document = self.headless_document().await?;
+        let arguments = arguments.clone();
+        tokio::task::spawn_blocking(move || {
+            saturn_render::preview_tools::frame_sheet_payload(&document, &arguments.clone())
+        })
+        .await
+        .map_err(|error| format!("contact-sheet task failed: {error}"))?
+    }
+
+    /// `render_preview_clip_proxy`: fast low-resolution MP4 snippet of the active
+    /// sequence into the isolated previews directory. Bridge mode delegates to
+    /// the desktop app.
+    async fn render_preview_clip_proxy(&self, arguments: &Value) -> Result<Value, String> {
+        if matches!(&self.backend, Backend::Bridge(_)) {
+            return self
+                .bridge_call("render_preview_clip_proxy", arguments.clone())
+                .await;
+        }
+        let document = self.headless_document().await?;
+        let arguments = arguments.clone();
+        tokio::task::spawn_blocking(move || {
+            saturn_render::preview_tools::preview_clip_proxy_payload(&document, &arguments.clone())
+        })
+        .await
+        .map_err(|error| format!("proxy render task failed: {error}"))?
     }
 }
 
-fn parse_render_range(arguments: &Value) -> Result<Option<saturn_render::RenderRange>, String> {
-    let Some(range) = arguments.get("range") else {
+/// Text form of a payload that also carries an image block: the JSON without
+/// the base64 blob (neither `image_block` nor a still-frame `data_base64`) so
+/// the image is never duplicated across content blocks.
+fn continue_text_only(value: &Value) -> String {
+    let mut slim = value.clone();
+    if let Some(object) = slim.as_object_mut() {
+        object.remove("image_block");
+        if let Some(still) = object.get_mut("still_frame").and_then(Value::as_object_mut) {
+            still.remove("data_base64");
+            still.insert(
+                "image".to_owned(),
+                json!("attached as an image content block"),
+            );
+        }
+    }
+    serde_json::to_string_pretty(&slim).unwrap_or_else(|_| value.to_string())
+}
+
+fn parse_render_range(arguments: &Value) -> Result<Option<saturn_render::RenderRange>, String> {    let Some(range) = arguments.get("range") else {
         return Ok(None);
     };
     let start = range
@@ -780,10 +666,6 @@ fn parse_render_range(arguments: &Value) -> Result<Option<saturn_render::RenderR
         start: saturn_core::Tick(start),
         end: saturn_core::Tick(end),
     }))
-}
-
-fn schema(value: Value) -> Arc<Map<String, Value>> {
-    Arc::new(value.as_object().cloned().unwrap_or_default())
 }
 
 impl ServerHandler for EditorMcp {
@@ -806,7 +688,7 @@ impl ServerHandler for EditorMcp {
     ) -> Result<ListToolsResult, Error> {
         Ok(ListToolsResult {
             next_cursor: None,
-            tools: Self::tools(),
+            tools: server_tools::tool_list(),
         })
     }
 

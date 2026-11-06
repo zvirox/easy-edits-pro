@@ -144,7 +144,9 @@ async fn dispatch(request: Value, app: &AppHandle, state: &AppState) -> Value {
         "render_status" => render_status(state, &params),
         "render_cancel" => render_cancel(state, &params),
         "media_search" => media_search(state, &params),
-        "media_preview" => media_preview(state, &params),
+        "media_preview" => media_preview(state, &params).await,
+        "vision_extract_frame_sheet" => vision_extract_frame_sheet(state, &params).await,
+        "render_preview_clip_proxy" => render_preview_clip_proxy(state, &params).await,
         _ => Err(format!("unknown bridge method: {method}")),
     };
     match result {
@@ -354,57 +356,67 @@ fn media_search(state: &AppState, params: &Value) -> Result<Value, String> {
     serde_json::to_value(media).map_err(|error| error.to_string())
 }
 
-fn media_preview(state: &AppState, params: &Value) -> Result<Value, String> {
-    let id = params
-        .get("media_id")
-        .and_then(Value::as_u64)
-        .ok_or_else(|| "media_preview requires an unsigned media_id".to_owned())?;
+/// Snapshot helper: state is owned by the engine mutex, but decode-bound
+/// vision tools must never hold that lock while a GStreamer pipeline runs.
+fn document_snapshot(state: &AppState) -> Result<saturn_core::ProjectDocument, String> {
     let engine = state
         .0
         .lock()
         .map_err(|_| "Editor state is unavailable".to_owned())?;
-    media_preview_payload(engine.document(), id)
+    Ok(engine.document().clone())
 }
 
-/// Shared shape for media_preview: no image payload is fabricated. Until
-/// still-frame extraction exists, the tool reports the absence honestly
-/// instead of returning a source-path placeholder that clients would mistake
-/// for a preview.
-fn media_preview_payload(document: &saturn_core::ProjectDocument, id: u64) -> Result<Value, String> {
-    let asset = document
-        .project
-        .media
-        .iter()
-        .find(|item| item.id == id)
-        .ok_or_else(|| format!("Media asset {id} was not found"))?;
-    let asset = serde_json::to_value(asset).map_err(|error| error.to_string())?;
-    let placements = document
-        .project
-        .sequence
-        .tracks
-        .iter()
-        .flat_map(|track| {
-            track
-                .clips
-                .iter()
-                .filter(move |clip| clip.media_id == id)
-                .map(move |clip| {
-                    json!({
-                        "track_id": track.id,
-                        "track_name": track.name,
-                        "clip": clip,
-                    })
-                })
-        })
-        .collect::<Vec<_>>();
-    Ok(json!({
-        "media": asset,
-        "timeline_placements": placements,
-        "still_frame": {
-            "available": false,
-            "reason": "still-frame extraction is not implemented; no image payload exists yet"
-        },
-    }))
+fn media_id_from(params: &Value) -> Result<u64, String> {
+    params
+        .get("media_id")
+        .and_then(Value::as_u64)
+        .ok_or_else(|| "media_preview requires an unsigned media_id".to_owned())
+}
+
+async fn blocking_payload(
+    task: impl FnOnce() -> Result<Value, String> + Send + 'static,
+) -> Result<Value, String> {
+    // The payload builders are decode-bound (GStreamer seek + pull), so they
+    // run on the blocking pool; the engine lock is released before this runs.
+    tauri::async_runtime::spawn_blocking(task)
+        .await
+        .map_err(|error| format!("preview task failed: {error}"))?
+}
+
+async fn media_preview(state: &AppState, params: &Value) -> Result<Value, String> {
+    let document = document_snapshot(state)?;
+    let media_id = media_id_from(params)?;
+    let poster_tick = params
+        .get("poster_tick")
+        .and_then(Value::as_i64)
+        .map(saturn_core::Tick);
+    blocking_payload(move || {
+        saturn_render::preview_tools::media_preview_payload(&document, media_id, poster_tick)
+    })
+    .await
+}
+
+/// `vision_extract_frame_sheet`: tiled, timecode-burned contact sheet of one
+/// media asset. PNG artifact lands in the isolated 0700 previews directory;
+/// the in-band JPEG is size-capped for the model context.
+async fn vision_extract_frame_sheet(state: &AppState, params: &Value) -> Result<Value, String> {
+    let document = document_snapshot(state)?;
+    let params = params.clone();
+    blocking_payload(move || {
+        saturn_render::preview_tools::frame_sheet_payload(&document, &params)
+    })
+    .await
+}
+
+/// `render_preview_clip_proxy`: fast low-resolution MP4 snippet of the active
+/// sequence into the previews directory (never a caller-supplied path).
+async fn render_preview_clip_proxy(state: &AppState, params: &Value) -> Result<Value, String> {
+    let document = document_snapshot(state)?;
+    let params = params.clone();
+    blocking_payload(move || {
+        saturn_render::preview_tools::preview_clip_proxy_payload(&document, &params)
+    })
+    .await
 }
 
 #[cfg(test)]
@@ -429,16 +441,55 @@ mod tests {
         let document = engine.document().clone();
         let media_id = document.project.media[0].id;
 
-        let payload = media_preview_payload(&document, media_id).unwrap();
+        let payload = saturn_render::preview_tools::media_preview_payload(&document, media_id, None)
+            .unwrap();
         assert!(payload.get("preview_path").is_none(), "no source-path placeholder");
         assert_eq!(payload["still_frame"]["available"], false);
+        assert!(payload["still_frame"]["reason"].is_string(), "absence carries a reason");
+        assert!(payload.get("image_block").is_none(), "no fabricated image block");
         assert_eq!(
             payload["media"]["id"],
             serde_json::to_value(media_id).unwrap()
         );
 
         // Unknown ids stay a typed error, never a fabricated preview.
-        assert!(media_preview_payload(&document, 999).is_err());
+        assert!(saturn_render::preview_tools::media_preview_payload(&document, 999, None).is_err());
+    }
+
+    #[test]
+    fn frame_sheet_rejects_missing_sources_and_bad_ranges() {
+        let mut engine = saturn_core::EditorEngine::default();
+        engine
+            .execute(saturn_core::CommandRequest::new(
+                "project.new",
+                json!({"name": "MCP sheet"}),
+            ))
+            .unwrap();
+        engine
+            .execute(saturn_core::CommandRequest::new(
+                "project.add_media",
+                json!({"name": "clip.mp4", "path": "/assets/clip.mp4", "kind": "video"}),
+            ))
+            .unwrap();
+        let document = engine.document().clone();
+        let media_id = document.project.media[0].id;
+
+        // A source that is not on disk is a typed error, not a placeholder.
+        let error = saturn_render::preview_tools::frame_sheet_payload(
+            &document,
+            &json!({"media_id": media_id, "start_tick": 0, "end_tick": 1_000}),
+        )
+        .unwrap_err();
+        assert!(error.contains("missing"), "unexpected error: {error}");
+
+        // An end past the (unknown) duration with no file never gets that far;
+        // a decodable-file span check is exercised in the extractor tests.
+        let error = saturn_render::preview_tools::frame_sheet_payload(
+            &document,
+            &json!({"start_tick": 0, "end_tick": 1_000}),
+        )
+        .unwrap_err();
+        assert!(error.contains("media_id"), "unexpected error: {error}");
     }
 
     #[tokio::test]
