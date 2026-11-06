@@ -55,9 +55,7 @@ pub use audio_telemetry::{AudioTelemetryReport, BAND_CENTER_HZ, analyze_pcm_audi
 pub use audio_pcm::{decode_audio_pcm, decode_audio_pcm_mono_16k};
 pub use loudness::{EbuR128Meter, LoudnessReport, LoudnessStandard, analyze_pcm_loudness};
 pub use lut::{Lut3D, Lut3DInfo};
-pub use matting::{
-    BackgroundMode, MattingModel, MattingOptions, MattingTemporalState, run_background_matting,
-};
+pub use matting::{BackgroundMode, MattingOptions, background_mode_from_id, composite_matting};
 pub use multicam::sync_waveforms_by_correlation;
 pub use shader::{SHADER_PRESETS, ShaderPreset, apply_shader_preset_buffer, get_preset_by_id};
 pub use speedramp::{

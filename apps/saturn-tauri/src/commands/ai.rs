@@ -96,53 +96,102 @@ pub async fn ask_local_ai(
     }
 }
 
+/// Run MODNet portrait matting on one decoded frame of a media asset and
+/// composite the measured matte against the requested background.
+///
+/// Honest scope: the model is portrait-only (humans) — frames without a
+/// person report low foreground coverage, which is the model being truthful.
+/// The returned RGBA is a *preview* of the selected frame; the response also
+/// carries the measured mean alpha so the UI cannot overstate the result.
 #[tauri::command]
 pub async fn run_background_matting(
-    rgba_bytes: Vec<u8>,
-    width: u32,
-    height: u32,
-    model: Option<String>,
+    state: State<'_, AppState>,
+    media_id: u64,
+    at_tick: Option<i64>,
     threshold: Option<f32>,
     feather_radius: Option<f32>,
     background_mode: Option<String>,
-) -> Result<Vec<u8>, String> {
-    if rgba_bytes.len() != (width as usize * height as usize * 4) {
-        return Err("Invalid buffer length for specified dimensions".into());
-    }
-
-    let mut buf = rgba_bytes;
-    let mut temporal = saturn_render::MattingTemporalState::default();
-
-    let model_kind = match model.as_deref().unwrap_or("rvm") {
-        "modnet" => saturn_render::MattingModel::ModNet,
-        _ => saturn_render::MattingModel::RobustVideoMatting,
-    };
-
-    let bg_mode = match background_mode.as_deref().unwrap_or("transparent") {
-        "green" | "greenscreen" => saturn_render::BackgroundMode::GreenScreen,
-        "black" => saturn_render::BackgroundMode::SolidColor { r: 0, g: 0, b: 0 },
-        "white" => saturn_render::BackgroundMode::SolidColor {
-            r: 255,
-            g: 255,
-            b: 255,
-        },
-        _ => saturn_render::BackgroundMode::Transparent,
+) -> Result<serde_json::Value, String> {
+    // Snapshot only what we need under the lock; never hold it across
+    // inference (Packet 2.2 rule).
+    let source = {
+        let engine = state
+            .0
+            .lock()
+            .map_err(|_| "Editor state is unavailable".to_owned())?;
+        let asset = engine
+            .document()
+            .project
+            .media
+            .iter()
+            .find(|asset| asset.id == media_id)
+            .ok_or_else(|| format!("Media asset {media_id} was not found"))?;
+        match &asset.kind {
+            MediaKind::Video | MediaKind::Image => {}
+            other => {
+                return Err(format!("run_background_matting: {other:?} media has no frames"));
+            }
+        }
+        if !asset.path.is_file() {
+            return Err(format!(
+                "run_background_matting: source file is missing: {}",
+                asset.path.display()
+            ));
+        }
+        asset.path.clone()
     };
 
     let options = saturn_render::MattingOptions {
-        model: model_kind,
         threshold: threshold.unwrap_or(0.5).clamp(0.0, 1.0),
-        feather_radius: feather_radius.unwrap_or(2.0).clamp(0.0, 20.0),
-        background_mode: bg_mode,
-        temporal_coherence: true,
+        feather_radius: feather_radius.unwrap_or(2.0).clamp(0.0, 20.0).round() as u32,
+        background_mode: saturn_render::background_mode_from_id(
+            background_mode.as_deref().unwrap_or("transparent"),
+        )?,
     };
+    let at_tick = Tick(at_tick.unwrap_or(0).max(0));
 
-    saturn_render::run_background_matting(
-        &mut buf,
-        width as usize,
-        height as usize,
-        &options,
-        &mut temporal,
-    );
-    Ok(buf)
+    tauri::async_runtime::spawn_blocking(move || {
+        let (width, height, rgb) = saturn_render::frame_extractor::decode_frame_rgb(
+            &source,
+            at_tick,
+        )?;
+        let frame = saturn_perception::shot_detect::SampledFrame {
+            tick: at_tick,
+            width,
+            height,
+            rgb,
+        };
+        let mut matting = saturn_perception::ModNetMatting::load()?;
+        let measured = matting.matte_frame(&frame)?;
+        let alpha_mean = measured.iter().sum::<f32>() / measured.len().max(1) as f32;
+
+        let mut rgba = vec![0_u8; width as usize * height as usize * 4];
+        for (dst, src) in rgba.chunks_exact_mut(4).zip(frame.rgb.chunks_exact(3)) {
+            dst[0] = src[0];
+            dst[1] = src[1];
+            dst[2] = src[2];
+            dst[3] = 255;
+        }
+        let final_alpha = saturn_render::composite_matting(
+            &mut rgba,
+            width,
+            height,
+            &measured,
+            &options,
+        )?;
+        let kept_share = final_alpha.iter().filter(|&&a| a > 0.0).count() as f64
+            / final_alpha.len().max(1) as f64;
+        Ok(json!({
+            "width": width,
+            "height": height,
+            "rgba": rgba,
+            "alphaMean": alpha_mean,
+            "foregroundShare": kept_share,
+            "model": "modnet",
+            "atTick": at_tick.0,
+            "note": "MODNet is portrait matting: frames without people report low coverage",
+        }))
+    })
+    .await
+    .map_err(|error| format!("matting task failed: {error}"))?
 }
