@@ -8,11 +8,7 @@
 //! GES timeline graph construction in [`ges_timeline`], and frame/sheet
 //! extraction in [`frame_extractor`].
 use gstreamer as gst;
-use gstreamer::prelude::*;
 use gstreamer_editing_services as ges;
-use gstreamer_editing_services::prelude::*;
-use gstreamer_app as gst_app;
-use gstreamer_video as gst_video;
 use saturn_core::time::TICKS_PER_SECOND;
 use saturn_core::project::ProjectDocument;
 use saturn_core::{FrameRate, Tick};
@@ -29,6 +25,7 @@ pub mod keyframe_element;
 pub mod keyframes;
 pub mod graphics_overlay;
 pub mod preview_tools;
+pub mod scopes_gpu;
 pub mod hsl;
 pub mod loudness;
 pub mod lut;
@@ -51,6 +48,7 @@ pub use graphics_overlay::{GraphicLayer, render_graphics_overlay};
 pub use hsl::{
     apply_hsl_qualifier_buffer, calculate_matte_factor, generate_hsl_matte, hsl_to_rgb, rgb_to_hsl,
 };
+pub use scopes_gpu::{analyze_rgb_scopes, ScopeTelemetryReport};
 pub use loudness::{EbuR128Meter, LoudnessReport, LoudnessStandard, analyze_pcm_loudness};
 pub use lut::{Lut3D, Lut3DInfo};
 pub use matting::{
@@ -360,69 +358,43 @@ pub fn render_frame(
         })
         .clone()?;
 
-    let timeline = build_timeline(&render_document)?;
-    let appsink = gst_app::AppSink::builder()
-        .caps(
-            &gst::Caps::builder("video/x-raw")
-                .field("format", "RGB")
-                .build(),
-        )
-        .max_buffers(1)
-        .build();
-    let pipeline = ges::Pipeline::new();
-    pipeline
-        .set_timeline(&timeline)
-        .map_err(|error| format!("Could not connect the frame timeline: {error}"))?;
-    pipeline.set_video_sink(Some(appsink.upcast_ref::<gst::Element>()));
-
-    pipeline
-        .set_state(gst::State::Paused)
-        .map_err(|error| format!("Could not preroll the frame pipeline: {error}"))?;
-    let (_, state, _) = pipeline.state(gst::ClockTime::from_seconds(15));
-    if state != gst::State::Paused {
-        let _ = pipeline.set_state(gst::State::Null);
-        return Err("Timed out while prerolling the frame pipeline".into());
+    // Reuse the matrix-proven render path instead of a bespoke preview
+    // pipeline: a GES preview pull with a custom appsink deadlocks waiting
+    // for the composition's initializing seek, so a frame export would
+    // never finish. Rendering a two-frame snippet and decoding its first
+    // frame is a few seconds for a still — and provably correct.
+    let snippet_frames = 2;
+    let snippet_path = crate::frame_extractor::previews_dir()?
+        .join(format!("frame-export-{}.mp4", at.0));
+    let result = render_project_range_with_settings(
+        document,
+        &snippet_path,
+        Some(RenderRange {
+            start: at,
+            end: Tick(at.0 + frame_duration_ticks * snippet_frames),
+        }),
+        RenderSettings {
+            use_hardware_encoding: false,
+            ..RenderSettings::from_project(document)
+        },
+        |_| {},
+    );
+    if let Err(error) = result {
+        let _ = std::fs::remove_file(&snippet_path);
+        return Err(format!("Could not render the frame snippet: {error}"));
     }
-    // Flush to the first (and only) frame of the sliced timeline.
-    pipeline
-        .seek_simple(
-            gst::SeekFlags::FLUSH | gst::SeekFlags::KEY_UNIT,
-            gst::ClockTime::ZERO,
-        )
-        .map_err(|error| format!("Could not seek to the export frame: {error}"))?;
-    let _ = pipeline.state(gst::ClockTime::from_seconds(15));
-
-    let sample = match appsink.try_pull_sample(gst::ClockTime::from_seconds(15)) {
-        Some(sample) => sample,
-        None => {
-            let _ = pipeline.set_state(gst::State::Null);
-            return Err("Timed out waiting for the export frame".into());
+    // First frame of the snippet is exactly the requested tick.
+    let (width, height, rows) = match crate::frame_extractor::decode_frame_rgb(
+        &snippet_path,
+        Tick(0),
+    ) {
+        Ok((width, height, rgb)) => (width, height, rgb),
+        Err(error) => {
+            let _ = std::fs::remove_file(&snippet_path);
+            return Err(format!("Could not decode the rendered frame: {error}"));
         }
     };
-    let _ = pipeline.set_state(gst::State::Null);
-
-    let caps = sample
-        .caps()
-        .ok_or_else(|| "Frame sample arrived without caps".to_string())?;
-    let info = gst_video::VideoInfo::from_caps(caps)
-        .map_err(|error| format!("Frame sample caps are not raw video: {error}"))?;
-    let buffer = sample
-        .buffer()
-        .ok_or_else(|| "Frame sample arrived without a buffer".to_string())?;
-    let frame = gst_video::VideoFrameRef::from_buffer_ref_readable(buffer, &info)
-        .map_err(|error| format!("Could not map the export frame: {error}"))?;
-    let width = u32::from(info.width());
-    let height = u32::from(info.height());
-    let stride = info.stride()[0] as usize;
-    let data = frame
-        .plane_data(0)
-        .map_err(|error| format!("Could not read the export frame: {error}"))?;
-    let row_bytes = width as usize * 3;
-    let mut rows = Vec::with_capacity(row_bytes * height as usize);
-    for row in 0..height as usize {
-        let start = row * stride;
-        rows.extend_from_slice(&data[start..start + row_bytes]);
-    }
+    let _ = std::fs::remove_file(&snippet_path);
 
     let file = std::fs::File::create(&output_path)
         .map_err(|error| format!("Could not create {output_path:?}: {error}"))?;
@@ -624,7 +596,6 @@ mod tests {
                     "a ~12-clip software-H264 render finished inside the 2s cancel window; \
                      lengthen the timeline before trusting this test"
                 ),
-                Err(_) => unreachable!(),
             }
         }
 }

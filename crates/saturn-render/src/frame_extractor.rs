@@ -276,6 +276,51 @@ pub fn default_poster_tick(duration: Option<Tick>) -> Tick {
     }
 }
 
+/// Decode one frame at `at_tick` as raw RGB — the lossless input scope
+/// analysis needs (the JPEG still path quantizes, which would corrupt
+/// histogram measurements like clip/crush percentages).
+pub fn decode_frame_rgb(source: &Path, at_tick: Tick) -> Result<(u32, u32, Vec<u8>), String> {
+    let decoder = FrameDecoder::open(source)?;
+    let frame = decoder.pull(position_ns(at_tick)?)?;
+    Ok((frame.width, frame.height, frame.data))
+}
+
+/// Decode a PNG written by `render_frame` back into raw RGB (packs the
+/// possibly-strided image back into tight rows). Used for scope analysis of
+/// a rendered timeline frame.
+pub fn decode_png_rgb(path: &Path) -> Result<(u32, u32, Vec<u8>), String> {
+    let file = std::fs::File::open(path)
+        .map_err(|error| format!("Could not read the rendered frame {path:?}: {error}"))?;
+    let decoder = png::Decoder::new(std::io::BufReader::new(file));
+    let mut reader = decoder
+        .read_info()
+        .map_err(|error| format!("Could not parse the rendered frame: {error}"))?;
+    let mut buffer = vec![0u8; reader.output_buffer_size()];
+    let info = reader
+        .next_frame(&mut buffer)
+        .map_err(|error| format!("Could not decode the rendered frame: {error}"))?;
+    let width = info.width;
+    let height = info.height;
+    let channels = info.color_type.samples();
+    if !(3..=4).contains(&channels) {
+        return Err(format!(
+            "The rendered frame has an unsupported channel count: {}",
+            channels
+        ));
+    }
+    let stride = width as usize * channels;
+    let mut rgb = Vec::with_capacity(width as usize * height as usize * 3);
+    for row in 0..height as usize {
+        for col in 0..width as usize {
+            let source = row * stride + col * channels;
+            rgb.push(buffer[source]);
+            rgb.push(buffer[source + 1]);
+            rgb.push(buffer[source + 2]);
+        }
+    }
+    Ok((width, height, rgb))
+}
+
 fn position_ns(tick: Tick) -> Result<u64, String> {
     tick.as_nanoseconds()
         .ok_or_else(|| "Frame position cannot be negative".to_owned())

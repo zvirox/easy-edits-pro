@@ -141,6 +141,39 @@ async fn vision_tools_reject_missing_sources_with_typed_errors() {
     assert!(error.contains("no clips"), "unexpected error: {error}");
 }
 
+#[tokio::test]
+async fn color_read_scopes_rejects_bad_requests_with_typed_errors() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(saturn_core::CommandRequest::new(
+            "project.new",
+            json!({"name": "MCP scopes"}),
+        ))
+        .unwrap();
+    engine
+        .execute(saturn_core::CommandRequest::new(
+            "project.add_media",
+            json!({"name": "song.wav", "path": "/tmp/nonexistent-song.wav", "kind": "audio"}),
+        ))
+        .unwrap();
+    let audio_id = engine.document().project.media[0].id;
+    let mcp = EditorMcp::new(engine);
+
+    // Neither mode selected is a usage error, not a placeholder.
+    let error = mcp
+        .color_read_scopes(&json!({}))
+        .await
+        .expect_err("modeless call must be a typed error");
+    assert!(error.contains("media_id+tick or at_tick"), "unexpected: {error}");
+
+    // Audio has no video frames to scope.
+    let error = mcp
+        .color_read_scopes(&json!({"media_id": audio_id, "tick": 0}))
+        .await
+        .expect_err("audio media must be rejected with a reason");
+    assert!(error.contains("audio"), "unexpected error: {error}");
+}
+
 #[test]
 fn image_block_in_the_response_becomes_a_real_image_content_block() {
     // continue_text_only strips the base64 blob; the text stays readable JSON.

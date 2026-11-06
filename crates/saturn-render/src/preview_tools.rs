@@ -21,7 +21,8 @@ use crate::frame_extractor::{
     self, MAX_INLINE_JPEG_BYTES, SheetRequest, StillOptions, default_poster_tick,
 };
 use crate::render_project_range_with_settings;
-use crate::{RenderRange, RenderSettings};
+use crate::scopes_gpu;
+use crate::{RenderRange, RenderSettings, render_frame};
 
 use base64::engine::general_purpose::STANDARD as BASE64;
 
@@ -332,6 +333,90 @@ pub fn preview_clip_proxy_payload(document: &ProjectDocument, params: &Value) ->
         "start_tick": start.0,
         "end_tick": end.0,
         "bytes": bytes,
+    }))
+}
+
+/// Parse optional `{x, y, w, h}` ROI parameters into a scopes [`scopes_gpu::Roi`].
+fn parse_roi(params: &Value) -> Result<Option<scopes_gpu::Roi>, String> {
+    let Some(roi) = params.get("roi") else {
+        return Ok(None);
+    };
+    let field = |name: &str| -> Result<u32, String> {
+        roi.get(name)
+            .and_then(Value::as_u64)
+            .map(|value| value.min(u32::MAX as u64) as u32)
+            .filter(|value| {
+                // reject negatives up front (as_u64 already did) and zeros
+                // are invalid for w/h — validated with the frame later
+                *value > 0 || (name != "w" && name != "h")
+            })
+            .ok_or_else(|| format!("roi.{name} must be a non-negative integer"))
+    };
+    if roi.get("x").is_none() || roi.get("y").is_none() || roi.get("w").is_none() || roi.get("h").is_none() {
+        return Err("roi must carry x, y, w and h".into());
+    }
+    Ok(Some(scopes_gpu::Roi { x: field("x")?, y: field("y")?, w: field("w")?, h: field("h")? }))
+}
+
+/// `color_read_scopes`: measurable scope telemetry over one frame.
+///
+/// Two modes:
+/// - `media_id` present (+ optional `tick`): analyze a source frame;
+/// - else `at_tick`: render the active sequence at that tick (graded and
+///   composited) into the previews directory and analyze it — this is the
+///   mode that verifies a grade actually changed the picture.
+///
+/// Every reported number is a direct pixel measurement (plan-review §4.4:
+/// no invented aggregate score).
+pub fn color_scopes_payload(document: &ProjectDocument, params: &Value) -> Result<Value, String> {
+    let roi = parse_roi(params)?;
+    let (width, height, rgb, at_tick, source): (u32, u32, Vec<u8>, Tick, String) =
+        if let Some(media_id) = params.get("media_id").and_then(Value::as_u64) {
+            let asset = find_asset(document, media_id)?;
+            if let Some(reason) = decode_kind_allowed(&asset.kind) {
+                return Err(format!("color_read_scopes: {reason}"));
+            }
+            if !asset.path.is_file() {
+                return Err(format!(
+                    "color_read_scopes: source file is missing: {}",
+                    asset.path.display()
+                ));
+            }
+            let tick = params
+                .get("tick")
+                .and_then(Value::as_i64)
+                .map(Tick)
+                .unwrap_or_else(|| default_poster_tick(asset.duration));
+            let (width, height, rgb) = frame_extractor::decode_frame_rgb(&asset.path, tick)?;
+            (width, height, rgb, tick, format!("media {}", asset.name))
+        } else {
+            let at_tick = Tick(
+                params
+                    .get("at_tick")
+                    .and_then(Value::as_i64)
+                    .ok_or_else(|| {
+                        "color_read_scopes requires media_id+tick or at_tick".to_owned()
+                    })?,
+            );
+            let previews = frame_extractor::previews_dir()?;
+            let png_path = previews.join(format!("scopes-frame-{}.png", at_tick.0));
+            render_frame(document, at_tick, &png_path)?;
+            let (width, height, rgb) = frame_extractor::decode_png_rgb(&png_path)?;
+            let _ = std::fs::remove_file(&png_path); // analysis temp, not an artifact
+            (width, height, rgb, at_tick, "sequence render".to_owned())
+        };
+
+    let report = scopes_gpu::analyze_rgb_scopes(&rgb, width, height, roi, at_tick)?;
+    let report_value = serde_json::to_value(&report).map_err(|error| error.to_string())?;
+    let report = report_value.as_object().cloned().unwrap_or_default();
+    Ok(json!({
+        "source": source,
+        "analysis": report,
+        "notes": {
+            "ire_scale": "Rec.709 luma mapped to 0..100 IRE; 8-bit RGB quantizes 100 IRE to raw 255",
+            "skin_tone": "chroma-band telemetry against the 123deg flesh-tone reference; compare to a reference shot, never a group target",
+            "aggregate_score": null,
+        },
     }))
 }
 

@@ -164,5 +164,23 @@ pub(super) fn tool_list() -> Vec<Tool> {
                     "required": ["start_tick", "end_tick"]
                 })),
             ),
+            Tool::new(
+                "color_read_scopes",
+                "Read measurable video scope telemetry for one frame: luma IRE percentiles (min/p10/p50/p90/max), clipped-highlight and crushed-shadow percentages, RGB parade medians, vectorscope saturation, and chroma-band skin-tone-line statistics relative to a reference shot. Pass media_id+tick to analyze a source frame, or at_tick to render and analyze the active sequence (verifies a grade actually changed the picture). Optional roi restricts the region.",
+                schema(json!({
+                    "type": "object",
+                    "properties": {
+                        "media_id": { "type": "integer", "minimum": 0 },
+                        "tick": { "type": "integer", "minimum": 0, "description": "Source-frame tick (media mode)" },
+                        "at_tick": { "type": "integer", "minimum": 0, "description": "Timeline tick; renders the graded sequence frame (sequence mode)" },
+                        "roi": { "type": "object", "properties": {
+                            "x": { "type": "integer", "minimum": 0 },
+                            "y": { "type": "integer", "minimum": 0 },
+                            "w": { "type": "integer", "minimum": 1 },
+                            "h": { "type": "integer", "minimum": 1 }
+                        }, "required": ["x", "y", "w", "h"] }
+                    }
+                })),
+            ),
     ]
 }

@@ -147,6 +147,7 @@ async fn dispatch(request: Value, app: &AppHandle, state: &AppState) -> Value {
         "media_preview" => media_preview(state, &params).await,
         "vision_extract_frame_sheet" => vision_extract_frame_sheet(state, &params).await,
         "render_preview_clip_proxy" => render_preview_clip_proxy(state, &params).await,
+        "color_read_scopes" => color_read_scopes(state, &params).await,
         _ => Err(format!("unknown bridge method: {method}")),
     };
     match result {
@@ -415,6 +416,18 @@ async fn render_preview_clip_proxy(state: &AppState, params: &Value) -> Result<V
     let params = params.clone();
     blocking_payload(move || {
         saturn_render::preview_tools::preview_clip_proxy_payload(&document, &params)
+    })
+    .await
+}
+
+/// `color_read_scopes`: measurable scope telemetry over one frame —
+/// `media_id`+`tick` analyzes a source file; `at_tick` renders the graded
+/// sequence frame into the previews directory and analyzes that.
+async fn color_read_scopes(state: &AppState, params: &Value) -> Result<Value, String> {
+    let document = document_snapshot(state)?;
+    let params = params.clone();
+    blocking_payload(move || {
+        saturn_render::preview_tools::color_scopes_payload(&document, &params)
     })
     .await
 }

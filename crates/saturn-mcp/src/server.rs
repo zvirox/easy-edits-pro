@@ -279,6 +279,7 @@ impl EditorMcp {
             "media_preview" => self.media_preview(&arguments).await,
             "vision_extract_frame_sheet" => self.vision_extract_frame_sheet(&arguments).await,
             "render_preview_clip_proxy" => self.render_preview_clip_proxy(&arguments).await,
+            "color_read_scopes" => self.color_read_scopes(&arguments).await,
             "render_start" => self.start_render(&arguments).await,
             "render_status" => self.render_job_status(&arguments).await,
             "render_cancel" => self.cancel_render(&arguments).await,
@@ -627,6 +628,25 @@ impl EditorMcp {
         })
         .await
         .map_err(|error| format!("proxy render task failed: {error}"))?
+    }
+
+    /// `color_read_scopes`: measurable scope telemetry over one frame —
+    /// source-frame mode (`media_id` + `tick`) or graded-sequence mode
+    /// (`at_tick`, which renders the timeline frame first). Bridge mode
+    /// delegates to the desktop app; headless analyzes its own session.
+    async fn color_read_scopes(&self, arguments: &Value) -> Result<Value, String> {
+        if matches!(&self.backend, Backend::Bridge(_)) {
+            return self
+                .bridge_call("color_read_scopes", arguments.clone())
+                .await;
+        }
+        let document = self.headless_document().await?;
+        let arguments = arguments.clone();
+        tokio::task::spawn_blocking(move || {
+            saturn_render::preview_tools::color_scopes_payload(&document, &arguments.clone())
+        })
+        .await
+        .map_err(|error| format!("scopes task failed: {error}"))?
     }
 }
 
