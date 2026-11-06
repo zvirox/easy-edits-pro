@@ -23,8 +23,9 @@ pub use jobs::{
 };
 mod audio;
 pub use audio::{
-    detect_timeline_silence, measure_ebu_r128_loudness, ripple_delete_fillers,
-    ripple_delete_silence, sync_multicam_by_waveform, transcribe_audio_speech,
+    align_script_to_takes, detect_timeline_silence, measure_ebu_r128_loudness,
+    ripple_delete_fillers, ripple_delete_silence, sync_multicam_by_waveform,
+    transcribe_audio_speech,
 };
 mod preview;
 pub use preview::{

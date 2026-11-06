@@ -181,6 +181,7 @@ fn main() {
             analyze_motion_tracking,
             synthesize_speed_ramp_frames,
             transcribe_audio_speech,
+            align_script_to_takes,
             detect_timeline_silence,
             ripple_delete_silence,
             ripple_delete_fillers,

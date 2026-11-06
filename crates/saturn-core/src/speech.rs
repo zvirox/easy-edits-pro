@@ -454,6 +454,7 @@ mod tests {
     use super::*;
     use crate::project::{CaptionTrack, Track, TrackKind};
 
+
     #[test]
     fn test_silence_detection_from_peaks() {
         // 100 peaks representing a 10-second sequence (100 ms per bin)

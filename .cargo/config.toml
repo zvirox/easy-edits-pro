@@ -1,0 +1,8 @@
+# Workspace build configuration.
+[env]
+# whisper-rs-sys ships pre-generated bindings for its vendored whisper.cpp
+# version; generating them with bindgen trips on newer glibc/libclang
+# (opaque `_IO_FILE` → bogus const-size assertions). The bundled file matches
+# the C sources the sys crate compiles, so this is the deterministic route
+# on every dev machine and CI runner.
+WHISPER_DONT_GENERATE_BINDINGS = "1"

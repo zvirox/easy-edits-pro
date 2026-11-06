@@ -52,7 +52,7 @@ pub use hsl::{
 };
 pub use scopes_gpu::{analyze_rgb_scopes, ScopeTelemetryReport};
 pub use audio_telemetry::{AudioTelemetryReport, BAND_CENTER_HZ, analyze_pcm_audio_telemetry};
-pub use audio_pcm::decode_audio_pcm;
+pub use audio_pcm::{decode_audio_pcm, decode_audio_pcm_mono_16k};
 pub use loudness::{EbuR128Meter, LoudnessReport, LoudnessStandard, analyze_pcm_loudness};
 pub use lut::{Lut3D, Lut3DInfo};
 pub use matting::{

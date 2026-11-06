@@ -53,3 +53,21 @@ Model weights
 --------------------------------------------------------------------------
 None are bundled today. Before bundling or downloading any model, add a row to
 docs/model-licences.md (name, source, licence, allowed for commercial use?).
+
+--------------------------------------------------------------------------
+Third-party test asset: jfk.wav
+--------------------------------------------------------------------------
+Project:   whisper.cpp (ggerganov/whisper.cpp)
+URL:       https://github.com/ggerganov/whisper.cpp — samples/jfk.wav
+           (pinned upstream repo head at time of import; file SHA-256
+           59dfb9a4acb36fe2a2affc14bacbee2920ff435cb13cc314a08c13f66ba7860e)
+Copyright: Excerpt of John F. Kennedy's inaugural address (January 20, 1961) —
+           a work of the United States federal government, public domain.
+Licence:   The whisper.cpp repository distributes it under MIT
+           (licenses/whisper.cpp-MIT.txt); the recording itself is public
+           domain as a US government work.
+
+What was taken:
+  - The 11-second 16 kHz mono audio sample `tests/assets/jfk.wav`, used only
+    as a transcription test fixture by
+    crates/saturn-perception/tests/whisper_jfk.rs.

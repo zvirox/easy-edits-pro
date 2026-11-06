@@ -5,7 +5,8 @@ is bundled, auto-downloaded by a feature, or wired into a commercial**
 
 | Name | Source / URL | Upstream licence | Commercial OK? | Bundled by | Notes / restrictions |
 |---|---|---|---|---|---|
-| *(none yet)* | | | — | | |
+| whisper.cpp (inference engine, built from source) | https://github.com/ggerganov/whisper.cpp | MIT | ✅ | No — compiled via `whisper-rs` (Unlicense bindings) | Licence text recorded in `licenses/whisper.cpp-MIT.txt`; NOTICE has the jfk.wav test-fixture entry |
+| Whisper ggml `tiny.en` / `tiny` / `base.en` / `base` / `small.en` / `small` / `medium.en` / `medium` / `large-v3-turbo` | `https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-<name>.bin` (canonical upstream host) | MIT (OpenAI Whisper is MIT; ggml conversions upstream in the same repo) | ✅ | No — **fetch on first use** (plan-review §92), SHA-256-pinned in `crates/saturn-perception/src/models.rs` | Weights verified against upstream LFS SHA-256 at revision `5359861c739e955e79d9a303bcbc70fb988958b1` (checked 2026-11-06). Never bundled; offline machines place the file manually. |
 
 ## Rules (binding for every packet — see AGENTS.md provenance rules)
 

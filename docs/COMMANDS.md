@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-448 commands.
+449 commands.
 
 ## File
 
@@ -454,6 +454,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Clear Track Automation | `track.clear_automation` | shipped |  | `{"track_id":int,"lane":"volume\|pan"?}` |
 | Set Audio Bus Gain | `bus.set_gain_db` | shipped |  | `{"target":obj,"gain_db":num}` |
 | Transcribe Speech to Subtitles | `speech.transcribe_to_subtitles` | shipped |  | `{"segments":[obj],"replace_existing":bool?}` |
+| Align Script to Takes | `speech.script_sync_align` | shipped |  | `{"script_text":str,"takes":[obj]}` |
 
 ## Effects
 

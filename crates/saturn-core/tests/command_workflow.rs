@@ -6292,3 +6292,95 @@ fn clip_set_enabled_toggle_explicit_and_persistence_workflow() {
     assert!(legacy_doc.project.sequence.tracks[0].clips[0].enabled);
     std::fs::remove_dir_all(&dir).ok();
 }
+
+#[test]
+fn script_sync_align_ranks_takes_without_mutating_the_document() {
+    let mut engine = EditorEngine::default();
+
+    // Two takes: take 1 realizes both scripted lines; take 2 only the first.
+    // Each word spans 300 ms starting every 400 ms.
+    let words_json = |words: &[&str]| -> Vec<Value> {
+        words
+            .iter()
+            .enumerate()
+            .map(|(i, w)| {
+                json!({
+                    "word": w,
+                    "start_ticks": (i as i64) * 400 * (TICKS_PER_SECOND / 1000),
+                    "end_ticks": ((i as i64) * 400 + 300) * (TICKS_PER_SECOND / 1000),
+                    "confidence": 0.9,
+                    "is_filler": false,
+                })
+            })
+            .collect()
+    };
+    let segment = |words: Vec<Value>| -> Value {
+        let text = words
+            .iter()
+            .filter_map(|w| w["word"].as_str())
+            .collect::<Vec<_>>()
+            .join(" ");
+        json!({
+            "id": 1,
+            "start_ticks": 0,
+            "end_ticks": words.len() as i64 * 400 * (TICKS_PER_SECOND / 1000),
+            "text": text,
+            "confidence": 0.9,
+            "words": words,
+        })
+    };
+    let full = segment(words_json(&[
+        "this", "is", "the", "good", "version", "this", "is", "take", "two",
+    ]));
+    let partial = segment(words_json(&["this", "is", "the", "good", "version"]));
+
+    let doc_before = serde_json::to_value(&engine.document().project.sequence).unwrap();
+    let res = engine
+        .execute(CommandRequest::new(
+            "speech.script_sync_align",
+            json!({
+                "script_text": "INT. LAB - DAY\n\nThis is the good version.\n\nThis is take two.\n",
+                "takes": [
+                    {"media_id": 2, "segments": [partial]},
+                    {"media_id": 1, "segments": [full]},
+                ],
+            }),
+        ))
+        .unwrap();
+    // Analysis command: the sequence is untouched (no checkpoint created).
+    let doc_after = serde_json::to_value(&engine.document().project.sequence).unwrap();
+    assert_eq!(doc_before, doc_after);
+
+    assert_eq!(res["lines_count"], 2);
+    assert_eq!(res["best_take_media_id"], 1);
+    let takes = res["takes"].as_array().unwrap();
+    let best = takes.iter().find(|t| t["media_id"] == 1).unwrap();
+    assert_eq!(best["coverage"], 1.0);
+    let locations = best["matched_lines"].as_array().unwrap();
+    assert_eq!(locations.len(), 2);
+    let second = &locations[1];
+    // "this is take two" starts at word 5 → 5 × 400 ms.
+    let expected = 5 * 400 * (TICKS_PER_SECOND / 1000);
+    assert!(second["start_ticks"].as_f64().unwrap().ge(&(expected as f64 - 1.0)));
+    assert!(second["start_ticks"].as_f64().unwrap().le(&(expected as f64 + 1.0)));
+}
+
+#[test]
+fn script_sync_align_rejects_empty_input() {
+    let mut engine = EditorEngine::default();
+    let error = engine
+        .execute(CommandRequest::new(
+            "speech.script_sync_align",
+            json!({"script_text": "   ", "takes": [{"media_id": 1, "segments": []}]}),
+        ))
+        .unwrap_err();
+    assert!(error.to_string().contains("Script text is empty"));
+
+    let error = engine
+        .execute(CommandRequest::new(
+            "speech.script_sync_align",
+            json!({"script_text": "Some line.", "takes": []}),
+        ))
+        .unwrap_err();
+    assert!(error.to_string().contains("No transcribed takes"));
+}

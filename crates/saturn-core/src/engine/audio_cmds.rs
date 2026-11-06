@@ -225,6 +225,28 @@ impl EditorEngine {
                 }
                 Ok(json!({"transcribed": true, "subtitles_count": count}))
             })()),
+            "speech.script_sync_align" => Some((|| {
+                let params: ScriptSyncAlignParams = parse_params(params)?;
+                if params.script_text.trim().is_empty() {
+                    return Err(DispatchError::InvalidParameters(
+                        "Script text is empty".into(),
+                    ));
+                }
+                if params.takes.is_empty() {
+                    return Err(DispatchError::InvalidParameters(
+                        "No transcribed takes provided for script sync".into(),
+                    ));
+                }
+                // Pure analysis over caller-supplied transcripts (the engine
+                // core stays inference-free): no document access, so there is
+                // deliberately no checkpoint.
+                let report = crate::script_sync::sync_script(&params.script_text, &params.takes);
+                Ok(json!({
+                    "lines_count": report.lines_count,
+                    "best_take_media_id": report.best_take_media_id,
+                    "takes": report.takes,
+                }))
+            })()),
             "speech.ripple_delete_silence" => Some((|| {
                 let params: RippleDeleteSilenceParams = parse_params(params)?;
                 let opts = params.options.unwrap_or_default();

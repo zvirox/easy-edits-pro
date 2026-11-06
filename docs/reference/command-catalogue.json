@@ -234,6 +234,23 @@
   },
   {
     "aliases": [],
+    "category": "Transcription",
+    "id": "speech.script_sync_align",
+    "label": "Align Script to Takes",
+    "menu": [
+      "Audio",
+      "Speech"
+    ],
+    "mutating": false,
+    "params": "{\"script_text\":str,\"takes\":[obj]}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.3.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
     "category": "Sequence",
     "id": "timeline.remove_clip",
     "label": "Remove Clip",

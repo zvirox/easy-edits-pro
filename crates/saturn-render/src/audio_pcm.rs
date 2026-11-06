@@ -43,6 +43,29 @@ pub fn decode_audio_pcm(
     start_tick: Tick,
     end_tick: Option<Tick>,
 ) -> Result<DecodedAudio, String> {
+    decode_audio_pcm_constrained(source, start_tick, end_tick, None, None)
+}
+
+/// Decode a media file's first audio track into **mono 16 kHz** f32 PCM —
+/// the exact input format the Whisper engine expects (`saturn-perception`).
+/// `audioconvert`/`audioresample` handle the mixdown and resampling; asking
+/// the caps filter up front means no post-decode conversion pass.
+pub fn decode_audio_pcm_mono_16k(
+    source: &Path,
+    start_tick: Tick,
+    end_tick: Option<Tick>,
+) -> Result<Vec<f32>, String> {
+    let decoded = decode_audio_pcm_constrained(source, start_tick, end_tick, Some(16_000), Some(1))?;
+    Ok(decoded.samples)
+}
+
+fn decode_audio_pcm_constrained(
+    source: &Path,
+    start_tick: Tick,
+    end_tick: Option<Tick>,
+    rate: Option<u32>,
+    channels: Option<u32>,
+) -> Result<DecodedAudio, String> {
     gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
     if !source.is_file() {
         return Err(format!("Audio source is missing: {}", source.display()));
@@ -75,12 +98,18 @@ pub fn decode_audio_pcm(
         .build()
         .map_err(|error| format!("GStreamer audioresample is unavailable: {error}"))?;
     let appsink = AppSink::builder()
-        .caps(
-            &gst::Caps::builder("audio/x-raw")
+        .caps(&{
+            let mut caps = gst::Caps::builder("audio/x-raw")
                 .field("format", "F32LE")
-                .field("layout", "interleaved")
-                .build(),
-        )
+                .field("layout", "interleaved");
+            if let Some(rate) = rate {
+                caps = caps.field("rate", rate as i32);
+            }
+            if let Some(channels) = channels {
+                caps = caps.field("channels", channels as i32);
+            }
+            caps.build()
+        })
         .max_buffers(64)
         .sync(false)
         .build();

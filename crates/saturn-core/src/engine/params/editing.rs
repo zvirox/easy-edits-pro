@@ -494,6 +494,12 @@ pub(in crate::engine) struct TranscribeToSubtitlesParams {
 }
 
 #[derive(Deserialize)]
+pub(in crate::engine) struct ScriptSyncAlignParams {
+    pub(in crate::engine) script_text: String,
+    pub(in crate::engine) takes: Vec<crate::script_sync::ScriptTake>,
+}
+
+#[derive(Deserialize)]
 pub(in crate::engine) struct RippleDeleteSilenceParams {
     pub(in crate::engine) peaks: Vec<u8>,
     pub(in crate::engine) options: Option<crate::speech::SilenceDetectOptions>,

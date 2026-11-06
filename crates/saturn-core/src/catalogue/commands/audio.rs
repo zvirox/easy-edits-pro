@@ -202,4 +202,20 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         shipped: true,
         ui_only: false,
     },
+    CommandSpec {
+        id: "speech.script_sync_align",
+        label: "Align Script to Takes",
+        menu: &["Audio", "Speech"],
+        shortcut: None,
+        params: "{\"script_text\":str,\"takes\":[obj]}",
+        category: Category::Transcription,
+        // Analysis only: ranks caller-supplied take transcripts against the
+        // script; no document mutation, so no checkpoint.
+        mutating: false,
+        undo_group: UndoGroup::Transaction,
+        aliases: &[],
+        since: "0.3.0",
+        shipped: true,
+        ui_only: false,
+    },
 ];

@@ -17,6 +17,7 @@ gstreamer-pbutils = "0.25.3"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 saturn-core = { path = "../../crates/saturn-core" }
 saturn-render = { path = "../../crates/saturn-render" }
+saturn-perception = { path = "../../crates/saturn-perception" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri = { version = "2", features = ["protocol-asset"] }

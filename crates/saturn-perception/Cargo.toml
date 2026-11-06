@@ -1,0 +1,22 @@
+[package]
+name = "saturn-perception"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "Offline local neural perception (Whisper transcription, script sync) for Easy Edits Pro"
+
+[dependencies]
+saturn-core = { path = "../saturn-core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+# Download-on-first-run Whisper weights from the canonical upstream host.
+# native-tls backend reuses the OpenSSL stack already in the workspace graph
+# (licence gate stays as-is; rustls/ring would add a new licence-file review).
+# The connector is wired explicitly: ureq's default agent has no TLS backend
+# when default features are off.
+ureq = { version = "2", default-features = false, features = ["native-tls", "gzip"] }
+native-tls = "0.2"
+# whisper.cpp (MIT) built from source via whisper-rs (public domain bindings).
+# Bundled bindings are used: see workspace .cargo/config.toml [env].
+whisper-rs = "0.14"

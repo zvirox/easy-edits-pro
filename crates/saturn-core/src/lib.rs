@@ -12,6 +12,7 @@ pub mod local_control;
 pub mod media_fingerprint;
 pub mod markers;
 pub mod project;
+pub mod script_sync;
 pub mod speech;
 pub mod timeline_edits;
 pub mod subtitles;
@@ -41,6 +42,10 @@ pub use project::{
     MultiCamSyncMode, ProjectDocument, ProjectSettings, Sequence, SubtitleItem, TitleProperties,
     Track, TrackAudioProcessing, TrackAutomation, TrackKind, TrackPoint, TrackingMode, Transition,
     TransitionKind, VignetteParams,
+};
+pub use script_sync::{
+    SCRIPT_LINE_MATCH_FLOOR, ScriptLineMatch, ScriptSyncReport, ScriptTake, TakeAlignment,
+    align_script_line_to_words, parse_script_lines, sync_script,
 };
 pub use speech::{
     RippleDeleteReport, SilenceDetectOptions, SilenceInterval, SpeechSegment, SpeechWord,
