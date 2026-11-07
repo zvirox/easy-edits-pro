@@ -29,13 +29,17 @@ allow = [
     "ISC",
     "MIT",
     "MIT-0",
-    "Unlicense", // whisper-rs-sys (public-domain Whisper Rust bindings)
+    # whisper-rs-sys (public-domain Whisper Rust bindings)
+    "Unlicense",
     "MPL-2.0",
     "Unicode-3.0",
     "Unicode-DFS-2016",
     "Zlib",
     "BSL-1.0",
-    "IJG", // jpeg-encoder 0.6: (MIT OR Apache-2.0) AND IJG — the classic permissive libjpeg licence
+    # jpeg-encoder 0.6: (MIT OR Apache-2.0) AND IJG — the classic permissive libjpeg licence
+    "IJG",
+    # webpki-root-certs 1.0.11: the bundled root-certificate *data* set
+    "CDLA-Permissive-2.0",
     "AGPL-3.0",
     "GPL-3.0-or-later",
     "LGPL-3.0-or-later",
