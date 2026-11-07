@@ -233,7 +233,6 @@ export function useProjectOperations({
     });
     if (!selectedPath) return;
     const path = selectedPath.toLowerCase().endsWith(".saturn") ? selectedPath : `${selectedPath}.saturn`;
-    await grantWrite(path);
 
     setLoadingMessage("Creating your project and setting up the timeline");
     setAppStage("loading");
@@ -246,6 +245,12 @@ export function useProjectOperations({
         height,
         frame_rate: { numerator: frameRate.numerator, denominator: frameRate.denominator },
       });
+      // Grant AFTER the lifecycle command: `project.new` clears session
+      // write grants (project switch clears the minted grants), so a grant
+      // minted before it would be gone by the time `file.save` is checked
+      // and the first-run save would be rejected as outside the allowed
+      // roots (v0.1.2-alpha.1 regression, flatpak first run).
+      await grantWrite(path);
       await runCommand("file.save", { path });
       setSelectedClip(null);
       setSelectedClips([]);

@@ -62,6 +62,29 @@ test("every dialog-driven write flow grants its destination before the driving c
   }
 });
 
+test("the welcome first-run save grants after the project lifecycle command", () => {
+  // v0.1.2-alpha.1 regression: the welcome new-project flow minted its
+  // dialog grant BEFORE `project.new`, which clears session write grants
+  // (project switch). The grant was gone by `file.save`, so the very first
+  // save on a fresh install was rejected as outside the allowed roots.
+  const source = read("./useProjectOperations.ts");
+  const create = source.slice(
+    source.indexOf("const createProjectFromWelcome"),
+    source.indexOf("const recoverProjectFromWelcome"),
+  );
+  assert.ok(create.length > 0, "createProjectFromWelcome slice");
+  const grantIndex = create.indexOf("await grantWrite(path);");
+  const newCommand = create.indexOf('runCommand("project.new"');
+  const saveCommand = create.indexOf('runCommand("file.save", { path })');
+  assert.ok(newCommand >= 0, "welcome flow drives project.new");
+  assert.ok(saveCommand > newCommand, "welcome flow saves after creating");
+  assert.ok(
+    grantIndex > newCommand,
+    "the dialog grant must be minted AFTER project.new (it clears grants)",
+  );
+  assert.ok(grantIndex < saveCommand, "the grant must precede the file.save it authorizes");
+});
+
 test("the enqueue path re-uses dialog-authorized destinations", () => {
   const source = read("./useProjectOperations.ts");
   // chooseExportDestination is the single funnel for both start_export and
