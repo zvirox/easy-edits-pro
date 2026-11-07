@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2-alpha.2] - 2026-11-07
+
+**First-run fix:** the security batch's write-grant lifecycle broke the
+welcome screen's very first "Create project" on a fresh install
+(reported on the v0.1.2-alpha.1 flatpak install): `createProjectFromWelcome`
+minted its dialog grant **before** `project.new`, which clears session write
+grants on project switch, so `file.save` ran with no grant, no active
+project directory and — outside dev-layout defaults such as the app data
+dir — was rejected with "Write target … is outside the allowed roots"
+(the user picking `~/Documents` in the native dialog is exactly this
+case). The grant is now minted after `project.new`, immediately before the
+`file.save` it authorizes, matching every other dialog-driven write flow;
+a lifecycle-ordering regression guard was added to
+`ui/src/app/writeGrants.test.ts` (`project.new` clears grants → grant after
+→ `file.save`). Flatpak sandbox permissions were checked (`--filesystem=home`
+was already granted; only the grant lifecycle was broken). No engine,
+security-surface, or policy changes.
+
 ## [0.1.2-alpha.1] - 2026-11-07
 
 **Security batch (beta tags wait for explicit
