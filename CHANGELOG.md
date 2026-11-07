@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-**Security batch on `main` (untagged, beta tags wait for explicit
+## [0.1.2-alpha.1] - 2026-11-07
+
+**Security batch (beta tags wait for explicit
 authorization):** the last open security-audit finding (MEDIUM-LOW, engine
 write commands outside the path validator — a silent write-any-file-as-the-user
 primitive for a bridge agent or compromised renderer following injected text)
@@ -31,7 +33,24 @@ evidence: `tests/native/write_policy_workflow.py` (bridge rejections named
 and physical, in-roots writes land, grants unreachable from the bridge, the
 documented bypass works).
 
-**AI-native Packet 3.1 (scene-referred GPU colour, untagged):** a real wgpu 30
+**AI-native architecture, Phases 0–2:** the first three plan
+phases landed as engine-render core, not UI demos. Phase 0 — engine-owned
+unified viewport state (Packet 0.1) and schema v15 with BLAKE3 content
+fingerprints plus copy-on-write timeline branches (Packet 0.2). Phase 1 —
+the perception crate (`saturn-perception`): frame & contact-sheet
+extraction for the AI vision loop (`vision_extract_frame_sheet`), real
+video-scope telemetry (`color_read_scopes`) and audio telemetry
+(`audio_read_telemetry`; octave FFT, phase correlation, dialogue SNR)
+with a `render_frame` fix (1.2/1.3). Phase 2 — real offline
+Whisper transcription with script sync (`speech.*`, 2.1);
+shot detection with SigLIP semantic search (`media.semantic_query`)
+and cut-continuity measurement (`edit_evaluate_cut_continuity`) (2.2);
+MODNet matting, Depth-Anything-V2-Small depth and measured motion
+tracking (2.3). The
+compliance dossier (provenance rules, dual-licensing plan) applies to all
+of it.
+
+**AI-native Packet 3.1 (scene-referred GPU colour):** a real wgpu 30
 compute pipeline replaces simulated colour preview — `Rgba32Float` textures,
 WGSL transforms generated from a single Rust source of truth
 (`crates/saturn-core/src/color/`), per-camera IDTs (ARRI LogC4, RED Log3G10,
@@ -45,7 +64,7 @@ to 100 nits. GPU-vs-CPU agreement is tested over 6 transforms × working
 spaces × ODTs at 2e-4 on real hardware.
 
 **AI-native Packet 3.2 (WGSL color node graph, power windows & film
-emulation, untagged):** the node graph is real — persistent
+emulation):** the node graph is real — persistent
 `Clip.color_nodes` (scene-linear ACEScg, insertion-order chain between
 legacy adjustments and the display transform) with seven evaluated node
 kinds: primary wheels, HDR zones, RGB curves (monotone cubic), 3D LUTs
