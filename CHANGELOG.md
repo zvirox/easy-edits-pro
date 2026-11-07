@@ -105,6 +105,18 @@ depth, SigLIP embeddings) re-run green on the 1.22 runtime. Perception
 API follow-through: `ort` rc.10 completions use `commit()`, env-free
 `Session::builder()`, and direct `inputs`/`outputs` fields.
 
+**Build fix 2 (same release, rpm proof):** the same release's packages
+run then caught a second packaging issue: Packet 2.2's `ort` pulls
+`ureq`/`native-tls`, which on Linux links the **system** OpenSSL
+dynamically — and fedora:latest (45) ships OpenSSL 4 with `.so.4`
+sonames, so the rpm install proof failed with `libssl.so.3 => not found`
+(ldd). The packaged app binary now statically links a vendored OpenSSL
+(app linux-target only; dev/test builds and the CLI keep the dynamic
+dep), removing the system-libssl requirement from the shipped binary.
+The ort pin is now exact (`ort = "=2.0.0-rc.10"`) — a caret req on a
+pre-release admits later rcs, and `cargo update` re-resolved to rc.15
+once in the app workspace lock.
+
 ## [0.1.1-alpha.1] - 2026-10-27
 
 Beta-readiness evidence release: every Linux package route now carries a

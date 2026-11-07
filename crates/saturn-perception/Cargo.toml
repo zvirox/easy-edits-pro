@@ -26,7 +26,9 @@ whisper-rs = "0.14"
 # glibc >= 2.38, breaking the ubuntu-22.04 packages build and the Debian 12
 # install proof; rc.10 is the newest ort on the repo's glibc floor (see
 # docs/model-licences.md and the CHANGELOG build-fix note, 2026-11-07).
-ort = "2.0.0-rc.10"
+# `=`: a caret req on a pre-release version admits later rc releases
+# (cargo update re-resolved to rc.15 once already).
+ort = "=2.0.0-rc.10"
 # Packet 2.2: semantic index sidecar. Bundled SQLite (public domain) — the
 # embedding scan is a plain cosine pass over stored blobs; a vector extension
 # can replace it later if the index outgrows that.
