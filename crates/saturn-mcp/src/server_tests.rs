@@ -277,3 +277,56 @@ fn image_block_in_the_response_becomes_a_real_image_content_block() {
     assert!(parsed["still_frame"].get("data_base64").is_none());
     assert_eq!(parsed["png_path"], "/previews/sheet.png");
 }
+
+#[tokio::test]
+async fn color_match_shot_reports_typed_errors_headless() {
+    use saturn_core::CommandRequest;
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name": "a.mp4", "path": "/tmp/eep-mcp-match-a.mp4", "kind": "video"}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name": "b.mp4", "path": "/tmp/eep-mcp-match-b.mp4", "kind": "video"}),
+        ))
+        .unwrap();
+    let media_a = engine.document().project.media[0].id;
+    let media_b = engine.document().project.media[1].id;
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"media_id": media_a, "track_id": 1, "timeline_start": 0}),
+        ))
+        .unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"media_id": media_b, "track_id": 1, "timeline_start": 0}),
+        ))
+        .unwrap();
+    let mcp = EditorMcp::new(engine);
+
+    // Unknown clip index: a typed parameter error, never a fake success.
+    let error = mcp
+        .color_match_shot_to_reference(&json!({
+            "src_track_id": 1, "src_clip_index": 9,
+            "ref_track_id": 1, "ref_clip_index": 1,
+        }))
+        .await
+        .expect_err("missing clip must be a typed error");
+    assert!(error.contains("does not exist"), "unexpected: {error}");
+
+    // Missing source file is a typed error naming the file.
+    let error = mcp
+        .color_match_shot_to_reference(&json!({
+            "src_track_id": 1, "src_clip_index": 0,
+            "ref_track_id": 1, "ref_clip_index": 1,
+        }))
+        .await
+        .expect_err("missing file must be a typed error");
+    assert!(error.contains("source file is missing"), "unexpected: {error}");
+}

@@ -27,6 +27,9 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 mod server_tests;
 #[path = "server_tools.rs"]
 mod server_tools;
+
+#[path = "server_analysis.rs"]
+mod server_analysis;
 #[cfg(unix)]
 use tokio::net::UnixStream;
 
@@ -279,6 +282,9 @@ impl EditorMcp {
             "vision_extract_frame_sheet" => self.vision_extract_frame_sheet(&arguments).await,
             "render_preview_clip_proxy" => self.render_preview_clip_proxy(&arguments).await,
             "color_read_scopes" => self.color_read_scopes(&arguments).await,
+            "color_match_shot_to_reference" => {
+                self.color_match_shot_to_reference(&arguments).await
+            }
             "audio_read_telemetry" => self.audio_read_telemetry(&arguments).await,
             "media_semantic_query" => self.media_semantic_query(&arguments).await,
             "edit_evaluate_cut_continuity" => self.edit_evaluate_cut_continuity(&arguments).await,
@@ -576,154 +582,6 @@ impl EditorMcp {
         .map_err(|error| format!("project snapshot task failed: {error}"))?
     }
 
-    async fn media_preview(&self, arguments: &Value) -> Result<Value, String> {
-        let id = arguments
-            .get("media_id")
-            .and_then(Value::as_u64)
-            .ok_or_else(|| "media_preview requires an unsigned media_id".to_owned())?;
-        let poster_tick = arguments
-            .get("poster_tick")
-            .and_then(Value::as_i64)
-            .map(saturn_core::Tick);
-        if matches!(&self.backend, Backend::Bridge(_)) {
-            return self.bridge_call("media_preview", arguments.clone()).await;
-        }
-        let document = self.headless_document().await?;
-        tokio::task::spawn_blocking(move || {
-            saturn_render::preview_tools::media_preview_payload(&document, id, poster_tick)
-        })
-        .await
-        .map_err(|error| format!("preview task failed: {error}"))?
-    }
-
-    /// `vision_extract_frame_sheet`: tiled, timecode-burned contact sheet of one
-    /// media asset for visual inspection. Decode-bound; runs on the blocking
-    /// pool. Bridge mode delegates to the desktop app (same shared payload).
-    async fn vision_extract_frame_sheet(&self, arguments: &Value) -> Result<Value, String> {
-        if matches!(&self.backend, Backend::Bridge(_)) {
-            return self
-                .bridge_call("vision_extract_frame_sheet", arguments.clone())
-                .await;
-        }
-        let document = self.headless_document().await?;
-        let arguments = arguments.clone();
-        tokio::task::spawn_blocking(move || {
-            saturn_render::preview_tools::frame_sheet_payload(&document, &arguments.clone())
-        })
-        .await
-        .map_err(|error| format!("contact-sheet task failed: {error}"))?
-    }
-
-    /// `render_preview_clip_proxy`: fast low-resolution MP4 snippet of the active
-    /// sequence into the isolated previews directory. Bridge mode delegates to
-    /// the desktop app.
-    async fn render_preview_clip_proxy(&self, arguments: &Value) -> Result<Value, String> {
-        if matches!(&self.backend, Backend::Bridge(_)) {
-            return self
-                .bridge_call("render_preview_clip_proxy", arguments.clone())
-                .await;
-        }
-        let document = self.headless_document().await?;
-        let arguments = arguments.clone();
-        tokio::task::spawn_blocking(move || {
-            saturn_render::preview_tools::preview_clip_proxy_payload(&document, &arguments.clone())
-        })
-        .await
-        .map_err(|error| format!("proxy render task failed: {error}"))?
-    }
-
-    /// `color_read_scopes`: measurable scope telemetry over one frame —
-    /// source-frame mode (`media_id` + `tick`) or graded-sequence mode
-    /// (`at_tick`, which renders the timeline frame first). Bridge mode
-    /// delegates to the desktop app; headless analyzes its own session.
-    async fn color_read_scopes(&self, arguments: &Value) -> Result<Value, String> {
-        if matches!(&self.backend, Backend::Bridge(_)) {
-            return self
-                .bridge_call("color_read_scopes", arguments.clone())
-                .await;
-        }
-        let document = self.headless_document().await?;
-        let arguments = arguments.clone();
-        tokio::task::spawn_blocking(move || {
-            saturn_render::preview_tools::color_scopes_payload(&document, &arguments.clone())
-        })
-        .await
-        .map_err(|error| format!("scopes task failed: {error}"))?
-    }
-
-    /// `audio_read_telemetry`: measurable audio telemetry over one range —
-    /// source-file mode (`media_id` [+ `start_tick`/`end_tick`]) or mix mode
-    /// (`start_tick`+`end_tick`, rendering the sequence audio first). Bridge
-    /// mode delegates to the desktop app; headless analyzes its own session.
-    async fn audio_read_telemetry(&self, arguments: &Value) -> Result<Value, String> {
-        if matches!(&self.backend, Backend::Bridge(_)) {
-            return self
-                .bridge_call("audio_read_telemetry", arguments.clone())
-                .await;
-        }
-        let document = self.headless_document().await?;
-        let arguments = arguments.clone();
-        tokio::task::spawn_blocking(move || {
-            saturn_render::preview_tools::audio_telemetry_payload(&document, &arguments.clone())
-        })
-        .await
-        .map_err(|error| format!("audio telemetry task failed: {error}"))?
-    }
-
-    /// `media_semantic_query`: SigLIP vector scan over the semantic index
-    /// sidecar (perception runs offline; inference happens in a blocking
-    /// thread, never while the engine lock is held).
-    async fn media_semantic_query(&self, arguments: &Value) -> Result<Value, String> {
-        if matches!(&self.backend, Backend::Bridge(_)) {
-            return self
-                .bridge_call("media_semantic_query", arguments.clone())
-                .await;
-        }
-        let document = self.headless_document().await?;
-        let project_path = self.headless_project_path().await?;
-        let arguments = arguments.clone();
-        tokio::task::spawn_blocking(move || {
-            saturn_render::preview_tools::semantic_query_payload(
-                &document,
-                project_path.as_deref(),
-                &arguments,
-            )
-        })
-        .await
-        .map_err(|error| format!("semantic query task failed: {error}"))?
-    }
-
-    /// `edit_evaluate_cut_continuity`: measured continuity report for one
-    /// hard cut (frame decode + perception metrics in a blocking thread).
-    async fn edit_evaluate_cut_continuity(&self, arguments: &Value) -> Result<Value, String> {
-        if matches!(&self.backend, Backend::Bridge(_)) {
-            return self
-                .bridge_call("edit_evaluate_cut_continuity", arguments.clone())
-                .await;
-        }
-        let document = self.headless_document().await?;
-        let arguments = arguments.clone();
-        tokio::task::spawn_blocking(move || {
-            saturn_render::preview_tools::cut_continuity_payload(&document, &arguments)
-        })
-        .await
-        .map_err(|error| format!("cut continuity task failed: {error}"))?
-    }
-
-    /// The saved project file's path (in-memory documents have none — tools
-    /// that need sidecar files report that honestly).
-    async fn headless_project_path(&self) -> Result<Option<PathBuf>, String> {
-        let Backend::Headless(engine) = &self.backend else {
-            unreachable!("headless_project_path is only called after the bridge check")
-        };
-        let engine = engine.clone();
-        tokio::task::spawn_blocking(move || {
-            let engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
-            Ok(engine.current_path().map(PathBuf::from))
-        })
-        .await
-        .map_err(|error| format!("project path task failed: {error}"))?
-    }
 }
 
 /// Text form of a payload that also carries an image block: the JSON without

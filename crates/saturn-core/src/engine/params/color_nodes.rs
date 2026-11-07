@@ -45,6 +45,23 @@ pub(in crate::engine) struct EmulateFilmPrintParams {
     pub(in crate::engine) weave: f64,
 }
 
+/// `color.match_shot_to_reference`. The engine is decode-free by design:
+/// the caller that owns frame decoding (`saturn-render::shot_match_driver`
+/// through the bridge) measures both frames and fits the correction, then
+/// hands the fitted payload here for validation, checkpointing and storage.
+/// `src_*` names the clip that receives the match node; `ref_*` is recorded
+/// provenance for where the anchor came from (both must exist).
+#[derive(Deserialize)]
+pub(in crate::engine) struct MatchShotToReferenceParams {
+    pub(in crate::engine) src_track_id: u64,
+    pub(in crate::engine) src_clip_index: usize,
+    pub(in crate::engine) ref_track_id: u64,
+    pub(in crate::engine) ref_clip_index: usize,
+    #[serde(default)]
+    pub(in crate::engine) lock_skin_tones: Option<bool>,
+    pub(in crate::engine) wheels: serde_json::Value,
+}
+
 /// Validated power-window payload as sent by `color.add_power_window` (the
 /// engine assigns the id itself). Wire shape mirrors `PowerWindow` minus id.
 #[derive(serde::Deserialize)]

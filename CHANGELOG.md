@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Automated shot matcher (Packet 3.3):** `color.match_shot_to_reference` fits a primary-wheels payload (exposure, per-channel gain, gamma, offset + skin-tone lock) from a target clip's measured quantile alignment against a reference hero shot's source frame and applies it as a provenance-tagged (`origin: "shot-match"`) color node through the validated engine command channel — driven identically by the desktop bridge (`color_match_shot_to_reference`) and the headless MCP tool, with the frame decode + fit on the blocking pool and only the checkpointed command under the engine lock. Verification gate (`tests/shot_match.rs`): mismatched-camera synthetic pair (−0.45 stops, cool WB, gamma crush) graded through the same persisted wheels payload the engine command applies lands at mean per-pixel CIEDE2000 ΔE ≈ 0.57 against the gate's < 1.5 threshold, with a worst 3×3-patch gate over the same domain (single pixels are 8-bit quantisation-limited near ΔE ≈ 1.8 per code step, so the patch mean is the honest fit-residual metric — documented in `docs/AI_NATIVE_PLAN_CHECKLIST.md` Packet 3.3 notes). Skin lock aligns the band's magnitude-weighted chroma hue-direction vector, not the vectorscope angle, and its statistics normalise by Σ chroma magnitude on decoded continuously re-encoded signal.
+
 ## [0.1.2-alpha.2] - 2026-11-07
 
 **First-run fix:** the security batch's write-grant lifecycle broke the

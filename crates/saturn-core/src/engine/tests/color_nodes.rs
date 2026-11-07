@@ -269,3 +269,99 @@ fn color_nodes_persist_through_project_round_trip() {
         "older schema versions load because the field is serde(default)"
     );
 }
+
+#[test]
+fn match_shot_appends_a_provenance_tagged_node() {
+    let (mut engine, _) = engine_with_clip();
+    // A second media asset + clip acts as the reference hero shot.
+    let response = engine
+        .execute(CommandRequest::new(
+            "project.add_media",
+            json!({"name": "b.mov", "path": "/b.mov", "kind": crate::project::MediaKind::Video}),
+        ))
+        .unwrap();
+    let ref_media = response["media_id"].as_u64().unwrap();
+    engine
+        .execute(CommandRequest::new(
+            "timeline.add_clip",
+            json!({"media_id": ref_media, "track_id": 1, "timeline_start": 0}),
+        ))
+        .unwrap();
+    let applied = engine
+        .execute(CommandRequest::new(
+            "color.match_shot_to_reference",
+            json!({
+                "src_track_id": 1, "src_clip_index": 0,
+                "ref_track_id": 1, "ref_clip_index": 1,
+                "wheels": {"exposure_stops": 0.5,
+                           "gain": {"red": 0.05, "green": 0.0, "blue": -0.05, "luma": 0.0}},
+            }),
+        ))
+        .unwrap();
+    assert_eq!(applied["origin"], "shot-match");
+    assert_eq!(applied["created"], true);
+    assert_eq!(applied["reference"]["clipIndex"], 1);
+    let node_id = applied["nodeId"].as_u64().unwrap();
+    {
+        let node = &clip(&engine).color_nodes[0];
+        assert_eq!(node.id, node_id);
+        assert_eq!(node.origin.as_deref(), Some("shot-match"));
+        assert_eq!(node.kind, crate::project::ColorNodeKind::PrimaryWheels);
+        assert_eq!(
+            node.payload["exposure_stops"], 0.5,
+            "the applied payload is the canonical validated one"
+        );
+    }
+
+    // Re-running updates the machine node instead of stacking a second.
+    let applied = engine
+        .execute(CommandRequest::new(
+            "color.match_shot_to_reference",
+            json!({
+                "src_track_id": 1, "src_clip_index": 0,
+                "ref_track_id": 1, "ref_clip_index": 1,
+                "wheels": {"exposure_stops": 1.0},
+            }),
+        ))
+        .unwrap();
+    assert_eq!(applied["created"], false);
+    assert_eq!(applied["nodeId"], json!(node_id));
+    assert_eq!(clip(&engine).color_nodes.len(), 1);
+    assert_eq!(clip(&engine).color_nodes[0].payload["exposure_stops"], 1.0);
+}
+
+#[test]
+fn match_shot_rejects_bad_payloads_and_missing_anchors() {
+    let (mut engine, _) = engine_with_clip();
+    let error = engine
+        .execute(CommandRequest::new(
+            "color.match_shot_to_reference",
+            json!({
+                "src_track_id": 1, "src_clip_index": 0,
+                "ref_track_id": 1, "ref_clip_index": 4,
+                "wheels": {"exposure_stops": 0.5},
+            }),
+        ))
+        .unwrap_err();
+    assert!(error.to_string().contains("Reference clip"), "{error}");
+    assert!(clip(&engine).color_nodes.is_empty(), "no node on a failed match");
+
+    let error = engine
+        .execute(CommandRequest::new(
+            "color.match_shot_to_reference",
+            json!({
+                "src_track_id": 1, "src_clip_index": 0,
+                "ref_track_id": 1, "ref_clip_index": 0,
+                "wheels": {"exposure_stops": 999.0},
+            }),
+        ))
+        .unwrap_err();
+    assert!(
+        error.to_string().contains("999 outside [-10, 10]"),
+        "{error}"
+    );
+    assert!(
+        clip(&engine).color_nodes.is_empty(),
+        "an unvalidatable payload never becomes a node"
+    );
+}

@@ -11,8 +11,8 @@ use crate::project::{
     MotionTrackingData, MultiCamAngle, MultiCamClip, MultiCamSyncMode, NodeConnection, NodeGraph,
     ProjectDocument, RotoSplineMask, Sequence, SpeedRamp, SubtitleItem, TitleProperties, Track,
     TrackAudioProcessing, TrackAutomation, TrackGroup, TrackKind, TrackingMode, Transition,
-    TransitionKind, VignetteParams, SUPPORTED_PRINT_STOCKS, PowerWindow, WindowShape,
-    WindowTransform, default_payload, validate_payload,
+    TransitionKind, VignetteParams, SUPPORTED_PRINT_STOCKS, SHOT_MATCH_ORIGIN, PowerWindow,
+    WindowShape, WindowTransform, default_payload, validate_payload,
 };
 use crate::time::{FrameRate, Tick, TICKS_PER_SECOND};
 use serde::Deserialize;

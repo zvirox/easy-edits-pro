@@ -183,6 +183,23 @@ pub(super) fn tool_list() -> Vec<Tool> {
                 })),
             ),
             Tool::new(
+                "color_match_shot_to_reference",
+                "Automated shot matcher: decode one source frame from the target clip and one from the reference hero shot, fit a primary-wheels correction (exposure, per-channel gain, gamma, offset) that aligns their luma/chroma CDFs, anchor detected skin tones to the reference's vectorscope band, and append the validated correction as a provenance-tagged color node on the target clip. Frames are measured on the clips' ungraded source media at src_tick/ref_tick (defaults: each clip's source midpoint).",
+                schema(json!({
+                    "type": "object",
+                    "properties": {
+                        "src_track_id": { "type": "integer", "minimum": 0, "description": "Track of the clip that receives the match node" },
+                        "src_clip_index": { "type": "integer", "minimum": 0 },
+                        "ref_track_id": { "type": "integer", "minimum": 0, "description": "Track of the reference hero shot" },
+                        "ref_clip_index": { "type": "integer", "minimum": 0 },
+                        "lock_skin_tones": { "type": "boolean", "description": "Anchor detected skin-band chroma to the reference (default true)" },
+                        "src_tick": { "type": "integer", "minimum": 0, "description": "In-clip source tick for the target frame" },
+                        "ref_tick": { "type": "integer", "minimum": 0, "description": "In-clip source tick for the reference frame" }
+                    },
+                    "required": ["src_track_id", "src_clip_index", "ref_track_id", "ref_clip_index"]
+                })),
+            ),
+            Tool::new(
                 "audio_read_telemetry",
                 "Read measurable audio telemetry for one range: full EBU R128 / BS.1770-4 loudness block (momentary, short-term, integrated LUFS, LRA, true peak dBTP), a 10-band octave spectrum (31 Hz..16 kHz), stereo phase correlation (−1..+1), and a dialogue-to-background SNR estimate. Pass media_id to analyze a source file, or start_tick+end_tick to render and analyze the active sequence mix (verifies a mix change actually landed). Optional standard selects the loudness target (ebu_r128, streaming, atsc_a85).",
                 schema(json!({

@@ -60,4 +60,18 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         shipped: true,
         ui_only: false,
     },
+    CommandSpec {
+        id: "color.match_shot_to_reference",
+        label: "Match Shot to Reference",
+        menu: &["Color", "Match"],
+        shortcut: None,
+        params: "{\"src_track_id\":int,\"src_clip_index\":int,\"ref_track_id\":int,\"ref_clip_index\":int,\"lock_skin_tones\":bool?,\"wheels\":obj}",
+        category: Category::Color,
+        mutating: true,
+        undo_group: UndoGroup::Transaction,
+        aliases: &[],
+        since: "0.4.0",
+        shipped: true,
+        ui_only: false,
+    },
 ];

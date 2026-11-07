@@ -963,6 +963,23 @@
   },
   {
     "aliases": [],
+    "category": "Color",
+    "id": "color.match_shot_to_reference",
+    "label": "Match Shot to Reference",
+    "menu": [
+      "Color",
+      "Match"
+    ],
+    "mutating": true,
+    "params": "{\"src_track_id\":int,\"src_clip_index\":int,\"ref_track_id\":int,\"ref_clip_index\":int,\"lock_skin_tones\":bool?,\"wheels\":obj}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
     "category": "Edit",
     "id": "edit.undo",
     "label": "Undo",

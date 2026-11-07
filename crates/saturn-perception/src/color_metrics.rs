@@ -9,14 +9,29 @@
 //! 2005 reference dataset (see the test at the bottom).
 
 /// ITU-R BT.601 RGB (0..255) → CIE L\*a\*b\* (D65). The transfer curve is the
-/// simple gamma 2.2 decode (not sRGB's piecewise) — fine for ΔE ranking,
-/// stated here so nobody mistakes it for a colour-managed path.
+/// sRGB piecewise decode (not a pure gamma 2.2, and not Rec.709's OETF) —
+/// fine for ΔE ranking, stated here so nobody mistakes it for a
+/// colour-managed path.
 pub fn rgb_to_lab(r: u8, g: u8, b: u8) -> [f64; 3] {
-    let srgb_to_linear = |c: u8| -> f64 {
-        let c = c as f64 / 255.0;
-        if c <= 0.04045 { c / 12.92 } else { ((c + 0.055) / 1.055).powf(2.4) }
+    rgb_continuous_to_lab(
+        f64::from(r) / 255.0,
+        f64::from(g) / 255.0,
+        f64::from(b) / 255.0,
+    )
+}
+
+/// Continuous-input twin of [`rgb_to_lab`]: RGB signal in 0..1 through the
+/// same sRGB piecewise decode and D65 Lab matrices, without the 8-bit
+/// rounding — so numeric optimisers can evaluate the metric smoothly.
+pub fn rgb_continuous_to_lab(r: f64, g: f64, b: f64) -> [f64; 3] {
+    let decode = |c: f64| -> f64 {
+        if c <= 0.04045 {
+            c / 12.92
+        } else {
+            ((c + 0.055) / 1.055).powf(2.4)
+        }
     };
-    let [r, g, b] = [srgb_to_linear(r), srgb_to_linear(g), srgb_to_linear(b)];
+    let [r, g, b] = [decode(r), decode(g), decode(b)];
     let x = 0.412_456_4 * r + 0.357_576_1 * g + 0.180_437_5 * b;
     let y = 0.212_672_9 * r + 0.715_152_2 * g + 0.072_175_0 * b;
     let z = 0.019_333_9 * r + 0.119_192_0 * g + 0.950_304_1 * b;

@@ -496,6 +496,7 @@ fn full_chain_through_build_plan_matches_reference() {
                 "gain": {"red": 0.1, "green": 0.0, "blue": -0.05, "luma": 0.0},
             }),
             windows: vec![],
+            origin: None,
         },
         ColorNode {
             id: 2,
@@ -506,6 +507,7 @@ fn full_chain_through_build_plan_matches_reference() {
                 "shadow": {"wheel": {"red": -0.05, "green": 0.0, "blue": 0.05, "luma": 0.0}},
             }),
             windows: vec![],
+            origin: None,
         },
         ColorNode {
             id: 3,
@@ -531,6 +533,7 @@ fn full_chain_through_build_plan_matches_reference() {
                     rotation_deg: -20.0,
                 },
             }],
+            origin: None,
         },
     ];
     let (nodes, film) = build_plan(&chain).expect("plan");
@@ -546,6 +549,7 @@ fn too_many_nodes_and_windows_error_typed() {
             enabled: true,
             payload: serde_json::json!({}),
             windows: vec![],
+            origin: None,
         })
         .collect();
     let error = build_plan(&chain).expect_err("over-limit chain must refuse");

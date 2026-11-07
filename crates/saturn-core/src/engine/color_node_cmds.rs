@@ -72,6 +72,7 @@ impl EditorEngine {
                     enabled: true,
                     payload: default_payload(params.kind),
                     windows: Vec::new(),
+                    origin: None,
                 };
                 self.checkpoint();
                 self.document.project.next_id = node_id.saturating_add(1);
@@ -191,11 +192,85 @@ impl EditorEngine {
                         enabled: true,
                         payload,
                         windows: Vec::new(),
+                        origin: None,
                     });
                     let mut merged = response;
                     merged["nodeId"] = json!(node_id);
                     Ok(merged)
                 }
+            })()),
+            "color.match_shot_to_reference" => Some((|| {
+                let params: MatchShotToReferenceParams = parse_params(params)?;
+                // The node lands on the matched (src) clip and records the
+                // reference as provenance; both anchors must exist so the
+                // response never points at shots that do not.
+                let src_index = find_track_index(&self.document, params.src_track_id)?;
+                if self.document.project.sequence.tracks[src_index]
+                    .clips
+                    .get(params.src_clip_index)
+                    .is_none()
+                {
+                    return Err(DispatchError::InvalidParameters(
+                        "Timeline clip does not exist".into(),
+                    ));
+                }
+                let ref_index = find_track_index(&self.document, params.ref_track_id)?;
+                if self.document.project.sequence.tracks[ref_index]
+                    .clips
+                    .get(params.ref_clip_index)
+                    .is_none()
+                {
+                    return Err(DispatchError::InvalidParameters(
+                        "Reference clip does not exist".into(),
+                    ));
+                }
+                // The fitted payload passes the exact validation
+                // `color.node_update` enforces before anything is stored.
+                let canonical = validate_payload(ColorNodeKind::PrimaryWheels, &params.wheels)
+                    .map_err(DispatchError::InvalidParameters)?;
+                self.checkpoint();
+                let clip = &mut self.document.project.sequence.tracks[src_index].clips
+                    [params.src_clip_index];
+                let existing = clip
+                    .color_nodes
+                    .iter_mut()
+                    .find(|node| {
+                        node.kind == ColorNodeKind::PrimaryWheels
+                            && node.origin.as_deref() == Some(SHOT_MATCH_ORIGIN)
+                    })
+                    .map(|node| node.id);
+                let (node_id, created) = if let Some(id) = existing {
+                    let node = clip
+                        .color_nodes
+                        .iter_mut()
+                        .find(|node| node.id == id)
+                        .expect("shot-match node existed in the pre-checkpoint lookup");
+                    node.payload = canonical.clone();
+                    (id, false)
+                } else {
+                    let node_id = self.document.project.next_id;
+                    self.document.project.next_id = node_id.saturating_add(1);
+                    clip.color_nodes.push(ColorNode {
+                        id: node_id,
+                        kind: ColorNodeKind::PrimaryWheels,
+                        enabled: true,
+                        payload: canonical.clone(),
+                        windows: Vec::new(),
+                        origin: Some(SHOT_MATCH_ORIGIN.into()),
+                    });
+                    (node_id, true)
+                };
+                Ok(json!({
+                    "nodeId": node_id,
+                    "origin": SHOT_MATCH_ORIGIN,
+                    "created": created,
+                    "applied": canonical,
+                    "reference": {
+                        "trackId": params.ref_track_id,
+                        "clipIndex": params.ref_clip_index,
+                    },
+                    "lockSkinTones": params.lock_skin_tones.unwrap_or(true),
+                }))
             })()),
             _ => None,
         }

@@ -148,6 +148,9 @@ async fn dispatch(request: Value, app: &AppHandle, state: &AppState) -> Value {
         "vision_extract_frame_sheet" => vision_extract_frame_sheet(state, &params).await,
         "render_preview_clip_proxy" => render_preview_clip_proxy(state, &params).await,
         "color_read_scopes" => color_read_scopes(state, &params).await,
+        "color_match_shot_to_reference" => {
+            color_match_shot_to_reference(app, state, &params).await
+        }
         "audio_read_telemetry" => audio_read_telemetry(state, &params).await,
         "media_semantic_query" => media_semantic_query(state, &params).await,
         "edit_evaluate_cut_continuity" => edit_evaluate_cut_continuity(state, &params).await,
@@ -433,6 +436,46 @@ async fn color_read_scopes(state: &AppState, params: &Value) -> Result<Value, St
         saturn_render::preview_tools::color_scopes_payload(&document, &params)
     })
     .await
+}
+
+/// `color_match_shot_to_reference`: fit a primary-wheels correction from one
+/// clip's source frame against a reference clip's source frame and apply it
+/// through the engine's validated command channel. Decode + fit run on the
+/// blocking pool with the engine lock released; only the validated payload
+/// application happens under the lock (checkpointed, undoable).
+async fn color_match_shot_to_reference(
+    app: &AppHandle,
+    state: &AppState,
+    params: &Value,
+) -> Result<Value, String> {
+    let document = document_snapshot(state)?;
+    let params = params.clone();
+    let payload = blocking_payload(move || {
+        saturn_render::shot_match_driver::match_shot_payload(&document, &params)
+    })
+    .await?;
+    let command = payload
+        .get("command")
+        .cloned()
+        .ok_or_else(|| "shot match driver returned no command".to_owned())?;
+    let id = command
+        .get("id")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "shot match driver command has no id".to_owned())?
+        .to_owned();
+    let command_params = command.get("params").cloned().unwrap_or(json!({}));
+    let applied = execute_command_with_state(
+        app,
+        state,
+        saturn_core::CommandRequest::new(id, command_params),
+    )?;
+    let _ = app.emit("mcp_project_changed", ());
+    let telemetry = payload.get("telemetry").cloned().unwrap_or(json!({}));
+    Ok(json!({
+        "applied": applied,
+        "nodeId": applied.get("nodeId").cloned().unwrap_or(Value::Null),
+        "telemetry": telemetry,
+    }))
 }
 
 /// `audio_read_telemetry`: measurable audio telemetry over one range —

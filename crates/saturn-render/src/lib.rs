@@ -28,6 +28,8 @@ pub mod keyframes;
 pub mod graphics_overlay;
 pub mod preview_tools;
 pub mod scopes_gpu;
+pub mod shot_match;
+pub mod shot_match_driver;
 pub mod hsl;
 pub mod loudness;
 pub mod lut;

@@ -264,7 +264,19 @@ pub struct ColorNode {
     /// Power windows gating this node's effect (intersection of weights).
     #[serde(default)]
     pub windows: Vec<PowerWindow>,
+    /// Where this node came from. `None` — operator-created (UI or
+    /// `color.node_add`); `"shot-match"` — appended/updated by
+    /// `color.match_shot_to_reference`. Display layers use this to badge or
+    /// group machine-proposed corrections, never to treat them specially in
+    /// evaluation (every node evaluates identically).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub origin: Option<String>,
 }
+
+/// Origin string stamped on colour nodes created by the shot matcher. A
+/// caller can only opt into this provenance by going through
+/// `color.match_shot_to_reference`, which validates the payload first.
+pub const SHOT_MATCH_ORIGIN: &str = "shot-match";
 
 /// Returns the default payload JSON for a freshly added node (neutral).
 pub fn default_payload(kind: ColorNodeKind) -> serde_json::Value {
