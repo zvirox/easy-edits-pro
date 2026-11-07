@@ -90,6 +90,21 @@ mixes toward the curved value by gate. Also fixed a Packet 3.1 readback
 bug: per-row GPU readback copies used the default `(0,0)` texture origin,
 so every row of any multi-row readback returned texture row 0.
 
+**Build fix (same release, packages apply):** `ort` downgraded
+2.0.0-rc.15 → 2.0.0-rc.10 (ONNX Runtime 1.31 → 1.22 series). pyke's
+prebuilt ONNX Runtime binaries from ort-sys rc.11 onward are built against
+glibc ≥ 2.38 and GCC-13 libstdc++; linking `libort_sys` failed on the
+release packages job (ubuntu-22.04, glibc 2.35) with undefined
+`__isoc23_strtol/strtoll/strtoull` and `_M_replace_cold`, and any binary
+so linked would also have failed the Debian 12 install proof at runtime
+(rc.15 ships no older-glibc build target and ort-sys rc.15 has no
+from-source strategy; verified by symbol bisect of pyke archives rc.9–
+rc.14). rc.10 keeps the Debian 12 / Ubuntu 22.04 package support floor
+unchanged; all perception model e2e tests (MODNet matting, Depth-Anything
+depth, SigLIP embeddings) re-run green on the 1.22 runtime. Perception
+API follow-through: `ort` rc.10 completions use `commit()`, env-free
+`Session::builder()`, and direct `inputs`/`outputs` fields.
+
 ## [0.1.1-alpha.1] - 2026-10-27
 
 Beta-readiness evidence release: every Linux package route now carries a

@@ -162,27 +162,23 @@ impl DepthGrid {
 
 /// A loaded depth session (one per thread; `&mut self` inference).
 pub struct DepthEstimator {
-    _env: ort::environment::Environment,
     session: Option<Session>,
 }
 
 impl DepthEstimator {
     pub fn load() -> Result<Self, String> {
-        let env = ort::init()
+        ort::init()
             .with_name("easy-edits-pro-perception")
-            .build()
+            .commit()
             .map_err(|error| format!("Could not initialize ONNX Runtime: {error}"))?;
-        Ok(Self {
-            _env: env,
-            session: None,
-        })
+        Ok(Self { session: None })
     }
 
     fn session(&mut self) -> Result<&mut Session, String> {
         if self.session.is_none() {
             let path = ensure_depth_model()?;
-            let session = Session::builder(&self._env)
-                .and_then(|mut b| b.commit_from_file(&path))
+            let session = Session::builder()
+                .and_then(|b| b.commit_from_file(&path))
                 .map_err(|error| {
                     format!(
                         "Could not load the depth model at {}: {error}",
@@ -223,9 +219,9 @@ impl DepthEstimator {
         // BEFORE running so a renamed export fails loudly here, not by
         // panicking on a missing output key.
         let declared: Vec<String> = session
-            .outputs()
+            .outputs
             .iter()
-            .map(|o| o.name().to_owned())
+            .map(|o| o.name.to_owned())
             .collect();
         let expected_name = "predicted_depth";
         if !declared.iter().any(|n| n == expected_name) {

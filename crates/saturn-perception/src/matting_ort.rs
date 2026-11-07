@@ -111,27 +111,23 @@ pub fn model_input_size(width: u32, height: u32) -> (u32, u32) {
 /// A loaded MODNet session. Takes `&mut self` for inference (ort
 /// requirement); bind one session per thread.
 pub struct ModNetMatting {
-    _env: ort::environment::Environment,
     session: Option<Session>,
 }
 
 impl ModNetMatting {
     pub fn load() -> Result<Self, String> {
-        let env = ort::init()
+        ort::init()
             .with_name("easy-edits-pro-perception")
-            .build()
+            .commit()
             .map_err(|error| format!("Could not initialize ONNX Runtime: {error}"))?;
-        Ok(Self {
-            _env: env,
-            session: None,
-        })
+        Ok(Self { session: None })
     }
 
     fn session(&mut self) -> Result<&mut Session, String> {
         if self.session.is_none() {
             let path = ensure_modnet_model()?;
-            let session = Session::builder(&self._env)
-                .and_then(|mut b| b.commit_from_file(&path))
+            let session = Session::builder()
+                .and_then(|b| b.commit_from_file(&path))
                 .map_err(|error| {
                     format!("Could not load the MODNet model at {}: {error}", path.display())
                 })?;

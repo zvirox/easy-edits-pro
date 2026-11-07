@@ -19,7 +19,6 @@
 
 use crate::shot_detect::SampledFrame;
 use crate::siglip_model::{ensure_siglip_encoder, ensure_siglip_tokenizer, SiglipEncoder};
-use ort::environment::Environment;
 use ort::session::Session;
 use ort::value::Tensor;
 
@@ -31,7 +30,6 @@ const IMAGE_SIZE: u32 = 224;
 /// A loaded SigLIP embedder. Sessions take `&mut self` for inference (ort
 /// requirement), so one embedder is bound to one indexing/query thread.
 pub struct SiglipEmbedder {
-    _env: Environment,
     vision: Option<Session>,
     text: Option<Session>,
     tokenizer: Option<tokenizers::Tokenizer>,
@@ -41,12 +39,11 @@ impl SiglipEmbedder {
     /// Verify (downloading on first use) and load the two encoder sessions
     /// and the tokenizer. Only the encoders actually used need loading.
     pub fn load() -> Result<Self, String> {
-        let env = ort::init()
+        ort::init()
             .with_name("easy-edits-pro-perception")
-            .build()
+            .commit()
             .map_err(|error| format!("Could not initialize ONNX Runtime: {error}"))?;
         Ok(Self {
-            _env: env,
             vision: None,
             text: None,
             tokenizer: None,
@@ -56,8 +53,8 @@ impl SiglipEmbedder {
     fn vision_session(&mut self) -> Result<&mut Session, String> {
         if self.vision.is_none() {
             let path = ensure_siglip_encoder(SiglipEncoder::Vision)?;
-            let session = Session::builder(&self._env)
-                .and_then(|mut b| b.commit_from_file(&path))
+            let session = Session::builder()
+                .and_then(|b| b.commit_from_file(&path))
                 .map_err(|error| {
                     format!("Could not load the SigLIP vision model at {}: {error}", path.display())
                 })?;
@@ -71,8 +68,8 @@ impl SiglipEmbedder {
     fn text_session(&mut self) -> Result<&mut Session, String> {
         if self.text.is_none() {
             let path = ensure_siglip_encoder(SiglipEncoder::Text)?;
-            let session = Session::builder(&self._env)
-                .and_then(|mut b| b.commit_from_file(&path))
+            let session = Session::builder()
+                .and_then(|b| b.commit_from_file(&path))
                 .map_err(|error| {
                     format!("Could not load the SigLIP text model at {}: {error}", path.display())
                 })?;
@@ -157,7 +154,7 @@ impl SiglipEmbedder {
         let session = self.text_session()?;
         // The pinned text export declares a single input, `input_ids` (its
         // EOS pooling runs on-graph); match names defensively anyway.
-        let declared: Vec<String> = session.inputs().iter().map(|o| o.name().to_owned()).collect();
+        let declared: Vec<String> = session.inputs.iter().map(|o| o.name.to_owned()).collect();
         if declared.is_empty() {
             return Err("SigLIP text model declares no inputs".into());
         }
