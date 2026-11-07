@@ -47,6 +47,9 @@ impl EditorEngine {
                     proxy_path: None,
                     colorspace: None,
                     gamma: None,
+                    // New imports inherit the project's default input
+                    // transform when one is configured (Packet 3.1).
+                    idt: self.document.project.color_management.default_idt,
                     file_size: None,
                     modified_ms: None,
                     title: params.title,

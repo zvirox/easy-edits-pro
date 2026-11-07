@@ -37,6 +37,9 @@ pub struct Project {
     #[serde(default)]
     pub notes: String,
     pub settings: ProjectSettings,
+    /// Scene-referred colour-management configuration (Packet 3.1).
+    #[serde(default)]
+    pub color_management: ColorManagement,
     pub media: Vec<MediaAsset>,
     #[serde(default)]
     pub bins: Vec<MediaBin>,
@@ -57,6 +60,27 @@ pub struct ProjectSettings {
     /// Playback decodes proxy copies where an asset carries one.
     #[serde(default)]
     pub use_proxies: bool,
+}
+
+/// Scene-referred colour-management configuration (`ocio.set_pipeline`,
+/// Packet 3.1). Working space and display transform apply project-wide; the
+/// default IDT seeds newly imported assets without an explicit one.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ColorManagement {
+    pub working_space: crate::color::WorkingSpace,
+    pub display_odt: crate::color::DisplayOdt,
+    #[serde(default)]
+    pub default_idt: Option<crate::color::CameraIdt>,
+}
+
+impl Default for ColorManagement {
+    fn default() -> Self {
+        Self {
+            working_space: crate::color::WorkingSpace::default(),
+            display_odt: crate::color::DisplayOdt::default(),
+            default_idt: None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -165,6 +189,10 @@ pub struct MediaAsset {
     pub colorspace: Option<String>,
     #[serde(default)]
     pub gamma: Option<String>,
+    /// Camera Input Device Transform for this asset (`ocio.set_media_idt`,
+    /// Packet 3.1); falls back to the project's `default_idt`.
+    #[serde(default)]
+    pub idt: Option<crate::color::CameraIdt>,
     /// Disk stamp recorded at import and by `media.refresh_changed`.
     #[serde(default)]
     pub file_size: Option<u64>,
@@ -210,6 +238,7 @@ impl Default for MediaAsset {
             proxy_path: None,
             colorspace: None,
             gamma: None,
+            idt: None,
             file_size: None,
             modified_ms: None,
             title: None,

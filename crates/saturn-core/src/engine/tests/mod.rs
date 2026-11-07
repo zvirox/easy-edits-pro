@@ -5,5 +5,6 @@ mod captions;
 mod branch;
 mod history;
 mod media;
+mod ocio;
 mod robustness;
 mod viewport;

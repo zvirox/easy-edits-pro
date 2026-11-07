@@ -387,3 +387,17 @@ pub(in crate::engine) struct MediaProxyAttachParams {
 pub(in crate::engine) struct MediaProxyDetachParams {
     pub(in crate::engine) media_id: u64,
 }
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct SetPipelineParams {
+    pub(in crate::engine) working_space: WorkingSpace,
+    pub(in crate::engine) display_odt: DisplayOdt,
+    #[serde(default)]
+    pub(in crate::engine) default_idt: Option<CameraIdt>,
+}
+
+#[derive(Deserialize)]
+pub(in crate::engine) struct SetMediaIdtParams {
+    pub(in crate::engine) media_id: u64,
+    pub(in crate::engine) idt: CameraIdt,
+}

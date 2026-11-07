@@ -3,6 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 pub mod catalogue;
 pub mod branch;
+pub mod color;
 pub mod command;
 pub mod engine;
 pub mod graphics_layout;

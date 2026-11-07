@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-449 commands.
+451 commands.
 
 ## File
 
@@ -392,6 +392,13 @@ Generated from the command catalogue. Do not edit by hand.
 | Clear Out | `timeline.clear_mark_out` | shipped |  | `{}` |
 | Mark Clip | `timeline.mark_clip` | shipped |  | `{"track_id":int,"clip_index":int}` |
 | Mark Selection | `timeline.mark_selection` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+
+## Color
+
+| Command | ID | Status | Shortcut | Params |
+|---|---|---|---|---|
+| Set Color Pipeline | `ocio.set_pipeline` | shipped |  | `{"working_space":str,"display_odt":str,"default_idt":str?}` |
+| Set Media Input Transform | `ocio.set_media_idt` | shipped |  | `{"media_id":int,"idt":str}` |
 
 ## Graphics
 

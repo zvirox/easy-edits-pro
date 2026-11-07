@@ -4483,6 +4483,40 @@
     "undoGroup": "transaction"
   },
   {
+    "aliases": [],
+    "category": "Color",
+    "id": "ocio.set_pipeline",
+    "label": "Set Color Pipeline",
+    "menu": [
+      "Color",
+      "Pipeline"
+    ],
+    "mutating": true,
+    "params": "{\"working_space\":str,\"display_odt\":str,\"default_idt\":str?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Color",
+    "id": "ocio.set_media_idt",
+    "label": "Set Media Input Transform",
+    "menu": [
+      "Color",
+      "Pipeline"
+    ],
+    "mutating": true,
+    "params": "{\"media_id\":int,\"idt\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
     "aliases": [
       "start",
       "beginning"

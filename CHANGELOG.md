@@ -31,6 +31,19 @@ evidence: `tests/native/write_policy_workflow.py` (bridge rejections named
 and physical, in-roots writes land, grants unreachable from the bridge, the
 documented bypass works).
 
+**AI-native Packet 3.1 (scene-referred GPU colour, untagged):** a real wgpu 30
+compute pipeline replaces simulated colour preview — `Rgba32Float` textures,
+WGSL transforms generated from a single Rust source of truth
+(`crates/saturn-core/src/color/`), per-camera IDTs (ARRI LogC4, RED Log3G10,
+Sony S-Log3, BMD Gen 5, Apple Log, Rec.709 video), ACEScg/ACEScct working
+spaces, Rec.709/P3/PQ outputs, and Linux DMA-BUF import. Project state gains
+`Project.color_management` and `MediaAsset.idt`; the engine gains
+`ocio.set_pipeline` / `ocio.set_media_idt` (a new top-level **Color** menu).
+Simplification is documented, not hidden: display transforms use primaries
+matrices + transfers without the ACES RRT tone scale, and PQ maps SDR white
+to 100 nits. GPU-vs-CPU agreement is tested over 6 transforms × working
+spaces × ODTs at 2e-4 on real hardware.
+
 ## [0.1.1-alpha.1] - 2026-10-27
 
 Beta-readiness evidence release: every Linux package route now carries a

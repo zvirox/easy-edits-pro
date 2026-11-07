@@ -336,7 +336,7 @@ export function AppHeader({
             <kbd>Ctrl K</kbd>
           </InteriorButton>
           <nav className="menu-bar" aria-label="Application menus" ref={menuBarRef}>
-            {["File", "Edit", "Clip", "Sequence", "Markers", "Graphics", "Audio", "Effects", "View", "Window", "Help"]
+            {["File", "Edit", "Clip", "Sequence", "Markers", "Color", "Graphics", "Audio", "Effects", "View", "Window", "Help"]
               .filter((menu) =>
                 commands.some((command) => command.shipped && command.menu[0] === menu)
               )

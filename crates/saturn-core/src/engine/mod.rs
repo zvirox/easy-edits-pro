@@ -32,6 +32,7 @@ mod history;
 mod keyframe_cmds;
 mod markers_cmds;
 mod media_cmds;
+mod ocio_cmds;
 mod nodegraph_cmds;
 mod export_cmds;
 mod params;
@@ -254,6 +255,9 @@ impl EditorEngine {
             return result;
         }
         if let Some(result) = self.dispatch_color(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_ocio(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_audio(command.id, request.params.clone()) {

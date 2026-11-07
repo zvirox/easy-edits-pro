@@ -13,7 +13,7 @@ use serde_json::Value;
 
 /// Top-level menus, in bar order. `CommandSpec::menu[0]` must be one of these.
 pub const MENU_BAR: &[&str] = &[
-    "File", "Edit", "Clip", "Sequence", "Markers", "Graphics", "Audio", "Effects", "View",
+    "File", "Edit", "Clip", "Sequence", "Markers", "Color", "Graphics", "Audio", "Effects", "View",
     "Window", "Help",
 ];
 
@@ -134,6 +134,7 @@ static COMMANDS: std::sync::LazyLock<Vec<CommandSpec>> = std::sync::LazyLock::ne
     all.extend_from_slice(commands::graphics::COMMANDS);
     all.extend_from_slice(commands::help::COMMANDS);
     all.extend_from_slice(commands::markers::COMMANDS);
+    all.extend_from_slice(commands::ocio::COMMANDS);
     all.extend_from_slice(commands::playhead::COMMANDS);
     all.extend_from_slice(commands::project_freeform::COMMANDS);
     all.extend_from_slice(commands::project_panel::COMMANDS);

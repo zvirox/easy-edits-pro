@@ -33,6 +33,8 @@ pub mod loudness;
 pub mod lut;
 pub mod matting;
 pub mod multicam;
+pub mod gpu_context;
+pub mod ocio_pipeline;
 pub mod shader;
 pub mod speedramp;
 pub mod tracking;

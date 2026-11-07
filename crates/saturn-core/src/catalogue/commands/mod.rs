@@ -11,6 +11,7 @@ pub(super) mod file_flows;
 pub(super) mod graphics;
 pub(super) mod help;
 pub(super) mod markers;
+pub(super) mod ocio;
 pub(super) mod playhead;
 pub(super) mod project_freeform;
 pub(super) mod project_panel;

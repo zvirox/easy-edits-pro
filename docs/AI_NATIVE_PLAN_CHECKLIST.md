@@ -116,12 +116,13 @@
 
 ## Phase 3 — Scene-Referred 32-Bit Float GPU Color Engine — `status: todo`
 
-### Packet 3.1 — Real wgpu `Rgba32Float` pipeline & OCIO v2 ACEScg (Lane 2)
+### Packet 3.1 — Real wgpu `Rgba32Float` pipeline & OCIO v2 ACEScg (Lane 2) — `status: done 2026-11-07`
 
 > **Plan-review revision (docs/audit/eep-ai-native-plan-review.md §4.6):** no OpenColorIO C++ dependency. Implement a **fixed, small WGSL transform set**: ACEScg/ACEScct matrices, a handful of camera log curves, and Rec.709/sRGB/P3 outputs; add more only on user pull. The module keeps the `ocio_pipeline` name for API continuity but must not link OCIO.
 
-- [ ] Create `src/gpu_context.rs` + `src/ocio_pipeline.rs` (real `wgpu::Device/Queue`, `Rgba32Float`, Linux DMA-BUF import — **pure WGSL transforms, no OCIO dep**)
-- [ ] Implement `ocio.set_pipeline` + `ocio.set_media_idt` (camera log curves → ACEScg/ACEScct → Rec.709 / P3 output transforms, in WGSL)
+- [x] Create `src/gpu_context.rs` + `src/ocio_pipeline.rs` (real `wgpu::Device/Queue`, `Rgba32Float`, Linux DMA-BUF import — **pure WGSL transforms, no OCIO dep**) — `crates/saturn-render` (wgpu 30), WGSL constants generated from the `saturn_core::color` source of truth; GPU-vs-CPU agreement over 6 IDTs × 2 working × 2 ODTs at 2e-4 on real hardware
+- [x] Implement `ocio.set_pipeline` + `ocio.set_media_idt` (camera log curves → ACEScg/ACEScct → Rec.709 / P3 output transforms, in WGSL) — schemas `Project.color_management` / `MediaAsset.idt`, imports seed `default_idt`
+- **Documented simplification:** display transforms are primaries matrices + transfers (no ACES RRT tone scale); Rec.2020 PQ maps SDR white 1.0 → 100 nits. Camera curves/matrices verified against vendor specs and colour-science anchors (transform module tests).
 
 ### Packet 3.2 — WGSL color node graph, power windows & film emulation (Lane 2)
 - [ ] Create `src/color_nodes_gpu.rs` + `src/film_emulation.rs` (wheels, HDR zones, curves, 3D LUTs, HSL, warper, power windows, halation + grain)

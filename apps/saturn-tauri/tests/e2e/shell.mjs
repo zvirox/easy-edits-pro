@@ -30,7 +30,7 @@ export async function run(ctx) {
   // Graphics ships the Phase 5 caption commands and Audio ships the Phase 6
   // automation commands, so both must render; Effects ships the nodegraph
   // commands (0.1.0-alpha.13), so it must now render too.
-  for (const menu of ['Audio', 'Graphics', 'Effects']) {
+  for (const menu of ['Audio', 'Graphics', 'Color', 'Effects']) {
     await menuBar.getByRole('button', { name: menu, exact: true }).click();
     const popover = page.locator('.menu-popover').last();
     await popover.waitFor();

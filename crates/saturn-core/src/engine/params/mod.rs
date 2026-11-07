@@ -2,6 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 use super::*;
+use crate::color::{CameraIdt, DisplayOdt, WorkingSpace};
 
 mod editing;
 mod branch;

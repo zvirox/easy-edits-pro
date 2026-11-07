@@ -22,6 +22,7 @@ const MENU_BAR = [
   "Clip",
   "Sequence",
   "Markers",
+  "Color",
   "Graphics",
   "Audio",
   "Effects",

@@ -39,6 +39,7 @@ impl ProjectDocument {
                     audio_sample_rate: 48_000,
                     use_proxies: false,
                 },
+                color_management: ColorManagement::default(),
                 media: Vec::new(),
                 bins: Vec::new(),
                 graphic_templates: Vec::new(),
