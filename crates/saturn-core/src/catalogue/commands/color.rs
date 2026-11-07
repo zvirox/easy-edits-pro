@@ -1,0 +1,63 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+// Also available under the EEP commercial licence — see LICENSING.md
+use crate::catalogue::{Category, CommandSpec, UndoGroup};
+
+pub(crate) const COMMANDS: &[CommandSpec] = &[
+    CommandSpec {
+        id: "color.node_add",
+        label: "Add Color Node",
+        menu: &["Color", "Nodes"],
+        shortcut: None,
+        params: "{\"track_id\":int,\"clip_index\":int,\"kind\":str,\"inputs\":[int]?}",
+        category: Category::Color,
+        mutating: true,
+        undo_group: UndoGroup::Transaction,
+        aliases: &[],
+        since: "0.4.0",
+        shipped: true,
+        ui_only: false,
+    },
+    CommandSpec {
+        id: "color.node_update",
+        label: "Update Color Node",
+        menu: &["Color", "Nodes"],
+        shortcut: None,
+        params: "{\"track_id\":int,\"clip_index\":int,\"node_id\":int,\"payload\":obj}",
+        category: Category::Color,
+        mutating: true,
+        undo_group: UndoGroup::Transaction,
+        aliases: &[],
+        since: "0.4.0",
+        shipped: true,
+        ui_only: false,
+    },
+    CommandSpec {
+        id: "color.add_power_window",
+        label: "Add Power Window",
+        menu: &["Color", "Windows"],
+        shortcut: None,
+        params: "{\"track_id\":int,\"clip_index\":int,\"node_id\":int,\"mask\":obj,\"auto_track\":bool?}",
+        category: Category::Color,
+        mutating: true,
+        undo_group: UndoGroup::Transaction,
+        aliases: &[],
+        since: "0.4.0",
+        shipped: true,
+        ui_only: false,
+    },
+    CommandSpec {
+        id: "color.emulate_film_print",
+        label: "Emulate Film Print",
+        menu: &["Color", "Film"],
+        shortcut: None,
+        params: "{\"track_id\":int,\"clip_index\":int,\"stock\":str,\"halation\":num,\"grain\":num,\"weave\":num}",
+        category: Category::Color,
+        mutating: true,
+        undo_group: UndoGroup::Transaction,
+        aliases: &[],
+        since: "0.4.0",
+        shipped: true,
+        ui_only: false,
+    },
+];

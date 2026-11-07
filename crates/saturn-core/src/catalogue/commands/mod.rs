@@ -3,6 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 pub(super) mod audio;
 pub(super) mod clip;
+pub(super) mod color;
 pub(super) mod edit;
 pub(super) mod effects;
 pub(super) mod engine;

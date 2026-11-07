@@ -44,6 +44,33 @@ matrices + transfers without the ACES RRT tone scale, and PQ maps SDR white
 to 100 nits. GPU-vs-CPU agreement is tested over 6 transforms × working
 spaces × ODTs at 2e-4 on real hardware.
 
+**AI-native Packet 3.2 (WGSL color node graph, power windows & film
+emulation, untagged):** the node graph is real — persistent
+`Clip.color_nodes` (scene-linear ACEScg, insertion-order chain between
+legacy adjustments and the display transform) with seven evaluated node
+kinds: primary wheels, HDR zones, RGB curves (monotone cubic), 3D LUTs
+(tetrahedral lattice interpolation), HSL qualifier, color-warper grid and
+film print emulation (grain/halation/gate weave). Power windows (rect /
+ellipse / polygon, pivot-scale-rotate transforms, softness, invert,
+opacity) gate each node; one typed-error blob-packing plan is shared by a
+f64 CPU reference and the f32 WGSL chain, asserted equal per node kind on
+real hardware. Four engine commands ship (`color.node_add`, `color.node_update`,
+`color.add_power_window`, `color.emulate_film_print`; catalogue now 455
+commands): wire payloads validate strictly, the persisted schema is
+forward-compatible, and unimplemented states (auto-tracked windows,
+unshipped film stocks) return typed errors rather than silently passing.
+Shader hardening per §10.2.3: naga pre-validation of every WGSL program,
+`wgpu` error scopes around pipeline creation and dispatch, no panics from
+faulty input. Memory limits (16 nodes / 4 windows / 8192 blob words) are
+checked with typed errors before any GPU work. Documented design
+constants (not measurements, §4.4): deterministic gate-weave model
+(amplitude `weave_mm / 36`, incommensurate 24/17-frame periods), halation
+bright-pass at 1.0 with σ=2 9×9 Gaussian (normaliser 23.990704) and
+red-dominant spill tint, grain amplitude scale 0.10. Curves window gating
+mixes toward the curved value by gate. Also fixed a Packet 3.1 readback
+bug: per-row GPU readback copies used the default `(0,0)` texture origin,
+so every row of any multi-row readback returned texture row 0.
+
 ## [0.1.1-alpha.1] - 2026-10-27
 
 Beta-readiness evidence release: every Linux package route now carries a

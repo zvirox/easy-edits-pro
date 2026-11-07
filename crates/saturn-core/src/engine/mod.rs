@@ -4,14 +4,15 @@
 use crate::command::{find_command, status, CommandRequest, CommandStatus};
 use crate::project::{
     AutomationInterpolation, AutomationLane, AutomationMode, BusTarget,
-    ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams, ColorWheels, CompositingNode,
-    CompositingNodeKind, CropParams, CustomShaderParams, EffectInstance, EffectKind, EffectPayload,
-    GaussianBlurParams, InterpolationKind, Keyframe, KeyframeProperty, LutParams,
-    Marker, MediaAsset, MediaKind, MotionBlurParams, MotionTrackingData, MultiCamAngle,
-    MultiCamClip, MultiCamSyncMode, NodeConnection, NodeGraph, ProjectDocument, RotoSplineMask,
-    Sequence, SpeedRamp, SubtitleItem, TitleProperties, Track,
+    ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams, ColorNode, ColorNodeKind,
+    ColorWheels, CompositingNode, CompositingNodeKind, CropParams, CustomShaderParams,
+    EffectInstance, EffectKind, EffectPayload, GaussianBlurParams, InterpolationKind, Keyframe,
+    KeyframeProperty, LutParams, Marker, MediaAsset, MediaKind, MotionBlurParams,
+    MotionTrackingData, MultiCamAngle, MultiCamClip, MultiCamSyncMode, NodeConnection, NodeGraph,
+    ProjectDocument, RotoSplineMask, Sequence, SpeedRamp, SubtitleItem, TitleProperties, Track,
     TrackAudioProcessing, TrackAutomation, TrackGroup, TrackKind, TrackingMode, Transition,
-    TransitionKind, VignetteParams,
+    TransitionKind, VignetteParams, SUPPORTED_PRINT_STOCKS, PowerWindow, WindowShape,
+    WindowTransform, default_payload, validate_payload,
 };
 use crate::time::{FrameRate, Tick, TICKS_PER_SECOND};
 use serde::Deserialize;
@@ -23,6 +24,7 @@ mod branch_cmds;
 mod clip_advanced_cmds;
 mod clip_cmds;
 mod color_cmds;
+mod color_node_cmds;
 mod compound_cmds;
 mod edit_cmds;
 mod edit_labels_cmds;
@@ -258,6 +260,9 @@ impl EditorEngine {
             return result;
         }
         if let Some(result) = self.dispatch_ocio(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_color_nodes(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_audio(command.id, request.params.clone()) {

@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-451 commands.
+455 commands.
 
 ## File
 
@@ -397,6 +397,10 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Add Color Node | `color.node_add` | shipped |  | `{"track_id":int,"clip_index":int,"kind":str,"inputs":[int]?}` |
+| Update Color Node | `color.node_update` | shipped |  | `{"track_id":int,"clip_index":int,"node_id":int,"payload":obj}` |
+| Add Power Window | `color.add_power_window` | shipped |  | `{"track_id":int,"clip_index":int,"node_id":int,"mask":obj,"auto_track":bool?}` |
+| Emulate Film Print | `color.emulate_film_print` | shipped |  | `{"track_id":int,"clip_index":int,"stock":str,"halation":num,"grain":num,"weave":num}` |
 | Set Color Pipeline | `ocio.set_pipeline` | shipped |  | `{"working_space":str,"display_odt":str,"default_idt":str?}` |
 | Set Media Input Transform | `ocio.set_media_idt` | shipped |  | `{"media_id":int,"idt":str}` |
 

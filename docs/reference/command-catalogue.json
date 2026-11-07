@@ -895,6 +895,74 @@
   },
   {
     "aliases": [],
+    "category": "Color",
+    "id": "color.node_add",
+    "label": "Add Color Node",
+    "menu": [
+      "Color",
+      "Nodes"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"kind\":str,\"inputs\":[int]?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Color",
+    "id": "color.node_update",
+    "label": "Update Color Node",
+    "menu": [
+      "Color",
+      "Nodes"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"node_id\":int,\"payload\":obj}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Color",
+    "id": "color.add_power_window",
+    "label": "Add Power Window",
+    "menu": [
+      "Color",
+      "Windows"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"node_id\":int,\"mask\":obj,\"auto_track\":bool?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Color",
+    "id": "color.emulate_film_print",
+    "label": "Emulate Film Print",
+    "menu": [
+      "Color",
+      "Film"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"stock\":str,\"halation\":num,\"grain\":num,\"weave\":num}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
     "category": "Edit",
     "id": "edit.undo",
     "label": "Undo",

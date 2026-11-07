@@ -223,10 +223,17 @@ impl GpuContext {
             usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
             mapped_at_creation: false,
         });
-        // Per-row copies keep offsets 256-aligned for any width.
+        // Per-row copies keep offsets 256-aligned for any width. The source
+        // origin must advance with the row — `as_image_copy()` is always the
+        // (0, 0) origin, so it would read row 0 for every row.
         for row in 0..height {
             encoder.copy_texture_to_buffer(
-                texture.as_image_copy(),
+                wgpu::TexelCopyTextureInfo {
+                    texture,
+                    mip_level: 0,
+                    origin: wgpu::Origin3d { x: 0, y: row, z: 0 },
+                    aspect: wgpu::TextureAspect::All,
+                },
                 wgpu::TexelCopyBufferInfo {
                     buffer: &buffer,
                     layout: wgpu::TexelCopyBufferLayout {
@@ -241,8 +248,7 @@ impl GpuContext {
                     depth_or_array_layers: 1,
                 },
             );
-        }
-        self.queue.submit(Some(encoder.finish()));
+        }        self.queue.submit(Some(encoder.finish()));
         let slice = buffer.slice(..);
         let (tx, rx) = std::sync::mpsc::channel();
         slice.map_async(wgpu::MapMode::Read, move |result| {

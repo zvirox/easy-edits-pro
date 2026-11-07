@@ -219,6 +219,10 @@ pub struct Clip {
     pub tracking: Option<MotionTrackingData>,
     #[serde(default)]
     pub node_graph: Option<NodeGraph>,
+    /// Ordered scene-referred colour chain (Packet 3.2). Evaluated after the
+    /// clip's `color` adjustments, before the display transform.
+    #[serde(default)]
+    pub color_nodes: Vec<ColorNode>,
     #[serde(default)]
     pub speed_ramp: Option<SpeedRamp>,
     #[serde(default)]

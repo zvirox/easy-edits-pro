@@ -138,6 +138,7 @@ fn document_with_title_and_graphic() -> ProjectDocument {
             multicam_angle_id: None,
             tracking: None,
             node_graph: None,
+            color_nodes: vec![],
             speed_ramp: None,
             motion_blur: None,
             compound_sequence_id: None,

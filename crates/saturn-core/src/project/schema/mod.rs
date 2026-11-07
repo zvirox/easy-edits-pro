@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 mod audio;
+mod color_nodes;
 mod compositing;
 mod effects;
 mod media;
@@ -13,6 +14,7 @@ mod sequence;
 mod timeline;
 
 pub use audio::*;
+pub use color_nodes::*;
 pub use compositing::*;
 pub use effects::*;
 pub use media::*;

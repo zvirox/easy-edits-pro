@@ -6,6 +6,7 @@ use crate::color::{CameraIdt, DisplayOdt, WorkingSpace};
 
 mod editing;
 mod branch;
+mod color_nodes;
 mod edit_clip;
 mod markers;
 mod project_freeform;
@@ -17,6 +18,7 @@ mod timeline_targeting;
 
 pub(super) use editing::*;
 pub(super) use branch::*;
+pub(super) use color_nodes::*;
 pub(super) use edit_clip::*;
 pub(super) use markers::*;
 pub(super) use project_freeform::*;

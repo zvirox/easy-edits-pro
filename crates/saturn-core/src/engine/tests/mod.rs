@@ -3,6 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 mod captions;
 mod branch;
+mod color_nodes;
 mod history;
 mod media;
 mod ocio;

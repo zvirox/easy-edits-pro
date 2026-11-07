@@ -125,17 +125,19 @@
 - **Documented simplification:** display transforms are primaries matrices + transfers (no ACES RRT tone scale); Rec.2020 PQ maps SDR white 1.0 → 100 nits. Camera curves/matrices verified against vendor specs and colour-science anchors (transform module tests).
 
 ### Packet 3.2 — WGSL color node graph, power windows & film emulation (Lane 2)
-- [ ] Create `src/color_nodes_gpu.rs` + `src/film_emulation.rs` (wheels, HDR zones, curves, 3D LUTs, HSL, warper, power windows, halation + grain)
-- [ ] `color.node_add` / `node_update` / `add_power_window` / `emulate_film_print` wired end-to-end
-- [ ] Shader hardening per spec §10.2.3 (naga pre-validation, error scopes, no crash on faulty shader)
+- [x] Create `src/color_nodes_gpu.rs` + `src/film_emulation.rs` (wheels, HDR zones, curves, 3D LUTs, HSL, warper, power windows, halation + grain)
+- [x] `color.node_add` / `node_update` / `add_power_window` / `emulate_film_print` wired end-to-end
+- [x] Shader hardening per spec §10.2.3 (naga pre-validation, error scopes, no crash on faulty shader)
+
+**Packet 3.2 notes (§4.4 deviations):** seven node kinds shipped (plan listed five — `color_warper_grid` and `film_print_emulation` added with the frame-emulation set). Gate weave ships a documented deterministic model (incommensurate 24/17-frame sinusoidal beat, amplitude = `weave_mm / 36` gate width — not a measured statistical model; later-packet item). Halation bright-pass threshold 1.0, Gaussian σ=2 (9×9, normaliser 23.990704), red-dominant tint (1.0, 0.35, 0.15) and grain 0.10 scale are documented design constants. Curves window gating mixes toward the curved value by gate (full replace would make windows a no-op). Also fixed here: a Packet 3.1 readback bug where every texture row copied texture row 0 (per-row copies used the default `(0,0)` copy origin) — visible in any multi-row GPU readback.
 
 ### Packet 3.3 — Automated shot matcher (Lane 2)
 - [ ] Create `src/shot_match.rs` (`color.match_shot_to_reference` with CDF alignment + skin-tone lock)
 
 ### ✅ Phase 3 Verification Gate
-- [ ] `cargo test -p saturn-render --test color_pipeline` green
-- [ ] +3.0 stops (Node 1) then −3.0 stops (Node 2) in ACEScg recovers 100% highlights, zero clipping
-- [ ] Shot match brings mismatched angles within CIEDE2000 ΔE < 1.5
+- [x] `cargo test -p saturn-render --test color_pipeline` green
+- [x] +3.0 stops (Node 1) then −3.0 stops (Node 2) in ACEScg recovers 100% highlights, zero clipping
+- [ ] Shot match brings mismatched angles within CIEDE2000 ΔE < 1.5 (Packet 3.3)
 
 ---
 

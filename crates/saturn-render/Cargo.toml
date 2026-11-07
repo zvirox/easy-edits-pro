@@ -25,6 +25,7 @@ png = "0.17"
 jpeg-encoder = "0.6"
 base64 = "0.22"
 wgpu = "30.0.1"
+naga = { version = "30.0.1", features = ["wgsl-in"] }
 thiserror = "2"
 pollster = "0.4"
 

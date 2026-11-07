@@ -211,6 +211,7 @@ pub fn import_xmeml_xml(xml: &str) -> Result<ProjectDocument, String> {
             multicam_angle_id: None,
             tracking: None,
             node_graph: None,
+            color_nodes: Vec::new(),
             speed_ramp: None,
             motion_blur: None,
             compound_sequence_id: None,

@@ -2789,6 +2789,7 @@ dependencies = [
 name = "saturn-core"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "blake3",
  "saturn-text",
  "serde",
@@ -2876,6 +2877,7 @@ dependencies = [
  "gstreamer-pbutils",
  "gstreamer-video",
  "jpeg-encoder",
+ "naga",
  "png",
  "pollster",
  "saturn-core",
