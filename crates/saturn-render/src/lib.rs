@@ -8,7 +8,6 @@
 //! GES timeline graph construction in [`ges_timeline`], and frame/sheet
 //! extraction in [`frame_extractor`].
 use gstreamer as gst;
-use gstreamer_editing_services as ges;
 use saturn_core::time::TICKS_PER_SECOND;
 use saturn_core::project::ProjectDocument;
 use saturn_core::{FrameRate, Tick};
@@ -53,6 +52,9 @@ pub mod speedramp;
 pub mod tracking;
 pub mod wgpu_surface;
 pub mod wheels;
+mod runtime;
+
+pub use runtime::init_media_runtime;
 
 pub use compositor::{
     BlendMode, Particle, ParticleEmitter, merge_alpha_over_rgba, rasterize_roto_mask,
@@ -91,7 +93,6 @@ use encoders::{
     prefer_software_audio_encoder, prefer_software_h264_encoder,
 };
 use ges_timeline::{build_timeline, render_timeline, slice_document};
-pub(crate) use encoders::GST_INIT;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RenderProgress {
@@ -221,25 +222,7 @@ pub fn render_project_range_with_control(
     let output_path = absolute_output_path(output_path)?;
     let _render_guard = ges_timeline::RENDER_GATE.lock().map_err(|_| "Render lock poisoned")?;
 
-        GST_INIT
-        .get_or_init(|| {
-            gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
-            ges::init().map_err(|error| {
-                format!("Could not initialize GStreamer Editing Services: {error}")
-            })?;
-            graphics_element::register()
-                .map_err(|error| format!("Could not register the graphics element: {error}"))?;
-            automation_element::register().map_err(|error| {
-                format!("Could not register the audio automation element: {error}")
-            })?;
-            keyframe_element::register().map_err(|error| {
-                format!("Could not register the keyframe video element: {error}")
-            })?;
-            plugin_element::register().map_err(|error| {
-                format!("Could not register the audio plugin element: {error}")
-            })
-        })
-        .clone()?;
+    init_media_runtime()?;
 
     // GStreamer normally gives several optional hardware encoders rank NONE.
     // Raise an installed H.264 hardware encoder above the software encoders so
@@ -365,25 +348,7 @@ pub fn render_frame(
     }
     let output_path = absolute_output_path(output_path)?;
 
-    GST_INIT
-        .get_or_init(|| {
-            gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
-            ges::init().map_err(|error| {
-                format!("Could not initialize GStreamer Editing Services: {error}")
-            })?;
-            graphics_element::register()
-                .map_err(|error| format!("Could not register the graphics element: {error}"))?;
-            automation_element::register().map_err(|error| {
-                format!("Could not register the audio automation element: {error}")
-            })?;
-            keyframe_element::register().map_err(|error| {
-                format!("Could not register the keyframe video element: {error}")
-            })?;
-            plugin_element::register().map_err(|error| {
-                format!("Could not register the audio plugin element: {error}")
-            })
-        })
-        .clone()?;
+    init_media_runtime()?;
 
     // Reuse the matrix-proven render path instead of a bespoke preview
     // pipeline: a GES preview pull with a custom appsink deadlocks waiting

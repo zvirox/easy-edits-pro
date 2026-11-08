@@ -100,7 +100,7 @@ pub async fn import_network_media(
     let _ = app.asset_protocol_scope().allow_file(&target_file);
     register_allowed_media_path(&target_file);
 
-    gstreamer::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
+    saturn_render::init_media_runtime()?;
     let discoverer = Discoverer::new(gstreamer::ClockTime::from_seconds(30))
         .map_err(|error| format!("Could not create media scanner: {error}"))?;
 

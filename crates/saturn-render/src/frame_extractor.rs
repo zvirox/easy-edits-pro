@@ -146,11 +146,7 @@ impl FrameDecoder {
         if !source.is_file() {
             return Err(format!("Source media is missing: {}", source.display()));
         }
-        crate::encoders::GST_INIT
-            .get_or_init(|| {
-                gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))
-            })
-            .clone()?;
+        crate::init_media_runtime()?;
         let uri = gst::glib::filename_to_uri(source, None)
             .map_err(|error| format!("Could not read media path {}: {error}", source.display()))?;
         let decodebin = gst::ElementFactory::make("uridecodebin")

@@ -71,25 +71,13 @@ pub(crate) fn render_mix(
     path: &std::path::Path,
 ) -> Result<(), String> {
     use gstreamer as gst;
-    use gstreamer_editing_services as ges;
     use gstreamer_pbutils as pb;
     use pb::encoding_profile::EncodingProfileBuilder;
     document.validate()?;
     let _render_guard = crate::ges_timeline::RENDER_GATE
         .lock()
         .map_err(|_| "Render lock poisoned")?;
-    crate::GST_INIT
-        .get_or_init(|| {
-            gst::init().map_err(|e| e.to_string())?;
-            ges::init().map_err(|e| e.to_string())?;
-            crate::graphics_element::register().map_err(|e| e.to_string())?;
-            crate::automation_element::register().map_err(|e| e.to_string())?;
-            crate::keyframe_element::register().map_err(|e| e.to_string())?;
-            crate::plugin_element::register().map_err(|e| e.to_string())
-        })
-        .clone()?;
-    // Hardware discovery may have initialized GST_INIT before a render.
-    crate::plugin_element::register().map_err(|e| e.to_string())?;
+    crate::init_media_runtime()?;
     let timeline = crate::ges_timeline::build_timeline(document)?;
     let raw = gst::Caps::builder("audio/x-raw")
         .field("format", "F32LE")

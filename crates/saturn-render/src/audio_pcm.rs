@@ -66,7 +66,7 @@ pub(crate) fn decode_audio_pcm_constrained(
     rate: Option<u32>,
     channels: Option<u32>,
 ) -> Result<DecodedAudio, String> {
-    gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
+    crate::init_media_runtime()?;
     if !source.is_file() {
         return Err(format!("Audio source is missing: {}", source.display()));
     }

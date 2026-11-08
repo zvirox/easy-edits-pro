@@ -150,7 +150,7 @@ pub async fn prepare_video_preview(
             return Ok(Some(source.to_string_lossy().into_owned()));
         }
 
-        gstreamer::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
+        saturn_render::init_media_runtime()?;
 
         let metadata = std::fs::metadata(&source)
             .map_err(|error| format!("Could not inspect source video: {error}"))?;
@@ -308,7 +308,7 @@ pub async fn prepare_video_preview(
 #[tauri::command]
 pub async fn probe_media_for_update(path: String) -> Result<Value, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        gstreamer::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
+        saturn_render::init_media_runtime()?;
         let discoverer = Discoverer::new(gstreamer::ClockTime::from_seconds(30))
             .map_err(|error| format!("Could not create media scanner: {error}"))?;
         let canonical_path = PathBuf::from(&path)
@@ -347,7 +347,7 @@ pub async fn import_media(
     let jobs = Arc::clone(&state.1);
     let preview = Arc::clone(&state.2);
     tauri::async_runtime::spawn_blocking(move || {
-        gstreamer::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
+        saturn_render::init_media_runtime()?;
         let discoverer = Discoverer::new(gstreamer::ClockTime::from_seconds(30))
             .map_err(|error| format!("Could not create media scanner: {error}"))?;
         let mut discovered = Vec::new();

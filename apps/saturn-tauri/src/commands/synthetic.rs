@@ -120,7 +120,7 @@ pub fn write_solid_rgba_png(
 // --- Bars and tone (GStreamer) ---
 
 fn generate_bars_tone_mp4(path: &Path, width: u32, height: u32, duration_secs: f64) -> Result<(), String> {
-    gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
+    saturn_render::init_media_runtime()?;
     let frames = (duration_secs * 30.0).ceil().max(1.0) as u64;
     let audio_buffers = (duration_secs * 48_000.0).ceil().max(1.0) as u64 / 4_800 + 1;
     // videotestsrc's smpte pattern + 1 kHz sine, AAC audio, H.264 video.

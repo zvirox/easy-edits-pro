@@ -11,15 +11,7 @@ use gstreamer::prelude::*;
 use gstreamer_pbutils as gst_pbutils;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
-use std::sync::OnceLock;
-
-use crate::automation_element;
-use crate::graphics_element;
-use crate::keyframe_element;
-use gstreamer_editing_services as ges;
 use gstreamer_pbutils::prelude::*;
-
-pub(crate) static GST_INIT: OnceLock<Result<(), String>> = OnceLock::new();
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -32,17 +24,15 @@ pub struct HardwareEncoderInfo {
 }
 
 pub fn detect_hardware_encoders() -> HardwareEncoderInfo {
-    let _ = GST_INIT.get_or_init(|| {
-        gst::init().map_err(|error| format!("Could not initialize GStreamer: {error}"))?;
-        graphics_element::register()
-            .map_err(|error| format!("Could not register the graphics element: {error}"))?;
-        automation_element::register()
-            .map_err(|error| format!("Could not register the audio automation element: {error}"))?;
-        keyframe_element::register()
-            .map_err(|error| format!("Could not register the keyframe video element: {error}"))?;
-        ges::init()
-            .map_err(|error| format!("Could not initialize GStreamer Editing Services: {error}"))
-    });
+    if let Err(error) = crate::init_media_runtime() {
+        return HardwareEncoderInfo {
+            has_hardware_encoder: false,
+            preferred_encoder: String::new(),
+            encoder_type: "unavailable".into(),
+            description: error,
+            available_encoders: Vec::new(),
+        };
+    }
 
     let candidates = [
         (
@@ -274,7 +264,7 @@ mod tests {
         // rank MARGINAL and above, but libav registers avenc_aac at rank
         // NONE; the override must lift it for the render and restore the
         // real rank afterwards.
-        gst::init().unwrap();
+        crate::init_media_runtime().unwrap();
         let factory = gst::ElementFactory::find("avenc_aac");
         let factory = match factory {
             Some(factory) => factory,
