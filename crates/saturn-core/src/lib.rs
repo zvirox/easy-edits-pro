@@ -5,6 +5,7 @@ pub mod catalogue;
 pub mod audio_edit;
 pub mod asymmetric_trim;
 pub mod match_cut;
+pub mod beat_grid;
 pub mod branch;
 pub mod color;
 pub mod command;

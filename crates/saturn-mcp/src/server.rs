@@ -284,6 +284,7 @@ impl EditorMcp {
             "color_read_scopes" => self.color_read_scopes(&arguments).await,
             "audio_process" => self.audio_process(&arguments).await,
             "edit_match_cut_align" => self.edit_match_cut_align(&arguments).await,
+            "timeline_beat_grid_quantize" => self.timeline_beat_grid_quantize(&arguments).await,
             "color_match_shot_to_reference" => {
                 self.color_match_shot_to_reference(&arguments).await
             }

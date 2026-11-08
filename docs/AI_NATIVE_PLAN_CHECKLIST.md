@@ -216,10 +216,10 @@ contracts, limits and test locations: [audio-processing.md](audio-processing.md)
 ### Packet 5.1 — Narrative editing verbs (Lane 2)
 - [x] Implement `timeline.asymmetric_trim` (J/L-cuts with constant-power crossfade; first-task slice described below)
 - [x] Implement `edit.match_cut_align` (eye_trace | motion | transient; bounded heuristics described below)
-- [ ] Implement `timeline.beat_grid_quantize`
+- [x] Implement `timeline.beat_grid_quantize` (bounded constant-pulse heuristic; explicit downbeat for 4/4 bar/half)
 - [ ] Implement `timeline.fluid_morph_cut`
 - [ ] Implement `timeline.pin_clip_to_storyline` (magnetic storyline pins in `saturn-timeline`)
-- [x] Run `pnpm catalogue:sync` for J/L and match-cut slices (rerun for each remaining verb)
+- [x] Run `pnpm catalogue:sync` for J/L, match-cut and beat-grid slices (rerun for each remaining verb)
 
 **Packet 5.1, first-task slice — J/L split edits:** select the incoming clip of
 an adjacent video pair via **Sequence > Trim > Create J/L Split Edit...**.
@@ -259,7 +259,17 @@ No-signal analysis errors; no-op results preserve history. Align before J/L
 detachment. Native fixtures verify real picture/sound changes, deterministic
 sampling and selection, decoy rejection, and unaligned export controls.
 See [match-cut-alignment.md](match-cut-alignment.md) for workflow and bounds.
-The other three Packet 5.1 verbs and Packet 5.2 remain planned.
+**Packet 5.1, third-task slice — beat-grid quantization:** **Sequence > Trim >
+Quantize Cuts to Music...** and `timeline_beat_grid_quantize` share bounded,
+model-free raw-music analysis. RMS-rise autocorrelation and a weighted pulse fit
+produce a 60–200 BPM grid with measured support/residual statistics. Bar/half
+require a caller-supplied downbeat and assume 4/4. All cuts in a continuous
+2–128 clip video strip roll atomically, preserving outer edges and source mapping;
+collisions, insufficient handles and stale snapshots error. Quantize before
+detaching sound. Core history/persistence, native rendered cut/audio controls,
+MCP preparation and browser menu/error contracts have focused coverage.
+See [beat-grid-quantization.md](beat-grid-quantization.md) for bounds and limits.
+Morph cuts, storyline pins and Packet 5.2 remain planned.
 
 ### Packet 5.2 — Co-editing React 19 panels (Lane 1)
 

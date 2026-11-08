@@ -116,12 +116,19 @@ async fn dispatch(request: Value, app: &AppHandle, state: &AppState) -> Value {
     let result = match method {
         "command_list" => command_list(state, &params),
         "edit_match_cut_align" => edit_match_cut_align(app, state, &params).await,
+        "timeline_beat_grid_quantize" => timeline_beat_grid_quantize(app, state, &params).await,
         "command_run" => {
             let id = params.get("id").and_then(Value::as_str);
             let Some(id) = id else {
                 return json!({"error": "command_run requires a string id"});
             };
             let command_params = params.get("params").cloned().unwrap_or_else(|| json!({}));
+            if id == "timeline.beat_grid_quantize" && command_params.get("expected_digest").is_none() {
+                return match timeline_beat_grid_quantize(app, state, &command_params).await {
+                    Ok(value) => json!({"result": value}),
+                    Err(error) => json!({"error": error}),
+                };
+            }
             if id == "edit.match_cut_align" && command_params.get("expected_digest").is_none() {
                 return match edit_match_cut_align(app, state, &command_params).await {
                     Ok(value) => json!({"result": value}),
@@ -441,6 +448,17 @@ async fn edit_match_cut_align(app: &AppHandle, state: &AppState, params: &Value)
     let prepared = tauri::async_runtime::spawn_blocking(move || {
         saturn_render::match_cut::prepare(&document, &params)
     }).await.map_err(|e| format!("Match-cut analysis task failed: {e}"))??;
+    let applied = execute_command_with_state(app, state, prepared.command)?;
+    let _ = app.emit("mcp_project_changed", ());
+    Ok(json!({"applied": applied, "telemetry": prepared.telemetry}))
+}
+
+async fn timeline_beat_grid_quantize(app: &AppHandle, state: &AppState, params: &Value) -> Result<Value, String> {
+    let document = document_snapshot(state)?;
+    let params = params.clone();
+    let prepared = tauri::async_runtime::spawn_blocking(move || {
+        saturn_render::beat_grid::prepare(&document, &params)
+    }).await.map_err(|e| format!("Beat-grid analysis task failed: {e}"))??;
     let applied = execute_command_with_state(app, state, prepared.command)?;
     let _ = app.emit("mcp_project_changed", ());
     Ok(json!({"applied": applied, "telemetry": prepared.telemetry}))

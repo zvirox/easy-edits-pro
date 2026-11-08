@@ -532,7 +532,7 @@ slip. See [match-cut-alignment.md](match-cut-alignment.md).
 | **Branching** | `project.branch_merge` | `{"source":str, "target":str, "range_ticks":[ticks,ticks]?}` | Merges all or a specific tick range from `source` branch into `target`. | 
 | **Narrative Edit** | `timeline.asymmetric_trim` | `{"track_id":int, "clip_index":int, "video_delta":ticks, "audio_delta":ticks, "fade_ticks":ticks?}` | Atomic J-cut / L-cut split-edit with constant-power audio crossfade. | 
 | **Narrative Edit** | `edit.match_cut_align` | `{"track_id":int, "left_clip_index":int, "right_clip_index":int, "mode":"eye_trace|motion|transient", "search_frames":int?}` | Bounded incoming source slip using contrast-centroid heuristic, signed block motion, or attack-envelope matching; prepare via `edit_match_cut_align`. |
-| **Narrative Edit** | `timeline.beat_grid_quantize` | `{"music_track_id":int, "video_track_id":int, "subdivision":"bar|half|quarter", "strength":num}` | Quantizes video cut points to detected musical downbeats/transients. | 
+| **Narrative Edit** | `timeline.beat_grid_quantize` | `{"music_track_id":int, "video_track_id":int, "subdivision":"bar|half|quarter", "strength":num, "downbeat_tick":ticks?}` | Rolls adjacent video cuts to a measured constant-pulse music grid; bar/half require a known downbeat and assume 4/4. |
 | **Narrative Edit** | `timeline.fluid_morph_cut` | `{"track_id":int, "cut_at":ticks, "duration":ticks}` | Synthesizes bidirectional optical-flow frames + room-tone crossfade over jump cuts. | 
 | **Narrative Edit** | `timeline.pin_clip_to_storyline` | `{"child_track_id":int, "child_clip_index":int, "parent_track_id":int, "parent_clip_index":int}` | Locks B-roll/title/SFX clip to a primary dialogue clip so ripple edits move both together. | 
 | **Script & Speech** | `speech.transcribe_media` | `{"media_id":int?, "model":"base|small|medium|large-v3", "diarize":bool?}` | Runs real local Whisper inference (`saturn-perception`) and stores word-level ticks. | 
@@ -721,7 +721,9 @@ Each phase is divided into atomic packets mapped to the repository's four owners
 
    * Match-cut implementation: `edit_match_cut_align` prepares raw-source measurements outside the editor lock, then applies `edit.match_cut_align` atomically with stale-snapshot rejection. The desktop menu selects the incoming clip and uniquely adjacent predecessor. Only incoming `source_in` changes; equal matches prefer minimum slip, and no-signal analysis errors. See [match-cut-alignment.md](match-cut-alignment.md) for heuristic definitions, bounds, unsupported states and native render evidence.
 
-   * Remaining: implement `timeline.beat_grid_quantize`, `timeline.fluid_morph_cut`, and `timeline.pin_clip_to_storyline` in focused core timeline-edit modules.
+   * Beat-grid implementation: `timeline_beat_grid_quantize` and the desktop menu prepare bounded RMS-rise pulse measurements outside the editor lock. `timeline.beat_grid_quantize` rolls every internal cut of a continuous video strip atomically, preserving outer edges and source mapping. Bar/half require a caller-supplied downbeat and assume 4/4; the constant-pulse heuristic does not recognize musical meter. See [beat-grid-quantization.md](beat-grid-quantization.md) for validation, telemetry, limitations and rendered evidence.
+
+   * Remaining: implement `timeline.fluid_morph_cut` and `timeline.pin_clip_to_storyline` in focused core timeline-edit modules.
 
   * Run `pnpm catalogue:sync` to regenerate `docs/COMMANDS.md` and `docs/reference/command-catalogue.json`.
 

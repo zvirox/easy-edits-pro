@@ -83,6 +83,12 @@ features, `saturn-render::match_cut` searches available handles, and the core
 applies only incoming `source_in`. The desktop menu and `edit_match_cut_align`
 MCP tool share preparation. [Workflow, measurements and limits](match-cut-alignment.md).
 
+Beat-grid quantization uses the same off-lock measurement and atomic application
+boundary: `saturn-perception::beat_grid` fits a constant pulse train,
+`saturn-render::beat_grid` decodes the bounded music range, and the core plans all
+video cut rolls against one snapshot. Desktop and MCP use the shared preparation;
+the core rejects stale or infeasible batches. [Workflow and limits](beat-grid-quantization.md).
+
 ## Module map
 
 - `apps/saturn-tauri/src/main.rs` owns the Tauri builder, invoke registration,

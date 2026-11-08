@@ -215,6 +215,22 @@ pub(super) fn tool_list() -> Vec<Tool> {
                 })),
             ),
             Tool::new(
+                "timeline_beat_grid_quantize",
+                "Roll cuts in a continuous 2-128 clip video track onto a measured music pulse grid, preserving outer edges and source-to-timeline mapping in one undoable transaction. Analyze 4-120 seconds of one raw mono/stereo music clip covering the strip. Constant 60-200 BPM RMS-rise heuristic; no meter recognition, and half/double-tempo ambiguity is possible. Bar/half require a caller-supplied downbeat_tick and assume 4/4. Rejects gaps, overlaps, transitions, processing, linked/retimed clips, insufficient handles, collisions and stale snapshots. Quantize before detaching sound. Returns applied cut positions and measured fit telemetry.",
+                schema(json!({
+                    "type": "object", "additionalProperties": false,
+                    "properties": {
+                        "music_track_id": {"type": "integer", "minimum": 0},
+                        "video_track_id": {"type": "integer", "minimum": 0},
+                        "subdivision": {"type": "string", "enum": ["bar", "half", "quarter"]},
+                        "strength": {"type": "number", "minimum": 0, "maximum": 1},
+                        "downbeat_tick": {"type": "integer", "minimum": 0, "description": "Known bar-start timeline tick; must align with a measured beat"}
+                    },
+                    "required": ["music_track_id", "video_track_id", "subdivision", "strength"],
+                    "allOf": [{"if": {"properties": {"subdivision": {"enum": ["bar", "half"]}}}, "then": {"required": ["downbeat_tick"]}}]
+                })),
+            ),
+            Tool::new(
                 "audio_process",
                 "Prepare and atomically apply an undoable offline audio edit to a saved project (maximum 120 seconds). phase_align: two single-clip audio tracks, raw-source GCC-PHAT with fractional correction. room_tone: caller-selected speech-free profile, spectral gap synthesis with in-gap fades. duck: energy-keyed dialogue ducking, requires empty music volume and pan automation lanes. normalize_master: render the full mix to float WAV, measure/limit/normalize, retain and mute original tracks, add an audible master bounce. asymmetric_trim: select the incoming video clip of an adjacent pair, roll the picture cut by video_delta ticks, move sound by audio_delta ticks, and bake a centered constant-power fade (default 40 ms) to an editable audio track. Requires plain unretimed video clips with source handles and mono/stereo audio; both deltas are relative to the original cut. Derived media is stored beside the project; stale analyses are rejected. Cinema stem separation is not available.",
                 schema(json!({

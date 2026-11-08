@@ -204,6 +204,52 @@ export function buildTrimCommandParams(
       return { params: { track_id: selected.track_id, left_clip_index: predecessors[0],
         right_clip_index: selected.clip_index, mode, search_frames: searchFrames } };
     }
+    case "timeline.beat_grid_quantize": {
+      const tracks = ctx.project?.sequence.tracks ?? [];
+      const video = tracks.filter((t) => t.kind === "video");
+      const music = tracks.filter((t) => t.kind === "audio");
+      if (!video.length || !music.length) {
+        return { notice: "Add a continuous video strip and a music clip on an audio track", cancel: true };
+      }
+      const ids: number[] = [];
+      for (const [label, choices, initial] of [
+        ["Video track to quantize (all cuts; outer edges stay fixed)", video, ctx.selectedClip?.track_id],
+        ["Music reference track (one clip covering the video strip)", music, undefined],
+      ] as const) {
+        const input = window.prompt(`${label}:\n${choices.map((t) => `${t.id}: ${t.name}`).join("\n")}`,
+          String(choices.find((t) => t.id === initial)?.id ?? choices[0].id));
+        if (input === null) return { cancel: true };
+        const id = Number(input.trim());
+        if (!input.trim() || !Number.isSafeInteger(id) || !choices.some((t) => t.id === id)) {
+          return { notice: "Enter a track ID from the list", cancel: true };
+        }
+        ids.push(id);
+      }
+      const input = window.prompt("Grid: quarter (detected pulses), half, or bar. Half and bar assume 4/4 and need a known downbeat. Quantize before detaching sound.", "quarter");
+      if (input === null) return { cancel: true };
+      const subdivision = input.trim().toLowerCase();
+      if (!["bar", "half", "quarter"].includes(subdivision)) {
+        return { notice: "Enter bar, half, or quarter", cancel: true };
+      }
+      const amount = window.prompt("Quantize strength from 0 to 1 (0 = keep cuts, 1 = nearest grid point)", "1");
+      if (amount === null) return { cancel: true };
+      const strength = Number(amount.trim());
+      if (!amount.trim() || !Number.isFinite(strength) || strength < 0 || strength > 1) {
+        return { notice: "Enter a strength from 0 to 1", cancel: true };
+      }
+      const params: Record<string, unknown> = { video_track_id: ids[0], music_track_id: ids[1], subdivision, strength };
+      if (subdivision !== "quarter") {
+        const input = window.prompt("Known bar-start position in timeline seconds (must align with a detected beat; 4/4 meter)", String(ctx.playhead));
+        if (input === null) return { cancel: true };
+        const seconds = Number(input.trim());
+        const ticks = Math.round(seconds * TICKS_PER_SECOND);
+        if (!input.trim() || seconds < 0 || !Number.isSafeInteger(ticks)) {
+          return { notice: "Enter a nonnegative bar-start position in seconds", cancel: true };
+        }
+        params.downbeat_tick = ticks;
+      }
+      return { params };
+    }
     case "timeline.asymmetric_trim": {
       const selected = ctx.selectedClip;
       if (!selected) return { notice: "Select the incoming video clip of an adjacent pair", cancel: true };

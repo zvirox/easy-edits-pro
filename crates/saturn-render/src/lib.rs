@@ -19,6 +19,7 @@ pub mod audio_pcm;
 pub mod audio_edit_driver;
 pub mod asymmetric_trim;
 pub mod match_cut;
+pub mod beat_grid;
 pub mod audio_edit_files;
 pub mod audio_master;
 pub mod audio_telemetry;

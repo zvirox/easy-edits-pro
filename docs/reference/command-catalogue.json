@@ -6674,6 +6674,26 @@
   },
   {
     "aliases": [
+      "beat grid",
+      "cut to beat"
+    ],
+    "category": "Sequence",
+    "id": "timeline.beat_grid_quantize",
+    "label": "Quantize Cuts to Music...",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"music_track_id\":int,\"video_track_id\":int,\"subdivision\":\"bar|half|quarter\",\"strength\":num,\"downbeat_tick\":ticks?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
       "J cut",
       "L cut",
       "split edit"

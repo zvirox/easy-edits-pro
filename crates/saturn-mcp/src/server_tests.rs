@@ -10,6 +10,60 @@ use tokio::{
 };
 
 #[tokio::test]
+async fn beat_grid_errors_and_forwards_exact_bridge_request() {
+    let mcp = EditorMcp::new(EditorEngine::default());
+    let args = json!({"video_track_id":1,"music_track_id":2,"subdivision":"quarter","strength":1.0});
+    assert!(mcp.timeline_beat_grid_quantize(&args).await.unwrap_err().contains("continuous video strip"));
+    let path = std::env::temp_dir().join(format!("eep-beat-tool-{}.sock", std::process::id()));
+    let listener = UnixListener::bind(&path).unwrap();
+    let client = EditorMcp { backend: Backend::Bridge(path.clone()), jobs: Arc::new(JobManager::new(1)) };
+    let expected = args.clone();
+    let server = tokio::spawn(async move {
+        let (stream, _) = listener.accept().await.unwrap();
+        let (read, mut write) = stream.into_split();
+        let mut line = String::new();
+        BufReader::new(read).read_line(&mut line).await.unwrap();
+        let request: Value = serde_json::from_str(&line).unwrap();
+        assert_eq!(request["method"], "timeline_beat_grid_quantize");
+        assert_eq!(request["params"], expected);
+        write.write_all(b"{\"error\":\"no stable pulse\"}\n").await.unwrap();
+    });
+    assert!(client.timeline_beat_grid_quantize(&args).await.unwrap_err().contains("no stable pulse"));
+    server.await.unwrap(); std::fs::remove_file(path).unwrap();
+}
+
+#[tokio::test]
+async fn beat_grid_headless_prepares_applies_and_returns_measurements() {
+    use saturn_core::{audio_edit::audio_clip, MediaAsset, MediaKind, ProjectDocument, Tick, TICKS_PER_SECOND};
+    let f = |n| Tick(n * (TICKS_PER_SECOND / 30));
+    let dir = std::env::temp_dir().join(format!("eep-beat-headless-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("pulse.wav");
+    let mut samples = vec![0.0; 16000 * 8];
+    for at in (8000..samples.len()-480).step_by(8000) {
+        for i in 0..480 { samples[at+i] = 0.5 * (1.0-i as f32/480.0); }
+    }
+    saturn_render::audio_edit_files::write_wav(&mut std::fs::File::create(&path).unwrap(), &samples, 1, 16000).unwrap();
+    let mut d = ProjectDocument::new("MCP beat edit");
+    d.project.media = vec![
+        MediaAsset { id: 3, path: "/picture.mkv".into(), kind: MediaKind::Video, duration: Some(f(600)), ..Default::default() },
+        MediaAsset { id: 4, path, kind: MediaKind::Audio, duration: Some(f(240)), audio_channels: Some(1), ..Default::default() },
+    ];
+    let mut right = audio_clip(3, f(82), f(98)); right.source_in = f(60);
+    d.project.sequence.tracks[0].clips = vec![audio_clip(3, f(0), f(82)), right];
+    d.project.sequence.tracks[1].clips = vec![audio_clip(4, f(0), f(240))];
+    d.project.next_id = 5;
+    let mut engine = EditorEngine::default(); engine.restore_recovery(d, None).unwrap();
+    let mcp = EditorMcp::new(engine);
+    let result = mcp.timeline_beat_grid_quantize(&json!({"music_track_id":2,"video_track_id":1,"subdivision":"quarter","strength":1})).await.unwrap();
+    assert_eq!(result["applied"]["changed_cuts"], 1);
+    assert_eq!(result["applied"]["cuts"][0]["tick"], json!(f(75)));
+    assert!((result["telemetry"]["tempo_bpm"].as_f64().unwrap()-120.0).abs()<0.01);
+    assert_eq!(mcp.headless_document().await.unwrap().project.sequence.tracks[0].clips[1].timeline_start, f(75));
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+#[tokio::test]
 async fn match_cut_errors_and_forwards_exact_bridge_request() {
     let mcp = EditorMcp::new(EditorEngine::default());
     let args = json!({"track_id":1,"left_clip_index":0,"right_clip_index":1,"mode":"motion"});

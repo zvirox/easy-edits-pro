@@ -10,6 +10,20 @@ use crate::catalogue::{Category, CommandSpec, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
+        id: "timeline.beat_grid_quantize",
+        label: "Quantize Cuts to Music...",
+        menu: &["Sequence", "Trim"],
+        shortcut: None,
+        params: "{\"music_track_id\":int,\"video_track_id\":int,\"subdivision\":\"bar|half|quarter\",\"strength\":num,\"downbeat_tick\":ticks?}",
+        category: Category::Sequence,
+        mutating: true,
+        undo_group: UndoGroup::Transaction,
+        aliases: &["beat grid", "cut to beat"],
+        since: "0.4.0",
+        shipped: true,
+        ui_only: false,
+    },
+    CommandSpec {
         id: "timeline.asymmetric_trim",
         label: "Create J/L Split Edit...",
         menu: &["Sequence", "Trim"],

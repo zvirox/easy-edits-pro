@@ -135,6 +135,17 @@ export async function run(ctx) {
   const matchRequest = await page.evaluate(() => window.__commandRequests.findLast(r => r.id === 'edit.match_cut_align'));
   assert.deepEqual(matchRequest.params, { track_id: 1, left_clip_index: 0, right_clip_index: 1, mode: 'motion', search_frames: 12 });
   assert.equal(await page.locator('.timeline-clip').count(), 2, 'failed matching must keep both clips');
+  ctx.dialogPrompts = ['1', '2', 'bar', '0.75', '0.5'];
+  await menuBar.getByRole('button', { name: 'Sequence', exact: true }).click();
+  const beatGrid = page.locator('.menu-popover').getByText('Quantize Cuts to Music...', { exact: true });
+  await beatGrid.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '/tmp/opencode/easy-edits-pro-beat-grid-menu.png' });
+  await beatGrid.click();
+  await page.getByText('Error: Beat-grid analysis is unavailable in the browser mock', { exact: true }).waitFor();
+  const beatRequest = await page.evaluate(() => window.__commandRequests.findLast(r => r.id === 'timeline.beat_grid_quantize'));
+  assert.deepEqual(beatRequest.params, { video_track_id: 1, music_track_id: 2,
+    subdivision: 'bar', strength: 0.75, downbeat_tick: 254016000000 * 0.5 });
+  assert.equal(await page.locator('.timeline-clip').count(), 2, 'failed quantization must keep both clips');
   await page.locator('.app-shell').press('Control+z');
   await page.locator('.timeline-clip').first().waitFor();
   assert.equal(await page.locator('.timeline-clip').count(), 1, 'undo should restore the split clip');

@@ -14,6 +14,7 @@
 
 pub mod color_metrics;
 pub mod match_cut;
+pub mod beat_grid;
 pub mod depth_ort;
 pub mod embeddings;
 pub mod index_db;

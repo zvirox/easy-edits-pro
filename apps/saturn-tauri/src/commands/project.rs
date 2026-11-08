@@ -17,7 +17,7 @@ pub async fn execute_command(
     state: State<'_, AppState>,
     request: CommandRequest,
 ) -> Result<Value, String> {
-    if matches!(request.id.as_str(), "timeline.asymmetric_trim" | "edit.match_cut_align") {
+    if matches!(request.id.as_str(), "timeline.asymmetric_trim" | "edit.match_cut_align" | "timeline.beat_grid_quantize") {
         let state = AppState(
             Arc::clone(&state.0),
             Arc::clone(&state.1),
@@ -51,6 +51,13 @@ pub fn execute_command_with_state(
     {
         let document = state.0.lock().map_err(|_| "Editor state is unavailable")?.document().clone();
         let edit = saturn_render::match_cut::prepare(&document, &request.params)?;
+        request = edit.command;
+        Some(edit.telemetry)
+    } else if command_id == "timeline.beat_grid_quantize"
+        && request.params.get("expected_digest").is_none()
+    {
+        let document = state.0.lock().map_err(|_| "Editor state is unavailable")?.document().clone();
+        let edit = saturn_render::beat_grid::prepare(&document, &request.params)?;
         request = edit.command;
         Some(edit.telemetry)
     } else { None };
