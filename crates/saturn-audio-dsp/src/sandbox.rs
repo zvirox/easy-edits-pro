@@ -302,9 +302,20 @@ impl SandboxSession {
         let mut line = serde_json::to_string(command)
             .map_err(|err| DspError::Sandbox(format!("command encode: {err}")))?;
         line.push('\n');
-        socket
-            .write_all(line.as_bytes())
-            .map_err(|err| DspError::Sandbox(format!("command write: {err}")))
+        socket.write_all(line.as_bytes()).map_err(|err| {
+            // A worker can exit after the liveness check but before this
+            // write. Normalize that unavoidable TOCTOU window instead of
+            // leaking an opaque `Broken pipe` / `Connection reset` syscall
+            // error to render logs.
+            match err.kind() {
+                std::io::ErrorKind::BrokenPipe
+                | std::io::ErrorKind::ConnectionAborted
+                | std::io::ErrorKind::ConnectionReset => DspError::Sandbox(format!(
+                    "worker control connection closed during command write: {err}"
+                )),
+                _ => DspError::Sandbox(format!("command write failed: {err}")),
+            }
+        })
     }
 
     /// Reads the worker's terminal reply for the last command; maps

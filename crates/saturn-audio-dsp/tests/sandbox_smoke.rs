@@ -174,9 +174,10 @@ fn second_consecutive_crash_is_typed_sandbox_error() {
         Err(other) => panic!("wrong error kind: {other}"),
         Ok(()) => panic!("a second consecutive crash must not silently succeed"),
     };
+    let text = err.to_string();
     assert!(
-        err.to_string().contains("worker exited"),
-        "unhelpful sandbox error: {err}"
+        text.contains("worker exited") || text.contains("worker control connection closed"),
+        "unhelpful sandbox error: {text}"
     );
 
     clear_worker_env();
