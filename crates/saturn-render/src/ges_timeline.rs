@@ -21,6 +21,7 @@ use crate::automation_element;
 use crate::graphics_element::{self, ELEMENT_NAME};
 use crate::keyframe_element;
 use crate::keyframes;
+use crate::plugin_element;
 use crate::{RenderProgress, RenderRange};
 
 pub(crate) fn render_timeline(
@@ -222,6 +223,26 @@ pub(crate) fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline
             .map_err(|error| format!("Could not serialize track automation: {error}"))?;
     }
 
+    // Packet 4.1: stage per-track CLAP plugin chains for the saturnaudioplug
+    // element. A track gets a payload when its persisted chain has slots; the
+    // element runs the same sandboxed host chain the export render uses.
+    let plugin_payloads: Vec<plugin_element::PluginChainPayload> = document
+        .project
+        .sequence
+        .tracks
+        .iter()
+        .filter(|track| matches!(track.kind, TrackKind::Audio))
+        .filter(|track| !track.dsp_plugin_chain.is_empty())
+        .map(|track| plugin_element::PluginChainPayload {
+            track_id: track.id,
+            slots: track.dsp_plugin_chain.clone(),
+        })
+        .collect();
+    if !plugin_payloads.is_empty() {
+        plugin_element::stage_plugin_chains(&plugin_payloads)
+            .map_err(|error| format!("Could not serialize track plugin chains: {error}"))?;
+    }
+
     // F4: stage per-clip visual keyframes for the saturnkfvid element. A clip
     // gets a payload when its model has position/scale/rotation/opacity
     // keyframes; curve times shift to timeline-absolute ticks so the element
@@ -332,6 +353,9 @@ pub(crate) fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline
                 effective_clip_gain_db,
                 &track.audio_processing,
                 track_automation_payload,
+                plugin_payloads
+                    .iter()
+                    .find(|payload| payload.track_id == track.id),
                 keyframe_clip_key,
                 matches!(media.kind, MediaKind::Video | MediaKind::Image),
                 document.project.settings.width,
@@ -391,6 +415,7 @@ fn apply_clip_effects(
     gain_db: f64,
     audio_proc: &TrackAudioProcessing,
     automation_payload: Option<&automation_element::AudioAutomationPayload>,
+    plugin_payload: Option<&plugin_element::PluginChainPayload>,
     keyframe_clip_key: Option<u64>,
     has_video: bool,
     project_width: u32,
@@ -532,6 +557,17 @@ fn apply_clip_effects(
             .map_err(|error| format!("Could not create track gain effect: {error}"))?;
         clip.add_top_effect(&effect, -1)
             .map_err(|error| format!("Could not apply track gain effect: {error}"))?;
+    }
+    if let Some(payload) = plugin_payload {
+        // Packet 4.1: the track's CLAP chain rides saturnaudioplug, running
+        // the sandboxed worker the parity gate compares to the export render.
+        let effect_str = format!("{} track-id={}", plugin_element::ELEMENT_NAME, payload.track_id);
+        match ges::Effect::new(&effect_str) {
+            Ok(effect) => clip
+                .add_top_effect(&effect, -1)
+                .map_err(|error| format!("Could not apply track plugin effect: {error}"))?,
+            Err(error) => return Err(format!("Could not create track plugin effect: {error}")),
+        }
     }
     for effect_str in eq_effect_strings(audio_proc) {
         let effect = ges::Effect::new(&effect_str)

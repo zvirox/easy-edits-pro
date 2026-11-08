@@ -158,6 +158,11 @@ pub struct Track {
     pub bus: BusTarget,
     #[serde(default)]
     pub automation: TrackAutomation,
+    /// Third-party plugin chain applied to this track's audio in the
+    /// render path, ordered first-to-last. Empty by default; old projects
+    /// deserialize unchanged.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub dsp_plugin_chain: Vec<DspPluginSlot>,
     pub clips: Vec<Clip>,
     #[serde(default)]
     pub transitions: Vec<Transition>,

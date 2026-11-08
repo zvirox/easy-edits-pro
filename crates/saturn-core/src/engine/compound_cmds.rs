@@ -117,6 +117,7 @@ impl EditorEngine {
                             audio_processing: orig_track.audio_processing.clone(),
                             bus: orig_track.bus,
                             automation: TrackAutomation::default(),
+                            dsp_plugin_chain: orig_track.dsp_plugin_chain.clone(),
                             clips: Vec::new(),
                             transitions: Vec::new(),
                         });
@@ -366,6 +367,7 @@ impl EditorEngine {
                             audio_processing: nested_track.audio_processing.clone(),
                             bus: nested_track.bus,
                             automation: TrackAutomation::default(),
+                            dsp_plugin_chain: nested_track.dsp_plugin_chain.clone(),
                             clips: Vec::new(),
                             transitions: Vec::new(),
                         });

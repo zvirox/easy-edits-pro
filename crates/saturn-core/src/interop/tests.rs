@@ -57,6 +57,7 @@ fn sample_project() -> ProjectDocument {
         audio_processing: Default::default(),
         bus: Default::default(),
         automation: Default::default(),
+        dsp_plugin_chain: Vec::new(),
         clips: vec![clip],
         transitions: Vec::new(),
     }];

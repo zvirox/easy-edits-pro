@@ -980,6 +980,40 @@
   },
   {
     "aliases": [],
+    "category": "Sequence",
+    "id": "dsp.load_plugin",
+    "label": "Load Track Plugin",
+    "menu": [
+      "Audio",
+      "DSP Plugins"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"format\":str,\"path\":str,\"plugin_id\":str,\"enabled\":bool?,\"params\":obj?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Sequence",
+    "id": "dsp.set_plugin_param",
+    "label": "Set Track Plugin Parameter",
+    "menu": [
+      "Audio",
+      "DSP Plugins"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"slot_index\":int,\"param_id\":int,\"value\":num}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
     "category": "Edit",
     "id": "edit.undo",
     "label": "Undo",

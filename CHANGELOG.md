@@ -10,6 +10,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Native CLAP plugin hosting + render parity (Packet 4.1):** the
+  `saturn-audio-dsp` crate hosts CLAP plugin chains through `clack-host`
+  (in-process and out-of-process), with track chains persisted as
+  `Track.dsp_plugin_chain` slots. `dsp.load_plugin` / `dsp.set_plugin_param`
+  engine commands (458 commands now, both `since` 0.4.0, transaction-undo)
+  validate plugin format (CLAP only — other format tags stay schema-valid
+  but are refused at the command layer), trusted plugin paths
+  (`$HOME/.clap`, XDG `clap`, `/usr/{,local/}lib/clap`, operator-opt-in
+  `SATURN_PLUGIN_ROOT`), 0..=1 parameter values, and the 64-slot chain cap.
+  Plugins run in a dedicated `saturn-plugin-worker` child process over a
+  UDS control channel + `/dev/shm` SPSC rings (one command in flight; one
+  typed auto-respawn and replay after a crash, then a typed
+  `DspError::Sandbox`; an explicitly set `SATURN_PLUGIN_WORKER_BIN` override
+  is honoured exactly or fails). The render engine stages chain payloads to
+  the new `saturnaudioplug` GStreamer element and attaches it per audio clip
+  with a non-empty chain — the identical sandboxed host the parity test
+  exercises: engine preview render vs full export render match within
+  −90 dBFS (the Packet 4.1 gate), and the element-level run measures the
+  fixture gain plugin's exact ×2. Web preview stays the documented JS
+  approximation (plan §4.4).
+
 - **Automated shot matcher (Packet 3.3):** `color.match_shot_to_reference` fits a primary-wheels payload (exposure, per-channel gain, gamma, offset + skin-tone lock) from a target clip's measured quantile alignment against a reference hero shot's source frame and applies it as a provenance-tagged (`origin: "shot-match"`) color node through the validated engine command channel — driven identically by the desktop bridge (`color_match_shot_to_reference`) and the headless MCP tool, with the frame decode + fit on the blocking pool and only the checkpointed command under the engine lock. Verification gate (`tests/shot_match.rs`): mismatched-camera synthetic pair (−0.45 stops, cool WB, gamma crush) graded through the same persisted wheels payload the engine command applies lands at mean per-pixel CIEDE2000 ΔE ≈ 0.57 against the gate's < 1.5 threshold, with a worst 3×3-patch gate over the same domain (single pixels are 8-bit quantisation-limited near ΔE ≈ 1.8 per code step, so the patch mean is the honest fit-residual metric — documented in `docs/AI_NATIVE_PLAN_CHECKLIST.md` Packet 3.3 notes). Skin lock aligns the band's magnitude-weighted chroma hue-direction vector, not the vectorscope angle, and its statistics normalise by Σ chroma magnitude on decoded continuously re-encoded signal.
 
 ## [0.1.2-alpha.2] - 2026-11-07

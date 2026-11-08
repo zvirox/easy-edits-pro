@@ -11,6 +11,9 @@ members = [
     "crates/saturn-project",
     "crates/saturn-text",
     "crates/saturn-perception",
+    "crates/saturn-audio-dsp",
+    "crates/saturn-plugin-worker",
+    "crates/saturn-plugin-fixture",
 ]
 resolver = "3"
 

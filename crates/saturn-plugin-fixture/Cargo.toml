@@ -1,0 +1,14 @@
+[package]
+name = "saturn-plugin-fixture"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Reference CLAP plugin for Saturn DSP host tests (fixed +6.02 dB gain, param 0: 0..1)"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+clack-plugin = "=0.2.0"
+clack-common = "=0.2.0"
+clack-extensions = { version = "=0.2.0", features = ["clack-plugin", "params"] }

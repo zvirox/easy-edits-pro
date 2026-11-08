@@ -4,6 +4,7 @@
 mod captions;
 mod branch;
 mod color_nodes;
+mod dsp;
 mod history;
 mod media;
 mod ocio;

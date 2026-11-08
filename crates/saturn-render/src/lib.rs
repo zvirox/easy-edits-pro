@@ -26,6 +26,7 @@ pub mod graphics_element;
 pub mod keyframe_element;
 pub mod keyframes;
 pub mod graphics_overlay;
+pub mod plugin_element;
 pub mod preview_tools;
 pub mod scopes_gpu;
 pub mod shot_match;
@@ -53,6 +54,9 @@ pub use compositor::{
 };
 pub use curves::{apply_rgb_curves, apply_rgb_curves_buffer, evaluate_spline, generate_curve_lut};
 pub use automation_element::{AudioAutomationPayload, SaturnAudioAuto, ELEMENT_NAME as AUDIO_AUTOMATION_ELEMENT};
+pub use plugin_element::{
+    PluginChainPayload, SaturnAudioPlug, ELEMENT_NAME as AUDIO_PLUGIN_ELEMENT,
+};
 pub use encoders::{detect_hardware_encoders, HardwareEncoderInfo, OutputFormat};pub use graphics_element::{ELEMENT_NAME, SaturnGraphicsBlend, set_pending_graphics_json};
 pub use graphics_overlay::{GraphicLayer, render_graphics_overlay};
 pub use hsl::{
@@ -223,6 +227,9 @@ pub fn render_project_range_with_control(
             })?;
             keyframe_element::register().map_err(|error| {
                 format!("Could not register the keyframe video element: {error}")
+            })?;
+            plugin_element::register().map_err(|error| {
+                format!("Could not register the audio plugin element: {error}")
             })
         })
         .clone()?;
@@ -364,6 +371,9 @@ pub fn render_frame(
             })?;
             keyframe_element::register().map_err(|error| {
                 format!("Could not register the keyframe video element: {error}")
+            })?;
+            plugin_element::register().map_err(|error| {
+                format!("Could not register the audio plugin element: {error}")
             })
         })
         .clone()?;

@@ -11,6 +11,9 @@ gstreamer = "0.25.3"
 gstreamer-editing-services = { version = "0.25.4", features = ["v1_18"] }
 gstreamer-pbutils = "0.25.3"
 saturn-core = { path = "../saturn-core" }
+# Packet 4.1: the render parity path runs track DSP plugin chains through the
+# same sandboxed host the engine/preview path uses.
+saturn-audio-dsp = { path = "../saturn-audio-dsp" }
 saturn-text = { path = "../saturn-text" }
 # Packet 2.2: the semantic-query and cut-continuity tool payloads embed
 # frames locally (saturn-perception). Perception stays render-free: it never

@@ -69,6 +69,7 @@ impl ProjectDocument {
                             audio_processing: TrackAudioProcessing::default(),
                             bus: BusTarget::Master,
                             automation: TrackAutomation::default(),
+                            dsp_plugin_chain: Vec::new(),
                             clips: Vec::new(),
                             transitions: Vec::new(),
                         },
@@ -85,6 +86,7 @@ impl ProjectDocument {
                             audio_processing: TrackAudioProcessing::default(),
                             bus: BusTarget::Master,
                             automation: TrackAutomation::default(),
+                            dsp_plugin_chain: Vec::new(),
                             clips: Vec::new(),
                             transitions: Vec::new(),
                         },
@@ -726,6 +728,7 @@ mod tests {
             audio_processing: TrackAudioProcessing::default(),
             bus: BusTarget::Master,
             automation: TrackAutomation::default(),
+            dsp_plugin_chain: Vec::new(),
             clips: Vec::new(),
             transitions: Vec::new(),
         };
@@ -743,6 +746,7 @@ mod tests {
             audio_processing: TrackAudioProcessing::default(),
             bus: BusTarget::Master,
             automation: TrackAutomation::default(),
+            dsp_plugin_chain: Vec::new(),
             clips: Vec::new(),
             transitions: Vec::new(),
         };

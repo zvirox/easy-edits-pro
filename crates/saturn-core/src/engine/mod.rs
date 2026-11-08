@@ -27,6 +27,7 @@ mod color_cmds;
 mod color_node_cmds;
 mod compound_cmds;
 mod edit_cmds;
+mod dsp_cmds;
 mod edit_labels_cmds;
 mod effects_cmds;
 mod helpers;
@@ -266,6 +267,9 @@ impl EditorEngine {
             return result;
         }
         if let Some(result) = self.dispatch_audio(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_dsp(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_keyframe(command.id, request.params.clone()) {

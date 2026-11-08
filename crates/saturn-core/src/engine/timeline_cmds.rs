@@ -192,6 +192,7 @@ impl EditorEngine {
                     audio_processing: crate::project::TrackAudioProcessing::default(),
                     bus: crate::project::BusTarget::Master,
                     automation: crate::project::TrackAutomation::default(),
+                    dsp_plugin_chain: Vec::new(),
                     clips: Vec::new(),
                     transitions: Vec::new(),
                 };

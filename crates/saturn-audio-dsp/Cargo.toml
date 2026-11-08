@@ -1,0 +1,16 @@
+[package]
+name = "saturn-audio-dsp"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "CLAP plugin host chain for Saturn render DSP (sandboxed worker transport)"
+
+[dependencies]
+clack-host = "=0.2.0"
+clack-common = "=0.2.0"
+clack-extensions = { version = "=0.2.0", features = ["clack-host", "params"] }
+saturn-core = { path = "../saturn-core" }
+memmap2 = "0.9"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"

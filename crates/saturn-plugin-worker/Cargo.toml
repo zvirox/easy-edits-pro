@@ -1,0 +1,16 @@
+[package]
+name = "saturn-plugin-worker"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+description = "Sandboxed worker process hosting Saturn CLAP plugin chains"
+
+[dependencies]
+saturn-audio-dsp = { path = "../saturn-audio-dsp" }
+saturn-core = { path = "../saturn-core" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[[bin]]
+name = "saturn-plugin-worker"
+path = "src/main.rs"

@@ -4,6 +4,7 @@
 use super::*;
 use crate::color::{CameraIdt, DisplayOdt, WorkingSpace};
 
+mod dsp;
 mod editing;
 mod branch;
 mod color_nodes;
@@ -16,6 +17,7 @@ mod sequence;
 mod trim;
 mod timeline_targeting;
 
+pub(super) use dsp::*;
 pub(super) use editing::*;
 pub(super) use branch::*;
 pub(super) use color_nodes::*;

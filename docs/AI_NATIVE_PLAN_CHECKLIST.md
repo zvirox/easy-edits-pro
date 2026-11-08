@@ -147,9 +147,40 @@
 ## Phase 4 — Cinema Audio DSP (`saturn-audio-dsp`) — `status: todo`
 
 ### Packet 4.1 — Native plugin host & render parity (Lane 2)
-- [ ] Create `crates/saturn-audio-dsp` crate + `src/clap_host.rs` (CLAP/LV2/VST3 via `clack-host`)
-- [ ] `dsp.load_plugin` / `dsp.set_plugin_param` wired into preview AND export graph (bit-parity)
-- [ ] Plugin out-of-process sandbox (`saturn-plugin-worker`) per spec §10.2.4
+- [x] Create `crates/saturn-audio-dsp` crate + `src/clap_host.rs` (CLAP/LV2/VST3 via `clack-host`)
+- [x] `dsp.load_plugin` / `dsp.set_plugin_param` wired into preview AND export graph (bit-parity)
+- [x] Plugin out-of-process sandbox (`saturn-plugin-worker`) per spec §10.2.4
+
+**Packet 4.1 notes (§4.4 deviations):** hosting is **CLAP only** via
+`clack-host = "=0.2.0"`; the schema keeps `lv2`/`vst3` tags round-trippable
+but `dsp.load_plugin` rejects non-CLAP formats at the command layer with a
+typed `InvalidParameters` (listing the hosted formats), and the sandbox's
+chain load carries a second typed `DspError::FormatNotHosted` rejection —
+defense in depth, not a silent skip. The trust policy lives in
+`saturn-core::project::dsp_trust` (canonicalized-path containment in
+`$HOME/.clap`, the XDG `clap` dir, `/usr/{,local/}lib/clap`, and
+operator-opt-in `SATURN_PLUGIN_ROOT` entries; 64-slot chain cap;
+`HOSTED_PLUGIN_FORMATS`), so the command layer and the plugin host enforce
+exactly one policy; `saturn-audio-dsp` only maps the shared failures onto
+`DspError::PluginPath*`. Sandbox shape follows plan §10.2.4: a dedicated
+`saturn-plugin-worker` child process, UDS control + `/dev/shm` 0600 SPSC
+rings (owner unlinks on Drop), strictly one command in flight, a single
+typed auto-respawn + buffer replay after a worker crash, and a second
+consecutive crash surfacing as typed `DspError::Sandbox`. **UI affordance =
+agent surface** (desktop bridge + MCP through the catalogue; commands
+`shipped: true` with real engine implementation + tests) — the Packet 3.3
+precedent; no panel UI yet. The §4.4 "preview AND export graph bit-parity"
+requirement is met as the documented deviation: both the engine preview
+render path and the full export render run the **identical**
+`saturnaudioplug` GStreamer element backed by the same
+`SandboxSession` host, and `tests/dsp_plugin_parity.rs` measures preview
+vs export MP4 audio below −90 dBFS plus an element-level exact fixture-gain
+run; the web preview stays the plan's JS approximation (no WASM CLAP host
+in this packet). Commands count 456 → 458 (`dsp.load_plugin`,
+`dsp.set_plugin_param`, both `since` 0.4.0). **Follow-up
+(Lane 3 packaging):** `saturn-plugin-worker` and the `SATURN_PLUGIN_ROOT`
+contract must be added to the desktop packaging manifest and flatpak
+permissions review before any release ships plugin hosting.
 
 ### Packet 4.2 — Stems, phase align, room tone & ducking (Lane 2)
 - [ ] `src/stems_ort.rs` — `audio.separate_stems` (Dialogue/Music/Ambience/SFX via ONNX MDX-Net/Demucs)

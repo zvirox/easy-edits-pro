@@ -269,3 +269,74 @@ impl Default for TrackAudioProcessing {
         }
     }
 }
+
+/// Plugin binary format of a DSP slot. Only `clap` is hosted by the Saturn
+/// render engine today; the other tagged values are accepted in schema so
+/// projects round-trip, but chain building rejects them with a typed error.
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum DspPluginFormat {
+    Clap,
+    Lv2,
+    Vst3,
+    #[default]
+    #[serde(other)]
+    Unknown,
+}
+
+pub const DSP_PLUGIN_FORMAT_UNKNOWN_TAG: &str = "unknown";
+
+impl DspPluginFormat {
+    /// Stable wire tag for this format (also used by command validation).
+    pub fn as_tag(&self) -> &'static str {
+        match self {
+            DspPluginFormat::Clap => "clap",
+            DspPluginFormat::Lv2 => "lv2",
+            DspPluginFormat::Vst3 => "vst3",
+            DspPluginFormat::Unknown => DSP_PLUGIN_FORMAT_UNKNOWN_TAG,
+        }
+    }
+
+    /// Parses a previously published tag. Unknown tags collapse to `Unknown`.
+    pub fn from_tag(tag: &str) -> Self {
+        match tag {
+            "clap" => DspPluginFormat::Clap,
+            "lv2" => DspPluginFormat::Lv2,
+            "vst3" => DspPluginFormat::Vst3,
+            _ => DspPluginFormat::Unknown,
+        }
+    }
+
+    /// True when the Saturn engine can actually host this format today.
+    pub fn is_hosted(self) -> bool {
+        matches!(self, DspPluginFormat::Clap)
+    }
+}
+
+/// A single stored parameter value of a plugin slot, as a plain-value snapshot.
+///
+/// Parameter names/units are not enumerated in this format: the UI surfaces
+/// stored values only, so ids stay stable across plugin releases.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
+pub struct DspPluginSlotParam {
+    pub param_id: u64,
+    pub value: f64,
+}
+
+/// One plugin instance on a track's DSP chain, ordered first-to-last.
+///
+/// `path` points at the plugin shared library as recorded at load time; the
+/// render engine re-validates it against the trusted plugin roots before use.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+pub struct DspPluginSlot {
+    pub format: DspPluginFormat,
+    /// Absolute path to the plugin shared library (.clap bundle binary or .so).
+    pub path: String,
+    /// The plugin's stable CLAP descriptor id, e.g. `org.eep.fixture.gain`.
+    /// Checked against the descriptor actually found in the binary when the
+    /// plugin chain is instantiated; a mismatch is a typed error.
+    pub plugin_id: String,
+    pub enabled: bool,
+    #[serde(default)]
+    pub params: Vec<DspPluginSlotParam>,
+}

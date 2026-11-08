@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-456 commands.
+458 commands.
 
 ## File
 
@@ -467,6 +467,8 @@ Generated from the command catalogue. Do not edit by hand.
 | Set Audio Bus Gain | `bus.set_gain_db` | shipped |  | `{"target":obj,"gain_db":num}` |
 | Transcribe Speech to Subtitles | `speech.transcribe_to_subtitles` | shipped |  | `{"segments":[obj],"replace_existing":bool?}` |
 | Align Script to Takes | `speech.script_sync_align` | shipped |  | `{"script_text":str,"takes":[obj]}` |
+| Load Track Plugin | `dsp.load_plugin` | shipped |  | `{"track_id":int,"format":str,"path":str,"plugin_id":str,"enabled":bool?,"params":obj?}` |
+| Set Track Plugin Parameter | `dsp.set_plugin_param` | shipped |  | `{"track_id":int,"slot_index":int,"param_id":int,"value":num}` |
 
 ## Effects
 
