@@ -174,6 +174,10 @@ pub(crate) fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline
     let video_caps = gst::Caps::builder("video/x-raw")
         .field("width", document.project.settings.width as i32)
         .field("height", document.project.settings.height as i32)
+        // Project dimensions describe square pixels. Keep PAR explicit across
+        // gaps and clips: adding it at a cut renegotiates encodebin's videorate
+        // on GStreamer 1.24, which drops its pending pre-cut frame.
+        .field("pixel-aspect-ratio", gst::Fraction::new(1, 1))
         .field(
             "framerate",
             gst::Fraction::new(

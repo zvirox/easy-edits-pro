@@ -40,7 +40,7 @@ fn rgb(path: &Path, frame: i64) -> [f64; 3] {
 
 #[test]
 fn measured_music_rolls_rendered_cuts_keeps_edges_and_preserves_music() {
-    gst::init().unwrap();
+    saturn_render::init_media_runtime().unwrap();
     let dir = tempfile::tempdir().unwrap();
     let mut d = ProjectDocument::new("Beat-grid native evidence");
     d.project.settings.width = 160;
@@ -109,18 +109,21 @@ fn measured_music_rolls_rendered_cuts_keeps_edges_and_preserves_music() {
     let new = dir.path().join("after.mp4");
     saturn_render::render_project(&d, &old, |_| {}).unwrap();
     saturn_render::render_project(engine.document(), &new, |_| {}).unwrap();
-    for (frame, channel) in [(30, 0), (74, 0), (75, 2), (134, 2), (135, 1), (209, 1)] {
-        let pixel = rgb(&new, frame);
-        assert!(pixel[channel] > 200.0, "{frame}: {pixel:?}");
-        assert!(
-            pixel
-                .iter()
-                .enumerate()
-                .all(|(i, v)| i == channel || *v < 25.0)
-        );
+    // Check both sides of every cut, including the unedited timeline. A caps
+    // renegotiation once moved the first cut one frame early on GStreamer 1.24.
+    for (path, checks) in [
+        (&old, [(30, 0), (81, 0), (82, 2), (138, 2), (139, 1), (209, 1)]),
+        (&new, [(30, 0), (74, 0), (75, 2), (134, 2), (135, 1), (209, 1)]),
+    ] {
+        for (frame, channel) in checks {
+            let pixel = rgb(path, frame);
+            assert!(pixel[channel] > 200.0, "{path:?} frame {frame}: {pixel:?}");
+            assert!(pixel.iter().enumerate().all(|(i, v)| i == channel || *v < 25.0));
+        }
     }
     for frame in [29, 210] {
-        assert!(rgb(&new, frame).iter().all(|v| *v < 15.0));
+        let pixel = rgb(&new, frame);
+        assert!(pixel.iter().all(|v| *v < 15.0), "frame {frame}: {pixel:?}");
     }
     assert!(
         rgb(&old, 75)[0] > 200.0 && rgb(&old, 135)[2] > 200.0,
