@@ -11,6 +11,19 @@
 use super::*;
 
 impl EditorMcp {
+    pub(super) async fn edit_match_cut_align(&self, arguments: &Value) -> Result<Value, String> {
+        if matches!(&self.backend, Backend::Bridge(_)) {
+            return self.bridge_call("edit_match_cut_align", arguments.clone()).await;
+        }
+        let document = self.headless_document().await?;
+        let arguments = arguments.clone();
+        let prepared = tokio::task::spawn_blocking(move || {
+            saturn_render::match_cut::prepare(&document, &arguments)
+        }).await.map_err(|e| format!("Match-cut analysis task failed: {e}"))??;
+        let applied = self.execute(prepared.command.id, prepared.command.params).await?;
+        Ok(json!({"applied": applied, "telemetry": prepared.telemetry}))
+    }
+
     pub(super) async fn audio_process(&self, arguments: &Value) -> Result<Value, String> {
         if matches!(&self.backend, Backend::Bridge(_)) {
             return self.bridge_call("audio_process", arguments.clone()).await;

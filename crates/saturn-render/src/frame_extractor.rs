@@ -170,7 +170,7 @@ impl FrameDecoder {
                     .build(),
             )
             .max_buffers(1)
-            .drop(true)
+            .drop(false)
             .sync(false)
             .build();
         let pipeline = gst::Pipeline::new();
@@ -196,24 +196,18 @@ impl FrameDecoder {
                 let _ = pad.link(&convert_sink);
             }
         });
-        // Preroll to Paused (the video pad is linked during the transition),
-        // then run: in Playing the FLUSH|ACCURATE seek pushes the target
-        // frame straight to the sink, which is the pull we await.
-        pipeline
+        // Stay paused: a non-clocked Playing sink can race past the requested
+        // frame. Each flushing accurate seek produces exactly one preroll.
+        // Own the cleanup guard before startup so failures also stop decoding.
+        let decoder = Self { pipeline, appsink };
+        decoder.pipeline
             .set_state(gst::State::Paused)
             .map_err(|error| format!("Could not start the decode pipeline: {error}"))?;
-        let (_, state, _) = pipeline.state(gst::ClockTime::from_seconds(SEEK_TIMEOUT.as_secs()));
+        let (_, state, _) = decoder.pipeline.state(gst::ClockTime::from_seconds(SEEK_TIMEOUT.as_secs()));
         if state != gst::State::Paused {
             return Err("Timed out while prerolling the frame pipeline".into());
         }
-        pipeline
-            .set_state(gst::State::Playing)
-            .map_err(|error| format!("Could not run the decode pipeline: {error}"))?;
-        let (_, state, _) = pipeline.state(gst::ClockTime::from_seconds(SEEK_TIMEOUT.as_secs()));
-        if state != gst::State::Playing {
-            return Err("Timed out while starting the frame pipeline".into());
-        }
-        Ok(Self { pipeline, appsink })
+        Ok(decoder)
     }
 
     /// Seek to `position_ns` and pull one RGB frame. Accurate seeks so
@@ -221,7 +215,7 @@ impl FrameDecoder {
     fn pull(&self, position_ns: u64) -> Result<DecodedFrame, String> {
         // Drain anything queued from a previous pull so the frame we get can
         // never be a stale pre-seek one.
-        while self.appsink.try_pull_sample(gst::ClockTime::ZERO).is_some() {}
+        let _ = self.appsink.try_pull_preroll(gst::ClockTime::ZERO);
         let position = gst::ClockTime::from_nseconds(position_ns);
         let seeked = self.pipeline.seek_simple(
             gst::SeekFlags::FLUSH | gst::SeekFlags::ACCURATE,
@@ -232,7 +226,7 @@ impl FrameDecoder {
         }
         let sample = self
             .appsink
-            .try_pull_sample(gst::ClockTime::from_seconds(SEEK_TIMEOUT.as_secs()))
+            .try_pull_preroll(gst::ClockTime::from_seconds(SEEK_TIMEOUT.as_secs()))
             .ok_or_else(|| "Timed out waiting for the decoded frame".to_owned())?;
         let caps = sample
             .caps()
@@ -283,6 +277,22 @@ pub fn decode_frame_rgb(source: &Path, at_tick: Tick) -> Result<(u32, u32, Vec<u
     let decoder = FrameDecoder::open(source)?;
     let frame = decoder.pull(position_ns(at_tick)?)?;
     Ok((frame.width, frame.height, frame.data))
+}
+
+/// Bounded raw-source sampling for match cuts. Reuses one decoder and retains
+/// only normalized 160x90 frames; differing source aspect ratios use normalized
+/// screen coordinates. No grade or timeline effect is applied here.
+pub(crate) fn match_cut_frames(source: &Path, ticks: &[Tick]) -> Result<Vec<saturn_perception::SampledFrame>, String> {
+    if ticks.is_empty() || ticks.len() > 64 { return Err("Match-cut sampling requires 1 to 64 frames".into()); }
+    let started = std::time::Instant::now();
+    let decoder = FrameDecoder::open(source)?;
+    let mut frames = Vec::with_capacity(ticks.len());
+    for &tick in ticks {
+        if started.elapsed() > Duration::from_secs(120) { return Err("Match-cut frame analysis exceeded 120 seconds".into()); }
+        let frame = decoder.pull(position_ns(tick)?)?;
+        frames.push(saturn_perception::SampledFrame { tick, width: 160, height: 90, rgb: scale_rgb(&frame, 160, 90) });
+    }
+    Ok(frames)
 }
 
 /// Decode a PNG written by `render_frame` back into raw RGB (packs the

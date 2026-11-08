@@ -404,6 +404,18 @@ fn mean_motion_angle_diff(
 /// Circular mean direction (deg) and magnitude (px) of block displacement
 /// between `a` (treated as reference) and `b`. Pure.
 fn mean_block_motion(reference: &SampledFrame, next: &SampledFrame) -> Option<(f64, f64)> {
+    let (dx, dy, mean_magnitude) = block_motion(reference, next)?;
+    Some((dy.atan2(dx).to_degrees().rem_euclid(360.0), mean_magnitude))
+}
+
+/// Mean signed displacement, so equal opposing motion cancels instead of
+/// acquiring a synthetic direction from mean magnitude and an undefined angle.
+pub(crate) fn mean_block_displacement(reference: &SampledFrame, next: &SampledFrame) -> Option<[f64; 2]> {
+    let (dx, dy, _) = block_motion(reference, next)?;
+    Some([dx, dy])
+}
+
+fn block_motion(reference: &SampledFrame, next: &SampledFrame) -> Option<(f64, f64, f64)> {
     if reference.width != next.width || reference.height != next.height {
         return None;
     }
@@ -467,7 +479,7 @@ fn mean_block_motion(reference: &SampledFrame, next: &SampledFrame) -> Option<(f
     if blocks == 0 || (sum_mag / blocks as f64) < 0.05 {
         return None;
     }
-    Some((sum_sin.atan2(sum_cos).to_degrees().rem_euclid(360.0), sum_mag / blocks as f64))
+    Some((sum_cos / blocks as f64, sum_sin / blocks as f64, sum_mag / blocks as f64))
 }
 
 /// Peak sample-to-sample jump across the join, in dB above the 95th-
@@ -719,4 +731,3 @@ mod tests {
         assert!(no_flow.optical_flow_angle_diff_deg.is_none());
     }
 }
-

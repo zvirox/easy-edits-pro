@@ -125,6 +125,16 @@ export async function run(ctx) {
   assert.deepEqual(splitRequest.params, { track_id: 1, clip_index: 1,
     video_delta: 254016000000 * 0.04, audio_delta: 254016000000 * 0.04, fade_ticks: 254016000000 * 0.04 });
   assert.equal(await page.locator('.timeline-clip').count(), 2, 'failed preparation must keep both picture clips');
+  ctx.dialogPrompts = ['motion', '12'];
+  await menuBar.getByRole('button', { name: 'Sequence', exact: true }).click();
+  const matchCut = page.locator('.menu-popover').getByText('Align Match Cut...', { exact: true });
+  await matchCut.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '/tmp/opencode/easy-edits-pro-match-cut-menu.png' });
+  await matchCut.click();
+  await page.getByText('Error: Match-cut analysis is unavailable in the browser mock', { exact: true }).waitFor();
+  const matchRequest = await page.evaluate(() => window.__commandRequests.findLast(r => r.id === 'edit.match_cut_align'));
+  assert.deepEqual(matchRequest.params, { track_id: 1, left_clip_index: 0, right_clip_index: 1, mode: 'motion', search_frames: 12 });
+  assert.equal(await page.locator('.timeline-clip').count(), 2, 'failed matching must keep both clips');
   await page.locator('.app-shell').press('Control+z');
   await page.locator('.timeline-clip').first().waitFor();
   assert.equal(await page.locator('.timeline-clip').count(), 1, 'undo should restore the split clip');

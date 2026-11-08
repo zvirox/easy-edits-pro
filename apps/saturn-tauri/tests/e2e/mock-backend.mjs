@@ -308,6 +308,9 @@ function setup({ mediaUrl, catalogue }) {
     if (id === 'timeline.asymmetric_trim') {
       throw new Error('Split-edit preparation is unavailable in the browser mock');
     }
+    if (id === 'edit.match_cut_align') {
+      throw new Error('Match-cut analysis is unavailable in the browser mock');
+    }
     if (id === 'timeline.trim_clip') {
       push();
       const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);

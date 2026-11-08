@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-463 commands.
+464 commands.
 
 ## File
 
@@ -244,6 +244,7 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Align Match Cut... | `edit.match_cut_align` | shipped |  | `{"track_id":int,"left_clip_index":int,"right_clip_index":int,"mode":"eye_trace\|motion\|transient","search_frames":int?}` |
 | Go to Next Caption Segment | `caption.next` | shipped |  | `{"from":obj,"track_id":int?}` |
 | Go to Previous Caption Segment | `caption.previous` | shipped |  | `{"from":obj,"track_id":int?}` |
 | Hide All Caption Tracks | `caption.tracks_hide` | shipped |  | `{"track_ids":[int]?}` |

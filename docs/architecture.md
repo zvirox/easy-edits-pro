@@ -77,6 +77,12 @@ the constant-power sound edit on a new audio track. Schema v16's
 their picture in both GES and browser playback. Preparation runs outside the
 editor lock, rejects stale project digests, and cleans uncommitted artifacts.
 
+Match-cut alignment follows the same snapshot/prepare/apply boundary without
+creating artifacts: `saturn-perception::match_cut` measures bounded raw-source
+features, `saturn-render::match_cut` searches available handles, and the core
+applies only incoming `source_in`. The desktop menu and `edit_match_cut_align`
+MCP tool share preparation. [Workflow, measurements and limits](match-cut-alignment.md).
+
 ## Module map
 
 - `apps/saturn-tauri/src/main.rs` owns the Tauri builder, invoke registration,

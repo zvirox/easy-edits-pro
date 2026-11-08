@@ -124,6 +124,33 @@ test("split edit prompts convert signed seconds and reject cancellation or inval
 
 import { buildMarkerCommandParams } from "./menuCommandParams.ts";
 
+test("match cut resolves adjacency and validates mode, search, and cancellation", () => {
+  const context = ctx(0, { track_id: 1, clip_index: 0 });
+  context.project = { sequence: { tracks: [{ id: 1, clips: [
+    { timeline_start: 100, duration: 100 }, { timeline_start: 0, duration: 100 },
+  ] }] } } as typeof context.project;
+  const previous = (globalThis as { window?: unknown }).window;
+  try {
+    for (const mode of ["eye_trace", "motion", "transient"]) {
+      const answers = [mode, "12"];
+      (globalThis as { window?: unknown }).window = { prompt: () => answers.shift() };
+      assert.deepEqual(buildTrimCommandParams("edit.match_cut_align", context)?.params,
+        { track_id: 1, left_clip_index: 1, right_clip_index: 0, mode, search_frames: 12 });
+    }
+    for (const values of [[null], ["gaze"], ["motion", null], ["motion", ""], ["motion", "31"], ["motion", "1.5"]]) {
+      const answers = [...values];
+      (globalThis as { window?: unknown }).window = { prompt: () => answers.shift() };
+      assert.equal(buildTrimCommandParams("edit.match_cut_align", context)?.cancel, true);
+    }
+    assert.equal(buildTrimCommandParams("edit.match_cut_align", ctx(0))?.cancel, true);
+    const clips = context.project!.sequence.tracks[0].clips;
+    clips.push(clips[1]);
+    assert.match(buildTrimCommandParams("edit.match_cut_align", context)?.notice ?? "", /one adjacent/);
+    clips.splice(1);
+    assert.equal(buildTrimCommandParams("edit.match_cut_align", context)?.cancel, true);
+  } finally { (globalThis as { window?: unknown }).window = previous; }
+});
+
 test("buildMarkerCommandParams marks clips from the selection", () => {
   const selected = { track_id: 2, clip_index: 3 };
   const single = buildMarkerCommandParams("timeline.mark_clip", ctx(0, selected));

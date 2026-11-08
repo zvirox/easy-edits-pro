@@ -13,6 +13,7 @@
 //! inflation, no speaker labels (diarization is reviewed as its own packet).
 
 pub mod color_metrics;
+pub mod match_cut;
 pub mod depth_ort;
 pub mod embeddings;
 pub mod index_db;

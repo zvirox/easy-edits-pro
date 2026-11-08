@@ -5,6 +5,20 @@ use crate::catalogue::{Category, CommandSpec, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
+        id: "edit.match_cut_align",
+        label: "Align Match Cut...",
+        menu: &["Sequence", "Trim"],
+        shortcut: None,
+        params: "{\"track_id\":int,\"left_clip_index\":int,\"right_clip_index\":int,\"mode\":\"eye_trace|motion|transient\",\"search_frames\":int?}",
+        category: Category::Edit,
+        mutating: true,
+        undo_group: UndoGroup::Transaction,
+        aliases: &["match action", "align transient", "focal alignment"],
+        since: "0.4.0",
+        shipped: true,
+        ui_only: false,
+    },
+    CommandSpec {
         id: "edit.undo",
         label: "Undo",
         menu: &["Edit"],

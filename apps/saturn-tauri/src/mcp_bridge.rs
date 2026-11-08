@@ -115,12 +115,19 @@ async fn dispatch(request: Value, app: &AppHandle, state: &AppState) -> Value {
     let params = request.get("params").cloned().unwrap_or_else(|| json!({}));
     let result = match method {
         "command_list" => command_list(state, &params),
+        "edit_match_cut_align" => edit_match_cut_align(app, state, &params).await,
         "command_run" => {
             let id = params.get("id").and_then(Value::as_str);
             let Some(id) = id else {
                 return json!({"error": "command_run requires a string id"});
             };
             let command_params = params.get("params").cloned().unwrap_or_else(|| json!({}));
+            if id == "edit.match_cut_align" && command_params.get("expected_digest").is_none() {
+                return match edit_match_cut_align(app, state, &command_params).await {
+                    Ok(value) => json!({"result": value}),
+                    Err(error) => json!({"error": error}),
+                };
+            }
             match execute_command_with_state(
                 app,
                 state,
@@ -427,9 +434,19 @@ async fn render_preview_clip_proxy(state: &AppState, params: &Value) -> Result<V
     .await
 }
 
-/// `color_read_scopes`: measurable scope telemetry over one frame —
-/// `media_id`+`tick` analyzes a source file; `at_tick` renders the graded
-/// sequence frame into the previews directory and analyzes that.
+/// Prepare outside the editor lock and emit the same refresh as command_run.
+async fn edit_match_cut_align(app: &AppHandle, state: &AppState, params: &Value) -> Result<Value, String> {
+    let document = document_snapshot(state)?;
+    let params = params.clone();
+    let prepared = tauri::async_runtime::spawn_blocking(move || {
+        saturn_render::match_cut::prepare(&document, &params)
+    }).await.map_err(|e| format!("Match-cut analysis task failed: {e}"))??;
+    let applied = execute_command_with_state(app, state, prepared.command)?;
+    let _ = app.emit("mcp_project_changed", ());
+    Ok(json!({"applied": applied, "telemetry": prepared.telemetry}))
+}
+
+/// `media_id`+`tick` analyzes a source file; `at_tick` renders the sequence.
 async fn color_read_scopes(state: &AppState, params: &Value) -> Result<Value, String> {
     let document = document_snapshot(state)?;
     let params = params.clone();

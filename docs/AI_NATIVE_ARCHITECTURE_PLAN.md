@@ -494,7 +494,7 @@ pub struct SidechainDuckingRequest {
 
 ## 5. Complete AI Tool & Command Catalogue Specification
 
-### 5.1 All 18 MCP Tools Exposed by `saturn-mcp`
+### 5.1 MCP Tool Specification
 
 | \# | MCP Tool Name | Status | Input Parameters | Output / Telemetry | 
 | ----- | ----- | ----- | ----- | ----- | 
@@ -517,6 +517,11 @@ pub struct SidechainDuckingRequest {
 | 17 | `edit_evaluate_cut_continuity` | **New** | `track_id`, `cut_at_tick`, `window_frames?: u8` | `CutContinuityScore` (eye-trace jump, luma/color jump, motion angle, Murch score) | 
 | 18 | `render_preview_clip_proxy` | **New** | `start_tick`, `end_tick`, `resolution?: "640x360"`, `include_audio?: bool` | Fast sub-second MP4/WebM snippet around an edit point for video-capable LLMs | 
 
+Implemented addition: `edit_match_cut_align` takes `track_id`,
+`left_clip_index`, `right_clip_index`, `mode`, and optional `search_frames`;
+returns `{applied, telemetry}` after bounded source analysis and one undoable
+slip. See [match-cut-alignment.md](match-cut-alignment.md).
+
 ### 5.2 Complete New Engine Command Matrix (`crates/saturn-core/src/catalogue/`)
 
 | Category | Command ID | Parameters | Engine Behaviour | 
@@ -526,7 +531,7 @@ pub struct SidechainDuckingRequest {
 | **Branching** | `project.branch_diff` | `{"base":str, "target":str}` | Computes `BranchDiffReport` between two branches. | 
 | **Branching** | `project.branch_merge` | `{"source":str, "target":str, "range_ticks":[ticks,ticks]?}` | Merges all or a specific tick range from `source` branch into `target`. | 
 | **Narrative Edit** | `timeline.asymmetric_trim` | `{"track_id":int, "clip_index":int, "video_delta":ticks, "audio_delta":ticks, "fade_ticks":ticks?}` | Atomic J-cut / L-cut split-edit with constant-power audio crossfade. | 
-| **Narrative Edit** | `edit.match_cut_align` | `{"track_id":int, "left_clip_index":int, "right_clip_index":int, "mode":"eye_trace|motion|transient"}` | Slips incoming clip `source_in` so focal subject, optical flow, or transient aligns at the cut. | 
+| **Narrative Edit** | `edit.match_cut_align` | `{"track_id":int, "left_clip_index":int, "right_clip_index":int, "mode":"eye_trace|motion|transient", "search_frames":int?}` | Bounded incoming source slip using contrast-centroid heuristic, signed block motion, or attack-envelope matching; prepare via `edit_match_cut_align`. |
 | **Narrative Edit** | `timeline.beat_grid_quantize` | `{"music_track_id":int, "video_track_id":int, "subdivision":"bar|half|quarter", "strength":num}` | Quantizes video cut points to detected musical downbeats/transients. | 
 | **Narrative Edit** | `timeline.fluid_morph_cut` | `{"track_id":int, "cut_at":ticks, "duration":ticks}` | Synthesizes bidirectional optical-flow frames + room-tone crossfade over jump cuts. | 
 | **Narrative Edit** | `timeline.pin_clip_to_storyline` | `{"child_track_id":int, "child_clip_index":int, "parent_track_id":int, "parent_clip_index":int}` | Locks B-roll/title/SFX clip to a primary dialogue clip so ripple edits move both together. | 
@@ -714,7 +719,9 @@ Each phase is divided into atomic packets mapped to the repository's four owners
 
   * First-task implementation: `timeline.asymmetric_trim` uses `crates/saturn-core/src/asymmetric_trim.rs` for shared timing/handle validation, an atomic engine handler, and `crates/saturn-render/src/asymmetric_trim.rs` for the project-local constant-power audio bounce. Schema v16's `Clip.audio_enabled` suppresses original sound in both playback paths. Select the incoming adjacent video clip; both deltas are relative to the original cut, with a centered 40 ms default fade. The resulting audio clip is independently editable; revising the baked cut requires undo and rerun. See the checklist for supported source states and the 120-second bound.
 
-  * Remaining: implement `edit.match_cut_align`, `timeline.beat_grid_quantize`, `timeline.fluid_morph_cut`, and `timeline.pin_clip_to_storyline` in focused core timeline-edit modules.
+   * Match-cut implementation: `edit_match_cut_align` prepares raw-source measurements outside the editor lock, then applies `edit.match_cut_align` atomically with stale-snapshot rejection. The desktop menu selects the incoming clip and uniquely adjacent predecessor. Only incoming `source_in` changes; equal matches prefer minimum slip, and no-signal analysis errors. See [match-cut-alignment.md](match-cut-alignment.md) for heuristic definitions, bounds, unsupported states and native render evidence.
+
+   * Remaining: implement `timeline.beat_grid_quantize`, `timeline.fluid_morph_cut`, and `timeline.pin_clip_to_storyline` in focused core timeline-edit modules.
 
   * Run `pnpm catalogue:sync` to regenerate `docs/COMMANDS.md` and `docs/reference/command-catalogue.json`.
 

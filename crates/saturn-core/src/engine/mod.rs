@@ -22,6 +22,7 @@ use std::path::PathBuf;
 mod audio_cmds;
 mod audio_edit_cmds;
 mod asymmetric_trim_cmd;
+mod match_cut_cmd;
 mod branch_cmds;
 mod clip_advanced_cmds;
 mod clip_cmds;
@@ -269,6 +270,9 @@ impl EditorEngine {
             return result;
         }
         if let Some(result) = self.dispatch_asymmetric_trim(command.id, request.params.clone()) {
+            return result;
+        }
+        if let Some(result) = self.dispatch_match_cut(command.id, request.params.clone()) {
             return result;
         }
         if let Some(result) = self.dispatch_audio_edit(command.id, request.params.clone()) {

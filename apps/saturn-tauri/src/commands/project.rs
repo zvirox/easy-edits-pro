@@ -17,7 +17,7 @@ pub async fn execute_command(
     state: State<'_, AppState>,
     request: CommandRequest,
 ) -> Result<Value, String> {
-    if request.id == "timeline.asymmetric_trim" {
+    if matches!(request.id.as_str(), "timeline.asymmetric_trim" | "edit.match_cut_align") {
         let state = AppState(
             Arc::clone(&state.0),
             Arc::clone(&state.1),
@@ -27,7 +27,7 @@ pub async fn execute_command(
             execute_command_with_state(&app, &state, request)
         })
         .await
-        .map_err(|e| format!("Split-edit task failed: {e}"))?;
+        .map_err(|e| format!("Edit preparation task failed: {e}"))?;
     }
     execute_command_with_state(&app, state.inner(), request)
 }
@@ -46,6 +46,14 @@ pub fn execute_command_with_state(
     // to the normalized spelling so the engine writes the canonical route.
     // file.open/project.new also invalidate session grants (project switch).
     let mut request = request;
+    let telemetry = if command_id == "edit.match_cut_align"
+        && request.params.get("expected_digest").is_none()
+    {
+        let document = state.0.lock().map_err(|_| "Editor state is unavailable")?.document().clone();
+        let edit = saturn_render::match_cut::prepare(&document, &request.params)?;
+        request = edit.command;
+        Some(edit.telemetry)
+    } else { None };
     let mut prepared = if command_id == "timeline.asymmetric_trim"
         && request.params.get("expected_digest").is_none()
     {
@@ -162,7 +170,9 @@ pub fn execute_command_with_state(
         let engine = state.0.lock().map_err(|_| "Editor state is unavailable")?;
         register_project_media(&app, engine.document());
     }
-    Ok(result)
+    Ok(if let Some(telemetry) = telemetry {
+        json!({"applied": result, "telemetry": telemetry})
+    } else { result })
 }
 
 /// Record a UI-dialog-picked destination as a session write grant (planning

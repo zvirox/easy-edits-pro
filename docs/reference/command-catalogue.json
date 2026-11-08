@@ -1081,6 +1081,27 @@
     "undoGroup": "transaction"
   },
   {
+    "aliases": [
+      "match action",
+      "align transient",
+      "focal alignment"
+    ],
+    "category": "Edit",
+    "id": "edit.match_cut_align",
+    "label": "Align Match Cut...",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"left_clip_index\":int,\"right_clip_index\":int,\"mode\":\"eye_trace|motion|transient\",\"search_frames\":int?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
     "aliases": [],
     "category": "Edit",
     "id": "edit.undo",

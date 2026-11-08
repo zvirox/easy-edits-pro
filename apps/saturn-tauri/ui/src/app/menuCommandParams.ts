@@ -174,6 +174,36 @@ export function buildTrimCommandParams(
   ctx: BatchMenuContext
 ): MenuBatchResult | null {
   switch (id) {
+    case "edit.match_cut_align": {
+      const selected = ctx.selectedClip;
+      const track = ctx.project?.sequence.tracks.find((t) => t.id === selected?.track_id);
+      const incoming = selected && track?.clips[selected.clip_index];
+      if (!selected || !track || !incoming) {
+        return { notice: "Select the incoming clip of an adjacent pair", cancel: true };
+      }
+      const predecessors = track.clips.flatMap((clip, index) =>
+        index !== selected.clip_index && clip.timeline_start + clip.duration === incoming.timeline_start ? [index] : []);
+      if (predecessors.length !== 1) {
+        return { notice: "The incoming clip needs one adjacent outgoing clip on the same track", cancel: true };
+      }
+      const input = window.prompt(
+        "Match mode: eye_trace (contrast-centroid heuristic, not gaze), motion (block displacement), or transient (audio attack). Slips incoming source only; align before detaching sound.",
+        "eye_trace",
+      );
+      if (input === null) return { cancel: true };
+      const mode = input.trim().toLowerCase();
+      if (!["eye_trace", "motion", "transient"].includes(mode)) {
+        return { notice: "Enter eye_trace, motion, or transient", cancel: true };
+      }
+      const search = window.prompt("Search frames on each side (1 to 30; at most two seconds per side)", "12");
+      if (search === null) return { cancel: true };
+      const searchFrames = Number(search.trim());
+      if (!Number.isInteger(searchFrames) || searchFrames < 1 || searchFrames > 30) {
+        return { notice: "Enter a search range from 1 to 30 frames", cancel: true };
+      }
+      return { params: { track_id: selected.track_id, left_clip_index: predecessors[0],
+        right_clip_index: selected.clip_index, mode, search_frames: searchFrames } };
+    }
     case "timeline.asymmetric_trim": {
       const selected = ctx.selectedClip;
       if (!selected) return { notice: "Select the incoming video clip of an adjacent pair", cancel: true };

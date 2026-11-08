@@ -10,6 +10,30 @@ use tokio::{
 };
 
 #[tokio::test]
+async fn match_cut_errors_and_forwards_exact_bridge_request() {
+    let mcp = EditorMcp::new(EditorEngine::default());
+    let args = json!({"track_id":1,"left_clip_index":0,"right_clip_index":1,"mode":"motion"});
+    assert!(mcp.edit_match_cut_align(&args).await.unwrap_err().contains("Outgoing clip"));
+    let path = std::env::temp_dir().join(format!("eep-match-tool-{}.sock", std::process::id()));
+    let listener = UnixListener::bind(&path).unwrap();
+    let client = EditorMcp { backend: Backend::Bridge(path.clone()), jobs: Arc::new(JobManager::new(1)) };
+    let expected = args.clone();
+    let server = tokio::spawn(async move {
+        let (stream, _) = listener.accept().await.unwrap();
+        let (read, mut write) = stream.into_split();
+        let mut line = String::new();
+        BufReader::new(read).read_line(&mut line).await.unwrap();
+        let request: Value = serde_json::from_str(&line).unwrap();
+        assert_eq!(request["method"], "edit_match_cut_align");
+        assert_eq!(request["params"], expected);
+        write.write_all(b"{\"error\":\"no measurable motion\"}\n").await.unwrap();
+    });
+    assert!(client.edit_match_cut_align(&args).await.unwrap_err().contains("no measurable motion"));
+    server.await.unwrap();
+    std::fs::remove_file(path).unwrap();
+}
+
+#[tokio::test]
 async fn audio_tool_errors_and_forwards_exact_bridge_request() {
     let mcp = EditorMcp::new(EditorEngine::default());
     let error = mcp.audio_process(&json!({"operation": "duck", "dialogue_track_id": 2, "music_track_id": 3})).await.unwrap_err();

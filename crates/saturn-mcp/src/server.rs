@@ -283,6 +283,7 @@ impl EditorMcp {
             "render_preview_clip_proxy" => self.render_preview_clip_proxy(&arguments).await,
             "color_read_scopes" => self.color_read_scopes(&arguments).await,
             "audio_process" => self.audio_process(&arguments).await,
+            "edit_match_cut_align" => self.edit_match_cut_align(&arguments).await,
             "color_match_shot_to_reference" => {
                 self.color_match_shot_to_reference(&arguments).await
             }

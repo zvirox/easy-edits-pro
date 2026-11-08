@@ -13,6 +13,7 @@
 
 | Document | Type | Binding consequence for plan work |
 |---|---|---|
+| 2026-11-08 | 5.1 (second task) | **Match-cut alignment:** bounded contrast-centroid, signed block-motion and attack-envelope matching; one incoming-source slip with stale/no-signal rejection, undo/redo and no-op history preservation. Desktop menu and `edit_match_cut_align` MCP tool share preparation. Native moving-video and WAV fixtures verify deterministic selection, matching over a closer transient decoy, changed rendered picture/audio, and unaligned controls. Accurate paused-preroll frame decoding and sample-grid audio starts verified. **Gates:** workspace 572 passed, 1 existing ignored; desktop 45 passed, 1 existing ignored; UI build and 172 tests passed; all nine mocked E2E areas passed with 0 browser errors, including exact match-cut menu request/error display. Initial E2E startup found a leftover server on port 1420; rerun after stopping that server passed. Menu screenshot inspected. Glass/commands/source-size, licence headers and regenerated catalogue/parity drift checks passed (464 shipped commands). Prowl unavailable. Workflow and limitations: [match-cut-alignment.md](match-cut-alignment.md). |
 | [AGENTS.md §Provenance and third-party material](../../AGENTS.md) (added via [provenance-notice.patch](audit/provenance-notice.patch)) | Repo rule | Study but never paste third-party code; log every reuse in `NOTICE` **in the same change**; only MIT/Apache-2.0/BSD/ISC/Zlib sources; never GPL/AGPL/LGPL deps or non-commercial model weights without maintainer approval; no third-party product names in UI/docs/identifiers; never the ArtCraft/FilmCraft names or logos. |
 | [NOTICE](../../NOTICE) | Legal record | The FilmCraft derivation is documented (command inventory + `CommandSpec` shape, MIT OR Apache-2.0 texts under `licenses/`). Any new third-party reuse must add an entry here in the same commit. |
 | [eep-ai-native-plan-review.md](audit/eep-ai-native-plan-review.md) | Independent plan review | Design constraints absorbed into the packets below: no `/dev/shm` ring (Packet 1.1 uses MCP image blocks / `$XDG_RUNTIME_DIR` previews); contact-sheet budget with token controls (Packet 1.1); no invented scalar "Murch score" — measurable telemetry only (Packet 1.2); no ethnicity-labelled skin-tone logic; no OCIO dependency (fix a small WGSL transform set); BLAKE3 is a *fingerprint*, not a content hash (Packet 0.2); branch merge v1 is whole-branch accept/reject only (Packet 0.2); per-session viewport cursors for Packet 5.2 (human/agent do not share one selection); treat media-derived text as untrusted data; curated ~20–30 default agent tool profile for MCP; headless daemon milestone (review §5 stage C) before any hosting work. |
@@ -214,11 +215,11 @@ contracts, limits and test locations: [audio-processing.md](audio-processing.md)
 
 ### Packet 5.1 — Narrative editing verbs (Lane 2)
 - [x] Implement `timeline.asymmetric_trim` (J/L-cuts with constant-power crossfade; first-task slice described below)
-- [ ] Implement `edit.match_cut_align` (eye_trace | motion | transient)
+- [x] Implement `edit.match_cut_align` (eye_trace | motion | transient; bounded heuristics described below)
 - [ ] Implement `timeline.beat_grid_quantize`
 - [ ] Implement `timeline.fluid_morph_cut`
 - [ ] Implement `timeline.pin_clip_to_storyline` (magnetic storyline pins in `saturn-timeline`)
-- [x] Run `pnpm catalogue:sync`, commit regenerated docs for the J/L first-task slice (rerun for each remaining verb)
+- [x] Run `pnpm catalogue:sync` for J/L and match-cut slices (rerun for each remaining verb)
 
 **Packet 5.1, first-task slice — J/L split edits:** select the incoming clip of
 an adjacent video pair via **Sequence > Trim > Create J/L Split Edit...**.
@@ -247,7 +248,18 @@ and migration. The native test generates real AV sources, checks both J/L
 fades and changed picture frames, and compares exported audio to a bounce-only
 control below -90 dBFS; re-enabling original sound is the negative control.
 Browser tests cover scheduling and the menu's IPC/error contract.
-The other four Packet 5.1 verbs and Packet 5.2 remain planned.
+**Packet 5.1, second-task slice — match-cut alignment:** **Sequence > Trim >
+Align Match Cut...** selects the incoming clip and its unique predecessor.
+The `edit_match_cut_align` MCP tool and desktop preparation use raw source
+centroids, signed block displacement or attack envelopes, then apply one
+validated incoming-source slip. Default search is +/-12 project frames,
+maximum 30 and two seconds each side, clamped to source handles. `eye_trace`
+is explicitly a contrast-centroid heuristic, not gaze or subject identity.
+No-signal analysis errors; no-op results preserve history. Align before J/L
+detachment. Native fixtures verify real picture/sound changes, deterministic
+sampling and selection, decoy rejection, and unaligned export controls.
+See [match-cut-alignment.md](match-cut-alignment.md) for workflow and bounds.
+The other three Packet 5.1 verbs and Packet 5.2 remain planned.
 
 ### Packet 5.2 — Co-editing React 19 panels (Lane 1)
 

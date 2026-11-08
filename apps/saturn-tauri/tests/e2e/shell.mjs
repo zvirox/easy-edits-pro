@@ -99,7 +99,7 @@ export async function run(ctx) {
   // Sequences are created, switched, duplicated, renamed, and deleted from the
   // timeline tab strip, with the engine keeping each sequence independent.
   page.on('dialog', async (dialog) => {
-    if (dialog.type() === 'prompt') await dialog.accept(ctx.dialogPrompt);
+    if (dialog.type() === 'prompt') await dialog.accept(ctx.dialogPrompts?.shift() ?? ctx.dialogPrompt);
     else await dialog.accept();
   });
   const sequenceTabs = page.locator('.sequence-tabs');

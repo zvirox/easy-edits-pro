@@ -200,6 +200,21 @@ pub(super) fn tool_list() -> Vec<Tool> {
                 })),
             ),
             Tool::new(
+                "edit_match_cut_align",
+                "Analyze adjacent raw source clips and slip only the incoming source_in in one undoable edit. eye_trace is a squared-contrast centroid heuristic, motion matches measured block displacement, transient matches 40 ms attack envelopes and places the incoming onset at the cut. No-signal analysis errors. Align before detaching audio; requires enabled, unretimed, unlinked clips without effects/tracking and a hard cut. Returns application and measurement telemetry.",
+                schema(json!({
+                    "type": "object", "additionalProperties": false,
+                    "properties": {
+                        "track_id": {"type": "integer", "minimum": 0},
+                        "left_clip_index": {"type": "integer", "minimum": 0},
+                        "right_clip_index": {"type": "integer", "minimum": 0},
+                        "mode": {"type": "string", "enum": ["eye_trace", "motion", "transient"]},
+                        "search_frames": {"type": "integer", "minimum": 1, "maximum": 30, "default": 12}
+                    },
+                    "required": ["track_id", "left_clip_index", "right_clip_index", "mode"]
+                })),
+            ),
+            Tool::new(
                 "audio_process",
                 "Prepare and atomically apply an undoable offline audio edit to a saved project (maximum 120 seconds). phase_align: two single-clip audio tracks, raw-source GCC-PHAT with fractional correction. room_tone: caller-selected speech-free profile, spectral gap synthesis with in-gap fades. duck: energy-keyed dialogue ducking, requires empty music volume and pan automation lanes. normalize_master: render the full mix to float WAV, measure/limit/normalize, retain and mute original tracks, add an audible master bounce. asymmetric_trim: select the incoming video clip of an adjacent pair, roll the picture cut by video_delta ticks, move sound by audio_delta ticks, and bake a centered constant-power fade (default 40 ms) to an editable audio track. Requires plain unretimed video clips with source handles and mono/stereo audio; both deltas are relative to the original cut. Derived media is stored beside the project; stale analyses are rejected. Cinema stem separation is not available.",
                 schema(json!({
