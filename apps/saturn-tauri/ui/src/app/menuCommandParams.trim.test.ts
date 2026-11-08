@@ -105,6 +105,23 @@ test("buildTrimCommandParams ignores ids outside the trim family", () => {
   assert.equal(buildTrimCommandParams("timeline.trim_clip", ctx(0)), null);
 });
 
+test("split edit prompts convert signed seconds and reject cancellation or invalid values", () => {
+  const selected = { track_id: 1, clip_index: 1 };
+  const previous = (globalThis as { window?: unknown }).window;
+  try {
+    for (const answers of [["0.2", "-0.5", "0.04"], [null], ["NaN"], [""], ["0", "0", "6"]]) {
+      const queue = [...answers];
+      (globalThis as { window?: unknown }).window = { prompt: () => queue.shift() };
+      const built = buildTrimCommandParams("timeline.asymmetric_trim", ctx(0, selected));
+      if (answers[0] === "0.2") {
+        assert.deepEqual(built?.params, { ...selected, video_delta: TICKS_PER_SECOND * 0.2,
+          audio_delta: -TICKS_PER_SECOND * 0.5, fade_ticks: TICKS_PER_SECOND * 0.04 });
+      } else assert.equal(built?.cancel, true);
+    }
+    assert.equal(buildTrimCommandParams("timeline.asymmetric_trim", ctx(0))?.cancel, true);
+  } finally { (globalThis as { window?: unknown }).window = previous; }
+});
+
 import { buildMarkerCommandParams } from "./menuCommandParams.ts";
 
 test("buildMarkerCommandParams marks clips from the selection", () => {

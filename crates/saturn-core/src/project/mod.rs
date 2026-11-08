@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 pub const PROJECT_FORMAT: &str = "easy-edits-pro.project";
 pub const LEGACY_PROJECT_FORMAT: &str = "project-saturn.project";
-pub const PROJECT_SCHEMA_VERSION: u32 = 15;
+pub const PROJECT_SCHEMA_VERSION: u32 = 16;
 
 mod io;
 mod migrate;
@@ -571,6 +571,7 @@ mod tests {
             compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                audio_enabled: true,
                 enabled: true,
         });
         video_track.clips.push(Clip {
@@ -593,6 +594,7 @@ mod tests {
             compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                audio_enabled: true,
                 enabled: true,
         });
         video_track.transitions.push(Transition {
@@ -653,6 +655,7 @@ mod tests {
             compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                audio_enabled: true,
                 enabled: true,
         };
 

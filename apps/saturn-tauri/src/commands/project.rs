@@ -12,11 +12,23 @@ pub struct MediaAvailability {
 }
 
 #[tauri::command]
-pub fn execute_command(
+pub async fn execute_command(
     app: AppHandle,
     state: State<'_, AppState>,
     request: CommandRequest,
 ) -> Result<Value, String> {
+    if request.id == "timeline.asymmetric_trim" {
+        let state = AppState(
+            Arc::clone(&state.0),
+            Arc::clone(&state.1),
+            Arc::clone(&state.2),
+        );
+        return tauri::async_runtime::spawn_blocking(move || {
+            execute_command_with_state(&app, &state, request)
+        })
+        .await
+        .map_err(|e| format!("Split-edit task failed: {e}"))?;
+    }
     execute_command_with_state(&app, state.inner(), request)
 }
 
@@ -34,6 +46,23 @@ pub fn execute_command_with_state(
     // to the normalized spelling so the engine writes the canonical route.
     // file.open/project.new also invalidate session grants (project switch).
     let mut request = request;
+    let mut prepared = if command_id == "timeline.asymmetric_trim"
+        && request.params.get("expected_digest").is_none()
+    {
+        let (document, path) = {
+            let guard = state.0.lock().map_err(|_| "Editor state is unavailable")?;
+            (
+                guard.document().clone(),
+                guard.current_path().map(std::path::Path::to_path_buf),
+            )
+        };
+        let edit =
+            saturn_render::asymmetric_trim::prepare(&document, path.as_deref(), &request.params)?;
+        request = edit.command.clone();
+        Some(edit)
+    } else {
+        None
+    };
     if let Some(param) = engine_write_target_param(&command_id) {
         let target = request
             .params
@@ -89,10 +118,10 @@ pub fn execute_command_with_state(
             .and_then(|inner| inner.map_err(|error| error.to_string()))?
     };
 
-    if matches!(
-        command_id.as_str(),
-        "file.open" | "project.new" | "file.save"
-    ) {
+    if let Some(edit) = prepared.as_mut() {
+        edit.commit();
+    }
+    if matches!(command_id.as_str(), "file.open" | "project.new" | "file.save") {
         recovery::remove_recovery_files(&app);
     }
     let mutating = command_catalogue()
@@ -128,6 +157,7 @@ pub fn execute_command_with_state(
             | "project.add_media"
             | "project.relink_media"
             | "project.import_media"
+            | "timeline.asymmetric_trim"
     ) {
         let engine = state.0.lock().map_err(|_| "Editor state is unavailable")?;
         register_project_media(&app, engine.document());

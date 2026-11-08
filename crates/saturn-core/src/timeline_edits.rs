@@ -200,6 +200,7 @@ mod tests {
             compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                audio_enabled: true,
                 enabled: true,
         };
 

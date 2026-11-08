@@ -46,7 +46,7 @@
 |                                                                                                    |
 |  - Rational tick timebase (TICKS_PER_SECOND = 254,016,000,000)                                     |
 |  - Transactional project mutations & bidirectional undo/redo history stacks                        |
-|  - Schema migrations (v1 -> v14) & atomic disk persistence                                         |
+|  - Schema migrations (v1 -> v16) & atomic disk persistence                                         |
 |  - Subtitles, silence detection, speech analysis, and timeline math                                |
 +----------------------------------------------------------------------------------------------------+
                                       |
@@ -67,6 +67,15 @@ the versioned project model and history; the UI refreshes project state through
 `ProjectProvider`. Preview playback resolves allow-listed media through the
 local media server and coordinates video decks and audio clocks in the frontend
 playback engine. Export work is sent to `saturn-render` through Tauri commands.
+
+J/L split edits use shared core timing/handle validation in `asymmetric_trim.rs`,
+offline preparation in the render crate, and one atomic engine application.
+The desktop menu accepts signed picture/sound offsets; headless MCP uses
+`audio_process(operation: "asymmetric_trim")`. A project-local float WAV holds
+the constant-power sound edit on a new audio track. Schema v16's
+`Clip.audio_enabled` removes the original clips' audio streams while retaining
+their picture in both GES and browser playback. Preparation runs outside the
+editor lock, rejects stale project digests, and cleans uncommitted artifacts.
 
 ## Module map
 

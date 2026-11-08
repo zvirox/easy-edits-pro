@@ -216,6 +216,7 @@ const sequenceDuration = maxEnd;
 const activeAudioClips: ActiveAudioClip[] = [];
 for (const track of tracks) {
   for (const clip of track.clips) {
+    if (clip.audio_enabled === false) continue;
     if (playhead >= clip.timeline_start && playhead < clip.timeline_start + clip.duration) {
       const item = mediaList.find((m) => m.id === clip.media_id);
       if (item && (item.kind === "compound_sequence" || clip.compound_sequence_id != null)) {
@@ -225,6 +226,7 @@ for (const track of tracks) {
           const localPlayhead = Math.max(0, clip.source_in + Math.round((playhead - clip.timeline_start) * speed));
           for (const nTrack of nestedSeq.tracks) {
             for (const nClip of nTrack.clips) {
+              if (nClip.enabled === false || nClip.audio_enabled === false) continue;
               if (localPlayhead >= nClip.timeline_start && localPlayhead < nClip.timeline_start + nClip.duration) {
                 const nItem = mediaList.find((m) => m.id === nClip.media_id);
                 if (nItem && (nItem.kind === "audio" || (nItem.kind === "video" && nTrack.kind === "video"))) {
@@ -238,7 +240,7 @@ for (const track of tracks) {
                       media: nItem,
                       src,
                       currentTime,
-                      gainDb: (track.gain_db ?? 0) + (nTrack.gain_db ?? 0),
+                      gainDb: (track.gain_db ?? 0) + (nTrack.gain_db ?? 0) + (clip.volume_db ?? 0) + (nClip.volume_db ?? 0),
                     });
                   }
                 }
@@ -258,7 +260,7 @@ for (const track of tracks) {
             media: item,
             src,
             currentTime,
-            gainDb: track.gain_db ?? 0,
+            gainDb: (track.gain_db ?? 0) + (clip.volume_db ?? 0),
           });
         }
       }

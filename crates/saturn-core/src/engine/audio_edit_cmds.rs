@@ -48,7 +48,7 @@ fn audio_track(doc: &ProjectDocument, id: u64) -> Result<usize, DispatchError> {
     Ok(i)
 }
 
-fn add_audio(
+pub(super) fn add_audio(
     doc: &mut ProjectDocument,
     audio: RenderedAudio,
     name: &str,

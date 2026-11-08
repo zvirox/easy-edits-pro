@@ -17,6 +17,7 @@ use std::path::Path;
 pub mod automation_element;
 pub mod audio_pcm;
 pub mod audio_edit_driver;
+pub mod asymmetric_trim;
 pub mod audio_edit_files;
 pub mod audio_master;
 pub mod audio_telemetry;

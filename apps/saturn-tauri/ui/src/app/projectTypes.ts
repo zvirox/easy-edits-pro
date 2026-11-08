@@ -136,6 +136,7 @@ export type Clip = {
   compound_sequence_id?: number | null;
   label?: string;
   volume_db?: number;
+  audio_enabled?: boolean;
   /** FC Enable: disabled clips stay on the timeline but play nothing. */
   enabled?: boolean;
 };

@@ -108,6 +108,7 @@ impl EditorEngine {
                     compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                audio_enabled: true,
                 enabled: true,
                 });
                 Ok(json!({"track_id": track.id, "clip_index": track.clips.len() - 1}))

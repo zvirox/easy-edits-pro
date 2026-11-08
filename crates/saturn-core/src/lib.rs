@@ -3,6 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 pub mod catalogue;
 pub mod audio_edit;
+pub mod asymmetric_trim;
 pub mod branch;
 pub mod color;
 pub mod command;

@@ -6652,6 +6652,27 @@
     "undoGroup": "none"
   },
   {
+    "aliases": [
+      "J cut",
+      "L cut",
+      "split edit"
+    ],
+    "category": "Sequence",
+    "id": "timeline.asymmetric_trim",
+    "label": "Create J/L Split Edit...",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"video_delta\":ticks,\"audio_delta\":ticks,\"fade_ticks\":ticks?}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
     "aliases": [],
     "category": "Sequence",
     "id": "timeline.setTargeting",

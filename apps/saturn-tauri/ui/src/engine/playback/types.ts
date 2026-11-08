@@ -301,6 +301,8 @@ export interface MotionBlurParams {
 }
 
 export interface Clip {
+  volume_db?: number;
+  audio_enabled?: boolean;
   media_id: number;
   timeline_start: number;
   source_in: number;

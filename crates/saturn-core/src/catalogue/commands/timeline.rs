@@ -9,6 +9,20 @@
 use crate::catalogue::{Category, CommandSpec, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
+    CommandSpec {
+        id: "timeline.asymmetric_trim",
+        label: "Create J/L Split Edit...",
+        menu: &["Sequence", "Trim"],
+        shortcut: None,
+        params: "{\"track_id\":int,\"clip_index\":int,\"video_delta\":ticks,\"audio_delta\":ticks,\"fade_ticks\":ticks?}",
+        category: Category::Sequence,
+        mutating: true,
+        undo_group: UndoGroup::Transaction,
+        aliases: &["J cut", "L cut", "split edit"],
+        since: "0.4.0",
+        shipped: true,
+        ui_only: false,
+    },
     // Track targeting: editor-state target sets, 1-based per kind.
     CommandSpec {
         id: "timeline.setTargeting",

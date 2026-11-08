@@ -282,6 +282,10 @@ pub(crate) fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline
         let effective_gain_db = if is_audible { track.gain_db } else { -120.0 };
         let layer = timeline.append_layer();
         for (clip_index, clip) in track.clips.iter().enumerate() {
+            let is_audible = is_audible && clip.audio_enabled;
+            if track.kind == TrackKind::Audio && !is_audible {
+                continue;
+            }
             if !clip.enabled {
                 // Reference-editor Enable: disabled clips stay on the timeline but render
                 // nothing (no picture, no sound).
@@ -306,6 +310,9 @@ pub(crate) fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline
                     }
                     let _ = layer.add_clip(&title_clip);
                 }
+                continue;
+            }
+            if media.kind == MediaKind::Audio && !is_audible {
                 continue;
             }
             if !media.path.is_file() {

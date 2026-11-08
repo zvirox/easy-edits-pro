@@ -108,6 +108,23 @@ export async function run(ctx) {
     2,
     'the razor tool should split the clicked clip in two',
   );
+  // A real menu affordance sends the selected incoming clip and tick values.
+  // The mock explicitly rejects offline rendering; the UI must surface that error.
+  await page.locator('.timeline-tool-rail').getByRole('button', { name: 'Selection Tool', exact: true }).click();
+  await page.locator('.timeline-clip').nth(1).click();
+  const previousPrompt = ctx.dialogPrompt;
+  ctx.dialogPrompt = '0.04';
+  await menuBar.getByRole('button', { name: 'Sequence', exact: true }).click();
+  const splitEdit = page.locator('.menu-popover').getByText('Create J/L Split Edit...', { exact: true });
+  await splitEdit.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '/tmp/easy-edits-pro-split-edit-menu.png' });
+  await splitEdit.click();
+  await page.getByText('Error: Split-edit preparation is unavailable in the browser mock', { exact: true }).waitFor();
+  ctx.dialogPrompt = previousPrompt;
+  const splitRequest = await page.evaluate(() => window.__commandRequests.findLast(r => r.id === 'timeline.asymmetric_trim'));
+  assert.deepEqual(splitRequest.params, { track_id: 1, clip_index: 1,
+    video_delta: 254016000000 * 0.04, audio_delta: 254016000000 * 0.04, fade_ticks: 254016000000 * 0.04 });
+  assert.equal(await page.locator('.timeline-clip').count(), 2, 'failed preparation must keep both picture clips');
   await page.locator('.app-shell').press('Control+z');
   await page.locator('.timeline-clip').first().waitFor();
   assert.equal(await page.locator('.timeline-clip').count(), 1, 'undo should restore the split clip');

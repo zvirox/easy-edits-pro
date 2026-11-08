@@ -305,6 +305,9 @@ function setup({ mediaUrl, catalogue }) {
       const clip = track.clips[params.clip_index];
       return { track_id: track.id, clip_index: params.clip_index, edge: params.edge, head_room: clip.source_in, tail_room: second * 10, cut: clip.timeline_start + clip.duration };
     }
+    if (id === 'timeline.asymmetric_trim') {
+      throw new Error('Split-edit preparation is unavailable in the browser mock');
+    }
     if (id === 'timeline.trim_clip') {
       push();
       const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);

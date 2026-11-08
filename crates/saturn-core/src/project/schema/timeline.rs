@@ -240,6 +240,9 @@ pub struct Clip {
     /// Per-clip audio trim in dB, applied on top of the track gain.
     #[serde(default)]
     pub volume_db: f64,
+    /// False after detaching sound into an editable audio clip. Picture stays enabled.
+    #[serde(default = "default_true")]
+    pub audio_enabled: bool,
     /// Reference-editor Enable: disabled clips stay on the timeline but render nothing.
     #[serde(default = "default_true")]
     pub enabled: bool,

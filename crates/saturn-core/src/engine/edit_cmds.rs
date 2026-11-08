@@ -311,6 +311,7 @@ fn new_clip(media_id: u64, start: i64, source_in: i64, duration: i64) -> Clip {
         compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                audio_enabled: true,
                 enabled: true,
     }
 }

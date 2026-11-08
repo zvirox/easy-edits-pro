@@ -55,12 +55,13 @@ pub(crate) fn migrate_project(value: &mut serde_json::Value) -> Result<(), Strin
     };
     match version {
         PROJECT_SCHEMA_VERSION => Ok(()),
-        14 => {
+        14 | 15 => {
             let object = value
                 .as_object_mut()
                 .ok_or_else(|| "Project root must be an object".to_string())?;
-            // v15 adds copy-on-write branches, per-media BLAKE3 fingerprints
-            // and relative media paths on save. All three are serde-default
+            // v16 adds audio_enabled (default true). v15 adds copy-on-write
+            // branches, per-media BLAKE3 fingerprints and relative media paths
+            // on save. All are serde-default
             // additions, so the migration is a lossless version bump: no
             // existing field is rewritten or dropped (F.1-style).
             object.insert("schema_version".into(), PROJECT_SCHEMA_VERSION.into());

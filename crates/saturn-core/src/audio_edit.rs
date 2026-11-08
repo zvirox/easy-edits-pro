@@ -50,6 +50,7 @@ pub fn audio_clip(media_id: u64, start: Tick, duration: Tick) -> crate::Clip {
         compound_sequence_id: None,
         label: String::new(),
         volume_db: 0.0,
+        audio_enabled: true,
         enabled: true,
     }
 }

@@ -21,6 +21,13 @@ pub fn prepare(
     operation: &str,
     params: &Value,
 ) -> Result<PreparedAudioEdit, String> {
+    if operation == "asymmetric_trim" {
+        let mut args = params.clone();
+        if let Some(object) = args.as_object_mut() {
+            object.remove("operation");
+        }
+        return crate::asymmetric_trim::prepare(document, project, &args);
+    }
     document.validate()?;
     let id =
         match operation {
@@ -29,7 +36,7 @@ pub fn prepare(
             "duck" => "audio.sidechain_duck_envelope",
             "normalize_master" => "audio.loudness_normalize_master",
             _ => return Err(
-                "Unknown audio operation; use phase_align, room_tone, duck, or normalize_master"
+                "Unknown audio operation; use phase_align, room_tone, duck, normalize_master, or asymmetric_trim"
                     .into(),
             ),
         };

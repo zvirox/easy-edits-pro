@@ -283,6 +283,7 @@ pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument,
                         compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                audio_enabled: true,
                 enabled: true,
                     });
 

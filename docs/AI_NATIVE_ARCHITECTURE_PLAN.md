@@ -712,7 +712,9 @@ Each phase is divided into atomic packets mapped to the repository's four owners
 
 * **Packet 5.1 — Narrative Editing Verbs & Magnetic Storyline Pins (Lane 2)**:
 
-  * Implement `timeline.asymmetric_trim`, `edit.match_cut_align`, `timeline.beat_grid_quantize`, `timeline.fluid_morph_cut`, and `timeline.pin_clip_to_storyline` in `crates/saturn-core/src/timeline_edits.rs`.
+  * First-task implementation: `timeline.asymmetric_trim` uses `crates/saturn-core/src/asymmetric_trim.rs` for shared timing/handle validation, an atomic engine handler, and `crates/saturn-render/src/asymmetric_trim.rs` for the project-local constant-power audio bounce. Schema v16's `Clip.audio_enabled` suppresses original sound in both playback paths. Select the incoming adjacent video clip; both deltas are relative to the original cut, with a centered 40 ms default fade. The resulting audio clip is independently editable; revising the baked cut requires undo and rerun. See the checklist for supported source states and the 120-second bound.
+
+  * Remaining: implement `edit.match_cut_align`, `timeline.beat_grid_quantize`, `timeline.fluid_morph_cut`, and `timeline.pin_clip_to_storyline` in focused core timeline-edit modules.
 
   * Run `pnpm catalogue:sync` to regenerate `docs/COMMANDS.md` and `docs/reference/command-catalogue.json`.
 
@@ -808,7 +810,7 @@ Once Phases 0–7 are in place, here is the exact sequence of MCP tool calls an 
 
 3. **Assemble Dialogue Spine & Apply J/L-Cuts**:
 
-   * Calls `command_batch` with `timeline.insert_clip`, `speech.ripple_delete_silence`, and `timeline.asymmetric_trim` (`audio_delta: -127008000000` ticks = 0.5s audio lead).
+   * After assembling and saving an adjacent clip pair, calls `audio_process({"operation":"asymmetric_trim","track_id":1,"clip_index":1,"video_delta":0,"audio_delta":-127008000000})` (0.5 s audio lead; default 40 ms fade). Preparation produces the audio artifact before one atomic `timeline.asymmetric_trim` application; raw headless `command_batch` does not perform the decode/render preparation.
 
 4. **Audit Every Cut for Visual & Audio Continuity**:
 

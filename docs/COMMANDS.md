@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-462 commands.
+463 commands.
 
 ## File
 
@@ -302,6 +302,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Previous in Sequence | `sequence.goToPrevGap` | shipped |  | `{}` |
 | Next in Track | `sequence.goToNextGapInTrack` | shipped |  | `{}` |
 | Previous in Track | `sequence.goToPrevGapInTrack` | shipped |  | `{}` |
+| Create J/L Split Edit... | `timeline.asymmetric_trim` | shipped |  | `{"track_id":int,"clip_index":int,"video_delta":ticks,"audio_delta":ticks,"fade_ticks":ticks?}` |
 | Track Targeting | `timeline.setTargeting` | shipped |  | `{"video":int[]?,"audio":int[]?}` |
 | Toggle Target Video 1 | `timeline.toggleTargetV1` | shipped |  | `{}` |
 | Toggle Target Video 2 | `timeline.toggleTargetV2` | shipped |  | `{}` |

@@ -1,4 +1,4 @@
-# Offline audio processing (Packet 4.2)
+# Offline audio processing (Packets 4.2 and 5.1)
 
 The `audio_process` MCP tool and desktop agent bridge prepare an edit outside
 the project lock, then apply a single undoable Rust-core transaction. Save the
@@ -13,7 +13,41 @@ If the project changed, it returns an error and the caller must rerun analysis.
 The low-level catalogue commands accept prepared payloads (`audio`, `inserts`,
 or automation `points`, plus `expected_digest`); call `audio_process` to obtain
 and apply these rather than inventing payloads for `command_run`/`command_batch`.
-The agent bridge is the UI affordance, as in Packets 3.3 and 4.1.
+The agent bridge exposes all operations. J/L split edits also have a desktop
+menu action, which prepares the raw `timeline.asymmetric_trim` request.
+
+## Create a J/L split edit
+
+```json
+{"operation":"asymmetric_trim","track_id":1,"clip_index":1,
+ "video_delta":0,"audio_delta":-127008000000,"fade_ticks":10160640000}
+```
+
+Select the incoming clip of an adjacent video pair. This example leads picture
+with sound by 0.5 seconds (J-cut), with a 40 ms centered constant-power crossfade.
+Both offsets are relative to the original cut. A later sound cut makes an L-cut.
+Omitting `fade_ticks` uses 40 ms; zero gives a hard sound cut. The pair's outer
+edges stay fixed while the picture cut rolls. The menu is **Sequence > Trim >
+Create J/L Split Edit...** and accepts offsets/fade duration in seconds.
+
+The command detaches both clips' sound into one editable stereo 48 kHz float
+WAV on a new audio track. Original picture clips have `audio_enabled: false`,
+so both native and browser playback omit their audio. Clip gain is baked into
+the WAV; track gain/mute/solo/group membership is retained. The fade itself is
+baked: edit the resulting clip normally, or undo and rerun to change the cut
+or fade. One undo restores the entire pair and removes the new track from the
+document; its file stays available for redo. Moving the saved project folder
+with its `.saturn-audio` sibling retains the derived media.
+
+The pair must span at most 120 seconds, with mono/stereo source audio, known
+durations and enough source handles. Locked tracks/groups, overlaps, gaps,
+retiming, linked clips, multicam, compounds, disabled/detached sound, effects,
+keyframes, tracking, transitions, audio processing, automation, pan and bus
+routing are rejected. Static clip colour adjustments are retained. Fade
+duration is at most 5 seconds and at least two audio samples when nonzero;
+leave at least one sample on either side of the fade. Audio boundaries are
+quantized to 48 kHz, while picture timing remains in project ticks. Constant
+power describes the fade weights; correlated signals can still sum louder.
 
 ## Align two microphones
 
@@ -107,6 +141,14 @@ model exposing those outputs. The proposed music-separation model produces
 vocals/drums/bass/other; those outputs are not relabelled as cinema stems.
 
 ## Verification
+
+- `saturn-core/tests/asymmetric_trim.rs`: signed J/L timing, source mapping,
+  locks/handles/overflow rejection, one-step history, stale rejection and v15 migration.
+- `saturn-render/tests/asymmetric_trim.rs`: real AV fixtures, crossfade power,
+  rendered picture-cut timing, export vs bounce-only audio below -90 dBFS,
+  audible doubled-source negative control, persistence and failure cleanup.
+- Browser scheduler tests keep detached picture visible, omit source audio and
+  retain legacy attached sound. E2E exercises the menu's request/error contract.
 
 - `saturn-audio-dsp/tests/phase_align.rs`: independently generated 1.7 ms delay,
   >45 dB alignment-residual improvement, inverted polarity, channel isolation,

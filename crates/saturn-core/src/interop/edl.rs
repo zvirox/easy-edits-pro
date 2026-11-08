@@ -150,6 +150,7 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
                     compound_sequence_id: None,
                 label: String::new(),
                 volume_db: 0.0,
+                audio_enabled: true,
                 enabled: true,
                 };
 

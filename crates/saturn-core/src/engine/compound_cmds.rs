@@ -235,6 +235,7 @@ impl EditorEngine {
                     compound_sequence_id: Some(compound_media_id),
                 label: String::new(),
                 volume_db: 0.0,
+                audio_enabled: true,
                 enabled: true,
                 };
 

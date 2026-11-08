@@ -201,11 +201,15 @@ pub(super) fn tool_list() -> Vec<Tool> {
             ),
             Tool::new(
                 "audio_process",
-                "Prepare and atomically apply an undoable offline audio edit to a saved project (maximum 120 seconds). phase_align: two single-clip audio tracks, raw-source GCC-PHAT with fractional correction. room_tone: caller-selected speech-free profile, spectral gap synthesis with in-gap fades. duck: energy-keyed dialogue ducking, requires empty music volume and pan automation lanes. normalize_master: render the full mix to float WAV, measure/limit/normalize, retain and mute original tracks, add an audible master bounce. Derived media is stored beside the project; stale analyses are rejected. Cinema stem separation is not available.",
+                "Prepare and atomically apply an undoable offline audio edit to a saved project (maximum 120 seconds). phase_align: two single-clip audio tracks, raw-source GCC-PHAT with fractional correction. room_tone: caller-selected speech-free profile, spectral gap synthesis with in-gap fades. duck: energy-keyed dialogue ducking, requires empty music volume and pan automation lanes. normalize_master: render the full mix to float WAV, measure/limit/normalize, retain and mute original tracks, add an audible master bounce. asymmetric_trim: select the incoming video clip of an adjacent pair, roll the picture cut by video_delta ticks, move sound by audio_delta ticks, and bake a centered constant-power fade (default 40 ms) to an editable audio track. Requires plain unretimed video clips with source handles and mono/stereo audio; both deltas are relative to the original cut. Derived media is stored beside the project; stale analyses are rejected. Cinema stem separation is not available.",
                 schema(json!({
                     "type": "object", "required": ["operation"],
                     "properties": {
-                        "operation": {"type": "string", "enum": ["phase_align", "room_tone", "duck", "normalize_master"]},
+                        "operation": {"type": "string", "enum": ["phase_align", "room_tone", "duck", "normalize_master", "asymmetric_trim"]},
+                        "clip_index": {"type": "integer", "minimum": 0},
+                        "video_delta": {"type": "integer"},
+                        "audio_delta": {"type": "integer"},
+                        "fade_ticks": {"type": "integer", "minimum": 0},
                         "ref_track_id": {"type": "integer", "minimum": 0},
                         "target_track_id": {"type": "integer", "minimum": 0},
                         "track_id": {"type": "integer", "minimum": 0},

@@ -174,6 +174,28 @@ export function buildTrimCommandParams(
   ctx: BatchMenuContext
 ): MenuBatchResult | null {
   switch (id) {
+    case "timeline.asymmetric_trim": {
+      const selected = ctx.selectedClip;
+      if (!selected) return { notice: "Select the incoming video clip of an adjacent pair", cancel: true };
+      const values: number[] = [];
+      for (const [label, initial] of [
+        ["Picture cut offset in seconds from the original cut (negative = earlier)", "0"],
+        ["Sound cut offset in seconds from the original cut (earlier than picture = J-cut; later = L-cut)", "-0.25"],
+        ["Audio crossfade duration in seconds, centered on the sound cut (0 to 5)", "0.04"],
+      ]) {
+        const input = window.prompt(label, initial);
+        if (input === null) return { cancel: true };
+        const seconds = Number(input.trim());
+        const ticks = Math.round(seconds * TICKS_PER_SECOND);
+        if (!input.trim() || !Number.isFinite(seconds) || !Number.isSafeInteger(ticks)
+          || (values.length === 2 && (seconds < 0 || seconds > 5))) {
+          return { notice: "Enter a finite offset in seconds and a fade between 0 and 5 seconds", cancel: true };
+        }
+        values.push(ticks);
+      }
+      return { params: { track_id: selected.track_id, clip_index: selected.clip_index,
+        video_delta: values[0], audio_delta: values[1], fade_ticks: values[2] } };
+    }
     case "trim.selectEditPoint": {
       const selected = ctx.selectedClip;
       if (!selected) {
