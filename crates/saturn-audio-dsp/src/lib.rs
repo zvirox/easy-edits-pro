@@ -14,6 +14,11 @@
 pub mod chain;
 pub mod clap_host;
 pub mod errors;
+mod fft;
+pub mod phase_align;
+pub mod true_peak;
+pub mod ducking;
+pub mod room_tone;
 pub mod sandbox;
 pub mod shm_ring;
 pub mod trust;

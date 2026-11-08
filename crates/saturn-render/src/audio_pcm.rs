@@ -59,7 +59,7 @@ pub fn decode_audio_pcm_mono_16k(
     Ok(decoded.samples)
 }
 
-fn decode_audio_pcm_constrained(
+pub(crate) fn decode_audio_pcm_constrained(
     source: &Path,
     start_tick: Tick,
     end_tick: Option<Tick>,

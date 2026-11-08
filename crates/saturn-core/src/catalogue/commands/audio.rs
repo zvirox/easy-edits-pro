@@ -5,6 +5,38 @@ use crate::catalogue::{Category, CommandSpec, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
+        id: "audio.auto_phase_align",
+        label: "Align Audio Phase",
+        menu: &["Audio", "Processing"], shortcut: None,
+        params: "{\"ref_track_id\":int,\"target_track_id\":int,\"audio\":obj,\"expected_digest\":str}",
+        category: Category::Audio, mutating: true, undo_group: UndoGroup::Transaction,
+        aliases: &[], since: "0.4.0", shipped: true, ui_only: false,
+    },
+    CommandSpec {
+        id: "audio.fill_gaps_with_room_tone",
+        label: "Fill Audio Gaps with Room Tone",
+        menu: &["Audio", "Processing"], shortcut: None,
+        params: "{\"track_id\":int,\"inserts\":[obj],\"expected_digest\":str}",
+        category: Category::Audio, mutating: true, undo_group: UndoGroup::Transaction,
+        aliases: &[], since: "0.4.0", shipped: true, ui_only: false,
+    },
+    CommandSpec {
+        id: "audio.sidechain_duck_envelope",
+        label: "Duck Music under Dialogue",
+        menu: &["Audio", "Processing"], shortcut: None,
+        params: "{\"dialogue_track_id\":int,\"music_track_id\":int,\"points\":[obj],\"expected_digest\":str}",
+        category: Category::Audio, mutating: true, undo_group: UndoGroup::Transaction,
+        aliases: &[], since: "0.4.0", shipped: true, ui_only: false,
+    },
+    CommandSpec {
+        id: "audio.loudness_normalize_master",
+        label: "Normalize Master Loudness",
+        menu: &["Audio", "Processing"], shortcut: None,
+        params: "{\"audio\":obj,\"expected_digest\":str}",
+        category: Category::Audio, mutating: true, undo_group: UndoGroup::Transaction,
+        aliases: &[], since: "0.4.0", shipped: true, ui_only: false,
+    },
+    CommandSpec {
         id: "track.set_gain_db",
         label: "Set Track Gain",
         menu: &["Audio"],

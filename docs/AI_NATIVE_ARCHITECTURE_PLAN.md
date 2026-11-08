@@ -539,17 +539,29 @@ pub struct SidechainDuckingRequest {
 | **Color (Mask)** | `color.add_power_window` | `{"track_id":int, "clip_index":int, "node_id":int, "mask":obj, "auto_track":bool?}` | Attaches a geometric or AI-segmented (`ai_face`, `ai_sky`) mask and tracks it across the clip. | 
 | **Color (Match)** | `color.match_shot_to_reference` | `{"src_track_id":int, "src_clip_index":int, "ref_track_id":int, "ref_clip_index":int, "lock_skin_tones":bool}` | Matches exposure, white balance, and contrast CDF to a reference hero shot. | 
 | **Color (Film)** | `color.emulate_film_print` | `{"track_id":int, "clip_index":int, "stock":str, "halation":num, "grain":num, "weave":num}` | Applies physical red-channel halation, 35mm luminance grain, and print stock LUT. | 
-| **Audio (Stems)** | `audio.separate_stems` | `{"track_id":int, "clip_index":int, "stems":["dialogue","music","ambience","sfx"]}` | Splits clip audio into isolated stems on new tracks via ONNX MDX-Net/Demucs. | 
-| **Audio (Sync)** | `audio.auto_phase_align` | `{"ref_track_id":int, "target_track_id":int}` | Sub-sample GCC-PHAT phase alignment between boom and lavalier microphones. | 
-| **Audio (Tone)** | `audio.fill_gaps_with_room_tone` | `{"track_id":int, "min_gap_ms":int, "crossfade_ms":int}` | Extracts ambient noise floor profile and fills dialogue edit gaps with seamless room tone. | 
-| **Audio (Duck)** | `audio.sidechain_duck_envelope` | `{"dialogue_track_id":int, "music_track_id":int, "duck_db":num, "lookahead_ms":int, "hold_ms":int, "release_ms":int}` | Generates lookahead volume-automation keyframes on the music track keyed to speech. | 
+| **Audio (Stems, deferred)** | `audio.separate_stems` | `{"track_id":int, "clip_index":int, "stems":["dialogue","music","ambience","sfx"]}` | Requires a verified, license-cleared cinema-stem model. Music-model vocals/drums/bass/other outputs do not meet this contract. |
+| **Audio (Sync)** | `audio.auto_phase_align` | `audio_process({"operation":"phase_align", "ref_track_id":int, "target_track_id":int})` | Raw-source GCC-PHAT fractional alignment of two single-clip audio tracks; replaces target source with derived WAV. |
+| **Audio (Tone)** | `audio.fill_gaps_with_room_tone` | `audio_process({"operation":"room_tone", "track_id":int, "room_tone_media_id":int, "profile_start_tick":ticks, "profile_end_tick":ticks, "min_gap_ms":int, "crossfade_ms":int})` | Caller-selected speech-free spectral profile; fills internal gaps with in-gap fades. Dialogue-edge crossfades remain pending. |
+| **Audio (Duck)** | `audio.sidechain_duck_envelope` | `audio_process({"operation":"duck", "dialogue_track_id":int, "music_track_id":int, "duck_db":num, "lookahead_ms":int, "hold_ms":int, "release_ms":int, "threshold_dbfs":num})` | Raw-source energy-keyed lookahead volume automation; requires empty music volume and pan lanes. |
 | **Audio (Plugin)** | `dsp.load_plugin` | `{"track_id":int, "slot":int, "format":"clap|lv2|vst3", "plugin_id":str}` | Loads a native Linux audio plugin into the real-time and export DSP graph. | 
 | **Audio (Plugin)** | `dsp.set_plugin_param` | `{"track_id":int, "slot":int, "param_id":int, "value":num}` | Updates a hosted CLAP/LV2/VST3 plugin parameter (`0.0`..`1.0`). | 
-| **Audio (Master)** | `audio.loudness_normalize_master` | `{"standard":"ebu_r128|streaming|atsc_a85", "true_peak_dbtp":num}` | Two-pass K-weighted loudness normalization + true-peak lookahead limiting. | 
+| **Audio (Master)** | `audio.loudness_normalize_master` | `audio_process({"operation":"normalize_master", "standard":"ebu_r128|streaming|atsc_a85", "true_peak_dbtp":num})` | Measured K-weighted normalization and linked lookahead limiting with 4× FIR true peak; undoable GES master bounce, originals retained and muted. |
 | **VFX & Depth** | `vfx.depth_map_compositor` | `{"track_id":int, "clip_index":int, "z_threshold":num, "foreground_graphic_id":int?, "dof_blur_px":num?}` | Uses `Depth-Anything-V2` depth maps to place titles behind foreground subjects or render depth bokeh. | 
 | **VFX & Track** | `vfx.planar_corner_pin` | `{"track_id":int, "clip_index":int, "target_track_id":int, "target_clip_index":int, "roi":obj, "motion_blur":bool}` | Tracks a 4-corner planar perspective surface and pins an insert layer with motion blur. | 
 | **VFX & Clean** | `vfx.inpaint_object_removal` | `{"track_id":int, "clip_index":int, "mask_id":int, "start_tick":ticks, "end_tick":ticks}` | Temporally coherent optical-flow clean-plate inpainting to erase boom mics or wires. | 
 | **Typography** | `graphic.kinetic_typography` | `{"graphic_id":int, "preset":"spring_words|typewriter|karaoke_highlight", "avoid_faces":bool}` | Animates per-word/per-character text synced to speech ticks while avoiding detected faces. | 
+
+**Implemented Packet 4.2 contract:** the four audio operations above use the
+shared MCP/desktop `audio_process` tool. It prepares derived media or automation
+outside the engine lock, then applies one atomic core command with an expected
+snapshot digest. Low-level `audio.*` commands accept prepared `audio`, `inserts`
+or `points` payloads plus `expected_digest`, not the tool arguments above; do not
+send the preparation requests through `command_batch`. Save the project first;
+keep its sibling `<project-stem>.saturn-audio/` directory with it. Processing is
+bounded to 120 seconds. Failed edits clean up new files; successful files persist
+for undo/redo and reopening. See [audio-processing.md](audio-processing.md) for
+the exact limits. Packet 4.1 plugin hosting is CLAP-only; other format tags are
+rejected, and native engine preview/export parity does not cover browser playback.
 
 ## 6. UI Elements for Human + AI Co-Editing (`apps/saturn-tauri/ui`)
 
@@ -816,9 +828,9 @@ Once Phases 0–7 are in place, here is the exact sequence of MCP tool calls an 
 
 6. **Mix Cinema Audio & Verify Broadcast Loudness**:
 
-   * Calls `command_batch` with `audio.auto_phase_align`, `audio.fill_gaps_with_room_tone`, `audio.sidechain_duck_envelope` (`duck_db: -11.0`), and `audio.loudness_normalize_master` (`standard: "streaming"`, `true_peak_dbtp: -1.0`).
+   * Saves the project, then calls `audio_process` sequentially with `operation: "phase_align"`, `"room_tone"` (a selected speech-free profile range), `"duck"` (`duck_db: -11.0`), and `"normalize_master"` (`standard: "streaming"`, `true_peak_dbtp: -1.0`). Each operation prepares against the latest snapshot and applies its own undoable command. Normalization creates an audible master bounce and mutes the retained source tracks.
 
-   * Calls `audio_read_telemetry({"start_tick": 0, "end_tick": 7620480000000, "standard": "streaming"})` to confirm `integrated_lufs == -14.0`, `true_peak_dbtp <= -1.0`, and `dialogue_to_background_snr_db >= 12.0`.
+   * Checks normalization telemetry for `integratedLufs` within `-14.0 ± 0.1` and `truePeakDbtp <= -1.0`. Remeasures encoded delivery audio because lossy encoding can change true peak. Dialogue-to-background SNR verification remains a separate planned capability.
 
 7. **Present Diff to the Human Editor or Render Master**:
 

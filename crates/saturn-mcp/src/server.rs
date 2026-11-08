@@ -282,6 +282,7 @@ impl EditorMcp {
             "vision_extract_frame_sheet" => self.vision_extract_frame_sheet(&arguments).await,
             "render_preview_clip_proxy" => self.render_preview_clip_proxy(&arguments).await,
             "color_read_scopes" => self.color_read_scopes(&arguments).await,
+            "audio_process" => self.audio_process(&arguments).await,
             "color_match_shot_to_reference" => {
                 self.color_match_shot_to_reference(&arguments).await
             }

@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-458 commands.
+462 commands.
 
 ## File
 
@@ -452,6 +452,10 @@ Generated from the command catalogue. Do not edit by hand.
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Align Audio Phase | `audio.auto_phase_align` | shipped |  | `{"ref_track_id":int,"target_track_id":int,"audio":obj,"expected_digest":str}` |
+| Fill Audio Gaps with Room Tone | `audio.fill_gaps_with_room_tone` | shipped |  | `{"track_id":int,"inserts":[obj],"expected_digest":str}` |
+| Duck Music under Dialogue | `audio.sidechain_duck_envelope` | shipped |  | `{"dialogue_track_id":int,"music_track_id":int,"points":[obj],"expected_digest":str}` |
+| Normalize Master Loudness | `audio.loudness_normalize_master` | shipped |  | `{"audio":obj,"expected_digest":str}` |
 | Set Track Gain | `track.set_gain_db` | shipped |  | `{"track_id":int,"gain_db":num}` |
 | Set Track Pan | `track.set_pan` | shipped |  | `{"track_id":int,"pan":num}` |
 | Set Track Muted | `track.set_muted` | shipped |  | `{"track_id":int,"muted":bool}` |

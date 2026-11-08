@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Offline audio processing (Packet 4.2):** shared `audio_process` MCP/desktop
+  tool for fractional phase alignment, spectral room-tone gap filling,
+  energy-keyed ducking automation and measured loudness normalization. Four
+  atomic Rust commands bring the catalogue to 462; stale snapshots are rejected,
+  failed edits clean up derived audio, and successful WAVs survive undo/redo and
+  save/reopen. Normalization uses an undoable master bounce and actual 4× FIR
+  inter-sample peak measurement. Room tone currently fades inside gaps rather
+  than crossfading dialogue edges. Cinema stem separation remains pending a
+  suitable verified model. See [audio processing](docs/audio-processing.md) for
+  limits and evidence. The desktop lockfile now includes the plugin-host
+  dependencies introduced in Packet 4.1.
+
 - **Native CLAP plugin hosting + render parity (Packet 4.1):** the
   `saturn-audio-dsp` crate hosts CLAP plugin chains through `clack-host`
   (in-process and out-of-process), with track chains persisted as

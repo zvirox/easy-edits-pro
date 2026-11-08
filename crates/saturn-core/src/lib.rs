@@ -2,6 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 pub mod catalogue;
+pub mod audio_edit;
 pub mod branch;
 pub mod color;
 pub mod command;

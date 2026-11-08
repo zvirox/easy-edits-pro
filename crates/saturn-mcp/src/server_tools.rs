@@ -200,6 +200,33 @@ pub(super) fn tool_list() -> Vec<Tool> {
                 })),
             ),
             Tool::new(
+                "audio_process",
+                "Prepare and atomically apply an undoable offline audio edit to a saved project (maximum 120 seconds). phase_align: two single-clip audio tracks, raw-source GCC-PHAT with fractional correction. room_tone: caller-selected speech-free profile, spectral gap synthesis with in-gap fades. duck: energy-keyed dialogue ducking, requires empty music volume and pan automation lanes. normalize_master: render the full mix to float WAV, measure/limit/normalize, retain and mute original tracks, add an audible master bounce. Derived media is stored beside the project; stale analyses are rejected. Cinema stem separation is not available.",
+                schema(json!({
+                    "type": "object", "required": ["operation"],
+                    "properties": {
+                        "operation": {"type": "string", "enum": ["phase_align", "room_tone", "duck", "normalize_master"]},
+                        "ref_track_id": {"type": "integer", "minimum": 0},
+                        "target_track_id": {"type": "integer", "minimum": 0},
+                        "track_id": {"type": "integer", "minimum": 0},
+                        "dialogue_track_id": {"type": "integer", "minimum": 0},
+                        "music_track_id": {"type": "integer", "minimum": 0},
+                        "room_tone_media_id": {"type": "integer", "minimum": 0},
+                        "profile_start_tick": {"type": "integer", "minimum": 0},
+                        "profile_end_tick": {"type": "integer", "minimum": 1},
+                        "min_gap_ms": {"type": "integer", "minimum": 1, "maximum": 120000},
+                        "crossfade_ms": {"type": "integer", "minimum": 0, "maximum": 5000},
+                        "duck_db": {"type": "number", "minimum": -60, "maximum": 0},
+                        "lookahead_ms": {"type": "integer", "minimum": 0, "maximum": 1000},
+                        "hold_ms": {"type": "integer", "minimum": 0, "maximum": 5000},
+                        "release_ms": {"type": "integer", "minimum": 10, "maximum": 5000},
+                        "threshold_dbfs": {"type": "number", "minimum": -80, "maximum": 0},
+                        "standard": {"type": "string", "enum": ["ebu_r128", "streaming", "atsc_a85"]},
+                        "true_peak_dbtp": {"type": "number", "minimum": -12, "maximum": -0.1}
+                    }
+                })),
+            ),
+            Tool::new(
                 "audio_read_telemetry",
                 "Read measurable audio telemetry for one range: full EBU R128 / BS.1770-4 loudness block (momentary, short-term, integrated LUFS, LRA, true peak dBTP), a 10-band octave spectrum (31 Hz..16 kHz), stereo phase correlation (−1..+1), and a dialogue-to-background SNR estimate. Pass media_id to analyze a source file, or start_tick+end_tick to render and analyze the active sequence mix (verifies a mix change actually landed). Optional standard selects the loudness target (ebu_r128, streaming, atsc_a85).",
                 schema(json!({

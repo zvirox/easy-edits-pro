@@ -148,6 +148,7 @@ async fn dispatch(request: Value, app: &AppHandle, state: &AppState) -> Value {
         "vision_extract_frame_sheet" => vision_extract_frame_sheet(state, &params).await,
         "render_preview_clip_proxy" => render_preview_clip_proxy(state, &params).await,
         "color_read_scopes" => color_read_scopes(state, &params).await,
+        "audio_process" => audio_process(app, state, &params).await,
         "color_match_shot_to_reference" => {
             color_match_shot_to_reference(app, state, &params).await
         }
@@ -478,9 +479,24 @@ async fn color_match_shot_to_reference(
     }))
 }
 
-/// `audio_read_telemetry`: measurable audio telemetry over one range —
-/// `media_id` analyzes a source file; `start_tick`+`end_tick` renders the
-/// sequence mix and analyzes that.
+/// Prepare outside the engine lock, then atomically apply the audio edit.
+async fn audio_process(app: &AppHandle, state: &AppState, params: &Value) -> Result<Value, String> {
+    let (document, project_path) = {
+        let engine = state.0.lock().map_err(|e| e.to_string())?;
+        (engine.document().clone(), engine.current_path().map(std::path::Path::to_path_buf))
+    };
+    let params = params.clone();
+    let mut edit = tauri::async_runtime::spawn_blocking(move || {
+        let operation = params.get("operation").and_then(Value::as_str).ok_or("operation is required")?;
+        saturn_render::audio_edit_driver::prepare(&document, project_path.as_deref(), operation, &params)
+    }).await.map_err(|e| format!("Audio processing task failed: {e}"))??;
+    let applied = execute_command_with_state(app, state, edit.command.clone())?;
+    edit.commit();
+    let _ = app.emit("mcp_project_changed", ());
+    Ok(json!({"applied": applied, "telemetry": edit.telemetry}))
+}
+
+/// `media_id` analyzes a source; a tick range analyzes the rendered sequence.
 async fn audio_read_telemetry(state: &AppState, params: &Value) -> Result<Value, String> {
     let document = document_snapshot(state)?;
     let params = params.clone();

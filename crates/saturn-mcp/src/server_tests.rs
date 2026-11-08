@@ -10,6 +10,31 @@ use tokio::{
 };
 
 #[tokio::test]
+async fn audio_tool_errors_and_forwards_exact_bridge_request() {
+    let mcp = EditorMcp::new(EditorEngine::default());
+    let error = mcp.audio_process(&json!({"operation": "duck", "dialogue_track_id": 2, "music_track_id": 3})).await.unwrap_err();
+    assert!(error.contains("Save the project"), "{error}");
+    let path = std::env::temp_dir().join(format!("eep-audio-tool-{}.sock", std::process::id()));
+    let listener = UnixListener::bind(&path).unwrap();
+    let client = EditorMcp { backend: Backend::Bridge(path.clone()), jobs: Arc::new(JobManager::new(1)) };
+    let args = json!({"operation": "normalize_master", "standard": "streaming", "true_peak_dbtp": -1.0});
+    let expected = args.clone();
+    let server = tokio::spawn(async move {
+        let (stream, _) = listener.accept().await.unwrap();
+        let (read, mut write) = stream.into_split();
+        let mut line = String::new();
+        BufReader::new(read).read_line(&mut line).await.unwrap();
+        let request: Value = serde_json::from_str(&line).unwrap();
+        assert_eq!(request["method"], "audio_process");
+        assert_eq!(request["params"], expected);
+        write.write_all(b"{\"error\":\"locked track\"}\n").await.unwrap();
+    });
+    assert!(client.audio_process(&args).await.unwrap_err().contains("locked track"));
+    server.await.unwrap();
+    std::fs::remove_file(path).unwrap();
+}
+
+#[tokio::test]
 async fn media_preview_never_returns_a_source_path_placeholder() {    let mut engine = EditorEngine::default();
     engine
         .execute(saturn_core::CommandRequest::new(

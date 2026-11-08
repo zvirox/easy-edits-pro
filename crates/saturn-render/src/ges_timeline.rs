@@ -24,6 +24,10 @@ use crate::keyframes;
 use crate::plugin_element;
 use crate::{RenderProgress, RenderRange};
 
+// GES can instantiate effects again during preroll. Keep staged automation,
+// graphics and plugin payloads stable until the pipeline is torn down.
+pub(crate) static RENDER_GATE: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 pub(crate) fn render_timeline(
     timeline: &ges::Timeline,
     output_uri: &str,
@@ -272,6 +276,9 @@ pub(crate) fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline
 
     for track in &document.project.sequence.tracks {
         let is_audible = track.is_audible(any_solo);
+        if track.kind == TrackKind::Audio && !is_audible {
+            continue;
+        }
         let effective_gain_db = if is_audible { track.gain_db } else { -120.0 };
         let layer = timeline.append_layer();
         for (clip_index, clip) in track.clips.iter().enumerate() {
@@ -318,6 +325,9 @@ pub(crate) fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline
             })?;
             let ges_clip = ges::UriClip::new(&uri)
                 .map_err(|error| format!("Could not decode {}: {error}", media.name))?;
+            if !is_audible {
+                ges_clip.set_supported_formats(ges::TrackType::VIDEO);
+            }
             ges_clip
                 .set_start(clock_time(render_start)?)
                 .then_some(())
@@ -345,17 +355,18 @@ pub(crate) fn build_timeline(document: &ProjectDocument) -> Result<ges::Timeline
             };
 
             let effective_clip_gain_db =
-                if is_audible { effective_gain_db + clip.volume_db } else { -120.0 };
+                if is_audible { effective_gain_db + clip.volume_db } else { 0.0 };
+            let silent_processing = TrackAudioProcessing::default();
 
             apply_clip_effects(
                 &ges_clip,
                 clip,
                 effective_clip_gain_db,
-                &track.audio_processing,
-                track_automation_payload,
+                if is_audible { &track.audio_processing } else { &silent_processing },
+                track_automation_payload.filter(|_| is_audible),
                 plugin_payloads
                     .iter()
-                    .find(|payload| payload.track_id == track.id),
+                    .find(|payload| payload.track_id == track.id && is_audible),
                 keyframe_clip_key,
                 matches!(media.kind, MediaKind::Video | MediaKind::Image),
                 document.project.settings.width,

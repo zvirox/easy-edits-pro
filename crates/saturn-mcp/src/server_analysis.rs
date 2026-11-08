@@ -11,6 +11,29 @@
 use super::*;
 
 impl EditorMcp {
+    pub(super) async fn audio_process(&self, arguments: &Value) -> Result<Value, String> {
+        if matches!(&self.backend, Backend::Bridge(_)) {
+            return self.bridge_call("audio_process", arguments.clone()).await;
+        }
+        let Backend::Headless(engine) = &self.backend else { unreachable!() };
+        let engine = engine.clone();
+        let arguments = arguments.clone();
+        tokio::task::spawn_blocking(move || {
+            let (document, project_path) = {
+                let engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
+                (engine.document().clone(), engine.current_path().map(ToOwned::to_owned))
+            };
+            let operation = arguments.get("operation").and_then(Value::as_str).ok_or("operation is required")?;
+            let mut edit = saturn_render::audio_edit_driver::prepare(&document, project_path.as_deref(), operation, &arguments)?;
+            // Keep the artifact guard with the blocking apply: cancellation of
+            // the async waiter must not delete media after the engine commits.
+            let applied = engine.lock().unwrap_or_else(PoisonError::into_inner)
+                .execute(edit.command.clone()).map_err(|e| e.to_string())?;
+            edit.commit();
+            Ok(json!({"applied": applied, "telemetry": edit.telemetry}))
+        }).await.map_err(|e| format!("Audio processing task failed: {e}"))?
+    }
+
     pub(super) async fn media_preview(&self, arguments: &Value) -> Result<Value, String> {
         let id = arguments
             .get("media_id")

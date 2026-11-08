@@ -1,6 +1,74 @@
 [
   {
     "aliases": [],
+    "category": "Audio",
+    "id": "audio.auto_phase_align",
+    "label": "Align Audio Phase",
+    "menu": [
+      "Audio",
+      "Processing"
+    ],
+    "mutating": true,
+    "params": "{\"ref_track_id\":int,\"target_track_id\":int,\"audio\":obj,\"expected_digest\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Audio",
+    "id": "audio.fill_gaps_with_room_tone",
+    "label": "Fill Audio Gaps with Room Tone",
+    "menu": [
+      "Audio",
+      "Processing"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"inserts\":[obj],\"expected_digest\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Audio",
+    "id": "audio.sidechain_duck_envelope",
+    "label": "Duck Music under Dialogue",
+    "menu": [
+      "Audio",
+      "Processing"
+    ],
+    "mutating": true,
+    "params": "{\"dialogue_track_id\":int,\"music_track_id\":int,\"points\":[obj],\"expected_digest\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
+    "category": "Audio",
+    "id": "audio.loudness_normalize_master",
+    "label": "Normalize Master Loudness",
+    "menu": [
+      "Audio",
+      "Processing"
+    ],
+    "mutating": true,
+    "params": "{\"audio\":obj,\"expected_digest\":str}",
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [],
     "category": "Sequence",
     "id": "track.set_gain_db",
     "label": "Set Track Gain",

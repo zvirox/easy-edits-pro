@@ -16,6 +16,9 @@ use std::path::Path;
 
 pub mod automation_element;
 pub mod audio_pcm;
+pub mod audio_edit_driver;
+pub mod audio_edit_files;
+pub mod audio_master;
 pub mod audio_telemetry;
 pub mod compositor;
 pub mod curves;
@@ -213,6 +216,7 @@ pub fn render_project_range_with_control(
         return Err("The In/Out range does not contain any clips to render".into());
     }
     let output_path = absolute_output_path(output_path)?;
+    let _render_guard = ges_timeline::RENDER_GATE.lock().map_err(|_| "Render lock poisoned")?;
 
         GST_INIT
         .get_or_init(|| {

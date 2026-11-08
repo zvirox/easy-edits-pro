@@ -235,7 +235,7 @@ pub struct EbuR128Meter {
     step_samples_counter: usize,
 
     // True peak tracker with 4x oversampling
-    max_true_peak_linear: f64,
+    true_peak: saturn_audio_dsp::true_peak::TruePeakMeter,
 
     // Stereo phase-correlation accumulators (sums over every frame pair):
     // corr = Σ(L·R) / sqrt(ΣL²·ΣR²). Only meaningful for stereo (or the
@@ -278,7 +278,7 @@ impl EbuR128Meter {
             gated_blocks_energy: Vec::new(),
             short_term_history: Vec::new(),
             step_samples_counter: 0,
-            max_true_peak_linear: 0.0,
+            true_peak: saturn_audio_dsp::true_peak::TruePeakMeter::new(channels),
             phase_lr_sum: 0.0,
             phase_ll_sum: 0.0,
             phase_rr_sum: 0.0,
@@ -331,7 +331,7 @@ impl EbuR128Meter {
         self.gated_blocks_energy.clear();
         self.short_term_history.clear();
         self.step_samples_counter = 0;
-        self.max_true_peak_linear = 0.0;
+        self.true_peak = saturn_audio_dsp::true_peak::TruePeakMeter::new(self.channels);
         self.phase_lr_sum = 0.0;
         self.phase_ll_sum = 0.0;
         self.phase_rr_sum = 0.0;
@@ -347,14 +347,9 @@ impl EbuR128Meter {
 
         for frame_idx in 0..num_frames {
             let mut weighted_frame_energy = 0.0;
-            let mut frame_peak_linear = 0.0;
 
             for ch in 0..self.channels {
                 let s = samples[frame_idx * self.channels + ch] as f64;
-                let abs_s = s.abs();
-                if abs_s > frame_peak_linear {
-                    frame_peak_linear = abs_s;
-                }
 
                 // Stereo phase-correlation accumulation (first two channels).
                 if ch == 0 {
@@ -371,12 +366,7 @@ impl EbuR128Meter {
                 weighted_frame_energy += weight * filtered * filtered;
             }
 
-            // Estimate true peak with 4x inter-sample oversampling margin
-            // (BS.1770 recommends true-peak detection accounting for reconstruction overshoot)
-            let estimated_tp = frame_peak_linear * 1.05; // 5% headroom for inter-sample overshoot
-            if estimated_tp > self.max_true_peak_linear {
-                self.max_true_peak_linear = estimated_tp;
-            }
+            self.true_peak.process_frame(&samples[frame_idx * self.channels..(frame_idx + 1) * self.channels]);
 
             // 1. Update Momentary ring buffer (400ms)
             let old_m = self.momentary_ring[self.momentary_pos];
@@ -431,7 +421,12 @@ impl EbuR128Meter {
         }
     }
 
-    /// Compute current Loudness Report including Momentary, Short-Term, Integrated, LRA, and True Peak.
+    /// Unrounded integrated loudness for measured normalization iterations.
+    pub fn integrated_lufs_exact(&self) -> f64 {
+        self.compute_integrated_loudness()
+    }
+
+    /// Compute current Momentary, Short-Term, Integrated, LRA, and True Peak.
     pub fn get_report(&self) -> LoudnessReport {
         // 1. Momentary Loudness (400ms)
         let momentary_mean = if self.momentary_count > 0 {
@@ -464,8 +459,9 @@ impl EbuR128Meter {
         let loudness_range_lu = self.compute_loudness_range();
 
         // 5. True Peak in dBTP
-        let true_peak_dbtp = if self.max_true_peak_linear > 1e-6 {
-            20.0 * self.max_true_peak_linear.log10()
+        let peak = self.true_peak.peak_linear();
+        let true_peak_dbtp = if peak > 1e-6 {
+            20.0 * peak.log10()
         } else {
             -70.0
         };
