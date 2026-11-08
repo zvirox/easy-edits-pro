@@ -102,7 +102,14 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Run Core & Render tests
-        run: cargo test --workspace --verbose
+        run: |
+          # The plugin host tests load real artifacts on disk: the fixture
+          # cdylib (org.eep.fixture.gain) and the sandbox worker binary.
+          # `cargo test` does not link unrelated cdylib/bin targets, so build
+          # the two before the suite; `cargo build` inside the test would
+          # otherwise race the suite from nested processes.
+          cargo build --locked -p saturn-plugin-fixture -p saturn-plugin-worker
+          cargo test --workspace --verbose
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
