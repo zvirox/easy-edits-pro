@@ -1,9 +1,35 @@
-# AI-Native Architecture Plan — Progress Checklist
+# AI-Native and Agent-First Plans — Progress Checklist
 
-**Plan spec:** [AI_NATIVE_ARCHITECTURE_PLAN.md](AI_NATIVE_ARCHITECTURE_PLAN.md)
-**Adopted:** 2026-11-05 · **Status:** Not started
+**Plan specs:** [AI-native architecture](AI_NATIVE_ARCHITECTURE_PLAN.md) ·
+[Agent-first control/review](AGENT_FIRST_PLAN.md) · [Fixed glass cards](GLASS_CARDS_PLAN.md)
+**Adopted:** AI-native 2026-11-05; agent-first companion 2026-11-08.
+**Status:** In progress · **Reconciled baseline:** `7c20b98` (465 shipped catalogue commands).
 
 > **How to use this checklist.** This is the single source of truth for plan progress; the spec above describes *what and why*, this file tracks *what is done*. When starting work on a phase, tick packets as they land (one commit packet per checkbox, one lane per packet per `AGENTS.md`). A phase counts as complete only when **every checkbox in the phase is ticked, including the Verification Gate**. Update the phase status line after each gate passes, and record the evidence (test run / command + date) next to the gate checkbox.
+
+## Current checkpoint and next-work queue
+
+- **Completed:** AI-native Phases 0–3; Phase 4 plugin/offline operations; Packet
+  5.1 J/L, match-cut and beat-grid slices. The glass shell and geometry tests exist.
+- **Open:** two remaining 5.1 verbs, all 5.2 panels, Phases 6–7 and the new
+  agent-first implementation work below. Phase 4 stays incomplete while cinema
+  Dialogue/Music/Ambience/SFX separation is deferred for a verified, license-cleared
+  model. Keep the documented room-tone, diarization and plugin-packaging follow-ups.
+- **Next actionable packet:** AF0 inventory/actor design, then AF1's proposed
+  command/tool profile CSV. Obtain human review before tier/profile implementation.
+- **Proposed execution queue, pending maintainer decision:** AF0 → AF1 → AF2 →
+  AF4 → AF3 → AF5 → AF6/5.2 → remaining 5.1 and Phase 5 gate → Phase 6 →
+  AF7/7.1 → AF8/7.2 → AF9 (before hosting). Base verification/recipe smoke may
+  start when its prerequisites exist; it does not complete the larger gates.
+  AF4 precedes full AF3 because verification reads brief/review metadata.
+- **Pending product choices:** default autopilot/co-edit mode, auto-merge policy,
+  Agent/Review placement, initial providers and revised order; see
+  [the decision register](AGENT_FIRST_PLAN.md#5-decisions-pending-from-the-maintainer).
+  Plan adoption does not silently approve these defaults.
+
+`AF0–AF9` names the attachment's A0–A9 without colliding with older packets.
+AF6 is UI and AF9 is daemon. Shared 5.2/7.1/7.2 deliverables have one implementation
+and one evidence trail; update both cross-references when their gates pass.
 
 ---
 
@@ -13,11 +39,11 @@
 
 | Document | Type | Binding consequence for plan work |
 |---|---|---|
-| 2026-11-08 | 5.1 (second task) | **Match-cut alignment:** bounded contrast-centroid, signed block-motion and attack-envelope matching; one incoming-source slip with stale/no-signal rejection, undo/redo and no-op history preservation. Desktop menu and `edit_match_cut_align` MCP tool share preparation. Native moving-video and WAV fixtures verify deterministic selection, matching over a closer transient decoy, changed rendered picture/audio, and unaligned controls. Accurate paused-preroll frame decoding and sample-grid audio starts verified. **Gates:** workspace 572 passed, 1 existing ignored; desktop 45 passed, 1 existing ignored; UI build and 172 tests passed; all nine mocked E2E areas passed with 0 browser errors, including exact match-cut menu request/error display. Initial E2E startup found a leftover server on port 1420; rerun after stopping that server passed. Menu screenshot inspected. Glass/commands/source-size, licence headers and regenerated catalogue/parity drift checks passed (464 shipped commands). Prowl unavailable. Workflow and limitations: [match-cut-alignment.md](match-cut-alignment.md). |
-| [AGENTS.md §Provenance and third-party material](../../AGENTS.md) (added via [provenance-notice.patch](audit/provenance-notice.patch)) | Repo rule | Study but never paste third-party code; log every reuse in `NOTICE` **in the same change**; only MIT/Apache-2.0/BSD/ISC/Zlib sources; never GPL/AGPL/LGPL deps or non-commercial model weights without maintainer approval; no third-party product names in UI/docs/identifiers; never the ArtCraft/FilmCraft names or logos. |
-| [NOTICE](../../NOTICE) | Legal record | The FilmCraft derivation is documented (command inventory + `CommandSpec` shape, MIT OR Apache-2.0 texts under `licenses/`). Any new third-party reuse must add an entry here in the same commit. |
+| [AGENTS.md §Provenance and third-party material](../AGENTS.md) (added via [provenance-notice.patch](audit/provenance-notice.patch)) | Repo rule | Study but never paste third-party code; log every reuse in `NOTICE` **in the same change**; only MIT/Apache-2.0/BSD/ISC/Zlib sources; never GPL/AGPL/LGPL deps or non-commercial model weights without maintainer approval; no third-party product names in UI/docs/identifiers; never the ArtCraft/FilmCraft names or logos. |
+| [NOTICE](../NOTICE) | Legal record | The FilmCraft derivation is documented (command inventory + `CommandSpec` shape, MIT OR Apache-2.0 texts under `licenses/`). Any new third-party reuse must add an entry here in the same commit. |
+| [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md) | Companion plan adopted 2026-11-08 | AF0–AF9 extends existing plans: human-reviewed profiles, actor isolation/reversible edits, measured verification, brief/provenance and fixed-dock Agent/Review UI. Preserve shipped progress, whole-branch merge v1 and locked colours; new defaults remain pending decisions. |
 | [eep-ai-native-plan-review.md](audit/eep-ai-native-plan-review.md) | Independent plan review | Design constraints absorbed into the packets below: no `/dev/shm` ring (Packet 1.1 uses MCP image blocks / `$XDG_RUNTIME_DIR` previews); contact-sheet budget with token controls (Packet 1.1); no invented scalar "Murch score" — measurable telemetry only (Packet 1.2); no ethnicity-labelled skin-tone logic; no OCIO dependency (fix a small WGSL transform set); BLAKE3 is a *fingerprint*, not a content hash (Packet 0.2); branch merge v1 is whole-branch accept/reject only (Packet 0.2); per-session viewport cursors for Packet 5.2 (human/agent do not share one selection); treat media-derived text as untrusted data; curated ~20–30 default agent tool profile for MCP; headless daemon milestone (review §5 stage C) before any hosting work. |
-| [dual-licensing-plan.md](planning/dual-licensing-plan.md) | Licensing brief (not legal advice) | **IMPLEMENTED 2026-11-05 (see progress log).** AGPL-3.0-or-later is the open licence + a commercial option (`LICENSING.md`, `LICENSE-COMMERCIAL.md`); SPDX headers on every source file gated by CI; `deny.toml` + `licences` CI job gate dependency licences; CLA (CLA.md) required before outside-PR merges (statement-based flow live; CLA Assistant bot is a maintainer follow-up); never bundle x264 or non-commercial model weights (`docs/model-licences.md` gate); lawyer review of all licence docs is still pending — any legal contradiction overrides this table. |
+| [dual-licensing-plan.md](planning/dual-licensing-plan.md) | Licensing brief (not legal advice) | **Licence documents/header gate implemented 2026-11-05 (see progress log); policy/packaging follow-ups remain.** AGPL-3.0-or-later is the open licence + a commercial option (`LICENSING.md`, `LICENSE-COMMERCIAL.md`); SPDX headers and cargo-deny run in CI, but the broad AGPL/GPL/LGPL allow-list still needs AF0's scoped dependency policy and package-bundle verification. CLA (CLA.md) required before outside-PR merges (statement-based flow live; CLA Assistant bot is a maintainer follow-up); never bundle x264 or non-commercial model weights (`docs/model-licences.md` gate); lawyer review is pending — any legal contradiction overrides this table. |
 | [filmcraft-provenance-check.md](audit/filmcraft-provenance-check.md) | Provenance audit | Evidence base for NOTICE. Reminder: check parity header and `docs/PARITY.md` credit FilmCraft; do not introduce more verbatim surface without a NOTICE entry. |
 
 ---
@@ -116,7 +142,7 @@
 
 ---
 
-## Phase 3 — Scene-Referred 32-Bit Float GPU Color Engine — `status: todo`
+## Phase 3 — Scene-Referred 32-Bit Float GPU Color Engine — `status: done (packets 3.1–3.3 and all verification criteria completed; evidence below)`
 
 ### Packet 3.1 — Real wgpu `Rgba32Float` pipeline & OCIO v2 ACEScg (Lane 2) — `status: done 2026-11-07`
 
@@ -275,6 +301,11 @@ Morph cuts, storyline pins and Packet 5.2 remain planned.
 
 > **Plan-review constraint (docs/audit/eep-ai-native-plan-review.md §4.9):** human and agent get **separate viewport cursors/selections** — the human's lives in the GUI session, the agent's in its command session; they do not overwrite each other. Viewport state stays out of undo and out of dirty-state. Also gated on the glass-card shell (build after G3 of the UI plan); branch diff ribbon works with Packet 0.2's whole-branch accept/reject v1.
 
+> **Agent-first integration:** implement these same deliverables under AF6 after
+> AF2 actor/conflict semantics and AF3–AF5 metadata/verification/provenance.
+> `AgentTelemetryDrawer` is dock content, never a floating feature panel. Per-edit
+> rejection must wait for AF2's written conflict rule; v1 merge stays whole-branch.
+
 - [ ] `ui/src/features/timeline/AiBranchDiffRibbon.tsx` (ghost playhead, accept/reject via `project.branch_merge`)
 - [ ] `ui/src/features/preview/VideoScopesPanel.tsx` (raw canvas — no glass over scope surfaces)
 - [ ] `ui/src/features/captions/ScriptSyncPanel.tsx` (word-level ripple cutting, multi-take carousel)
@@ -308,11 +339,15 @@ Morph cuts, storyline pins and Packet 5.2 remain planned.
 ## Phase 7 — Agent Harness Expansion & Closed-Loop Acceptance — `status: todo`
 
 ### Packet 7.1 — `cli-anything-eep` CLI & skill upgrade (Lane 4)
+> Shared with AF7; add supervised recipes and profile/session/verify controls as
+> their backends ship. Early recipes do not complete the deferred VFX CLI group.
 - [ ] Add `branch`, `perception`, `ocio`, `telemetry`, `vfx` subcommand groups under `agent-harness/cli_anything_eep/commands/`
 - [ ] Update `agent-harness/cli_anything_eep/skills/cli-anything-eep.md` with closed-loop agent skill definitions
 
 ### Packet 7.2 — Closed-loop acceptance suite (Lane 3)
-- [ ] Create `tests/native/ai_closed_loop_workflow.py` (multi-cam rough cut → continuity check → ACEScg grade → stem ducking + EBU R128 master → H.264/WebM export, over the live socket bridge)
+> Shared with AF8; reuse this suite for live-bridge acceptance and keep scripted
+> smoke results distinct from real-model benchmark results.
+- [ ] Create `tests/native/ai_closed_loop_workflow.py` (multi-cam rough cut → continuity check → ACEScg grade → supplied dialogue/music-track ducking + EBU R128 master → H.264/WebM export, over the live socket bridge; cinema-stem separation coverage waits for the verified model and cannot be claimed by this fixture)
 
 ### ✅ Phase 7 Final Release Gates (all must pass)
 - [ ] `cargo test --workspace`
@@ -325,6 +360,81 @@ Morph cuts, storyline pins and Packet 5.2 remain planned.
 - [ ] `python3 -m pytest agent-harness/tests -q`
 - [ ] `python3 tests/native/mcp_command_matrix.py`
 - [ ] `python3 tests/native/ai_closed_loop_workflow.py`
+
+---
+
+## Agent-first companion — AF0–AF9 — `status: integrated; implementation pending`
+
+Specification: [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md). Each milestone below
+may need several sequential, single-lane commits. Core/schema = Lane 2;
+MCP/harness/docs = Lane 4; UI = Lane 1; packaging/native verification = Lane 3.
+Packet IDs are stable labels; follow the dependency queue above.
+
+### AF0 — Baseline, housekeeping and actor design
+- [x] Reconcile the supplied plan at `7c20b98`, add companion/cross-links and refresh the local `docs/planning.md` index (kept ignored per repository policy); retain completed work and blocked stems. Move misplaced match-cut evidence into the progress log and correct stale checklist header/Phase 3 status.
+- [ ] Inventory dependency licences and actual package contents; record first-party ownership separately from third-party licences (Lane 4).
+- [ ] Scope `deny.toml` policy/exceptions to the approved inventory; prove an unapproved copyleft-only dependency fails while owned first-party crates pass (Lane 4; coordinate with Lane 3 for CI).
+- [ ] Generate/distribute third-party notices/licence texts and verify .deb/.rpm/Flatpak contents, including plugin-worker packaging follow-up (Lane 3).
+- [ ] Write actor/branch/history/lock/Stop and stable-change conflict design; reconcile historical UI decisions and confirm the proposed execution order (Lane 4).
+- [ ] **Gate:** dependency negative control, package-content evidence and reviewed actor design recorded; documentation integration alone does not complete AF0.
+
+### AF1 — Reviewed profiles and explicit grants
+- [ ] Generate proposed `docs/reference/command-profiles.csv` from the current catalogue plus dedicated MCP tools, wrappers and their effects; **stop for human review** (Lane 4).
+- [ ] Record approval and add tier/profile metadata to canonical `saturn-core::catalogue::CommandSpec`; regenerate catalogue references and gate complete assignments (Lane 2).
+- [ ] Add profile discovery/loading and enforce grants/profile membership across generic run/batch, dedicated preparation tools and bridge sessions (Lane 4).
+- [ ] **Gate:** default core + one profile ≤30 tools; review/manual read-only; typed wrong-profile hint; no permission elevation or wrapper bypass; GUI/CLI catalogue remains complete.
+
+### AF2 — Actors, conflict-safe review, locks, Stop and atomic batches
+- [ ] Implement Rust-owned actors, per-actor cursors, selections, targeting and branch context; document shared job ownership (Lane 2).
+- [ ] Bind transport connections to actor identities and enforce session modes/resume authority (Lane 4).
+- [ ] Attribute history and stable change records; implement agent-only undo/per-change review using the reviewed conflict rule; refuse conflicts with later human edits and stale branch merges (Lane 2).
+- [ ] Persist actor-owned clip/region locks with migration/reopen and disconnected-owner handling; enforce on mutations and merge (Lane 2).
+- [ ] Add engine-side cancellation/late-apply guards and preparation cleanup hooks (Lane 2).
+- [ ] Add session Stop/resume orchestration; propagate cancellation into analysis/render/preparation and reject subsequent calls while stopped (Lane 4).
+- [ ] Add opt-in atomic engine transactions with rollback and documented undo boundary; reject unsupported external effects (Lane 2).
+- [ ] Expose atomic MCP batches with per-step policy checks and explicit sequential compatibility (Lane 4).
+- [ ] **Gate:** multi-actor selection/branch isolation, dependency-conflict rejection, durable locks, failure-after-first-step rollback and measured Stop ≤1 s; no late mutation after cancellation.
+
+### AF4 — Rationale, confidence and human-owned brief
+> Depends on AF2; complete before AF3's brief/review-aware gate.
+- [ ] Persist per-edit rationale (≤200 characters), declared confidence and human corrections on history/clip/cut records; schema migration from v16, reopen and merge retain provenance (Lane 2).
+- [ ] Add Rust-owned `project.brief_set/get` for goal, platform, duration/tolerance, must-keep/banned content, style and loudness; define human authorization for brief changes (Lane 2).
+- [ ] Carry metadata through generic command/batch and dedicated mutation tools; keep media-derived content out of trusted brief updates (Lane 4).
+- [ ] **Gate:** migration/save/reopen/merge and correction tests; confidence is labelled agent uncertainty, not measured quality.
+
+### AF3 — `verify.run` measured self-check
+- [ ] Implement bounded named checks from the companion §2.3: loudness/peak, silence, black/frozen/clipped frames, captions, brief targets, continuity/pops, missing resources and unreviewed uncertain edits (Lane 2 analysis).
+- [ ] Expose the shared read-only verifier over MCP/bridge with snapshot/range/coverage, measurements, thresholds, tick/clip evidence and unavailable checks; document presets (Lane 4).
+- [ ] **Gate:** seeded bad projects fail at correct ticks/values; clean fixtures pass; missing/truncated measurements never masquerade as full coverage or invented quality scores.
+
+### AF5 — Untrusted media provenance
+- [ ] Version and wrap media-derived text consistently across MCP inspection/search/preview/error payloads; propagate server-owned origin information (Lane 4).
+- [ ] Add core origin/brief-boundary validation required by the reviewed provenance contract (Lane 2).
+- [ ] Enforce origin-aware grants and explicit approval for untrusted-derived destructive/filesystem arguments; cover generic dispatch and batches (Lane 4).
+- [ ] **Gate:** adversarial transcript/import/metadata, copied/modified arguments and unknown origins yield approval/refusal with no unauthorized side effects; legitimate approved operations pass.
+
+### AF6 — Agent/Review UI and existing Packet 5.2
+> Depends on AF1–AF5 and the existing fixed glass shell. Confirm placement/defaults
+> before implementation; all additions use existing tokens and fixed slots.
+- [ ] Add always-visible status/Stop and pinned dock status; Agent card session/grants, brief, plan, messages, last-seen evidence and permission requests (Lane 1).
+- [ ] Add Review queue, confidence/rationale, before/after previews, verification navigation, whole-branch actions and conflict-safe per-change review backed by AF2 (Lane 1).
+- [ ] Add ghost cursor, timeline badges/locks/diff ribbon and actor history/undo; complete the four existing Packet 5.2 panel checkboxes rather than replacing them (Lane 1).
+- [ ] Add agent settings/onboarding and fold the existing assistant into the card only after feature/provider parity (Lane 1).
+- [ ] **Gate:** demo run → review → accept/reject → merge; later human-edit conflicts preserved; fixed geometry across workspaces and 900–1280 px/wide windows; keyboard/status/Stop and colour-freeze checks pass.
+
+### AF7 — Closed-loop recipes and Packet 7.1 CLI
+- [ ] Extend the existing harness/skill with profile/session/brief/verify/review flow and the five companion §2.6 recipes; use supplied dialogue/music sources while stems remain blocked (Lane 4).
+- [ ] Complete Packet 7.1 groups as backends ship, including VFX after Phase 6; unsupported actions return errors (Lane 4).
+- [ ] **Gate:** scripted podcast cleanup reaches measured verification pass and human review; exact tool shapes and undo/preparation limits documented.
+
+### AF8 — Benchmark and Packet 7.2 closed-loop suite
+- [ ] Build 10–20 synthetic/approved-CC0 tasks, provenance records, metric/structure evaluation and labelled model/version/call/token/time reports; unavailable metrics remain explicit (Lane 4).
+- [ ] Reuse Packet 7.2 live-bridge suite and add deterministic CI smoke with seeded failure controls (Lane 3).
+- [ ] **Gate:** CI smoke and live workflow pass; publish a real-model baseline separately from scripted results; Phase 7 final gates remain required for full completion.
+
+### AF9 — Authenticated long-lived daemon
+- [ ] Extend existing MCP/control components with project lifecycle, UDS session tokens, rate/time budgets and bounded JSONL audit records; reuse AF2 Stop and AF5 provenance (Lane 4).
+- [ ] **Gate:** reject missing/wrong tokens; prove isolation, audit completeness, budget enforcement, disconnect cleanup and Stop. Required before hosting work.
 
 ---
 
@@ -345,6 +455,11 @@ Morph cuts, storyline pins and Packet 5.2 remain planned.
 
 | Date | Packet | Note / Evidence |
 |---|---|---|
+| 2026-11-08 | Beat-grid CI outcome | Original run [42462752102](https://github.com/zvirox/easy-edits-pro/actions/runs/42462752102) reached the 30-minute job limit with all four `audio_edits` tests still running; licences and Python harness passed. The follow-up correction is `c817bc4`, with full local verification below. Remote logs match the stalled suite; the lock backtrace is local evidence. |
+| 2026-11-08 | Native verification follow-up | The documentation gate rerun exposed a local parallel audio/GES startup deadlock; that interrupted workspace run failed. Centralized full media-runtime initialization across renderer and desktop entry points and added a bounded cold-process regression (frame/audio/hardware-first and simultaneous startup). The new test failed before the correction on missing element registration; all four modes and the parallel audio suite passed after it. Final workspace gate: **583 tests passed plus four child-process scenarios**, 1 existing ignored; desktop **45 passed**, 1 existing ignored. Frontend build and **174 tests**, glass/colour-freeze, commands/source-size, catalogue/parity drift and SPDX checks passed; all **nine mocked E2E areas** passed with zero browser errors. Document links/anchors, changed-line character sweep and whitespace checks passed. Diagnosis and reproduction: [media-runtime-initialization.md](audit/media-runtime-initialization.md). The original beat-grid CI was still in native tests during diagnosis; no remote backtrace established its cause. |
+| 2026-11-08 | AF0 (documentation slice) | Added the user-supplied agent-first plan as a companion, reconciled to `7c20b98` and 465 shipped commands. Refreshed the local-only planning index, added dependencies and AF0–AF9 checklist; linked 5.2/7.1/7.2 shared work. Corrected stale status and moved misplaced match-cut evidence here. Verified static catalogue ownership, single viewport/snapshot history, sequential MCP batches, whole-branch merge and existing fixed shell; licensing allow-list/package-bundle follow-ups remain open. Product defaults/order remain pending; AF1 inventory requires human review. Verification and the discovered native initialization correction are recorded in the preceding row. No agent-first feature or licensing fix is claimed by this documentation slice. |
+| 2026-11-08 | 5.1 (third task) | **Beat-grid quantization (`7c20b98`):** core validation/atomic cut rolls, bounded model-free pulse analysis, off-lock desktop/MCP preparation, menu and workflow. Native fixture moved cuts from frames 82/139 to 75/135 at 120 BPM while preserving outer edges and audible music; deterministic preparation and undo verified. Local gates: workspace 582 tests, desktop 45, frontend 174, build/glass/commands/source-size/SPDX/catalogue/parity and nine mocked E2E areas passed with zero browser errors. Catalogue: 465 shipped commands. See [beat-grid-quantization.md](beat-grid-quantization.md) and [CI run](https://github.com/zvirox/easy-edits-pro/actions/runs/42462752102) for verification. |
+| 2026-11-08 | 5.1 (second task) | **Match-cut alignment:** bounded contrast-centroid, signed block-motion and attack-envelope matching; one incoming-source slip with stale/no-signal rejection, undo/redo and no-op history preservation. Desktop menu and `edit_match_cut_align` MCP tool share preparation. Native moving-video and WAV fixtures verify deterministic selection, matching over a closer transient decoy, changed rendered picture/audio, and unaligned controls. Accurate paused-preroll frame decoding and sample-grid audio starts verified. **Gates:** workspace 572 passed, 1 existing ignored; desktop 45 passed, 1 existing ignored; UI build and 172 tests passed; all nine mocked E2E areas passed with 0 browser errors, including exact match-cut menu request/error display. Initial E2E startup found a leftover server on port 1420; rerun after stopping that server passed. Menu screenshot inspected. Glass/commands/source-size, licence headers and regenerated catalogue/parity drift checks passed (464 shipped commands). Prowl unavailable. Workflow and limitations: [match-cut-alignment.md](match-cut-alignment.md). |
 | 2026-11-08 | 5.1 (first task) | **J/L split edits:** `timeline.asymmetric_trim`, desktop menu and MCP preparation, one undoable application, schema v16 audio suppression, persistent editable sound bounce. Native AV evidence covers both cut directions, constant-power fades, changed picture frames, export vs bounce-only audio below -90 dBFS, audible doubled-source negative control, fractional-sample EOF handles, history and cleanup. **Gates:** workspace 562 passed, 1 existing ignored; desktop 45 passed, 1 existing ignored; UI build and 171 tests passed; glass/commands/source-size/parity, licence headers and catalogue drift checks passed. After the fractional-sample fix, the full renderer suite passed (146 passed, 1 existing ignored). All nine mocked-backend E2E areas passed (0 browser errors), including the exact menu request/error contract; the assertion was corrected to include the UI's `Error: ` prefix. Menu screenshot inspected. Catalogue regenerated to 463 shipped commands; added-line/new-file character scan and diff checks passed. Prowl attempted but unavailable. Workflow and bounds: [audio-processing.md](audio-processing.md). |
 | 2026-11-08 | 4.2 | **Offline audio operations delivered; cinema stems deferred by maintainer decision.** Shared MCP/desktop `audio_process` prepares phase alignment, caller-profile room tone, energy-keyed duck automation and measured master normalization; atomic Rust commands reject stale snapshots and preserve undo/redo. Project-local float WAVs persist on success and are removed on failure. Room-tone fades are inside gaps; dialogue-edge crossfades remain pending. Lossless transient master: −14.00747 LUFS / −1.0100 dBTP internally; independent FFmpeg meter: −14.0 LUFS / −1.0 dBTP. **Gates:** `cargo test --workspace` 557 passed, 1 existing ignored; desktop tests 45 passed, 1 existing ignored; desktop locked check; UI build, 169 unit tests, glass/commands/source-size/parity and all nine mocked-backend E2E areas passed (0 browser errors). Initial E2E navigation timed out during concurrent Rust builds; rerun after completion passed with the same harness. Explicit native `dsp_plugin_parity -- --nocapture`: both tests executed and passed, including preview/export residual <−90 dBFS and audible plugin-gain control, no codec skip. Catalogue regenerated to 462 shipped commands; new-file junk scan and diff checks passed. Prowl attempted but unavailable in this environment. Contracts and limits: [audio-processing.md](audio-processing.md). |
 | 2026-11-06 | 2.3 | **Neural matting, depth & motion tracking.** New `crates/saturn-perception` modules (render-free; compositing stays in saturn-render; commands call both — Packet 2.2 pattern). **Licence gate first:** RVM (plan's "RVM v2 / MODNet") **refused** — repo + exported ONNX models are GPL-3.0 (upstream-maintainer-confirmed, PaddlePaddle/FastDeploy#1059); MODNet satisfies the packet alone (Apache-2.0 for code+models+demos since 2022-01, ZHKKKe/MODNet#70). `matting_ort.rs`: pinned `Xenova/modnet` @ `fa2fa546052fba4c08921230a26cc69a333fca12` fp32 export (25,888,640 B, SHA-256 `07c308cf0fc7e6e8b2065a12ed7fc07e1de8febb7dc7839d7b7f15dd66584df9`, LFS-oid-verified 2026-11-06), fetch-on-first-run + checksum verify, preprocessing pinned to the export's preprocessor_config (shortest edge 512, /32 divisibility, bilinear, 1/255, mean/std 0.5 → [−1,1]), output name-checked (ort panics on missing keys — probed `output [1,1,H,W]` first), deterministic bilinear round-trip to frame size, EMA-labelled smoother (explicitly NOT RVM-style recurrent memory), prefix-sum `feather_alpha` with bounded output. **Portrait-only** documented in code/command/UI. `depth_ort.rs`: **Small only** (Base/Large/Giant CC-BY-NC-4.0 excluded, DepthAnything#81); pinned `onnx-community/depth-anything-v2-small` @ `4472b7362082ad9968fee890ca0f1e5aca36b93d` int8 export (27,258,801 B, SHA-256 `fcf51f1b230362b28690bb9d1809bf0431f29cad20534e3f589bd7285547f20d`; upstream `.pth` recorded for traceability); 518×518 (14-px patch grid), ImageNet mean/std, declared-name + finite + exact-dims checks; honest deviations in-code: relative depth only (normalized in-frame with `flat` flag, never meters), fixed square resize vs upstream keep_aspect_ratio, int8 drift. `motion_track.rs`: exhaustive-SSD patch match + parabolic sub-pixel + **measured ZNCC confidence** (flat texture → ~0, replacing the old fake hardcoded 0.95), Hartley-normalized DLT (gauge h[8]=1, singular → None), seeded deterministic RANSAC (all-triplet collinearity guard, consensus refit), `track_region_frames` (3×3 grid of 32 px patches, **non-incremental** matching so one bad match cannot compound, per-frame homography, `None` instead of interpolation). Fake removals: render `matting.rs` Gaussian/skin-chroma heuristic + RVM-shaped `MattingTemporalState` **deleted** (module is now composite-only over a provided measured alpha — threshold rescale → shared feather → background blend); `analyze_motion_tracking` sine/cosine rewrite replaced with `media_id`-based command returning typed `MotionTrackResult` (measured confidences, `ticksDropped`, `meanReprojectionErrorPx`), bounded decode (≤48 frames @ ≤960 px long edge), engine lock never held across decode/inference; UI `BackgroundMattingCard.tsx` synthetic 128×128 skin-tone payload + canned success removed, RVM option removed, returned frame drawn into a canvas as measured proof with coverage %. Gated e2e `tests/matting_depth_e2e.rs` (SATURN_PERCEPTION_E2E=1 / SATURN_MODELS_DIR): MODNet determinism/range/frame-size + person-less scene reports low alpha honestly + feather/smoother composition; DA-V2 deterministic finite 518×518 grids with real spread (not flat), normalization + upsample shape. **I/O + timing probe evidence (debug build, CPU): MODNet 368 ms @ 512×896, DA-V2-Small int8 675 ms @ 518² (both deterministic; release build will be faster — no release numbers claimed).** `docs/model-licences.md`: MODNet export, DA-V2-Small upstream + export rows, **RVM refused entry**. Gates: `cargo test --workspace` 0 failures (perception 43 lib incl. 6 matting + 4 depth + 8 motion tests; render composite suite 5), tauri workspace 45 green, `pnpm build` + 168 UI tests + e2e suites (0 browser errors), check:glass (tokens + freeze 134) / check:commands (449 unchanged) / check:source-size (≤800) / junk + cyrillic sweep clean (one fabricated CJK token found in the new e2e file mid-session and removed — sweep after every write stands). Phase 2 gate closed: all three criteria ticked with evidence. Commit at packet close (local — not pushed, awaiting user go-ahead). |

@@ -3,6 +3,23 @@
 > **Status:** Adopted 2026-11-05 as the next major plan after the UI Overhaul Plan (`docs/planning.md`).
 > **Progress tracking:** [AI_NATIVE_PLAN_CHECKLIST.md](AI_NATIVE_PLAN_CHECKLIST.md) — update the checklist, not this spec, as packets land.
 
+> **Companion plan adopted 2026-11-08:** [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md)
+> adds profiles, actor sessions, measured verification, briefs/provenance and
+> human review on the existing [fixed glass shell](GLASS_CARDS_PLAN.md). Follow
+> the shared checklist's dependency-aware queue and open decisions. AF6 shares
+> Packet 5.2; AF7/AF8 share Packets 7.1/7.2. Completed work stays completed;
+> cinema Dialogue/Music/Ambience/SFX separation stays model/license-blocked.
+>
+> **Reading this specification:** the audit and prototype examples below are
+> historical proposals, not current API/status documentation. Implemented
+> contracts and review constraints in the checklist take precedence: fingerprints
+> suggest relinks, branch merge v1 is whole-branch only, frames use MCP image
+> blocks/runtime previews, colour transforms use fixed WGSL (no OCIO dependency),
+> and continuity reports measurements rather than an invented aggregate score.
+> Per-actor isolation and arbitrary atomic MCP batches remain planned. AF6 must
+> use existing accent tokens and fixed dock slots, not add the prototype's hues
+> or floating surfaces. Current runtime behavior is in [architecture.md](architecture.md).
+
 ## 1. Executive Summary & Core Design Philosophy
 
 **Easy Edits Pro (`zvirox/easy-edits-pro`)** already provides a strong structural foundation for an AI-controllable Linux non-linear video editor (NLE):
@@ -582,6 +599,11 @@ All UI additions respect the hard rules in `AGENTS.md`: CSS design tokens only (
 ## 7. Full Phase-Wise Implementation Plan (Phases 0 to 7)
 
 Each phase is divided into atomic packets mapped to the repository's four ownership lanes (`AGENTS.md`: **Lane 1 UI/Glass**, **Lane 2 Engine/Parity**, **Lane 3 Release/Verification**, **Lane 4 Tooling/Docs/MCP**).
+
+The phase IDs remain stable. The [agent-first dependency table](AGENT_FIRST_PLAN.md#4-dependencies-and-execution)
+proposes control/review work before VFX, with AF4 brief metadata before the full
+AF3 verification gate. Use the shared checklist for the current queue and
+maintainer decisions rather than inferring execution order from numbering.
 
 ### Phase 0: Unify UI-Only State & Upgrade Project Schema to v15 (Foundation)
 

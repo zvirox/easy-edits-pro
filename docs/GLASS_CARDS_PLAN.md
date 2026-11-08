@@ -5,6 +5,13 @@
 Replaces v3, `glass-ui-plan.md`, `glass-ui-plan-v2.md` and the floating-panel parts of `final-implementation-plan.md` (WS-C).  
 Visual target mock: `eep-glass-cards-mock.html` (open it in a browser, click the workspace tabs, resize the window).
 
+> **Agent-first companion (2026-11-08):** [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md)
+> extends the implemented fixed shell with Agent/Review dock content, always-visible
+> status/Stop and timeline review indicators. Colours, Program/Timeline/Toolbox/Meters
+> slots, compact tracks and no-floating-panel rules stay binding. AF6 shares the
+> AI-native Packet 5.2 deliverables; progress and pending placement/default decisions
+> live in [AI_NATIVE_PLAN_CHECKLIST.md](AI_NATIVE_PLAN_CHECKLIST.md).
+
 ---
 
 ## 0. The Corrected Brief
@@ -219,7 +226,7 @@ Wide content handling:
 
 ## 10. Master Agent Directives
 
-1. **Sequential Phase Locking:** Phases must be executed in order and verified before moving forward.
+1. **Sequential Phase Locking:** Glass phases must be verified in dependency order. For the added agent workstream, follow the shared checklist's dependency queue; existing shell work is the base for AF6, not a reason to restart G1–G7.
 2. **Zero MDI Window Controls:** Never render 📌, -, or X window buttons on panel headers.
 3. **Zero Overlapping Popups:** No `position: absolute` floating feature panels. Only dialogs in `features/dialogs/` may be modals.
 4. **GPU-Safe Frosted Glass:** `.glass` applied only to cards over the static ambient stage; never over live video.
