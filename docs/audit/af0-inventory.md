@@ -412,18 +412,49 @@ Verification performed locally (same host as §8):
   `usage: saturn-plugin-worker <control-socket-path> <shm-path>` on stderr —
   the binary runs outside the cargo tree.
 
-Not proven here (honest limits, unchanged responsibilities):
+Not proven here (original local limits, updated same day below):
 
-- No real dpkg/dnf container install and no installed-worker lookup or
-  plugin-hosting smoke in a packaged layout (the container commands were
-  extended above; they must run remotely — this host has no container
-  daemon and a non-deb host cannot dnf-install).
-- Flatpak install-proof is still blocked by the earlier isolated-session
-  hang (preserved report); the module script's new installs are
-  payload-verified only by the next CI Flatpak proof, not by a local build.
+- No local real dpkg/dnf container install and no local installed-worker
+  lookup or plugin-hosting smoke in a packaged layout (the container
+  commands were extended above; they must run remotely — this host has
+  no container daemon and a non-deb host cannot dnf-install).
+- Flatpak install-proof was still blocked by the earlier isolated-session
+  hang (preserved report); the module script's new installs were
+  payload-verified only by the next CI Flatpak proof.
 - Cargo licences describe compiled-in crates only; ONNX Runtime native
   notices and GES/SQLite build identities stay explicitly unresolved and
   are carried in the bundle's own `unresolved_gaps` list (both rendered
   into `NOTICE-DEPENDENCIES.md` and serialized into `inventory.json`);
   nothing in this slice closes them.
-- Remote CI has not yet executed the new rules.
+
+2026-11-09 (same day): remote CI executed everything. Run 42559489326
+(Continuous Integration on `9e271e1`) passed all three jobs, including
+`licences` — both-workspace deny, the policy script's controls, the new
+`generate-notice-bundle.py --check` step and the SPDX header check.
+Run 42559497210 (Linux Packages & Release on the tag `v0.1.2-alpha.4`)
+passed `packages` and all three install proofs:
+
+- packages: the hook ran remotely as expected (Python 3.10 fallback was
+  the only needed CI fix, see `9e271e1`); CI deb lint printed
+  `521 text dirs, 526 cargo packages declared` (matches local).
+- install-proof-deb: real dpkg install inside debian:12 executed the
+  worker/notice/copyright assertions and the worker usage smoke inside
+  the container (set -e gated), then the full bridge edit-to-render
+  proof passed (`[pkg] PASS - container install: h264 1920x1080`).
+- install-proof-rpm: the same sequence against fedora:latest passed
+  (worker, notices, `LICENSE` installed; usage smoke gated the run).
+- install-proof-flatpak: `make-payload.sh` consumed the alpha.4 deb;
+  `build-module.sh`'s payload assertions and installs ran inside the
+  flatpak-builder sandbox (`module build complete: … saturn-plugin-worker
+  + notices + …`), and the driven Flatpak passed edit-to-render
+  (`[pkg] PASS - flatpak spike: h264 render verified`).
+
+Release: https://github.com/zvirox/easy-edits-pro/releases/tag/v0.1.2-alpha.4
+(deb, rpm, flatpak, SHA256SUMS; prerelease). Tag `v0.1.2-alpha.3` was cut
+from CI-failing trees and has no release; the maintainer may delete it.
+
+Still open after this run (unchanged responsibilities): installed-worker
+CLAP/plugin-host smoke in a packaged layout (the proofs above assert the
+worker binary and its usage output, not a hosted plugin chain); ONNX
+Runtime/GES/SQLite identities; Python distribution coverage; maintainers'
+execution-order/product-default decisions (AF1 profile CSV review stop).
