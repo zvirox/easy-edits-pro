@@ -10,10 +10,22 @@
 set -euo pipefail
 
 test -x usr/bin/saturn-tauri
+test -x usr/bin/saturn-plugin-worker
 test -f "usr/share/applications/Easy Edits Pro.desktop"
 
 # One dynamic WebKitGTK/GStreamer client binary; the runtime provides the libs.
 install -Dm755 usr/bin/saturn-tauri -t /app/bin/
+
+# Plugin worker ships beside the app (crates/saturn-audio-dsp/src/sandbox.rs
+# resolves saturn-plugin-worker as a sibling of the executable).
+install -Dm755 usr/bin/saturn-plugin-worker -t /app/bin/
+
+# Generated third-party notice bundle + licence text, from the deb payload.
+test -f usr/share/doc/easy-edits-pro/third-party-notices/NOTICE-DEPENDENCIES.md
+test -s usr/share/doc/easy-edits-pro/third-party-notices/inventory.json
+test -f usr/share/doc/easy-edits-pro/copyright
+mkdir -p /app/share/doc
+cp -a usr/share/doc/easy-edits-pro /app/share/doc/
 
 # Flatpak re-namespaces the desktop file and icon under the app id; a clean id
 # filename also fixes the "desktop file name contains a space" lint warning.
@@ -28,4 +40,4 @@ for size in 32x32 64x64 128x128 256x256@2; do
     "/app/share/icons/hicolor/$size/apps/io.github.zvirox.EasyEditsPro.png"
 done
 
-echo "module build complete: /app/bin/saturn-tauri + desktop + metainfo + 4 icons"
+echo "module build complete: /app/bin/saturn-tauri + saturn-plugin-worker + notices + desktop + metainfo + 4 icons"

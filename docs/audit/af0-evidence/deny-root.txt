@@ -1,0 +1,19 @@
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ deny.toml:71:15
+   │
+71 │     { name = "saturn-tauri", allow = ["AGPL-3.0-or-later"] },
+   │               ━━━━━━━━━━━━ unmatched license exception
+
+warning[license-not-encountered]: license was not encountered
+   ┌─ deny.toml:45:6
+   │
+45 │     "MPL-2.0",
+   │      ━━━━━━━ unmatched license allowance
+
+warning[license-not-encountered]: license was not encountered
+   ┌─ deny.toml:47:6
+   │
+47 │     "Unicode-DFS-2016",
+   │      ━━━━━━━━━━━━━━━━ unmatched license allowance
+
+licenses ok

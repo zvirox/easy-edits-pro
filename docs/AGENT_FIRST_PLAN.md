@@ -58,11 +58,17 @@ means Agent/Review UI; AF9 means daemon** (correcting the attachment's §2.7).
 - `deny.toml` still broadly allows AGPL/GPL/LGPL identifiers, despite its header's
   stricter claim. First-party AGPL is intentional; third-party exceptions need
   separate, explicit treatment. Existing licence CI alone does not prove the
-  intended dependency exclusion policy.
+  intended dependency exclusion policy. *(AF0 update, 2026-11-08: the policy is
+  now scoped — global AGPL/GPL/LGPL allowances removed, first-party AGPL granted
+  per-crate with a repository-path assertion and negative controls in
+  `scripts/check-licence-policy.mjs`, CI covers both workspaces and production
+  JS. See [the inventory](audit/af0-inventory.md) §2.)*
 - `NOTICE`, `licenses/`, SPDX checks and `bundle.licenseFile` already exist.
   The inspected Tauri/Flatpak configuration and release workflows do not wire a
-  generated third-party licence bundle. AF0 must verify actual package contents
-  and add the missing bundle; this source inspection is not a package audit.
+  generated third-party licence bundle. AF0's subsequent
+  [inventory](audit/af0-inventory.md) verifies older `v0.1.2-alpha.2` payloads:
+  deb/RPM have no standalone notice bundle; Flatpak has GES licence texts but
+  no comprehensive EEP/dependency bundle. Current-build correction is still open.
 
 The new profile, session, verification and provenance contracts below are
 planned capabilities, not claims of implementation. Prowl was attempted but
@@ -136,6 +142,11 @@ from read-only review/manual sessions. Do not advertise unimplemented tools.
   “use when” wording and consistent argument names.
 
 ### 2.2 Actors, sessions, locks, Stop and transactions — AF2
+
+**AF0 design reviewed 2026-11-08:** [actor/history/conflict design](planning/af0-actor-design.md).
+The maintainer selected a conservative change journal alongside snapshots and
+accepted both actor/review and lock/Stop/transaction contracts. This supplies the
+implementation design; AF2 behavior and tests remain pending.
 
 - Bind `ActorId` to the connection/session (human GUI or named agent); never
   accept arbitrary human identity from command arguments.
@@ -277,10 +288,16 @@ Keep the existing top bar; left dock / Program / right dock upper row; toolbox /
 timeline / meters lower row; and status bar. **Do not relocate meters or add a
 new strip that changes these slots to match the attachment's schematic.**
 
+AF0 source reconciliation confirms an existing exception: Deliver uses the
+full-page `ExportWorkspace` (`WorkspaceRouter.tsx:228-232`), and geometry tests
+explicitly cover seven docked modes plus that exception. Preserve this route;
+global agent status/Stop must remain visible there as well. Existing shell tests
+do not prove a right-dock affordance exists in Deliver.
+
 Proposed placement is permanent Agent and Review tabs in the right `DockCard`,
 alongside each workspace's existing tabs. Product confirmation is pending (§5),
 but every design must retain an always-visible top-bar agent status chip with
-Stop and a pinned right-dock status line across tabs/workspaces. The status bar
+Stop and a pinned right-dock status line across tabs/docked workspaces. The status bar
 shows branch, mode, last actor and saved state.
 
 ### 3.2 Agent card
@@ -340,7 +357,7 @@ and handler-list edits under `AGENTS.md`.
 
 | Packet | Prerequisite / exit criterion |
 |---|---|
-| AF0 housekeeping/design | Verify current licensing/package inventory; narrow third-party policy without rejecting owned first-party AGPL; negative dependency fixture fails; package notice bundle verified; actor/review conflict design written. |
+| AF0 housekeeping/design | Verify current licensing/package inventory; narrow third-party policy without rejecting owned first-party AGPL; negative dependency fixture fails; package notice bundle verified; actor/review conflict design written. *(2026-11-08: inventory, scoped policy with negative controls and the actor design are recorded — see the checklist AF0 section; notice/worker packaging evidence remains open.)* |
 | AF1 profiles/tiers | Human-reviewed inventory first; every command/tool assigned; ≤30 default tools; typed profile hints; grants enforced across wrappers/batches. |
 | AF2 sessions | AF1 policy + AF0 design; isolated cursors/branches, conflict-safe undo/review, durable locks, atomic-batch failure rollback, Stop ≤1 s with no late apply. |
 | AF4 rationale/brief | AF2 history/change model; schema migration, reopen and merge preserve notes and brief; human corrections recorded. |
@@ -351,8 +368,10 @@ and handler-list edits under `AGENTS.md`.
 | AF8 benchmark | AF7 + AF3; scripted CI smoke, live-bridge suite and labelled real-model baseline; final Phase 7 evidence waits for its remaining backend dependencies. |
 | AF9 daemon | AF1–AF5; auth, audit, budgets and Stop verified before hosting. |
 
-**Next actionable work:** AF0 inventory/design and the AF1 proposal CSV, then
-human review. **Recommended queue, pending the order decision:** AF0 → AF1 → AF2
+**Next actionable work:** AF0 policy/negative controls and notice/worker packaging,
+using the [recorded inventory](audit/af0-inventory.md) and
+[reviewed design](planning/af0-actor-design.md); then AF1 proposal CSV and human
+review. **Recommended queue, pending the order decision:** AF0 → AF1 → AF2
 → AF4 → AF3 → AF5 → AF6/5.2 → remaining 5.1 verbs and Phase 5 gate → Phase 6 →
 AF7/7.1 → AF8/7.2 → AF9. Early AF3 base checks and AF7/AF8 smoke are allowed once
 their dependencies exist. This reconciles the attachment's “control before VFX”
@@ -376,11 +395,12 @@ limits visible; this plan does not mark those follow-ups complete.
 | Command profiles | Approve the AF1 CSV before schema/enforcement implementation. |
 
 The attachment mentions earlier UI decisions D1–D6, but this checked-in glass
-plan has no numbered decision register. AF0 should reconcile that historical
-list (glow, splitters, assistant location, workspace names, track gain/pan, gaps)
-against shipped UI and current maintainer choices. Do not reopen locked colours,
-fixed geometry or compact track headers, or treat proposed assistant placement
-as approval of all earlier choices.
+plan has no numbered decision register. AF0's
+[historical UI reconciliation](planning/af0-actor-design.md#10-historical-ui-reconciliation)
+records current source evidence for glow, splitters, assistant location, workspace
+names, track gain/pan and gaps without inventing numbered approvals. Locked colours,
+fixed geometry and compact track headers remain binding; assistant placement and
+the other choices above remain pending.
 
 ## 6. Honest limits
 

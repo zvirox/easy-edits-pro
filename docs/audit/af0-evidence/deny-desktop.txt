@@ -1,0 +1,61 @@
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ deny.toml:60:15
+   │
+60 │     { name = "saturn-cli", allow = ["AGPL-3.0-or-later"] },
+   │               ━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ deny.toml:61:15
+   │
+61 │     { name = "saturn-commands", allow = ["AGPL-3.0-or-later"] },
+   │               ━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ deny.toml:62:15
+   │
+62 │     { name = "saturn-control", allow = ["AGPL-3.0-or-later"] },
+   │               ━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ deny.toml:64:15
+   │
+64 │     { name = "saturn-graphics", allow = ["AGPL-3.0-or-later"] },
+   │               ━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ deny.toml:65:15
+   │
+65 │     { name = "saturn-mcp", allow = ["AGPL-3.0-or-later"] },
+   │               ━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ deny.toml:67:15
+   │
+67 │     { name = "saturn-plugin-fixture", allow = ["AGPL-3.0-or-later"] },
+   │               ━━━━━━━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ deny.toml:68:15
+   │
+68 │     { name = "saturn-plugin-worker", allow = ["AGPL-3.0-or-later"] },
+   │               ━━━━━━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ deny.toml:69:15
+   │
+69 │     { name = "saturn-project", allow = ["AGPL-3.0-or-later"] },
+   │               ━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-exception-not-encountered]: license exception was not encountered
+   ┌─ deny.toml:73:15
+   │
+73 │     { name = "saturn-timeline", allow = ["AGPL-3.0-or-later"] },
+   │               ━━━━━━━━━━━━━━━ unmatched license exception
+
+warning[license-not-encountered]: license was not encountered
+   ┌─ deny.toml:47:6
+   │
+47 │     "Unicode-DFS-2016",
+   │      ━━━━━━━━━━━━━━━━ unmatched license allowance
+
+licenses ok

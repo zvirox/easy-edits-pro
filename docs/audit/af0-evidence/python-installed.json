@@ -1,0 +1,88 @@
+{
+  "cli-anything-eep": {
+    "unavailable": true
+  },
+  "click": {
+    "version": "8.5.0",
+    "license_expression": "BSD-3-Clause",
+    "license": null,
+    "classifiers": [
+      "Development Status :: 5 - Production/Stable",
+      "Intended Audience :: Developers",
+      "Operating System :: OS Independent",
+      "Programming Language :: Python",
+      "Typing :: Typed"
+    ],
+    "requires": null
+  },
+  "tabulate": {
+    "version": "0.10.0",
+    "license_expression": "MIT",
+    "license": null,
+    "classifiers": [
+      "Development Status :: 4 - Beta",
+      "Operating System :: OS Independent",
+      "Programming Language :: Python :: 3",
+      "Programming Language :: Python :: 3.10",
+      "Programming Language :: Python :: 3.11",
+      "Programming Language :: Python :: 3.12",
+      "Programming Language :: Python :: 3.13",
+      "Programming Language :: Python :: 3.14",
+      "Topic :: Software Development :: Libraries"
+    ],
+    "requires": [
+      "wcwidth; extra == \"widechars\""
+    ]
+  },
+  "setuptools": {
+    "unavailable": true
+  },
+  "wheel": {
+    "unavailable": true
+  },
+  "pytest": {
+    "version": "9.2.0",
+    "license_expression": "MIT",
+    "license": null,
+    "classifiers": [
+      "Development Status :: 6 - Mature",
+      "Intended Audience :: Developers",
+      "Operating System :: MacOS",
+      "Operating System :: Microsoft :: Windows",
+      "Operating System :: POSIX",
+      "Operating System :: Unix",
+      "Programming Language :: Python :: 3 :: Only",
+      "Programming Language :: Python :: 3.10",
+      "Programming Language :: Python :: 3.11",
+      "Programming Language :: Python :: 3.12",
+      "Programming Language :: Python :: 3.13",
+      "Programming Language :: Python :: 3.14",
+      "Programming Language :: Python :: 3.15",
+      "Topic :: Software Development :: Libraries",
+      "Topic :: Software Development :: Testing",
+      "Topic :: Utilities"
+    ],
+    "requires": [
+      "colorama>=0.4; sys_platform == \"win32\"",
+      "exceptiongroup>=1; python_version < \"3.11\"",
+      "iniconfig>=2",
+      "packaging>=24",
+      "pluggy<2,>=1.6",
+      "pygments>=2.15",
+      "tomli>=2; python_version < \"3.11\"",
+      "argcomplete; extra == \"dev\"",
+      "asynctest; python_version < \"3.11\" and extra == \"dev\"",
+      "attrs>=23.1; extra == \"dev\"",
+      "coverage>=7.5; extra == \"dev\"",
+      "hypothesis>=6.75; extra == \"dev\"",
+      "mock; extra == \"dev\"",
+      "numpy>=1.26; extra == \"dev\"",
+      "pexpect>=4.9; extra == \"dev\"",
+      "pytest-xdist>=3.5; extra == \"dev\"",
+      "pyyaml; extra == \"dev\"",
+      "requests; extra == \"dev\"",
+      "setuptools; extra == \"dev\"",
+      "xmlschema; extra == \"dev\""
+    ]
+  }
+}

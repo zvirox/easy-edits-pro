@@ -154,13 +154,35 @@ def deb_lint(deb: Path, work: Path) -> dict:
         fail("lint", f"desktop-file-validate error on {desktops[0].name!r}: {validate.stderr.strip()[:300]}")
     allowed_roots = ("usr/bin", "usr/share/applications", "usr/share/icons",
                      "usr/lib/saturn-tauri", "usr/share/saturn-tauri",
-                     "usr/share/metainfo")
+                     "usr/share/metainfo", "usr/share/doc/easy-edits-pro")
     outside = sorted(
         str(p.relative_to(data)) for p in data.rglob("*")
         if p.is_file() and not str(p.relative_to(data)).startswith(allowed_roots)
     )
     if outside:
         fail("lint", f"{len(outside)} file(s) outside app-private prefixes: {outside[:5]}")
+    # AF0 Lane 3: the plugin worker binary and the generated third-party
+    # notice bundle must ship next to the application binary.
+    worker = data / "usr" / "bin" / "saturn-plugin-worker"
+    if not worker.is_file():
+        fail("lint", "usr/bin/saturn-plugin-worker missing from the payload")
+    if not (worker.stat().st_mode & 0o111):
+        fail("lint", "usr/bin/saturn-plugin-worker is not executable")
+    notice_dir = data / "usr" / "share" / "doc" / "easy-edits-pro" / "third-party-notices"
+    if not (notice_dir / "NOTICE-DEPENDENCIES.md").is_file():
+        fail("lint", "third-party notice bundle missing (NOTICE-DEPENDENCIES.md)")
+    if not (notice_dir / "inventory.json").is_file():
+        fail("lint", "third-party notice bundle missing (inventory.json)")
+    if not (data / "usr" / "share" / "doc" / "easy-edits-pro" / "copyright").is_file():
+        fail("lint", "usr/share/doc/easy-edits-pro/copyright missing")
+    package_texts = len(list((notice_dir / "texts").glob("*"))) if (notice_dir / "texts").is_dir() else 0
+    if package_texts < 400:
+        fail("lint", f"third-party notice bundle suspiciously thin: {package_texts} text dirs")
+    notice_inventory = json.loads((notice_dir / "inventory.json").read_text())
+    cargo_packages = notice_inventory.get("metadata", {}).get("cargo_packages", 0)
+    if cargo_packages < 500:
+        fail("lint", f"notice inventory covers only {cargo_packages} cargo packages")
+    print(f"[pkg] notice bundle: {package_texts} text dirs, {cargo_packages} cargo packages declared")
     missing = subprocess.run(
         ["ldd", str(next(b for b in binaries if b.is_file() and not b.is_symlink()))],
         capture_output=True, text=True,
@@ -177,6 +199,9 @@ def deb_lint(deb: Path, work: Path) -> dict:
         "data_root": data,
         "source": deb.name,
         "unresolved_host_libs": len(unresolved),
+        "worker": str(worker.relative_to(data)),
+        "third_party_notices": package_texts,
+        "notice_cargo_packages": cargo_packages,
     }
 
 
@@ -230,6 +255,13 @@ def container_mode(deb: Path, work: Path):
         "gstreamer1.0-tools ffmpeg python3-minimal python3; "
         "apt-get install -y /pkg/app.deb; "
         "test -x /usr/bin/saturn-tauri; "
+        "test -x /usr/bin/saturn-plugin-worker; "
+        "test -d /usr/share/doc/easy-edits-pro/third-party-notices; "
+        "test -s /usr/share/doc/easy-edits-pro/third-party-notices/inventory.json; "
+        "test -s /usr/share/doc/easy-edits-pro/third-party-notices/NOTICE-DEPENDENCIES.md; "
+        "rc=0; saturn-plugin-worker > /tmp/worker.out 2> /tmp/worker.err || rc=$?; "
+        "test \"$rc\" -eq 1; "
+        "grep -q 'usage: saturn-plugin-worker' /tmp/worker.err; "
         "ldd /usr/bin/saturn-tauri | tee /tmp/ldd.txt; "
         "! grep -q 'not found' /tmp/ldd.txt; "
         "Xvfb :99 -screen 0 1280x800x24 & "
@@ -277,6 +309,13 @@ def rpm_container_mode(rpm: Path, work: Path):
         "gst-editing-services xorg-x11-server-Xvfb python3; "
         "dnf -y install /pkg/app.rpm; "
         "test -x /usr/bin/saturn-tauri; "
+        "test -x /usr/bin/saturn-plugin-worker; "
+        "test -d /usr/share/doc/easy-edits-pro/third-party-notices; "
+        "test -s /usr/share/doc/easy-edits-pro/third-party-notices/inventory.json; "
+        "test -s /usr/share/doc/easy-edits-pro/third-party-notices/NOTICE-DEPENDENCIES.md; "
+        "rc=0; saturn-plugin-worker > /tmp/worker.out 2> /tmp/worker.err || rc=$?; "
+        "test \"$rc\" -eq 1; "
+        "grep -q 'usage: saturn-plugin-worker' /tmp/worker.err; "
         "ldd /usr/bin/saturn-tauri | tee /tmp/ldd.txt; "
         "! grep -q 'not found' /tmp/ldd.txt; "
         "Xvfb :99 -screen 0 1280x800x24 & "
@@ -356,10 +395,29 @@ def rpm_lint(rpm: Path, work: Path) -> dict:
     # Anything outside these roots can collide with files a distro package owns.
     allowed_roots = ("usr/bin", "usr/share/applications", "usr/share/icons",
                      "usr/lib/saturn-tauri", "usr/share/saturn-tauri",
-                     "usr/share/metainfo")
+                     "usr/share/metainfo", "usr/share/doc/easy-edits-pro")
     outside = [p for p in entries if p and not p.endswith("/") and not p.startswith(allowed_roots)]
     if outside:
         fail("rpm-lint", f"{len(outside)} file(s) outside app-private prefixes: {outside[:5]}")
+
+    # AF0 Lane 3 parity with the deb lint: worker + generated notice bundle.
+    if "usr/bin/saturn-plugin-worker" not in entries:
+        fail("rpm-lint", "usr/bin/saturn-plugin-worker missing from the payload")
+    notice_payload = payload / "usr" / "share" / "doc" / "easy-edits-pro" / "third-party-notices"
+    if not (notice_payload / "NOTICE-DEPENDENCIES.md").is_file():
+        fail("rpm-lint", "third-party notice bundle missing (NOTICE-DEPENDENCIES.md)")
+    if not (notice_payload / "inventory.json").is_file():
+        fail("rpm-lint", "third-party notice bundle missing (inventory.json)")
+    if not (payload / "usr" / "share" / "doc" / "easy-edits-pro" / "LICENSE").is_file():
+        fail("rpm-lint", "usr/share/doc/easy-edits-pro/LICENSE (licence text) missing")
+    notice_texts = len(list((notice_payload / "texts").glob("*"))) if (notice_payload / "texts").is_dir() else 0
+    if notice_texts < 400:
+        fail("rpm-lint", f"third-party notice bundle suspiciously thin: {notice_texts} text dirs")
+    notice_inventory = json.loads((notice_payload / "inventory.json").read_text())
+    notice_cargo = notice_inventory.get("metadata", {}).get("cargo_packages", 0)
+    if notice_cargo < 500:
+        fail("rpm-lint", f"notice inventory covers only {notice_cargo} cargo packages")
+    print(f"[pkg] rpm notice bundle: {notice_texts} text dirs, {notice_cargo} cargo packages declared")
 
     exec_name = ""
     for line in desktop.read_text().splitlines():
@@ -389,6 +447,12 @@ def rpm_lint(rpm: Path, work: Path) -> dict:
         "conflicts": outside,
         "warnings": warnings,
         "source": rpm.name,
+        "binary": binaries[0],
+        "data_root": payload,
+        "unresolved_host_libs": len(unresolved),
+        "worker": "usr/bin/saturn-plugin-worker",
+        "third_party_notices": notice_texts,
+        "notice_cargo_packages": notice_cargo,
     }
 
 

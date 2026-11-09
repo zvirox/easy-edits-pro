@@ -1,7 +1,9 @@
 # cargo-deny configuration: licence gate for the commercial/licensing plan.
-# CI runs `cargo deny check licenses` and fails on copyleft-only dependencies
-# (GPL/AGPL-only, non-commercial) and on unlicensed crates, so a commercial
-# build can never silently inherit duties it cannot satisfy.
+# CI runs `cargo deny check licenses` on BOTH workspaces (root and
+# apps/saturn-tauri) plus scripts/check-licence-policy.mjs, and fails on
+# copyleft-only dependencies (GPL/AGPL-only, non-commercial) and unlicensed
+# crates, so a commercial build can never silently inherit duties it cannot
+# satisfy.
 # Docs: https://embarkstudios.github.io/cargo-deny/
 
 [graph]
@@ -15,13 +17,22 @@ targets = [
 
 [licenses]
 version = 2
-# Allowed: permissive + weak-copyleft that is compatible with a commercial
-# offering per the dual-licensing plan (docs/planning/dual-licensing-plan.md §3.3).
-# MPL-2.0 is file-level copyleft: fine statically linked. LGPL appears only as
-# dynamically loaded system libraries (GStreamer), pulled via feature-declared
-# sys crates — the plan's "loaded dynamically from the user's system" carve-out.
+# Scoped policy (AF0, 2026-11-08; docs/audit/af0-inventory.md): permissive +
+# weak-copyleft licences compatible with the commercial plan
+# (docs/planning/dual-licensing-plan.md §3.3).
+# - MPL-2.0 is file-level copyleft: fine statically linked.
+# - LGPL appears only as dynamically loaded system libraries (GStreamer),
+#   pulled via feature-declared sys crates — the plan's "loaded dynamically
+#   from the user's system" carve-out. No Cargo package in either workspace
+#   declares an LGPL-only expression (r-efi's OR-tree has MIT/Apache
+#   alternatives), so LGPL identifiers are NOT in the allow-list.
+# - AGPL/GPL are NOT allowed globally. AGPL-3.0-or-later is the first-party
+#   licence and is granted only by the per-crate exceptions below, which
+#   cargo-deny matches by crate name; scripts/check-licence-policy.mjs
+#   additionally asserts every AGPL-declared package in both graphs has its
+#   manifest inside this repository, so a foreign same-named crate cannot
+#   inherit the exception.
 allow = [
-    "AGPL-3.0-or-later",
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
     "BSD-2-Clause",
@@ -40,12 +51,30 @@ allow = [
     "IJG",
     # webpki-root-certs 1.0.11: the bundled root-certificate *data* set
     "CDLA-Permissive-2.0",
-    "AGPL-3.0",
-    "GPL-3.0-or-later",
-    "LGPL-3.0-or-later",
 ]
-# The Athena/Unicode etc. exceptions land here if new identifiers appear.
-exceptions = []
+# First-party crates only (15 workspace members; source headers and manifests
+# both AGPL-3.0-or-later since the AF0 metadata correction). The negative
+# control in scripts/check-licence-policy.mjs proves a third-party GPL-only
+# crate fails this policy while these exceptions keep the workspace green.
+exceptions = [
+    { name = "saturn-cli", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-commands", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-control", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-core", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-graphics", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-mcp", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-perception", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-plugin-fixture", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-plugin-worker", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-project", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-render", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-tauri", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-text", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-timeline", allow = ["AGPL-3.0-or-later"] },
+    { name = "saturn-audio-dsp", allow = ["AGPL-3.0-or-later"] },
+]
+# Further exceptions must carry version, source, scope and rationale in
+# docs/audit/af0-inventory.md and a maintainer decision before landing.
 
 [bans]
 multiple-versions = "warn"

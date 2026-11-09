@@ -1,0 +1,37 @@
+name,version,declared_license,production_graph
+@oxc-project/types,0.152.0,MIT,no
+@rolldown/binding-linux-x64-gnu,1.2.12,MIT,no
+@rolldown/pluginutils,1.0.1,MIT,no
+@tauri-apps/api,2.12.1,Apache-2.0 OR MIT,yes
+@tauri-apps/cli,2.12.1,Apache-2.0 OR MIT,no
+@tauri-apps/cli-linux-x64-gnu,2.12.1,Apache-2.0 OR MIT,no
+@tauri-apps/plugin-dialog,2.8.1,MIT OR Apache-2.0,yes
+@types/react,19.3.0,MIT,no
+@types/react-dom,19.3.0,MIT,no
+@typescript/typescript-linux-x64,7.0.2,Apache-2.0,no
+@vitejs/plugin-react,6.1.2,MIT,no
+csstype,3.2.3,MIT,no
+detect-libc,2.1.2,Apache-2.0,no
+fdir,6.5.0,MIT,no
+framer-motion,14.2.0,MIT,yes
+lightningcss,1.33.0,MPL-2.0,no
+lightningcss-linux-x64-gnu,1.33.0,MPL-2.0,no
+lucide-react,1.57.0,ISC,yes
+motion,14.2.0,MIT,yes
+motion-dom,14.2.0,MIT,yes
+motion-utils,14.1.1,MIT,yes
+nanoid,3.3.20,MIT,no
+picocolors,1.1.1,ISC,no
+picomatch,4.0.7,MIT,no
+playwright,1.64.1,Apache-2.0,no
+playwright-core,1.64.1,Apache-2.0,no
+postcss,8.5.29,MIT,no
+react,19.3.0,MIT,yes
+react-dom,19.3.0,MIT,yes
+rolldown,1.2.12,MIT,no
+scheduler,0.28.0,MIT,yes
+source-map-js,1.2.2,BSD-3-Clause,no
+tinyglobby,0.2.17,MIT,no
+tslib,2.8.1,0BSD,yes
+typescript,7.0.2,Apache-2.0,no
+vite,8.3.3,MIT,no

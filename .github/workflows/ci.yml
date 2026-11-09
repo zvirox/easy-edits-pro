@@ -24,12 +24,66 @@ jobs:
       - uses: actions/checkout@v4
 
       # Licence gate for the dual-licensing plan
-      # (docs/planning/dual-licensing-plan.md §3.3): fails on copyleft-only,
-      # non-commercial or unlicensed dependencies across all target triples.
-      - name: Check dependency licences (cargo-deny)
+      # (docs/planning/dual-licensing-plan.md §3.3), scoped by AF0
+      # (docs/audit/af0-inventory.md): fails on copyleft-only (GPL/AGPL-only,
+      # non-commercial) or unlicensed dependencies across all target triples.
+      # First-party AGPL is granted per-crate via deny.toml exceptions.
+      # BOTH workspaces are checked: apps/saturn-tauri has its own lockfile
+      # and resolves MPL-only packages the root graph never sees.
+      - name: Check dependency licences (root workspace, cargo-deny)
         uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check licenses
+
+      - name: Check dependency licences (desktop workspace, cargo-deny)
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check licenses
+          manifest-path: apps/saturn-tauri/Cargo.toml
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/saturn-tauri/pnpm-lock.yaml
+
+      # Production JS licence allow-list lives in
+      # scripts/check-licence-policy.mjs; it needs the installed tree.
+      - name: Install frontend dependencies
+        working-directory: apps/saturn-tauri
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      # cargo (metadata + scratch controls) and cargo-deny for the negative
+      # controls; no compilation happens in this job.
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-deny for policy controls
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny@0.20.2
+
+      # AF0 policy gate: first-party AGPL ownership assertions (closes
+      # cargo-deny's by-name exception matching), negative controls
+      # (third-party GPL-only dep fails; foreign same-named crate refused by
+      # the repository-path assertion) and the production JS allow-list.
+      # --skip-deny: the two cargo-deny-action steps above already ran the
+      # scoped policy on both workspaces with their pinned environment.
+      - name: Check licence policy controls
+        run: node scripts/check-licence-policy.mjs --skip-deny --require-js
+
+      # The shipped notice bundle must be generatable, complete and resolved
+      # (every third-party crate has a text; AND conjuncts map to shipped
+      # texts; mandated gaps are carried, never silently closed). --check
+      # builds the same bundle into a temp dir and fails on any gap.
+      - name: Check generated notice bundle
+        run: python3 scripts/generate-notice-bundle.py --check
 
       # Every first-party source file must carry the AGPL SPDX header
       # (docs/planning/dual-licensing-plan.md §5, §7).
