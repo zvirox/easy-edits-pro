@@ -4,6 +4,27 @@ Thank you for your interest in contributing to **Easy Edits Pro**! We welcome co
 
 ---
 
+## Your first contribution in 6 steps
+
+1. Read the README sections "Project status" and "Known limitations", then pick
+   an issue labelled `good first issue` (or see [ROADMAP.md](ROADMAP.md)).
+2. Comment "I'd like to work on this". A maintainer will assign it, usually
+   within a few days. Unclaimed issues return to the pool after 14 days.
+3. Install the prerequisites below and run `scripts/doctor.sh` to check your
+   setup.
+4. Make a small change on a branch and run the checks in the
+   [Pull Request Checklist](#pull-request-checklist).
+5. Commit with `git commit -s` (DCO). Accept the [CLA](CLA.md) once, on your
+   first non-trivial code PR.
+6. Open a pull request using the template. We aim to reply within 7 days; this
+   is a small team, so please be patient and ping once after 7 days.
+
+Not sure where to start, or stuck? Ask in
+[Discussions](https://github.com/zvirox/easy-edits-pro/discussions) or see
+[SUPPORT.md](SUPPORT.md). No question is too small.
+
+---
+
 ## Code of Conduct
 
 All contributors and participants agree to uphold the standards outlined in our [Code of Conduct](CODE_OF_CONDUCT.md). Please treat fellow contributors with respect and empathy.
@@ -151,9 +172,43 @@ Before submitting a Pull Request, ensure that:
 5. If this is your first non-trivial code PR, the CLA in [CLA.md](CLA.md) is
    accepted (bot signature or a PR comment stating `I accept the terms of
    CLA.md`).
-5. New features include appropriate unit tests or regression tests.
-6. `pnpm --dir apps/saturn-tauri test`, `check:glass`, `check:commands`, and
+6. New features include appropriate unit tests or regression tests.
+7. `pnpm --dir apps/saturn-tauri test`, `check:glass`, `check:commands`, and
    `check:source-size --max-lines=800` pass when the change touches the UI or
    command catalogue.
-7. A shipped command has a UI affordance, a test, and a catalogue entry marked
+8. A shipped command has a UI affordance, a test, and a catalogue entry marked
    `shipped: true`; incomplete handlers return an error rather than success.
+9. Every new source file (`.rs`, `.ts`, `.tsx`, `.js`, `.mjs`, `.py`, `.sh`,
+   `.css`) has the SPDX licence header. Run `node scripts/license-headers.mjs apply` from the
+   repository root to add it, and `node scripts/license-headers.mjs check` to
+   verify (CI runs the check).
+10. New third-party dependencies or copied material are recorded in
+    [NOTICE](NOTICE) and pass `cargo deny` (see "Provenance" below).
+
+---
+
+## Provenance and third-party code
+
+Study other projects freely, but do not paste their code. Only
+MIT / Apache-2.0 / BSD / ISC / Zlib material may be reused, and only with a
+`NOTICE` entry in the same change. Never copy GPL, AGPL or unlicensed code, and
+never add a model or asset without a row in
+[docs/model-licences.md](docs/model-licences.md). The full rules are in
+[AGENTS.md](AGENTS.md).
+
+---
+
+## AI-assisted contributions
+
+Much of this codebase is written with AI coding agents, so AI assistance is
+welcome under the same rules as any other contribution:
+
+- You are responsible for everything you submit. Read it, run it, and be able
+  to explain it in review.
+- Say in the PR which tool you used and what you checked yourself.
+- No pasted third-party code, and no code you do not have the right to license
+  under the CLA. The DCO sign-off and the CLA apply to AI-assisted work in the
+  same way.
+- Agents working on this repository must follow [AGENTS.md](AGENTS.md).
+- Large, unreviewed bulk or machine-generated PRs may be closed without review.
+  Small, tested, focused changes are always preferred.

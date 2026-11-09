@@ -24,7 +24,7 @@ If you discover a security vulnerability or security bug in Easy Edits Pro:
 
 1. **Do not open a public issue.**
 2. Use **GitHub Private Vulnerability Reporting** via the [Security Advisories tab](https://github.com/zvirox/easy-edits-pro/security/advisories/new) on GitHub.
-3. Alternatively, report directly to the lead maintainer via email: `zvirox.in@gmail.com` with the subject `[SECURITY] Easy Edits Pro Vulnerability`.
+3. Alternatively, report directly to the lead maintainer via email: `zvirox@proton.me` with the subject `[SECURITY] Easy Edits Pro Vulnerability`.
 
 Please include:
 - A description of the vulnerability and potential impact.

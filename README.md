@@ -213,3 +213,20 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change. Keep project
 state in Rust, keep source files at or below 800 lines, preserve public Tauri
 invoke names and project-file compatibility, and describe only verified
 behaviour in docs and release notes.
+
+### Where help is most useful
+
+| Area | Examples | Difficulty |
+|---|---|---|
+| Testing and bug reports | Install the alpha on your distro and report what breaks | Easy |
+| Documentation and translations | Fix unclear docs, add how-tos, translate strings | Easy |
+| UI polish | Missing icons, truncated labels, keyboard shortcuts | Easy to medium |
+| Test coverage | Regression tests for commands and importers | Medium |
+| Packaging | Verify or add package targets for other distributions | Medium |
+| Rendering and audio | GStreamer/GES performance, plugin host, DSP | Hard |
+| Agent tooling | MCP tools, command profiles, closed-loop tests | Medium to hard |
+
+Start with [CONTRIBUTING.md](CONTRIBUTING.md), the [roadmap](ROADMAP.md), and
+issues labelled `good first issue` or `help wanted`. Questions are welcome in
+[Discussions](https://github.com/zvirox/easy-edits-pro/discussions); see also
+[SUPPORT.md](SUPPORT.md) and [GOVERNANCE.md](GOVERNANCE.md).

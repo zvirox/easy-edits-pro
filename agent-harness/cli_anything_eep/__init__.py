@@ -11,7 +11,7 @@ saturn-control, saturn-mcp, saturn-render to structured CLI.
 
 __version__ = "0.1.0"
 __author__ = "Easy Edits Pro Team"
-__email__ = "team@easy-edits-pro.org"
+__email__ = "info@zvirox.in"
 
 from .cli import main
 

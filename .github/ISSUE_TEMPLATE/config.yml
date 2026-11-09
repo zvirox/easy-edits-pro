@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea (Discussions)
+    url: https://github.com/zvirox/easy-edits-pro/discussions
+    about: Ask how something works, share an idea, or introduce yourself.
+  - name: Security vulnerability
+    url: https://github.com/zvirox/easy-edits-pro/security/advisories/new
+    about: Report privately. Please do not open a public issue.

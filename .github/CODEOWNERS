@@ -1,0 +1,3 @@
+# Default reviewer for everything. Add more owners here as maintainers join,
+# for example: /crates/saturn-render/ @someone
+* @zvirox
