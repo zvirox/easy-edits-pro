@@ -69,7 +69,30 @@ async fn prepare_bridge_socket(path: &std::path::Path) -> io::Result<UnixListene
 async fn serve(app: AppHandle, state: AppState) -> io::Result<()> {
     let path = saturn_core::local_control::mcp_socket_path();
     let listener = prepare_bridge_socket(&path).await?;
-    let policy = Arc::new(tokio::sync::RwLock::new(SessionPolicy::default()));
+    let mut initial_policy = SessionPolicy::default();
+    if std::env::var(crate::write_grants::BYPASS_ENV).is_ok() {
+        initial_policy.granted_tiers.insert(saturn_core::catalogue::Tier::Filesystem);
+        initial_policy.granted_tiers.insert(saturn_core::catalogue::Tier::Destructive);
+    }
+    if let Ok(tiers_str) = std::env::var("SATURN_MCP_TIERS") {
+        for t in tiers_str.split(',') {
+            if let Some(tier) = saturn_core::catalogue::Tier::parse(t.trim()) {
+                initial_policy.granted_tiers.insert(tier);
+            }
+        }
+    }
+    if let Ok(profiles_str) = std::env::var("SATURN_MCP_PROFILES") {
+        if profiles_str.trim().eq_ignore_ascii_case("all") {
+            for p in saturn_core::catalogue::PROFILES {
+                let _ = initial_policy.load_profile(p);
+            }
+        } else {
+            for p in profiles_str.split(',') {
+                let _ = initial_policy.load_profile(p.trim());
+            }
+        }
+    }
+    let policy = Arc::new(tokio::sync::RwLock::new(initial_policy));
     eprintln!("Easy Edits Pro MCP bridge listening at {}", path.display());
 
     loop {

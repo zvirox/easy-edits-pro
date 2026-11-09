@@ -1003,6 +1003,8 @@ def main() -> int:
         return 2
 
     _, listing = bridge_call(sock_path, "command_list")
+    for p in ("admin", "audio", "captions", "colour", "export", "fine-cut", "graphics", "ingest", "multicam", "review", "rough-cut", "speed-motion"):
+        bridge_call(sock_path, "tools.load_profile", {"profile": p})
     bridge_commands = listing if isinstance(listing, list) else listing.get("commands", [])
     catalogue = {
         c["id"]: c for c in json.loads(

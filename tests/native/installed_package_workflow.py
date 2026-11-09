@@ -674,6 +674,8 @@ def drive_edit_to_render(sock_path, work: Path, app: subprocess.Popen,
     seconds = float(probe["format"]["duration"])
     ticks = lambda s: round(s * 254_016_000_000)
     numerator, _, denominator = video["avg_frame_rate"].partition("/")
+    for profile in ("admin", "ingest", "rough-cut", "export"):
+        bridge_call(sock_path, "tools.load_profile", {"profile": profile})
     bridge_call(sock_path, "command_run", {
         "id": "project.new", "params": {"name": "Package Acceptance"},
     })

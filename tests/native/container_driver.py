@@ -179,6 +179,9 @@ def main():
         ticks = lambda s: round(s * TICKS_PER_SECOND)
         fps = round(probe.get("fps") or 30.0, 6)
 
+        for profile in ("admin", "ingest", "rough-cut", "export"):
+            bridge_call(sock_path, "tools.load_profile", {"profile": profile})
+
         bridge_call(sock_path, "command_run", {
             "id": "project.new", "params": {"name": "Package Acceptance"},
         })

@@ -139,6 +139,7 @@ def launch(work, binary, phase_env=None):
     ).connect_ex(str(sock_path)) == 0:
         fail("launch", f"a live editor owns {sock_path}; close the running Easy Edits Pro first")
     sock_path.unlink(missing_ok=True)
+    env.setdefault("SATURN_MCP_TIERS", "read,edit,destructive,filesystem")
     env.update(phase_env or {})
     for key in ("HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_RUNTIME_DIR"):
         os.makedirs(env[key], mode=0o700, exist_ok=True)
@@ -212,6 +213,8 @@ def main():
     handles = launch(work, binary)
     sock1 = handles["sock"]
     try:
+        bridge_call(sock1, "tools.load_profile", {"profile": "admin"})
+        bridge_call(sock1, "tools.load_profile", {"profile": "export"})
         started = command_run(sock1, "project.new",
                               {"name": "Write Policy", "sequence_name": "Main",
                                "width": 1920, "height": 1080,
@@ -286,6 +289,7 @@ def main():
     handles = launch(work, binary, {"SATURN_ALLOW_ANY_WRITE_TARGETS": "1"})
     sock2 = handles["sock"]
     try:
+        bridge_call(sock2, "tools.load_profile", {"profile": "admin"})
         response = command_run(sock2, "file.save", {"path": expected_outside})
         if response.get("error"):
             failures.append(f"bypassed harness still rejected: {response}")
