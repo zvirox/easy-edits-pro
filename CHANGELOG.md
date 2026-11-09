@@ -9,7 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2-alpha.5] - 2026-11-09
+
 ### Added
+- **AI-Native & Agent-First Foundation (Packets AF1 & AF2):**
+  - Canonical tool profiles (`admin`, `colour`, `audio`, `review`, `rough-cut`, `fine-cut`, etc.) and three-tier permission model (`Read`, `Edit`, `Filesystem`).
+  - Actor identity (`ActorId`), session viewport isolation (`playhead`, `selected_clips`, `active_branch`), and session generation fencing (`session.stop` / `session.resume`).
+  - Durable clip and timeline region locking (`project.lock_clip`, `project.lock_region`, `project.lock_release`, `project.lock_reclaim`, `project.locks_list`).
+  - Change journal tracking durable revisions, inverse state snapshots, and rollback-safe atomic transactions (`command_batch` with `atomic: true`).
+
+- **Edit Rationale, Confidence & Human-Owned Brief (Packet AF4):**
+  - Per-edit rationale (≤200 characters) and declared confidence (`high | medium | low`) carried through generic command envelopes, atomic transactions, MCP, and desktop bridge.
+  - Attached clip agent notes with active markers and provenance tracking.
+  - Human modification to agent-edited clips clears active status and records `HumanCorrection` without erasing agent provenance.
+  - Rust-owned `project.brief_set` and `project.brief_get` with human authority check (agents refused with `PermissionDenied`).
+  - Project schema version 18 with lossless migration from previous versions.
+
 - **Offline audio processing (Packet 4.2):** shared `audio_process` MCP/desktop
   tool for fractional phase alignment, spectral room-tone gap filling,
   energy-keyed ducking automation and measured loudness normalization. Four
