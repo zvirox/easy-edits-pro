@@ -17,6 +17,12 @@ pub struct CommandRequest {
     pub id: String,
     #[serde(default)]
     pub params: Value,
+    /// Optional edit rationale (AF4, max 200 chars).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rationale: Option<String>,
+    /// Optional declared confidence level (AF4).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub confidence: Option<crate::brief::ConfidenceLevel>,
 }
 
 impl CommandRequest {
@@ -24,7 +30,19 @@ impl CommandRequest {
         Self {
             id: id.into(),
             params,
+            rationale: None,
+            confidence: None,
         }
+    }
+
+    pub fn with_rationale(mut self, rationale: impl Into<String>) -> Self {
+        self.rationale = Some(rationale.into());
+        self
+    }
+
+    pub fn with_confidence(mut self, confidence: crate::brief::ConfidenceLevel) -> Self {
+        self.confidence = Some(confidence);
+        self
     }
 }
 

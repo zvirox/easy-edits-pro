@@ -156,6 +156,7 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
                 volume_db: 0.0,
                 audio_enabled: true,
                 enabled: true,
+                agent_note: None,
                 };
 
                 if track_type.starts_with('V') {

@@ -678,3 +678,41 @@ async fn mcp_session_stop_resume_and_atomic_batch() {
     let res = mcp.call(req).await.unwrap();
     assert!(res.is_error.unwrap_or(false));
 }
+
+#[tokio::test]
+async fn mcp_command_run_with_provenance_and_brief() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name": "MCP AF4 Test"})))
+        .unwrap();
+    let mcp = EditorMcp::new(engine);
+
+    // 1. Load admin profile
+    let mut load_args = serde_json::Map::new();
+    load_args.insert("profile".to_string(), json!("admin"));
+    let _ = mcp.call(CallToolRequestParams::new("tools.load_profile").with_arguments(load_args)).await.unwrap();
+
+    // 2. Set brief (from human authority via context)
+    *mcp.context.write().await = ActorContext::human();
+    let mut set_args = serde_json::Map::new();
+    set_args.insert("id".to_string(), json!("project.brief_set"));
+    set_args.insert("params".to_string(), json!({"goal": "MCP Brief Test"}));
+    let res = mcp.call(CallToolRequestParams::new("command_run").with_arguments(set_args)).await.unwrap();
+    assert!(!res.is_error.unwrap_or(false));
+
+    // 3. Switch to agent context and try to rewrite brief (must fail)
+    *mcp.context.write().await = ActorContext::agent("agent-test", "session-1");
+    let mut set_agent_args = serde_json::Map::new();
+    set_agent_args.insert("id".to_string(), json!("project.brief_set"));
+    set_agent_args.insert("params".to_string(), json!({"goal": "Agent Overwrite"}));
+    let res = mcp.call(CallToolRequestParams::new("command_run").with_arguments(set_agent_args)).await.unwrap();
+    assert!(res.is_error.unwrap_or(false));
+
+    // 4. Get brief as agent (must succeed)
+    let mut get_args = serde_json::Map::new();
+    get_args.insert("id".to_string(), json!("project.brief_get"));
+    let res = mcp.call(CallToolRequestParams::new("command_run").with_arguments(get_args)).await.unwrap();
+    assert!(!res.is_error.unwrap_or(false));
+    let text = res.content[0].as_text().unwrap();
+    assert!(text.text.contains("MCP Brief Test"));
+}

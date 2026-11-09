@@ -113,6 +113,7 @@ impl EditorEngine {
                 volume_db: 0.0,
                 audio_enabled: true,
                 enabled: true,
+                agent_note: None,
                 });
                 Ok(json!({"track_id": track.id, "clip_index": track.clips.len() - 1}))
             })()),

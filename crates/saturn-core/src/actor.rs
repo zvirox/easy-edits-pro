@@ -14,9 +14,10 @@ use crate::time::Tick;
 use crate::viewport_state::SelectedClipRef;
 
 /// Durable attribution identity. A display name is not proof of identity.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(tag = "kind", content = "id", rename_all = "snake_case")]
 pub enum ActorId {
+    #[default]
     Human,
     Agent(String),
 }

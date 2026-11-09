@@ -111,12 +111,14 @@ pub(super) fn all_tools() -> Vec<Tool> {
             ),
             Tool::new(
                 "command_run",
-                "Run an editor command by id with its JSON parameters. Use command_list to discover ids.",
+                "Run an editor command by id with its JSON parameters. Use command_list to discover ids. Optionally attach edit rationale and confidence.",
                 schema(json!({
                     "type": "object",
                     "properties": {
                         "id": { "type": "string", "description": "Editor command id." },
-                        "params": { "type": "object", "description": "Command-specific parameters." }
+                        "params": { "type": "object", "description": "Command-specific parameters." },
+                        "rationale": { "type": "string", "description": "Per-edit rationale (<= 200 chars) explaining intent." },
+                        "confidence": { "type": "string", "enum": ["high", "medium", "low"], "description": "Declared confidence level." }
                     },
                     "required": ["id"]
                 })),
@@ -128,7 +130,10 @@ pub(super) fn all_tools() -> Vec<Tool> {
                     "type": "object",
                     "properties": {
                         "steps": { "type": "array", "items": { "type": "object", "properties": {
-                            "id": { "type": "string" }, "params": { "type": "object" }
+                            "id": { "type": "string" },
+                            "params": { "type": "object" },
+                            "rationale": { "type": "string" },
+                            "confidence": { "type": "string", "enum": ["high", "medium", "low"] }
                         }, "required": ["id"] } },
                         "stop_on_error": { "type": "boolean", "default": true },
                         "atomic": { "type": "boolean", "default": false, "description": "Execute as an atomic transaction with rollback on any failure" }

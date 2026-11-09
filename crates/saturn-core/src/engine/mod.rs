@@ -27,6 +27,7 @@ mod asymmetric_trim_cmd;
 mod match_cut_cmd;
 mod beat_grid_cmd;
 mod branch_cmds;
+mod brief_cmds;
 mod clip_advanced_cmds;
 mod clip_cmds;
 mod color_cmds;
@@ -611,6 +612,15 @@ impl EditorEngine {
         self.check_actor_context(ctx)?;
         self.get_or_create_session(ctx);
 
+        if let Some(ref r) = request.rationale {
+            if r.chars().count() > crate::brief::MAX_RATIONALE_LEN {
+                return Err(DispatchError::InvalidParameters(format!(
+                    "Rationale exceeds {} characters",
+                    crate::brief::MAX_RATIONALE_LEN
+                )));
+            }
+        }
+
         if !ctx.actor.is_human() {
             if let Some(res) = self.dispatch_agent_viewport(&request.id, request.params.clone(), ctx) {
                 return res;
@@ -647,6 +657,9 @@ impl EditorEngine {
 
         let result = (|| {
             if let Some(result) = self.dispatch_project(command.id, request.params.clone()) {
+                return result;
+            }
+            if let Some(result) = self.dispatch_brief(command.id, request.params.clone()) {
                 return result;
             }
             if let Some(result) = self.dispatch_branch(command.id, request.params.clone()) {
@@ -743,18 +756,13 @@ impl EditorEngine {
         })()?;
 
         if command.mutating {
-            if let Some(before) = before_doc {
-                let inverse = serde_json::to_value(&before).ok();
-                self.journal.record_change(
-                    0,
-                    self.current_actor(),
-                    self.current_session_id(),
-                    self.current_branch(),
-                    command.id,
-                    affected,
-                    inverse,
-                );
-            }
+            self.record_mutating_change(
+                command.id,
+                affected,
+                before_doc,
+                request.rationale,
+                request.confidence,
+            );
         }
 
         Ok(result)

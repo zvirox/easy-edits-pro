@@ -249,4 +249,7 @@ pub struct Clip {
     /// Reference-editor Enable: disabled clips stay on the timeline but render nothing.
     #[serde(default = "default_true")]
     pub enabled: bool,
+    /// Provenance metadata and edit rationale from an agent (AF4).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_note: Option<crate::brief::ClipAgentNote>,
 }

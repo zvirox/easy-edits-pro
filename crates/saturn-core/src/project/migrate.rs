@@ -108,10 +108,11 @@ pub(crate) fn migrate_project(value: &mut serde_json::Value) -> Result<(), Strin
     };
     match version {
         PROJECT_SCHEMA_VERSION => Ok(()),
-        14 | 15 | 16 => {
+        14 | 15 | 16 | 17 => {
             let object = value
                 .as_object_mut()
                 .ok_or_else(|| "Project root must be an object".to_string())?;
+            // v18 (AF4) adds project brief and per-clip agent notes.
             // v17 (AF2) adds stable clip IDs and project-wide lock registry.
             // v16 adds audio_enabled (default true). v15 adds copy-on-write
             // branches, per-media BLAKE3 fingerprints and relative media paths
@@ -126,6 +127,19 @@ pub(crate) fn migrate_project(value: &mut serde_json::Value) -> Result<(), Strin
                 })
             });
             ensure_clip_ids(object);
+            if let Some(project) = object.get_mut("project").and_then(serde_json::Value::as_object_mut) {
+                project.entry("brief").or_insert_with(|| {
+                    serde_json::to_value(crate::brief::ProjectBrief::default()).unwrap_or_else(|_| {
+                        serde_json::json!({
+                            "goal": "",
+                            "style_notes": "",
+                            "updated_at_unix_ms": 0,
+                            "updated_by": {"kind": "human"},
+                            "source": "user_prompt"
+                        })
+                    })
+                });
+            }
             object.insert("schema_version".into(), PROJECT_SCHEMA_VERSION.into());
             Ok(())
         }
@@ -423,5 +437,17 @@ mod tests {
         assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
         assert!(loaded.project.sequence.tracks[0].clips[0].id > 0);
         assert_eq!(loaded.locks.locks.len(), 0);
+    }
+
+    #[test]
+    fn v17_project_migrates_to_v18_schema_with_brief_and_agent_notes() {
+        let mut legacy = serde_json::to_value(ProjectDocument::new("V17 project")).unwrap();
+        legacy["schema_version"] = 17.into();
+        legacy["project"].as_object_mut().unwrap().remove("brief");
+        migrate_project(&mut legacy).unwrap();
+        let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
+        assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
+        assert_eq!(loaded.project.brief.goal, "");
+        assert!(loaded.project.sequence.tracks[0].clips.is_empty());
     }
 }

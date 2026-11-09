@@ -32,6 +32,15 @@ pub struct ChangeRecord {
     pub write_footprint: Vec<u64>,
     #[serde(default)]
     pub inverse_state: Option<Value>,
+    /// Edit rationale provided by the actor (AF4, max 200 chars).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rationale: Option<String>,
+    /// Declared confidence level of the edit (AF4).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub confidence: Option<crate::brief::ConfidenceLevel>,
+    /// If this change is a human correction of an earlier change, links to that change_id (AF4).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub correction_of: Option<u64>,
 }
 
 fn default_next_id() -> u64 {
@@ -84,6 +93,34 @@ impl ChangeJournal {
         affected_entities: Vec<u64>,
         inverse_state: Option<Value>,
     ) -> u64 {
+        self.record_change_with_metadata(
+            transaction_id,
+            actor,
+            session_id,
+            branch,
+            command_id,
+            affected_entities,
+            inverse_state,
+            None,
+            None,
+            None,
+        )
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub fn record_change_with_metadata(
+        &mut self,
+        transaction_id: u64,
+        actor: ActorId,
+        session_id: impl Into<String>,
+        branch: impl Into<String>,
+        command_id: impl Into<String>,
+        affected_entities: Vec<u64>,
+        inverse_state: Option<Value>,
+        rationale: Option<String>,
+        confidence: Option<crate::brief::ConfidenceLevel>,
+        correction_of: Option<u64>,
+    ) -> u64 {
         let change_id = self.next_change_id;
         self.next_change_id += 1;
         let base_revision = self.head_revision;
@@ -108,6 +145,9 @@ impl ChangeJournal {
             read_dependencies,
             write_footprint,
             inverse_state,
+            rationale,
+            confidence,
+            correction_of,
         });
 
         change_id

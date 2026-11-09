@@ -19,9 +19,9 @@
   `v0.1.2-alpha.2` package payloads are inventoried; conservative actor/history,
   lock, Stop and atomic-batch contracts are reviewed. See the
   [inventory](audit/af0-inventory.md) and [design](planning/af0-actor-design.md).
-- **Next actionable work:** proceed to **AF4** (Rationale, confidence, and human-owned brief) followed by **AF3** (Verification with perception metrics and negative controls).
+- **Next actionable work:** proceed to **AF3** (Verification with perception metrics and negative controls).
 - **Proposed execution queue, pending maintainer decision:** AF0 → AF1 (Done) → AF2 (Done) →
-  AF4 → AF3 → AF5 → AF6/5.2 → remaining 5.1 and Phase 5 gate → Phase 6 →
+  AF4 (Done) → AF3 → AF5 → AF6/5.2 → remaining 5.1 and Phase 5 gate → Phase 6 →
   AF7/7.1 → AF8/7.2 → AF9 (before hosting). Base verification/recipe smoke may
   start when its prerequisites exist; it does not complete the larger gates.
   AF4 precedes full AF3 because verification reads brief/review metadata.
@@ -401,10 +401,10 @@ Packet IDs are stable labels; follow the dependency queue above.
 
 ### AF4 — Rationale, confidence and human-owned brief
 > Depends on AF2; complete before AF3's brief/review-aware gate.
-- [ ] Persist per-edit rationale (≤200 characters), declared confidence and human corrections on history/clip/cut records; schema migration from v16, reopen and merge retain provenance (Lane 2).
-- [ ] Add Rust-owned `project.brief_set/get` for goal, platform, duration/tolerance, must-keep/banned content, style and loudness; define human authorization for brief changes (Lane 2).
-- [ ] Carry metadata through generic command/batch and dedicated mutation tools; keep media-derived content out of trusted brief updates (Lane 4).
-- [ ] **Gate:** migration/save/reopen/merge and correction tests; confidence is labelled agent uncertainty, not measured quality.
+- [x] Persist per-edit rationale (≤200 characters), declared confidence and human corrections on history/clip/cut records; schema migration from v16/v17 to v18, reopen and merge retain provenance (Lane 2).
+- [x] Add Rust-owned `project.brief_set/get` for goal, platform, duration/tolerance, must-keep/banned content, style and loudness; define human authorization for brief changes (Lane 2).
+- [x] Carry metadata through generic command/batch and dedicated mutation tools; keep media-derived content out of trusted brief updates (Lane 4).
+- [x] **Gate:** migration/save/reopen/merge and correction tests; confidence is labelled agent uncertainty, not measured quality. **2026-11-09:** Verified by `crates/saturn-core/tests/af4_brief_and_provenance.rs` (8 tests passing), migration test suite `v17_project_migrates_to_v18_schema_with_brief_and_agent_notes` (9 migration tests passing), `crates/saturn-mcp` (20 tests passing), `cargo test --workspace` (all packages green), `pnpm check:source-size --max-lines=800` (all ≤800 lines), `pnpm check:commands` (472 commands), `pnpm check:glass`, `pnpm test` (174 tests), `pnpm build`, and `pnpm test:e2e` (all green).
 
 ### AF3 — `verify.run` measured self-check
 - [ ] Implement bounded named checks from the companion §2.3: loudness/peak, silence, black/frozen/clipped frames, captions, brief targets, continuity/pops, missing resources and unreviewed uncertain edits (Lane 2 analysis).

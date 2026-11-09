@@ -169,10 +169,29 @@ impl EditorMcp {
     }
 
     async fn execute(&self, id: String, params: Value) -> Result<Value, String> {
+        self.execute_with_provenance(id, params, None, None).await
+    }
+
+    async fn execute_with_provenance(
+        &self,
+        id: String,
+        params: Value,
+        rationale: Option<String>,
+        confidence: Option<saturn_core::brief::ConfidenceLevel>,
+    ) -> Result<Value, String> {
         let ctx = self.context.read().await.clone();
         if matches!(&self.backend, Backend::Bridge(_)) {
             return self
-                .bridge_call("command_run", json!({"id": id, "params": params, "context": ctx}))
+                .bridge_call(
+                    "command_run",
+                    json!({
+                        "id": id,
+                        "params": params,
+                        "rationale": rationale,
+                        "confidence": confidence,
+                        "context": ctx
+                    }),
+                )
                 .await;
         }
         let Backend::Headless(engine) = &self.backend else {
@@ -181,8 +200,15 @@ impl EditorMcp {
         let engine = engine.clone();
         tokio::task::spawn_blocking(move || {
             let mut engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
+            let mut req = CommandRequest::new(id, params);
+            if let Some(r) = rationale {
+                req = req.with_rationale(r);
+            }
+            if let Some(c) = confidence {
+                req = req.with_confidence(c);
+            }
             engine
-                .execute_with_context(CommandRequest::new(id, params), &ctx)
+                .execute_with_context(req, &ctx)
                 .map_err(|error| error.to_string())
         })
         .await
@@ -307,12 +333,21 @@ impl EditorMcp {
                         return Err(ErrorData::invalid_params(err.to_string(), None));
                     }
                 }
-                self.execute(
+                let rationale = arguments
+                    .get("rationale")
+                    .and_then(Value::as_str)
+                    .map(str::to_string);
+                let confidence = arguments
+                    .get("confidence")
+                    .and_then(|v| serde_json::from_value(v.clone()).ok());
+                self.execute_with_provenance(
                     id.to_owned(),
                     arguments
                         .get("params")
                         .cloned()
                         .unwrap_or_else(|| json!({})),
+                    rationale,
+                    confidence,
                 )
                 .await
             }
@@ -358,7 +393,14 @@ impl EditorMcp {
                             .map(|step| {
                                 let id = step.get("id").and_then(Value::as_str).unwrap_or("").to_string();
                                 let params = step.get("params").cloned().unwrap_or_else(|| json!({}));
-                                CommandRequest::new(id, params)
+                                let mut req = CommandRequest::new(id, params);
+                                if let Some(r) = step.get("rationale").and_then(Value::as_str) {
+                                    req = req.with_rationale(r.to_string());
+                                }
+                                if let Some(c) = step.get("confidence").and_then(|v| serde_json::from_value(v.clone()).ok()) {
+                                    req = req.with_confidence(c);
+                                }
+                                req
                             })
                             .collect::<Vec<_>>();
 
@@ -403,10 +445,14 @@ impl EditorMcp {
                             }
                             continue;
                         }
+                        let rationale = step.get("rationale").and_then(Value::as_str).map(str::to_string);
+                        let confidence = step.get("confidence").and_then(|v| serde_json::from_value(v.clone()).ok());
                         match self
-                            .execute(
+                            .execute_with_provenance(
                                 id.to_owned(),
                                 step.get("params").cloned().unwrap_or_else(|| json!({})),
+                                rationale,
+                                confidence,
                             )
                             .await
                         {

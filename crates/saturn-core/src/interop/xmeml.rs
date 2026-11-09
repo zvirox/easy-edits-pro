@@ -223,6 +223,7 @@ pub fn import_xmeml_xml(xml: &str) -> Result<ProjectDocument, String> {
                 volume_db: 0.0,
                 audio_enabled: true,
                 enabled: true,
+                agent_note: None,
         });
     }
 

@@ -147,7 +147,8 @@ fn document_with_title_and_graphic() -> ProjectDocument {
             label: String::new(),
             volume_db: 0.0,
             audio_enabled: true,
-                enabled: true,
+            enabled: true,
+            agent_note: None,
         }],
         transitions: vec![],
     });

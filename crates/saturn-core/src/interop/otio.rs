@@ -289,6 +289,7 @@ pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument,
                 volume_db: 0.0,
                 audio_enabled: true,
                 enabled: true,
+                agent_note: None,
                     });
 
                     current_timeline_tick += dur_ticks.max(frame_ticks);

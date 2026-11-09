@@ -360,7 +360,7 @@ and handler-list edits under `AGENTS.md`.
 | AF0 housekeeping/design | Verify current licensing/package inventory; narrow third-party policy without rejecting owned first-party AGPL; negative dependency fixture fails; package notice bundle verified; actor/review conflict design written. *(2026-11-08: inventory, scoped policy with negative controls and the actor design are recorded — see the checklist AF0 section; notice/worker packaging evidence remains open.)* |
 | AF1 profiles/tiers | Human-reviewed inventory first; every command/tool assigned; ≤30 default tools; typed profile hints; grants enforced across wrappers/batches. *(Completed 2026-11-09)* |
 | AF2 sessions | AF1 policy + AF0 design; isolated cursors/branches, conflict-safe undo/review, durable locks, atomic-batch failure rollback, Stop ≤1 s with no late apply. *(Completed 2026-11-09)* |
-| AF4 rationale/brief | AF2 history/change model; schema migration, reopen and merge preserve notes and brief; human corrections recorded. |
+| AF4 rationale/brief | AF2 history/change model; schema migration, reopen and merge preserve notes and brief; human corrections recorded. *(Completed 2026-11-09)* |
 | AF3 verification | Existing perception + AF4 for full contract; seeded bad/clean fixtures correctly measured with tick/coverage evidence. |
 | AF5 untrusted content | AF1 grants + AF2 identity + AF4 brief boundary; adversarial payloads cannot authorize side effects; approved workflows still pass. |
 | AF6 Agent/Review UI | AF1–AF5 and existing glass shell; demo run → review → accept/reject → merge with human-edit conflict tests, geometry, colour and accessibility evidence; Packet 5.2 panels complete. |
@@ -368,7 +368,7 @@ and handler-list edits under `AGENTS.md`.
 | AF8 benchmark | AF7 + AF3; scripted CI smoke, live-bridge suite and labelled real-model baseline; final Phase 7 evidence waits for its remaining backend dependencies. |
 | AF9 daemon | AF1–AF5; auth, audit, budgets and Stop verified before hosting. |
 
-**Next actionable work:** **AF4** (Rationale, confidence, and human-owned brief) followed by **AF3** (Perception verification metrics and negative controls). **Recommended queue:** AF0 → AF1 (Done) → AF2 (Done) → AF4 → AF3 → AF5 → AF6/5.2 → remaining 5.1 verbs and Phase 5 gate → Phase 6 → AF7/7.1 → AF8/7.2 → AF9.
+**Next actionable work:** **AF3** (Perception verification metrics and negative controls). **Recommended queue:** AF0 → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 → AF5 → AF6/5.2 → remaining 5.1 verbs and Phase 5 gate → Phase 6 → AF7/7.1 → AF8/7.2 → AF9.
 AF7/7.1 → AF8/7.2 → AF9. Early AF3 base checks and AF7/AF8 smoke are allowed once
 their dependencies exist. This reconciles the attachment's “control before VFX”
 recommendation without making all remaining narrative editing wait for a daemon.

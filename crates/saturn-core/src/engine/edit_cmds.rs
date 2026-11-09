@@ -321,6 +321,7 @@ fn new_clip(id: u64, media_id: u64, start: i64, source_in: i64, duration: i64) -
         volume_db: 0.0,
         audio_enabled: true,
         enabled: true,
+        agent_note: None,
     }
 }
 

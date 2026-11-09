@@ -3,6 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 pub mod catalogue;
 pub mod actor;
+pub mod brief;
 pub mod audio_edit;
 pub mod asymmetric_trim;
 pub mod match_cut;
@@ -28,6 +29,7 @@ pub mod time;
 pub mod viewport_state;
 
 pub use actor::{ActorContext, ActorId, SessionViewState};
+pub use brief::{BriefSource, ClipAgentNote, ConfidenceLevel, HumanCorrection, ProjectBrief};
 pub use command::{
     Category, CommandRequest, CommandSpec, CommandStatus, MENU_BAR, UndoGroup,
     catalogue_json, catalogue_markdown, command_catalogue, find_command, menu_commands,

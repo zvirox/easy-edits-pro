@@ -31,6 +31,7 @@ fn sample_project() -> ProjectDocument {
                 volume_db: 0.0,
                 audio_enabled: true,
                 enabled: true,
+                agent_note: None,
     };
 
     let mut doc = ProjectDocument::new("Test Interop");

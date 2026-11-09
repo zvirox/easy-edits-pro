@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-470 commands.
+472 commands.
 
 ## File
 
@@ -19,6 +19,8 @@ Generated from the command catalogue. Do not edit by hand.
 | Inspect Project | `project.inspect` | shipped |  | `{}` |
 | Project Status | `project.status` | shipped |  | `{}` |
 | List Media | `media.list` | shipped |  | `{}` |
+| Get Project Brief | `project.brief_get` | shipped |  | `{}` |
+| Set Project Brief | `project.brief_set` | shipped |  | `{"goal":str?,"platform":str?,"target_duration_ticks":u64?,"duration_tolerance_ticks":u64?,"must_keep_clip_ids":[u64]?,"banned_content":[str]?,"style_notes":str?,"loudness_target_lufs":f64?,"source":str?}` |
 | New Project | `project.new` | shipped | Ctrl+N | `{"name":str?,"sequence_name":str?,"width":int?,"height":int?,"frame_rate":str?}` |
 | Open Project | `file.open` | shipped | Ctrl+O | `{"path":path}` |
 | Save Project | `file.save` | shipped | Ctrl+S | `{"path":path}` |

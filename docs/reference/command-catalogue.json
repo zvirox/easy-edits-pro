@@ -3280,6 +3280,71 @@
     "undoGroup": "none"
   },
   {
+    "aliases": [
+      "brief",
+      "get brief"
+    ],
+    "category": "File",
+    "id": "project.brief_get",
+    "label": "Get Project Brief",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "profiles": [
+      "admin",
+      "audio",
+      "captions",
+      "colour",
+      "export",
+      "fine-cut",
+      "graphics",
+      "ingest",
+      "multicam",
+      "review",
+      "rough-cut",
+      "speed-motion"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "tier": "read",
+    "tiers": [
+      "read"
+    ],
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "set brief",
+      "update brief"
+    ],
+    "category": "File",
+    "id": "project.brief_set",
+    "label": "Set Project Brief",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"goal\":str?,\"platform\":str?,\"target_duration_ticks\":u64?,\"duration_tolerance_ticks\":u64?,\"must_keep_clip_ids\":[u64]?,\"banned_content\":[str]?,\"style_notes\":str?,\"loudness_target_lufs\":f64?,\"source\":str?}",
+    "profiles": [
+      "admin",
+      "rough-cut",
+      "fine-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
     "aliases": [],
     "category": "File",
     "id": "project.new",

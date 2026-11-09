@@ -39,6 +39,9 @@ pub struct Project {
     pub name: String,
     #[serde(default)]
     pub notes: String,
+    /// Human-owned project brief (AF4).
+    #[serde(default)]
+    pub brief: crate::brief::ProjectBrief,
     pub settings: ProjectSettings,
     /// Scene-referred colour-management configuration (Packet 3.1).
     #[serde(default)]

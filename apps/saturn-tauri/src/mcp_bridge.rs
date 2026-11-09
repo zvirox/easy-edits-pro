@@ -235,10 +235,17 @@ async fn dispatch(
                     Err(error) => json!({"error": error}),
                 };
             }
+            let mut req = saturn_core::CommandRequest::new(id, command_params);
+            if let Some(rationale) = params.get("rationale").and_then(Value::as_str) {
+                req = req.with_rationale(rationale.to_string());
+            }
+            if let Some(confidence) = params.get("confidence").and_then(|v| serde_json::from_value(v.clone()).ok()) {
+                req = req.with_confidence(confidence);
+            }
             match execute_command_with_state(
                 app,
                 state,
-                saturn_core::CommandRequest::new(id, command_params),
+                req,
             ) {
                 Ok(value) => {
                     let _ = app.emit("mcp_project_changed", ());
@@ -340,7 +347,14 @@ async fn command_batch(
             .map(|step| {
                 let id = step.get("id").and_then(Value::as_str).unwrap_or("").to_string();
                 let p = step.get("params").cloned().unwrap_or_else(|| json!({}));
-                saturn_core::CommandRequest::new(id, p)
+                let mut req = saturn_core::CommandRequest::new(id, p);
+                if let Some(rationale) = step.get("rationale").and_then(Value::as_str) {
+                    req = req.with_rationale(rationale.to_string());
+                }
+                if let Some(confidence) = step.get("confidence").and_then(|v| serde_json::from_value(v.clone()).ok()) {
+                    req = req.with_confidence(confidence);
+                }
+                req
             })
             .collect::<Vec<_>>();
         let mut guard = state.0.lock().map_err(|e| e.to_string())?;
@@ -369,7 +383,14 @@ async fn command_batch(
                 }
             }
             let step_params = step.get("params").cloned().unwrap_or_else(|| json!({}));
-            match execute_command_with_state(app, state, saturn_core::CommandRequest::new(id, step_params)) {
+            let mut req = saturn_core::CommandRequest::new(id, step_params);
+            if let Some(rationale) = step.get("rationale").and_then(Value::as_str) {
+                req = req.with_rationale(rationale.to_string());
+            }
+            if let Some(confidence) = step.get("confidence").and_then(|v| serde_json::from_value(v.clone()).ok()) {
+                req = req.with_confidence(confidence);
+            }
+            match execute_command_with_state(app, state, req) {
                 Ok(val) => {
                     completed += 1;
                     results.push(json!({"ok": true, "result": val}));
