@@ -212,8 +212,15 @@ def run(command, cwd):
 
 
 def digest(path):
+    # hashlib.file_digest is Python 3.11+; the packaging runner ships 3.10,
+    # so fall back to a streaming copy (identical hex output).
+    hasher = hashlib.sha256()
     with path.open("rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest()
+        if hasattr(hashlib, "file_digest"):
+            return hashlib.file_digest(stream, "sha256").hexdigest()
+        for chunk in iter(lambda: stream.read(65536), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
 
 
 def cargo_packages(manifest, filter_platform=True):

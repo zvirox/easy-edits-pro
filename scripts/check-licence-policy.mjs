@@ -82,7 +82,13 @@ function run(command, args, options = {}) {
     maxBuffer: 64 * 1024 * 1024,
     env: { ...process.env, CARGO_TERM_COLOR: "never" },
   });
-  return { status: result.status, output: `${result.stdout ?? ""}${result.stderr ?? ""}` };
+  // Keep streams separate: stdout is the machine-readable channel (JSON
+  // bodies), stderr carries cargo/pnpm warnings. Merging them breaks
+  // JSON.parse whenever a tool warns on stderr (seen in CI 2026-11-09:
+  // cargo printed a warning after a ~2.2 MB metadata body).
+  const stdout = result.stdout ?? "";
+  const stderr = result.stderr ?? "";
+  return { status: result.status, stdout, stderr, output: `${stdout}${stderr}` };
 }
 
 function agplPackages(workspace, locked) {
@@ -92,7 +98,7 @@ function agplPackages(workspace, locked) {
   if (result.status !== 0) {
     throw new Error(`cargo metadata failed for ${workspace.name}:\n${result.output.slice(-2000)}`);
   }
-  const data = JSON.parse(result.output);
+  const data = JSON.parse(result.stdout);
   return data.packages.filter((pkg) => (pkg.license ?? "").includes("AGPL"));
 }
 
@@ -257,7 +263,7 @@ function checkJsProduction() {
     fail(`JS gate: pnpm licenses list failed:\n${result.output.slice(-2000)}`);
     return;
   }
-  const report = JSON.parse(result.output);
+  const report = JSON.parse(result.stdout);
   let count = 0;
   for (const [reported, entries] of Object.entries(report)) {
     for (const entry of entries) {
