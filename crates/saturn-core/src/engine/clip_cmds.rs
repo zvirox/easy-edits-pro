@@ -87,8 +87,11 @@ impl EditorEngine {
                                 .unwrap_or(0)
                         });
                 self.checkpoint();
+                let clip_id = self.document.project.next_id;
+                self.document.project.next_id = clip_id.saturating_add(1);
                 let track = &mut self.document.project.sequence.tracks[track_index];
                 track.clips.push(Clip {
+                    id: clip_id,
                     media_id: params.media_id,
                     timeline_start: Tick(timeline_start),
                     source_in: params.source_in,
@@ -140,6 +143,11 @@ impl EditorEngine {
                         "Timeline clip does not exist".into(),
                     ));
                 }
+                let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                self.document
+                    .locks
+                    .check_clip_mutation(clip.id, &self.current_actor())
+                    .map_err(DispatchError::Operation)?;
                 self.checkpoint();
                 self.document.project.sequence.tracks[track_index]
                     .clips
@@ -154,6 +162,10 @@ impl EditorEngine {
                 }
                 {
                     let clip = find_clip(&self.document, track_index, params.clip_index)?;
+                    self.document
+                        .locks
+                        .check_clip_mutation(clip.id, &self.current_actor())
+                        .map_err(DispatchError::Operation)?;
                     let offset = params.at.0.saturating_sub(clip.timeline_start.0);
                     if offset <= 0 || offset >= clip.duration.0 {
                         return Err(DispatchError::InvalidParameters(
@@ -180,6 +192,14 @@ impl EditorEngine {
                     return Err(DispatchError::InvalidParameters(
                         "No moves specified".into(),
                     ));
+                }
+                for item in &params.moves {
+                    let track_index = find_track_index(&self.document, item.track_id)?;
+                    let clip = find_clip(&self.document, track_index, item.clip_index)?;
+                    self.document
+                        .locks
+                        .check_clip_mutation(clip.id, &self.current_actor())
+                        .map_err(DispatchError::Operation)?;
                 }
                 for item in &params.moves {
                     if item.timeline_start.0 < 0 {

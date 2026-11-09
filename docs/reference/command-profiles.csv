@@ -1,0 +1,499 @@
+id,kind,existing_availability,proposed_tier,proposed_profiles,exceptions_rationale
+audio.auto_phase_align,command,catalogue,edit,audio,Standard mapping
+audio.fill_gaps_with_room_tone,command,catalogue,edit,audio,Standard mapping
+audio.loudness_normalize_master,command,catalogue,edit,audio,Standard mapping
+audio.sidechain_duck_envelope,command,catalogue,edit,audio,Standard mapping
+bus.set_gain_db,command,catalogue+wrapper,edit,audio,Wrapper operation mapped to this catalogue command
+caption.cue_add,command,catalogue,edit,captions,Standard mapping
+caption.cue_delete,command,catalogue,edit,captions,Standard mapping
+caption.cue_merge,command,catalogue,edit,captions,Standard mapping
+caption.cue_nudge,command,catalogue,edit,captions,Standard mapping
+caption.cue_remove,command,catalogue,edit,captions,Standard mapping
+caption.cue_select,command,uiOnly,read,"captions,review",Panel selection
+caption.cue_split,command,catalogue,edit,captions,Standard mapping
+caption.cue_update,command,catalogue,edit,captions,Standard mapping
+caption.export,command,catalogue,read filesystem,"captions,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+caption.go_to,command,uiOnly,read,"captions,review",Panel navigation
+caption.import,command,catalogue,edit,captions,Standard mapping
+caption.list,command,catalogue,read,"captions,review",Standard mapping
+caption.next,command,catalogue,read,"captions,review",Standard mapping
+caption.panel,command,uiOnly,read,"captions,review",Panel visibility
+caption.previous,command,catalogue,read,"captions,review",Standard mapping
+caption.show_active_only,command,uiOnly,read,"captions,review",Panel filter
+caption.style_set,command,catalogue,edit,captions,Standard mapping
+caption.track_add,command,catalogue,edit,captions,Standard mapping
+caption.track_remove,command,catalogue,edit,captions,Standard mapping
+caption.track_rename,command,catalogue,edit,captions,Standard mapping
+caption.tracks_hide,command,catalogue,edit,captions,Standard mapping
+caption.tracks_show,command,catalogue,edit,captions,Standard mapping
+clip.add_custom_shader,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+clip.add_effect,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+clip.frame_fit,command,catalogue,edit,rough-cut,Standard mapping
+clip.make_subclip,command,catalogue,edit,rough-cut,Standard mapping
+clip.pin_to_track,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+clip.remove_effect,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+clip.remove_keyframe,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+clip.reorder_effects,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+clip.set_color,command,catalogue,edit,"colour,rough-cut",Standard mapping
+clip.set_color_wheels,command,catalogue+wrapper,edit,"colour,rough-cut",Wrapper operation mapped to this catalogue command
+clip.set_enabled,command,catalogue,edit,rough-cut,Standard mapping
+clip.set_keyframe,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+clip.set_motion_blur,command,catalogue+wrapper,edit,"rough-cut,speed-motion",Wrapper operation mapped to this catalogue command
+clip.set_motion_tracking,command,catalogue+wrapper,edit,"rough-cut,speed-motion",Wrapper operation mapped to this catalogue command
+clip.set_speed_ramp,command,catalogue+wrapper,edit,"rough-cut,speed-motion",Wrapper operation mapped to this catalogue command
+clip.set_volume_db,command,catalogue,edit,rough-cut,Standard mapping
+clip.toggle_effect,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+clip.update_custom_shader,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+clip.update_effect,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+clip.update_hsl_qualifier,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+clip.update_rgb_curves,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+color.add_power_window,command,catalogue,edit,colour,Standard mapping
+color.emulate_film_print,command,catalogue,edit,colour,Standard mapping
+color.match_shot_to_reference,command,catalogue,edit,colour,Standard mapping
+color.node_add,command,catalogue,edit,colour,Standard mapping
+color.node_update,command,catalogue,edit,colour,Standard mapping
+dsp.load_plugin,command,catalogue,edit filesystem,"admin,audio",Filesystem/network/plugin effect (outside project state)
+dsp.set_plugin_param,command,catalogue,edit filesystem,"admin,audio",Filesystem/network/plugin effect (outside project state)
+edit.begin_gesture,command,catalogue,read,review,Standard mapping
+edit.consolidate_duplicates,command,catalogue,edit,"admin,ingest",Standard mapping
+edit.copy,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+edit.copy_attributes,command,catalogue,read,review,Standard mapping
+edit.cut,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+edit.delete,command,uiOnly,read,review,UI-owned action; not invocable via command_run; Destructive mutation (delete/remove/clear/reset/discard)
+edit.deselect_all,command,uiOnly,read,review,UI selection state
+edit.duplicate,command,catalogue,edit,rough-cut,Standard mapping
+edit.edit_original,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+edit.end_gesture,command,catalogue,read,review,Standard mapping
+edit.find,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+edit.find_next,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+edit.label.blue,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.brown,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.caribbean,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.cerulean,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.forest,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.green,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.iris,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.lavender,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.magenta,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.mango,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.purple,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.rose,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.tan,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.teal,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.violet,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.label.yellow,command,catalogue,edit,"ingest,rough-cut",Standard mapping
+edit.match_cut_align,command,catalogue,edit,fine-cut,Standard mapping
+edit.paste,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+edit.paste_attributes,command,catalogue,edit,rough-cut,Standard mapping
+edit.paste_insert,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+edit.paste_media,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+edit.preferences,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+edit.redo,command,catalogue,edit,admin,Standard mapping
+edit.remove_attributes,command,catalogue,edit,rough-cut,Standard mapping
+edit.remove_unused_media,command,catalogue,edit,"admin,ingest",Standard mapping
+edit.ripple_delete_head,command,catalogue,edit,rough-cut,Standard mapping
+edit.select_all,command,catalogue,read,review,Standard mapping
+edit.select_all_matching,command,catalogue,read,review,Standard mapping
+edit.select_clip_at_playhead,command,catalogue,read,review,Standard mapping
+edit.select_label_group,command,catalogue,read,review,Standard mapping
+edit.undo,command,catalogue,edit,admin,Standard mapping
+export.formats,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.frame,command,uiOnly,read,"export,review",User-interactive frame export; Filesystem/network/plugin effect (outside project state)
+export.presets,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.presets.delete,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.presets.export,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.presets.favorite,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.presets.get,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.presets.import,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.presets.save,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.queue.add,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.queue.cancel,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.queue.clear,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.queue.list,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.queue.move,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.queue.remove,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.queue.retry,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.queue.start,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.queue.stop,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+export.quick,command,uiOnly,read,"export,review",User-interactive quick export panel; Filesystem/network/plugin effect (outside project state)
+export.resolve,command,catalogue,read filesystem,"export,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+file.close,command,uiOnly,read,"admin,review",Window-management action
+file.open,command,catalogue,edit,admin,Standard mapping
+file.reveal,command,uiOnly,read,"export,review",Opens external file manager; Filesystem/network/plugin effect (outside project state)
+file.revert,command,uiOnly,read,"admin,review",Confirm + discard; UI-owned
+file.save,command,catalogue,read,"admin,review",Standard mapping
+file.saveAs,command,uiOnly,read,review,Requires native file picker
+file.saveCopy,command,uiOnly,read,review,Requires native file picker
+fonts.list,command,catalogue,read,review,Standard mapping
+graphic.add,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.align,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.arrange,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.distribute,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.duplicate,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.panel,command,uiOnly,read,"colour,graphics,review",UI-owned action; not invocable via command_run
+graphic.remove,command,catalogue,edit destructive,"colour,graphics",Destructive mutation (delete/remove/clear/reset/discard)
+graphic.set_fill,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.set_flags,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.set_shadow,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.set_stroke,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.set_text,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.set_transform,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.template_apply,command,catalogue,edit,"colour,graphics",Standard mapping
+graphic.template_save,command,catalogue,edit,"colour,graphics",Standard mapping
+help.about,command,uiOnly,read,review,About dialog
+help.diagnostics,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+help.shortcuts,command,uiOnly,read,review,Help overlay
+help.support,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+history.list,command,catalogue,read,"admin,review",Standard mapping
+interop.export_edl,command,catalogue,read,review,Standard mapping
+interop.export_fcpxml,command,catalogue,read,review,Standard mapping
+interop.export_otio,command,catalogue,read,review,Standard mapping
+interop.export_xmeml_xml,command,catalogue,read,review,Standard mapping
+interop.import_edl,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+interop.import_fcpxml,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+interop.import_otio,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+interop.import_xmeml_xml,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+marker.add,command,catalogue,edit,rough-cut,Standard mapping
+marker.add_chapter,command,catalogue,edit,rough-cut,Standard mapping
+marker.add_flash_cue,command,catalogue,edit,rough-cut,Standard mapping
+marker.add_range,command,catalogue,edit,rough-cut,Standard mapping
+marker.add_range_in_out,command,catalogue,edit,rough-cut,Standard mapping
+marker.clear,command,catalogue,edit destructive,rough-cut,Destructive mutation (delete/remove/clear/reset/discard)
+marker.export_csv,command,catalogue,read,"review,rough-cut",Standard mapping
+marker.go_to_split_audio_in,command,uiOnly,read,"review,rough-cut",UI-owned action; not invocable via command_run
+marker.go_to_split_audio_out,command,uiOnly,read,"review,rough-cut",UI-owned action; not invocable via command_run
+marker.go_to_split_video_in,command,uiOnly,read,"review,rough-cut",UI-owned action; not invocable via command_run
+marker.go_to_split_video_out,command,uiOnly,read,"review,rough-cut",UI-owned action; not invocable via command_run
+marker.import_csv,command,catalogue,edit,rough-cut,Standard mapping
+marker.next,command,catalogue,read,"review,rough-cut",Standard mapping
+marker.panel,command,uiOnly,read,"review,rough-cut",UI-owned action; not invocable via command_run
+marker.previous,command,catalogue,read,"review,rough-cut",Standard mapping
+marker.remove,command,catalogue,edit destructive,rough-cut,Destructive mutation (delete/remove/clear/reset/discard)
+marker.ripple,command,catalogue,edit,rough-cut,Standard mapping
+marker.set_color_filter,command,catalogue,read,"review,rough-cut",Standard mapping
+marker.set_copy_paste_includes,command,catalogue,read,"review,rough-cut",Standard mapping
+marker.set_split_audio,command,catalogue,edit,rough-cut,Standard mapping
+marker.set_split_audio_out,command,catalogue,edit,rough-cut,Standard mapping
+marker.set_split_video,command,catalogue,edit,rough-cut,Standard mapping
+marker.set_split_video_out,command,catalogue,edit,rough-cut,Standard mapping
+marker.show_all_colors,command,catalogue,read,"review,rough-cut",Standard mapping
+marker.split,command,catalogue,edit,rough-cut,Standard mapping
+marker.update,command,catalogue,edit,rough-cut,Standard mapping
+media.attach_proxy,command,catalogue,edit filesystem,ingest,Filesystem/network/plugin effect (outside project state)
+media.auto_relink,command,catalogue,edit,ingest,Standard mapping
+media.check_missing,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+media.color_info,command,catalogue,read,"ingest,review",Standard mapping
+media.create_bin,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+media.create_proxies,command,uiOnly,read,"ingest,review",UI-owned action; not invocable via command_run; Filesystem/network/plugin effect (outside project state)
+media.delete_bin,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+media.detach_proxy,command,catalogue,edit filesystem,ingest,Filesystem/network/plugin effect (outside project state)
+media.generate_bars_and_tone,command,uiOnly,read,"ingest,review",UI-owned action; not invocable via command_run
+media.generate_black_video,command,uiOnly,read,"ingest,review",UI-owned action; not invocable via command_run
+media.generate_color_matte,command,uiOnly,read,"ingest,review",UI-owned action; not invocable via command_run
+media.generate_transparent_video,command,uiOnly,read,"ingest,review",UI-owned action; not invocable via command_run
+media.list,command,catalogue+wrapper,read,"ingest,review",Wrapper operation mapped to this catalogue command
+media.make_offline,command,catalogue,edit,ingest,Standard mapping
+media.move_to_bin,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+media.offline_all,command,catalogue,edit,ingest,Standard mapping
+media.refresh_changed,command,catalogue,edit,ingest,Standard mapping
+media.relink_suggest,command,catalogue,read,"ingest,review",Standard mapping
+media.rename_bin,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+media.reveal,command,uiOnly,read,review,UI-owned action; not invocable via command_run; Filesystem/network/plugin effect (outside project state)
+media.search,command,uiOnly,read,"ingest,review",UI-owned action; not invocable via command_run; Wrapper operation mapped to this catalogue command
+media.toggle_proxies,command,catalogue,edit,ingest,Standard mapping
+media.update_properties,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+multicam.create,command,catalogue+wrapper,edit,multicam,Wrapper operation mapped to this catalogue command
+multicam.flatten,command,catalogue,edit destructive,multicam,Destructive mutation (delete/remove/clear/reset/discard)
+multicam.switch_angle,command,catalogue+wrapper,edit,multicam,Wrapper operation mapped to this catalogue command
+multicam.sync,command,catalogue+wrapper,edit,multicam,Wrapper operation mapped to this catalogue command
+nodegraph.add_mask,command,catalogue+wrapper,edit,graphics,Wrapper operation mapped to this catalogue command
+nodegraph.add_node,command,catalogue+wrapper,edit,graphics,Wrapper operation mapped to this catalogue command
+nodegraph.connect,command,catalogue+wrapper,edit,graphics,Wrapper operation mapped to this catalogue command
+nodegraph.disconnect,command,catalogue+wrapper,edit,graphics,Wrapper operation mapped to this catalogue command
+nodegraph.remove_node,command,catalogue+wrapper,edit,graphics,Wrapper operation mapped to this catalogue command
+nodegraph.update_node,command,catalogue+wrapper,edit,graphics,Wrapper operation mapped to this catalogue command
+ocio.set_media_idt,command,catalogue,edit,colour,Standard mapping
+ocio.set_pipeline,command,catalogue,edit,colour,Standard mapping
+playhead.end,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.go_to_clip_end,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.go_to_clip_start,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.go_to_in,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.go_to_out,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.go_to_timecode,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.next_edit,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.nudge_back_1,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.nudge_back_5,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.nudge_forward_1,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.nudge_forward_5,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.previous_edit,command,catalogue,read,"review,speed-motion",Standard mapping
+playhead.start,command,catalogue,read,"review,speed-motion",Standard mapping
+prefs.get,command,catalogue,read,"admin,review",Standard mapping
+prefs.reset,command,catalogue,read filesystem,"admin,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+prefs.schema,command,catalogue,read,"admin,review",Standard mapping
+prefs.set,command,catalogue,read filesystem,"admin,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+project.add_media,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+project.autosave.now,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+project.autosave.status,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+project.branch_create,command,catalogue,edit,admin,Standard mapping
+project.branch_diff,command,catalogue,read,"admin,review",Standard mapping
+project.branch_list,command,catalogue,read,"admin,review",Standard mapping
+project.branch_merge,command,catalogue,edit,admin,Standard mapping
+project.branch_switch,command,catalogue,edit,admin,Standard mapping
+project.columns.list,command,catalogue,read,review,Standard mapping
+project.columns.resize,command,catalogue,read,review,Standard mapping
+project.columns.set,command,catalogue,read,review,Standard mapping
+project.deselectAll,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+project.fingerprint_media,command,catalogue,edit,ingest,Standard mapping
+project.freeform.alignToGrid,command,catalogue,read,review,Standard mapping
+project.freeform.arrangements,command,catalogue,read,review,Standard mapping
+project.freeform.deleteArrangement,command,catalogue,read,review,Standard mapping
+project.freeform.layout,command,catalogue,read,review,Standard mapping
+project.freeform.move,command,catalogue,read,review,Standard mapping
+project.freeform.options,command,catalogue,read,review,Standard mapping
+project.freeform.reset,command,catalogue,read,review,Standard mapping
+project.freeform.resize,command,catalogue,read,review,Standard mapping
+project.freeform.restoreArrangement,command,catalogue,read,review,Standard mapping
+project.freeform.saveArrangement,command,catalogue,read,review,Standard mapping
+project.freeform.stack,command,catalogue,read,review,Standard mapping
+project.freeform.unstack,command,catalogue,read,review,Standard mapping
+project.inspect,command,catalogue+wrapper,read,"admin,review",Wrapper operation mapped to this catalogue command
+project.items,command,catalogue,read,review,Standard mapping
+project.new,command,catalogue,edit,admin,Standard mapping
+project.notes,command,catalogue,read,review,Standard mapping
+project.recovery.discard,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+project.recovery.restore,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+project.relink_media,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+project.remove,command,catalogue,edit destructive,admin,Destructive mutation (delete/remove/clear/reset/discard)
+project.searchBin.delete,command,catalogue,read,review,Standard mapping
+project.searchBin.items,command,catalogue,read,review,Standard mapping
+project.searchBin.set,command,catalogue,read,review,Standard mapping
+project.select,command,catalogue,read,review,Standard mapping
+project.selectAll,command,catalogue,read,review,Standard mapping
+project.setMarks,command,catalogue,edit,"admin,rough-cut",Standard mapping
+project.setNotes,command,catalogue,edit,"admin,rough-cut",Standard mapping
+project.sort,command,catalogue,read,review,Standard mapping
+project.status,command,catalogue,read,review,Standard mapping
+project.switch_sequence,command,catalogue+wrapper,edit,admin,Wrapper operation mapped to this catalogue command
+project.update_media,command,catalogue+wrapper,edit,ingest,Wrapper operation mapped to this catalogue command
+project.view.get,command,catalogue,read,review,Standard mapping
+project.view.set,command,catalogue,read,review,Standard mapping
+project.viewPreset.delete,command,catalogue,read,review,Standard mapping
+project.viewPreset.list,command,catalogue,read,review,Standard mapping
+project.viewPreset.rename,command,catalogue,read,review,Standard mapping
+project.viewPreset.restore,command,catalogue,read,review,Standard mapping
+project.viewPreset.save,command,catalogue,read,review,Standard mapping
+project.viewPreset.saveAs,command,catalogue,read,review,Standard mapping
+sequence.add_edit_all_tracks,command,catalogue,edit,"fine-cut,rough-cut",Standard mapping
+sequence.close,command,catalogue,edit,admin,Standard mapping
+sequence.create,command,catalogue,edit,admin,Standard mapping
+sequence.delete,command,catalogue,edit destructive,admin,Destructive mutation (delete/remove/clear/reset/discard)
+sequence.duplicate,command,catalogue,edit,admin,Standard mapping
+sequence.extract,command,catalogue,edit,"fine-cut,rough-cut",Standard mapping
+sequence.goToNextGap,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+sequence.goToNextGapInTrack,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+sequence.goToPrevGap,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+sequence.goToPrevGapInTrack,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+sequence.inspect,command,catalogue,read,"admin,review",Standard mapping
+sequence.lift,command,catalogue,edit,"fine-cut,rough-cut",Standard mapping
+sequence.linked_selection,command,uiOnly,read,review,UI-owned action; not invocable via command_run
+sequence.rename,command,catalogue,edit,admin,Standard mapping
+sequence.reveal_nested,command,catalogue,read,review,Standard mapping
+sequence.selection_follows_playhead,command,catalogue,read,review,Standard mapping
+sequence.settings,command,catalogue,edit,admin,Standard mapping
+shortcuts.audit,command,catalogue,read,"admin,review",Standard mapping
+shortcuts.clear,command,catalogue,read filesystem,"admin,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+shortcuts.conflicts,command,catalogue,read,"admin,review",Standard mapping
+shortcuts.delete_preset,command,catalogue,read filesystem,"admin,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+shortcuts.export,command,catalogue,read filesystem,"admin,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+shortcuts.for_key,command,catalogue,read,"admin,review",Standard mapping
+shortcuts.get,command,catalogue,read,"admin,review",Standard mapping
+shortcuts.import,command,catalogue,read filesystem,"admin,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+shortcuts.list,command,catalogue,read,"admin,review",Standard mapping
+shortcuts.load_preset,command,catalogue,read filesystem,"admin,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+shortcuts.presets,command,catalogue,read filesystem,"admin,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+shortcuts.redo,command,catalogue,read,"admin,review",Standard mapping
+shortcuts.reset,command,catalogue,read filesystem,"admin,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+shortcuts.resolve,command,catalogue,read,"admin,review",Standard mapping
+shortcuts.save_preset,command,catalogue,read filesystem,"admin,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+shortcuts.set,command,catalogue,read filesystem,"admin,review",Semantic write (prefs/shortcuts/export) despite mutating=false; Filesystem/network/plugin effect (outside project state)
+shortcuts.undo,command,catalogue,read,"admin,review",Standard mapping
+speech.ripple_delete_fillers,command,catalogue+wrapper,edit,"captions,rough-cut",Wrapper operation mapped to this catalogue command
+speech.ripple_delete_silence,command,catalogue+wrapper,edit,"captions,rough-cut",Wrapper operation mapped to this catalogue command
+speech.script_sync_align,command,catalogue,read,review,Standard mapping
+speech.transcribe_to_subtitles,command,catalogue+wrapper,edit,"captions,rough-cut",Wrapper operation mapped to this catalogue command
+subtitle.add,command,catalogue+wrapper,edit,captions,Wrapper operation mapped to this catalogue command
+subtitle.clear,command,catalogue+wrapper,edit destructive,captions,Destructive mutation (delete/remove/clear/reset/discard); Wrapper operation mapped to this catalogue command
+subtitle.remove,command,catalogue+wrapper,edit destructive,captions,Destructive mutation (delete/remove/clear/reset/discard); Wrapper operation mapped to this catalogue command
+subtitle.update,command,catalogue+wrapper,edit,captions,Wrapper operation mapped to this catalogue command
+timeline.add_clip,command,catalogue,edit,rough-cut,Standard mapping
+timeline.add_title,command,catalogue+wrapper,edit,"graphics,rough-cut",Wrapper operation mapped to this catalogue command
+timeline.add_track,command,catalogue,edit,rough-cut,Standard mapping
+timeline.add_transition,command,catalogue+wrapper,edit,"graphics,rough-cut",Wrapper operation mapped to this catalogue command
+timeline.assign_track_group,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.asymmetric_trim,command,catalogue,edit,rough-cut,Standard mapping
+timeline.beat_grid_quantize,command,catalogue,edit,rough-cut,Standard mapping
+timeline.clear_mark_in,command,catalogue,edit,rough-cut,Standard mapping
+timeline.clear_mark_out,command,catalogue,edit,rough-cut,Standard mapping
+timeline.clear_marks,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.create_compound_clip,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.create_track_group,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.decompose_compound_clip,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.delete_track_group,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.insert_clip,command,catalogue,edit,rough-cut,Standard mapping
+timeline.inspect,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.link_clips,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.mark_clip,command,catalogue,edit,rough-cut,Standard mapping
+timeline.mark_selection,command,catalogue,edit,rough-cut,Standard mapping
+timeline.moveAudioTargetsDown,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.moveAudioTargetsUp,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.moveVideoTargetsDown,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.moveVideoTargetsUp,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.move_clip,command,catalogue,edit,rough-cut,Standard mapping
+timeline.move_clips_batch,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.overwrite_clip,command,catalogue,edit,rough-cut,Standard mapping
+timeline.rate_stretch,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.remove_clip,command,catalogue,edit,rough-cut,Standard mapping
+timeline.remove_track,command,catalogue,edit,rough-cut,Standard mapping
+timeline.remove_transition,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.replace_media,command,catalogue,edit,rough-cut,Standard mapping
+timeline.ripple_delete,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.ripple_delete_batch,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.ripple_delete_gap,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.ripple_delete_ranges,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.roll_edit,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.select,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.selectGap,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.selectNextClip,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.selectPrevClip,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.setTargeting,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.set_mark_in,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.set_mark_out,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.set_track_group_properties,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.slide_clip,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.slip_clip,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.split_clip,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.toggleAllAudioTargets,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleAllSourceAudio,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleAllSourceVideo,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleAllVideoTargets,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleMuteTargetedAudio,command,catalogue,edit,rough-cut,Standard mapping
+timeline.toggleOutputTargetedVideo,command,catalogue,edit,rough-cut,Standard mapping
+timeline.toggleSoloTargetedAudio,command,catalogue,edit,rough-cut,Standard mapping
+timeline.toggleTargetA1,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetA2,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetA3,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetA4,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetA5,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetA6,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetA7,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetA8,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetV1,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetV2,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetV3,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetV4,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetV5,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetV6,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetV7,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggleTargetV8,command,catalogue,read,"review,rough-cut",Standard mapping
+timeline.toggle_track_group_collapsed,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.trim_clip,command,catalogue,edit,rough-cut,Standard mapping
+timeline.unlink_clips,command,catalogue+wrapper,edit,rough-cut,Wrapper operation mapped to this catalogue command
+timeline.update_transition,command,catalogue,edit,rough-cut,Standard mapping
+title.update,command,catalogue+wrapper,edit,graphics,Wrapper operation mapped to this catalogue command
+track.add_automation_point,command,catalogue,edit,audio,Standard mapping
+track.clear_automation,command,catalogue,edit,audio,Standard mapping
+track.remove_automation_point,command,catalogue,edit,audio,Standard mapping
+track.set_audio_processing,command,catalogue+wrapper,edit,audio,Wrapper operation mapped to this catalogue command
+track.set_automation,command,catalogue,edit,audio,Standard mapping
+track.set_automation_interpolation,command,catalogue,edit,audio,Standard mapping
+track.set_automation_mode,command,catalogue,edit,audio,Standard mapping
+track.set_bus_route,command,catalogue+wrapper,edit,audio,Wrapper operation mapped to this catalogue command
+track.set_gain_db,command,catalogue,edit,audio,Standard mapping
+track.set_locked,command,catalogue,edit,admin,Standard mapping
+track.set_muted,command,catalogue,edit,audio,Standard mapping
+track.set_pan,command,catalogue,edit,audio,Standard mapping
+track.set_solo,command,catalogue,edit,audio,Standard mapping
+trim.applyDefaultTransition,command,catalogue,edit,fine-cut,Standard mapping
+trim.backward,command,catalogue,edit,fine-cut,Standard mapping
+trim.backwardMany,command,catalogue,edit,fine-cut,Standard mapping
+trim.cancel,command,uiOnly,read,"fine-cut,review",UI-owned action; not invocable via command_run
+trim.cancelDynamic,command,uiOnly,read,"fine-cut,review",UI-owned action; not invocable via command_run
+trim.clear,command,catalogue,read,"fine-cut,review",Standard mapping
+trim.commit,command,uiOnly,read,"fine-cut,review",UI-owned action; not invocable via command_run
+trim.edit,command,catalogue,read,"fine-cut,review",Standard mapping
+trim.enter,command,uiOnly,read,"fine-cut,review",UI-owned action; not invocable via command_run
+trim.exit,command,uiOnly,read,"fine-cut,review",UI-owned action; not invocable via command_run
+trim.extendNextEdit,command,catalogue,edit,fine-cut,Standard mapping
+trim.extendPreviousEdit,command,catalogue,edit,fine-cut,Standard mapping
+trim.extendToPlayhead,command,catalogue,edit,fine-cut,Standard mapping
+trim.forward,command,catalogue,edit,fine-cut,Standard mapping
+trim.forwardMany,command,catalogue,edit,fine-cut,Standard mapping
+trim.inspect,command,catalogue,read,"fine-cut,review",Standard mapping
+trim.monitor,command,catalogue,read,"fine-cut,review",Standard mapping
+trim.next,command,catalogue,edit,fine-cut,Standard mapping
+trim.nudge,command,catalogue,edit,fine-cut,Standard mapping
+trim.playAround,command,uiOnly,read,"fine-cut,review",UI-owned action; not invocable via command_run
+trim.previous,command,catalogue,edit,fine-cut,Standard mapping
+trim.rippleNext,command,catalogue,edit,fine-cut,Standard mapping
+trim.ripplePrevious,command,catalogue,edit,fine-cut,Standard mapping
+trim.selectEditPoint,command,catalogue,read,"fine-cut,review",Standard mapping
+trim.selectNearest,command,catalogue,read,"fine-cut,review",Standard mapping
+trim.shuttle,command,uiOnly,read,"fine-cut,review",UI-owned action; not invocable via command_run
+trim.shuttleStop,command,uiOnly,read,"fine-cut,review",UI-owned action; not invocable via command_run
+trim.tick,command,uiOnly,read,"fine-cut,review",UI-owned action; not invocable via command_run
+trim.toggleType,command,catalogue,read,"fine-cut,review",Standard mapping
+view.fullscreen,command,uiOnly,read,review,Window state
+view.glass_full,command,uiOnly,read,review,Appearance setting
+view.glass_lite,command,uiOnly,read,review,Appearance setting
+view.glass_off,command,uiOnly,read,review,Appearance setting
+view.panel_inspector,command,uiOnly,read,review,Panel visibility
+view.panel_media,command,uiOnly,read,review,Panel visibility
+view.reduced_motion,command,uiOnly,read,review,Accessibility setting
+view.theme_dark,command,uiOnly,read,review,Appearance setting
+view.theme_light,command,uiOnly,read,review,Appearance setting
+view.toggle_snap,command,uiOnly,read,review,Viewport toggle
+view.zoom_in,command,uiOnly,read,review,Viewport zoom
+view.zoom_out,command,uiOnly,read,review,Viewport zoom
+view.zoom_reset,command,uiOnly,read,review,Viewport zoom
+viewport.inspect,command,catalogue,read,review,Standard mapping
+workspace.audio,command,catalogue,read,"admin,review",Standard mapping
+workspace.color,command,catalogue,read,"admin,review",Standard mapping
+workspace.deliver,command,catalogue,read,"admin,review",Standard mapping
+workspace.edit,command,catalogue,read,"admin,review",Standard mapping
+workspace.effects,command,catalogue,read,"admin,review",Standard mapping
+workspace.fusion,command,catalogue,read,"admin,review",Standard mapping
+workspace.keyframes,command,catalogue,read,"admin,review",Standard mapping
+workspace.media,command,catalogue,read,"admin,review",Standard mapping
+audio_process,tool,bridge,edit,audio,Heavy offline DSP into project-local derived media
+audio_read_telemetry,tool,bridge,read,"audio,review",Dedicated bridge tool
+color_match_shot_to_reference,tool,bridge,edit,colour,Dedicated bridge tool
+color_read_scopes,tool,bridge,read,"colour,review",Dedicated bridge tool
+command_list,tool,bridge,read,review,listing only
+command_run,tool,bridge,see-mapping,see-mapping,generic dispatch; its effective tiers are those of the executed command
+doc_inspect,tool,bridge,read,review,Dedicated bridge tool
+edit_match_cut_align,tool,bridge,edit,fine-cut,Dedicated bridge tool
+media_preview,tool,bridge,read,"ingest,colour,review",Dedicated bridge tool
+media_search,tool,bridge,read,"ingest,review",Dedicated bridge tool
+media_semantic_query,tool,bridge,read,"ingest,review",Dedicated bridge tool
+render_cancel,tool,bridge,edit,"export,review",Cancels a human/agent render job; also usable by review? cancelled only for own job
+render_preview_clip_proxy,tool,bridge,edit filesystem,ingest,Proxy renders write files; media-local effect
+render_project,tool,bridge,edit filesystem,export,Renders write media/url outputs outside project state
+render_start,tool,bridge,edit filesystem,export,Renders write media/url outputs outside project state
+render_status,tool,bridge,read,export,Dedicated bridge tool
+sequence_inspect,tool,bridge,read,review,Dedicated bridge tool
+timeline_beat_grid_quantize,tool,bridge,edit,"fine-cut,speed-motion",Dedicated bridge tool
+vision_extract_frame_sheet,tool,bridge,read filesystem,"ingest,review",Contact-sheet artifacts write cache files
+audio.effect,wrapper-op,wrapper-only,unavailable,audio,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: audio
+audio.meter,wrapper-op,wrapper-only,unavailable,audio,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: audio
+clip.add,wrapper-op,wrapper-only,unavailable,rough-cut,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: rough-cut
+color.grade,wrapper-op,wrapper-only,unavailable,colour,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: colour
+color.lut,wrapper-op,wrapper-only,unavailable,colour,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: colour
+media.import,wrapper-op,wrapper-only,unavailable,ingest,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: ingest
+media.proxy,wrapper-op,wrapper-only,unavailable,ingest,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: ingest
+render.queue,wrapper-op,wrapper-only,unavailable,export,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: export
+timeline.settings,wrapper-op,wrapper-only,unavailable,rough-cut,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: rough-cut
+track.add,wrapper-op,wrapper-only,unavailable,admin,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: admin
+track.add_audio_plugin,wrapper-op,wrapper-only,unavailable,"admin,audio","Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: admin,audio"
+track.move,wrapper-op,wrapper-only,unavailable,admin,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: admin
+track.settings,wrapper-op,wrapper-only,unavailable,admin,Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: admin
+track.toggle_audio_plugin,wrapper-op,wrapper-only,unavailable,"admin,audio","Wrapper operation reports unsupported; no catalogue equivalent. Proposed profiles: admin,audio"

@@ -181,6 +181,7 @@ mod tests {
     fn test_multi_range_lift_preserves_gaps() {
         // The same 0..10s single-clip fixture as the ripple-delete test.
         let clip = Clip {
+            id: 1,
             media_id: 1,
             timeline_start: Tick::from_millis(0),
             source_in: Tick::from_millis(0),

@@ -202,6 +202,9 @@ fn default_speed() -> f64 {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Clip {
+    /// Stable entity ID (AF2).
+    #[serde(default)]
+    pub id: u64,
     pub media_id: u64,
     pub timeline_start: Tick,
     pub source_in: Tick,

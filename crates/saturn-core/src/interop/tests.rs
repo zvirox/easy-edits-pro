@@ -9,6 +9,7 @@ use std::path::PathBuf;
 fn sample_project() -> ProjectDocument {
     let fps = FrameRate::FPS_24;
     let clip = Clip {
+        id: 1,
         media_id: 1,
         timeline_start: Tick::from_millis(0),
         source_in: Tick::from_millis(1000),

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
@@ -17,6 +17,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["admin"],
     },
     CommandSpec {
         id: "file.open",
@@ -31,6 +33,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["admin"],
     },
     CommandSpec {
         id: "file.save",
@@ -45,6 +49,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "project.add_media",
@@ -59,6 +65,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "interop.import_edl",
@@ -73,6 +81,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "interop.import_fcpxml",
@@ -87,6 +97,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "interop.import_xmeml_xml",
@@ -101,6 +113,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.create_bin",
@@ -115,6 +129,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.rename_bin",
@@ -129,6 +145,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.delete_bin",
@@ -143,6 +161,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.check_missing",
@@ -157,6 +177,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "interop.import_otio",
@@ -171,6 +193,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.auto_relink",
@@ -185,6 +209,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.relink_suggest",
@@ -199,6 +225,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.3.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["ingest", "review"],
     },
     CommandSpec {
         id: "media.make_offline",
@@ -213,6 +241,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.offline_all",
@@ -227,6 +257,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.refresh_changed",
@@ -241,6 +273,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.color_info",
@@ -255,6 +289,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["ingest", "review"],
     },
     CommandSpec {
         id: "media.attach_proxy",
@@ -269,6 +305,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit, Tier::Filesystem],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.detach_proxy",
@@ -283,6 +321,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit, Tier::Filesystem],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.toggle_proxies",
@@ -297,6 +337,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["ingest"],
     },
     CommandSpec {
         id: "media.search",
@@ -311,6 +353,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["ingest", "review"],
     },
     CommandSpec {
         id: "export.formats",
@@ -325,6 +369,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.presets",
@@ -339,6 +385,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.presets.get",
@@ -353,6 +401,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.presets.save",
@@ -367,6 +417,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.presets.delete",
@@ -381,6 +433,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.presets.favorite",
@@ -395,6 +449,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.presets.import",
@@ -409,6 +465,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.presets.export",
@@ -423,6 +481,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     // Pure computation: preset or explicit overrides resolved against the
     // current project into concrete render settings.
@@ -439,6 +499,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     // The export queue runs on the shell's JobManager (workers, pause,
     // history); these entries drive it from the UI, not the headless engine.
@@ -455,6 +517,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.queue.add",
@@ -469,6 +533,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.queue.list",
@@ -483,6 +549,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.queue.cancel",
@@ -497,6 +565,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.queue.remove",
@@ -511,6 +581,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.queue.move",
@@ -525,6 +597,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.queue.retry",
@@ -539,6 +613,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.queue.clear",
@@ -553,6 +629,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     // Start/stop drive the JobManager's paused gate: start releases the
     // workers, stop stops pulling queued jobs (running ones finish).
@@ -569,6 +647,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
     CommandSpec {
         id: "export.queue.stop",
@@ -583,5 +663,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["export", "review"],
     },
 ];

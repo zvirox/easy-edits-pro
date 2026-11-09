@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-465 commands.
+470 commands.
 
 ## File
 
@@ -12,7 +12,7 @@ Generated from the command catalogue. Do not edit by hand.
 | List Timeline Branches | `project.branch_list` | shipped |  | `{}` |
 | Switch Timeline Branch | `project.branch_switch` | shipped |  | `{"name":str}` |
 | Compare Branch with Live Timeline | `project.branch_diff` | shipped |  | `{"branch":str}` |
-| Merge Branch (Accept Whole Branch) | `project.branch_merge` | shipped |  | `{"branch":str,"action":str}` |
+| Merge Branch (Accept Whole Branch) | `project.branch_merge` | shipped |  | `{"branch":str,"action":str,"force":bool?}` |
 | Fingerprint Media Files | `project.fingerprint_media` | shipped |  | `{"media_ids":[int]?}` |
 | Update Media Metadata | `project.update_media` | shipped |  | `{"path":path,"kind":str?,"duration":ticks?,"width":int?,"height":int?,"waveform":[int]?}` |
 | Relink Missing Media | `project.relink_media` | shipped |  | `{"media_id":int,"path":path}` |
@@ -237,6 +237,11 @@ Generated from the command catalogue. Do not edit by hand.
 | Flatten Multicam Clip | `multicam.flatten` | shipped |  | `{"track_id":int,"clip_index":int}` |
 | Reveal Media in Project Panel | `media.reveal` | shipped |  | `{"media_id":int,"at_tick":int?}` |
 | Slip Clip Source | `timeline.slip_clip` | shipped |  | `{"track_id":int,"clip_index":int,"delta":obj}` |
+| Lock Clip Against Mutation | `project.lock_clip` | shipped |  | `{"clip_id":int,"note":str?}` |
+| Lock Timeline Region Against Mutation | `project.lock_region` | shipped |  | `{"track_id":int,"start_tick":int,"end_tick":int,"note":str?}` |
+| Release Active Lock | `project.lock_release` | shipped |  | `{"lock_id":int}` |
+| Reclaim Lock by Human Authority | `project.lock_reclaim` | shipped |  | `{"lock_id":int}` |
+| List Active Locks | `project.locks_list` | shipped |  | `{}` |
 | Inspect Edit Point | `timeline.inspect` | shipped |  | `{"track_id":int?,"clip_index":int?,"at":obj?}` |
 | Inspect Trim Point | `trim.inspect` | shipped |  | `{"track_id":int,"clip_index":int,"edge":"start"\|"end"}` |
 

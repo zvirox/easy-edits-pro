@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
@@ -11,6 +11,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         params: "{\"ref_track_id\":int,\"target_track_id\":int,\"audio\":obj,\"expected_digest\":str}",
         category: Category::Audio, mutating: true, undo_group: UndoGroup::Transaction,
         aliases: &[], since: "0.4.0", shipped: true, ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "audio.fill_gaps_with_room_tone",
@@ -19,6 +21,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         params: "{\"track_id\":int,\"inserts\":[obj],\"expected_digest\":str}",
         category: Category::Audio, mutating: true, undo_group: UndoGroup::Transaction,
         aliases: &[], since: "0.4.0", shipped: true, ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "audio.sidechain_duck_envelope",
@@ -27,6 +31,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         params: "{\"dialogue_track_id\":int,\"music_track_id\":int,\"points\":[obj],\"expected_digest\":str}",
         category: Category::Audio, mutating: true, undo_group: UndoGroup::Transaction,
         aliases: &[], since: "0.4.0", shipped: true, ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "audio.loudness_normalize_master",
@@ -35,6 +41,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         params: "{\"audio\":obj,\"expected_digest\":str}",
         category: Category::Audio, mutating: true, undo_group: UndoGroup::Transaction,
         aliases: &[], since: "0.4.0", shipped: true, ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.set_gain_db",
@@ -49,6 +57,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.set_pan",
@@ -63,6 +73,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.set_muted",
@@ -77,6 +89,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.set_solo",
@@ -91,6 +105,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.set_audio_processing",
@@ -105,6 +121,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.set_bus_route",
@@ -119,6 +137,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.set_automation",
@@ -133,6 +153,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.set_automation_mode",
@@ -147,6 +169,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.set_automation_interpolation",
@@ -161,6 +185,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.add_automation_point",
@@ -175,6 +201,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.remove_automation_point",
@@ -189,6 +217,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "track.clear_automation",
@@ -203,6 +233,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
 
 
@@ -219,6 +251,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["audio"],
     },
     CommandSpec {
         id: "speech.transcribe_to_subtitles",
@@ -233,6 +267,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions", "rough-cut"],
     },
     CommandSpec {
         id: "speech.script_sync_align",
@@ -249,5 +285,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.3.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 ];

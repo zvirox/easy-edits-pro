@@ -527,6 +527,7 @@ mod tests {
     fn test_multi_range_ripple_deletion() {
         // A sequence with 1 video track and 1 clip from 0 to 10s (10,000 ms)
         let clip = Clip {
+            id: 1,
             media_id: 1,
             timeline_start: Tick::from_millis(0),
             source_in: Tick::from_millis(0),

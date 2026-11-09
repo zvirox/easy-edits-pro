@@ -198,45 +198,50 @@ pub(crate) fn absolute_output_path(path: &Path) -> Result<PathBuf, String> {
 }
 
 
-pub(crate) fn encoding_profile(format: OutputFormat) -> Result<gst_pbutils::EncodingContainerProfile, String> {
+pub(crate) fn encoding_profile(
+    format: OutputFormat,
+    include_audio: bool,
+) -> Result<gst_pbutils::EncodingContainerProfile, String> {
     match format {
         OutputFormat::Mp4 => {
             let container_caps = gst::Caps::builder("video/quicktime")
                 .field("variant", "iso")
                 .build();
             let video_caps = gst::Caps::builder("video/x-h264").build();
-            let audio_caps = gst::Caps::builder("audio/mpeg")
-                .field("mpegversion", 4)
-                .build();
             let video = gst_pbutils::EncodingVideoProfile::builder(&video_caps)
                 .name("H.264 video")
                 .build();
-            let audio = gst_pbutils::EncodingAudioProfile::builder(&audio_caps)
-                .name("AAC audio")
-                .build();
-            let profile = gst_pbutils::EncodingContainerProfile::builder(&container_caps)
+            let mut builder = gst_pbutils::EncodingContainerProfile::builder(&container_caps)
                 .name("Easy Edits Pro MP4")
-                .add_profile(video)
-                .add_profile(audio)
-                .build();
-            Ok(profile)
+                .add_profile(video);
+            if include_audio {
+                let audio_caps = gst::Caps::builder("audio/mpeg")
+                    .field("mpegversion", 4)
+                    .build();
+                let audio = gst_pbutils::EncodingAudioProfile::builder(&audio_caps)
+                    .name("AAC audio")
+                    .build();
+                builder = builder.add_profile(audio);
+            }
+            Ok(builder.build())
         }
         OutputFormat::WebM => {
             let container_caps = gst::Caps::builder("video/webm").build();
             let video_caps = gst::Caps::builder("video/x-vp8").build();
-            let audio_caps = gst::Caps::builder("audio/x-vorbis").build();
             let video = gst_pbutils::EncodingVideoProfile::builder(&video_caps)
                 .name("VP8 video")
                 .build();
-            let audio = gst_pbutils::EncodingAudioProfile::builder(&audio_caps)
-                .name("Vorbis audio")
-                .build();
-            let profile = gst_pbutils::EncodingContainerProfile::builder(&container_caps)
+            let mut builder = gst_pbutils::EncodingContainerProfile::builder(&container_caps)
                 .name("Easy Edits Pro WebM")
-                .add_profile(video)
-                .add_profile(audio)
-                .build();
-            Ok(profile)
+                .add_profile(video);
+            if include_audio {
+                let audio_caps = gst::Caps::builder("audio/x-vorbis").build();
+                let audio = gst_pbutils::EncodingAudioProfile::builder(&audio_caps)
+                    .name("Vorbis audio")
+                    .build();
+                builder = builder.add_profile(audio);
+            }
+            Ok(builder.build())
         }
     }
 }

@@ -309,7 +309,10 @@ impl EditorEngine {
                         .unwrap_or(0)
                         .into()
                 });
+                let clip_id = self.document.project.next_id;
+                self.document.project.next_id = clip_id.saturating_add(1);
                 let clip = Clip {
+                    id: clip_id,
                     media_id,
                     timeline_start,
                     source_in: Tick(0),

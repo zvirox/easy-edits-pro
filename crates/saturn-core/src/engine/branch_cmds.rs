@@ -72,6 +72,8 @@ impl EditorEngine {
             note,
             parent,
             created_at_unix_ms: now_epoch_ms(),
+            base_revision: self.journal.head_revision,
+            head_revision: self.journal.head_revision,
             state,
         }
     }
@@ -231,6 +233,12 @@ impl EditorEngine {
                 self.checkpoint();
                 match params.action {
                     BranchMergeAction::Accept => {
+                        if !params.force && self.journal.head_revision != target.base_revision {
+                            return Err(DispatchError::Operation(format!(
+                                "Conflict: cannot merge branch '{}': target head revision {} does not match branch base revision {}. Baseline is stale.",
+                                target.name, self.journal.head_revision, target.base_revision
+                            )));
+                        }
                         let state = target.state;
                         self.restore_snapshot(state)?;
                         self.document

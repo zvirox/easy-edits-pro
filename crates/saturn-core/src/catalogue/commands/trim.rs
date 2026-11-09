@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 /// Trim family: engine-backed edit-point trims plus the ui_only dynamic-trim
 /// transports that ride the keyboard Trim Mode session.
@@ -19,6 +19,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.selectEditPoint",
@@ -33,6 +35,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.selectNearest",
@@ -47,6 +51,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.clear",
@@ -61,6 +67,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.monitor",
@@ -75,6 +83,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.forward",
@@ -89,6 +99,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.backward",
@@ -103,6 +115,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.forwardMany",
@@ -117,6 +131,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.backwardMany",
@@ -131,6 +147,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.nudge",
@@ -145,6 +163,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.extendToPlayhead",
@@ -159,6 +179,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.extendNextEdit",
@@ -173,6 +195,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.extendPreviousEdit",
@@ -187,6 +211,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.next",
@@ -201,6 +227,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.previous",
@@ -215,6 +243,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.rippleNext",
@@ -229,6 +259,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.ripplePrevious",
@@ -243,6 +275,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.toggleType",
@@ -257,6 +291,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.applyDefaultTransition",
@@ -271,6 +307,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut"],
     },
     CommandSpec {
         id: "trim.playAround",
@@ -285,6 +323,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.shuttle",
@@ -299,6 +339,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.shuttleStop",
@@ -313,6 +355,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.tick",
@@ -327,6 +371,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.cancelDynamic",
@@ -341,5 +387,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
 ];

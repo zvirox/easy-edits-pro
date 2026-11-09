@@ -6,7 +6,7 @@
 //! Track targeting commands live under Sequence > Track Targeting; the
 //! selection helpers are frontend-only prompts under Edit > Select.
 
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
@@ -22,6 +22,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.asymmetric_trim",
@@ -36,6 +38,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     // Track targeting: editor-state target sets, 1-based per kind.
     CommandSpec {
@@ -51,6 +55,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "timeline.toggleTargetV1",
@@ -65,6 +71,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -80,6 +88,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -95,6 +105,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -110,6 +122,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -125,6 +139,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -140,6 +156,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -155,6 +173,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -170,6 +190,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -185,6 +207,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -200,6 +224,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -215,6 +241,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -230,6 +258,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -245,6 +275,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -260,6 +292,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -275,6 +309,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -290,6 +326,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -305,6 +343,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -320,6 +360,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -335,6 +377,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -350,6 +394,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -365,6 +411,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -380,6 +428,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -395,6 +445,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -410,6 +462,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     // Mutating: flips the track muted flag on the targeted tracks.
@@ -426,6 +480,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
 
     // Mutating: flips the track solo flag on the targeted tracks.
@@ -442,6 +498,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
 
     // Mutating: flips the track muted flag on the targeted tracks.
@@ -458,6 +516,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
 
     // Frontend-only selection helpers (prompt-driven, like edit.find).
@@ -474,6 +534,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -489,6 +551,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -504,6 +568,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
     CommandSpec {
@@ -519,6 +585,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
 
 ];

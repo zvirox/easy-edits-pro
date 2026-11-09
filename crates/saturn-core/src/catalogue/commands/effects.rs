@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
@@ -17,6 +17,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["graphics"],
     },
     CommandSpec {
         id: "nodegraph.remove_node",
@@ -31,6 +33,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["graphics"],
     },
     CommandSpec {
         id: "nodegraph.connect",
@@ -45,6 +49,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["graphics"],
     },
     CommandSpec {
         id: "nodegraph.disconnect",
@@ -59,6 +65,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["graphics"],
     },
     CommandSpec {
         id: "nodegraph.update_node",
@@ -73,6 +81,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["graphics"],
     },
     CommandSpec {
         id: "nodegraph.add_mask",
@@ -87,5 +97,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["graphics"],
     },
 ];

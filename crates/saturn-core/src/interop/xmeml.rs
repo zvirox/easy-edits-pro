@@ -139,6 +139,7 @@ pub fn export_xmeml_xml(doc: &ProjectDocument) -> Result<String, String> {
 pub fn import_xmeml_xml(xml: &str) -> Result<ProjectDocument, String> {
     let mut media_list = Vec::new();
     let mut clips = Vec::new();
+    let mut clip_id_counter = 100u64;
     let mut proj_name = "Imported Editor Project".to_string();
     let fps = FrameRate::FPS_24;
     let frame_dur = fps.frame_ticks().unwrap_or(10_584_000_000);
@@ -197,7 +198,10 @@ pub fn import_xmeml_xml(xml: &str) -> Result<ProjectDocument, String> {
             ..Default::default()
         });
 
+        let clip_id = clip_id_counter;
+        clip_id_counter += 1;
         clips.push(Clip {
+            id: clip_id,
             media_id,
             timeline_start,
             source_in,
@@ -244,6 +248,7 @@ pub fn import_xmeml_xml(xml: &str) -> Result<ProjectDocument, String> {
     doc.project.media = media_list;
     doc.project.sequence.name = proj_name;
     doc.project.sequence.tracks = vec![track];
+    doc.project.next_id = clip_id_counter.max(doc.project.media.len() as u64 + 1).max(3);
 
     Ok(doc)
 }

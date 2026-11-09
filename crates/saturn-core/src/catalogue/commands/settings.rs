@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 /// Persisted application settings. These are infrastructure commands: they are
 /// available to the CLI and MCP bridge but deliberately have no menu entry of
@@ -20,6 +20,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "prefs.set",
@@ -34,6 +36,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "prefs.reset",
@@ -48,6 +52,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "prefs.schema",
@@ -62,6 +68,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.list",
@@ -76,6 +84,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.set",
@@ -90,6 +100,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.reset",
@@ -104,6 +116,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.import",
@@ -118,6 +132,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.get",
@@ -132,6 +148,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.for_key",
@@ -146,6 +164,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.conflicts",
@@ -160,6 +180,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.audit",
@@ -174,6 +196,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.clear",
@@ -188,6 +212,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.resolve",
@@ -202,6 +228,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.export",
@@ -216,6 +244,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.presets",
@@ -230,6 +260,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.save_preset",
@@ -244,6 +276,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.load_preset",
@@ -258,6 +292,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.delete_preset",
@@ -272,6 +308,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.undo",
@@ -286,6 +324,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "shortcuts.redo",
@@ -300,5 +340,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
 ];

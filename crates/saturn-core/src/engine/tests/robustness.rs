@@ -271,3 +271,20 @@ fn update_media_is_undoable() {
         crate::project::MediaKind::Video
     ));
 }
+
+#[test]
+fn move_targets_does_not_panic_on_zero_tracks() {
+    let mut engine = EditorEngine::default();
+    let mut doc = engine.document().clone();
+    doc.project.sequence.tracks.clear();
+    engine.restore_recovery(doc, None).unwrap();
+    let result = engine.execute(CommandRequest::new("timeline.moveVideoTargetsUp", json!({})));
+    assert!(result.is_ok());
+    let payload = result.unwrap();
+    assert_eq!(payload["video_targets"], json!([]));
+
+    let result = engine.execute(CommandRequest::new("timeline.moveAudioTargetsDown", json!({})));
+    assert!(result.is_ok());
+    let payload = result.unwrap();
+    assert_eq!(payload["audio_targets"], json!([]));
+}

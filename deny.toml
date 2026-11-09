@@ -84,3 +84,11 @@ deny = []
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+
+[advisories]
+# Unmaintained crates (paste, ttf-parser) are informational warnings, not vulnerabilities.
+# We track them but do not fail the build since no maintained alternatives exist yet.
+ignore = [
+    "RUSTSEC-2024-0436",  # paste: unmaintained
+    "RUSTSEC-2026-0192",  # ttf-parser: unmaintained
+]

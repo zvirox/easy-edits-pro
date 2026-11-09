@@ -179,10 +179,11 @@ impl FrameDecoder {
         convert
             .link(&appsink)
             .map_err(|error| format!("Could not link the frame pipeline: {error}"))?;
-        // Only the video pad feeds the converter; audio pads stay unlinked.
+        // Video feeds the converter; non-video pads sink to fakesink to avoid preroll stalls.
         let convert_sink = convert
             .static_pad("sink")
             .expect("videoconvert has a static sink pad");
+        let pipeline_weak = pipeline.downgrade();
         decodebin.connect_pad_added(move |_decodebin, pad| {
             let caps = pad.current_caps().or_else(|| Some(pad.query_caps(None)));
             let is_video = caps.is_some_and(|caps| {
@@ -190,6 +191,12 @@ impl FrameDecoder {
             });
             if is_video && convert_sink.can_link(pad) {
                 let _ = pad.link(&convert_sink);
+            } else if let Some(pipeline) = pipeline_weak.upgrade() {
+                if let Ok(sink) = gst::ElementFactory::make("fakesink").property("sync", false).build() {
+                    let _ = pipeline.add(&sink);
+                    let _ = sink.sync_state_with_parent();
+                    if let Some(target) = sink.static_pad("sink") { let _ = pad.link(&target); }
+                }
             }
         });
         // Stay paused: a non-clocked Playing sink can race past the requested

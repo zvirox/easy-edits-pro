@@ -53,17 +53,79 @@ pub(crate) fn migrate_project(value: &mut serde_json::Value) -> Result<(), Strin
             }
         }
     };
+    let ensure_clip_ids = |object: &mut serde_json::Map<String, serde_json::Value>| {
+        let mut next_id = object
+            .get("project")
+            .and_then(|p| p.get("next_id"))
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(1);
+        if let Some(tracks) = object
+            .get_mut("project")
+            .and_then(|p| p.get_mut("sequence"))
+            .and_then(|s| s.get_mut("tracks"))
+            .and_then(serde_json::Value::as_array_mut)
+        {
+            for track in tracks {
+                if let Some(clips) = track.get_mut("clips").and_then(serde_json::Value::as_array_mut) {
+                    for clip in clips {
+                        if let Some(c) = clip.as_object_mut() {
+                            let cid = c.get("id").and_then(serde_json::Value::as_u64).unwrap_or(0);
+                            if cid == 0 {
+                                c.insert("id".into(), next_id.into());
+                                next_id += 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if let Some(sequences) = object
+            .get_mut("project")
+            .and_then(|p| p.get_mut("sequences"))
+            .and_then(serde_json::Value::as_array_mut)
+        {
+            for seq in sequences {
+                if let Some(tracks) = seq.get_mut("tracks").and_then(serde_json::Value::as_array_mut) {
+                    for track in tracks {
+                        if let Some(clips) = track.get_mut("clips").and_then(serde_json::Value::as_array_mut) {
+                            for clip in clips {
+                                if let Some(c) = clip.as_object_mut() {
+                                    let cid = c.get("id").and_then(serde_json::Value::as_u64).unwrap_or(0);
+                                    if cid == 0 {
+                                        c.insert("id".into(), next_id.into());
+                                        next_id += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if let Some(project) = object.get_mut("project").and_then(serde_json::Value::as_object_mut) {
+            project.insert("next_id".into(), next_id.into());
+        }
+    };
     match version {
         PROJECT_SCHEMA_VERSION => Ok(()),
-        14 | 15 => {
+        14 | 15 | 16 => {
             let object = value
                 .as_object_mut()
                 .ok_or_else(|| "Project root must be an object".to_string())?;
+            // v17 (AF2) adds stable clip IDs and project-wide lock registry.
             // v16 adds audio_enabled (default true). v15 adds copy-on-write
             // branches, per-media BLAKE3 fingerprints and relative media paths
             // on save. All are serde-default
             // additions, so the migration is a lossless version bump: no
             // existing field is rewritten or dropped (F.1-style).
+            object.entry("locks").or_insert_with(|| {
+                serde_json::json!({
+                    "locks": [],
+                    "next_id": 1,
+                    "revision": 0
+                })
+            });
+            ensure_clip_ids(object);
             object.insert("schema_version".into(), PROJECT_SCHEMA_VERSION.into());
             Ok(())
         }
@@ -224,6 +286,8 @@ mod tests {
             note: String::new(),
             parent: None,
             created_at_unix_ms: 7,
+            base_revision: 1,
+            head_revision: 1,
             state: serde_json::json!({"name": "Cut", "media": []}),
         });
         let mut legacy = serde_json::to_value(&doc).unwrap();
@@ -344,5 +408,20 @@ mod tests {
         assert_eq!(clip.color.exposure, 0.0);
         assert_eq!(clip.color.contrast, 1.0);
         assert!(clip.keyframes.is_empty());
+    }
+
+    #[test]
+    fn v16_project_migrates_to_v17_schema_with_clip_ids_and_locks() {
+        let mut legacy = serde_json::to_value(ProjectDocument::new("V16 project")).unwrap();
+        legacy["schema_version"] = 16.into();
+        legacy.as_object_mut().unwrap().remove("locks");
+        legacy["project"]["sequence"]["tracks"][0]["clips"] = serde_json::json!([
+            {"media_id": 1, "timeline_start": 0, "source_in": 0, "duration": 100}
+        ]);
+        migrate_project(&mut legacy).unwrap();
+        let loaded: ProjectDocument = serde_json::from_value(legacy).unwrap();
+        assert_eq!(loaded.schema_version, PROJECT_SCHEMA_VERSION);
+        assert!(loaded.project.sequence.tracks[0].clips[0].id > 0);
+        assert_eq!(loaded.locks.locks.len(), 0);
     }
 }

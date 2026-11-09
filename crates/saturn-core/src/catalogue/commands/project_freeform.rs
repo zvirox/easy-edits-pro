@@ -6,7 +6,7 @@
 //! Freeform-view layout state (card positions, arrangements, grid) lives
 //! in the shared prefs object; none of it mutates the document.
 
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
@@ -22,6 +22,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
     CommandSpec {
@@ -37,6 +39,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
     CommandSpec {
@@ -52,6 +56,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
     CommandSpec {
@@ -67,6 +73,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
     CommandSpec {
@@ -82,6 +90,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
     CommandSpec {
@@ -97,6 +107,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
     CommandSpec {
@@ -112,6 +124,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
     CommandSpec {
@@ -127,6 +141,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
     CommandSpec {
@@ -142,6 +158,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
     CommandSpec {
@@ -157,6 +175,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
     CommandSpec {
@@ -172,6 +192,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
     CommandSpec {
@@ -187,6 +209,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
 ];

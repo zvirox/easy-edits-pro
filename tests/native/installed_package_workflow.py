@@ -587,10 +587,10 @@ def flatpak_mode(args) -> int:
     ffprobe). The sandbox provides WebKitGTK/GStreamer; the host provides
     nothing except the flatpak session. Skips the deb extraction entirely."""
     app_id = "io.github.zvirox.EasyEditsPro"
-    check = subprocess.run(["flatpak", "info", "--user", app_id],
+    check = subprocess.run(["flatpak", "info", app_id],
                            capture_output=True, text=True)
     if check.returncode != 0:
-        fail("flatpak", f"{app_id} is not installed for this user: "
+        fail("flatpak", f"{app_id} is not installed: "
                         f"{check.stderr.strip()[:200]}")
     runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
     if not runtime_dir:

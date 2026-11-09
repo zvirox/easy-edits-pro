@@ -2,6 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 pub mod catalogue;
+pub mod actor;
 pub mod audio_edit;
 pub mod asymmetric_trim;
 pub mod match_cut;
@@ -13,7 +14,9 @@ pub mod engine;
 pub mod graphics_layout;
 pub mod interop;
 pub mod job;
+pub mod journal;
 pub mod local_control;
+pub mod lock;
 pub mod media_fingerprint;
 pub mod markers;
 pub mod project;
@@ -24,12 +27,15 @@ pub mod subtitles;
 pub mod time;
 pub mod viewport_state;
 
+pub use actor::{ActorContext, ActorId, SessionViewState};
 pub use command::{
     Category, CommandRequest, CommandSpec, CommandStatus, MENU_BAR, UndoGroup,
     catalogue_json, catalogue_markdown, command_catalogue, find_command, menu_commands,
     search_commands, validate_catalogue,
 };
 pub use engine::{DispatchError, EditorEngine};
+pub use journal::{ChangeJournal, ChangeRecord};
+pub use lock::{LockOwner, LockRecord, LockRegistry, LockScope};
 pub use interop::{
     export_cmx3600_edl, export_fcpxml, export_otio, export_xmeml_xml, import_cmx3600_edl,
     import_fcpxml, import_otio, import_xmeml_xml, ticks_to_timecode, timecode_to_ticks,

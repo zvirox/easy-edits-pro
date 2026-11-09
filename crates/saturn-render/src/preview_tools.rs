@@ -317,6 +317,7 @@ pub fn preview_clip_proxy_payload(document: &ProjectDocument, params: &Value) ->
         // Proxies are preview evidence, not deliverables: always the fast
         // deterministic software path.
         use_hardware_encoding: false,
+        include_audio,
     };
     render_project_range_with_settings(
         &proxy_document,

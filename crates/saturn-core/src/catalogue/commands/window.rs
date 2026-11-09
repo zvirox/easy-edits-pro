@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
@@ -17,6 +17,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "workspace.edit",
@@ -31,6 +33,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "workspace.fusion",
@@ -45,6 +49,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "workspace.color",
@@ -59,6 +65,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "workspace.audio",
@@ -73,6 +81,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "workspace.effects",
@@ -87,6 +97,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "workspace.keyframes",
@@ -101,6 +113,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "workspace.deliver",
@@ -115,5 +129,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
 ];

@@ -5,15 +5,99 @@
 //! split of `server.rs` under the 800-line gate).
 
 use rmcp::model::Tool;
+use saturn_core::catalogue::Tier;
 use serde_json::{Value, json};
-use std::sync::Arc;
+use std::{collections::HashSet, sync::Arc};
 
 fn schema(value: Value) -> Arc<serde_json::Map<String, Value>> {
     Arc::new(value.as_object().cloned().unwrap_or_default())
 }
 
-pub(super) fn tool_list() -> Vec<Tool> {
+#[derive(Clone, Copy, Debug)]
+pub(super) struct ToolSpec {
+    pub name: &'static str,
+    pub tiers: &'static [Tier],
+    pub profiles: &'static [&'static str],
+}
+
+pub(super) const TOOL_SPECS: &[ToolSpec] = &[
+    ToolSpec { name: "tools.list_profiles", tiers: &[Tier::Read], profiles: &["core"] },
+    ToolSpec { name: "tools.load_profile", tiers: &[Tier::Read], profiles: &["core"] },
+    ToolSpec { name: "command_list", tiers: &[Tier::Read], profiles: &["core"] },
+    ToolSpec { name: "command_run", tiers: &[Tier::Read], profiles: &["core"] },
+    ToolSpec { name: "command_batch", tiers: &[Tier::Read], profiles: &["core"] },
+    ToolSpec { name: "session.stop", tiers: &[Tier::Read], profiles: &["core"] },
+    ToolSpec { name: "session.resume", tiers: &[Tier::Edit], profiles: &["core"] },
+    ToolSpec { name: "session.status", tiers: &[Tier::Read], profiles: &["core"] },
+    ToolSpec { name: "history.undo_change", tiers: &[Tier::Edit], profiles: &["core"] },
+    ToolSpec { name: "doc_inspect", tiers: &[Tier::Read], profiles: &["core"] },
+    ToolSpec { name: "sequence_inspect", tiers: &[Tier::Read], profiles: &["core"] },
+    ToolSpec { name: "media_search", tiers: &[Tier::Read], profiles: &["core"] },
+    ToolSpec { name: "media_preview", tiers: &[Tier::Read], profiles: &["core"] },
+    ToolSpec { name: "vision_extract_frame_sheet", tiers: &[Tier::Read, Tier::Filesystem], profiles: &["core"] },
+    ToolSpec { name: "render_preview_clip_proxy", tiers: &[Tier::Edit, Tier::Filesystem], profiles: &["ingest", "review"] },
+    ToolSpec { name: "color_read_scopes", tiers: &[Tier::Read], profiles: &["colour", "review"] },
+    ToolSpec { name: "color_match_shot_to_reference", tiers: &[Tier::Edit], profiles: &["colour"] },
+    ToolSpec { name: "edit_match_cut_align", tiers: &[Tier::Edit], profiles: &["fine-cut", "rough-cut"] },
+    ToolSpec { name: "timeline_beat_grid_quantize", tiers: &[Tier::Edit], profiles: &["fine-cut", "speed-motion"] },
+    ToolSpec { name: "audio_process", tiers: &[Tier::Edit], profiles: &["audio"] },
+    ToolSpec { name: "audio_read_telemetry", tiers: &[Tier::Read], profiles: &["audio", "review"] },
+    ToolSpec { name: "media_semantic_query", tiers: &[Tier::Read], profiles: &["ingest", "rough-cut", "review"] },
+    ToolSpec { name: "edit_evaluate_cut_continuity", tiers: &[Tier::Read], profiles: &["fine-cut", "review"] },
+    ToolSpec { name: "render_start", tiers: &[Tier::Edit, Tier::Filesystem], profiles: &["export"] },
+    ToolSpec { name: "render_status", tiers: &[Tier::Read], profiles: &["export"] },
+    ToolSpec { name: "render_cancel", tiers: &[Tier::Edit], profiles: &["export", "review"] },
+    ToolSpec { name: "render_project", tiers: &[Tier::Edit, Tier::Filesystem], profiles: &["export"] },
+];
+
+pub(super) fn tool_spec(name: &str) -> Option<&'static ToolSpec> {
+    let normalized = match name {
+        "tools_list_profiles" => "tools.list_profiles",
+        "tools_load_profile" => "tools.load_profile",
+        "session_stop" => "session.stop",
+        "session_resume" => "session.resume",
+        "session_status" => "session.status",
+        "history_undo_change" => "history.undo_change",
+        other => other,
+    };
+    TOOL_SPECS.iter().find(|s| s.name == normalized)
+}
+
+pub(super) fn tool_list(active_profiles: &HashSet<String>) -> Vec<Tool> {
+    all_tools()
+        .into_iter()
+        .filter(|t| {
+            if let Some(spec) = tool_spec(&t.name) {
+                spec.profiles.contains(&"core")
+                    || spec.profiles.iter().any(|p| active_profiles.contains(*p))
+            } else {
+                true
+            }
+        })
+        .collect()
+}
+
+pub(super) fn all_tools() -> Vec<Tool> {
     vec![
+            Tool::new(
+                "tools.list_profiles",
+                "List the 12 canonical tool profiles, their candidate capabilities, active status in this session, and current session grants.",
+                schema(json!({ "type": "object", "properties": {} })),
+            ),
+            Tool::new(
+                "tools.load_profile",
+                "Load an additional canonical tool profile into the current session to expose its commands and tools. Loading a profile cannot elevate permission tiers.",
+                schema(json!({
+                    "type": "object",
+                    "properties": {
+                        "profile": {
+                            "type": "string",
+                            "description": "Name of the canonical profile to load (e.g. 'colour', 'audio', 'fine-cut')."
+                        }
+                    },
+                    "required": ["profile"]
+                })),
+            ),
             Tool::new(
                 "command_list",
                 "Discover commands supported by the editor engine, including project, media, timeline, effects and audio operations.",
@@ -39,16 +123,60 @@ pub(super) fn tool_list() -> Vec<Tool> {
             ),
             Tool::new(
                 "command_batch",
-                "Run editor commands in order. Each successful command is applied to the current project session.",
+                "Run editor commands in order. Supports optional atomic transactions with rollback on failure.",
                 schema(json!({
                     "type": "object",
                     "properties": {
                         "steps": { "type": "array", "items": { "type": "object", "properties": {
                             "id": { "type": "string" }, "params": { "type": "object" }
                         }, "required": ["id"] } },
-                        "stop_on_error": { "type": "boolean", "default": true }
+                        "stop_on_error": { "type": "boolean", "default": true },
+                        "atomic": { "type": "boolean", "default": false, "description": "Execute as an atomic transaction with rollback on any failure" }
                     },
                     "required": ["steps"]
+                })),
+            ),
+            Tool::new(
+                "session.stop",
+                "Stop the active agent session, advancing generation fence and cancelling background jobs.",
+                schema(json!({
+                    "type": "object",
+                    "properties": {
+                        "session_id": { "type": "string", "description": "Optional session id to stop (defaults to active)" }
+                    }
+                })),
+            ),
+            Tool::new(
+                "session.resume",
+                "Resume a stopped agent session under human authority, issuing a new generation fence.",
+                schema(json!({
+                    "type": "object",
+                    "properties": {
+                        "session_id": { "type": "string", "description": "Session id to resume" },
+                        "caller": { "type": "string", "description": "Authority principal ('human')" }
+                    },
+                    "required": ["session_id"]
+                })),
+            ),
+            Tool::new(
+                "session.status",
+                "Inspect session status, active generation, playhead, locks, and stopped state.",
+                schema(json!({
+                    "type": "object",
+                    "properties": {
+                        "session_id": { "type": "string", "description": "Optional session id (defaults to active)" }
+                    }
+                })),
+            ),
+            Tool::new(
+                "history.undo_change",
+                "Selective undo for a specific change record if no intervening change depends on it (AF2).",
+                schema(json!({
+                    "type": "object",
+                    "properties": {
+                        "change_id": { "type": "integer", "description": "Change id to selectively undo" }
+                    },
+                    "required": ["change_id"]
                 })),
             ),
             Tool::new(
@@ -303,4 +431,75 @@ pub(super) fn tool_list() -> Vec<Tool> {
                 })),
             ),
     ]
+}
+
+impl super::EditorMcp {
+    pub(super) async fn list_profiles(&self) -> Result<rmcp::model::CallToolResult, rmcp::ErrorData> {
+        let policy = self.policy.read().await;
+        let catalogue = saturn_core::command_catalogue();
+        let profiles = saturn_core::catalogue::policy::all_profiles()
+            .iter()
+            .map(|info| {
+                let cmd_count = catalogue
+                    .iter()
+                    .filter(|cmd| cmd.profiles.contains(&info.name))
+                    .count();
+                json!({
+                    "name": info.name,
+                    "description": info.description,
+                    "candidate_capabilities": info.candidate_capabilities,
+                    "active": policy.active_profiles.contains(info.name),
+                    "command_count": cmd_count,
+                })
+            })
+            .collect::<Vec<_>>();
+
+        let mut granted = policy
+            .granted_tiers
+            .iter()
+            .map(|t| t.as_str())
+            .collect::<Vec<_>>();
+        granted.sort();
+        let mut active = policy.active_profiles.iter().cloned().collect::<Vec<_>>();
+        active.sort();
+        let result = json!({
+            "mode": policy.mode.as_str(),
+            "active_profiles": active,
+            "granted_tiers": granted,
+            "profiles": profiles,
+        });
+        Ok(rmcp::model::CallToolResult::structured(result))
+    }
+
+    pub(super) async fn load_profile(&self, arguments: &Value) -> Result<rmcp::model::CallToolResult, rmcp::ErrorData> {
+        let profile = arguments
+            .get("profile")
+            .and_then(Value::as_str)
+            .ok_or_else(|| rmcp::ErrorData::invalid_params("tools.load_profile requires string `profile`", None))?;
+
+        let was_new = {
+            let mut policy = self.policy.write().await;
+            policy.load_profile(profile).map_err(|err| {
+                rmcp::ErrorData::invalid_params(err.to_string(), None)
+            })?
+        };
+
+        if let super::Backend::Bridge(_) = &self.backend {
+            let _ = self
+                .bridge_call("tools.load_profile", json!({ "profile": profile }))
+                .await;
+        }
+
+        let policy = self.policy.read().await;
+        let mut active = policy.active_profiles.iter().cloned().collect::<Vec<_>>();
+        active.sort();
+        let result = json!({
+            "ok": true,
+            "profile": profile,
+            "newly_activated": was_new,
+            "active_profiles": active,
+            "message": format!("Profile '{profile}' is active. Associated commands and tools are now available."),
+        });
+        Ok(rmcp::model::CallToolResult::structured(result))
+    }
 }

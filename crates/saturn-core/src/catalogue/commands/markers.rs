@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
@@ -17,6 +17,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.add_flash_cue",
@@ -31,6 +33,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.add_range_in_out",
@@ -45,6 +49,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.set_color_filter",
@@ -59,6 +65,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "marker.show_all_colors",
@@ -73,6 +81,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "marker.set_copy_paste_includes",
@@ -87,6 +97,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "marker.set_split_audio",
@@ -101,6 +113,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.set_split_video",
@@ -115,6 +129,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.set_split_audio_out",
@@ -129,6 +145,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.set_split_video_out",
@@ -143,6 +161,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.go_to_split_audio_in",
@@ -157,6 +177,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "marker.go_to_split_audio_out",
@@ -171,6 +193,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "marker.go_to_split_video_in",
@@ -185,6 +209,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "marker.go_to_split_video_out",
@@ -199,6 +225,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "marker.add",
@@ -213,6 +241,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.add_range",
@@ -227,6 +257,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.update",
@@ -241,6 +273,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.remove",
@@ -255,6 +289,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit, Tier::Destructive],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.clear",
@@ -269,6 +305,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit, Tier::Destructive],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.next",
@@ -283,6 +321,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "marker.previous",
@@ -297,6 +337,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "marker.split",
@@ -311,6 +353,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.ripple",
@@ -325,6 +369,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "marker.panel",
@@ -339,6 +385,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "marker.export_csv",
@@ -353,6 +401,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "marker.import_csv",
@@ -367,6 +417,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.set_mark_in",
@@ -381,6 +433,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.set_mark_out",
@@ -395,6 +449,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.clear_marks",
@@ -409,6 +465,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.clear_mark_in",
@@ -423,6 +481,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.clear_mark_out",
@@ -437,6 +497,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.mark_clip",
@@ -451,6 +513,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.mark_selection",
@@ -465,5 +529,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
 ];

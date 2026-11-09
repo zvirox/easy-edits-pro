@@ -31,6 +31,22 @@ const MENU_BAR = [
   "Help",
 ];
 
+const VALID_TIERS = new Set(["read", "edit", "destructive", "filesystem"]);
+const VALID_PROFILES = new Set([
+  "admin",
+  "audio",
+  "captions",
+  "colour",
+  "export",
+  "fine-cut",
+  "graphics",
+  "ingest",
+  "multicam",
+  "review",
+  "rough-cut",
+  "speed-motion",
+]);
+
 const commands = JSON.parse(readFileSync(cataloguePath, "utf8"));
 const problems = [];
 
@@ -70,6 +86,30 @@ for (const command of commands) {
       );
     }
     shortcuts.set(key, command.id);
+  }
+  if (!VALID_TIERS.has(command.tier)) {
+    problems.push(`invalid or missing primary tier: ${command.id} (${command.tier})`);
+  }
+  if (!Array.isArray(command.tiers) || command.tiers.length === 0) {
+    problems.push(`missing or empty tiers: ${command.id}`);
+  } else {
+    for (const tier of command.tiers) {
+      if (!VALID_TIERS.has(tier)) {
+        problems.push(`unknown tier ${tier} in command ${command.id}`);
+      }
+    }
+    if (!command.tiers.includes(command.tier)) {
+      problems.push(`primary tier ${command.tier} not in tiers list for ${command.id}`);
+    }
+  }
+  if (!Array.isArray(command.profiles) || command.profiles.length === 0) {
+    problems.push(`missing or empty profiles: ${command.id}`);
+  } else {
+    for (const profile of command.profiles) {
+      if (!VALID_PROFILES.has(profile)) {
+        problems.push(`unknown profile ${profile} in command ${command.id}`);
+      }
+    }
   }
 }
 

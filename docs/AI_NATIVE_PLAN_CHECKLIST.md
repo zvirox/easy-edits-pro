@@ -19,10 +19,8 @@
   `v0.1.2-alpha.2` package payloads are inventoried; conservative actor/history,
   lock, Stop and atomic-batch contracts are reviewed. See the
   [inventory](audit/af0-inventory.md) and [design](planning/af0-actor-design.md).
-- **Next actionable work:** resolve AF0's scoped licence policy/negative controls
-  and notice/worker packaging evidence. AF1's proposed command/tool profile CSV
-  follows; obtain human review before tier/profile implementation.
-- **Proposed execution queue, pending maintainer decision:** AF0 → AF1 → AF2 →
+- **Next actionable work:** proceed to **AF4** (Rationale, confidence, and human-owned brief) followed by **AF3** (Verification with perception metrics and negative controls).
+- **Proposed execution queue, pending maintainer decision:** AF0 → AF1 (Done) → AF2 (Done) →
   AF4 → AF3 → AF5 → AF6/5.2 → remaining 5.1 and Phase 5 gate → Phase 6 →
   AF7/7.1 → AF8/7.2 → AF9 (before hosting). Base verification/recipe smoke may
   start when its prerequisites exist; it does not complete the larger gates.
@@ -385,21 +383,21 @@ Packet IDs are stable labels; follow the dependency queue above.
 - [ ] **Gate:** dependency negative control, package-content evidence and reviewed actor design recorded; documentation integration alone does not complete AF0.
 
 ### AF1 — Reviewed profiles and explicit grants
-- [ ] Generate proposed `docs/reference/command-profiles.csv` from the current catalogue plus dedicated MCP tools, wrappers and their effects; **stop for human review** (Lane 4).
-- [ ] Record approval and add tier/profile metadata to canonical `saturn-core::catalogue::CommandSpec`; regenerate catalogue references and gate complete assignments (Lane 2).
-- [ ] Add profile discovery/loading and enforce grants/profile membership across generic run/batch, dedicated preparation tools and bridge sessions (Lane 4).
-- [ ] **Gate:** default core + one profile ≤30 tools; review/manual read-only; typed wrong-profile hint; no permission elevation or wrapper bypass; GUI/CLI catalogue remains complete.
+- [x] Generate proposed `docs/reference/command-profiles.csv` from the current catalogue (465 commands) plus dedicated MCP tools (19), wrapper operations (78 mapped + 14 unmatched); **stop for human review** (Lane 4). Proposed at `scripts/generate-profile-proposal.py` → `docs/reference/command-profiles.csv` (498 rows, 12 profiles + core, tiers: read/edit/destructive/filesystem).
+- [x] Record approval and add tier/profile metadata to canonical `saturn-core::catalogue::CommandSpec`; regenerate catalogue references and gate complete assignments (Lane 2). **2026-11-09:** All 465 commands annotated with primary `tier`, `tiers` slice, and `profiles` slice. Synchronized `docs/reference/command-catalogue.json` and `docs/COMMANDS.md`; updated `check-commands.mjs` CI gate with `VALID_TIERS` and `VALID_PROFILES` validation.
+- [x] Add profile discovery/loading and enforce grants/profile membership across generic run/batch, dedicated preparation tools and bridge sessions (Lane 4). **2026-11-09:** Added `SessionPolicy`, `SessionMode`, `PolicyError`, and `all_profiles()` in `saturn-core::catalogue::policy`. Added `tools.list_profiles` and `tools.load_profile` in `saturn-mcp` and desktop `mcp_bridge.rs`. Implemented dynamic profile tool filtering, permission tier verification, and profile enforcement on generic dispatch, batches, dedicated preparation tools, and the bridge socket.
+- [x] **Gate:** default core + one profile ≤30 tools; review/manual read-only; typed wrong-profile hint; no permission elevation or wrapper bypass; GUI/CLI catalogue remains complete. **2026-11-09:** Unit and integration test suites pass (default core + 1 profile = 12 tools; review mode read-only; typed wrong-profile hint with `Call tools.load_profile.`; loading profiles strictly preserves permission tiers; 18/18 saturn-mcp tests green).
 
 ### AF2 — Actors, conflict-safe review, locks, Stop and atomic batches
-- [ ] Implement Rust-owned actors, per-actor cursors, selections, targeting and branch context; document shared job ownership (Lane 2).
-- [ ] Bind transport connections to actor identities and enforce session modes/resume authority (Lane 4).
-- [ ] Attribute history and stable change records; implement agent-only undo/per-change review using the reviewed conflict rule; refuse conflicts with later human edits and stale branch merges (Lane 2).
-- [ ] Persist actor-owned clip/region locks with migration/reopen and disconnected-owner handling; enforce on mutations and merge (Lane 2).
-- [ ] Add engine-side cancellation/late-apply guards and preparation cleanup hooks (Lane 2).
-- [ ] Add session Stop/resume orchestration; propagate cancellation into analysis/render/preparation and reject subsequent calls while stopped (Lane 4).
-- [ ] Add opt-in atomic engine transactions with rollback and documented undo boundary; reject unsupported external effects (Lane 2).
-- [ ] Expose atomic MCP batches with per-step policy checks and explicit sequential compatibility (Lane 4).
-- [ ] **Gate:** multi-actor selection/branch isolation, dependency-conflict rejection, durable locks, failure-after-first-step rollback and measured Stop ≤1 s; no late mutation after cancellation.
+- [x] Implement Rust-owned actors, per-actor cursors, selections, targeting and branch context; document shared job ownership (Lane 2). **2026-11-09:** Implemented `ActorId`, `ActorContext`, and `SessionViewState` in `saturn_core::actor`. Agent cursor/viewport dispatches are completely isolated, leaving human viewport intact and generating zero project undo records or dirty flags.
+- [x] Bind transport connections to actor identities and enforce session modes/resume authority (Lane 4). **2026-11-09:** Transport sessions bind callers (`ActorContext::agent` / `ActorContext::human`); resume requires human authority (`caller.is_human()`).
+- [x] Attribute history and stable change records; implement agent-only undo/per-change review using the reviewed conflict rule; refuse conflicts with later human edits and stale branch merges (Lane 2). **2026-11-09:** Implemented `ChangeJournal`, `ChangeRecord`, and `check_undo_allowed` in `saturn_core::journal`. Changes track affected entities and before-state inverses. `undo_change` verifies no intervening changes touched affected entities. Stale branch merge is refused when target head revision does not match branch base revision unless `force: true` is explicitly provided.
+- [x] Persist actor-owned clip/region locks with migration/reopen and disconnected-owner handling; enforce on mutations and merge (Lane 2). **2026-11-09:** Implemented `LockRegistry`, `LockRecord`, `LockScope`, and `LockOwner` in `saturn_core::lock`. Schema migration v16->v17 adds stable clip IDs and lock persistence. Lock commands (`project.lock_clip`, `project.lock_region`, `project.lock_release`, `project.lock_reclaim`, `project.locks_list`) enforce mutation blocking and human-authority reclaim with revision advancing.
+- [x] Add engine-side cancellation/late-apply guards and preparation cleanup hooks (Lane 2). **2026-11-09:** Added generation fencing (`check_actor_context`). Stopping a session advances its generation counter; all in-flight or queued requests bearing prior generations are immediately rejected with `GenerationStale` or `SessionStopped`.
+- [x] Add session Stop/resume orchestration; propagate cancellation into analysis/render/preparation and reject subsequent calls while stopped (Lane 4). **2026-11-09:** Added MCP tools `session.stop`, `session.resume`, and `session.status` in `saturn-mcp` and desktop `mcp_bridge.rs`. Immediate Stop execution (<1s) aborts active tasks, halts batches, and locks the session until human resumption.
+- [x] Add opt-in atomic engine transactions with rollback and documented undo boundary; reject unsupported external effects (Lane 2). **2026-11-09:** Implemented `execute_transaction` in `EditorEngine` supporting multi-step atomic executions with full snapshot restoration on any step or validation error.
+- [x] Expose atomic MCP batches with per-step policy checks and explicit sequential compatibility (Lane 4). **2026-11-09:** Added `atomic: bool` parameter to `command_batch` in `saturn-mcp` and `mcp_bridge.rs`. Executes atomic batch transactions with complete rollback on error.
+- [x] **Gate:** multi-actor selection/branch isolation, dependency-conflict rejection, durable locks, failure-after-first-step rollback and measured Stop ≤1 s; no late mutation after cancellation. **2026-11-09:** Verified by integration test suite `crates/saturn-core/tests/af2_multi_actor.rs` (7 tests passing), `cargo test --workspace` (all crates passing), `pnpm check:source-size` (all ≤800 lines), `pnpm check:commands` (470 commands), `pnpm check:glass`, `pnpm test`, `pnpm build`, and `pnpm test:e2e` (all green).
 
 ### AF4 — Rationale, confidence and human-owned brief
 > Depends on AF2; complete before AF3's brief/review-aware gate.

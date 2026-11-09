@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
@@ -17,6 +17,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.overwrite_clip",
@@ -31,6 +33,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.inspect",
@@ -45,6 +49,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "rough-cut"],
     },
     CommandSpec {
         id: "trim.inspect",
@@ -59,6 +65,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.enter",
@@ -73,6 +81,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.exit",
@@ -87,6 +97,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.commit",
@@ -101,6 +113,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "trim.cancel",
@@ -115,6 +129,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["fine-cut", "review"],
     },
     CommandSpec {
         id: "timeline.add_clip",
@@ -129,6 +145,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.move_clip",
@@ -143,6 +161,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.trim_clip",
@@ -157,6 +177,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.update_transition",
@@ -171,6 +193,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "track.set_locked",
@@ -185,6 +209,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["admin"],
     },
     CommandSpec {
         id: "timeline.add_transition",
@@ -199,6 +225,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["graphics", "rough-cut"],
     },
     CommandSpec {
         id: "timeline.remove_transition",
@@ -213,6 +241,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.add_title",
@@ -227,6 +257,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["graphics", "rough-cut"],
     },
     CommandSpec {
         id: "timeline.roll_edit",
@@ -241,6 +273,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.slide_clip",
@@ -255,6 +289,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.move_clips_batch",
@@ -269,6 +305,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "sequence.create",
@@ -283,6 +321,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.3.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["admin"],
     },
     CommandSpec {
         id: "sequence.duplicate",
@@ -297,6 +337,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.3.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["admin"],
     },
     CommandSpec {
         id: "sequence.rename",
@@ -311,6 +353,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.3.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["admin"],
     },
     CommandSpec {
         id: "sequence.delete",
@@ -325,6 +369,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.3.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit, Tier::Destructive],
+        profiles: &["admin"],
     },
     CommandSpec {
         id: "project.switch_sequence",
@@ -339,6 +385,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["admin"],
     },
     CommandSpec {
         id: "timeline.add_track",
@@ -353,6 +401,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.remove_track",
@@ -367,6 +417,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.create_track_group",
@@ -381,6 +433,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.assign_track_group",
@@ -395,6 +449,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.toggle_track_group_collapsed",
@@ -409,6 +465,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.delete_track_group",
@@ -423,6 +481,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "timeline.set_track_group_properties",
@@ -437,6 +497,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
     },
     CommandSpec {
         id: "sequence.lift",
@@ -451,6 +513,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.3.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut", "rough-cut"],
     },
     CommandSpec {
         id: "sequence.extract",
@@ -465,6 +529,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.3.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut", "rough-cut"],
     },
     CommandSpec {
         id: "sequence.add_edit_all_tracks",
@@ -479,6 +545,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["fine-cut", "rough-cut"],
     },
     CommandSpec {
         id: "sequence.settings",
@@ -493,6 +561,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["admin"],
     },
     CommandSpec {
         id: "sequence.linked_selection",
@@ -507,6 +577,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "sequence.selection_follows_playhead",
@@ -521,6 +593,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "sequence.inspect",
@@ -535,6 +609,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["admin", "review"],
     },
     CommandSpec {
         id: "sequence.close",
@@ -549,6 +625,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["admin"],
     },
     CommandSpec {
         id: "sequence.reveal_nested",
@@ -563,6 +641,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "sequence.goToNextGap",
@@ -577,6 +657,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "sequence.goToPrevGap",
@@ -591,6 +673,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "sequence.goToNextGapInTrack",
@@ -605,6 +689,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "sequence.goToPrevGapInTrack",
@@ -619,5 +705,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 ];

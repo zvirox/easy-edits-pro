@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 pub const PROJECT_FORMAT: &str = "easy-edits-pro.project";
 pub const LEGACY_PROJECT_FORMAT: &str = "project-saturn.project";
-pub const PROJECT_SCHEMA_VERSION: u32 = 16;
+pub const PROJECT_SCHEMA_VERSION: u32 = 17;
 
 mod io;
 mod migrate;
@@ -101,6 +101,7 @@ impl ProjectDocument {
                 timeline_scroll: 0.0,
             },
             branches: Vec::new(),
+            locks: crate::lock::LockRegistry::new(),
         }
     }
 
@@ -528,6 +529,8 @@ mod tests {
             note: "kept here".into(),
             parent: Some(crate::branch::MAIN_BRANCH.into()),
             created_at_unix_ms: 42,
+            base_revision: 1,
+            head_revision: 1,
             state: serde_json::json!({"name": "Cut"}),
         });
         doc.save_atomic(&path).unwrap();
@@ -552,6 +555,7 @@ mod tests {
         let mut doc = ProjectDocument::new("Playback test");
         let video_track = &mut doc.project.sequence.tracks[0];
         video_track.clips.push(Clip {
+            id: 1,
             media_id: 1,
             timeline_start: Tick(0),
             source_in: Tick(100),
@@ -575,6 +579,7 @@ mod tests {
                 enabled: true,
         });
         video_track.clips.push(Clip {
+            id: 2,
             media_id: 2,
             timeline_start: Tick(500),
             source_in: Tick(0),
@@ -636,6 +641,7 @@ mod tests {
         let mut doc = ProjectDocument::new("Effect test");
         let video_track = &mut doc.project.sequence.tracks[0];
         let mut clip = Clip {
+            id: 1,
             media_id: 1,
             timeline_start: Tick(0),
             source_in: Tick(0),

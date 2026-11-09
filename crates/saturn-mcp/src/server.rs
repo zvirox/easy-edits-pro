@@ -11,25 +11,31 @@ use std::{
 };
 
 use rmcp::{
-    Error, ServerHandler,
     model::{
-        AnnotateAble, CallToolRequestParam, CallToolResult, Implementation, ListToolsResult,
-        PaginatedRequestParam, RawContent, ServerCapabilities, ServerInfo,
+        Annotated, CallToolRequestParams, CallToolResult, Implementation, ListToolsResult,
+        PaginatedRequestParams, RawContent, ServerCapabilities, ServerInfo,
     },
     service::RequestContext,
+    ErrorData,
 };
-use saturn_core::{CommandRequest, EditorEngine, command_catalogue};
-use saturn_core::{JobId, JobKind, JobManager, JobPriority};
+use saturn_core::{
+    ActorContext, CommandRequest, EditorEngine, command_catalogue,
+    catalogue::policy::SessionPolicy,
+};
+use saturn_core::JobManager;
 use serde_json::{Value, json};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
+#[cfg(test)]
 #[path = "server_tests.rs"]
 mod server_tests;
 #[path = "server_tools.rs"]
 mod server_tools;
-
 #[path = "server_analysis.rs"]
 mod server_analysis;
+#[path = "server_render.rs"]
+mod server_render;
+
 #[cfg(unix)]
 use tokio::net::UnixStream;
 
@@ -37,6 +43,8 @@ use tokio::net::UnixStream;
 pub struct EditorMcp {
     backend: Backend,
     jobs: Arc<JobManager>,
+    policy: Arc<tokio::sync::RwLock<SessionPolicy>>,
+    pub context: Arc<tokio::sync::RwLock<ActorContext>>,
 }
 
 
@@ -51,14 +59,66 @@ impl EditorMcp {
         Self {
             backend: Backend::Headless(Arc::new(Mutex::new(engine))),
             jobs: Arc::new(JobManager::new(2)),
+            policy: Arc::new(tokio::sync::RwLock::new(SessionPolicy::default())),
+            context: Arc::new(tokio::sync::RwLock::new(ActorContext::agent("saturn-mcp-agent", "mcp-session-1"))),
         }
     }
 
+    pub fn new_with_policy(engine: EditorEngine, policy: SessionPolicy) -> Self {
+        Self {
+            backend: Backend::Headless(Arc::new(Mutex::new(engine))),
+            jobs: Arc::new(JobManager::new(2)),
+            policy: Arc::new(tokio::sync::RwLock::new(policy)),
+            context: Arc::new(tokio::sync::RwLock::new(ActorContext::agent("saturn-mcp-agent", "mcp-session-1"))),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn new_with_context(engine: EditorEngine, policy: SessionPolicy, context: ActorContext) -> Self {
+        Self {
+            backend: Backend::Headless(Arc::new(Mutex::new(engine))),
+            jobs: Arc::new(JobManager::new(2)),
+            policy: Arc::new(tokio::sync::RwLock::new(policy)),
+            context: Arc::new(tokio::sync::RwLock::new(context)),
+        }
+    }
+
+    #[allow(dead_code)]
     pub fn bridge() -> Self {
         Self {
             backend: Backend::Bridge(saturn_core::local_control::mcp_socket_path()),
             jobs: Arc::new(JobManager::new(1)),
+            policy: Arc::new(tokio::sync::RwLock::new(SessionPolicy::default())),
+            context: Arc::new(tokio::sync::RwLock::new(ActorContext::agent("saturn-mcp-agent", "mcp-session-1"))),
         }
+    }
+
+    pub fn bridge_with_policy(policy: SessionPolicy) -> Self {
+        Self {
+            backend: Backend::Bridge(saturn_core::local_control::mcp_socket_path()),
+            jobs: Arc::new(JobManager::new(1)),
+            policy: Arc::new(tokio::sync::RwLock::new(policy)),
+            context: Arc::new(tokio::sync::RwLock::new(ActorContext::agent("saturn-mcp-agent", "mcp-session-1"))),
+        }
+    }
+
+    pub fn bridge_with_path(path: PathBuf) -> Self {
+        Self {
+            backend: Backend::Bridge(path),
+            jobs: Arc::new(JobManager::new(1)),
+            policy: Arc::new(tokio::sync::RwLock::new(SessionPolicy::default())),
+            context: Arc::new(tokio::sync::RwLock::new(ActorContext::agent("saturn-mcp-agent", "mcp-session-1"))),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn policy(&self) -> Arc<tokio::sync::RwLock<SessionPolicy>> {
+        self.policy.clone()
+    }
+
+    pub async fn active_tools(&self) -> Vec<rmcp::model::Tool> {
+        let policy = self.policy.read().await;
+        server_tools::tool_list(&policy.active_profiles)
     }
 
     async fn bridge_call(&self, method: &str, params: Value) -> Result<Value, String> {
@@ -109,9 +169,10 @@ impl EditorMcp {
     }
 
     async fn execute(&self, id: String, params: Value) -> Result<Value, String> {
+        let ctx = self.context.read().await.clone();
         if matches!(&self.backend, Backend::Bridge(_)) {
             return self
-                .bridge_call("command_run", json!({"id": id, "params": params}))
+                .bridge_call("command_run", json!({"id": id, "params": params, "context": ctx}))
                 .await;
         }
         let Backend::Headless(engine) = &self.backend else {
@@ -121,7 +182,7 @@ impl EditorMcp {
         tokio::task::spawn_blocking(move || {
             let mut engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
             engine
-                .execute(CommandRequest::new(id, params))
+                .execute_with_context(CommandRequest::new(id, params), &ctx)
                 .map_err(|error| error.to_string())
         })
         .await
@@ -164,6 +225,9 @@ impl EditorMcp {
                             "mutating": spec.mutating,
                             "enabled": status.enabled,
                             "reason": status.reason,
+                            "tier": spec.tier.as_str(),
+                            "tiers": spec.tiers.iter().map(|t| t.as_str()).collect::<Vec<_>>(),
+                            "profiles": spec.profiles,
                         })
                     })
                 })
@@ -196,8 +260,23 @@ impl EditorMcp {
     }
 
 
-    async fn call(&self, request: CallToolRequestParam) -> Result<CallToolResult, Error> {
+    async fn call(&self, request: CallToolRequestParams) -> Result<CallToolResult, ErrorData> {
         let arguments = Value::Object(request.arguments.unwrap_or_default());
+        let tool_name = request.name.as_ref();
+        if tool_name == "tools.list_profiles" || tool_name == "tools_list_profiles" {
+            return self.list_profiles().await;
+        }
+        if tool_name == "tools.load_profile" || tool_name == "tools_load_profile" {
+            return self.load_profile(&arguments).await;
+        }
+
+        if let Some(spec) = server_tools::tool_spec(tool_name) {
+            let policy = self.policy.read().await;
+            if let Err(err) = policy.check_tool(tool_name, spec.tiers, spec.profiles) {
+                return Err(ErrorData::invalid_params(err.to_string(), None));
+            }
+        }
+
         let result = match request.name.as_ref() {
             "command_list" => {
                 self.command_catalogue(
@@ -214,8 +293,20 @@ impl EditorMcp {
             }
             "command_run" => {
                 let id = arguments.get("id").and_then(Value::as_str).ok_or_else(|| {
-                    Error::invalid_params("command_run requires string `id`", None)
+                    ErrorData::invalid_params("command_run requires string `id`", None)
                 })?;
+                let spec = saturn_core::command_catalogue()
+                    .iter()
+                    .find(|cmd| cmd.id == id)
+                    .ok_or_else(|| {
+                        ErrorData::invalid_params(format!("unknown command id: {id}"), None)
+                    })?;
+                {
+                    let policy = self.policy.read().await;
+                    if let Err(err) = policy.check_command(spec) {
+                        return Err(ErrorData::invalid_params(err.to_string(), None));
+                    }
+                }
                 self.execute(
                     id.to_owned(),
                     arguments
@@ -230,45 +321,223 @@ impl EditorMcp {
                     .get("steps")
                     .and_then(Value::as_array)
                     .ok_or_else(|| {
-                        Error::invalid_params("command_batch requires `steps` array", None)
+                        ErrorData::invalid_params("command_batch requires `steps` array", None)
                     })?;
                 let stop_on_error = arguments
                     .get("stop_on_error")
                     .and_then(Value::as_bool)
                     .unwrap_or(true);
-                let mut completed = 0usize;
-                let mut failed = 0usize;
-                let mut results = Vec::new();
-                for step in steps {
-                    let Some(id) = step.get("id").and_then(Value::as_str) else {
-                        failed += 1;
-                        results.push(json!({"ok": false, "error": "step requires string `id`"}));
-                        if stop_on_error {
-                            break;
+                let atomic = arguments
+                    .get("atomic")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(false);
+
+                if atomic {
+                    for step in steps {
+                        let Some(id) = step.get("id").and_then(Value::as_str) else {
+                            return Err(ErrorData::invalid_params("step requires string `id`", None));
+                        };
+                        let spec = saturn_core::command_catalogue()
+                            .iter()
+                            .find(|cmd| cmd.id == id)
+                            .ok_or_else(|| ErrorData::invalid_params(format!("unknown command id: {id}"), None))?;
+                        let policy = self.policy.read().await;
+                        if let Err(err) = policy.check_command(spec) {
+                            return Err(ErrorData::invalid_params(format!("Policy violation on step '{id}': {err}"), None));
                         }
-                        continue;
-                    };
-                    match self
-                        .execute(
-                            id.to_owned(),
-                            step.get("params").cloned().unwrap_or_else(|| json!({})),
-                        )
+                    }
+
+                    let ctx = self.context.read().await.clone();
+                    if matches!(&self.backend, Backend::Bridge(_)) {
+                        self.bridge_call("command_batch", arguments).await
+                    } else {
+                        let Backend::Headless(engine) = &self.backend else { unreachable!() };
+                        let engine = engine.clone();
+                        let cmd_steps = steps
+                            .iter()
+                            .map(|step| {
+                                let id = step.get("id").and_then(Value::as_str).unwrap_or("").to_string();
+                                let params = step.get("params").cloned().unwrap_or_else(|| json!({}));
+                                CommandRequest::new(id, params)
+                            })
+                            .collect::<Vec<_>>();
+
+                        tokio::task::spawn_blocking(move || {
+                            let mut engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
+                            engine.execute_transaction(cmd_steps, &ctx).map_err(|e| e.to_string())
+                        })
                         .await
-                    {
-                        Ok(value) => {
-                            completed += 1;
-                            results.push(json!({"ok": true, "result": value}));
-                        }
-                        Err(error) => {
+                        .map_err(|e| format!("transaction task failed: {e}"))
+                        .and_then(|res| res)
+                    }
+                } else {
+                    let mut completed = 0usize;
+                    let mut failed = 0usize;
+                    let mut results = Vec::new();
+                    for step in steps {
+                        let Some(id) = step.get("id").and_then(Value::as_str) else {
                             failed += 1;
-                            results.push(json!({"ok": false, "error": error}));
+                            results.push(json!({"ok": false, "error": "step requires string `id`"}));
                             if stop_on_error {
                                 break;
                             }
+                            continue;
+                        };
+                        let spec = saturn_core::command_catalogue()
+                            .iter()
+                            .find(|cmd| cmd.id == id);
+                        let policy_err = match spec {
+                            Some(spec) => {
+                                let policy = self.policy.read().await;
+                                policy.check_command(spec).err()
+                            }
+                            None => Some(saturn_core::catalogue::policy::PolicyError::InvalidProfile(
+                                format!("unknown command id: {id}"),
+                            )),
+                        };
+                        if let Some(err) = policy_err {
+                            failed += 1;
+                            results.push(json!({"ok": false, "error": err.to_string()}));
+                            if stop_on_error {
+                                break;
+                            }
+                            continue;
+                        }
+                        match self
+                            .execute(
+                                id.to_owned(),
+                                step.get("params").cloned().unwrap_or_else(|| json!({})),
+                            )
+                            .await
+                        {
+                            Ok(value) => {
+                                completed += 1;
+                                results.push(json!({"ok": true, "result": value}));
+                            }
+                            Err(error) => {
+                                failed += 1;
+                                results.push(json!({"ok": false, "error": error}));
+                                if stop_on_error {
+                                    break;
+                                }
+                            }
                         }
                     }
+                    Ok(json!({"completed": completed, "failed": failed, "results": results}))
                 }
-                Ok(json!({"completed": completed, "failed": failed, "results": results}))
+            }
+            "session.stop" | "session_stop" => {
+                let session_id = arguments
+                    .get("session_id")
+                    .and_then(Value::as_str)
+                    .map(String::from);
+                let ctx = self.context.read().await.clone();
+                let target_session = session_id.unwrap_or(ctx.session_id);
+                if matches!(&self.backend, Backend::Bridge(_)) {
+                    self.bridge_call("session.stop", json!({"session_id": target_session})).await
+                } else {
+                    let Backend::Headless(engine) = &self.backend else { unreachable!() };
+                    let engine = engine.clone();
+                    tokio::task::spawn_blocking(move || {
+                        let mut engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
+                        let generation = engine.stop_session(&target_session);
+                        Ok(json!({
+                            "session_id": target_session,
+                            "stopped": true,
+                            "generation": generation,
+                        }))
+                    })
+                    .await
+                    .map_err(|e| e.to_string())
+                    .and_then(|res| res)
+                }
+            }
+            "session.resume" | "session_resume" => {
+                let target_session = match arguments.get("session_id").and_then(Value::as_str) {
+                    Some(s) => s,
+                    None => return Ok(CallToolResult::error(vec![Annotated::new(
+                        RawContent::text("session.resume requires `session_id`"),
+                        None,
+                    )])),
+                };
+                let ctx = self.context.read().await.clone();
+                let caller = match arguments.get("caller").and_then(Value::as_str) {
+                    Some("human") => saturn_core::ActorId::Human,
+                    _ => ctx.actor.clone(),
+                };
+                if matches!(&self.backend, Backend::Bridge(_)) {
+                    self.bridge_call("session.resume", json!({"session_id": target_session, "caller": caller})).await
+                } else {
+                    let Backend::Headless(engine) = &self.backend else { unreachable!() };
+                    let engine = engine.clone();
+                    let target_str = target_session.to_string();
+                    tokio::task::spawn_blocking(move || {
+                        let mut engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
+                        let generation = engine.resume_session(&target_str, &caller).map_err(|e| e.to_string())?;
+                        Ok(json!({
+                            "session_id": target_str,
+                            "resumed": true,
+                            "generation": generation,
+                        }))
+                    })
+                    .await
+                    .map_err(|e| e.to_string())
+                    .and_then(|res| res)
+                }
+            }
+            "session.status" | "session_status" => {
+                let ctx = self.context.read().await.clone();
+                let target_session = arguments
+                    .get("session_id")
+                    .and_then(Value::as_str)
+                    .map(String::from)
+                    .unwrap_or(ctx.session_id);
+                if matches!(&self.backend, Backend::Bridge(_)) {
+                    self.bridge_call("session.status", json!({"session_id": target_session})).await
+                } else {
+                    let Backend::Headless(engine) = &self.backend else { unreachable!() };
+                    let engine = engine.clone();
+                    tokio::task::spawn_blocking(move || {
+                        let engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
+                        let is_stopped = engine.is_session_stopped(&target_session);
+                        let session = engine.sessions.get(&target_session);
+                        Ok(json!({
+                            "session_id": target_session,
+                            "is_stopped": is_stopped,
+                            "generation": session.map(|s| s.generation).unwrap_or(1),
+                            "actor": session.map(|s| s.actor.clone()).unwrap_or(ctx.actor),
+                            "active_branch": session.map(|s| s.active_branch.clone()).unwrap_or_else(|| saturn_core::branch::MAIN_BRANCH.to_string()),
+                            "playhead": session.map(|s| s.playhead.0).unwrap_or(0),
+                            "locks": engine.document().locks.locks.iter().filter(|l| l.owner.session_id.as_deref() == Some(&target_session)).collect::<Vec<_>>(),
+                        }))
+                    })
+                    .await
+                    .map_err(|e| e.to_string())
+                    .and_then(|res| res)
+                }
+            }
+            "history.undo_change" | "history_undo_change" => {
+                let change_id = match arguments.get("change_id").and_then(Value::as_u64) {
+                    Some(id) => id,
+                    None => return Ok(CallToolResult::error(vec![Annotated::new(
+                        RawContent::text("history.undo_change requires integer `change_id`"),
+                        None,
+                    )])),
+                };
+                let ctx = self.context.read().await.clone();
+                if matches!(&self.backend, Backend::Bridge(_)) {
+                    self.bridge_call("history.undo_change", json!({"change_id": change_id, "context": ctx})).await
+                } else {
+                    let Backend::Headless(engine) = &self.backend else { unreachable!() };
+                    let engine = engine.clone();
+                    tokio::task::spawn_blocking(move || {
+                        let mut engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
+                        engine.undo_change(change_id, &ctx).map_err(|e| e.to_string())
+                    })
+                    .await
+                    .map_err(|e| e.to_string())
+                    .and_then(|res| res)
+                }
             }
             "doc_inspect" => self.document().await,
             "sequence_inspect" => self.document().await.and_then(|value| {
@@ -296,7 +565,7 @@ impl EditorMcp {
             "render_cancel" => self.cancel_render(&arguments).await,
             "render_project" => self.render_project(&arguments).await,
             _ => {
-                return Err(Error::invalid_params(
+                return Err(ErrorData::invalid_params(
                     format!("unknown tool: {}", request.name),
                     None,
                 ));
@@ -316,92 +585,26 @@ impl EditorMcp {
                             .and_then(Value::as_str)
                             .unwrap_or("image/jpeg");
                         if data.is_empty() {
-                            vec![RawContent::text(continue_text_only(&value))
-                                .optional_annotate(None)]
+                            vec![Annotated::new(RawContent::text(continue_text_only(&value)), None)]
                         } else {
                             let slim = continue_text_only(&value);
                             vec![
-                                RawContent::text(slim).optional_annotate(None),
-                                RawContent::image(data, mime_type).optional_annotate(None),
+                                Annotated::new(RawContent::text(slim), None),
+                                Annotated::new(RawContent::image(data, mime_type), None),
                             ]
                         }
                     }
-                    None => vec![RawContent::text(
+                    None => vec![Annotated::new(RawContent::text(
                         serde_json::to_string_pretty(&value)
                             .unwrap_or_else(|_| value.to_string()),
-                    )
-                    .optional_annotate(None)],
+                    ), None)],
                 };
                 CallToolResult::success(content)
             }
             Err(error) => {
-                CallToolResult::error(vec![RawContent::text(error).optional_annotate(None)])
+                CallToolResult::error(vec![Annotated::new(RawContent::text(error), None)])
             }
         })
-    }
-
-    async fn render_project(&self, arguments: &Value) -> Result<Value, String> {
-        let output_path = arguments
-            .get("output_path")
-            .and_then(Value::as_str)
-            .ok_or_else(|| "render_project requires output_path".to_owned())?;
-        if matches!(&self.backend, Backend::Bridge(_)) {
-            return self.bridge_call("render_project", arguments.clone()).await;
-        }
-        let Backend::Headless(engine) = &self.backend else {
-            unreachable!()
-        };
-        let engine = engine.clone();
-        let output_path = PathBuf::from(output_path);
-        let use_mark_range = arguments
-            .get("use_mark_range")
-            .and_then(Value::as_bool)
-            .unwrap_or(false);
-        let explicit_range = parse_render_range(&arguments)?;
-        if explicit_range.is_some() && use_mark_range {
-            return Err("Pass either range or use_mark_range, not both".to_owned());
-        }
-        let settings = arguments
-            .get("settings")
-            .filter(|value| value.is_object())
-            .map(|value| serde_json::from_value(value.clone()).map_err(|error| error.to_string()))
-            .transpose()?;
-        tokio::task::spawn_blocking(move || {
-            let engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
-            let document = engine.document().clone();
-            let range = if let Some(range) = explicit_range {
-                Some(range)
-            } else if use_mark_range {
-                match (
-                    document.project.sequence.mark_in,
-                    document.project.sequence.mark_out,
-                ) {
-                    (Some(start), Some(end)) => Some(saturn_render::RenderRange { start, end }),
-                    _ => {
-                        return Err(
-                            "Set both In and Out points before rendering the marked range"
-                                .to_owned(),
-                        );
-                    }
-                }
-            } else {
-                None
-            };
-            let settings =
-                settings.unwrap_or_else(|| saturn_render::RenderSettings::from_project(&document));
-            drop(engine);
-            let output = output_path.clone();
-            saturn_render::render_project_range_with_settings(
-                &document,
-                &output,
-                range,
-                settings,
-                |_| {},
-            )
-            .map(|()| json!({ "rendered": true, "output_path": output.to_string_lossy() }))
-        })
-        .await
-        .map_err(|error| format!("render task failed: {error}"))?
     }
 
     async fn media_search(&self, arguments: &Value) -> Result<Value, String> {
@@ -453,123 +656,6 @@ impl EditorMcp {
         ))
     }
 
-    async fn start_render(&self, arguments: &Value) -> Result<Value, String> {
-        if matches!(&self.backend, Backend::Bridge(_)) {
-            return self.bridge_call("render_start", arguments.clone()).await;
-        }
-        let output_path = arguments
-            .get("output_path")
-            .and_then(Value::as_str)
-            .ok_or_else(|| "render_start requires output_path".to_owned())?;
-        let output_path = PathBuf::from(output_path);
-        let use_mark_range = arguments
-            .get("use_mark_range")
-            .and_then(Value::as_bool)
-            .unwrap_or(false);
-        let explicit_range = parse_render_range(arguments)?;
-        if explicit_range.is_some() && use_mark_range {
-            return Err("Pass either range or use_mark_range, not both".into());
-        }
-        let settings_value = arguments.get("settings").filter(|value| value.is_object());
-        let settings = settings_value
-            .cloned()
-            .map(serde_json::from_value::<saturn_render::RenderSettings>)
-            .transpose()
-            .map_err(|error| error.to_string())?;
-        let Backend::Headless(engine) = &self.backend else {
-            unreachable!()
-        };
-        let engine = engine.clone();
-        let (document, range, settings) = tokio::task::spawn_blocking(move || {
-            let engine = engine.lock().unwrap_or_else(PoisonError::into_inner);
-            let document = engine.document().clone();
-            let range = if let Some(range) = explicit_range {
-                Some(range)
-            } else if use_mark_range {
-                match (
-                    document.project.sequence.mark_in,
-                    document.project.sequence.mark_out,
-                ) {
-                    (Some(start), Some(end)) => Some(saturn_render::RenderRange { start, end }),
-                    _ => {
-                        return Err(
-                            "Set both In and Out points before rendering the marked range"
-                                .to_owned(),
-                        );
-                    }
-                }
-            } else {
-                None
-            };
-            let settings =
-                settings.unwrap_or_else(|| saturn_render::RenderSettings::from_project(&document));
-            Ok((document, range, settings))
-        })
-        .await
-        .map_err(|error| format!("project snapshot task failed: {error}"))??;
-        let job_output = output_path.clone();
-        let label = format!(
-            "MCP render: {}",
-            output_path
-                .file_name()
-                .unwrap_or_default()
-                .to_string_lossy()
-        );
-        let (id, _) = self.jobs.submit_detached(
-            label,
-            JobKind::ExportRendering {
-                output_path: output_path.clone(),
-            },
-            JobPriority::Immediate,
-            move |ctx| {
-                saturn_render::render_project_range_with_control(
-                    &document,
-                    &job_output,
-                    range,
-                    settings,
-                    |progress| {
-                        ctx.update_progress(
-                            progress.fraction_percent as f32 / 100.0,
-                            progress.phase,
-                        )
-                    },
-                    || ctx.is_cancelled(),
-                )?;
-                Ok(Some(job_output.to_string_lossy().into_owned()))
-            },
-        );
-        Ok(json!({"job_id": id.0, "state": "queued", "output_path": output_path}))
-    }
-
-    async fn render_job_status(&self, arguments: &Value) -> Result<Value, String> {
-        let id = arguments
-            .get("job_id")
-            .and_then(Value::as_u64)
-            .ok_or_else(|| "render_status requires an unsigned job_id".to_owned())?;
-        if matches!(&self.backend, Backend::Bridge(_)) {
-            return self
-                .bridge_call("render_status", json!({"job_id": id}))
-                .await;
-        }
-        self.jobs
-            .get_job(JobId(id))
-            .map(|job| serde_json::to_value(job).unwrap_or(Value::Null))
-            .ok_or_else(|| format!("Render job {id} was not found"))
-    }
-
-    async fn cancel_render(&self, arguments: &Value) -> Result<Value, String> {
-        let id = arguments
-            .get("job_id")
-            .and_then(Value::as_u64)
-            .ok_or_else(|| "render_cancel requires an unsigned job_id".to_owned())?;
-        if matches!(&self.backend, Backend::Bridge(_)) {
-            return self
-                .bridge_call("render_cancel", json!({"job_id": id}))
-                .await;
-        }
-        Ok(json!({"job_id": id, "cancellation_requested": self.jobs.cancel(JobId(id))}))
-    }
-
     /// Snapshot of the typed project document. Bridge mode resolves documents on
     /// the desktop-app side, so headless callers only.
     async fn headless_document(&self) -> Result<saturn_core::ProjectDocument, String> {
@@ -584,7 +670,6 @@ impl EditorMcp {
         .await
         .map_err(|error| format!("project snapshot task failed: {error}"))?
     }
-
 }
 
 /// Text form of a payload that also carries an image block: the JSON without
@@ -605,55 +690,27 @@ fn continue_text_only(value: &Value) -> String {
     serde_json::to_string_pretty(&slim).unwrap_or_else(|_| value.to_string())
 }
 
-fn parse_render_range(arguments: &Value) -> Result<Option<saturn_render::RenderRange>, String> {    let Some(range) = arguments.get("range") else {
-        return Ok(None);
-    };
-    let start = range
-        .get("start_ticks")
-        .and_then(Value::as_i64)
-        .ok_or_else(|| "range.start_ticks must be a non-negative integer".to_owned())?;
-    let end = range
-        .get("end_ticks")
-        .and_then(Value::as_i64)
-        .ok_or_else(|| "range.end_ticks must be an integer greater than start_ticks".to_owned())?;
-    if start < 0 || end <= start {
-        return Err("Render range must have non-negative start_ticks and end_ticks greater than start_ticks".to_owned());
-    }
-    Ok(Some(saturn_render::RenderRange {
-        start: saturn_core::Tick(start),
-        end: saturn_core::Tick(end),
-    }))
-}
-
-impl ServerHandler for EditorMcp {
+impl rmcp::handler::server::ServerHandler for EditorMcp {
     fn get_info(&self) -> ServerInfo {
-        ServerInfo {
-            protocol_version: Default::default(),
-            capabilities: ServerCapabilities::builder().enable_tools().build(),
-            server_info: Implementation {
-                name: "easy-edits-pro".to_owned(),
-                version: env!("CARGO_PKG_VERSION").to_owned(),
-            },
-            instructions: Some("Easy Edits Pro MCP server. Use command_list to discover editor engine commands, command_run to apply an edit, command_batch for ordered edits, doc_inspect or sequence_inspect to inspect the project, and render_project to export it. By default the server owns a headless session; start it with --bridge to edit the project in the running desktop app.".to_owned()),
-        }
+        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
+            .with_protocol_version(rmcp::model::ProtocolVersion::default())
+            .with_server_info(Implementation::new("easy-edits-pro", env!("CARGO_PKG_VERSION")))
+            .with_instructions("Easy Edits Pro MCP server. Use command_list to discover editor engine commands, command_run to apply an edit, command_batch for ordered edits, doc_inspect or sequence_inspect to inspect the project, and render_project to export it. By default the server owns a headless session; start it with --bridge to edit the project in the running desktop app.")
     }
 
     async fn list_tools(
         &self,
-        _request: PaginatedRequestParam,
+        _request: Option<PaginatedRequestParams>,
         _context: RequestContext<rmcp::RoleServer>,
-    ) -> Result<ListToolsResult, Error> {
-        Ok(ListToolsResult {
-            next_cursor: None,
-            tools: server_tools::tool_list(),
-        })
+    ) -> Result<ListToolsResult, ErrorData> {
+        Ok(ListToolsResult::with_all_items(self.active_tools().await))
     }
 
     async fn call_tool(
         &self,
-        request: CallToolRequestParam,
+        request: CallToolRequestParams,
         _context: RequestContext<rmcp::RoleServer>,
-    ) -> Result<CallToolResult, Error> {
+    ) -> Result<CallToolResult, ErrorData> {
         self.call(request).await
     }
 }

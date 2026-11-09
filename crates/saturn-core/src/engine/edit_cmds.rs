@@ -102,9 +102,10 @@ impl EditorEngine {
         }
 
         self.checkpoint();
+        let next_id = &mut self.document.project.next_id;
         let track = &mut self.document.project.sequence.tracks[track_index];
         if insert {
-            split_at(track, at);
+            split_at(track, at, next_id);
             let end = at.saturating_add(duration.0);
             for clip in track.clips.iter_mut() {
                 if clip.timeline_start.0 >= at {
@@ -116,7 +117,10 @@ impl EditorEngine {
                     transition.cut_at.0 = transition.cut_at.0.saturating_add(duration.0);
                 }
             }
+            let clip_id = *next_id;
+            *next_id = next_id.saturating_add(1);
             track.clips.push(new_clip(
+                clip_id,
                 params.media_id,
                 at,
                 params.source_in.0,
@@ -136,8 +140,11 @@ impl EditorEngine {
             }));
         }
 
-        overwrite_range(track, at, at.saturating_add(duration.0));
+        overwrite_range(track, at, at.saturating_add(duration.0), next_id);
+        let clip_id = *next_id;
+        *next_id = next_id.saturating_add(1);
         track.clips.push(new_clip(
+            clip_id,
             params.media_id,
             at,
             params.source_in.0,
@@ -290,8 +297,9 @@ impl EditorEngine {
     }
 }
 
-fn new_clip(media_id: u64, start: i64, source_in: i64, duration: i64) -> Clip {
+fn new_clip(id: u64, media_id: u64, start: i64, source_in: i64, duration: i64) -> Clip {
     Clip {
+        id,
         media_id,
         timeline_start: Tick(start),
         source_in: Tick(source_in),
@@ -309,21 +317,23 @@ fn new_clip(media_id: u64, start: i64, source_in: i64, duration: i64) -> Clip {
         speed_ramp: None,
         motion_blur: None,
         compound_sequence_id: None,
-                label: String::new(),
-                volume_db: 0.0,
-                audio_enabled: true,
-                enabled: true,
+        label: String::new(),
+        volume_db: 0.0,
+        audio_enabled: true,
+        enabled: true,
     }
 }
 
 /// Split the clip that straddles `at` so insert/overwrite only has to reason
 /// about clip boundaries. A cut exactly on a boundary is left alone.
-fn split_at(track: &mut Track, at: i64) {
+fn split_at(track: &mut Track, at: i64, next_id: &mut u64) {
     if let Some(index) = track.clips.iter().position(|clip| {
         clip.timeline_start.0 < at && at < clip.timeline_start.0.saturating_add(clip.duration.0)
     }) {
         let mut right = track.clips[index].clone();
         let offset = at - right.timeline_start.0;
+        right.id = *next_id;
+        *next_id = next_id.saturating_add(1);
         right.timeline_start = Tick(at);
         right.source_in = Tick(right.source_in.0.saturating_add(offset));
         right.duration = Tick(right.duration.0.saturating_sub(offset));
@@ -333,7 +343,7 @@ fn split_at(track: &mut Track, at: i64) {
 }
 
 /// Remove or shorten everything in `[at, end)` on the target track.
-fn overwrite_range(track: &mut Track, at: i64, end: i64) {
+fn overwrite_range(track: &mut Track, at: i64, end: i64, next_id: &mut u64) {
     let mut result: Vec<Clip> = Vec::with_capacity(track.clips.len() + 1);
     for clip in track.clips.drain(..) {
         let start = clip.timeline_start.0;
@@ -350,6 +360,10 @@ fn overwrite_range(track: &mut Track, at: i64, end: i64) {
         if clip_end > end {
             let mut right = clip;
             let trim = end - start;
+            if start < at {
+                right.id = *next_id;
+                *next_id = next_id.saturating_add(1);
+            }
             right.timeline_start = Tick(end);
             right.source_in = Tick(right.source_in.0.saturating_add(trim));
             right.duration = Tick(clip_end - end);

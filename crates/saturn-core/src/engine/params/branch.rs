@@ -27,6 +27,9 @@ pub(in crate::engine) struct BranchMergeParams {
     /// (absorbed into the live state, record removed) or rejected
     /// (record discarded). No range merging until a written conflict rule.
     pub(in crate::engine) action: BranchMergeAction,
+    /// When true, overrides stale baseline checks and discards divergent work.
+    #[serde(default)]
+    pub(in crate::engine) force: bool,
 }
 
 #[derive(Clone, Copy, Debug, Deserialize)]

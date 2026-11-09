@@ -4,7 +4,9 @@
 //! Same-user local bridge for MCP requests to the active desktop editor session.
 
 use std::io;
+use std::sync::Arc;
 
+use saturn_core::catalogue::policy::{SessionPolicy, all_profiles};
 use serde_json::{Value, json};
 use tauri::{AppHandle, Emitter};
 use tokio::{
@@ -13,6 +15,10 @@ use tokio::{
 };
 
 use crate::{AppState, commands::execute_command_with_state};
+
+#[path = "mcp_bridge_media.rs"]
+mod media;
+use media::*;
 
 const MAX_REQUEST_BYTES: usize = 1_048_576;
 
@@ -63,21 +69,28 @@ async fn prepare_bridge_socket(path: &std::path::Path) -> io::Result<UnixListene
 async fn serve(app: AppHandle, state: AppState) -> io::Result<()> {
     let path = saturn_core::local_control::mcp_socket_path();
     let listener = prepare_bridge_socket(&path).await?;
+    let policy = Arc::new(tokio::sync::RwLock::new(SessionPolicy::default()));
     eprintln!("Easy Edits Pro MCP bridge listening at {}", path.display());
 
     loop {
         let (stream, _) = listener.accept().await?;
         let app = app.clone();
         let state = state.clone();
+        let policy = policy.clone();
         tokio::spawn(async move {
-            if let Err(error) = handle_connection(stream, app, state).await {
+            if let Err(error) = handle_connection(stream, app, state, policy).await {
                 eprintln!("MCP bridge request failed: {error}");
             }
         });
     }
 }
 
-async fn handle_connection(stream: UnixStream, app: AppHandle, state: AppState) -> io::Result<()> {
+async fn handle_connection(
+    stream: UnixStream,
+    app: AppHandle,
+    state: AppState,
+    policy: Arc<tokio::sync::RwLock<SessionPolicy>>,
+) -> io::Result<()> {
     let (mut reader, mut writer) = stream.into_split();
     let mut request = Vec::with_capacity(1024);
     let mut chunk = [0_u8; 4096];
@@ -99,7 +112,7 @@ async fn handle_connection(stream: UnixStream, app: AppHandle, state: AppState) 
     }
 
     let response = match serde_json::from_slice::<Value>(&request) {
-        Ok(request) => dispatch(request, &app, &state).await,
+        Ok(request) => dispatch(request, &app, &state, &policy).await,
         Err(error) => json!({"error": format!("invalid bridge request: {error}")}),
     };
     writer.write_all(response.to_string().as_bytes()).await?;
@@ -107,14 +120,94 @@ async fn handle_connection(stream: UnixStream, app: AppHandle, state: AppState) 
     writer.shutdown().await
 }
 
-async fn dispatch(request: Value, app: &AppHandle, state: &AppState) -> Value {
+fn check_bridge_tool(method: &str, policy: &SessionPolicy) -> Result<(), String> {
+    use saturn_core::catalogue::Tier::{Edit, Filesystem, Read};
+    let (tiers, profiles): (&[saturn_core::catalogue::Tier], &[&str]) = match method {
+        "session.stop" | "session.status" => (&[Read], &["core"]),
+        "session.resume" => (&[Edit], &["core"]),
+        "history.undo_change" => (&[Edit], &["core"]),
+        "color_read_scopes" => (&[Read], &["colour", "review"]),
+        "color_match_shot_to_reference" => (&[Edit], &["colour"]),
+        "audio_read_telemetry" => (&[Read], &["audio", "review"]),
+        "audio_process" => (&[Edit], &["audio"]),
+        "edit_match_cut_align" => (&[Edit], &["fine-cut", "rough-cut"]),
+        "timeline_beat_grid_quantize" => (&[Edit], &["fine-cut", "speed-motion"]),
+        "media_semantic_query" => (&[Read], &["ingest", "rough-cut", "review"]),
+        "edit_evaluate_cut_continuity" => (&[Read], &["fine-cut", "review"]),
+        "render_preview_clip_proxy" => (&[Edit, Filesystem], &["ingest", "review"]),
+        "render_project" | "render_start" => (&[Edit, Filesystem], &["export"]),
+        "render_status" => (&[Read], &["export"]),
+        "render_cancel" => (&[Edit], &["export", "review"]),
+        _ => return Ok(()),
+    };
+    policy.check_tool(method, tiers, profiles).map_err(|e| e.to_string())
+}
+
+async fn dispatch(
+    request: Value,
+    app: &AppHandle,
+    state: &AppState,
+    policy: &Arc<tokio::sync::RwLock<SessionPolicy>>,
+) -> Value {
     let method = request
         .get("method")
         .and_then(Value::as_str)
         .unwrap_or_default();
     let params = request.get("params").cloned().unwrap_or_else(|| json!({}));
+
+    if method == "tools.list_profiles" || method == "tools_list_profiles" {
+        let pol = policy.read().await;
+        let catalogue = saturn_core::command_catalogue();
+        let profiles = all_profiles().iter().map(|info| {
+            let count = catalogue.iter().filter(|c| c.profiles.contains(&info.name)).count();
+            json!({ "name": info.name, "description": info.description, "candidate_capabilities": info.candidate_capabilities, "active": pol.active_profiles.contains(info.name), "command_count": count })
+        }).collect::<Vec<_>>();
+        let mut granted = pol.granted_tiers.iter().map(|t| t.as_str()).collect::<Vec<_>>();
+        granted.sort();
+        let mut active = pol.active_profiles.iter().cloned().collect::<Vec<_>>();
+        active.sort();
+        return json!({
+            "result": { "mode": pol.mode.as_str(), "active_profiles": active, "granted_tiers": granted, "profiles": profiles }
+        });
+    }
+
+    if method == "tools.load_profile" || method == "tools_load_profile" {
+        let profile = match params.get("profile").and_then(Value::as_str) {
+            Some(p) => p,
+            None => return json!({"error": "tools.load_profile requires string `profile`"}),
+        };
+        let mut pol = policy.write().await;
+        let was_new = match pol.load_profile(profile) {
+            Ok(new) => new,
+            Err(e) => return json!({"error": e.to_string()}),
+        };
+        let mut active = pol.active_profiles.iter().cloned().collect::<Vec<_>>();
+        active.sort();
+        return json!({
+            "result": {
+                "ok": true,
+                "profile": profile,
+                "newly_activated": was_new,
+                "active_profiles": active,
+                "message": format!("Profile '{profile}' is active. Associated commands and tools are now available."),
+            }
+        });
+    }
+
+    {
+        let pol = policy.read().await;
+        if let Err(err) = check_bridge_tool(method, &pol) {
+            return json!({"error": err});
+        }
+    }
+
     let result = match method {
         "command_list" => command_list(state, &params),
+        "command_batch" => command_batch(app, state, policy, &params).await,
+        "session.stop" => session_stop(state, &params),
+        "session.resume" => session_resume(state, &params),
+        "session.status" => session_status(state, &params),
+        "history.undo_change" => history_undo_change(app, state, &params),
         "edit_match_cut_align" => edit_match_cut_align(app, state, &params).await,
         "timeline_beat_grid_quantize" => timeline_beat_grid_quantize(app, state, &params).await,
         "command_run" => {
@@ -122,6 +215,13 @@ async fn dispatch(request: Value, app: &AppHandle, state: &AppState) -> Value {
             let Some(id) = id else {
                 return json!({"error": "command_run requires a string id"});
             };
+            let spec = saturn_core::command_catalogue().iter().find(|c| c.id == id);
+            if let Some(spec) = spec {
+                let pol = policy.read().await;
+                if let Err(err) = pol.check_command(spec) {
+                    return json!({"error": err.to_string()});
+                }
+            }
             let command_params = params.get("params").cloned().unwrap_or_else(|| json!({}));
             if id == "timeline.beat_grid_quantize" && command_params.get("expected_digest").is_none() {
                 return match timeline_beat_grid_quantize(app, state, &command_params).await {
@@ -207,6 +307,9 @@ fn command_list(state: &AppState, params: &Value) -> Result<Value, String> {
                     "mutating": spec.mutating,
                     "enabled": status.enabled,
                     "reason": status.reason,
+                    "tier": spec.tier.as_str(),
+                    "tiers": spec.tiers.iter().map(|t| t.as_str()).collect::<Vec<_>>(),
+                    "profiles": spec.profiles,
                 })
             })
         })
@@ -214,478 +317,133 @@ fn command_list(state: &AppState, params: &Value) -> Result<Value, String> {
     Ok(Value::Array(commands))
 }
 
-fn inspect_document(state: &AppState) -> Result<Value, String> {
-    let engine = state
-        .0
-        .lock()
-        .map_err(|_| "Editor state is unavailable".to_owned())?;
-    Ok(json!({
-        "project": engine.document(),
-        "path": engine.current_path().map(|path| path.to_string_lossy().to_string()),
-        "is_dirty": engine.is_dirty(),
-    }))
-}
-
-fn start_render(app: &AppHandle, state: &AppState, params: &Value) -> Result<Value, String> {
-    let output = params
-        .get("output_path")
-        .and_then(Value::as_str)
-        .ok_or_else(|| "render_project requires output_path".to_owned())?;
-    // Same write policy as command_run: an agent-driven render cannot target
-    // anything outside the roots/dialog grants (audit priority item 5 covers
-    // this write primitive too).
-    let project_dir = crate::commands::current_project_dir(state);
-    let output_path = crate::enforce_write_target(app, output, project_dir.as_deref())?;
-    let explicit_range = params.get("range").map(|range| {
-        let start = range.get("start_ticks").and_then(Value::as_i64)
-            .ok_or_else(|| "range.start_ticks must be a non-negative integer".to_owned())?;
-        let end = range.get("end_ticks").and_then(Value::as_i64)
-            .ok_or_else(|| "range.end_ticks must be an integer greater than start_ticks".to_owned())?;
-        if start < 0 || end <= start {
-            return Err("Render range must have non-negative start_ticks and end_ticks greater than start_ticks".to_owned());
-        }
-        Ok(saturn_render::RenderRange { start: saturn_core::Tick(start), end: saturn_core::Tick(end) })
-    }).transpose()?;
-    if explicit_range.is_some()
-        && params
-            .get("use_mark_range")
-            .and_then(Value::as_bool)
-            .unwrap_or(false)
-    {
-        return Err("Pass either range or use_mark_range, not both".into());
-    }
-    let (document, range) = {
-        let engine = state
-            .0
-            .lock()
-            .map_err(|_| "Editor state is unavailable".to_owned())?;
-        let document = engine.document().clone();
-        let range = if let Some(range) = explicit_range {
-            Some(range)
-        } else if params
-            .get("use_mark_range")
-            .and_then(Value::as_bool)
-            .unwrap_or(false)
-        {
-            match (
-                document.project.sequence.mark_in,
-                document.project.sequence.mark_out,
-            ) {
-                (Some(start), Some(end)) => Some(saturn_render::RenderRange { start, end }),
-                _ => {
-                    return Err(
-                        "Set both In and Out points before rendering the marked range".into(),
-                    );
-                }
-            }
-        } else {
-            None
-        };
-        (document, range)
-    };
-    let settings = params
-        .get("settings")
-        .filter(|value| value.is_object())
-        .map(|value| serde_json::from_value(value.clone()).map_err(|e| e.to_string()))
-        .transpose()?
-        .unwrap_or_else(|| saturn_render::RenderSettings::from_project(&document));
-    let rendered_output = output_path.clone();
-    let label = format!(
-        "MCP render: {}",
-        output_path
-            .file_name()
-            .unwrap_or_default()
-            .to_string_lossy()
-    );
-    let kind = saturn_core::JobKind::ExportRendering {
-        output_path: output_path.clone(),
-    };
-    let (id, _) = state.1.submit_detached(
-        label,
-        kind,
-        saturn_core::JobPriority::Immediate,
-        move |ctx| {
-            saturn_render::render_project_range_with_control(
-                &document,
-                &rendered_output,
-                range,
-                settings,
-                |progress| {
-                    ctx.update_progress(progress.fraction_percent as f32 / 100.0, progress.phase)
-                },
-                || ctx.is_cancelled(),
-            )?;
-            Ok(Some(rendered_output.to_string_lossy().into_owned()))
-        },
-    );
-    Ok(json!({ "job_id": id.0, "state": "queued", "output_path": output_path }))
-}
-
-fn render_status(state: &AppState, params: &Value) -> Result<Value, String> {
-    let id = params
-        .get("job_id")
-        .and_then(Value::as_u64)
-        .ok_or_else(|| "render_status requires an unsigned job_id".to_owned())?;
-    state
-        .1
-        .get_job(saturn_core::JobId(id))
-        .map(|job| serde_json::to_value(job).unwrap_or(Value::Null))
-        .ok_or_else(|| format!("Render job {id} was not found"))
-}
-
-fn render_cancel(state: &AppState, params: &Value) -> Result<Value, String> {
-    let id = params
-        .get("job_id")
-        .and_then(Value::as_u64)
-        .ok_or_else(|| "render_cancel requires an unsigned job_id".to_owned())?;
-    let cancelled = state.1.cancel(saturn_core::JobId(id));
-    Ok(json!({ "job_id": id, "cancellation_requested": cancelled }))
-}
-
-fn media_search(state: &AppState, params: &Value) -> Result<Value, String> {
-    let engine = state
-        .0
-        .lock()
-        .map_err(|_| "Editor state is unavailable".to_owned())?;
-    let query = params
-        .get("query")
-        .and_then(Value::as_str)
-        .unwrap_or_default()
-        .to_lowercase();
-    let kind = params
-        .get("kind")
-        .and_then(Value::as_str)
-        .unwrap_or_default()
-        .to_lowercase();
-    let limit = params
-        .get("limit")
-        .and_then(Value::as_u64)
-        .unwrap_or(100)
-        .clamp(1, 500) as usize;
-    let media = engine
-        .document()
-        .project
-        .media
-        .iter()
-        .filter(|item| {
-            (query.is_empty()
-                || item.name.to_lowercase().contains(&query)
-                || item.path.to_string_lossy().to_lowercase().contains(&query))
-                && (kind.is_empty() || format!("{:?}", item.kind).to_lowercase() == kind)
-        })
-        .take(limit)
-        .collect::<Vec<_>>();
-    serde_json::to_value(media).map_err(|error| error.to_string())
-}
-
-/// Snapshot helper: state is owned by the engine mutex, but decode-bound
-/// vision tools must never hold that lock while a GStreamer pipeline runs.
-fn document_snapshot(state: &AppState) -> Result<saturn_core::ProjectDocument, String> {
-    let engine = state
-        .0
-        .lock()
-        .map_err(|_| "Editor state is unavailable".to_owned())?;
-    Ok(engine.document().clone())
-}
-
-fn media_id_from(params: &Value) -> Result<u64, String> {
-    params
-        .get("media_id")
-        .and_then(Value::as_u64)
-        .ok_or_else(|| "media_preview requires an unsigned media_id".to_owned())
-}
-
-async fn blocking_payload(
-    task: impl FnOnce() -> Result<Value, String> + Send + 'static,
-) -> Result<Value, String> {
-    // The payload builders are decode-bound (GStreamer seek + pull), so they
-    // run on the blocking pool; the engine lock is released before this runs.
-    tauri::async_runtime::spawn_blocking(task)
-        .await
-        .map_err(|error| format!("preview task failed: {error}"))?
-}
-
-async fn media_preview(state: &AppState, params: &Value) -> Result<Value, String> {
-    let document = document_snapshot(state)?;
-    let media_id = media_id_from(params)?;
-    let poster_tick = params
-        .get("poster_tick")
-        .and_then(Value::as_i64)
-        .map(saturn_core::Tick);
-    blocking_payload(move || {
-        saturn_render::preview_tools::media_preview_payload(&document, media_id, poster_tick)
-    })
-    .await
-}
-
-/// `vision_extract_frame_sheet`: tiled, timecode-burned contact sheet of one
-/// media asset. PNG artifact lands in the isolated 0700 previews directory;
-/// the in-band JPEG is size-capped for the model context.
-async fn vision_extract_frame_sheet(state: &AppState, params: &Value) -> Result<Value, String> {
-    let document = document_snapshot(state)?;
-    let params = params.clone();
-    blocking_payload(move || {
-        saturn_render::preview_tools::frame_sheet_payload(&document, &params)
-    })
-    .await
-}
-
-/// `render_preview_clip_proxy`: fast low-resolution MP4 snippet of the active
-/// sequence into the previews directory (never a caller-supplied path).
-async fn render_preview_clip_proxy(state: &AppState, params: &Value) -> Result<Value, String> {
-    let document = document_snapshot(state)?;
-    let params = params.clone();
-    blocking_payload(move || {
-        saturn_render::preview_tools::preview_clip_proxy_payload(&document, &params)
-    })
-    .await
-}
-
-/// Prepare outside the editor lock and emit the same refresh as command_run.
-async fn edit_match_cut_align(app: &AppHandle, state: &AppState, params: &Value) -> Result<Value, String> {
-    let document = document_snapshot(state)?;
-    let params = params.clone();
-    let prepared = tauri::async_runtime::spawn_blocking(move || {
-        saturn_render::match_cut::prepare(&document, &params)
-    }).await.map_err(|e| format!("Match-cut analysis task failed: {e}"))??;
-    let applied = execute_command_with_state(app, state, prepared.command)?;
-    let _ = app.emit("mcp_project_changed", ());
-    Ok(json!({"applied": applied, "telemetry": prepared.telemetry}))
-}
-
-async fn timeline_beat_grid_quantize(app: &AppHandle, state: &AppState, params: &Value) -> Result<Value, String> {
-    let document = document_snapshot(state)?;
-    let params = params.clone();
-    let prepared = tauri::async_runtime::spawn_blocking(move || {
-        saturn_render::beat_grid::prepare(&document, &params)
-    }).await.map_err(|e| format!("Beat-grid analysis task failed: {e}"))??;
-    let applied = execute_command_with_state(app, state, prepared.command)?;
-    let _ = app.emit("mcp_project_changed", ());
-    Ok(json!({"applied": applied, "telemetry": prepared.telemetry}))
-}
-
-/// `media_id`+`tick` analyzes a source file; `at_tick` renders the sequence.
-async fn color_read_scopes(state: &AppState, params: &Value) -> Result<Value, String> {
-    let document = document_snapshot(state)?;
-    let params = params.clone();
-    blocking_payload(move || {
-        saturn_render::preview_tools::color_scopes_payload(&document, &params)
-    })
-    .await
-}
-
-/// `color_match_shot_to_reference`: fit a primary-wheels correction from one
-/// clip's source frame against a reference clip's source frame and apply it
-/// through the engine's validated command channel. Decode + fit run on the
-/// blocking pool with the engine lock released; only the validated payload
-/// application happens under the lock (checkpointed, undoable).
-async fn color_match_shot_to_reference(
+async fn command_batch(
     app: &AppHandle,
     state: &AppState,
+    policy: &Arc<tokio::sync::RwLock<SessionPolicy>>,
     params: &Value,
 ) -> Result<Value, String> {
-    let document = document_snapshot(state)?;
-    let params = params.clone();
-    let payload = blocking_payload(move || {
-        saturn_render::shot_match_driver::match_shot_payload(&document, &params)
-    })
-    .await?;
-    let command = payload
-        .get("command")
-        .cloned()
-        .ok_or_else(|| "shot match driver returned no command".to_owned())?;
-    let id = command
-        .get("id")
+    let steps = params
+        .get("steps")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "command_batch requires `steps` array".to_owned())?;
+    let atomic = params.get("atomic").and_then(Value::as_bool).unwrap_or(false);
+    let stop_on_error = params.get("stop_on_error").and_then(Value::as_bool).unwrap_or(true);
+    let ctx: saturn_core::ActorContext = params
+        .get("context")
+        .and_then(|v| serde_json::from_value(v.clone()).ok())
+        .unwrap_or_default();
+
+    if atomic {
+        let cmd_steps = steps
+            .iter()
+            .map(|step| {
+                let id = step.get("id").and_then(Value::as_str).unwrap_or("").to_string();
+                let p = step.get("params").cloned().unwrap_or_else(|| json!({}));
+                saturn_core::CommandRequest::new(id, p)
+            })
+            .collect::<Vec<_>>();
+        let mut guard = state.0.lock().map_err(|e| e.to_string())?;
+        let res = guard.execute_transaction(cmd_steps, &ctx).map_err(|e| e.to_string())?;
+        let _ = app.emit("mcp_project_changed", ());
+        Ok(res)
+    } else {
+        let mut completed = 0usize;
+        let mut failed = 0usize;
+        let mut results = Vec::new();
+        for step in steps {
+            let Some(id) = step.get("id").and_then(Value::as_str) else {
+                failed += 1;
+                results.push(json!({"ok": false, "error": "step requires string `id`"}));
+                if stop_on_error { break; }
+                continue;
+            };
+            let spec = saturn_core::command_catalogue().iter().find(|cmd| cmd.id == id);
+            if let Some(spec) = spec {
+                let pol = policy.read().await;
+                if let Err(err) = pol.check_command(spec) {
+                    failed += 1;
+                    results.push(json!({"ok": false, "error": err.to_string()}));
+                    if stop_on_error { break; }
+                    continue;
+                }
+            }
+            let step_params = step.get("params").cloned().unwrap_or_else(|| json!({}));
+            match execute_command_with_state(app, state, saturn_core::CommandRequest::new(id, step_params)) {
+                Ok(val) => {
+                    completed += 1;
+                    results.push(json!({"ok": true, "result": val}));
+                }
+                Err(err) => {
+                    failed += 1;
+                    results.push(json!({"ok": false, "error": err}));
+                    if stop_on_error { break; }
+                }
+            }
+        }
+        let _ = app.emit("mcp_project_changed", ());
+        Ok(json!({ "completed": completed, "failed": failed, "results": results }))
+    }
+}
+
+fn session_stop(state: &AppState, params: &Value) -> Result<Value, String> {
+    let session_id = params
+        .get("session_id")
         .and_then(Value::as_str)
-        .ok_or_else(|| "shot match driver command has no id".to_owned())?
-        .to_owned();
-    let command_params = command.get("params").cloned().unwrap_or(json!({}));
-    let applied = execute_command_with_state(
-        app,
-        state,
-        saturn_core::CommandRequest::new(id, command_params),
-    )?;
-    let _ = app.emit("mcp_project_changed", ());
-    let telemetry = payload.get("telemetry").cloned().unwrap_or(json!({}));
+        .ok_or_else(|| "session.stop requires string `session_id`".to_owned())?;
+    let mut guard = state.0.lock().map_err(|e| e.to_string())?;
+    let generation = guard.stop_session(session_id);
+    Ok(json!({ "session_id": session_id, "stopped": true, "generation": generation }))
+}
+
+fn session_resume(state: &AppState, params: &Value) -> Result<Value, String> {
+    let session_id = params
+        .get("session_id")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "session.resume requires string `session_id`".to_owned())?;
+    let caller: saturn_core::ActorId = params
+        .get("caller")
+        .and_then(|v| serde_json::from_value(v.clone()).ok())
+        .unwrap_or(saturn_core::ActorId::Human);
+    let mut guard = state.0.lock().map_err(|e| e.to_string())?;
+    let generation = guard.resume_session(session_id, &caller).map_err(|e| e.to_string())?;
+    Ok(json!({ "session_id": session_id, "resumed": true, "generation": generation }))
+}
+
+fn session_status(state: &AppState, params: &Value) -> Result<Value, String> {
+    let session_id = params
+        .get("session_id")
+        .and_then(Value::as_str)
+        .ok_or_else(|| "session.status requires string `session_id`".to_owned())?;
+    let guard = state.0.lock().map_err(|e| e.to_string())?;
+    let is_stopped = guard.is_session_stopped(session_id);
+    let session = guard.sessions.get(session_id);
     Ok(json!({
-        "applied": applied,
-        "nodeId": applied.get("nodeId").cloned().unwrap_or(Value::Null),
-        "telemetry": telemetry,
+        "session_id": session_id,
+        "is_stopped": is_stopped,
+        "generation": session.map(|s| s.generation).unwrap_or(1),
+        "actor": session.map(|s| s.actor.clone()).unwrap_or(saturn_core::ActorId::Agent("bridge".into())),
+        "active_branch": session.map(|s| s.active_branch.clone()).unwrap_or_else(|| saturn_core::branch::MAIN_BRANCH.to_string()),
+        "playhead": session.map(|s| s.playhead.0).unwrap_or(0),
+        "locks": guard.document().locks.locks.iter().filter(|l| l.owner.session_id.as_deref() == Some(session_id)).collect::<Vec<_>>(),
     }))
 }
 
-/// Prepare outside the engine lock, then atomically apply the audio edit.
-async fn audio_process(app: &AppHandle, state: &AppState, params: &Value) -> Result<Value, String> {
-    let (document, project_path) = {
-        let engine = state.0.lock().map_err(|e| e.to_string())?;
-        (engine.document().clone(), engine.current_path().map(std::path::Path::to_path_buf))
-    };
-    let params = params.clone();
-    let mut edit = tauri::async_runtime::spawn_blocking(move || {
-        let operation = params.get("operation").and_then(Value::as_str).ok_or("operation is required")?;
-        saturn_render::audio_edit_driver::prepare(&document, project_path.as_deref(), operation, &params)
-    }).await.map_err(|e| format!("Audio processing task failed: {e}"))??;
-    let applied = execute_command_with_state(app, state, edit.command.clone())?;
-    edit.commit();
+fn history_undo_change(app: &AppHandle, state: &AppState, params: &Value) -> Result<Value, String> {
+    let change_id = params
+        .get("change_id")
+        .and_then(Value::as_u64)
+        .ok_or_else(|| "history.undo_change requires integer `change_id`".to_owned())?;
+    let ctx: saturn_core::ActorContext = params
+        .get("context")
+        .and_then(|v| serde_json::from_value(v.clone()).ok())
+        .unwrap_or_default();
+    let mut guard = state.0.lock().map_err(|e| e.to_string())?;
+    let res = guard.undo_change(change_id, &ctx).map_err(|e| e.to_string())?;
     let _ = app.emit("mcp_project_changed", ());
-    Ok(json!({"applied": applied, "telemetry": edit.telemetry}))
-}
-
-/// `media_id` analyzes a source; a tick range analyzes the rendered sequence.
-async fn audio_read_telemetry(state: &AppState, params: &Value) -> Result<Value, String> {
-    let document = document_snapshot(state)?;
-    let params = params.clone();
-    blocking_payload(move || {
-        saturn_render::preview_tools::audio_telemetry_payload(&document, &params)
-    })
-    .await
-}
-
-/// `media_semantic_query`: SigLIP vector scan over the project's semantic
-/// index sidecar. Needs the saved project path — in-memory sessions are a
-/// typed error, never an empty result.
-async fn media_semantic_query(state: &AppState, params: &Value) -> Result<Value, String> {
-    // Snapshot document + project path while the engine lock is held, then
-    // release it before inference/blocking work starts.
-    let (document, project_path) = {
-        let engine = state
-            .0
-            .lock()
-            .map_err(|_| "Editor state is unavailable".to_owned())?;
-        (
-            engine.document().clone(),
-            engine.current_path().map(ToOwned::to_owned),
-        )
-    };
-    let params = params.clone();
-    blocking_payload(move || {
-        saturn_render::preview_tools::semantic_query_payload(
-            &document,
-            project_path.as_deref(),
-            &params,
-        )
-    })
-    .await
-}
-
-/// `edit_evaluate_cut_continuity`: measured continuity report for one hard
-/// cut — frame decode + perception metrics on the blocking pool, engine lock
-/// released first.
-async fn edit_evaluate_cut_continuity(state: &AppState, params: &Value) -> Result<Value, String> {
-    let document = document_snapshot(state)?;
-    let params = params.clone();
-    blocking_payload(move || {
-        saturn_render::preview_tools::cut_continuity_payload(&document, &params)
-    })
-    .await
+    Ok(res)
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn media_preview_reports_honest_absence_of_still_frames() {
-        let mut engine = saturn_core::EditorEngine::default();
-        engine
-            .execute(saturn_core::CommandRequest::new(
-                "project.new",
-                json!({"name": "MCP preview"}),
-            ))
-            .unwrap();
-        engine
-            .execute(saturn_core::CommandRequest::new(
-                "project.add_media",
-                json!({"name": "clip.mp4", "path": "/assets/clip.mp4", "kind": "video"}),
-            ))
-            .unwrap();
-        let document = engine.document().clone();
-        let media_id = document.project.media[0].id;
-
-        let payload = saturn_render::preview_tools::media_preview_payload(&document, media_id, None)
-            .unwrap();
-        assert!(payload.get("preview_path").is_none(), "no source-path placeholder");
-        assert_eq!(payload["still_frame"]["available"], false);
-        assert!(payload["still_frame"]["reason"].is_string(), "absence carries a reason");
-        assert!(payload.get("image_block").is_none(), "no fabricated image block");
-        assert_eq!(
-            payload["media"]["id"],
-            serde_json::to_value(media_id).unwrap()
-        );
-
-        // Unknown ids stay a typed error, never a fabricated preview.
-        assert!(saturn_render::preview_tools::media_preview_payload(&document, 999, None).is_err());
-    }
-
-    #[test]
-    fn frame_sheet_rejects_missing_sources_and_bad_ranges() {
-        let mut engine = saturn_core::EditorEngine::default();
-        engine
-            .execute(saturn_core::CommandRequest::new(
-                "project.new",
-                json!({"name": "MCP sheet"}),
-            ))
-            .unwrap();
-        engine
-            .execute(saturn_core::CommandRequest::new(
-                "project.add_media",
-                json!({"name": "clip.mp4", "path": "/assets/clip.mp4", "kind": "video"}),
-            ))
-            .unwrap();
-        let document = engine.document().clone();
-        let media_id = document.project.media[0].id;
-
-        // A source that is not on disk is a typed error, not a placeholder.
-        let error = saturn_render::preview_tools::frame_sheet_payload(
-            &document,
-            &json!({"media_id": media_id, "start_tick": 0, "end_tick": 1_000}),
-        )
-        .unwrap_err();
-        assert!(error.contains("missing"), "unexpected error: {error}");
-
-        // An end past the (unknown) duration with no file never gets that far;
-        // a decodable-file span check is exercised in the extractor tests.
-        let error = saturn_render::preview_tools::frame_sheet_payload(
-            &document,
-            &json!({"start_tick": 0, "end_tick": 1_000}),
-        )
-        .unwrap_err();
-        assert!(error.contains("media_id"), "unexpected error: {error}");
-    }
-
-    #[tokio::test]
-    async fn bridge_socket_prep_covers_stale_live_and_permissions() {
-        use std::os::unix::fs::PermissionsExt;
-
-        let folder = tempfile::tempdir().unwrap();
-        let path = folder.path().join("bridge.sock");
-
-        // A stale socket file (no listener answers) is removed and replaced.
-        std::fs::write(&path, b"not a socket").unwrap();
-        let listener = prepare_bridge_socket(&path).await.expect("stale socket recovery");
-        drop(listener);
-        assert_eq!(
-            std::fs::metadata(&path).unwrap().permissions().mode() & 0o777,
-            0o600,
-            "bridge socket is private to the user"
-        );
-        // Dropping a listener leaves its socket file behind - that stale file
-        // is exactly what the crash-recovery path must clear on next start.
-        let _ = std::fs::remove_file(&path);
-
-        // A live listener owns the socket: the second editor must refuse to
-        // start its bridge instead of stealing it.
-        let owner = std::os::unix::net::UnixListener::bind(&path).unwrap();
-        let error = prepare_bridge_socket(&path).await.unwrap_err();
-        assert_eq!(error.kind(), std::io::ErrorKind::AddrInUse);
-        drop(owner);
-        let _ = std::fs::remove_file(&path);
-
-        // Fresh bind works, creating parent directories as needed.
-        let nested = folder.path().join("deep/new/dir");
-        let fresh = prepare_bridge_socket(&nested.join("bridge.sock"))
-            .await
-            .expect("fresh bind with created parents");
-        drop(fresh);
-    }
-}
+#[path = "mcp_bridge_tests.rs"]
+mod tests;

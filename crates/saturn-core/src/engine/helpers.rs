@@ -60,6 +60,8 @@ pub(super) fn apply_clip_split(
     // Owned copies up front so the source borrow can end before the mutation.
     let mut left = clip.clone();
     let mut right = clip.clone();
+    right.id = document.project.next_id;
+    document.project.next_id = document.project.next_id.saturating_add(1);
     left.duration = Tick(split_offset);
     right.timeline_start = at;
     right.source_in.0 = right.source_in.0.saturating_add(split_offset);

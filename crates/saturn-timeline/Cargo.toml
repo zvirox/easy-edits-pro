@@ -18,4 +18,4 @@ smallvec = "1"
 chrono = { version = "0.4", features = ["serde"] }
 
 [dev-dependencies]
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.54", features = ["rt-multi-thread", "macros"] }

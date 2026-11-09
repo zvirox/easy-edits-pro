@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
@@ -17,6 +17,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.3.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.toggle_snap",
@@ -31,6 +33,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.zoom_in",
@@ -45,6 +49,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.zoom_out",
@@ -59,6 +65,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.zoom_reset",
@@ -73,6 +81,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.fullscreen",
@@ -87,6 +97,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.glass_full",
@@ -101,6 +113,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.glass_lite",
@@ -115,6 +129,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.glass_off",
@@ -129,6 +145,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.theme_dark",
@@ -143,6 +161,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.theme_light",
@@ -157,6 +177,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.reduced_motion",
@@ -171,6 +193,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.panel_media",
@@ -185,6 +209,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "view.panel_inspector",
@@ -199,5 +225,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 ];

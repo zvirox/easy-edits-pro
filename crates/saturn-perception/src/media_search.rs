@@ -236,7 +236,7 @@ mod tests {
             }
             Ok((4, 4, vec![9_u8; 4 * 4 * 3]))
         };
-        let mut embedder_ref: &mut dyn FrameEmbedder = &mut embedder;
+        let embedder_ref: &mut dyn FrameEmbedder = &mut embedder;
         let outcome = embed_media_frames(
             embedder_ref,
             &index,

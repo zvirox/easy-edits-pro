@@ -3,7 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 //! Project-panel command specifications (File > Project Panel).
 
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
 
@@ -22,6 +22,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.view.set",
@@ -36,6 +38,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.sort",
@@ -50,6 +54,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.items",
@@ -64,6 +70,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.columns.list",
@@ -78,6 +86,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.columns.set",
@@ -92,6 +102,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.columns.resize",
@@ -106,6 +118,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.notes",
@@ -120,6 +134,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.setNotes",
@@ -134,6 +150,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["admin", "rough-cut"],
     },
     CommandSpec {
         id: "project.setMarks",
@@ -148,6 +166,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["admin", "rough-cut"],
     },
     CommandSpec {
         id: "project.selectAll",
@@ -162,6 +182,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.deselectAll",
@@ -176,6 +198,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.viewPreset.save",
@@ -190,6 +214,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.viewPreset.saveAs",
@@ -204,6 +230,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.viewPreset.list",
@@ -218,6 +246,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.viewPreset.restore",
@@ -232,6 +262,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.viewPreset.rename",
@@ -246,6 +278,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.viewPreset.delete",
@@ -260,6 +294,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 
 
@@ -279,6 +315,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit, Tier::Destructive],
+        profiles: &["admin"],
     },
     CommandSpec {
         id: "project.searchBin.set",
@@ -293,6 +331,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.searchBin.delete",
@@ -307,6 +347,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.searchBin.items",
@@ -321,6 +363,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     CommandSpec {
         id: "project.select",
@@ -335,5 +379,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.4.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
 ];

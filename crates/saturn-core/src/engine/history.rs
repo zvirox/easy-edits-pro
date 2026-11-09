@@ -75,6 +75,13 @@ impl EditorEngine {
                     "current": self.document.project.name,
                 }))
             })()),
+            "history.undo_change" => Some((|| {
+                let change_id = _params.get("change_id").and_then(Value::as_u64).ok_or_else(|| {
+                    DispatchError::InvalidParameters("history.undo_change requires `change_id`".into())
+                })?;
+                let ctx = self.current_context().cloned().unwrap_or_default();
+                self.undo_change(change_id, &ctx)
+            })()),
             _ => None,
         }
     }

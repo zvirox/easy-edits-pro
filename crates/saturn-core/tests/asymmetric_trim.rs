@@ -186,7 +186,7 @@ fn atomic_history_stale_rejection_and_schema_roundtrip() {
     engine
         .execute(CommandRequest::new("file.open", json!({"path":path})))
         .unwrap();
-    assert_eq!(engine.document().schema_version, 16);
+    assert_eq!(engine.document().schema_version, saturn_core::project::PROJECT_SCHEMA_VERSION);
     assert!(
         engine.document().project.sequence.tracks[0]
             .clips

@@ -31,6 +31,7 @@ pub struct RoomToneInsert {
 /// Minimal neutral audio clip, with all further processing left on its track.
 pub fn audio_clip(media_id: u64, start: Tick, duration: Tick) -> crate::Clip {
     crate::Clip {
+        id: 0,
         media_id,
         timeline_start: start,
         source_in: Tick(0),

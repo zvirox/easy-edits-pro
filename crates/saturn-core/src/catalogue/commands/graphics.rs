@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 pub(crate) const COMMANDS: &[CommandSpec] = &[
     CommandSpec {
@@ -17,6 +17,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.track_remove",
@@ -31,6 +33,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.track_rename",
@@ -45,6 +49,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.cue_add",
@@ -59,6 +65,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.cue_update",
@@ -73,6 +81,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.cue_remove",
@@ -87,6 +97,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.cue_nudge",
@@ -101,6 +113,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.import",
@@ -115,6 +129,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.export",
@@ -129,6 +145,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read, Tier::Filesystem],
+        profiles: &["captions", "review"],
     },
     CommandSpec {
         id: "caption.style_set",
@@ -143,6 +161,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.panel",
@@ -157,6 +177,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["captions", "review"],
     },
     CommandSpec {
         id: "caption.list",
@@ -171,6 +193,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["captions", "review"],
     },
     CommandSpec {
         id: "caption.cue_delete",
@@ -185,6 +209,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.cue_split",
@@ -199,6 +225,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.cue_merge",
@@ -213,6 +241,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.next",
@@ -227,6 +257,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["captions", "review"],
     },
     CommandSpec {
         id: "caption.previous",
@@ -241,6 +273,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["captions", "review"],
     },
     CommandSpec {
         id: "caption.tracks_hide",
@@ -255,6 +289,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.tracks_show",
@@ -269,6 +305,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "caption.show_active_only",
@@ -283,6 +321,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["captions", "review"],
     },
     CommandSpec {
         id: "caption.cue_select",
@@ -297,6 +337,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["captions", "review"],
     },
     CommandSpec {
         id: "caption.go_to",
@@ -311,6 +353,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.1",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["captions", "review"],
     },
     CommandSpec {
         id: "title.update",
@@ -325,6 +369,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["graphics"],
     },
     CommandSpec {
         id: "subtitle.add",
@@ -339,6 +385,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "subtitle.remove",
@@ -353,6 +401,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit, Tier::Destructive],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "subtitle.update",
@@ -367,6 +417,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "subtitle.clear",
@@ -381,6 +433,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit, Tier::Destructive],
+        profiles: &["captions"],
     },
     CommandSpec {
         id: "graphic.panel",
@@ -395,6 +449,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: true,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["colour", "graphics", "review"],
     },
     CommandSpec {
         id: "fonts.list",
@@ -409,6 +465,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review"],
     },
     // Phase 5 slice 2 — timeline graphics, user-reachable through the
     // Essential Graphics panel since slice 3.
@@ -425,6 +483,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.remove",
@@ -439,6 +499,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit, Tier::Destructive],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.duplicate",
@@ -453,6 +515,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.set_flags",
@@ -467,6 +531,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.set_transform",
@@ -481,6 +547,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.set_text",
@@ -495,6 +563,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.set_fill",
@@ -509,6 +579,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.set_stroke",
@@ -523,6 +595,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.set_shadow",
@@ -537,6 +611,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.align",
@@ -551,6 +627,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.distribute",
@@ -565,6 +643,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.arrange",
@@ -579,6 +659,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.template_save",
@@ -593,6 +675,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
     CommandSpec {
         id: "graphic.template_apply",
@@ -607,5 +691,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.2.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["colour", "graphics"],
     },
 ];

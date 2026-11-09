@@ -28,6 +28,12 @@ pub struct TimelineBranch {
     #[serde(default)]
     pub parent: Option<String>,
     pub created_at_unix_ms: u64,
+    /// Target baseline revision at the time of fork (plan §5).
+    #[serde(default)]
+    pub base_revision: u64,
+    /// Current head revision of this branch (plan §5).
+    #[serde(default)]
+    pub head_revision: u64,
     /// Copy-on-write snapshot of the whole `Project` edit state (media
     /// metadata included, media *files* excluded): accepting a branch can
     /// carry relinked paths along, never content.

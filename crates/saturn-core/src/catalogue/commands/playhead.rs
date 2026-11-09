@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use crate::catalogue::{Category, CommandSpec, UndoGroup};
+use crate::catalogue::{Category, CommandSpec, Tier, UndoGroup};
 
 /// Playhead navigation is view state, so every command is UI-only. The ids
 /// still live in the catalogue so menus, shortcuts, the palette, the CLI, and
@@ -20,6 +20,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.end",
@@ -34,6 +36,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.next_edit",
@@ -48,6 +52,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.previous_edit",
@@ -62,6 +68,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.go_to_in",
@@ -76,6 +84,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.go_to_out",
@@ -90,6 +100,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.go_to_clip_start",
@@ -104,6 +116,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.go_to_clip_end",
@@ -118,6 +132,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.go_to_timecode",
@@ -132,6 +148,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.nudge_back_1",
@@ -146,6 +164,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.nudge_forward_1",
@@ -160,6 +180,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.nudge_back_5",
@@ -174,6 +196,8 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
     CommandSpec {
         id: "playhead.nudge_forward_5",
@@ -188,5 +212,7 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         since: "0.1.0",
         shipped: true,
         ui_only: false,
+        tier: Tier::Read, tiers: &[Tier::Read],
+        profiles: &["review", "speed-motion"],
     },
 ];

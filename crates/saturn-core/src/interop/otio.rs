@@ -156,6 +156,7 @@ pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument,
 
     let mut next_media_id = 1u64;
     let mut next_track_id = 1u64;
+    let mut next_clip_id = 100u64;
 
     for (t_idx, track_val) in track_children.iter().enumerate() {
         let kind_str = track_val
@@ -263,7 +264,10 @@ pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument,
                         id
                     };
 
+                    let clip_id = next_clip_id;
+                    next_clip_id += 1;
                     clips.push(Clip {
+                        id: clip_id,
                         media_id,
                         timeline_start: Tick(current_timeline_tick),
                         source_in: Tick(in_ticks.max(0)),
@@ -312,5 +316,6 @@ pub fn import_otio(content: &str, project_name: &str) -> Result<ProjectDocument,
         next_track_id += 1;
     }
 
+    doc.project.next_id = next_clip_id.max(next_media_id).max(next_track_id);
     Ok(doc)
 }

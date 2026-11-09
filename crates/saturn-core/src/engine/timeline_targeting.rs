@@ -227,6 +227,10 @@ impl EditorEngine {
     /// Shift every targeted ordinal by `delta`, clamped to `1..=count`.
     fn move_targets(&mut self, kind: TrackKind, delta: i64) -> Result<Value, DispatchError> {
         let count = kind_track_count(&self.document, kind) as u64;
+        if count == 0 {
+            self.targeting.set(kind, Vec::new());
+            return Ok(targeting_payload(self));
+        }
         let moved: Vec<u64> = self
             .targeting
             .get(kind)

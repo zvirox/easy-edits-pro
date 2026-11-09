@@ -58,6 +58,7 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
     let mut audio_clips = Vec::new();
     let mut media_list = Vec::new();
     let mut media_id_counter = 1u64;
+    let mut clip_id_counter = 100u64;
 
     let normalized = edl.replace("\r\n", "\n").replace('\r', "\n");
     let lines: Vec<&str> = normalized.lines().map(str::trim).collect();
@@ -130,7 +131,10 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
                     id
                 };
 
+                let clip_id = clip_id_counter;
+                clip_id_counter += 1;
                 let clip = Clip {
+                    id: clip_id,
                     media_id,
                     timeline_start: d_in,
                     source_in: s_in,
@@ -206,6 +210,7 @@ pub fn import_cmx3600_edl(edl: &str, project_name: &str) -> Result<ProjectDocume
     doc.project.sequence.name = project_name.to_string();
     doc.project.sequence.tracks = tracks;
     doc.project.settings.frame_rate = fps;
+    doc.project.next_id = clip_id_counter.max(media_id_counter).max(3);
 
     Ok(doc)
 }

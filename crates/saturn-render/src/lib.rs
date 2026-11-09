@@ -114,6 +114,12 @@ pub struct RenderSettings {
     pub frame_rate_numerator: u32,
     pub frame_rate_denominator: u32,
     pub use_hardware_encoding: bool,
+    #[serde(default = "default_true")]
+    pub include_audio: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 impl RenderSettings {
@@ -124,6 +130,7 @@ impl RenderSettings {
             frame_rate_numerator: document.project.settings.frame_rate.numerator,
             frame_rate_denominator: document.project.settings.frame_rate.denominator,
             use_hardware_encoding: true,
+            include_audio: true,
         }
     }
 }
@@ -242,10 +249,14 @@ pub fn render_project_range_with_control(
         phase: "Preparing timeline",
     });
     let timeline = build_timeline(render_document)?;
-    let profile = encoding_profile(format)?;
+    let profile = encoding_profile(format, settings.include_audio)?;
     // Held for both the hardware and software attempts: the audio encoder
     // must stay above encodebin's MARGINAL lookup for the whole render.
-    let _audio_encoder_rank_overrides = prefer_software_audio_encoder(format);
+    let _audio_encoder_rank_overrides = if settings.include_audio {
+        Some(prefer_software_audio_encoder(format))
+    } else {
+        None
+    };
     let output_uri = gst::glib::filename_to_uri(&output_path, None)
         .map_err(|error| format!("Output path is not a valid file URI: {error}"))?;
 
@@ -367,6 +378,7 @@ pub fn render_frame(
         }),
         RenderSettings {
             use_hardware_encoding: false,
+            include_audio: false,
             ..RenderSettings::from_project(document)
         },
         |_| {},

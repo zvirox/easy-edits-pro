@@ -8,8 +8,57 @@
 //! reference in `docs/COMMANDS.md`. Command metadata lives next to the engine
 //! that implements it, and is split per menu to keep files reviewable.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+/// Permission tier for command gating and capability enforcement (AF1).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Tier {
+    Read,
+    Edit,
+    Destructive,
+    Filesystem,
+}
+
+impl Tier {
+    pub const ALL: &[Tier] = &[Tier::Read, Tier::Edit, Tier::Destructive, Tier::Filesystem];
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Read => "read",
+            Self::Edit => "edit",
+            Self::Destructive => "destructive",
+            Self::Filesystem => "filesystem",
+        }
+    }
+
+    pub fn parse(s: &str) -> Option<Self> {
+        match s {
+            "read" => Some(Self::Read),
+            "edit" => Some(Self::Edit),
+            "destructive" => Some(Self::Destructive),
+            "filesystem" => Some(Self::Filesystem),
+            _ => None,
+        }
+    }
+}
+
+/// The 12 canonical tool profiles defined in AGENT_FIRST_PLAN §2.1.
+pub const PROFILES: &[&str] = &[
+    "admin",
+    "audio",
+    "captions",
+    "colour",
+    "export",
+    "fine-cut",
+    "graphics",
+    "ingest",
+    "multicam",
+    "review",
+    "rough-cut",
+    "speed-motion",
+];
 
 /// Top-level menus, in bar order. `CommandSpec::menu[0]` must be one of these.
 pub const MENU_BAR: &[&str] = &[
@@ -96,6 +145,12 @@ pub struct CommandSpec {
     pub shipped: bool,
     /// Frontend-only command. The engine rejects it with `DispatchError::UiOnly`.
     pub ui_only: bool,
+    /// Primary capability tier (plan §2.1).
+    pub tier: Tier,
+    /// Explicit required permission tiers for multi-effect commands.
+    pub tiers: &'static [Tier],
+    /// Tool profile memberships.
+    pub profiles: &'static [&'static str],
 }
 
 impl CommandSpec {
@@ -121,6 +176,10 @@ impl CommandSpec {
 }
 
 mod commands;
+pub mod policy;
+pub use policy::{
+    all_profiles, profile_info, PolicyError, ProfileInfo, SessionMode, SessionPolicy,
+};
 
 static COMMANDS: std::sync::LazyLock<Vec<CommandSpec>> = std::sync::LazyLock::new(|| {
     let mut all = Vec::new();
@@ -222,6 +281,26 @@ pub fn validate_catalogue() -> Vec<String> {
                 ));
             }
         }
+        if command.tiers.is_empty() {
+            errors.push(format!("command {} has no tiers", command.id));
+        }
+        if !command.tiers.contains(&command.tier) {
+            errors.push(format!(
+                "command {} primary tier {:?} not in tiers list",
+                command.id, command.tier
+            ));
+        }
+        if command.profiles.is_empty() {
+            errors.push(format!("command {} has no profiles", command.id));
+        }
+        for profile in command.profiles {
+            if !PROFILES.contains(profile) {
+                errors.push(format!(
+                    "command {} uses unknown profile {}",
+                    command.id, profile
+                ));
+            }
+        }
     }
     errors
 }
@@ -245,6 +324,9 @@ pub fn catalogue_json() -> Value {
                     "since": command.since,
                     "shipped": command.shipped,
                     "uiOnly": command.ui_only,
+                    "tier": command.tier.as_str(),
+                    "tiers": command.tiers.iter().map(|t| t.as_str()).collect::<Vec<_>>(),
+                    "profiles": command.profiles,
                 })
             })
             .collect(),

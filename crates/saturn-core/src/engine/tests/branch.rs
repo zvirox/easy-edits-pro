@@ -154,10 +154,20 @@ fn merge_accept_absorbs_the_branch_and_is_undoable() {
     make_clip(&mut engine); // extra main work that accept will discard
 
     let main_clips = engine.document().project.sequence.tracks[0].clips.len();
-    let merged = engine
+    // Merging without force fails because main has diverged (stale baseline).
+    let stale_err = engine
         .execute(CommandRequest::new(
             "project.branch_merge",
             json!({"branch": "alt", "action": "accept"}),
+        ))
+        .unwrap_err();
+    assert!(stale_err.to_string().contains("Baseline is stale"), "{stale_err}");
+
+    // Merging with force: true overrides the stale baseline check and discards extra main work.
+    let merged = engine
+        .execute(CommandRequest::new(
+            "project.branch_merge",
+            json!({"branch": "alt", "action": "accept", "force": true}),
         ))
         .unwrap();
     assert_eq!(merged["merged"], json!("accept"));

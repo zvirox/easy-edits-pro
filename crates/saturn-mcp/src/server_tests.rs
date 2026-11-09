@@ -16,7 +16,7 @@ async fn beat_grid_errors_and_forwards_exact_bridge_request() {
     assert!(mcp.timeline_beat_grid_quantize(&args).await.unwrap_err().contains("continuous video strip"));
     let path = std::env::temp_dir().join(format!("eep-beat-tool-{}.sock", std::process::id()));
     let listener = UnixListener::bind(&path).unwrap();
-    let client = EditorMcp { backend: Backend::Bridge(path.clone()), jobs: Arc::new(JobManager::new(1)) };
+    let client = EditorMcp::bridge_with_path(path.clone());
     let expected = args.clone();
     let server = tokio::spawn(async move {
         let (stream, _) = listener.accept().await.unwrap();
@@ -70,7 +70,7 @@ async fn match_cut_errors_and_forwards_exact_bridge_request() {
     assert!(mcp.edit_match_cut_align(&args).await.unwrap_err().contains("Outgoing clip"));
     let path = std::env::temp_dir().join(format!("eep-match-tool-{}.sock", std::process::id()));
     let listener = UnixListener::bind(&path).unwrap();
-    let client = EditorMcp { backend: Backend::Bridge(path.clone()), jobs: Arc::new(JobManager::new(1)) };
+    let client = EditorMcp::bridge_with_path(path.clone());
     let expected = args.clone();
     let server = tokio::spawn(async move {
         let (stream, _) = listener.accept().await.unwrap();
@@ -94,7 +94,7 @@ async fn audio_tool_errors_and_forwards_exact_bridge_request() {
     assert!(error.contains("Save the project"), "{error}");
     let path = std::env::temp_dir().join(format!("eep-audio-tool-{}.sock", std::process::id()));
     let listener = UnixListener::bind(&path).unwrap();
-    let client = EditorMcp { backend: Backend::Bridge(path.clone()), jobs: Arc::new(JobManager::new(1)) };
+    let client = EditorMcp::bridge_with_path(path.clone());
     let args = json!({"operation": "normalize_master", "standard": "streaming", "true_peak_dbtp": -1.0});
     let expected = args.clone();
     let server = tokio::spawn(async move {
@@ -146,10 +146,7 @@ async fn bridge_client_reconnects_after_server_restart() {
     let path =
         std::env::temp_dir().join(format!("eep-mcp-reconnect-{}.sock", std::process::id()));
     let _ = std::fs::remove_file(&path);
-    let client = EditorMcp {
-        backend: Backend::Bridge(path.clone()),
-        jobs: Arc::new(JobManager::new(1)),
-    };
+    let client = EditorMcp::bridge_with_path(path.clone());
 
     for expected in ["first", "second"] {
         let listener = UnixListener::bind(&path).expect("bind bridge socket");
@@ -432,4 +429,252 @@ async fn color_match_shot_reports_typed_errors_headless() {
         .await
         .expect_err("missing file must be a typed error");
     assert!(error.contains("source file is missing"), "unexpected: {error}");
+}
+
+#[tokio::test]
+async fn list_tools_default_is_bounded_and_filters_by_profile() {
+    let engine = EditorEngine::default();
+    let mcp = EditorMcp::new(engine);
+
+    let tools = mcp.active_tools().await;
+    assert!(
+        tools.len() <= 30,
+        "default tools must be <= 30, got {}",
+        tools.len()
+    );
+    assert_eq!(
+        tools.len(),
+        16,
+        "expected exactly 14 core + 2 rough-cut tools"
+    );
+
+    let names: Vec<_> = tools.iter().map(|t| t.name.as_ref()).collect();
+    assert!(names.contains(&"tools.list_profiles"));
+    assert!(names.contains(&"tools.load_profile"));
+    assert!(names.contains(&"command_list"));
+    assert!(names.contains(&"command_run"));
+    assert!(names.contains(&"command_batch"));
+    assert!(names.contains(&"session.stop"));
+    assert!(names.contains(&"session.resume"));
+    assert!(names.contains(&"session.status"));
+    assert!(names.contains(&"history.undo_change"));
+    assert!(names.contains(&"doc_inspect"));
+    assert!(names.contains(&"sequence_inspect"));
+    assert!(names.contains(&"media_search"));
+    assert!(names.contains(&"media_preview"));
+    assert!(names.contains(&"vision_extract_frame_sheet"));
+    assert!(names.contains(&"edit_match_cut_align"));
+    assert!(names.contains(&"media_semantic_query"));
+    assert!(!names.contains(&"color_match_shot_to_reference"));
+    assert!(!names.contains(&"audio_process"));
+}
+
+#[tokio::test]
+async fn profile_discovery_and_loading_enables_new_tools() {
+    let engine = EditorEngine::default();
+    let mcp = EditorMcp::new(engine);
+
+    // 1. tools.list_profiles
+    let list_req = CallToolRequestParams::new("tools.list_profiles");
+    let res = mcp.call(list_req).await.unwrap();
+    let res_text = match &res.content[0].raw {
+        RawContent::Text(t) => &t.text,
+        _ => panic!("expected text content"),
+    };
+    let json: Value = serde_json::from_str(res_text).unwrap();
+    assert_eq!(json["mode"], "autopilot");
+    assert!(
+        json["active_profiles"]
+            .as_array()
+            .unwrap()
+            .contains(&json!("rough-cut"))
+    );
+    let profiles = json["profiles"].as_array().unwrap();
+    assert_eq!(profiles.len(), 12);
+    let colour_prof = profiles.iter().find(|p| p["name"] == "colour").unwrap();
+    assert_eq!(colour_prof["active"], false);
+
+    // 2. tools.load_profile("colour")
+    let mut load_params = serde_json::Map::new();
+    load_params.insert("profile".to_string(), json!("colour"));
+    let load_req = CallToolRequestParams::new("tools.load_profile").with_arguments(load_params);
+    let load_res = mcp.call(load_req).await.unwrap();
+    let load_text = match &load_res.content[0].raw {
+        RawContent::Text(t) => &t.text,
+        _ => panic!("expected text content"),
+    };
+    let load_json: Value = serde_json::from_str(load_text).unwrap();
+    assert_eq!(load_json["ok"], true);
+    assert_eq!(load_json["newly_activated"], true);
+
+    // 3. list_tools now includes colour tools
+    let tools = mcp.active_tools().await;
+    assert!(tools.len() <= 30);
+    let names: Vec<_> = tools.iter().map(|t| t.name.as_ref()).collect();
+    assert!(names.contains(&"color_match_shot_to_reference"));
+    assert!(names.contains(&"color_read_scopes"));
+}
+
+#[tokio::test]
+async fn wrong_profile_returns_typed_profile_required_hint() {
+    let engine = EditorEngine::default();
+    let mcp = EditorMcp::new(engine);
+
+    // Calling a colour command without loading colour profile
+    let mut run_params = serde_json::Map::new();
+    run_params.insert("id".to_string(), json!("color.node_add"));
+    let req = CallToolRequestParams::new("command_run").with_arguments(run_params);
+    let err = mcp.call(req).await.unwrap_err();
+    assert!(
+        err.message
+            .contains("ProfileRequired: command 'color.node_add' requires profile 'colour'")
+    );
+    assert!(err.message.contains("Call tools.load_profile."));
+
+    // Calling dedicated colour tool without loading colour profile
+    let mut match_params = serde_json::Map::new();
+    match_params.insert("src_track_id".to_string(), json!(0));
+    match_params.insert("src_clip_index".to_string(), json!(0));
+    match_params.insert("ref_track_id".to_string(), json!(0));
+    match_params.insert("ref_clip_index".to_string(), json!(0));
+    let tool_req = CallToolRequestParams::new("color_match_shot_to_reference")
+        .with_arguments(match_params);
+    let err = mcp.call(tool_req).await.unwrap_err();
+    assert!(err.message.contains(
+        "ProfileRequired: tool 'color_match_shot_to_reference' requires profile 'colour'"
+    ));
+    assert!(err.message.contains("Call tools.load_profile."));
+}
+
+#[tokio::test]
+async fn command_batch_enforces_profiles_and_stops_on_error() {
+    let engine = EditorEngine::default();
+    let mcp = EditorMcp::new(engine);
+
+    let mut batch_params = serde_json::Map::new();
+    batch_params.insert(
+        "steps".to_string(),
+        json!([
+            { "id": "color.node_add", "params": {} },
+            { "id": "edit.undo", "params": {} }
+        ]),
+    );
+    batch_params.insert("stop_on_error".to_string(), json!(true));
+    let req = CallToolRequestParams::new("command_batch").with_arguments(batch_params);
+    let res = mcp.call(req).await.unwrap();
+    let res_text = match &res.content[0].raw {
+        RawContent::Text(t) => &t.text,
+        _ => panic!("expected text content"),
+    };
+    let json: Value = serde_json::from_str(res_text).unwrap();
+    assert_eq!(json["failed"], 1);
+    assert_eq!(json["completed"], 0);
+    assert!(json["results"][0]["error"].as_str().unwrap().contains(
+        "ProfileRequired: command 'color.node_add' requires profile 'colour'"
+    ));
+}
+
+#[tokio::test]
+async fn loading_profile_cannot_elevate_permission_tiers() {
+    let engine = EditorEngine::default();
+    let mcp = EditorMcp::new(engine);
+
+    // Load export profile
+    let mut load_params = serde_json::Map::new();
+    load_params.insert("profile".to_string(), json!("export"));
+    mcp.call(
+        CallToolRequestParams::new("tools.load_profile").with_arguments(load_params),
+    )
+    .await
+    .unwrap();
+
+    // render_project requires Filesystem tier; session only has [Read, Edit]
+    let mut render_params = serde_json::Map::new();
+    render_params.insert("output_path".to_string(), json!("/tmp/output.mp4"));
+    let req = CallToolRequestParams::new("render_project").with_arguments(render_params);
+    let err = mcp.call(req).await.unwrap_err();
+    assert!(
+        err.message
+            .contains("PermissionDenied: tool 'render_project' requires tier 'filesystem'")
+    );
+}
+
+#[tokio::test]
+async fn review_session_mode_is_strictly_read_only() {
+    let engine = EditorEngine::default();
+    let mcp = EditorMcp::new_with_policy(engine, SessionPolicy::review());
+
+    // Tools in review mode
+    let tools = mcp.active_tools().await;
+    assert!(tools.len() <= 30);
+
+    // Mutating command is refused
+    let mut run_params = serde_json::Map::new();
+    run_params.insert("id".to_string(), json!("timeline.split_clip"));
+    run_params.insert(
+        "params".to_string(),
+        json!({"track_id": 0, "clip_index": 0, "at": {"ticks": 100}}),
+    );
+    let req = CallToolRequestParams::new("command_run").with_arguments(run_params);
+    let err = mcp.call(req).await.unwrap_err();
+    assert!(
+        err.message
+            .contains("PermissionDenied: session in review mode is read-only")
+    );
+}
+
+#[tokio::test]
+async fn mcp_session_stop_resume_and_atomic_batch() {
+    let mut engine = EditorEngine::default();
+    engine
+        .execute(CommandRequest::new("project.new", json!({"name": "MCP AF2 Test"})))
+        .unwrap();
+    let mcp = EditorMcp::new(engine);
+
+    // 1. session.status
+    let req = CallToolRequestParams::new("session.status");
+    let res = mcp.call(req).await.unwrap();
+    assert!(!res.is_error.unwrap_or(false));
+
+    // 2. session.stop
+    let mut stop_args = serde_json::Map::new();
+    stop_args.insert("session_id".to_string(), json!("agent-mcp-1"));
+    let req = CallToolRequestParams::new("session.stop").with_arguments(stop_args);
+    let res = mcp.call(req).await.unwrap();
+    assert!(!res.is_error.unwrap_or(false));
+
+    // Verify stopped
+    let mut status_args = serde_json::Map::new();
+    status_args.insert("session_id".to_string(), json!("agent-mcp-1"));
+    let req = CallToolRequestParams::new("session.status").with_arguments(status_args);
+    let res = mcp.call(req).await.unwrap();
+    let text = res.content[0].as_text().unwrap();
+    assert!(text.text.contains("\"is_stopped\": true"));
+
+    // 3. session.resume with human authority
+    let mut resume_args = serde_json::Map::new();
+    resume_args.insert("session_id".to_string(), json!("agent-mcp-1"));
+    resume_args.insert("caller".to_string(), json!("human"));
+    let req = CallToolRequestParams::new("session.resume").with_arguments(resume_args);
+    let res = mcp.call(req).await.unwrap();
+    assert!(!res.is_error.unwrap_or(false));
+
+    // 4. command_batch with atomic: true rollback on error
+    let mut load_args = serde_json::Map::new();
+    load_args.insert("profile".to_string(), json!("admin"));
+    let req = CallToolRequestParams::new("tools.load_profile").with_arguments(load_args);
+    let _ = mcp.call(req).await.unwrap();
+
+    let mut batch_args = serde_json::Map::new();
+    batch_args.insert("atomic".to_string(), json!(true));
+    batch_args.insert(
+        "steps".to_string(),
+        json!([
+            {"id": "project.branch_create", "params": {"name": "rollback-branch"}},
+            {"id": "timeline.remove_clip", "params": {"track_id": 9999, "clip_index": 0}}
+        ]),
+    );
+    let req = CallToolRequestParams::new("command_batch").with_arguments(batch_args);
+    let res = mcp.call(req).await.unwrap();
+    assert!(res.is_error.unwrap_or(false));
 }

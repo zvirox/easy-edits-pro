@@ -126,6 +126,7 @@ fn document_with_title_and_graphic() -> ProjectDocument {
         automation: Default::default(),
         dsp_plugin_chain: Vec::new(),
         clips: vec![Clip {
+            id: 1,
             media_id: 1,
             timeline_start: Tick(0),
             source_in: Tick(0),
@@ -189,6 +190,7 @@ fn graphics_are_blended_into_ges_export() {
         frame_rate_numerator: 15,
         frame_rate_denominator: 1,
         use_hardware_encoding: false,
+        include_audio: true,
     };
     let result =
         render_project_range_with_settings(&document, &output, None, settings, |_progress| {});

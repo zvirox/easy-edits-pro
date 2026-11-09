@@ -215,7 +215,10 @@ impl EditorEngine {
                         ))
                     })?;
 
+                let clip_id = self.document.project.next_id;
+                self.document.project.next_id = clip_id.saturating_add(1);
                 let compound_clip = Clip {
+                    id: clip_id,
                     media_id: compound_media_id,
                     timeline_start: earliest_tick,
                     source_in: Tick(0),

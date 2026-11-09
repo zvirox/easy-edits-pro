@@ -15,6 +15,9 @@ pub struct ProjectDocument {
     /// not a branch record; each record holds an independent snapshot.
     #[serde(default)]
     pub branches: Vec<crate::branch::TimelineBranch>,
+    /// Durable actor-owned clip and region locks (schema v17, AF2).
+    #[serde(default)]
+    pub locks: crate::lock::LockRegistry,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
