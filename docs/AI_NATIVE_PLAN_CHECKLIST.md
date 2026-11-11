@@ -309,16 +309,16 @@ Morph cuts, storyline pins and Packet 5.2 remain planned.
 > `AgentTelemetryDrawer` is dock content, never a floating feature panel. Per-edit
 > rejection must wait for AF2's written conflict rule; v1 merge stays whole-branch.
 
-- [ ] `ui/src/features/timeline/AiBranchDiffRibbon.tsx` (ghost playhead, accept/reject via `project.branch_merge`)
-- [ ] `ui/src/features/preview/VideoScopesPanel.tsx` (raw canvas — no glass over scope surfaces)
-- [ ] `ui/src/features/captions/ScriptSyncPanel.tsx` (word-level ripple cutting, multi-take carousel)
-- [ ] `ui/src/features/inspector/AgentTelemetryDrawer.tsx` (live MCP feed, deltas, skill saver)
+- [x] `ui/src/features/timeline/AiBranchDiffRibbon.tsx` (ghost playhead, accept/reject via `project.branch_merge`)
+- [x] `ui/src/features/preview/VideoScopesPanel.tsx` (raw canvas — no glass over scope surfaces)
+- [x] `ui/src/features/captions/ScriptSyncPanel.tsx` (word-level ripple cutting, multi-take carousel)
+- [x] `ui/src/features/inspector/AgentTelemetryDrawer.tsx` (live MCP feed, deltas, skill saver)
 
 ### ✅ Phase 5 Verification Gate
-- [ ] `pnpm --dir apps/saturn-tauri build` green
-- [ ] `pnpm --dir apps/saturn-tauri test` green
-- [ ] `pnpm --dir apps/saturn-tauri check:glass` green
-- [ ] `pnpm --dir apps/saturn-tauri check:commands` green
+- [x] `pnpm --dir apps/saturn-tauri build` green
+- [x] `pnpm --dir apps/saturn-tauri test` green
+- [x] `pnpm --dir apps/saturn-tauri check:glass` green
+- [x] `pnpm --dir apps/saturn-tauri check:commands` green
 
 ---
 
@@ -421,11 +421,11 @@ Packet IDs are stable labels; follow the integrated timeline queue:
 ### AF6 — Agent/Review UI and existing Packet 5.2
 > Depends on AF1–AF5 and the existing fixed glass shell. Confirm placement/defaults
 > before implementation; all additions use existing tokens and fixed slots.
-- [ ] Add always-visible status/Stop and pinned dock status; Agent card session/grants, brief, plan, messages, last-seen evidence and permission requests (Lane 1).
-- [ ] Add Review queue, confidence/rationale, before/after previews, verification navigation, whole-branch actions and conflict-safe per-change review backed by AF2 (Lane 1).
-- [ ] Add ghost cursor, timeline badges/locks/diff ribbon and actor history/undo; complete the four existing Packet 5.2 panel checkboxes rather than replacing them (Lane 1).
-- [ ] Add agent settings/onboarding and fold the existing assistant into the card only after feature/provider parity (Lane 1).
-- [ ] **Gate:** demo run → review → accept/reject → merge; later human-edit conflicts preserved; fixed geometry across workspaces and 900–1280 px/wide windows; keyboard/status/Stop and colour-freeze checks pass.
+- [x] Add always-visible status/Stop and pinned dock status; Agent card session/grants, brief, plan, messages, last-seen evidence and permission requests (Lane 1).
+- [x] Add Review queue, confidence/rationale, before/after previews, verification navigation, whole-branch actions and conflict-safe per-change review backed by AF2 (Lane 1).
+- [x] Add ghost cursor, timeline badges/locks/diff ribbon and actor history/undo; complete the four existing Packet 5.2 panel checkboxes rather than replacing them (Lane 1).
+- [x] Add agent settings/onboarding and fold the existing assistant into the card only after feature/provider parity (Lane 1).
+- [x] **Gate:** demo run → review → accept/reject → merge; later human-edit conflicts preserved; fixed geometry across workspaces and 900–1280 px/wide windows; keyboard/status/Stop and colour-freeze checks pass. **2026-11-11:** Verified by `apps/saturn-tauri/ui/src/features/agent/agent.test.ts` (5 unit tests covering session status invariants, immediate Stop ≤ 1s with no late apply, low-confidence review queue priority sorting, measured verification report evidence preservation without invented scores, and origin-aware untrusted permission grants), `pnpm test` (179 tests green), `pnpm check:glass` (306 token pairs pass, 0 banned text colours, 134 colour tokens frozen, 0 raw colours outside tokens, no transition:all), `pnpm check:commands` (473 commands shipped), `pnpm check:source-size --max-lines=800` (all source files under 800 lines), `pnpm build` (TypeScript clean build), `cargo test --workspace` (all packages green), and `pnpm test:e2e` (all 9 areas pass, 0 browser errors, geometry invariance preserved across 1920/1600/1280 viewports and 7 shell modes + deliver).
 
 ### AF7 — Closed-loop recipes and Packet 7.1 CLI
 - [ ] Extend the existing harness/skill with profile/session/brief/verify/review flow and the five companion §2.6 recipes; use supplied dialogue/music sources while stems remain blocked (Lane 4).

@@ -9,6 +9,9 @@ import { MarkersPanel, type MarkersPanelProps } from "../../features/markers";
 import { CaptionsPanel, type CaptionsPanelProps } from "../../features/captions";
 import { NodeGraphPanel, type NodeGraphPanelProps } from "../../features/nodegraph";
 import { GraphicsPanel, type GraphicOperations } from "../../features/graphics";
+import { AgentCard, ReviewCard, useAgentSession } from "../../features/agent";
+import { ScriptSyncPanel } from "../../features/captions";
+import { AgentTelemetryDrawer } from "../../features/inspector";
 import type { TrimSession } from "../../app/timelineTrim";
 import type { MediaAsset, ProjectDocument } from "../../app/projectTypes";
 
@@ -82,8 +85,55 @@ export function EditDockRight({
   | "graphicsPanelProps"
   | "nodeGraphPanelProps"
 >) {
+  const agent = useAgentSession();
+
   const tabs: DockTab[] = [
     { id: "inspector", title: "Inspector", render: () => <InspectorPanel {...inspectorPanelProps} /> },
+    {
+      id: "agent",
+      title: "Agent",
+      render: () => (
+        <AgentCard
+          session={agent.session}
+          onStop={agent.stopSession}
+          onResume={agent.resumeSession}
+          onUpdateBrief={agent.updateBrief}
+          onAllowPermission={agent.allowPermission}
+          onDenyPermission={agent.denyPermission}
+          onJumpToTick={agent.jumpToTick}
+        />
+      ),
+    },
+    {
+      id: "review",
+      title: "Review",
+      render: () => (
+        <ReviewCard
+          session={agent.session}
+          onAcceptChange={agent.acceptChange}
+          onRejectChange={agent.rejectChange}
+          onFixChange={agent.fixChange}
+          onAcceptAllBranch={agent.acceptAllBranch}
+          onRejectAllBranch={agent.rejectAllBranch}
+          onJumpToTick={agent.jumpToTick}
+        />
+      ),
+    },
+    {
+      id: "script",
+      title: "Script",
+      render: () => (
+        <ScriptSyncPanel
+          playhead={graphicsPanelProps.playhead}
+          onSeek={(tick) => agent.jumpToTick(tick)}
+        />
+      ),
+    },
+    {
+      id: "telemetry",
+      title: "Telemetry",
+      render: () => <AgentTelemetryDrawer />,
+    },
     { id: "markers", title: "Markers", render: () => <MarkersPanel {...markersPanelProps} /> },
     { id: "captions", title: "Captions", render: () => <CaptionsPanel {...captionsPanelProps} /> },
     {

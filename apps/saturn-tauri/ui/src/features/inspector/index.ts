@@ -10,3 +10,4 @@ export { KeyframesInspector, type KeyframesInspectorProps } from "./KeyframesIns
 export { SubtitleInspector, type SubtitleInspectorProps } from "./SubtitleInspector";
 export { TitleInspector, type TitleInspectorProps } from "./TitleInspector";
 export { TransitionInspector, type TransitionInspectorProps } from "./TransitionInspector";
+export { AgentTelemetryDrawer, type AgentTelemetryDrawerProps, type McpToolCallRecord, type TelemetryDelta } from "./AgentTelemetryDrawer";

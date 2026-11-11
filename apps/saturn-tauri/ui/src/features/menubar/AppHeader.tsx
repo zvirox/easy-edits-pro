@@ -15,6 +15,7 @@ import type { JobInfo } from "../../app/useJobs";
 import type { CommandStatus } from "../../app/ProjectProvider";
 import { formatShortcut } from "../shortcuts/shortcuts.ts";
 import { rankCommands } from "./ranking.ts";
+import { AgentStatusChip, AgentSettingsModal, useAgentSession } from "../agent";
 import type {
   EditorWorkspace,
   MediaAsset,
@@ -131,6 +132,8 @@ export function AppHeader({
   const { clip: selectedClip } = useClipSelection();
   const [jobDrawerOpen, setJobDrawerOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [agentSettingsOpen, setAgentSettingsOpen] = useState(false);
+  const agent = useAgentSession({ setNotice });
   const [commandQuery, setCommandQuery] = useState("");
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   // The dropdown is portaled to <body>: the menu strip has overflow-x: auto
@@ -511,6 +514,23 @@ export function AppHeader({
             </AnimatePresence>
           </div>
 
+          <AgentStatusChip
+            session={agent.session}
+            onStop={agent.stopSession}
+            onResume={agent.resumeSession}
+          />
+
+          <InteriorButton
+            type="button"
+            className="system-util-btn"
+            onClick={() => setAgentSettingsOpen(true)}
+            data-tooltip="Agent & Co-editing Settings"
+            data-tooltip-pos="bottom"
+          >
+            <span>🤖</span>
+            <span>Settings</span>
+          </InteriorButton>
+
           <InteriorButton
             type="button"
             className="system-util-btn"
@@ -629,6 +649,11 @@ export function AppHeader({
       </motion.div>
     )}
     </AnimatePresence>
+
+    <AgentSettingsModal
+      isOpen={agentSettingsOpen}
+      onClose={() => setAgentSettingsOpen(false)}
+    />
     </>
   );
 }

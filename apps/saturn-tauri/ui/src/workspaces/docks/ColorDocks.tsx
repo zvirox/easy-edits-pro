@@ -7,7 +7,7 @@ import type { Dispatch, SetStateAction, RefObject } from "react";
 import { ColorWheels, type ColorWheelsData, DEFAULT_COLOR_WHEELS } from "../../components/ColorWheels";
 import { RgbCurvesEditor } from "../../components/RgbCurvesEditor";
 import { HslQualifierEditor } from "../../components/HslQualifierEditor";
-import { VideoScopes } from "../../components/VideoScopes";
+import { VideoScopesPanel } from "../../features/preview/VideoScopesPanel";
 import { DockCard, type DockTab } from "../../features/dock/DockCard";
 import { useClipSelection } from "../../app/selectionStore";
 import { MediaPanel, type MediaPanelProps } from "../../features/media-pool";
@@ -106,7 +106,7 @@ export function ColorDockLeft({
       title: "Video Scopes",
       render: () => (
         <section className="color-scopes-stage">
-          <VideoScopes
+          <VideoScopesPanel
             getActiveVideo={() => {
               if (deckSnapshot?.deckB.visible && deckBRef.current) return deckBRef.current;
               return deckARef.current;

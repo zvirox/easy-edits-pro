@@ -10,3 +10,5 @@ export {
   type SourcePreviewFocus,
   type MonitorMode,
 } from "./PreviewSection";
+export { VideoScopesPanel, type VideoScopesPanelProps } from "./VideoScopesPanel";
+

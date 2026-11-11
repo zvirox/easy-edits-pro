@@ -19,3 +19,4 @@ export {
   type ClipMenuCommand,
 } from "./ClipContextMenu";
 export { TrimMonitorPanel, type TrimMonitorPanelProps } from "./TrimMonitorPanel";
+export { AiBranchDiffRibbon, type AiBranchDiffRibbonProps } from "./AiBranchDiffRibbon";

@@ -16,6 +16,7 @@ import {
 } from "../types";
 import { formatTime } from "../utils/formatters";
 import { DeliverPresetBank } from "../features/deliver/DeliverPresetBank";
+import { AgentStatusChip, useAgentSession } from "../features/agent";
 
 export interface ExportWorkspaceProps {
   project: ProjectDocument["project"] | null;
@@ -101,6 +102,7 @@ export function ExportWorkspace({
   quickExport,
   exportProject,
 }: ExportWorkspaceProps) {
+  const agent = useAgentSession({ setNotice: (msg) => { if (msg) setNotice(msg); } });
   const outputResolution =
     exportResolution === "source"
       ? { width: project?.settings.width ?? 1920, height: project?.settings.height ?? 1080 }
@@ -135,6 +137,13 @@ export function ExportWorkspace({
   return (
     <main className="export-workspace">
       <StudioPanel title="Destinations" className="export-destinations" scrollable>
+        <div style={{ marginBottom: "6px" }}>
+          <AgentStatusChip
+            session={agent.session}
+            onStop={agent.stopSession}
+            onResume={agent.resumeSession}
+          />
+        </div>
         <InteriorButton
           className={`export-destination ${deliverDestination === "render" ? "selected" : ""}`}
           onClick={() => setDeliverDestination("render")}

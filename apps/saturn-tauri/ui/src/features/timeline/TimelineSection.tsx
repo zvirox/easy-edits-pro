@@ -35,6 +35,8 @@ import { useClipContextMenu } from "./useClipContextMenu";
 import { useSequenceTabs } from "./useSequenceTabs";
 import { MarkerLane } from "./MarkerLane";
 import { defaultCaptionCues } from "../../app/captions";
+import { AiBranchDiffRibbon } from "./AiBranchDiffRibbon";
+import type { ReviewChange } from "../agent/types";
 
 export {
   type TimelineTool,
@@ -132,6 +134,11 @@ export interface TimelineSectionProps {
   addVideoTrack: () => Promise<void>;
   addAudioTrack: () => Promise<void>;
   onMediaDropToEmptySpace: (x: number, y: number, mediaId: number) => Promise<void>;
+  activeBranch?: string;
+  ghostPlayheadTick?: number | null;
+  agentChanges?: ReviewChange[];
+  onAcceptBranch?: () => void;
+  onRejectBranch?: () => void;
 }
 
 export function TimelineSection({
@@ -209,6 +216,11 @@ export function TimelineSection({
   finishTimelineClipTrim,
   // New props
   onMediaDropToEmptySpace,
+  activeBranch,
+  ghostPlayheadTick,
+  agentChanges,
+  onAcceptBranch,
+  onRejectBranch,
 }: TimelineSectionProps) {
   const tracks = project?.sequence.tracks ?? [];
   const videoTracks = tracks.filter((t) => t.kind === "video");
@@ -304,6 +316,17 @@ export function TimelineSection({
           invokeMenuCommand={invokeMenuCommand}
           zoomTimeline={zoomTimeline}
           handleCreateTrackGroup={handleCreateTrackGroup}
+        />
+
+        <AiBranchDiffRibbon
+          activeBranch={activeBranch}
+          isAgentBranch={Boolean(activeBranch && activeBranch !== "main")}
+          ghostPlayheadTick={ghostPlayheadTick}
+          timelineZoom={timelineZoom}
+          changes={agentChanges}
+          onAcceptAll={onAcceptBranch}
+          onRejectAll={onRejectBranch}
+          onSeek={(sec) => perform?.("playback.seek", { seconds: sec })}
         />
 
         {/* Timeline Body (Labels + Content side by side) */}
