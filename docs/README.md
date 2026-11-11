@@ -22,9 +22,9 @@ New here? Start with the first group.
 
 ## Project planning (for maintainers and agents; not required reading)
 
-- [AI_NATIVE_ARCHITECTURE_PLAN.md](AI_NATIVE_ARCHITECTURE_PLAN.md), [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md), [GLASS_CARDS_PLAN.md](GLASS_CARDS_PLAN.md)
+- [AI_NATIVE_ARCHITECTURE_PLAN.md](AI_NATIVE_ARCHITECTURE_PLAN.md), [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md), [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md), [GLASS_CARDS_PLAN.md](GLASS_CARDS_PLAN.md)
 - [AI_NATIVE_PLAN_CHECKLIST.md](AI_NATIVE_PLAN_CHECKLIST.md): the live progress checklist.
-- [planning/](planning/), [audit/](audit/), [spikes/](spikes/), [agent-task-card.md](agent-task-card.md), [alpha-triage.md](alpha-triage.md), [mcp-command-matrix-report.md](mcp-command-matrix-report.md), [tauri-migration.md](tauri-migration.md)
+- [planning/](planning/) ([capture-event-track-v0.1.md](planning/capture-event-track-v0.1.md), [agent-operated-pro-editor.md](planning/agent-operated-pro-editor.md), [contributor-strategy.md](planning/contributor-strategy.md), [cross-platform-and-positioning.md](planning/cross-platform-and-positioning.md), [af0-actor-design.md](planning/af0-actor-design.md), [dual-licensing-plan.md](planning/dual-licensing-plan.md)), [audit/](audit/), [spikes/](spikes/), [agent-task-card.md](agent-task-card.md), [alpha-triage.md](alpha-triage.md), [mcp-command-matrix-report.md](mcp-command-matrix-report.md), [tauri-migration.md](tauri-migration.md)
 
 ## Licensing
 
