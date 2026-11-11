@@ -9,7 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.2-alpha.5] - 2026-11-09
+## [0.1.2-alpha.6] - 2026-11-11
+
+### Added
+- **AF3 — Measured Self-Check (`verify.run`):**
+  - Added read-only `verify.run` engine command and MCP tool returning empirical verification metrics across a sequence or named range.
+  - Bounded checks: Audio integrated LUFS, dBTP true peak, dead air/silence duration; Video highlight clipping, crushed blacks, frozen frames; Captions safe area and reading speed; Project brief duration tolerance; Provenance unreviewed edits and offline media.
+  - Presets for delivery platforms: `web-1080p`, `vertical-9x16`, `broadcast-r128`.
+  - Negative controls verifying failed thresholds and enforcing zero invented aggregate quality scores.
+- **AF5 — Untrusted Media Provenance & Origin Tracking:**
+  - Standardized structured payload wrapping (`{ text, untrusted: true, source }`) for media-derived text across search, preview, inspect, transcripts, captions, OCR, filenames, and imported metadata.
+  - Server-owned origin tracking and brief-boundary fences preventing prompt injections in media text from executing destructive filesystem or admin actions without explicit human approval.
+- **AF6 — Agent & Review UI (Lane 1):**
+  - Always-visible top-bar `AgentStatusChip` with live state dot (`idle`, `thinking`, `editing`, `waiting`, `stopped`), step progress, and an immediate **Stop** button (≤ 1s halt with no late apply).
+  - Globally mounted Stop control in the Deliver workspace (`ExportWorkspace.tsx`).
+  - `AgentCard` with editable human brief, numbered plan steps with timeline seek navigation, inline permission request cards (`Allow once`, `Allow session`, `Deny`), and telemetry status.
+  - `ReviewCard` prioritizing low-confidence edits first, before/after previews, rationale display, `verify.run` report viewer, whole-branch Accept all / Reject all (`project.branch_merge`), and scoped keyboard shortcuts (<kbd>J</kbd>/<kbd>K</kbd>, <kbd>A</kbd>, <kbd>R</kbd>, <kbd>F</kbd>, <kbd>Space</kbd>).
+  - `AgentSettingsModal` configuring daemon endpoint, default security grants, auto-merge policies, audit log path, and onboarding demo tasks.
+  - `StatusBar` extended with active branch (`🌿 agent/rough-cut`), active profile mode, and last actor attribution.
+- **Packet 5.2 — Co-Editing React 19 Panels (Lane 1):**
+  - `AiBranchDiffRibbon.tsx`: Timeline ribbon displaying active branch badge, ghost playhead indicator (`accent-text-violet`), change markers along timeline zoom, and whole-branch Accept all / Reject all buttons.
+  - `VideoScopesPanel.tsx`: 60 FPS studio scopes (Waveform 0-100 IRE, Vectorscope, RGB Parade, Histogram) with raw canvas rendering (strictly no glass or blur on scope surface) and AI Target Bounds overlay.
+  - `ScriptSyncPanel.tsx`: Word-level Whisper transcript viewer with click-to-seek, multi-take carousel (`T1`, `T2`, `T3`), word-level ripple cutting, and explicit `untrusted: true` provenance tags.
+  - `AgentTelemetryDrawer.tsx`: Dock section displaying live MCP tool feed, before/after telemetry deltas (LUFS, dBTP, dead air), JSONL export, and "Save as skill" recipe persistence.
+
+### Fixed
+- Fixed parity report drift in `docs/PARITY.md` and synchronized command catalogue to 473 commands.
+- Fixed late-apply cancellation race condition ensuring stopped agent preparation never mutates project state.
+- Maintained strict geometry invariance across 1920/1600/1280 viewports across all 7 shell modes and full-page deliver workspace.
 
 ### Added
 - **AI-Native & Agent-First Foundation (Packets AF1 & AF2):**
