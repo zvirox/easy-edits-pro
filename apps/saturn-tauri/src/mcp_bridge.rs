@@ -157,6 +157,7 @@ fn check_bridge_tool(method: &str, policy: &SessionPolicy) -> Result<(), String>
         "timeline_beat_grid_quantize" => (&[Edit], &["fine-cut", "speed-motion"]),
         "media_semantic_query" => (&[Read], &["ingest", "rough-cut", "review"]),
         "edit_evaluate_cut_continuity" => (&[Read], &["fine-cut", "review"]),
+        "verify.run" | "verify_run" => (&[Read], &["review"]),
         "render_preview_clip_proxy" => (&[Edit, Filesystem], &["ingest", "review"]),
         "render_project" | "render_start" => (&[Edit, Filesystem], &["export"]),
         "render_status" => (&[Read], &["export"]),
@@ -299,6 +300,7 @@ async fn dispatch(
         "audio_read_telemetry" => audio_read_telemetry(state, &params).await,
         "media_semantic_query" => media_semantic_query(state, &params).await,
         "edit_evaluate_cut_continuity" => edit_evaluate_cut_continuity(state, &params).await,
+        "verify.run" | "verify_run" => verify_run(state, &params).await,
         _ => Err(format!("unknown bridge method: {method}")),
     };
     match result {

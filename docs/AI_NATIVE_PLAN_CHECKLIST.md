@@ -366,12 +366,13 @@ Morph cuts, storyline pins and Packet 5.2 remain planned.
 
 ---
 
-## Agent-first companion — AF0–AF9 — `status: AF0 inventory/design recorded; implementation pending`
+## Agent-first companion — AF0–AF9 — `status: AF0, AF1, AF2, AF4 completed; AF3 next`
 
-Specification: [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md). Each milestone below
-may need several sequential, single-lane commits. Core/schema = Lane 2;
+Specification: [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md) and companion [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md).
+Each milestone below may need several sequential, single-lane commits. Core/schema = Lane 2;
 MCP/harness/docs = Lane 4; UI = Lane 1; packaging/native verification = Lane 3.
-Packet IDs are stable labels; follow the dependency queue above.
+Packet IDs are stable labels; follow the integrated timeline queue:
+**AF0 (Done) → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 → AF5 → AF6/5.2 → Task Sheet v1 (TS0–TS6) & Flagship Recipes (with CET v0.1) → AF7/7.1 → AF8/7.2 → AF9 / TS7–TS9 (Daemon, Web API & Web Desk) → XP1–XP4 (Cross-platform) → TS10 (SSO) & TS-X (Shared agent-contract crate).**
 
 ### AF0 — Baseline, housekeeping and actor design
 - [x] Reconcile the supplied plan at `7c20b98`, add companion/cross-links and refresh the local `docs/planning.md` index (kept ignored per repository policy); retain completed work and blocked stems. Move misplaced match-cut evidence into the progress log and correct stale checklist header/Phase 3 status.
@@ -407,9 +408,9 @@ Packet IDs are stable labels; follow the dependency queue above.
 - [x] **Gate:** migration/save/reopen/merge and correction tests; confidence is labelled agent uncertainty, not measured quality. **2026-11-09:** Verified by `crates/saturn-core/tests/af4_brief_and_provenance.rs` (8 tests passing), migration test suite `v17_project_migrates_to_v18_schema_with_brief_and_agent_notes` (9 migration tests passing), `crates/saturn-mcp` (20 tests passing), `cargo test --workspace` (all packages green), `pnpm check:source-size --max-lines=800` (all ≤800 lines), `pnpm check:commands` (472 commands), `pnpm check:glass`, `pnpm test` (174 tests), `pnpm build`, and `pnpm test:e2e` (all green).
 
 ### AF3 — `verify.run` measured self-check
-- [ ] Implement bounded named checks from the companion §2.3: loudness/peak, silence, black/frozen/clipped frames, captions, brief targets, continuity/pops, missing resources and unreviewed uncertain edits (Lane 2 analysis).
-- [ ] Expose the shared read-only verifier over MCP/bridge with snapshot/range/coverage, measurements, thresholds, tick/clip evidence and unavailable checks; document presets (Lane 4).
-- [ ] **Gate:** seeded bad projects fail at correct ticks/values; clean fixtures pass; missing/truncated measurements never masquerade as full coverage or invented quality scores.
+- [x] Implement bounded named checks from the companion §2.3: loudness/peak, silence, black/frozen/clipped frames, captions, brief targets, continuity/pops, missing resources and unreviewed uncertain edits (Lane 2 analysis).
+- [x] Expose the shared read-only verifier over MCP/bridge with snapshot/range/coverage, measurements, thresholds, tick/clip evidence and unavailable checks; document presets (Lane 4).
+- [x] **Gate:** seeded bad projects fail at correct ticks/values; clean fixtures pass; missing/truncated measurements never masquerade as full coverage or invented quality scores. **2026-11-11:** Verified by `crates/saturn-core/tests/verify_run_tests.rs` (11 tests covering clean fixtures, negative controls for captions, duration, aspect ratio, silence gaps, unreviewed low confidence notes, offline media, audio/video telemetry, presets, and unavailable metrics honesty), `crates/saturn-mcp` (21 tests including `mcp_verify_run_headless_measured_evidence`), `cargo test --workspace` (all packages green), `pnpm check:source-size --max-lines=800`, `pnpm check:commands` (473 commands, 473 shipped), `pnpm check:glass`, `pnpm test` (174 tests), `pnpm build`, and `pnpm test:e2e` (all green).
 
 ### AF5 — Untrusted media provenance
 - [ ] Version and wrap media-derived text consistently across MCP inspection/search/preview/error payloads; propagate server-owned origin information (Lane 4).
@@ -442,6 +443,136 @@ Packet IDs are stable labels; follow the dependency queue above.
 
 ---
 
+## Task Sheet companion — TS0–TS10 & TS-X — `status: planned (queue follows AF3/AF5/AF6)`
+
+Specification: [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md). Companion to [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md);
+extends AF4's `ProjectBrief` to structured work orders, plan approval gates, pro review rounds with diffs,
+and delivery packages. Core/schema = Lane 2; MCP/harness/docs = Lane 4; UI = Lane 1; native/CI = Lane 3.
+
+### TS0 — Design freeze & schemas
+- [ ] Add `tasksheet/1` JSON Schema and Rust types in a separate module outside EEP domain code (Lane 2).
+- [ ] Formalize task sheet state machine: `draft → ready → planning → awaiting_plan_approval → running ⇄ needs_input → in_review → revision_requested → running … → approved → delivered` (Lane 4).
+- [ ] Draft templates for the three flagship jobs: podcast social clips, talking-head/screen tutorials, webinar recaps (Lane 4).
+- [ ] Capture Event Track (CET v0.1) specification freeze: schema `cet-0.1.schema.json`, sidecar packaging `.cet.jsonl`, class-only key capture with named shortcuts opt-in switch (`privacy.named_shortcuts="on"`), test vectors, and synthetic generator (`cet-gen`) design (standalone repo: [github.com/zvirox/capture-event-track](https://github.com/zvirox/capture-event-track), draft in [planning/capture-event-track-v0.1.md](planning/capture-event-track-v0.1.md)) (Lane 4).
+- [ ] **Gate:** JSON Schema validates all fixture sheets; invalid structures rejected; state machine transitions tested; CET v0.1 schema validates sample track.
+
+### TS1 — Core sheet engine & ProjectBrief migration
+- [ ] Implement sheet types, validation, and state machine in Rust core (Lane 2).
+- [ ] Lossless migration of existing `ProjectBrief` to single-deliverable sheet; keep `project.brief_set/get` as shorthand (Lane 2).
+- [ ] Add `tasksheet.*` commands (`create`, `update`, `validate`, `submit`, `get`, `plan_submit`, `plan_approve`, `plan_reject`, `run_report`) with explicit tiers and profile `tasksheet` (Lane 2/4).
+- [ ] Write journal entries for every sheet transition; refuse any sheet mutation originating from `untrusted` media text (Lane 2).
+- [ ] **Gate:** Unit tests for every transition; save/reopen preserves state; ProjectBrief migration test passes; untrusted text refusal proven.
+
+### TS2 — Desktop Sheet tab & Agent Inbox
+- [ ] Add right dock tab "Sheet" using existing glass tokens: inputs with roles, deliverables, acceptance list, budgets, escalation rules, template picker (Lane 1).
+- [ ] Add Inbox to Agent card: displays agent questions as cards with options, thumbnails, and keyboard selection (Lane 1).
+- [ ] Update status bar with active sheet ID, status chip, and accumulated budget meters (Lane 1).
+- [ ] **Gate:** E2E: create sheet → submit → agent question displayed → answer → resume; responsive layout passes 900–1280px tests without clipping.
+
+### TS3 — Questions & Plan approval flow
+- [ ] Implement `tasksheet.question_ask` and `tasksheet.question_answer` with engine pause/resume orchestration (Lane 2/4).
+- [ ] Implement plan approval gate (`tasksheet.plan_submit`, `plan_approve`, `plan_reject`): approval required by default before agent begins edits (Lane 4).
+- [ ] Enforce unanswered question deadline: pauses session safely; never assumes destructive choices (Lane 2).
+- [ ] **Gate:** Agent remains safely paused while waiting for human plan approval or question answer; deadline timeout pauses safely.
+
+### TS4 — Pro review notes & revision rounds
+- [ ] Add `review.note_add`, `review.note_list`, `review.note_resolve` for timecoded notes linked to clips and ranges (Lane 2/4).
+- [ ] Add `review.round_open` and `review.round_close` with round-by-round diffs against prior rounds (v1, v2…) (Lane 2).
+- [ ] Review card UI additions: round selector, timecoded notes list, "Add note at playhead" shortcut, and round diff view (Lane 1).
+- [ ] Timeline UI: render note markers on ruler and low-confidence indicator dots on clips (Lane 1).
+- [ ] **Gate:** Notes survive save/reopen; round diff isolates changed ranges accurately; agent marks addressed notes with explanations; notes cannot be silently dropped.
+
+### TS5 — Delivery packaging (`delivery.package`)
+- [ ] Implement `delivery.package` command with `filesystem` tier grant (Lane 2).
+- [ ] Package exports, project file, interchange files (FCPXML, OTIO), automated QC report from `verify.run`, change log, and provenance metadata (Lane 2/4).
+- [ ] Verify package integrity with checksums (BLAKE3 / SHA-256) (Lane 2).
+- [ ] **Gate:** Delivery package passes checksum verification; contains valid interchange files, complete QC report, and attributed change log.
+
+### TS6 — Flagship recipes & EEP-Bench tasks
+- [ ] Build Recipe 1: Podcast to clips (transcript ranking, word-boundary cuts, reframing, captions, loudness, QC) (Lane 4).
+- [ ] Build Recipe 2: Talking-head & tutorial with CET integration (silence/filler cleanup, chaptering, zooms/cuts from CET cursor/window events, QC) (Lane 4).
+- [ ] Build Recipe 3: Webinar & training recap (transcript chaptering, topic coverage check, highlight selection, full + reel exports, QC) (Lane 4).
+- [ ] Build synthetic CET generator (`cet-gen`) for Recipe 2 verification ahead of physical recorder hardware (Lane 4).
+- [ ] **Gate:** Scripted agents pass deterministic bench smoke in CI for all three recipes; Recipe 2 parses synthetic CET event track without error.
+
+### TS7 — Daemon Web API on `saturn-control`
+- [ ] Expose task sheet, review, question, and verification endpoints over REST + WebSockets on `saturn-control` (Lane 4).
+- [ ] Integrate with AF9 authentication tokens, rate/time budgets, and audit logging (Lane 4).
+- [ ] **Gate:** Remote API conformance suite passes; token auth enforced; unauthorized requests rejected; audit log records every tool call.
+
+### TS8 — Web Desk MVP
+- [ ] Build browser UI for B2B self-hosting: Jobs board/list, New job with template picker, Job detail with live run log & inbox, Review page with proxy video player & timecoded notes (Lane 1).
+- [ ] Reuse desktop React components and locked design tokens (`00-tokens-glass.css`) (Lane 1).
+- [ ] Add visible "Source and licence" link per AGPL §13 requirements (Lane 1).
+- [ ] **Gate:** Playwright E2E suite passes against daemon with scripted agent: create job → approve plan → agent runs → review cut → add notes → approve.
+
+### TS9 — Runner & multi-job execution
+- [ ] Runner daemon service: watches `ready` sheets, leases worker sessions, enforces budget limits (wall-clock, token cost, render minutes) (Lane 4).
+- [ ] Support bring-your-own model endpoints (cloud API keys or local LLM/vision endpoints) (Lane 4).
+- [ ] **Gate:** Two concurrent task sheets complete within assigned budgets; kill switch / Stop cleanly cancels execution.
+
+### TS10 — Enterprise SSO
+- [ ] OIDC / SAML authentication support for Web Desk deployments (Lane 4).
+- [ ] Role-based access control (requester, reviewer, approver, admin) (Lane 4).
+- [ ] **Gate:** SSO login flow and role-mapping tests pass.
+
+### TS-X — Shared agent contract crate
+- [ ] Extract product-agnostic agent contract (task sheet, rounds, notes, questions, verify result types, tiers/profiles, actors, audit log) into a shared crate when Audio Labs Pro (ALP) or Screen Studio Pro (SSP) becomes the second active consumer (Lane 2/4).
+- [ ] **Gate:** Both EEP and ALP pass shared conformance test suite.
+
+---
+
+## Cross-Platform Workstream — XP1–XP4 — `status: planned`
+
+Specification: [planning/cross-platform-and-positioning.md](planning/cross-platform-and-positioning.md).
+Strategy: Tier 1 Linux (full release gates), Tier 2 macOS & Windows (CI builds + packages, supported with known gaps).
+Headless first (`saturn-cli` + `saturn-mcp` daemon), then desktop shell.
+
+### XP1 — CI check matrix & breakage inventory
+- [ ] Add `cargo check --workspace` jobs on `windows-latest` and `macos-latest` to GitHub Actions (Lane 3).
+- [ ] Document compilation errors and Unix-specific dependency inventory (Lane 4).
+- [ ] **Gate:** CI check runs green on Windows and macOS; breakage catalog documented.
+
+### XP2 — `saturn-platform` abstraction crate
+- [ ] Create `crates/saturn-platform` owning OS-specific abstractions: IPC (Unix sockets vs Windows named pipes), shared memory rings, plugin worker sandboxing, standard dirs (config, cache, runtime, CLAP paths), GPU/encoder detection (Lane 2).
+- [ ] Add CI grep gate preventing new `cfg(unix)` or raw Linux paths outside `saturn-platform` (Lane 4).
+- [ ] **Gate:** `cargo test -p saturn-platform` passes across Linux, Windows, macOS; zero raw `cfg(unix)` leaks.
+
+### XP3 — Headless cross-platform (CLI + MCP daemon)
+- [ ] Port `saturn-cli` and `saturn-mcp` daemon to macOS and Windows using `saturn-platform` (Lane 4).
+- [ ] Build and publish Tier 2 headless packages / binaries in CI (Lane 3).
+- [ ] **Gate:** Headless MCP daemon runs on Windows and macOS; agent can operate the editor over local IPC.
+
+### XP4 — Desktop cross-platform (Tauri 2 shell)
+- [ ] Verify Tauri 2 desktop shell on macOS first (WKWebView), then Windows (WebView2) with signed installers (.dmg, MSI/NSIS) (Lane 1/3).
+- [ ] Test frosted-glass styling and video playback across all web engines (Lane 1).
+- [ ] **Gate:** Signed packages install on clean macOS and Windows systems; desktop smoke tests pass.
+
+---
+
+## Community & Contributor Launch Workstream — C1–C3 — `status: C1 landed; C2/C3 in progress`
+
+Specification: [planning/contributor-strategy.md](planning/contributor-strategy.md).
+
+### C1 — Repository hygiene & onboarding docs
+- [x] Contributor guide: 6-step onboarding, SPDX instructions, AI contribution policy in `CONTRIBUTING.md` (Lane 4, landed `b7e1d51`).
+- [x] Standardize official contact emails (`info@zvirox.in`, `zvirox@proton.me`) across all files (Lane 4, landed `b7e1d51`).
+- [x] Add PR template, `CODEOWNERS`, `GOVERNANCE.md`, `SUPPORT.md`, `ROADMAP.md`, `docs/README.md` index, and starter issue template (Lane 4, landed `b7e1d51`).
+- [x] Add `scripts/doctor.sh` environment check and `scripts/github-labels.sh` (Lane 4, landed `b7e1d51`).
+
+### C2 — Starter issues & demo asset
+- [ ] Create and label 10–15 starter issues (`good first issue`, `help wanted`) with context, files, and acceptance tests (Lane 4).
+- [ ] Record 60–90 second demo video (task sheet → agent edit on branch → review queue → accept) (Lane 4).
+- [ ] Verify clean dev setup on fresh Ubuntu 24.04 and Fedora containers via `scripts/doctor.sh` (Lane 3).
+- [ ] **Gate:** 10+ starter issues live on GitHub; demo video recorded; fresh container passes doctor.sh.
+
+### C3 — Community outreach & platform submission
+- [ ] Submit repository to Good First Issue, Up For Grabs, and CodeTriage (Lane 4).
+- [ ] Publish announcement post to r/rust, This Week in Rust (Call for Participation), and Show HN (Lane 4).
+- [ ] **Gate:** Repository indexed on discovery platforms; announcements published.
+
+---
+
 ## Cross-cutting rules (apply to every packet above)
 
 - [ ] One lane per packet; one `<menu>.rs` family per agent; sequential `main.rs` handler commits
@@ -459,6 +590,11 @@ Packet IDs are stable labels; follow the dependency queue above.
 
 | Date | Packet | Note / Evidence |
 |---|---|---|
+| 2026-11-11 | Planning / Governance & Platform Decisions | **CET, Cross-Platform, and Task Sheet governance decisions recorded; CET repository established.** CET name confirmed as Capture Event Track; CC BY 4.0 (spec) and Apache-2.0 (schema/tests/libs) license split confirmed; dedicated standalone public repo created at [github.com/zvirox/capture-event-track](https://github.com/zvirox/capture-event-track); class-only key capture default with named shortcuts opt-in switch confirmed; Recipe 2 confirmed to start with `cet-gen` synthetic generator; Tier 1 Linux and Tier 2 macOS/Windows adopted with headless first; macOS desktop GUI confirmed first, then Windows; public tagline/positioning deferred to a later decision. |
+| 2026-11-10 | Planning / Task Sheet | **Task Sheet Plan, CET v0.1 spec, Pro-Editor philosophy, Cross-Platform tiers, and Contributor strategy adopted.** Added [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md) (packets TS0–TS10 & TS-X: work orders, review rounds, web desk, recipes), [planning/capture-event-track-v0.1.md](planning/capture-event-track-v0.1.md) (open screen event sidecar spec), [planning/agent-operated-pro-editor.md](planning/agent-operated-pro-editor.md), [planning/cross-platform-and-positioning.md](planning/cross-platform-and-positioning.md) (Tier 1 Linux, Tier 2 macOS/Windows; packets XP1–XP4), and [planning/contributor-strategy.md](planning/contributor-strategy.md) (packets C1–C3). Checklist and timeline integrated; next actionable work remains AF3 (`verify.run`). |
+| 2026-11-10 | AF4 | **Rationale, confidence, project brief and human correction provenance (`ecd3041` / `2834ba3`).** Persisted per-edit rationale, declared agent confidence, schema v17→v18 migration, Rust-owned `project.brief_set/get` command with human authorization guards. Verified by 8 unit tests in `af4_brief_and_provenance.rs`, 9 migration tests, 20 MCP tests, full workspace gate green. |
+| 2026-11-09 | C1 | **Contributor onboarding infrastructure landed (`b7e1d51`).** CONTRIBUTING 6-step guide, PR template, doctor.sh, CODEOWNERS, GOVERNANCE, ROADMAP.md, starter issue template, GitHub labels script, and email cleanup to official addresses (`info@zvirox.in`, `zvirox@proton.me`). |
+| 2026-11-09 | AF1 & AF2 | **Command profiles, permission tiers, actor isolation, durable locks, and atomic batches (`8116438`).** All 465 commands annotated with tiers and profiles; dynamic profile filtering; `ActorId`/`ActorContext` isolation; durable clip/region locks; generation-fenced Stop (<1s); atomic multi-step engine transactions with rollback. Verified by 7 multi-actor integration tests, 18 MCP tests, full workspace green. |
 | 2026-11-09 | AF0 notice-bundle + worker-packaging slice | New `scripts/generate-notice-bundle.py` (generated at package-build time, never committed): shipped set = desktop Cargo graph ∪ worker closure (root lockfile; extra `clack-plugin 0.2.0`) ∪ pnpm prod closure (11 packages); 974 verbatim licence texts; 9 crates shipping no upstream file (and 2 combined-file cases) get canonical SPDX texts from the vendored `licenses/third-party/canonical/` pool; unresolved gaps (ONNX Runtime notices, Flatpak coverage) are serialized into `inventory.json` and fail `--check`. Tauri `beforeBundleCommand` (`scripts/prepare-bundle-inputs.sh`) stages worker + bundle; `bundle.license`/`licenseFile` + deb/rpm `files` maps ship `usr/bin/saturn-plugin-worker`, `usr/share/doc/easy-edits-pro/copyright|LICENSE` and the notices dir; Flatpak `build-module.sh` installs both from the deb payload. Local proof: deb/rpm built with `pnpm tauri build`, payload extracted and verified (worker 755, byte-identical SHA `d4bd258b…`, 521 text dirs each), updated `installed_package_workflow.py` deb/rpm lints pass, worker usage smoke passes, `cargo test --workspace` 587 passed/0 failed, policy/headers/glass/commands/source-size/174 unit tests pass. Extension history: generator parser fixes (`/` → OR for `Apache-2.0/MIT` forms; AND handling), pnpm list-vs-licenses closure shape fixes — each failing attempt retained in the generator and in this log's verifications. Open: remote CI container proofs + installed worker/plugin smoke, Flatpak proof, ONNX/GES/SQLite identities, Python coverage; execution order + product defaults still pending maintainer. See [inventory §9](audit/af0-inventory.md). |
 | 2026-11-08 | AF0 licence-policy slice | Maintainer corrected `saturn-audio-dsp`/`saturn-plugin-worker`/`saturn-plugin-fixture` manifests and the UI `package.json` to AGPL-3.0-or-later (least-rights, matching SPDX headers; commercial entitlement stays in LICENSING.md). `deny.toml` scoped: global AGPL/GPL/LGPL allowances removed; AGPL granted per-crate to the 15 first-party members only. New `scripts/check-licence-policy.mjs` (both-workspace deny runs, first-party AGPL path+name assertions, two scratch negative controls, production-JS allow-list) passes locally; evidence captures regenerated and reproduce byte-for-byte (710 Cargo rows; graph counts unchanged). CI `licences` job now checks both workspaces with cargo-deny and runs the policy script with pnpm 10/node 22 (following the packages workflow's setup). Remote CI run pending; Python/native gate coverage and notice/worker packaging remain open. See [inventory §2/§6/§8](audit/af0-inventory.md). |
 | 2026-11-08 | AF0 slice verification | Nine normalized evidence files reproduced byte-for-byte; links/anchors, character sweep and whitespace passed. Workspace gate passed (583 tests plus four cold-process scenarios, one existing ignored) after building the fixture/worker prerequisites already specified in CI; the initial missing-fixture failure is retained. UI build, 174 unit tests, glass/commands/source-size and SPDX checks passed. All nine mocked E2E areas passed with zero browser errors on an isolated rerun; initial geometry-click timeout during compilation is recorded without asserting a root cause. Logs and scope: [inventory verification](audit/af0-inventory.md#8-verification-of-this-inventorydesign-slice). AF0's policy/package gate remains open. |

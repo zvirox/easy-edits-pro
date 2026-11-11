@@ -343,3 +343,28 @@ pub(super) async fn edit_evaluate_cut_continuity(state: &AppState, params: &Valu
     })
     .await
 }
+
+pub(super) async fn verify_run(state: &AppState, params: &Value) -> Result<Value, String> {
+    let document = document_snapshot(state)?;
+    let params = params.clone();
+    blocking_payload(move || {
+        let mut verify_params: saturn_core::verification::VerifyParams =
+            serde_json::from_value(params.clone())
+                .map_err(|e| format!("Invalid verify parameters: {e}"))?;
+
+        if verify_params.audio_metrics.is_none() {
+            if let Ok(audio) = saturn_render::preview_tools::audio_telemetry_payload(&document, &params) {
+                verify_params.audio_metrics = Some(audio);
+            }
+        }
+        if verify_params.video_metrics.is_none() {
+            if let Ok(video) = saturn_render::preview_tools::color_scopes_payload(&document, &params) {
+                verify_params.video_metrics = Some(video);
+            }
+        }
+
+        let report = saturn_core::verification::run_verification(&document, &verify_params)?;
+        serde_json::to_value(&report).map_err(|e| e.to_string())
+    })
+    .await
+}

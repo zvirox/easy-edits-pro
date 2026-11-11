@@ -478,6 +478,14 @@ impl EditorEngine {
                     "clips": nested.tracks.iter().map(|t| t.clips.len()).sum::<usize>(),
                 }))
             })()),
+            "verify.run" => Some((|| {
+                let params: crate::verification::VerifyParams = serde_json::from_value(params)
+                    .map_err(|e| DispatchError::InvalidParameters(e.to_string()))?;
+                let report = crate::verification::run_verification(&self.document, &params)
+                    .map_err(DispatchError::Operation)?;
+                serde_json::to_value(&report)
+                    .map_err(|e| DispatchError::Operation(e.to_string()))
+            })()),
             _ => None,
         }
     }

@@ -9228,6 +9228,34 @@
   },
   {
     "aliases": [
+      "verify",
+      "run verification",
+      "check delivery"
+    ],
+    "category": "Sequence",
+    "id": "verify.run",
+    "label": "Verify Sequence",
+    "menu": [
+      "Sequence",
+      "Verify"
+    ],
+    "mutating": false,
+    "params": "{\"preset\": \"web-1080p|vertical-9x16|broadcast-r128\"}",
+    "profiles": [
+      "review"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.1.0",
+    "tier": "read",
+    "tiers": [
+      "read"
+    ],
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
       "settings"
     ],
     "category": "Edit",

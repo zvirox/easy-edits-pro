@@ -6,10 +6,14 @@ used `ecc69ed`). The agent operates the editor; the human supervises, reviews
 and can always take over.
 
 This extends [AI_NATIVE_ARCHITECTURE_PLAN.md](AI_NATIVE_ARCHITECTURE_PLAN.md)
-and [GLASS_CARDS_PLAN.md](GLASS_CARDS_PLAN.md). The
-[shared checklist](AI_NATIVE_PLAN_CHECKLIST.md) owns progress and the next-work
-queue. Existing unfinished work remains on that checklist. Adoption adds the
-workstream; it does not resolve the product choices in §5.
+and [GLASS_CARDS_PLAN.md](GLASS_CARDS_PLAN.md), and is extended by
+[TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md) (adopted 2026-11-10, baseline `2834ba3`;
+human interface, task sheets, pro review loop, Web Desk, and packets TS0–TS10).
+Supporting context: [planning/agent-operated-pro-editor.md](planning/agent-operated-pro-editor.md),
+[planning/capture-event-track-v0.1.md](planning/capture-event-track-v0.1.md),
+and [planning/cross-platform-and-positioning.md](planning/cross-platform-and-positioning.md).
+The [shared checklist](AI_NATIVE_PLAN_CHECKLIST.md) owns progress and the next-work
+queue. Existing unfinished work remains on that checklist.
 
 Packet IDs are **AF0–AF9** here and in the checklist, corresponding to A0–A9
 in the attachment, to avoid collisions with older repository packets. **AF6
@@ -361,14 +365,14 @@ and handler-list edits under `AGENTS.md`.
 | AF1 profiles/tiers | Human-reviewed inventory first; every command/tool assigned; ≤30 default tools; typed profile hints; grants enforced across wrappers/batches. *(Completed 2026-11-09)* |
 | AF2 sessions | AF1 policy + AF0 design; isolated cursors/branches, conflict-safe undo/review, durable locks, atomic-batch failure rollback, Stop ≤1 s with no late apply. *(Completed 2026-11-09)* |
 | AF4 rationale/brief | AF2 history/change model; schema migration, reopen and merge preserve notes and brief; human corrections recorded. *(Completed 2026-11-09)* |
-| AF3 verification | Existing perception + AF4 for full contract; seeded bad/clean fixtures correctly measured with tick/coverage evidence. |
+| AF3 verification | Existing perception + AF4 for full contract; seeded bad/clean fixtures correctly measured with tick/coverage evidence. *(Completed 2026-11-11)* |
 | AF5 untrusted content | AF1 grants + AF2 identity + AF4 brief boundary; adversarial payloads cannot authorize side effects; approved workflows still pass. |
 | AF6 Agent/Review UI | AF1–AF5 and existing glass shell; demo run → review → accept/reject → merge with human-edit conflict tests, geometry, colour and accessibility evidence; Packet 5.2 panels complete. |
 | AF7 recipes/CLI | AF3–AF6 for supervised loop; existing 7.1 work reused; podcast recipe passes real verification; VFX CLI completion waits for Phase 6. |
 | AF8 benchmark | AF7 + AF3; scripted CI smoke, live-bridge suite and labelled real-model baseline; final Phase 7 evidence waits for its remaining backend dependencies. |
 | AF9 daemon | AF1–AF5; auth, audit, budgets and Stop verified before hosting. |
 
-**Next actionable work:** **AF3** (Perception verification metrics and negative controls). **Recommended queue:** AF0 → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 → AF5 → AF6/5.2 → remaining 5.1 verbs and Phase 5 gate → Phase 6 → AF7/7.1 → AF8/7.2 → AF9.
+**Next actionable work:** **AF5** (Untrusted media provenance). **Recommended queue:** AF0 → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 (Done) → AF5 → AF6/5.2 → remaining 5.1 verbs and Phase 5 gate → Phase 6 → AF7/7.1 → AF8/7.2 → AF9.
 AF7/7.1 → AF8/7.2 → AF9. Early AF3 base checks and AF7/AF8 smoke are allowed once
 their dependencies exist. This reconciles the attachment's “control before VFX”
 recommendation without making all remaining narrative editing wait for a daemon.
@@ -379,16 +383,20 @@ Cinema stems remain separately blocked on the verified model. Keep dialogue-edge
 room-tone crossfades, diarization, plugin-worker packaging and existing documented
 limits visible; this plan does not mark those follow-ups complete.
 
-## 5. Decisions pending from the maintainer
+## 5. Decisions pending and resolved from the maintainer
 
-| Decision | Proposed default, not yet approved |
+| Decision | Status / Approved resolution (2026-11-10) |
 |---|---|
-| New-session mode | Autopilot on an agent branch, then human review; co-edit remains an option. |
+| New-session mode | Autopilot on an agent branch, then human review; plan approval required by default ([TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md) §0). |
 | Auto-merge | Off by default; any opt-in must obey locks, stale-branch checks and grants. |
-| Agent/Review location | Permanent right-dock tabs with pinned status, preserving fixed geometry. |
+| Agent/Review location | Permanent right-dock tabs ("Sheet" and "Review/Notes") with pinned status, preserving fixed geometry ([TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md) §5). |
 | Initial clients/providers | Any compatible MCP client plus the existing local-model option through the same card. |
-| Execution priority | Dependency-aware queue in §4; control/trust before Phase 6 VFX. |
-| Command profiles | Approve the AF1 CSV before schema/enforcement implementation. |
+| Execution priority | Dependency-aware queue: AF0–AF2, AF4 (Done) → AF3 → AF5 → AF6 → Task Sheet v1 (TS0–TS6) → AF7/AF8 → AF9 daemon → TS7–TS9 Web Desk & Runner. |
+| Command profiles | Approved 2026-11-09; implemented in AF1. |
+| Human interface format | Extended from `ProjectBrief` to **Task Sheet** (`tasksheet/1` schema, [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md)). |
+| Product family & contract | Shared agent contract for EEP, Audio Labs Pro (ALP), and Screen Studio Pro (SSP); open Capture Event Track (CET v0.1) from day one. |
+| Desktop OS GUI priority | macOS first (developer/coding-agent focus), then Windows (creator base). |
+| Public positioning wording | To be decided later (candidates preserved in [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md) §10). |
 
 The attachment mentions earlier UI decisions D1–D6, but this checked-in glass
 plan has no numbered decision register. AF0's

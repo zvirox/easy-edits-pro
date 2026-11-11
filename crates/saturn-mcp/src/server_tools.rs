@@ -44,6 +44,7 @@ pub(super) const TOOL_SPECS: &[ToolSpec] = &[
     ToolSpec { name: "audio_read_telemetry", tiers: &[Tier::Read], profiles: &["audio", "review"] },
     ToolSpec { name: "media_semantic_query", tiers: &[Tier::Read], profiles: &["ingest", "rough-cut", "review"] },
     ToolSpec { name: "edit_evaluate_cut_continuity", tiers: &[Tier::Read], profiles: &["fine-cut", "review"] },
+    ToolSpec { name: "verify.run", tiers: &[Tier::Read], profiles: &["review"] },
     ToolSpec { name: "render_start", tiers: &[Tier::Edit, Tier::Filesystem], profiles: &["export"] },
     ToolSpec { name: "render_status", tiers: &[Tier::Read], profiles: &["export"] },
     ToolSpec { name: "render_cancel", tiers: &[Tier::Edit], profiles: &["export", "review"] },
@@ -58,6 +59,7 @@ pub(super) fn tool_spec(name: &str) -> Option<&'static ToolSpec> {
         "session_resume" => "session.resume",
         "session_status" => "session.status",
         "history_undo_change" => "history.undo_change",
+        "verify_run" => "verify.run",
         other => other,
     };
     TOOL_SPECS.iter().find(|s| s.name == normalized)
@@ -433,6 +435,23 @@ pub(super) fn all_tools() -> Vec<Tool> {
                         "include_audio": { "type": "boolean", "default": true }
                     },
                     "required": ["media_id", "cut_tick"]
+                })),
+            ),
+            Tool::new(
+                "verify.run",
+                "Run measured self-checks over a sequence or tick range against a delivery preset (web-1080p, vertical-9x16, broadcast-r128) and human-owned project brief. Returns pass/warn/fail verdicts and evidence with no invented aggregate quality scores.",
+                schema(json!({
+                    "type": "object",
+                    "properties": {
+                        "preset": { "type": "string", "enum": ["web-1080p", "vertical-9x16", "broadcast-r128"], "default": "web-1080p", "description": "Delivery preset target" },
+                        "start_tick": { "type": "integer", "minimum": 0, "description": "Optional start of tick range to verify" },
+                        "end_tick": { "type": "integer", "minimum": 0, "description": "Optional end of tick range to verify" },
+                        "checks": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "Optional list of check IDs to run (empty runs all checks)"
+                        }
+                    }
                 })),
             ),
     ]

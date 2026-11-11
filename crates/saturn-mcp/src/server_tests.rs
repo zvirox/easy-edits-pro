@@ -716,3 +716,37 @@ async fn mcp_command_run_with_provenance_and_brief() {
     let text = res.content[0].as_text().unwrap();
     assert!(text.text.contains("MCP Brief Test"));
 }
+
+#[tokio::test]
+async fn mcp_verify_run_headless_measured_evidence() {
+    let engine = EditorEngine::default();
+    let mcp = EditorMcp::new(engine);
+
+    // 1. Load review profile
+    let load_res = mcp
+        .call(CallToolRequestParams::new("tools.load_profile").with_arguments({
+            let mut m = serde_json::Map::new();
+            m.insert("profile".into(), json!("review"));
+            m
+        }))
+        .await
+        .unwrap();
+    assert!(!load_res.is_error.unwrap_or(false));
+
+    // 2. Call verify.run
+    let verify_args = {
+        let mut m = serde_json::Map::new();
+        m.insert("preset".into(), json!("web-1080p"));
+        m.insert("checks".into(), json!(["project.resolution_aspect"]));
+        m
+    };
+    let res = mcp
+        .call(CallToolRequestParams::new("verify.run").with_arguments(verify_args))
+        .await
+        .unwrap();
+    assert!(!res.is_error.unwrap_or(false));
+    let text = res.content[0].as_text().unwrap();
+    let report: Value = serde_json::from_str(&text.text).unwrap();
+    assert_eq!(report["preset"], "web-1080p");
+    assert!(report["notes"]["aggregate_score"].is_null());
+}

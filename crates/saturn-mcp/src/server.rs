@@ -606,6 +606,7 @@ impl EditorMcp {
             "audio_read_telemetry" => self.audio_read_telemetry(&arguments).await,
             "media_semantic_query" => self.media_semantic_query(&arguments).await,
             "edit_evaluate_cut_continuity" => self.edit_evaluate_cut_continuity(&arguments).await,
+            "verify.run" | "verify_run" => self.verify_run(&arguments).await,
             "render_start" => self.start_render(&arguments).await,
             "render_status" => self.render_job_status(&arguments).await,
             "render_cancel" => self.cancel_render(&arguments).await,

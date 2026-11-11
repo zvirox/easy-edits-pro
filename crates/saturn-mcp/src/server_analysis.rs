@@ -248,6 +248,37 @@ impl EditorMcp {
         .map_err(|error| format!("cut continuity task failed: {error}"))?
     }
 
+    /// `verify_run`: measured self-check (AF3) over a sequence or tick range
+    /// against delivery presets and human-owned brief with no aggregate score.
+    pub(super) async fn verify_run(&self, arguments: &Value) -> Result<Value, String> {
+        if matches!(&self.backend, Backend::Bridge(_)) {
+            return self.bridge_call("verify.run", arguments.clone()).await;
+        }
+        let document = self.headless_document().await?;
+        let arguments = arguments.clone();
+        tokio::task::spawn_blocking(move || {
+            let mut verify_params: saturn_core::verification::VerifyParams =
+                serde_json::from_value(arguments.clone())
+                    .map_err(|e| format!("Invalid verify parameters: {e}"))?;
+
+            if verify_params.audio_metrics.is_none() {
+                if let Ok(audio) = saturn_render::preview_tools::audio_telemetry_payload(&document, &arguments) {
+                    verify_params.audio_metrics = Some(audio);
+                }
+            }
+            if verify_params.video_metrics.is_none() {
+                if let Ok(video) = saturn_render::preview_tools::color_scopes_payload(&document, &arguments) {
+                    verify_params.video_metrics = Some(video);
+                }
+            }
+
+            let report = saturn_core::verification::run_verification(&document, &verify_params)?;
+            serde_json::to_value(&report).map_err(|e| e.to_string())
+        })
+        .await
+        .map_err(|error| format!("verify task failed: {error}"))?
+    }
+
     /// The saved project file's path (in-memory documents have none — tools
     /// that need sidecar files report that honestly).
     pub(super) async fn headless_project_path(&self) -> Result<Option<PathBuf>, String> {

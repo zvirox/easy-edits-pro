@@ -26,6 +26,7 @@ pub mod speech;
 pub mod timeline_edits;
 pub mod subtitles;
 pub mod time;
+pub mod verification;
 pub mod viewport_state;
 
 pub use actor::{ActorContext, ActorId, SessionViewState};
@@ -48,7 +49,7 @@ pub use job::{
 };
 pub use project::{
     AudioBus, AutomationInterpolation, AutomationLane, AutomationMode,
-    AutomationPoint, BusTarget, ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams,
+    AutomationPoint, BusTarget, CaptionTrack, ChromaKeyParams, Clip, ColorAdjustments, ColorCorrectionParams,
     ColorWheelParam, ColorWheels, CropParams, EffectInstance, EffectKind, EffectPayload,
     GaussianBlurParams, InterpolationKind, Keyframe, KeyframeProperty, LutParams, Marker,
     MarkerKind, MediaAsset, MediaKind, MotionTrackingData, MultiCamAngle, MultiCamClip,
@@ -66,3 +67,7 @@ pub use speech::{
     is_filler_word, ripple_delete_time_ranges, speech_segments_to_subtitles,
 };
 pub use time::{FrameRate, TICKS_PER_SECOND, Tick};
+pub use verification::{
+    AnalyzedRange, CheckEvidence, CheckStatus, CheckVerdict, TickRange, VerifyNotes,
+    VerifyParams, VerifyPreset, VerifyReport, VerifySummary, run_verification,
+};
