@@ -293,4 +293,54 @@ impl EditorMcp {
         .await
         .map_err(|error| format!("project path task failed: {error}"))?
     }
+
+    /// Search media in the project by query and kind.
+    pub(super) async fn media_search(&self, arguments: &Value) -> Result<Value, String> {
+        let document = self.document().await?;
+        let media = document
+            .pointer("/project/project/media")
+            .and_then(Value::as_array)
+            .ok_or_else(|| "Current project has no media collection".to_owned())?;
+        let query = arguments
+            .get("query")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_lowercase();
+        let kind = arguments
+            .get("kind")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+            .to_lowercase();
+        let limit = arguments
+            .get("limit")
+            .and_then(Value::as_u64)
+            .unwrap_or(100)
+            .clamp(1, 500) as usize;
+        Ok(Value::Array(
+            media
+                .iter()
+                .filter(|item| {
+                    let name = item
+                        .get("name")
+                        .and_then(Value::as_str)
+                        .unwrap_or_default()
+                        .to_lowercase();
+                    let path = item
+                        .pointer("/path")
+                        .and_then(Value::as_str)
+                        .unwrap_or_default()
+                        .to_lowercase();
+                    let item_kind = item
+                        .get("kind")
+                        .and_then(Value::as_str)
+                        .unwrap_or_default()
+                        .to_lowercase();
+                    (query.is_empty() || name.contains(&query) || path.contains(&query))
+                        && (kind.is_empty() || item_kind == kind)
+                })
+                .take(limit)
+                .cloned()
+                .collect(),
+        ))
+    }
 }

@@ -21,6 +21,7 @@ pub mod lock;
 pub mod media_fingerprint;
 pub mod markers;
 pub mod project;
+pub mod provenance;
 pub mod script_sync;
 pub mod speech;
 pub mod timeline_edits;
@@ -56,6 +57,10 @@ pub use project::{
     MultiCamSyncMode, ProjectDocument, ProjectSettings, Sequence, SubtitleItem, TitleProperties,
     Track, TrackAudioProcessing, TrackAutomation, TrackKind, TrackPoint, TrackingMode, Transition,
     TransitionKind, VignetteParams,
+};
+pub use provenance::{
+    OriginTracker, OriginValidationError, PROVENANCE_SCHEMA_VERSION, UntrustedDerivationMatch,
+    UntrustedSource, UntrustedText,
 };
 pub use script_sync::{
     SCRIPT_LINE_MATCH_FLOOR, ScriptLineMatch, ScriptSyncReport, ScriptTake, TakeAlignment,

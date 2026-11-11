@@ -5,25 +5,18 @@
 //!
 //! The tool catalogue lives in `server_tools`; its tests in `server_tests`.
 
-use std::{
-    path::PathBuf,
-    sync::{Arc, Mutex, PoisonError},
-};
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex, PoisonError};
 
-use rmcp::{
-    model::{
-        Annotated, CallToolRequestParams, CallToolResult, Implementation, ListToolsResult,
-        PaginatedRequestParams, RawContent, ServerCapabilities, ServerInfo,
-    },
-    service::RequestContext,
-    ErrorData,
+use rmcp::model::{
+    Annotated, CallToolRequestParams, CallToolResult, Implementation, ListToolsResult,
+    PaginatedRequestParams, RawContent, ServerCapabilities, ServerInfo,
 };
-use saturn_core::{
-    ActorContext, CommandRequest, EditorEngine, command_catalogue,
-    catalogue::policy::SessionPolicy,
-};
-use saturn_core::JobManager;
-use serde_json::{Value, json};
+use rmcp::service::RequestContext;
+use rmcp::ErrorData;
+use saturn_core::catalogue::policy::SessionPolicy;
+use saturn_core::{command_catalogue, ActorContext, CommandRequest, EditorEngine, JobManager};
+use serde_json::{json, Value};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[cfg(test)]
@@ -35,6 +28,8 @@ mod server_tools;
 mod server_analysis;
 #[path = "server_render.rs"]
 mod server_render;
+#[path = "server_origin.rs"]
+mod server_origin;
 
 #[cfg(unix)]
 use tokio::net::UnixStream;
@@ -45,6 +40,7 @@ pub struct EditorMcp {
     jobs: Arc<JobManager>,
     policy: Arc<tokio::sync::RwLock<SessionPolicy>>,
     pub context: Arc<tokio::sync::RwLock<ActorContext>>,
+    pub origin_tracker: Arc<tokio::sync::RwLock<saturn_core::OriginTracker>>,
 }
 
 
@@ -61,6 +57,7 @@ impl EditorMcp {
             jobs: Arc::new(JobManager::new(2)),
             policy: Arc::new(tokio::sync::RwLock::new(SessionPolicy::default())),
             context: Arc::new(tokio::sync::RwLock::new(ActorContext::agent("saturn-mcp-agent", "mcp-session-1"))),
+            origin_tracker: Arc::new(tokio::sync::RwLock::new(saturn_core::OriginTracker::new())),
         }
     }
 
@@ -70,6 +67,7 @@ impl EditorMcp {
             jobs: Arc::new(JobManager::new(2)),
             policy: Arc::new(tokio::sync::RwLock::new(policy)),
             context: Arc::new(tokio::sync::RwLock::new(ActorContext::agent("saturn-mcp-agent", "mcp-session-1"))),
+            origin_tracker: Arc::new(tokio::sync::RwLock::new(saturn_core::OriginTracker::new())),
         }
     }
 
@@ -80,6 +78,7 @@ impl EditorMcp {
             jobs: Arc::new(JobManager::new(2)),
             policy: Arc::new(tokio::sync::RwLock::new(policy)),
             context: Arc::new(tokio::sync::RwLock::new(context)),
+            origin_tracker: Arc::new(tokio::sync::RwLock::new(saturn_core::OriginTracker::new())),
         }
     }
 
@@ -90,6 +89,7 @@ impl EditorMcp {
             jobs: Arc::new(JobManager::new(1)),
             policy: Arc::new(tokio::sync::RwLock::new(SessionPolicy::default())),
             context: Arc::new(tokio::sync::RwLock::new(ActorContext::agent("saturn-mcp-agent", "mcp-session-1"))),
+            origin_tracker: Arc::new(tokio::sync::RwLock::new(saturn_core::OriginTracker::new())),
         }
     }
 
@@ -99,6 +99,7 @@ impl EditorMcp {
             jobs: Arc::new(JobManager::new(1)),
             policy: Arc::new(tokio::sync::RwLock::new(policy)),
             context: Arc::new(tokio::sync::RwLock::new(ActorContext::agent("saturn-mcp-agent", "mcp-session-1"))),
+            origin_tracker: Arc::new(tokio::sync::RwLock::new(saturn_core::OriginTracker::new())),
         }
     }
 
@@ -108,6 +109,7 @@ impl EditorMcp {
             jobs: Arc::new(JobManager::new(1)),
             policy: Arc::new(tokio::sync::RwLock::new(SessionPolicy::default())),
             context: Arc::new(tokio::sync::RwLock::new(ActorContext::agent("saturn-mcp-agent", "mcp-session-1"))),
+            origin_tracker: Arc::new(tokio::sync::RwLock::new(saturn_core::OriginTracker::new())),
         }
     }
 
@@ -302,6 +304,9 @@ impl EditorMcp {
                 return Err(ErrorData::invalid_params(err.to_string(), None));
             }
         }
+        if let Err(err) = self.validate_tool_origin(tool_name, &arguments).await {
+            return Ok(CallToolResult::error(vec![Annotated::new(RawContent::text(err), None)]));
+        }
 
         let result = match request.name.as_ref() {
             "command_list" => {
@@ -332,6 +337,16 @@ impl EditorMcp {
                     if let Err(err) = policy.check_command(spec) {
                         return Err(ErrorData::invalid_params(err.to_string(), None));
                     }
+                }
+                if let Err(err) = self
+                    .validate_command_origin(
+                        id,
+                        arguments.get("params").unwrap_or(&json!({})),
+                        spec,
+                    )
+                    .await
+                {
+                    return Err(ErrorData::invalid_params(err, None));
                 }
                 let rationale = arguments
                     .get("rationale")
@@ -379,6 +394,19 @@ impl EditorMcp {
                         let policy = self.policy.read().await;
                         if let Err(err) = policy.check_command(spec) {
                             return Err(ErrorData::invalid_params(format!("Policy violation on step '{id}': {err}"), None));
+                        }
+                        if let Err(err) = self
+                            .validate_command_origin(
+                                id,
+                                step.get("params").unwrap_or(&json!({})),
+                                spec,
+                            )
+                            .await
+                        {
+                            return Err(ErrorData::invalid_params(
+                                format!("Origin violation on step '{id}': {err}"),
+                                None,
+                            ));
                         }
                     }
 
@@ -444,6 +472,23 @@ impl EditorMcp {
                                 break;
                             }
                             continue;
+                        }
+                        if let Some(spec) = spec {
+                            if let Err(err) = self
+                                .validate_command_origin(
+                                    id,
+                                    step.get("params").unwrap_or(&json!({})),
+                                    spec,
+                                )
+                                .await
+                            {
+                                failed += 1;
+                                results.push(json!({"ok": false, "error": err}));
+                                if stop_on_error {
+                                    break;
+                                }
+                                continue;
+                            }
                         }
                         let rationale = step.get("rationale").and_then(Value::as_str).map(str::to_string);
                         let confidence = step.get("confidence").and_then(|v| serde_json::from_value(v.clone()).ok());
@@ -585,15 +630,44 @@ impl EditorMcp {
                     .and_then(|res| res)
                 }
             }
-            "doc_inspect" => self.document().await,
-            "sequence_inspect" => self.document().await.and_then(|value| {
-                value
-                    .pointer("/project/project/sequence")
-                    .cloned()
-                    .ok_or_else(|| "active sequence not found".to_owned())
-            }),
-            "media_search" => self.media_search(&arguments).await,
-            "media_preview" => self.media_preview(&arguments).await,
+            "doc_inspect" => {
+                match self.document().await {
+                    Ok(doc) => {
+                        if let Backend::Headless(engine) = &self.backend {
+                            let doc_clone = {
+                                let doc_guard = engine.lock().unwrap_or_else(PoisonError::into_inner);
+                                doc_guard.document().clone()
+                            };
+                            self.sync_origin_tracker(&doc_clone).await;
+                        }
+                        Ok(doc)
+                    }
+                    Err(e) => Err(e),
+                }
+            }
+            "sequence_inspect" => {
+                match self.document().await {
+                    Ok(doc) => {
+                        match doc.pointer("/project/project/sequence").cloned() {
+                            Some(seq) => Ok(self.wrap_sequence_inspect_output(seq).await),
+                            None => Err("active sequence not found".to_owned()),
+                        }
+                    }
+                    Err(e) => Err(e),
+                }
+            }
+            "media_search" => {
+                match self.media_search(&arguments).await {
+                    Ok(res) => Ok(self.wrap_media_search_output(res).await),
+                    Err(e) => Err(e),
+                }
+            }
+            "media_preview" => {
+                match self.media_preview(&arguments).await {
+                    Ok(res) => Ok(self.wrap_media_preview_output(res).await),
+                    Err(e) => Err(e),
+                }
+            }
             "vision_extract_frame_sheet" => self.vision_extract_frame_sheet(&arguments).await,
             "render_preview_clip_proxy" => self.render_preview_clip_proxy(&arguments).await,
             "color_read_scopes" => self.color_read_scopes(&arguments).await,
@@ -604,7 +678,12 @@ impl EditorMcp {
                 self.color_match_shot_to_reference(&arguments).await
             }
             "audio_read_telemetry" => self.audio_read_telemetry(&arguments).await,
-            "media_semantic_query" => self.media_semantic_query(&arguments).await,
+            "media_semantic_query" => {
+                match self.media_semantic_query(&arguments).await {
+                    Ok(res) => Ok(self.wrap_semantic_query_output(res).await),
+                    Err(e) => Err(e),
+                }
+            }
             "edit_evaluate_cut_continuity" => self.edit_evaluate_cut_continuity(&arguments).await,
             "verify.run" | "verify_run" => self.verify_run(&arguments).await,
             "render_start" => self.start_render(&arguments).await,
@@ -652,55 +731,6 @@ impl EditorMcp {
                 CallToolResult::error(vec![Annotated::new(RawContent::text(error), None)])
             }
         })
-    }
-
-    async fn media_search(&self, arguments: &Value) -> Result<Value, String> {
-        let document = self.document().await?;
-        let media = document
-            .pointer("/project/project/media")
-            .and_then(Value::as_array)
-            .ok_or_else(|| "Current project has no media collection".to_owned())?;
-        let query = arguments
-            .get("query")
-            .and_then(Value::as_str)
-            .unwrap_or_default()
-            .to_lowercase();
-        let kind = arguments
-            .get("kind")
-            .and_then(Value::as_str)
-            .unwrap_or_default()
-            .to_lowercase();
-        let limit = arguments
-            .get("limit")
-            .and_then(Value::as_u64)
-            .unwrap_or(100)
-            .clamp(1, 500) as usize;
-        Ok(Value::Array(
-            media
-                .iter()
-                .filter(|item| {
-                    let name = item
-                        .get("name")
-                        .and_then(Value::as_str)
-                        .unwrap_or_default()
-                        .to_lowercase();
-                    let path = item
-                        .pointer("/path")
-                        .and_then(Value::as_str)
-                        .unwrap_or_default()
-                        .to_lowercase();
-                    let item_kind = item
-                        .get("kind")
-                        .and_then(Value::as_str)
-                        .unwrap_or_default()
-                        .to_lowercase();
-                    (query.is_empty() || name.contains(&query) || path.contains(&query))
-                        && (kind.is_empty() || item_kind == kind)
-                })
-                .take(limit)
-                .cloned()
-                .collect(),
-        ))
     }
 
     /// Snapshot of the typed project document. Bridge mode resolves documents on

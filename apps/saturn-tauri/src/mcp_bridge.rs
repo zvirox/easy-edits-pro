@@ -224,6 +224,9 @@ async fn dispatch(
             return json!({"error": err});
         }
     }
+    if let Err(err) = validate_bridge_tool_origin(state, method, &params) {
+        return json!({"error": err});
+    }
 
     let result = match method {
         "command_list" => command_list(state, &params),
@@ -239,14 +242,17 @@ async fn dispatch(
             let Some(id) = id else {
                 return json!({"error": "command_run requires a string id"});
             };
+            let command_params = params.get("params").cloned().unwrap_or_else(|| json!({}));
             let spec = saturn_core::command_catalogue().iter().find(|c| c.id == id);
             if let Some(spec) = spec {
                 let pol = policy.read().await;
                 if let Err(err) = pol.check_command(spec) {
                     return json!({"error": err.to_string()});
                 }
+                if let Err(err) = validate_bridge_command_origin(app, state, id, &command_params, spec) {
+                    return json!({"error": err});
+                }
             }
-            let command_params = params.get("params").cloned().unwrap_or_else(|| json!({}));
             if id == "timeline.beat_grid_quantize" && command_params.get("expected_digest").is_none() {
                 return match timeline_beat_grid_quantize(app, state, &command_params).await {
                     Ok(value) => json!({"result": value}),
@@ -280,10 +286,13 @@ async fn dispatch(
         }
         "doc_inspect" => inspect_document(state),
         "sequence_inspect" => inspect_document(state).and_then(|value| {
-            value
+            let seq = value
                 .pointer("/project/project/sequence")
                 .cloned()
-                .ok_or_else(|| "active sequence not found".to_owned())
+                .ok_or_else(|| "active sequence not found".to_owned())?;
+            let doc = document_snapshot(state)?;
+            let mut tracker = saturn_core::OriginTracker::from_document(&doc);
+            Ok(tracker.wrap_sequence_inspect(seq))
         }),
         "render_project" | "render_start" => start_render(&app, state, &params),
         "render_status" => render_status(state, &params),
@@ -367,21 +376,29 @@ async fn command_batch(
         .unwrap_or_default();
 
     if atomic {
-        let cmd_steps = steps
-            .iter()
-            .map(|step| {
-                let id = step.get("id").and_then(Value::as_str).unwrap_or("").to_string();
-                let p = step.get("params").cloned().unwrap_or_else(|| json!({}));
-                let mut req = saturn_core::CommandRequest::new(id, p);
-                if let Some(rationale) = step.get("rationale").and_then(Value::as_str) {
-                    req = req.with_rationale(rationale.to_string());
+        let mut cmd_steps = Vec::with_capacity(steps.len());
+        for step in steps {
+            let id = step.get("id").and_then(Value::as_str).unwrap_or("").to_string();
+            let p = step.get("params").cloned().unwrap_or_else(|| json!({}));
+            let spec = saturn_core::command_catalogue().iter().find(|c| c.id == id);
+            if let Some(spec) = spec {
+                let pol = policy.read().await;
+                if let Err(err) = pol.check_command(spec) {
+                    return Err(err.to_string());
                 }
-                if let Some(confidence) = step.get("confidence").and_then(|v| serde_json::from_value(v.clone()).ok()) {
-                    req = req.with_confidence(confidence);
+                if let Err(err) = validate_bridge_command_origin(app, state, &id, &p, spec) {
+                    return Err(err);
                 }
-                req
-            })
-            .collect::<Vec<_>>();
+            }
+            let mut req = saturn_core::CommandRequest::new(id, p);
+            if let Some(rationale) = step.get("rationale").and_then(Value::as_str) {
+                req = req.with_rationale(rationale.to_string());
+            }
+            if let Some(confidence) = step.get("confidence").and_then(|v| serde_json::from_value(v.clone()).ok()) {
+                req = req.with_confidence(confidence);
+            }
+            cmd_steps.push(req);
+        }
         let mut guard = state.0.lock().map_err(|e| e.to_string())?;
         let res = guard.execute_transaction(cmd_steps, &ctx).map_err(|e| e.to_string())?;
         let _ = app.emit("mcp_project_changed", ());
@@ -397,6 +414,7 @@ async fn command_batch(
                 if stop_on_error { break; }
                 continue;
             };
+            let step_params = step.get("params").cloned().unwrap_or_else(|| json!({}));
             let spec = saturn_core::command_catalogue().iter().find(|cmd| cmd.id == id);
             if let Some(spec) = spec {
                 let pol = policy.read().await;
@@ -406,8 +424,13 @@ async fn command_batch(
                     if stop_on_error { break; }
                     continue;
                 }
+                if let Err(err) = validate_bridge_command_origin(app, state, id, &step_params, spec) {
+                    failed += 1;
+                    results.push(json!({"ok": false, "error": err}));
+                    if stop_on_error { break; }
+                    continue;
+                }
             }
-            let step_params = step.get("params").cloned().unwrap_or_else(|| json!({}));
             let mut req = saturn_core::CommandRequest::new(id, step_params);
             if let Some(rationale) = step.get("rationale").and_then(Value::as_str) {
                 req = req.with_rationale(rationale.to_string());
@@ -488,6 +511,123 @@ fn history_undo_change(app: &AppHandle, state: &AppState, params: &Value) -> Res
     let res = guard.undo_change(change_id, &ctx).map_err(|e| e.to_string())?;
     let _ = app.emit("mcp_project_changed", ());
     Ok(res)
+}
+
+fn validate_bridge_command_origin(
+    _app: &AppHandle,
+    state: &AppState,
+    id: &str,
+    params: &Value,
+    spec: &saturn_core::CommandSpec,
+) -> Result<(), String> {
+    use saturn_core::catalogue::Tier;
+    let is_filesystem_or_destructive = spec.tiers.contains(&Tier::Filesystem)
+        || spec.tiers.contains(&Tier::Destructive)
+        || id.starts_with("file.")
+        || id.starts_with("interop.export")
+        || id.starts_with("render_")
+        || id.contains("delete");
+
+    if !is_filesystem_or_destructive {
+        return Ok(());
+    }
+
+    let doc = document_snapshot(state)?;
+    let tracker = saturn_core::OriginTracker::from_document(&doc);
+
+    let mut allowed_roots = Vec::new();
+    allowed_roots.push(std::env::temp_dir());
+    if let Some(proj_dir) = crate::commands::current_project_dir(state) {
+        allowed_roots.push(proj_dir);
+    }
+    if let Ok(cwd) = std::env::current_dir() {
+        allowed_roots.push(cwd);
+    }
+
+    let mut string_args = Vec::new();
+    collect_bridge_string_args(params, "", &mut string_args);
+
+    for (arg_name, arg_val) in string_args {
+        if let Err(err) = tracker.validate_argument(
+            &arg_name,
+            &arg_val,
+            true,
+            &allowed_roots,
+        ) {
+            return Err(err.to_string());
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_bridge_tool_origin(
+    state: &AppState,
+    tool_name: &str,
+    arguments: &Value,
+) -> Result<(), String> {
+    let is_fs = tool_name.starts_with("render_")
+        || tool_name == "vision_extract_frame_sheet"
+        || tool_name == "audio_process";
+
+    if !is_fs {
+        return Ok(());
+    }
+
+    let doc = document_snapshot(state)?;
+    let tracker = saturn_core::OriginTracker::from_document(&doc);
+
+    let mut allowed_roots = Vec::new();
+    allowed_roots.push(std::env::temp_dir());
+    if let Some(proj_dir) = crate::commands::current_project_dir(state) {
+        allowed_roots.push(proj_dir);
+    }
+    if let Ok(cwd) = std::env::current_dir() {
+        allowed_roots.push(cwd);
+    }
+
+    let mut string_args = Vec::new();
+    collect_bridge_string_args(arguments, "", &mut string_args);
+
+    for (arg_name, arg_val) in string_args {
+        if let Err(err) = tracker.validate_argument(
+            &arg_name,
+            &arg_val,
+            true,
+            &allowed_roots,
+        ) {
+            return Err(err.to_string());
+        }
+    }
+
+    Ok(())
+}
+
+fn collect_bridge_string_args(val: &Value, prefix: &str, out: &mut Vec<(String, String)>) {
+    match val {
+        Value::String(s) => {
+            if !s.trim().is_empty() {
+                out.push((prefix.to_string(), s.clone()));
+            }
+        }
+        Value::Object(map) => {
+            for (k, v) in map {
+                let new_prefix = if prefix.is_empty() {
+                    k.clone()
+                } else {
+                    format!("{prefix}.{k}")
+                };
+                collect_bridge_string_args(v, &new_prefix, out);
+            }
+        }
+        Value::Array(arr) => {
+            for (idx, v) in arr.iter().enumerate() {
+                let new_prefix = format!("{prefix}[{idx}]");
+                collect_bridge_string_args(v, &new_prefix, out);
+            }
+        }
+        _ => {}
+    }
 }
 
 #[cfg(test)]

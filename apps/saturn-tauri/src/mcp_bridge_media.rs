@@ -165,7 +165,9 @@ pub(super) fn media_search(state: &AppState, params: &Value) -> Result<Value, St
         })
         .take(limit)
         .collect::<Vec<_>>();
-    serde_json::to_value(media).map_err(|error| error.to_string())
+    let val = serde_json::to_value(media).map_err(|error| error.to_string())?;
+    let mut tracker = saturn_core::OriginTracker::from_document(engine.document());
+    Ok(tracker.wrap_media_search(val))
 }
 
 pub(super) fn document_snapshot(state: &AppState) -> Result<saturn_core::ProjectDocument, String> {
@@ -198,10 +200,13 @@ pub(super) async fn media_preview(state: &AppState, params: &Value) -> Result<Va
         .get("poster_tick")
         .and_then(Value::as_i64)
         .map(saturn_core::Tick);
-    blocking_payload(move || {
+    let payload = blocking_payload(move || {
         saturn_render::preview_tools::media_preview_payload(&document, media_id, poster_tick)
     })
-    .await
+    .await?;
+    let doc = document_snapshot(state)?;
+    let mut tracker = saturn_core::OriginTracker::from_document(&doc);
+    Ok(tracker.wrap_media_preview(payload))
 }
 
 pub(super) async fn vision_extract_frame_sheet(state: &AppState, params: &Value) -> Result<Value, String> {
@@ -325,14 +330,17 @@ pub(super) async fn media_semantic_query(state: &AppState, params: &Value) -> Re
         )
     };
     let params = params.clone();
-    blocking_payload(move || {
+    let payload = blocking_payload(move || {
         saturn_render::preview_tools::semantic_query_payload(
             &document,
             project_path.as_deref(),
             &params,
         )
     })
-    .await
+    .await?;
+    let doc = document_snapshot(state)?;
+    let mut tracker = saturn_core::OriginTracker::from_document(&doc);
+    Ok(tracker.wrap_semantic_query(payload))
 }
 
 pub(super) async fn edit_evaluate_cut_continuity(state: &AppState, params: &Value) -> Result<Value, String> {
