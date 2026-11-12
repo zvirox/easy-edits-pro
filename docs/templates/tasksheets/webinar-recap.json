@@ -1,0 +1,88 @@
+{
+  "schema": "tasksheet/1",
+  "id": "template_webinar_recap",
+  "title": "Enterprise Webinar Recap & Training Summary",
+  "requester": "human:compliance_lead",
+  "inputs": [
+    {
+      "id": "in_webinar_stream",
+      "media": "media/webinar_full_session.mp4",
+      "role": "main_video",
+      "trust": "trusted"
+    },
+    {
+      "id": "in_whisper_transcript",
+      "media": "media/webinar_transcript.json",
+      "role": "transcript",
+      "trust": "untrusted"
+    }
+  ],
+  "deliverables": [
+    {
+      "id": "deliv_executive_summary",
+      "name": "Executive Summary Reel (1080p)",
+      "preset": "web-1080p",
+      "duration": {
+        "target_s": 180,
+        "tolerance_s": 20
+      },
+      "loudness_lufs": -14,
+      "true_peak_dbtp": -1,
+      "captions": true,
+      "must_include": ["topic:q3_financial_results", "topic:action_items"]
+    },
+    {
+      "id": "deliv_cleaned_full_archive",
+      "name": "Cleaned Full Archive Recording",
+      "preset": "broadcast-r128",
+      "duration": {
+        "target_s": 3600,
+        "tolerance_s": 300
+      },
+      "loudness_lufs": -23,
+      "true_peak_dbtp": -1,
+      "captions": true
+    }
+  ],
+  "style": {
+    "house_style": "corporate_formal",
+    "pacing": "medium",
+    "music": "none",
+    "notes": "Ensure clean speaker introductions, chapter markers on slide deck transitions, broadcast compliance"
+  },
+  "must_not": {
+    "words": ["confidential_internal_previews"],
+    "people": [],
+    "content": ["unmute_chatter", "waiting_room_slate"]
+  },
+  "acceptance": {
+    "auto": [
+      "verify.preset:web-1080p",
+      "verify.preset:broadcast-r128",
+      "audio.integrated_loudness",
+      "audio.silence_dead_air"
+    ],
+    "human": [
+      "topic_coverage_complete",
+      "slide_transitions_aligned"
+    ]
+  },
+  "budget": {
+    "wall_clock_min": 90,
+    "model_cost_usd": 6.0,
+    "render_min": 60
+  },
+  "escalate_when": [
+    "unauthorized_sensitive_statement",
+    "audio_dropouts_over_3s"
+  ],
+  "handoff": {
+    "exports": true,
+    "project_file": true,
+    "interchange": ["fcpxml"],
+    "qc_report": true,
+    "change_log": true
+  },
+  "status": "ready",
+  "rounds": []
+}

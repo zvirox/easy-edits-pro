@@ -5,6 +5,8 @@ import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, MouseEvent, SetStateAction, PointerEvent } from "react";
 import { formatTime, getClipWaveform } from "../../utils/formatters";
 import { clipLabelColor } from "./labelColors";
+import { clipHasLowConfidenceEdit } from "../agent/reviewHelpers";
+import type { ReviewChange } from "../agent/types";
 import type {
   Clip,
   MediaAsset,
@@ -164,6 +166,7 @@ interface TimelineTrackLaneProps {
     trackId: number,
     clipIndex: number,
   ) => void;
+  lowConfidenceChanges?: readonly ReviewChange[];
 }
 
 export function TimelineTrackLane({
@@ -191,6 +194,7 @@ export function TimelineTrackLane({
   mediaDropTargetTrackId,
   switchSequence,
   onClipContextMenu,
+  lowConfidenceChanges = [],
 }: TimelineTrackLaneProps) {
   return (
     <div
@@ -287,6 +291,7 @@ export function TimelineTrackLane({
           const clipLeft = (clip.timeline_start / TICKS_PER_SECOND) * timelineZoom;
           const clipWidth = Math.max(24, (clip.duration / TICKS_PER_SECOND) * timelineZoom);
           const labelHex = clipLabelColor(clip.label);
+          const lowConfEdit = clipHasLowConfidenceEdit(clip, lowConfidenceChanges);
 
           return (
             <div
@@ -363,6 +368,13 @@ export function TimelineTrackLane({
               })()}
 
               <strong>{item?.name ?? `Media #${clip.media_id}`}</strong>
+              {lowConfEdit && (
+                <span
+                  className="clip-low-confidence-dot"
+                  title={`Low-confidence AI edit: ${lowConfEdit.rationale}`}
+                  aria-label="Low-confidence AI edit"
+                />
+              )}
               <small>
                 {isMissing
                   ? "⚠ Offline Media"

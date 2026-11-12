@@ -58,6 +58,7 @@ pub const PROFILES: &[&str] = &[
     "review",
     "rough-cut",
     "speed-motion",
+    "tasksheet",
 ];
 
 /// Top-level menus, in bar order. `CommandSpec::menu[0]` must be one of these.
@@ -199,8 +200,10 @@ static COMMANDS: std::sync::LazyLock<Vec<CommandSpec>> = std::sync::LazyLock::ne
     all.extend_from_slice(commands::playhead::COMMANDS);
     all.extend_from_slice(commands::project_freeform::COMMANDS);
     all.extend_from_slice(commands::project_panel::COMMANDS);
+    all.extend_from_slice(commands::review::COMMANDS);
     all.extend_from_slice(commands::sequence::COMMANDS);
     all.extend_from_slice(commands::settings::COMMANDS);
+    all.extend_from_slice(commands::tasksheet::COMMANDS);
     all.extend_from_slice(commands::timeline::COMMANDS);
     all.extend_from_slice(commands::trim::COMMANDS);
     all.extend_from_slice(commands::view::COMMANDS);

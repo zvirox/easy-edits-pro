@@ -8140,6 +8140,150 @@
   },
   {
     "aliases": [
+      "add review note",
+      "timecoded review note"
+    ],
+    "category": "Markers",
+    "id": "review.note_add",
+    "label": "Add Review Note",
+    "menu": [
+      "Markers"
+    ],
+    "mutating": true,
+    "params": "{\"text\":str,\"target_tick\":i64?,\"end_tick\":i64?,\"clip_id\":u64?,\"track_id\":u64?,\"round_number\":u32?,\"id\":str?}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "rough-cut",
+      "fine-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "list review notes",
+      "review notes"
+    ],
+    "category": "Markers",
+    "id": "review.note_list",
+    "label": "List Review Notes",
+    "menu": [
+      "Markers"
+    ],
+    "mutating": false,
+    "params": "{\"round_number\":u32?,\"status\":str?,\"clip_id\":u64?,\"track_id\":u64?}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "review",
+      "rough-cut",
+      "fine-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "read",
+    "tiers": [
+      "read"
+    ],
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "resolve review note",
+      "dismiss review note"
+    ],
+    "category": "Markers",
+    "id": "review.note_resolve",
+    "label": "Resolve Review Note",
+    "menu": [
+      "Markers"
+    ],
+    "mutating": true,
+    "params": "{\"note_id\":str,\"resolution\":str,\"status\":str?}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "rough-cut",
+      "fine-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "open review round",
+      "start revision round"
+    ],
+    "category": "Markers",
+    "id": "review.round_open",
+    "label": "Open Review Round",
+    "menu": [
+      "Markers"
+    ],
+    "mutating": true,
+    "params": "{\"label\":str?,\"reason\":str?}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "rough-cut",
+      "fine-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "close review round",
+      "complete review round"
+    ],
+    "category": "Markers",
+    "id": "review.round_close",
+    "label": "Close Review Round",
+    "menu": [
+      "Markers"
+    ],
+    "mutating": true,
+    "params": "{\"outcome\":str,\"round_number\":u32?,\"reason\":str?}",
+    "profiles": [
+      "admin",
+      "tasksheet"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
       "three point insert",
       "insert edit"
     ],
@@ -9775,6 +9919,312 @@
     ],
     "uiOnly": false,
     "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "create task sheet",
+      "new task sheet"
+    ],
+    "category": "File",
+    "id": "tasksheet.create",
+    "label": "Create Task Sheet",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"id\":str,\"title\":str,\"requester\":str,\"inputs\":[obj]?,\"deliverables\":[obj],\"style\":obj?,\"must_not\":obj?,\"acceptance\":obj?,\"budget\":obj?,\"escalate_when\":[str]?,\"handoff\":obj?}",
+    "profiles": [
+      "admin",
+      "tasksheet"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "update task sheet",
+      "edit task sheet"
+    ],
+    "category": "File",
+    "id": "tasksheet.update",
+    "label": "Update Task Sheet",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"title\":str?,\"inputs\":[obj]?,\"deliverables\":[obj]?,\"style\":obj?,\"must_not\":obj?,\"acceptance\":obj?,\"budget\":obj?,\"escalate_when\":[str]?,\"handoff\":obj?}",
+    "profiles": [
+      "admin",
+      "tasksheet"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "validate task sheet",
+      "check task sheet"
+    ],
+    "category": "File",
+    "id": "tasksheet.validate",
+    "label": "Validate Task Sheet",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{\"sheet\":obj?}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "review"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "read",
+    "tiers": [
+      "read"
+    ],
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "submit task sheet"
+    ],
+    "category": "File",
+    "id": "tasksheet.submit",
+    "label": "Submit Task Sheet",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"reason\":str?}",
+    "profiles": [
+      "admin",
+      "tasksheet"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "task sheet",
+      "get task sheet"
+    ],
+    "category": "File",
+    "id": "tasksheet.get",
+    "label": "Get Task Sheet",
+    "menu": [
+      "File"
+    ],
+    "mutating": false,
+    "params": "{}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "review",
+      "rough-cut",
+      "fine-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "read",
+    "tiers": [
+      "read"
+    ],
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
+      "submit plan",
+      "post plan"
+    ],
+    "category": "File",
+    "id": "tasksheet.plan_submit",
+    "label": "Submit Task Sheet Plan",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"steps\":[{\"id\":u32,\"title\":str,\"description\":str?,\"status\":str,\"target_tick\":i64?}],\"rejection_reason\":str?}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "rough-cut",
+      "fine-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "approve plan",
+      "accept plan"
+    ],
+    "category": "File",
+    "id": "tasksheet.plan_approve",
+    "label": "Approve Task Sheet Plan",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"reason\":str?}",
+    "profiles": [
+      "admin",
+      "tasksheet"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "reject plan",
+      "request plan revision"
+    ],
+    "category": "File",
+    "id": "tasksheet.plan_reject",
+    "label": "Reject Task Sheet Plan",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"reason\":str}",
+    "profiles": [
+      "admin",
+      "tasksheet"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "run report",
+      "step progress report"
+    ],
+    "category": "File",
+    "id": "tasksheet.run_report",
+    "label": "Report Task Sheet Run Progress",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"current_step_id\":u32?,\"completed_step_id\":u32?,\"wall_clock_min_spent\":f64?,\"model_cost_usd_spent\":f64?,\"render_min_spent\":f64?,\"status_message\":str?}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "rough-cut",
+      "fine-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "ask question",
+      "pause for input"
+    ],
+    "category": "File",
+    "id": "tasksheet.question_ask",
+    "label": "Ask Task Sheet Question",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"question_id\":str,\"question\":str,\"context\":str?,\"options\":[{\"id\":str,\"label\":str,\"description\":str?,\"is_default\":bool?,\"thumbnail\":str?}],\"default_option_id\":str,\"deadline_seconds\":u64?}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "rough-cut",
+      "fine-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "answer question",
+      "resolve question"
+    ],
+    "category": "File",
+    "id": "tasksheet.question_answer",
+    "label": "Answer Task Sheet Question",
+    "menu": [
+      "File"
+    ],
+    "mutating": true,
+    "params": "{\"question_id\":str,\"option_id\":str}",
+    "profiles": [
+      "admin",
+      "tasksheet"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
   },
   {
     "aliases": [

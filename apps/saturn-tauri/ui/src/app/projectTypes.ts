@@ -8,6 +8,7 @@ import type {
   MotionTrackingData, MultiCamClip, NodeGraph, RgbCurves, SpeedRamp, SubtitleItem,
   TrackAudioProcessing, TrackAutomation, TrackGroup, SilenceInterval,
 } from "../engine/playbackEngine";
+import type { TaskSheetState } from "../features/tasksheet/types";
 
 export type {
   AudioBus, AutomationMode, BusTarget, CaptionStyle, CaptionTrack,
@@ -118,6 +119,7 @@ export type ColorAdjustments = {
   qualifier?: HslQualifier;
 };
 export type Clip = {
+  id?: number;
   media_id: number;
   timeline_start: number;
   source_in: number;
@@ -139,6 +141,12 @@ export type Clip = {
   audio_enabled?: boolean;
   /** FC Enable: disabled clips stay on the timeline but play nothing. */
   enabled?: boolean;
+  agent_note?: {
+    rationale?: string;
+    confidence?: "high" | "medium" | "low";
+    active?: boolean;
+    change_id?: number;
+  } | null;
 };
 export type Track = {
   id: number;
@@ -185,6 +193,7 @@ export type ProjectDocument = {
     sequence: Sequence;
     sequences?: Sequence[];
     graphic_templates?: GraphicTemplate[];
+    task_sheet?: TaskSheetState | null;
     settings: { width: number; height: number; frame_rate: { numerator: number; denominator: number }; audio_sample_rate: number; use_proxies?: boolean };
   };
 };

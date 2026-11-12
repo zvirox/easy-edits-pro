@@ -43,6 +43,7 @@ mod keyframe_cmds;
 mod lock_cmds;
 mod markers_cmds;
 mod media_cmds;
+mod review_cmds;
 mod ocio_cmds;
 mod nodegraph_cmds;
 mod export_cmds;
@@ -52,6 +53,8 @@ mod project_freeform_cmds;
 mod project_panel_cmds;
 mod sequence_cmds;
 mod settings_cmds;
+mod tasksheet_cmds;
+mod tasksheet_gates;
 mod captions_cmds;
 mod graphics_cmds;
 mod timeline_cmds;
@@ -627,6 +630,8 @@ impl EditorEngine {
             }
         }
 
+        self.check_agent_tasksheet_gates(&request, ctx)?;
+
         let prev_context = self.current_context.replace(ctx.clone());
         let result = self.execute_internal(request);
         self.current_context = prev_context;
@@ -660,6 +665,15 @@ impl EditorEngine {
                 return result;
             }
             if let Some(result) = self.dispatch_brief(command.id, request.params.clone()) {
+                return result;
+            }
+            if let Some(result) = self.dispatch_tasksheet(command.id, request.params.clone()) {
+                return result;
+            }
+            if let Some(result) = self.dispatch_tasksheet_gates(command.id, request.params.clone()) {
+                return result;
+            }
+            if let Some(result) = self.dispatch_review(command.id, request.params.clone()) {
                 return result;
             }
             if let Some(result) = self.dispatch_branch(command.id, request.params.clone()) {

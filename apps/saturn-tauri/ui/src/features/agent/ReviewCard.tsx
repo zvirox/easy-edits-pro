@@ -1,12 +1,26 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { InteriorButton } from "../../components/interior/interior-button";
+import { ReviewNotesSection } from "./ReviewNotesSection";
 import type { AgentSessionState, ReviewChange } from "./types";
 
 export interface ReviewCardProps {
   session: AgentSessionState;
+  playhead?: number;
+  selectedRoundNumber?: number | "all";
+  onSelectRound?: (round: number | "all") => void;
+  selectedNoteId?: string | null;
+  onSelectNote?: (noteId: string | null) => void;
+  onAddReviewNote?: (params: { text: string; targetTick?: number }) => Promise<void>;
+  onResolveReviewNote?: (
+    noteId: string,
+    resolution: string,
+    status: "resolved" | "dismissed",
+  ) => Promise<void>;
+  onOpenReviewRound?: (label?: string) => Promise<void>;
+  onCloseReviewRound?: (outcome: "revision_requested" | "approved", reason?: string) => Promise<void>;
   onAcceptChange: (changeId: number) => void;
   onRejectChange: (changeId: number) => void;
   onFixChange: (changeId: number, feedback: string) => void;
@@ -17,6 +31,15 @@ export interface ReviewCardProps {
 
 export const ReviewCard: React.FC<ReviewCardProps> = ({
   session,
+  playhead = 0,
+  selectedRoundNumber = "all",
+  onSelectRound,
+  selectedNoteId = null,
+  onSelectNote,
+  onAddReviewNote,
+  onResolveReviewNote,
+  onOpenReviewRound,
+  onCloseReviewRound,
   onAcceptChange,
   onRejectChange,
   onFixChange,
@@ -27,6 +50,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [fixInputOpen, setFixInputOpen] = useState<number | null>(null);
   const [fixFeedback, setFixFeedback] = useState("");
+  const noteInputRef = useRef<HTMLInputElement | null>(null);
 
   // Sort: low confidence first, then by change_id
   const sortedChanges = useMemo(() => {
@@ -41,15 +65,25 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
 
   const selectedItem = sortedChanges[selectedIndex];
 
-  // Scoped keyboard shortcuts (J/K, A, R, F, Space)
+  // Scoped keyboard shortcuts (J/K, A, R, F, N, Space)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target?.tagName === "INPUT" || target?.tagName === "TEXTAREA" || target?.isContentEditable) {
+      if (
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.tagName === "SELECT" ||
+        target?.isContentEditable
+      ) {
         return;
       }
 
-      if (e.key === "j" || e.key === "J" || e.key === "ArrowDown") {
+      if (e.key === "n" || e.key === "N") {
+        if (noteInputRef.current) {
+          e.preventDefault();
+          noteInputRef.current.focus();
+        }
+      } else if (e.key === "j" || e.key === "J" || e.key === "ArrowDown") {
         e.preventDefault();
         setSelectedIndex((idx) => Math.min(idx + 1, sortedChanges.length - 1));
       } else if (e.key === "k" || e.key === "K" || e.key === "ArrowUp") {
@@ -123,7 +157,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
             Branch Review: <code>{session.activeBranch}</code>
           </div>
           <div style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>
-            {session.reviewQueue.length} proposed changes · Shortkeys: J/K, A, R, F, Space
+            {session.reviewQueue.length} proposed changes · Shortkeys: J/K, A, R, F, N, Space
           </div>
         </div>
 
@@ -136,6 +170,24 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
           </InteriorButton>
         </div>
       </div>
+
+      {/* Pro Review Notes & Revision Rounds (TS4) */}
+      {onAddReviewNote && onResolveReviewNote && onOpenReviewRound && onCloseReviewRound && (
+        <ReviewNotesSection
+          taskSheet={session.taskSheet}
+          playhead={playhead}
+          selectedRoundNumber={selectedRoundNumber}
+          onSelectRound={(round) => onSelectRound?.(round)}
+          selectedNoteId={selectedNoteId}
+          onSelectNote={(noteId) => onSelectNote?.(noteId)}
+          onJumpToTick={onJumpToTick}
+          onAddNote={onAddReviewNote}
+          onResolveNote={onResolveReviewNote}
+          onOpenRound={onOpenReviewRound}
+          onCloseRound={onCloseReviewRound}
+          noteInputRef={noteInputRef}
+        />
+      )}
 
       {/* Verification Evidence Summary */}
       {session.verificationReport && (

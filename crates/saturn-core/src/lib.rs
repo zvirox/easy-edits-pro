@@ -26,6 +26,7 @@ pub mod script_sync;
 pub mod speech;
 pub mod timeline_edits;
 pub mod subtitles;
+pub mod tasksheet;
 pub mod time;
 pub mod verification;
 pub mod viewport_state;

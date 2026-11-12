@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-473 commands.
+489 commands.
 
 ## File
 
@@ -119,6 +119,17 @@ Generated from the command catalogue. Do not edit by hand.
 | Read Preferences | `prefs.get` | shipped |  | `{"key":str?}` |
 | Write Preferences | `prefs.set` | shipped |  | `{"values":obj}` |
 | Reset Preferences | `prefs.reset` | shipped |  | `{}` |
+| Create Task Sheet | `tasksheet.create` | shipped |  | `{"id":str,"title":str,"requester":str,"inputs":[obj]?,"deliverables":[obj],"style":obj?,"must_not":obj?,"acceptance":obj?,"budget":obj?,"escalate_when":[str]?,"handoff":obj?}` |
+| Update Task Sheet | `tasksheet.update` | shipped |  | `{"title":str?,"inputs":[obj]?,"deliverables":[obj]?,"style":obj?,"must_not":obj?,"acceptance":obj?,"budget":obj?,"escalate_when":[str]?,"handoff":obj?}` |
+| Validate Task Sheet | `tasksheet.validate` | shipped |  | `{"sheet":obj?}` |
+| Submit Task Sheet | `tasksheet.submit` | shipped |  | `{"reason":str?}` |
+| Get Task Sheet | `tasksheet.get` | shipped |  | `{}` |
+| Submit Task Sheet Plan | `tasksheet.plan_submit` | shipped |  | `{"steps":[{"id":u32,"title":str,"description":str?,"status":str,"target_tick":i64?}],"rejection_reason":str?}` |
+| Approve Task Sheet Plan | `tasksheet.plan_approve` | shipped |  | `{"reason":str?}` |
+| Reject Task Sheet Plan | `tasksheet.plan_reject` | shipped |  | `{"reason":str}` |
+| Report Task Sheet Run Progress | `tasksheet.run_report` | shipped |  | `{"current_step_id":u32?,"completed_step_id":u32?,"wall_clock_min_spent":f64?,"model_cost_usd_spent":f64?,"render_min_spent":f64?,"status_message":str?}` |
+| Ask Task Sheet Question | `tasksheet.question_ask` | shipped |  | `{"question_id":str,"question":str,"context":str?,"options":[{"id":str,"label":str,"description":str?,"is_default":bool?,"thumbnail":str?}],"default_option_id":str,"deadline_seconds":u64?}` |
+| Answer Task Sheet Question | `tasksheet.question_answer` | shipped |  | `{"question_id":str,"option_id":str}` |
 
 ## Edit
 
@@ -403,6 +414,11 @@ Generated from the command catalogue. Do not edit by hand.
 | Clear Out | `timeline.clear_mark_out` | shipped |  | `{}` |
 | Mark Clip | `timeline.mark_clip` | shipped |  | `{"track_id":int,"clip_index":int}` |
 | Mark Selection | `timeline.mark_selection` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
+| Add Review Note | `review.note_add` | shipped |  | `{"text":str,"target_tick":i64?,"end_tick":i64?,"clip_id":u64?,"track_id":u64?,"round_number":u32?,"id":str?}` |
+| List Review Notes | `review.note_list` | shipped |  | `{"round_number":u32?,"status":str?,"clip_id":u64?,"track_id":u64?}` |
+| Resolve Review Note | `review.note_resolve` | shipped |  | `{"note_id":str,"resolution":str,"status":str?}` |
+| Open Review Round | `review.round_open` | shipped |  | `{"label":str?,"reason":str?}` |
+| Close Review Round | `review.round_close` | shipped |  | `{"outcome":str,"round_number":u32?,"reason":str?}` |
 
 ## Color
 

@@ -450,37 +450,37 @@ extends AF4's `ProjectBrief` to structured work orders, plan approval gates, pro
 and delivery packages. Core/schema = Lane 2; MCP/harness/docs = Lane 4; UI = Lane 1; native/CI = Lane 3.
 
 ### TS0 — Design freeze & schemas
-- [ ] Add `tasksheet/1` JSON Schema and Rust types in a separate module outside EEP domain code (Lane 2).
-- [ ] Formalize task sheet state machine: `draft → ready → planning → awaiting_plan_approval → running ⇄ needs_input → in_review → revision_requested → running … → approved → delivered` (Lane 4).
-- [ ] Draft templates for the three flagship jobs: podcast social clips, talking-head/screen tutorials, webinar recaps (Lane 4).
-- [ ] Capture Event Track (CET v0.1) specification freeze: schema `cet-0.1.schema.json`, sidecar packaging `.cet.jsonl`, class-only key capture with named shortcuts opt-in switch (`privacy.named_shortcuts="on"`), test vectors, and synthetic generator (`cet-gen`) design (standalone repo: [github.com/zvirox/capture-event-track](https://github.com/zvirox/capture-event-track), draft in [planning/capture-event-track-v0.1.md](planning/capture-event-track-v0.1.md)) (Lane 4).
-- [ ] **Gate:** JSON Schema validates all fixture sheets; invalid structures rejected; state machine transitions tested; CET v0.1 schema validates sample track.
+- [x] Add `tasksheet/1` JSON Schema and Rust types in a separate module outside EEP domain code (Lane 2).
+- [x] Formalize task sheet state machine: `draft → ready → planning → awaiting_plan_approval → running ⇄ needs_input → in_review → revision_requested → running … → approved → delivered` (Lane 4).
+- [x] Draft templates for the three flagship jobs: podcast social clips, talking-head/screen tutorials, webinar recaps (Lane 4).
+- [x] Capture Event Track (CET v0.1) specification freeze: schema `cet-0.1.schema.json`, sidecar packaging `.cet.jsonl`, class-only key capture with named shortcuts opt-in switch (`privacy.named_shortcuts="on"`), test vectors, and synthetic generator (`cet-gen`) design (standalone repo: [github.com/zvirox/capture-event-track](https://github.com/zvirox/capture-event-track), draft in [planning/capture-event-track-v0.1.md](planning/capture-event-track-v0.1.md)) (Lane 4).
+- [x] **Gate:** JSON Schema validates all fixture sheets; invalid structures rejected; state machine transitions tested; CET v0.1 schema validates sample track. **2026-11-11:** Verified by `crates/saturn-core/tests/ts_tasksheet_tests.rs` (10 tests passing covering JSON schema template validation, invalid structure rejection, exhaustive lifecycle transitions, CET v0.1 sidecar parsing, synthetic generator with class-only key capture and named shortcuts opt-in switch), `cargo test --workspace` (all crates green), `pnpm check:commands` (482 commands shipped), `pnpm check:glass`, `pnpm check:source-size --max-lines=800`, `pnpm build`, `pnpm test` (179 tests), and `pnpm test:e2e` (all green).
 
 ### TS1 — Core sheet engine & ProjectBrief migration
-- [ ] Implement sheet types, validation, and state machine in Rust core (Lane 2).
-- [ ] Lossless migration of existing `ProjectBrief` to single-deliverable sheet; keep `project.brief_set/get` as shorthand (Lane 2).
-- [ ] Add `tasksheet.*` commands (`create`, `update`, `validate`, `submit`, `get`, `plan_submit`, `plan_approve`, `plan_reject`, `run_report`) with explicit tiers and profile `tasksheet` (Lane 2/4).
-- [ ] Write journal entries for every sheet transition; refuse any sheet mutation originating from `untrusted` media text (Lane 2).
-- [ ] **Gate:** Unit tests for every transition; save/reopen preserves state; ProjectBrief migration test passes; untrusted text refusal proven.
+- [x] Implement sheet types, validation, and state machine in Rust core (Lane 2).
+- [x] Lossless migration of existing `ProjectBrief` to single-deliverable sheet; keep `project.brief_set/get` as shorthand (Lane 2).
+- [x] Add `tasksheet.*` commands (`create`, `update`, `validate`, `submit`, `get`, `plan_submit`, `plan_approve`, `plan_reject`, `run_report`) with explicit tiers and profile `tasksheet` (Lane 2/4).
+- [x] Write journal entries for every sheet transition; refuse any sheet mutation originating from `untrusted` media text (Lane 2).
+- [x] **Gate:** Unit tests for every transition; save/reopen preserves state; ProjectBrief migration test passes; untrusted text refusal proven. **2026-11-11:** Verified by `crates/saturn-core/tests/ts_tasksheet_tests.rs` (lossless ProjectBrief migration roundtrip, `tasksheet.*` command execution, agent plan submission with human approval gate enforcement, AF5 untrusted media text mutation refusal, and save/atomic reopen project persistence), `pnpm check:commands` (482 commands, profile `tasksheet` registered and validated), `pnpm check:parity` (up to date), and full workspace gates green.
 
 ### TS2 — Desktop Sheet tab & Agent Inbox
-- [ ] Add right dock tab "Sheet" using existing glass tokens: inputs with roles, deliverables, acceptance list, budgets, escalation rules, template picker (Lane 1).
-- [ ] Add Inbox to Agent card: displays agent questions as cards with options, thumbnails, and keyboard selection (Lane 1).
-- [ ] Update status bar with active sheet ID, status chip, and accumulated budget meters (Lane 1).
-- [ ] **Gate:** E2E: create sheet → submit → agent question displayed → answer → resume; responsive layout passes 900–1280px tests without clipping.
+- [x] Add right dock tab "Sheet" using existing glass tokens: inputs with roles, deliverables, acceptance list, budgets, escalation rules, template picker (Lane 1).
+- [x] Add Inbox to Agent card: displays agent questions as cards with options, thumbnails, and keyboard selection (Lane 1).
+- [x] Update status bar with active sheet ID, status chip, and accumulated budget meters (Lane 1).
+- [x] **Gate:** E2E: create sheet → submit → agent question displayed → answer → resume; responsive layout passes 900–1280px tests without clipping. **2026-11-11:** Verified by `apps/saturn-tauri/tests/e2e/tasksheet.mjs` running via `pnpm test:e2e` (sheet creation from flagship recipe templates, validate & submit transitions, Agent card inbox question display with safe defaults, keyboard and click decision answering with session resumption, and responsive layout across 1280px and 900px viewports with zero horizontal document clipping and zero browser errors), `apps/saturn-tauri/ui/src/features/tasksheet/tasksheet.test.ts` (template validity, input trust separation, inbox resolution, deliverable additions and constraints), `pnpm check:glass`, `pnpm check:commands`, and `pnpm check:source-size`.
 
 ### TS3 — Questions & Plan approval flow
-- [ ] Implement `tasksheet.question_ask` and `tasksheet.question_answer` with engine pause/resume orchestration (Lane 2/4).
-- [ ] Implement plan approval gate (`tasksheet.plan_submit`, `plan_approve`, `plan_reject`): approval required by default before agent begins edits (Lane 4).
-- [ ] Enforce unanswered question deadline: pauses session safely; never assumes destructive choices (Lane 2).
-- [ ] **Gate:** Agent remains safely paused while waiting for human plan approval or question answer; deadline timeout pauses safely.
+- [x] Implement `tasksheet.question_ask` and `tasksheet.question_answer` with engine pause/resume orchestration (Lane 2/4).
+- [x] Implement plan approval gate (`tasksheet.plan_submit`, `plan_approve`, `plan_reject`): approval required by default before agent begins edits (Lane 4).
+- [x] Enforce unanswered question deadline: pauses session safely; never assumes destructive choices (Lane 2).
+- [x] **Gate:** Agent remains safely paused while waiting for human plan approval or question answer; deadline timeout pauses safely. **2026-11-11:** Verified by `crates/saturn-core/tests/ts3_approval_and_questions_tests.rs` (plan approval enforcement blocking agent mutations until human approval, human plan rejection and resubmission, `tasksheet.question_ask` validation with >=2 options and safe defaults, AF5 untrusted media text refusal, human-only authorization for `tasksheet.question_answer`, session pause and resumption upon question answer, and question deadline expiration triggering safe pause without assuming destructive choices), `crates/saturn-core/tests/ts_tasksheet_tests.rs` (10/10 tests passing), full workspace test suite `cargo test --workspace`, `pnpm test:e2e` ("tasksheet": "passed", 0 browser errors), `pnpm check:commands` (484/484 shipped commands), `pnpm check:parity`, `pnpm check:glass`, and `pnpm check:source-size --max-lines=800`.
 
 ### TS4 — Pro review notes & revision rounds
-- [ ] Add `review.note_add`, `review.note_list`, `review.note_resolve` for timecoded notes linked to clips and ranges (Lane 2/4).
-- [ ] Add `review.round_open` and `review.round_close` with round-by-round diffs against prior rounds (v1, v2…) (Lane 2).
-- [ ] Review card UI additions: round selector, timecoded notes list, "Add note at playhead" shortcut, and round diff view (Lane 1).
-- [ ] Timeline UI: render note markers on ruler and low-confidence indicator dots on clips (Lane 1).
-- [ ] **Gate:** Notes survive save/reopen; round diff isolates changed ranges accurately; agent marks addressed notes with explanations; notes cannot be silently dropped.
+- [x] Add `review.note_add`, `review.note_list`, `review.note_resolve` for timecoded notes linked to clips and ranges (Lane 2/4).
+- [x] Add `review.round_open` and `review.round_close` with round-by-round diffs against prior rounds (v1, v2…) (Lane 2).
+- [x] Review card UI additions: round selector, timecoded notes list, "Add note at playhead" shortcut, and round diff view (Lane 1).
+- [x] Timeline UI: render note markers on ruler and low-confidence indicator dots on clips (Lane 1).
+- [x] **Gate:** Notes survive save/reopen; round diff isolates changed ranges accurately; agent marks addressed notes with explanations; notes cannot be silently dropped. **2026-11-12:** Verified by `crates/saturn-core/tests/ts4_review_rounds_tests.rs` (point/range/clip notes, AF5 untrusted media text guard, non-empty resolution requirement preventing silent drops, `review.round_close` approval blocking on open notes, `RoundDiffReport` changed-range isolation between v1 and v2, and `.saturn` save/reopen persistence + `tasksheet.update` non-clobber), full workspace suite `cargo test --workspace`, `apps/saturn-tauri/ui/src/features/agent/agent.test.ts` TS4 helper unit tests, `apps/saturn-tauri/tests/e2e/review.mjs` via `pnpm test:e2e` (round selector, diff chip jump-to-tick, `N` shortcut + add note at playhead, mandatory resolution gating, Approve Cut gating, `.timeline-review-pin` ruler indicators, and `.clip-low-confidence-dot` clip overlay with 0 browser errors), `pnpm build`, `pnpm check:glass`, `pnpm check:commands`, `pnpm check:parity --check`, and `pnpm check:source-size --max-lines=800`.
 
 ### TS5 — Delivery packaging (`delivery.package`)
 - [ ] Implement `delivery.package` command with `filesystem` tier grant (Lane 2).

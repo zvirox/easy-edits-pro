@@ -120,6 +120,11 @@ pub const ALL_PROFILE_INFOS: &[ProfileInfo] = &[
         description: "Retime, stabilization and tracking.",
         candidate_capabilities: "Time remapping, optical flow speed ramps, stabilization, motion tracking.",
     },
+    ProfileInfo {
+        name: "tasksheet",
+        description: "Task sheet work order lifecycle, plan approval, and review coordination.",
+        candidate_capabilities: "Sheet creation/updates, plan submissions, approval gates, status reports.",
+    },
 ];
 
 pub fn profile_info(name: &str) -> Option<&'static ProfileInfo> {

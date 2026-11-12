@@ -45,6 +45,7 @@ const VALID_PROFILES = new Set([
   "review",
   "rough-cut",
   "speed-motion",
+  "tasksheet",
 ]);
 
 const commands = JSON.parse(readFileSync(cataloguePath, "utf8"));

@@ -36,6 +36,8 @@ import { useSequenceTabs } from "./useSequenceTabs";
 import { MarkerLane } from "./MarkerLane";
 import { defaultCaptionCues } from "../../app/captions";
 import { AiBranchDiffRibbon } from "./AiBranchDiffRibbon";
+import { ReviewNoteRulerPins } from "./ReviewNoteRulerPins";
+import { useAgentSession } from "../agent/useAgentSession";
 import type { ReviewChange } from "../agent/types";
 
 export {
@@ -46,8 +48,6 @@ export {
   getTrackGaps,
   rulerSteps,
 };
-
-
 
 export interface TimelineSectionProps {
   timelineTool: TimelineTool;
@@ -222,6 +222,8 @@ export function TimelineSection({
   onAcceptBranch,
   onRejectBranch,
 }: TimelineSectionProps) {
+  const agent = useAgentSession({ perform, project, playhead });
+  const activeChanges = agentChanges ?? agent.session.reviewQueue;
   const tracks = project?.sequence.tracks ?? [];
   const videoTracks = tracks.filter((t) => t.kind === "video");
   const audioTracks = tracks.filter((t) => t.kind === "audio");
@@ -323,7 +325,7 @@ export function TimelineSection({
           isAgentBranch={Boolean(activeBranch && activeBranch !== "main")}
           ghostPlayheadTick={ghostPlayheadTick}
           timelineZoom={timelineZoom}
-          changes={agentChanges}
+          changes={activeChanges}
           onAcceptAll={onAcceptBranch}
           onRejectAll={onRejectBranch}
           onSeek={(sec) => perform?.("playback.seek", { seconds: sec })}
@@ -579,6 +581,13 @@ export function TimelineSection({
                     </>
                   );
                 })()}
+                <ReviewNoteRulerPins
+                  rounds={agent.session.taskSheet.rounds ?? []}
+                  selectedRoundNumber={agent.selectedRoundNumber}
+                  selectedNoteId={agent.selectedNoteId}
+                  pixelsPerSecond={timelineZoom}
+                  onSelectAndJump={(noteId, roundNum, tick) => { agent.setSelectedNoteId(noteId); agent.setSelectedRoundNumber(roundNum); agent.jumpToTick(tick); }}
+                />
                 {/* Unified Playhead - one grip in the ruler, its line spans the
                     whole timeline content (containing block: .timeline-content). */}
                 <div
@@ -692,6 +701,7 @@ export function TimelineSection({
                   mediaDropTargetTrackId={mediaDropTargetTrackId}
                   switchSequence={switchSequence}
                   onClipContextMenu={openClipContextMenu}
+                  lowConfidenceChanges={activeChanges}
                 />
               );
             })}
@@ -730,6 +740,7 @@ export function TimelineSection({
                   mediaDropTargetTrackId={mediaDropTargetTrackId}
                   switchSequence={switchSequence}
                   onClipContextMenu={openClipContextMenu}
+                  lowConfidenceChanges={activeChanges}
                 />
               );
             })}

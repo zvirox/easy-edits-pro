@@ -1,0 +1,81 @@
+{
+  "schema": "tasksheet/1",
+  "id": "template_tutorial_screen",
+  "title": "Software Tutorial with Screen Studio Capture",
+  "requester": "human:instructor",
+  "inputs": [
+    {
+      "id": "in_screen_recording",
+      "media": "media/desktop_capture.mkv",
+      "role": "main_video",
+      "trust": "trusted"
+    },
+    {
+      "id": "in_cet_events",
+      "media": "media/desktop_capture.cet.jsonl",
+      "role": "capture_event_track",
+      "trust": "trusted"
+    },
+    {
+      "id": "in_voiceover",
+      "media": "media/voiceover.wav",
+      "role": "isolated_audio",
+      "trust": "trusted"
+    }
+  ],
+  "deliverables": [
+    {
+      "id": "deliv_tutorial_master",
+      "name": "Complete Master Tutorial (1080p)",
+      "preset": "web-1080p",
+      "duration": {
+        "target_s": 300,
+        "tolerance_s": 30
+      },
+      "loudness_lufs": -14,
+      "true_peak_dbtp": -1,
+      "captions": true
+    }
+  ],
+  "style": {
+    "house_style": "tutorial_clean",
+    "pacing": "medium",
+    "music": "none",
+    "notes": "Zoom in 1.4x on click events with CET button down, smooth pan on cursor focus, remove dead air > 1.2s"
+  },
+  "must_not": {
+    "words": [],
+    "people": [],
+    "content": ["redacted_passwords", "mouse_idle_gaps"]
+  },
+  "acceptance": {
+    "auto": [
+      "verify.preset:web-1080p",
+      "audio.integrated_loudness",
+      "audio.silence_dead_air",
+      "captions.safe_area"
+    ],
+    "human": [
+      "clear_cursor_highlights",
+      "zoom_crop_framing_legible"
+    ]
+  },
+  "budget": {
+    "wall_clock_min": 45,
+    "model_cost_usd": 3.0,
+    "render_min": 20
+  },
+  "escalate_when": [
+    "unidentified_shortcut_key",
+    "occluded_menu_action"
+  ],
+  "handoff": {
+    "exports": true,
+    "project_file": true,
+    "interchange": ["otio", "fcpxml"],
+    "qc_report": true,
+    "change_log": true
+  },
+  "status": "ready",
+  "rounds": []
+}

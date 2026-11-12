@@ -1,0 +1,223 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+ * Also available under the EEP commercial licence — see LICENSING.md
+ */
+/* ------------------------------------------------------------------
+   TS4 — Pro review notes, revision rounds, ruler pins & clip indicators
+   All colours come from semantic tokens in 01-editor.css / 00-tokens-glass.css.
+   Timeline ruler/clip overlays stay raw timeline surface (no glass/motion).
+   ------------------------------------------------------------------ */
+
+.review-notes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm, 10px);
+}
+
+.review-notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.review-round-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.review-round-select {
+  background: var(--bg-control);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.review-open-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--status-warning-bright) 16%, transparent);
+  color: var(--status-warning-bright);
+  border: 1px solid color-mix(in srgb, var(--status-warning-bright) 40%, transparent);
+}
+
+.review-clean-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--status-success-text) 16%, transparent);
+  color: var(--status-success-text);
+  border: 1px solid color-mix(in srgb, var(--status-success-text) 40%, transparent);
+}
+
+.review-diff-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent-violet-bright) 28%, transparent);
+  background: color-mix(in srgb, var(--accent-violet-bright) 7%, transparent);
+}
+
+.review-diff-ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.review-diff-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--accent-violet-soft) 40%, transparent);
+  background: color-mix(in srgb, var(--accent-violet-soft) 14%, transparent);
+  color: var(--accent-text-violet);
+  font-size: 10.5px;
+  font-family: monospace;
+  cursor: pointer;
+}
+
+.review-note-compose {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.review-note-input {
+  flex: 1;
+  min-width: 140px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-control);
+  color: var(--text-main);
+  font-size: 11.5px;
+}
+
+.review-note-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.review-note-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--status-warning-bright);
+  background: color-mix(in srgb, var(--bg-card) 85%, transparent);
+}
+
+.review-note-item.is-resolved {
+  border-left-color: var(--status-success-text);
+}
+
+.review-note-item.is-dismissed {
+  border-left-color: var(--text-sub);
+  opacity: 0.78;
+}
+
+.review-note-item.is-selected {
+  border-color: var(--accent-text);
+}
+
+.review-note-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10.5px;
+  color: var(--text-sub);
+}
+
+.review-note-timecode {
+  background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
+  color: var(--accent-text);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: monospace;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+
+.review-note-resolution {
+  font-size: 11px;
+  color: var(--status-success-text);
+  background: color-mix(in srgb, var(--status-success-text) 10%, transparent);
+  padding: 4px 7px;
+  border-radius: 5px;
+}
+
+/* Timeline ruler note indicators (timeline media surface: no glass, no motion) */
+.timeline-review-pins {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.timeline-review-pin {
+  position: absolute;
+  bottom: 1px;
+  height: 9px;
+  min-width: 9px;
+  padding: 0;
+  border-radius: 2px;
+  border: 1px solid var(--status-warning-bright);
+  background: color-mix(in srgb, var(--status-warning-bright) 34%, transparent);
+  pointer-events: auto;
+  cursor: pointer;
+  transform: translateX(-4px);
+}
+
+.timeline-review-pin.is-range {
+  transform: none;
+}
+
+.timeline-review-pin.is-resolved {
+  border-color: var(--status-success-text);
+  background: color-mix(in srgb, var(--status-success-text) 30%, transparent);
+}
+
+.timeline-review-pin.is-dismissed {
+  border-color: var(--text-sub);
+  background: color-mix(in srgb, var(--text-sub) 25%, transparent);
+}
+
+.timeline-review-pin.is-selected {
+  box-shadow: 0 0 0 1px var(--accent-bright);
+}
+
+/* Clip low-confidence AI indicator dot (timeline media surface) */
+.clip-low-confidence-dot {
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 5px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--status-warning-bright);
+  box-shadow: 0 0 0 1px var(--bg-panel);
+}

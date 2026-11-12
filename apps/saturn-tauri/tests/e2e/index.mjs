@@ -19,6 +19,8 @@ import * as deliver from './deliver.mjs';
 import * as media from './media.mjs';
 import * as markers from './markers.mjs';
 import * as motion from './motion.mjs';
+import * as tasksheet from './tasksheet.mjs';
+import * as review from './review.mjs';
 
 // Area modules run in the original smoke order; each one receives the shared
 // harness context and appends its results to `ctx.state`.
@@ -32,6 +34,8 @@ const areaModules = [
   ['media', media],
   ['markers', markers],
   ['motion', motion],
+  ['tasksheet', tasksheet],
+  ['review', review],
 ];
 
 const harness = await createHarness();
@@ -89,6 +93,8 @@ try {
     markerCount: state.markerCount,
     mediaOrganisation: state.mediaOrganisation,
     reducedMotion: state.reducedMotion,
+    tasksheet: state.tasksheet,
+    review: state.review,
     editorScreenshot: '/tmp/easy-edits-pro-editor-smoke.png',
     importScreenshot: '/tmp/easy-edits-pro-import-workspace.png',
     exportScreenshot: '/tmp/easy-edits-pro-export-workspace.png',

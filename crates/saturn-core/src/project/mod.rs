@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 pub const PROJECT_FORMAT: &str = "easy-edits-pro.project";
 pub const LEGACY_PROJECT_FORMAT: &str = "project-saturn.project";
-pub const PROJECT_SCHEMA_VERSION: u32 = 18;
+pub const PROJECT_SCHEMA_VERSION: u32 = 19;
 
 mod io;
 mod migrate;
@@ -33,6 +33,7 @@ impl ProjectDocument {
                 name: name.into(),
                 notes: String::new(),
                 brief: crate::brief::ProjectBrief::default(),
+                task_sheet: None,
                 settings: ProjectSettings {
                     width: 1920,
                     height: 1080,

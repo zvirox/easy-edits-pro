@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://easyeditspro.com/schemas/cet-0.1.schema.json",
+  "title": "CaptureEventTrackRecord",
+  "description": "CET v0.1 schema validating either a header or an event record line",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["cet", "type", "recorder", "video", "clock", "displays", "privacy"],
+      "properties": {
+        "cet": { "type": "string", "const": "0.1" },
+        "type": { "type": "string", "const": "header" },
+        "recorder": {
+          "type": "object",
+          "required": ["name", "version", "platform"],
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" },
+            "platform": { "type": "string" }
+          }
+        },
+        "video": {
+          "type": "object",
+          "required": ["file", "size_bytes", "fps", "width", "height"],
+          "properties": {
+            "file": { "type": "string" },
+            "size_bytes": { "type": "integer", "minimum": 0 },
+            "fp": { "type": "string" },
+            "fps": { "type": "number", "minimum": 1 },
+            "width": { "type": "integer", "minimum": 1 },
+            "height": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "clock": {
+          "type": "object",
+          "required": ["t0", "unit"],
+          "properties": {
+            "t0": { "type": "string" },
+            "unit": { "type": "string", "enum": ["ns", "us", "ms"] },
+            "wall_start_utc": { "type": "string" },
+            "quality": { "type": "string" }
+          }
+        },
+        "displays": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "x", "y", "w", "h", "scale"],
+            "properties": {
+              "id": { "type": "string" },
+              "x": { "type": "integer" },
+              "y": { "type": "integer" },
+              "w": { "type": "integer" },
+              "h": { "type": "integer" },
+              "scale": { "type": "number" },
+              "primary": { "type": "boolean" }
+            }
+          }
+        },
+        "capture": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["display", "window", "region"] },
+            "display_id": { "type": ["string", "null"] },
+            "window_id": { "type": ["string", "null"] },
+            "region": { "type": ["object", "null"] }
+          }
+        },
+        "privacy": {
+          "type": "object",
+          "required": ["keys", "text"],
+          "properties": {
+            "keys": { "type": "string", "enum": ["classes_only", "named_shortcuts", "off"] },
+            "text": { "type": "string", "enum": ["on", "off"] },
+            "redactions": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "trust": {
+          "type": "object",
+          "properties": {
+            "untrusted_fields": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": ["t", "type"],
+      "properties": {
+        "t": { "type": "integer", "minimum": 0 },
+        "type": {
+          "type": "string",
+          "enum": [
+            "cursor",
+            "button",
+            "scroll",
+            "key",
+            "text",
+            "window",
+            "ui",
+            "mark",
+            "zoom_hint",
+            "audio",
+            "pause",
+            "annotation"
+          ]
+        },
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "nx": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ny": { "type": "number", "minimum": 0, "maximum": 1 },
+        "shape": { "type": "string" },
+        "button": { "type": "string", "enum": ["left", "right", "middle", "other"] },
+        "action": { "type": "string" },
+        "dx": { "type": "number" },
+        "dy": { "type": "number" },
+        "unit": { "type": "string" },
+        "class": {
+          "type": "string",
+          "enum": ["letter", "digit", "punct", "nav", "function", "edit", "enter", "space", "modifier", "other"]
+        },
+        "mods": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["ctrl", "alt", "shift", "meta"] }
+        },
+        "name": { "type": "string" },
+        "app": { "type": "string" },
+        "title": { "type": "string" },
+        "w": { "type": "number" },
+        "h": { "type": "number" },
+        "state": { "type": "string" },
+        "role": { "type": "string" },
+        "label": { "type": "string" },
+        "kind": { "type": "string" },
+        "note": { "type": "string" },
+        "reason": { "type": "string" },
+        "redacted": { "type": "boolean" },
+        "off": { "type": "boolean" }
+      }
+    }
+  ]
+}

@@ -108,10 +108,11 @@ pub(crate) fn migrate_project(value: &mut serde_json::Value) -> Result<(), Strin
     };
     match version {
         PROJECT_SCHEMA_VERSION => Ok(()),
-        14 | 15 | 16 | 17 => {
+        14 | 15 | 16 | 17 | 18 => {
             let object = value
                 .as_object_mut()
                 .ok_or_else(|| "Project root must be an object".to_string())?;
+            // v19 (TS1) adds task sheet work orders.
             // v18 (AF4) adds project brief and per-clip agent notes.
             // v17 (AF2) adds stable clip IDs and project-wide lock registry.
             // v16 adds audio_enabled (default true). v15 adds copy-on-write

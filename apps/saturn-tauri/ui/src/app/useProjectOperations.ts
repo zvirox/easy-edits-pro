@@ -740,7 +740,7 @@ export function useProjectOperations({
     setNewProjectOpen,
     projectJsonOpen,
     setProjectJsonOpen,
-    runCommand,
+    runCommand, setNotice,
     fullscreen,
     exportFormat,
     setExportFormat,

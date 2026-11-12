@@ -5,6 +5,8 @@
  * Agent and Review UI types (AF6 / Packet 5.2).
  */
 
+import type { AgentQuestion, TaskSheetState } from "../tasksheet/types";
+
 export type AgentStatus = "idle" | "thinking" | "editing" | "waiting" | "stopped" | "error";
 
 export type ConfidenceTier = "high" | "medium" | "low";
@@ -91,4 +93,11 @@ export interface AgentSessionState {
   pendingPermissions: PermissionRequest[];
   reviewQueue: ReviewChange[];
   verificationReport: VerificationReport | null;
+  taskSheet: TaskSheetState;
+  inbox: AgentQuestion[];
+  budgetSpent: {
+    wall_clock_seconds: number;
+    model_cost_usd: number;
+    render_seconds: number;
+  };
 }

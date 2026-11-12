@@ -10,6 +10,7 @@ import { CaptionsPanel, type CaptionsPanelProps } from "../../features/captions"
 import { NodeGraphPanel, type NodeGraphPanelProps } from "../../features/nodegraph";
 import { GraphicsPanel, type GraphicOperations } from "../../features/graphics";
 import { AgentCard, ReviewCard, useAgentSession } from "../../features/agent";
+import { TaskSheetPanel } from "../../features/tasksheet";
 import { ScriptSyncPanel } from "../../features/captions";
 import { AgentTelemetryDrawer } from "../../features/inspector";
 import type { TrimSession } from "../../app/timelineTrim";
@@ -85,10 +86,26 @@ export function EditDockRight({
   | "graphicsPanelProps"
   | "nodeGraphPanelProps"
 >) {
-  const agent = useAgentSession();
+  const agent = useAgentSession({
+    seek: markersPanelProps.onSeek,
+    playhead: graphicsPanelProps.playhead,
+  });
 
   const tabs: DockTab[] = [
     { id: "inspector", title: "Inspector", render: () => <InspectorPanel {...inspectorPanelProps} /> },
+    {
+      id: "sheet",
+      title: "Sheet",
+      render: () => (
+        <TaskSheetPanel
+          sheet={agent.session.taskSheet}
+          onUpdateSheet={agent.updateTaskSheet}
+          onSubmitSheet={agent.submitTaskSheet}
+          onLoadTemplate={agent.loadTemplate}
+          activeStatus={agent.session.taskSheet.status}
+        />
+      ),
+    },
     {
       id: "agent",
       title: "Agent",
@@ -101,6 +118,7 @@ export function EditDockRight({
           onAllowPermission={agent.allowPermission}
           onDenyPermission={agent.denyPermission}
           onJumpToTick={agent.jumpToTick}
+          onAnswerQuestion={agent.answerQuestion}
         />
       ),
     },
@@ -110,6 +128,15 @@ export function EditDockRight({
       render: () => (
         <ReviewCard
           session={agent.session}
+          playhead={agent.playhead}
+          selectedRoundNumber={agent.selectedRoundNumber}
+          onSelectRound={agent.setSelectedRoundNumber}
+          selectedNoteId={agent.selectedNoteId}
+          onSelectNote={agent.setSelectedNoteId}
+          onAddReviewNote={agent.addReviewNote}
+          onResolveReviewNote={agent.resolveReviewNote}
+          onOpenReviewRound={agent.openReviewRound}
+          onCloseReviewRound={agent.closeReviewRound}
           onAcceptChange={agent.acceptChange}
           onRejectChange={agent.rejectChange}
           onFixChange={agent.fixChange}

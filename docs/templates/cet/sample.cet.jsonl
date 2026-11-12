@@ -1,0 +1,10 @@
+{"cet":"0.1","type":"header","recorder":{"name":"SSP","version":"0.3.0","platform":"linux-wayland"},"video":{"file":"tutorial_sample.mkv","size_bytes":10485760,"fp":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","fps":60,"width":1920,"height":1080},"clock":{"t0":"first_video_frame","unit":"ns","wall_start_utc":"2026-11-11T09:00:00.000Z"},"displays":[{"id":"d0","x":0,"y":0,"w":1920,"h":1080,"scale":1.0,"primary":true}],"capture":{"mode":"display","display_id":"d0","region":null,"window_id":null},"privacy":{"keys":"classes_only","text":"off","redactions":["password_fields"]},"trust":{"untrusted_fields":["window.title","app.name","ui.label"]}}
+{"t":16666666,"type":"cursor","x":400,"y":300,"nx":0.2083,"ny":0.2778,"shape":"arrow"}
+{"t":33333333,"type":"cursor","x":450,"y":320,"nx":0.2344,"ny":0.2963,"shape":"arrow"}
+{"t":50000000,"type":"window","id":"w_terminal","app":"alacritty","title":"Terminal - bash","x":100,"y":100,"w":1200,"h":800,"state":"focused"}
+{"t":66666666,"type":"cursor","x":600,"y":400,"nx":0.3125,"ny":0.3704,"shape":"hand"}
+{"t":83333333,"type":"button","x":600,"y":400,"button":"left","action":"down"}
+{"t":100000000,"type":"zoom_hint","x":500,"y":300,"w":400,"h":300,"reason":"click_focus"}
+{"t":116666666,"type":"button","x":600,"y":400,"button":"left","action":"up"}
+{"t":150000000,"type":"key","class":"letter","mods":["ctrl"],"action":"down","name":"c"}
+{"t":200000000,"type":"mark","kind":"chapter","note":"Initialize Workspace"}

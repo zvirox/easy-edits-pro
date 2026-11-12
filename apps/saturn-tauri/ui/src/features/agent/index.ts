@@ -6,4 +6,6 @@ export * from "./useAgentSession";
 export * from "./AgentStatusChip";
 export * from "./AgentCard";
 export * from "./ReviewCard";
+export * from "./ReviewNotesSection";
+export * from "./reviewHelpers";
 export * from "./AgentSettingsModal";

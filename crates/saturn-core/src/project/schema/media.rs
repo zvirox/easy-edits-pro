@@ -42,6 +42,9 @@ pub struct Project {
     /// Human-owned project brief (AF4).
     #[serde(default)]
     pub brief: crate::brief::ProjectBrief,
+    /// Task sheet work order (TS1).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub task_sheet: Option<crate::tasksheet::TaskSheet>,
     pub settings: ProjectSettings,
     /// Scene-referred colour-management configuration (Packet 3.1).
     #[serde(default)]

@@ -3,6 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 import React, { useState } from "react";
 import { InteriorButton } from "../../components/interior/interior-button";
+import { AgentInbox } from "../tasksheet";
 import type { AgentSessionState, ProjectBriefState } from "./types";
 
 export interface AgentCardProps {
@@ -14,6 +15,7 @@ export interface AgentCardProps {
   onDenyPermission: (reqId: string) => void;
   onJumpToTick: (tick: number) => void;
   onSendInstruction?: (instruction: string) => void;
+  onAnswerQuestion?: (questionId: string, optionId: string) => void;
 }
 
 export const AgentCard: React.FC<AgentCardProps> = ({
@@ -25,6 +27,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
   onDenyPermission,
   onJumpToTick,
   onSendInstruction,
+  onAnswerQuestion,
 }) => {
   const [instruction, setInstruction] = useState("");
   const [briefOpen, setBriefOpen] = useState(false);
@@ -115,6 +118,75 @@ export const AgentCard: React.FC<AgentCardProps> = ({
           )}
         </div>
       </div>
+
+      {/* Active Task Sheet & Budget Header */}
+      {session.taskSheet && (
+        <div
+          className="glass"
+          data-elev="1"
+          style={{
+            padding: "8px 12px",
+            borderRadius: "var(--radius-sm, 10px)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "6px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontWeight: 600, fontSize: "12px" }}>📋 {session.taskSheet.title}</span>
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: 600,
+                  padding: "1px 6px",
+                  borderRadius: "4px",
+                  textTransform: "uppercase",
+                  background: "var(--surface-sunken)",
+                  color:
+                    session.taskSheet.status === "ready" || session.taskSheet.status === "running"
+                      ? "var(--success-text, #10b981)"
+                      : session.taskSheet.status === "needs_input"
+                      ? "var(--warn-text, #f59e0b)"
+                      : "var(--text-muted)",
+                }}
+              >
+                {session.taskSheet.status.replace(/_/g, " ")}
+              </span>
+            </div>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "monospace" }}>
+              {session.taskSheet.id}
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              fontSize: "11px",
+              color: "var(--text-muted)",
+              paddingTop: "2px",
+              borderTop: "1px solid var(--border-subtle, rgba(255,255,255,0.06))",
+            }}
+          >
+            <span>
+              ⏱ {Math.round(session.budgetSpent.wall_clock_seconds / 60)}m / {session.taskSheet.budget?.wall_clock_min ?? 60}m
+            </span>
+            <span>
+              💲 ${session.budgetSpent.model_cost_usd.toFixed(2)} / ${(session.taskSheet.budget?.model_cost_usd ?? 5.0).toFixed(2)}
+            </span>
+            <span>
+              ⚡ {Math.round(session.budgetSpent.render_seconds / 60)}m / {session.taskSheet.budget?.render_min ?? 30}m
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Agent Question Inbox */}
+      {session.inbox && session.inbox.length > 0 && onAnswerQuestion && (
+        <AgentInbox questions={session.inbox} onAnswer={onAnswerQuestion} />
+      )}
 
       {/* Permission Requests Banner */}
       {session.pendingPermissions.length > 0 && (

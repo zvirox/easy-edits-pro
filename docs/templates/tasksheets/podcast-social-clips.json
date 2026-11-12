@@ -1,0 +1,96 @@
+{
+  "schema": "tasksheet/1",
+  "id": "template_podcast_social",
+  "title": "Podcast Episode Highlights & Vertical Clips",
+  "requester": "human:producer",
+  "inputs": [
+    {
+      "id": "in_camera",
+      "media": "media/podcast_cam_a.mp4",
+      "role": "main_video",
+      "trust": "trusted"
+    },
+    {
+      "id": "in_mic",
+      "media": "media/podcast_mic_master.wav",
+      "role": "isolated_audio",
+      "trust": "trusted"
+    },
+    {
+      "id": "in_transcript",
+      "media": "media/podcast_whisper.json",
+      "role": "transcript",
+      "trust": "untrusted"
+    }
+  ],
+  "deliverables": [
+    {
+      "id": "deliv_vertical_01",
+      "name": "Social Hook Clip A (Vertical)",
+      "preset": "vertical-9x16",
+      "duration": {
+        "target_s": 45,
+        "tolerance_s": 10
+      },
+      "loudness_lufs": -14,
+      "true_peak_dbtp": -1,
+      "captions": true,
+      "must_include": ["topic:intro_hook"]
+    },
+    {
+      "id": "deliv_vertical_02",
+      "name": "Deep Dive Insight Clip B (Vertical)",
+      "preset": "vertical-9x16",
+      "duration": {
+        "target_s": 60,
+        "tolerance_s": 15
+      },
+      "loudness_lufs": -14,
+      "true_peak_dbtp": -1,
+      "captions": true
+    }
+  ],
+  "style": {
+    "house_style": "default_social",
+    "pacing": "fast",
+    "music": "ambient_low",
+    "notes": "Snappy pacing, remove dead air > 1.0s, kinetic captions centered in safe area"
+  },
+  "must_not": {
+    "words": ["filler_um", "stumble"],
+    "people": [],
+    "content": ["silent_gap_over_1.5s"]
+  },
+  "acceptance": {
+    "auto": [
+      "verify.preset:vertical-9x16",
+      "audio.integrated_loudness",
+      "audio.true_peak",
+      "captions.safe_area",
+      "audio.silence_dead_air"
+    ],
+    "human": [
+      "hook_in_first_3s",
+      "cut_pacing_natural"
+    ]
+  },
+  "budget": {
+    "wall_clock_min": 30,
+    "model_cost_usd": 2.5,
+    "render_min": 15
+  },
+  "escalate_when": [
+    "ambiguous_hook_selection",
+    "unclear_word_transcription",
+    "destructive_action"
+  ],
+  "handoff": {
+    "exports": true,
+    "project_file": true,
+    "interchange": ["fcpxml"],
+    "qc_report": true,
+    "change_log": true
+  },
+  "status": "ready",
+  "rounds": []
+}

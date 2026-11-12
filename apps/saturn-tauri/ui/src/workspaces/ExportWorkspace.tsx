@@ -102,7 +102,9 @@ export function ExportWorkspace({
   quickExport,
   exportProject,
 }: ExportWorkspaceProps) {
-  const agent = useAgentSession({ setNotice: (msg) => { if (msg) setNotice(msg); } });
+  const agent = useAgentSession({
+    setNotice: typeof setNotice === "function" ? (msg) => { if (msg) setNotice(msg); } : undefined,
+  });
   const outputResolution =
     exportResolution === "source"
       ? { width: project?.settings.width ?? 1920, height: project?.settings.height ?? 1080 }

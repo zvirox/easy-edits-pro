@@ -490,7 +490,7 @@ async fn profile_discovery_and_loading_enables_new_tools() {
             .contains(&json!("rough-cut"))
     );
     let profiles = json["profiles"].as_array().unwrap();
-    assert_eq!(profiles.len(), 12);
+    assert_eq!(profiles.len(), 13);
     let colour_prof = profiles.iter().find(|p| p["name"] == "colour").unwrap();
     assert_eq!(colour_prof["active"], false);
 
