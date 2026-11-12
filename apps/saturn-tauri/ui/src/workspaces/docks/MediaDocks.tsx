@@ -52,16 +52,21 @@ export function MediaDockLeft({
               <div className="media-dock-body">
       {/* Compact Studio Header */}
       <header
-        className="workspace-page-heading"
+        className="workspace-page-heading media-dock-heading"
         style={{
           display: "flex",
+          flexWrap: "wrap",
           alignItems: "center",
           justifyContent: "space-between",
+          gap: "8px",
           paddingBottom: "8px",
           borderBottom: "1px solid var(--border-panel)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
+        <div
+          className="media-dock-heading-info"
+          style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "6px 10px", minWidth: 0 }}
+        >
           <strong style={{ fontSize: "14px", fontWeight: 700, letterSpacing: "0.04em", color: "var(--text-primary)" }}>
             MEDIA POOL
           </strong>
@@ -69,7 +74,10 @@ export function MediaDockLeft({
             {media.length} item{media.length === 1 ? "" : "s"} in {project?.name ?? "this project"}
           </span>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div
+          className="media-dock-heading-actions"
+          style={{ display: "flex", flexWrap: "wrap", gap: "6px", minWidth: 0, maxWidth: "100%" }}
+        >
           <InteriorButton
             className="primary workspace-heading-action"
             style={{ padding: "6px 12px", fontSize: "11px" }}
@@ -96,16 +104,17 @@ export function MediaDockLeft({
           background: "var(--bg-elevated)",
           border: "1px dashed var(--border-panel)",
           borderRadius: "6px",
-          padding: "14px 18px",
           display: "flex",
+          flexWrap: "wrap",
           alignItems: "center",
-          gap: "16px",
+          gap: "10px",
+          padding: "10px 12px",
         }}
       >
         <div className="import-drop-icon" style={{ background: "var(--bg-input)", borderColor: "var(--border-panel)" }}>
           <Icon name="media" />
         </div>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: "120px" }}>
           <h2 style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-primary)", margin: "0 0 3px 0" }}>
             Add media to your project
           </h2>

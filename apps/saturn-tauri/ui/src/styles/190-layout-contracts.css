@@ -570,3 +570,71 @@ body,
   flex: 1 1 120px;
   min-width: 0;
 }
+
+/* Media workspace left dock (.media-dock-body) wrapping & horizontal containment */
+.media-dock-body {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.media-dock-body .media-dock-heading,
+.media-dock-body .media-dock-heading-info,
+.media-dock-body .media-dock-heading-actions {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.media-dock-body .media-dock-heading-actions > button {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.media-dock-body .import-drop-panel {
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 12px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.media-dock-body .import-drop-panel > div:nth-child(2) {
+  min-width: min(120px, 100%);
+}
+
+.media-dock-body .import-library-section {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.media-dock-body .import-library-section > header {
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.media-dock-body .import-library-section .search {
+  flex: 1 1 120px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.media-dock-body .import-media-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
+  min-width: 0;
+  max-width: 100%;
+}
+
+.media-dock-body .import-empty {
+  min-width: 0;
+  max-width: 100%;
+  padding: 14px 10px;
+}
