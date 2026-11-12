@@ -321,13 +321,13 @@ export function TimelineSection({
         />
 
         <AiBranchDiffRibbon
-          activeBranch={activeBranch}
-          isAgentBranch={Boolean(activeBranch && activeBranch !== "main")}
-          ghostPlayheadTick={ghostPlayheadTick}
+          activeBranch={activeBranch ?? agent.session.activeBranch}
+          isAgentBranch={Boolean((activeBranch ?? agent.session.activeBranch) && (activeBranch ?? agent.session.activeBranch) !== "main")}
+          ghostPlayheadTick={ghostPlayheadTick ?? agent.session.ghostPlayheadTick}
           timelineZoom={timelineZoom}
           changes={activeChanges}
-          onAcceptAll={onAcceptBranch}
-          onRejectAll={onRejectBranch}
+          onAcceptAll={onAcceptBranch ?? agent.acceptAllBranch}
+          onRejectAll={onRejectBranch ?? agent.rejectAllBranch}
           onSeek={(sec) => perform?.("playback.seek", { seconds: sec })}
         />
 
@@ -582,7 +582,7 @@ export function TimelineSection({
                   );
                 })()}
                 <ReviewNoteRulerPins
-                  rounds={agent.session.taskSheet.rounds ?? []}
+                  rounds={agent.session.taskSheet?.rounds ?? []}
                   selectedRoundNumber={agent.selectedRoundNumber}
                   selectedNoteId={agent.selectedNoteId}
                   pixelsPerSecond={timelineZoom}

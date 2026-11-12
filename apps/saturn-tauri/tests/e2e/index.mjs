@@ -19,6 +19,7 @@ import * as deliver from './deliver.mjs';
 import * as media from './media.mjs';
 import * as markers from './markers.mjs';
 import * as motion from './motion.mjs';
+import * as agent from './agent.mjs';
 import * as tasksheet from './tasksheet.mjs';
 import * as review from './review.mjs';
 
@@ -34,6 +35,7 @@ const areaModules = [
   ['media', media],
   ['markers', markers],
   ['motion', motion],
+  ['agent', agent],
   ['tasksheet', tasksheet],
   ['review', review],
 ];
@@ -93,6 +95,7 @@ try {
     markerCount: state.markerCount,
     mediaOrganisation: state.mediaOrganisation,
     reducedMotion: state.reducedMotion,
+    agent: state.agent,
     tasksheet: state.tasksheet,
     review: state.review,
     editorScreenshot: '/tmp/easy-edits-pro-editor-smoke.png',

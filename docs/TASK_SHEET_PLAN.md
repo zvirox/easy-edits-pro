@@ -162,7 +162,7 @@ Extends the AF6 Agent and Review cards; no new floating panels.
 | TS3 | Questions and plan approval flow | Agent paused until answered; unanswered deadline pauses safely |
 | TS4 | Review notes and rounds | Notes survive save/reopen; round diff correct; agent marks each note addressed or returns it with a reason |
 | TS5 | `delivery.package` | Package contains exports, project, interchange file, QC report, change log, provenance; checksums verify |
-| TS6 | Three flagship recipes + EEP-Bench tasks for each | Scripted agent passes bench smoke in CI |
+| TS6 | Three flagship recipes + EEP-Bench (scripted conformance suite) tasks for each (`--agent` mode planned separately) | Scripted conformance suite passes in CI; real-agent `--agent` baseline before public claims |
 | TS7 | Daemon web API (REST + WS) on `saturn-control` (after AF9 auth/audit) | Auth required; audit log complete; API conformance tests |
 | TS8 | Web Desk MVP (Jobs, New job, Job detail, Review) | Playwright e2e against a daemon with a scripted agent |
 | TS9 | Runner (queue, worker leasing, budgets, BYO model endpoints) | Two concurrent jobs complete within budgets; kill switch works |
@@ -202,7 +202,7 @@ Each recipe is a versioned skill (steps for the agent), a sheet template, a set 
 - **Tagline:** "Agents do the craft, with help from humans."
 - **Sub-line:** "Hand your agent a task sheet. Get back a checked cut and a review queue."
 - **B2B line:** "Run it on your own platform. Your footage never leaves."
-- **Proof to publish:** a 90-second demo of one sheet → three deliverables → QC report → one revision round; EEP-Bench results for the three jobs; interchange round-trip results.
+- **Proof to publish:** a 90-second demo of one sheet → three deliverables → QC report → one revision round; EEP-Bench `--agent` results (distinct from the scripted conformance suite) for the three jobs; interchange round-trip results.
 
 ---
 

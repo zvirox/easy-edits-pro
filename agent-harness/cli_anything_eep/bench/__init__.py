@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 # Also available under the EEP commercial licence — see LICENSING.md
-"""Scripted EEP-Bench benchmark definitions and deterministic runner."""
+"""EEP-Bench (scripted conformance suite) definitions and deterministic runner."""
 
 from __future__ import annotations
 

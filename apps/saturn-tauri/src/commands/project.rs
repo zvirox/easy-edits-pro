@@ -39,6 +39,16 @@ pub fn execute_command_with_state(
     state: &AppState,
     request: CommandRequest,
 ) -> Result<Value, String> {
+    execute_command_with_state_and_context(app, state, request, &saturn_core::ActorContext::human())
+}
+
+/// Execute a command under an explicit [`saturn_core::ActorContext`] (human GUI vs agent session).
+pub fn execute_command_with_state_and_context(
+    app: &AppHandle,
+    state: &AppState,
+    request: CommandRequest,
+    ctx: &saturn_core::ActorContext,
+) -> Result<Value, String> {
     let command_id = request.id.clone();
     // Write-policy gate (audit priority item 5): engine commands that take a
     // raw `path` destination are checked against the allowed roots and the
@@ -118,7 +128,9 @@ pub fn execute_command_with_state(
             .0
             .lock()
             .map_err(|_| "Editor state is unavailable".to_string())?;
-        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| guard.execute(request)))
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            guard.execute_with_context(request, ctx)
+        }))
             .map_err(|payload| {
                 let detail = if let Some(message) = payload.downcast_ref::<&str>() {
                     (*message).to_string()

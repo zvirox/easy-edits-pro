@@ -11,18 +11,67 @@ export async function run(ctx) {
   const workspaces = page.getByRole('radiogroup', { name: 'Workspaces' });
   await workspaces.getByRole('radio', { name: 'Edit' }).click();
 
-  // Ensure a V1 clip overlaps [0, 2s] so the low-confidence AI dot renders on the clip.
+  // Seed real engine review rounds (v1 closed -> low-confidence agent clip -> v2 open)
+  // via Tauri IPC + agent bridge instead of relying on demo defaults.
+  await page.evaluate(async () => {
+    const sec = 254016000000;
+    const invoke = window.__TAURI_INTERNALS__.invoke;
+    const status = await invoke('execute_command', { request: { id: 'project.status', params: {} } });
+    const mediaId = status.document.project.media[0]?.id;
+    await invoke('execute_command', { request: { id: 'review.round_open', params: { label: 'v1' } } });
+    const noteRes = await invoke('execute_command', {
+      request: { id: 'review.note_add', params: { text: 'Tighten cold open pause', target_tick: 1 * sec } },
+    });
+    await invoke('execute_command', {
+      request: {
+        id: 'review.note_resolve',
+        params: { note_id: noteRes.note.id, resolution: 'Trimmed dead air frames', status: 'resolved' },
+      },
+    });
+    await invoke('execute_command', {
+      request: { id: 'review.round_close', params: { outcome: 'revision_requested' } },
+    });
+    if (mediaId != null) {
+      window.__mockAgentExecute('sess-review-e2e', 'reviewer-agent', {
+        id: 'timeline.add_clip',
+        params: {
+          track_id: 1,
+          media_id: mediaId,
+          timeline_start: 0,
+          duration: 2 * sec,
+          rationale: 'Low-confidence intro splice',
+          confidence: 'low',
+        },
+      });
+    }
+    await invoke('execute_command', {
+      request: {
+        id: 'review.round_open',
+        params: {
+          label: 'v2',
+          diff_from_prior: {
+            from_round: 1,
+            to_round: 2,
+            from_revision: 1,
+            to_revision: 3,
+            changed_ranges: [
+              { start_tick: 1 * sec, end_tick: 3 * sec, kind: 'clip_modified', summary: 'Smoothed cold-open cut' },
+            ],
+            clip_changes: [],
+            merged_tick_ranges: [[1 * sec, 3 * sec]],
+            summary: '1 change(s) between v1 and v2',
+          },
+        },
+      },
+    });
+    await invoke('execute_command', {
+      request: { id: 'review.note_add', params: { text: 'Verify audio crossfade smoothness', target_tick: 2 * sec, end_tick: 3 * sec } },
+    });
+    window.__mockEmitProjectChanged?.();
+  });
+
+  // Low-confidence AI dot renders on the agent-modified clip at [0, 2s].
   const lowConfDots = page.locator('.clip-low-confidence-dot');
-  if ((await lowConfDots.count()) === 0) {
-    const mediaItem = page.locator('.media-item').first();
-    const mediaBounds = await mediaItem.boundingBox();
-    const videoLane = page.locator('.track-lane[data-track-id="1"]');
-    const laneBounds = await videoLane.boundingBox();
-    await page.mouse.move(mediaBounds.x + mediaBounds.width / 2, mediaBounds.y + mediaBounds.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(laneBounds.x + 12, laneBounds.y + laneBounds.height / 2, { steps: 10 });
-    await page.mouse.up();
-  }
   await lowConfDots.first().waitFor();
   assert.equal(
     await lowConfDots.first().getAttribute('aria-label'),

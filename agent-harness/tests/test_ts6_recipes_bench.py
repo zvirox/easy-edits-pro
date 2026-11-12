@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 # Also available under the EEP commercial licence — see LICENSING.md
-"""End-to-end CI smoke tests for TS6 flagship recipes, synthetic CET, and EEP-Bench."""
+"""End-to-end CI smoke tests for TS6 flagship recipes, synthetic CET, and EEP-Bench (scripted conformance suite)."""
 
 from __future__ import annotations
 
@@ -157,6 +157,7 @@ def test_eep_bench_suite_subprocess_smoke(tmp_path: Path):
     assert proc.returncode == 0, f"stderr:\n{proc.stderr}\nstdout:\n{proc.stdout}"
     report = json.loads(proc.stdout)
     assert report["suite"] == "eep-bench-smoke"
+    assert report["suite_label"] == "EEP-Bench (scripted conformance suite)"
     assert report["mode"] == "scripted_deterministic"
     assert report["passed"] is True
     assert report["total_tasks"] == 4

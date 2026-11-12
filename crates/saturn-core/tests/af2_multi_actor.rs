@@ -359,3 +359,137 @@ fn test_stop_generation_fencing_and_human_resume() {
         )
         .expect("freshened generation must succeed");
 }
+
+#[test]
+fn test_review_list_changes_selective_undo_and_conflict_on_human_edit() {
+    let mut engine = setup_test_engine();
+    let track_id = engine.document().project.sequence.tracks[0].id;
+    let media_id = engine.document().project.media[0].id;
+    let initial_count = engine.document().project.sequence.tracks[0].clips.len();
+
+    let agent_ctx = ActorContext::agent("agent-editor", "session-review-1");
+    let human_ctx = ActorContext::human();
+
+    // Create and switch to agent branch
+    engine
+        .execute_with_context(
+            CommandRequest::new("project.branch_create", json!({"name": "agent/af61-cut"})),
+            &agent_ctx,
+        )
+        .expect("branch_create");
+    engine
+        .execute_with_context(
+            CommandRequest::new("project.branch_switch", json!({"name": "agent/af61-cut"})),
+            &agent_ctx,
+        )
+        .expect("branch_switch");
+
+    // Agent adds two distinct clips on branch with rationale/confidence
+    engine
+        .execute_with_context(
+            CommandRequest::new(
+                "timeline.add_clip",
+                json!({
+                    "track_id": track_id,
+                    "media_id": media_id,
+                    "timeline_start": 2000,
+                    "source_in": 0,
+                    "duration": 500
+                }),
+            )
+            .with_rationale("Insert b-roll A".to_string()),
+            &agent_ctx,
+        )
+        .expect("agent add clip A");
+    let change_a = engine.journal.records.last().unwrap().change_id;
+
+    engine
+        .execute_with_context(
+            CommandRequest::new(
+                "timeline.add_clip",
+                json!({
+                    "track_id": track_id,
+                    "media_id": media_id,
+                    "timeline_start": 2500,
+                    "source_in": 0,
+                    "duration": 600
+                }),
+            )
+            .with_rationale("Insert b-roll B".to_string()),
+            &agent_ctx,
+        )
+        .expect("agent add clip B");
+    let change_b = engine.journal.records.last().unwrap().change_id;
+
+    // review.list_changes returns branch edits with tick_range, tier, actor, and no conflicts
+    let listed = engine
+        .execute_with_context(
+            CommandRequest::new("review.list_changes", json!({"branch": "agent/af61-cut"})),
+            &human_ctx,
+        )
+        .expect("review.list_changes");
+    let changes = listed["changes"].as_array().unwrap();
+    assert_eq!(changes.len(), 2);
+    assert_eq!(changes[0]["change_id"], change_b);
+    assert_eq!(changes[0]["actor"], "agent:agent-editor");
+    assert_eq!(changes[0]["tier"], "edit");
+    assert_eq!(changes[0]["tick_range"], json!([2500, 3100]));
+    assert_eq!(changes[0]["conflict"], json!(false));
+
+    // Reject change A only -> removes clip A, keeps clip B
+    engine
+        .undo_change(change_a, &human_ctx)
+        .expect("disjoint undo of added clip A");
+    let remaining_clips = &engine.document().project.sequence.tracks[0].clips;
+    assert_eq!(remaining_clips.len(), initial_count + 1);
+    let clip_b_index = remaining_clips.len() - 1;
+    assert_eq!(remaining_clips[clip_b_index].timeline_start.0, 2500);
+
+    // Later human edit touches clip B
+    engine
+        .execute_with_context(
+            CommandRequest::new(
+                "clip.set_enabled",
+                json!({"track_id": track_id, "clip_index": clip_b_index, "enabled": false}),
+            ),
+            &human_ctx,
+        )
+        .expect("human edit on clip B");
+
+    // review.list_changes reports conflict=true on change B, and undo_change refuses
+    let listed_after = engine
+        .execute_with_context(
+            CommandRequest::new("review.list_changes", json!({"branch": "agent/af61-cut"})),
+            &human_ctx,
+        )
+        .expect("review.list_changes after conflict");
+    let rec_b = listed_after["changes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["change_id"] == change_b)
+        .unwrap();
+    assert_eq!(rec_b["conflict"], json!(true));
+    let err = engine
+        .undo_change(change_b, &human_ctx)
+        .expect_err("conflicting undo must be blocked");
+    assert!(err.to_string().contains("Conflict"), "unexpected error: {err}");
+
+    // Human switches back to main and merges agent branch without `force`
+    engine
+        .execute_with_context(
+            CommandRequest::new("project.branch_switch", json!({"name": "main"})),
+            &human_ctx,
+        )
+        .expect("switch to main");
+    engine
+        .execute_with_context(
+            CommandRequest::new(
+                "project.branch_merge",
+                json!({"branch": "agent/af61-cut", "action": "accept"}),
+            ),
+            &human_ctx,
+        )
+        .expect("merge clean agent branch onto main");
+    assert_eq!(engine.document().project.sequence.tracks[0].clips.len(), initial_count + 1);
+}

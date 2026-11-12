@@ -6,23 +6,24 @@
 **Status:** In progress · **Reconciled baseline:** `7c20b98` (465 shipped catalogue commands).
 
 > **How to use this checklist.** This is the single source of truth for plan progress; the spec above describes *what and why*, this file tracks *what is done*. When starting work on a phase, tick packets as they land (one commit packet per checkbox, one lane per packet per `AGENTS.md`). A phase counts as complete only when **every checkbox in the phase is ticked, including the Verification Gate**. Update the phase status line after each gate passes, and record the evidence (test run / command + date) next to the gate checkbox.
+>
+> **End-to-end & demo-flag rule (AF6.1):** A gate that names an end-to-end flow must be proven by an end-to-end test (`test:e2e` / live process check) exercising the wired IPC/bridge path; demo or seed data may exist only behind an explicit flag (`?demo=1`), never in default app state.
 
 ## Current checkpoint and next-work queue
 
 - **Completed:** AI-native Phases 0–3; Phase 4 plugin/offline operations; Packet
-  5.1 J/L, match-cut and beat-grid slices. The glass shell and geometry tests exist.
-- **Open:** two remaining 5.1 verbs, all 5.2 panels, Phases 6–7 and the new
-  agent-first implementation work below. Phase 4 stays incomplete while cinema
+  5.1 J/L, match-cut and beat-grid slices; AF1–AF5; TS0–TS6 & CET v0.1 (`EEP-Bench (scripted conformance suite)`). The glass shell and geometry tests exist.
+- **Open:** AF6.1 remediation & E2E gate closure before AF7–AF9 / TS7–TS10; two remaining 5.1 verbs, Phases 6–7, real-agent `EEP-Bench --agent` mode, XP1–XP4, TS10, and TS-X. Phase 4 stays incomplete while cinema
   Dialogue/Music/Ambience/SFX separation is deferred for a verified, license-cleared
   model. Keep the documented room-tone, diarization and plugin-packaging follow-ups.
 - **AF0 inventory/design recorded:** current dependency graphs and the older
   `v0.1.2-alpha.2` package payloads are inventoried; conservative actor/history,
   lock, Stop and atomic-batch contracts are reviewed. See the
   [inventory](audit/af0-inventory.md) and [design](planning/af0-actor-design.md).
-- **Next actionable work:** proceed to **AF3** (Verification with perception metrics and negative controls).
+- **Next actionable work:** finish **AF6.1** (GUI Supervision Bridge, Real Engine State, `review.list_changes`, Conflict-Safe Revert, and E2E Proof) before **AF7/7.1**, **AF8/7.2**, **AF9**, and **TS7–TS10**.
 - **Proposed execution queue, pending maintainer decision:** AF0 → AF1 (Done) → AF2 (Done) →
-  AF4 (Done) → AF3 → AF5 → AF6/5.2 → remaining 5.1 and Phase 5 gate → Phase 6 →
-  AF7/7.1 → AF8/7.2 → AF9 (before hosting). Base verification/recipe smoke may
+  AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (reopened for AF6.1) → TS0–TS6 (Implemented) → AF6.1 → AF7/7.1 → AF8/7.2 (with `EEP-Bench --agent`) →
+  AF9 (before hosting) → TS7–TS10 → remaining 5.1 and Phase 5 gate → Phase 6. Base verification/recipe smoke may
   start when its prerequisites exist; it does not complete the larger gates.
   AF4 precedes full AF3 because verification reads brief/review metadata.
 - **Pending product choices:** default autopilot/co-edit mode, auto-merge policy,
@@ -366,13 +367,13 @@ Morph cuts, storyline pins and Packet 5.2 remain planned.
 
 ---
 
-## Agent-first companion — AF0–AF9 — `status: AF0, AF1, AF2, AF4 completed; AF3 next`
+## Agent-first companion — AF0–AF9 — `status: AF0–AF6 done except AF6.1; AF7–AF9 planned`
 
 Specification: [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md) and companion [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md).
 Each milestone below may need several sequential, single-lane commits. Core/schema = Lane 2;
 MCP/harness/docs = Lane 4; UI = Lane 1; packaging/native verification = Lane 3.
 Packet IDs are stable labels; follow the integrated timeline queue:
-**AF0 (Done) → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 → AF5 → AF6/5.2 → Task Sheet v1 (TS0–TS6) & Flagship Recipes (with CET v0.1) → AF7/7.1 → AF8/7.2 → AF9 / TS7–TS9 (Daemon, Web API & Web Desk) → XP1–XP4 (Cross-platform) → TS10 (SSO) & TS-X (Shared agent-contract crate).**
+**AF0 (Done) → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Reopened for AF6.1) → Task Sheet v1 (TS0–TS6) & Flagship Recipes (with CET v0.1) → AF6.1 (Supervision UI & Real Bridge) → AF7/7.1 → AF8/7.2 (`--agent` bench) → AF9 / TS7–TS9 (Daemon, Web API & Web Desk) → XP1–XP4 (Cross-platform) → TS10 (SSO) & TS-X (Shared agent-contract crate).**
 
 ### AF0 — Baseline, housekeeping and actor design
 - [x] Reconcile the supplied plan at `7c20b98`, add companion/cross-links and refresh the local `docs/planning.md` index (kept ignored per repository policy); retain completed work and blocked stems. Move misplaced match-cut evidence into the progress log and correct stale checklist header/Phase 3 status.
@@ -425,7 +426,7 @@ Packet IDs are stable labels; follow the integrated timeline queue:
 - [x] Add Review queue, confidence/rationale, before/after previews, verification navigation, whole-branch actions and conflict-safe per-change review backed by AF2 (Lane 1).
 - [x] Add ghost cursor, timeline badges/locks/diff ribbon and actor history/undo; complete the four existing Packet 5.2 panel checkboxes rather than replacing them (Lane 1).
 - [x] Add agent settings/onboarding and fold the existing assistant into the card only after feature/provider parity (Lane 1).
-- [x] **Gate:** demo run → review → accept/reject → merge; later human-edit conflicts preserved; fixed geometry across workspaces and 900–1280 px/wide windows; keyboard/status/Stop and colour-freeze checks pass. **2026-11-11:** Verified by `apps/saturn-tauri/ui/src/features/agent/agent.test.ts` (5 unit tests covering session status invariants, immediate Stop ≤ 1s with no late apply, low-confidence review queue priority sorting, measured verification report evidence preservation without invented scores, and origin-aware untrusted permission grants), `pnpm test` (179 tests green), `pnpm check:glass` (306 token pairs pass, 0 banned text colours, 134 colour tokens frozen, 0 raw colours outside tokens, no transition:all), `pnpm check:commands` (473 commands shipped), `pnpm check:source-size --max-lines=800` (all source files under 800 lines), `pnpm build` (TypeScript clean build), `cargo test --workspace` (all packages green), and `pnpm test:e2e` (all 9 areas pass, 0 browser errors, geometry invariance preserved across 1920/1600/1280 viewports and 7 shell modes + deliver).
+- [x] **Gate:** demo run → review → accept/reject → merge; later human-edit conflicts preserved; fixed geometry across workspaces and 900–1280 px/wide windows; keyboard/status/Stop and colour-freeze checks pass. **2026-11-12 (AF6.1 closed):** Proven by `cargo test --workspace`, `cargo test --manifest-path apps/saturn-tauri/Cargo.toml` (46 passed; 1 ignored, incl. `agent_bridge_session_stop_fences_calls_and_requires_human_resume`), `pnpm test` (189 unit tests), `pnpm check:glass` (306 token pairs, 134 tokens frozen, 0 raw colours), `pnpm check:commands` (492 shipped), `pnpm check:source-size --max-lines=800`, and `pnpm test:e2e` (all 12 areas incl. `agent`, `tasksheet`, `review` with 0 browser errors and empty default `/` vs explicit `?demo=1`).
 
 ### AF7 — Closed-loop recipes and Packet 7.1 CLI
 - [ ] Extend the existing harness/skill with profile/session/brief/verify/review flow and the five companion §2.6 recipes; use supplied dialogue/music sources while stems remain blocked (Lane 4).
@@ -433,9 +434,9 @@ Packet IDs are stable labels; follow the integrated timeline queue:
 - [ ] **Gate:** scripted podcast cleanup reaches measured verification pass and human review; exact tool shapes and undo/preparation limits documented.
 
 ### AF8 — Benchmark and Packet 7.2 closed-loop suite
-- [ ] Build 10–20 synthetic/approved-CC0 tasks, provenance records, metric/structure evaluation and labelled model/version/call/token/time reports; unavailable metrics remain explicit (Lane 4).
+- [ ] Build 10–20 synthetic/approved-CC0 tasks, provenance records, metric/structure evaluation and labelled model/version/call/token/time reports; add real LLM `--agent` mode to `EEP-Bench` (distinct from the scripted conformance suite); unavailable metrics remain explicit (Lane 4).
 - [ ] Reuse Packet 7.2 live-bridge suite and add deterministic CI smoke with seeded failure controls (Lane 3).
-- [ ] **Gate:** CI smoke and live workflow pass; publish a real-model baseline separately from scripted results; Phase 7 final gates remain required for full completion.
+- [ ] **Gate:** CI smoke, `--agent` three-recipe runs, and live workflow pass; publish a real-model baseline separately from `EEP-Bench (scripted conformance suite)` results; Phase 7 final gates remain required for full completion.
 
 ### AF9 — Authenticated long-lived daemon
 - [ ] Extend existing MCP/control components with project lifecycle, UDS session tokens, rate/time budgets and bounded JSONL audit records; reuse AF2 Stop and AF5 provenance (Lane 4).
@@ -443,7 +444,7 @@ Packet IDs are stable labels; follow the integrated timeline queue:
 
 ---
 
-## Task Sheet companion — TS0–TS10 & TS-X — `status: planned (queue follows AF3/AF5/AF6)`
+## Task Sheet companion — TS0–TS10 & TS-X — `status: TS0–TS6 implemented, TS7–TS10 & TS-X planned`
 
 Specification: [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md). Companion to [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md);
 extends AF4's `ProjectBrief` to structured work orders, plan approval gates, pro review rounds with diffs,
@@ -488,12 +489,21 @@ and delivery packages. Core/schema = Lane 2; MCP/harness/docs = Lane 4; UI = Lan
 - [x] Verify package integrity with checksums (BLAKE3 / SHA-256) (Lane 2). (`delivery.verify`, `crates/saturn-core/src/tasksheet/delivery_verify.rs`: `manifest.json`, `CHECKSUMS.blake3`, `SHA256SUMS`)
 - [x] **Gate:** Delivery package passes checksum verification; contains valid interchange files, complete QC report, and attributed change log. (Verified: `ts5_delivery_package_tests` 6/6 passed, `saturn-mcp` 22/22 passed incl. `mcp_delivery_package_enforces_filesystem_tier_and_verifies_checksums`, `saturn-tauri` Cargo 45 passed/1 ignored, UI tests 186/186 passed, `check:commands`/`catalogue:check`/`check:parity --check`/`check:source-size --max-lines=800`/`test:e2e` passed)
 
-### TS6 — Flagship recipes & EEP-Bench tasks
+### TS6 — Flagship recipes & EEP-Bench (scripted conformance suite)
 - [x] Build Recipe 1: Podcast to clips (transcript ranking, word-boundary cuts, reframing, captions, loudness, QC) (Lane 4). **2026-11-12:** `saturn-core::tasksheet::recipes::rank_podcast_clips` + `saturn-cli analyze-recipe podcast` + `cli_anything_eep/recipes/podcast_to_clips.py` (`recipe podcast-to-clips`) rank spans aligned to word boundaries, reject `must_not` hits, apply `9:16` `clip.frame_fit`, transcribe captions, run MCP `audio_process`/`verify.run` QC, and open review round `v1` with hook/tone/ending `ReviewNote` flags under dual-actor TS gates.
 - [x] Build Recipe 2: Talking-head & tutorial with CET integration (silence/filler cleanup, chaptering, zooms/cuts from CET cursor/window events, QC) (Lane 4). **2026-11-12:** `saturn-core::tasksheet::{cet_analysis,cet_synthetic}` + `cli_anything_eep/recipes/talking_head_tutorial.py` (`recipe talking-head-tutorial`) parse & validate CET tracks, enforce AF5 untrusted isolation on `capture_read_events` -> `tasksheet.update`, apply click/hint zoom keyframes kept inside crop, remove dead-air silences/fillers (`timeline_edits::slice_clip_keyframes` preserves valid clipped keyframes), add safe chapters/captions, and pass `verify.run` QC.
 - [x] Build Recipe 3: Webinar & training recap (transcript chaptering, topic coverage check, highlight selection, full + reel exports, QC) (Lane 4). **2026-11-12:** `saturn-core::tasksheet::recipes::analyze_webinar_recap` + `saturn-cli analyze-recipe webinar` + `cli_anything_eep/recipes/webinar_recap.py` (`recipe webinar-recap`) check `must_include` coverage (escalating missing topics via `tasksheet.question_ask`), flag `must_not` hits in Review Notes while excluding them from the Summary Reel sequence, and pass `verify.run` + `delivery.verify` on full and reel sequences.
 - [x] Build synthetic CET generator (`cet-gen`) for Recipe 2 verification ahead of physical recorder hardware (Lane 4). **2026-11-12:** `saturn-core::tasksheet::cet_synthetic` (`generate_synthetic_cet`), `saturn-cli cet-gen`/`cet-validate`/`cet-propose`/`cet-query`, standalone `cet-gen` binary (`crates/saturn-cli/src/bin/cet-gen.rs`), and `cli_anything_eep cet` commands (`gen`, `validate`, `propose`, `query`) with privacy default `keys=classes_only`, `text=off`.
-- [x] **Gate:** Scripted agents pass deterministic bench smoke in CI for all three recipes; Recipe 2 parses synthetic CET event track without error. **2026-11-12:** `cli_anything_eep/bench/` (`bench list` / `bench run`, scripted deterministic mode with honest `null` telemetry for LLM tokens/cost/aggregate score), `cargo test --workspace` (`ts6_recipes_and_cet_tests`, `ts_tasksheet_tests`, `ts4_review_rounds_tests`, `timeline_edits`, `saturn-mcp`), and `pytest agent-harness/tests` (`test_ts6_recipes_bench.py`, `test_ts6_recipes_bench_unit.py`) verify all three flagship recipes, CET parsing, AF5 isolation, and delivery checksums.
+- [ ] Add real-agent `--agent` evaluation mode (BYO LLM endpoints executing the three flagship recipes end-to-end; required before any public benchmark claim; tracked with AF8) (Lane 4).
+- [x] **Gate:** Scripted agents pass deterministic conformance suite in CI for all three recipes; Recipe 2 parses synthetic CET event track without error. **2026-11-12:** `cli_anything_eep/bench/` (`EEP-Bench (scripted conformance suite)` — `bench list` / `bench run`, `mode: scripted_deterministic`, honest `null` LLM tokens/cost/aggregate score), `cargo test --workspace` (`ts6_recipes_and_cet_tests`, `ts_tasksheet_tests`, `ts4_review_rounds_tests`, `timeline_edits`, `saturn-mcp`), and `pytest agent-harness/tests` verify all three flagship recipes, CET parsing, AF5 isolation, and delivery checksums.
+
+### AF6.1 — Supervision UI Integrity & Real Bridge Remediation (before TS7)
+> Reopened from AF6 review before TS7–TS9 or any "agent-ready" release (Lane 1 + Lane 2 + Lane 3).
+- [x] Expose `agent_session_stop`, `agent_session_resume`, `agent_session_status`, and `agent_undo_change` Tauri GUI commands in `apps/saturn-tauri` with bridge policy checks (human-only resume, origin check) and create `ui/src/features/agent/agentBridge.ts`.
+- [x] Remove swallowed/fake success errors in `agentSessionStore.ts` / `useAgentSession.ts`: mutate UI state only after engine confirmation, surface errors in `lastError` / UI notice, keep Stop enabled on failure, and call real `project.branch_merge { branch, action: "merge" }` after switching to `main`.
+- [x] Replace default seeded agent session/queue with empty initial state; isolate demo seed exclusively behind explicit `?demo=1` (`agentDemoSeed.ts`) and load real snapshot state (`session.status`, `project.brief_get`, `verify.run`, `tasksheet.get`, `review.round_diff`).
+- [x] Add read command `review.list_changes` (`review` profile) and conflict-safe `history.undo_change` dependency checking against later human edits, surfacing conflicts cleanly in Review UI.
+- [x] **Gate:** Rust Tauri wrapper/socket bridge test proves `agent_session_stop` fences subsequent agent calls with `SessionStopped` and requires human resume; UI unit tests prove empty default state (`?demo=1`-only seed) and strict error propagation without state corruption; Playwright E2E (`agent.mjs`) proves scripted agent edits on a branch → real review queue → single-change reject revert → later human edit blocks conflicting revert → Accept All merges to `main` with actor history → Stop mid-run halts `<= 1 s` with `SessionStopped`. **2026-11-12:** Passed `cargo test --workspace` + `saturn-tauri` tests (46 passed, 1 ignored), `pnpm test` (189 passed), and `pnpm test:e2e` (all 12 areas green, 0 browser errors).
 
 ### TS7 — Daemon Web API on `saturn-control`
 - [ ] Expose task sheet, review, question, and verification endpoints over REST + WebSockets on `saturn-control` (Lane 4).
@@ -590,6 +600,7 @@ Specification: [planning/contributor-strategy.md](planning/contributor-strategy.
 
 | Date | Packet | Note / Evidence |
 |---|---|---|
+| 2026-11-12 | AF6.1 | **Supervision UI & Real Bridge Remediation closed (`main`).** Added `agent_session_stop`/`resume`/`status` & `agent_undo_change` Tauri IPC wrappers + `agentBridge.ts`; removed silent `perform()` error swallowing and fake `INITIAL_*`/status-bar defaults (demo seed isolated strictly to `?demo=1`); fixed real `project.branch_merge` contract and added `review.list_changes` + dependency-conflict checking in `history.undo_change`; split `agentPayloadMappers.ts` to keep `agentSessionStore.ts` under 800 lines; renamed bench to `EEP-Bench (scripted conformance suite)` with planned `--agent` mode; verified with Rust socket/wrapper test, 189 UI unit tests, and 12-area Playwright E2E (`agent`, `tasksheet`, `review` green, 0 browser errors). |
 | 2026-11-11 | Planning / Governance & Platform Decisions | **CET, Cross-Platform, and Task Sheet governance decisions recorded; CET repository established.** CET name confirmed as Capture Event Track; CC BY 4.0 (spec) and Apache-2.0 (schema/tests/libs) license split confirmed; dedicated standalone public repo created at [github.com/zvirox/capture-event-track](https://github.com/zvirox/capture-event-track); class-only key capture default with named shortcuts opt-in switch confirmed; Recipe 2 confirmed to start with `cet-gen` synthetic generator; Tier 1 Linux and Tier 2 macOS/Windows adopted with headless first; macOS desktop GUI confirmed first, then Windows; public tagline/positioning deferred to a later decision. |
 | 2026-11-10 | Planning / Task Sheet | **Task Sheet Plan, CET v0.1 spec, Pro-Editor philosophy, Cross-Platform tiers, and Contributor strategy adopted.** Added [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md) (packets TS0–TS10 & TS-X: work orders, review rounds, web desk, recipes), [planning/capture-event-track-v0.1.md](planning/capture-event-track-v0.1.md) (open screen event sidecar spec), [planning/agent-operated-pro-editor.md](planning/agent-operated-pro-editor.md), [planning/cross-platform-and-positioning.md](planning/cross-platform-and-positioning.md) (Tier 1 Linux, Tier 2 macOS/Windows; packets XP1–XP4), and [planning/contributor-strategy.md](planning/contributor-strategy.md) (packets C1–C3). Checklist and timeline integrated; next actionable work remains AF3 (`verify.run`). |
 | 2026-11-10 | AF4 | **Rationale, confidence, project brief and human correction provenance (`ecd3041` / `2834ba3`).** Persisted per-edit rationale, declared agent confidence, schema v17→v18 migration, Rust-owned `project.brief_set/get` command with human authorization guards. Verified by 8 unit tests in `af4_brief_and_provenance.rs`, 9 migration tests, 20 MCP tests, full workspace gate green. |

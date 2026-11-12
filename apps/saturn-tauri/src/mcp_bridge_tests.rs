@@ -107,3 +107,72 @@ async fn bridge_socket_prep_covers_stale_live_and_permissions() {
         .expect("fresh bind with created parents");
     drop(fresh);
 }
+
+#[test]
+fn agent_bridge_session_stop_fences_calls_and_requires_human_resume() {
+    let mut engine = saturn_core::EditorEngine::default();
+    engine
+        .execute(saturn_core::CommandRequest::new(
+            "project.new",
+            json!({"name": "Bridge Stop Gate"}),
+        ))
+        .unwrap();
+    let media = engine
+        .execute(saturn_core::CommandRequest::new(
+            "project.add_media",
+            json!({"name": "a.mp4", "path": "/assets/a.mp4", "kind": "video"}),
+        ))
+        .unwrap();
+    let media_id = media["media_id"].as_u64().unwrap();
+    let track_id = engine.document().project.sequence.tracks[0].id;
+
+    let agent_ctx = saturn_core::ActorContext::agent("claude-agent", "sess-bridge-1");
+    engine
+        .execute_with_context(
+            saturn_core::CommandRequest::new(
+                "timeline.add_clip",
+                json!({"track_id": track_id, "media_id": media_id, "timeline_start": 0, "source_in": 0, "duration": 500}),
+            ),
+            &agent_ctx,
+        )
+        .unwrap();
+
+    let state = AppState::default();
+    *state.0.lock().unwrap() = engine;
+
+    // Status when session_id is omitted discovers the active agent session.
+    let status = session_status(&state, &json!({})).unwrap();
+    assert_eq!(status["has_active_session"], json!(true));
+    assert_eq!(status["session_id"], json!("sess-bridge-1"));
+    assert_eq!(status["is_stopped"], json!(false));
+
+    // Stopping via bridge helper immediately fences later agent calls with SessionStopped.
+    let stopped = session_stop(&state, &json!({"session_id": "sess-bridge-1"})).unwrap();
+    assert_eq!(stopped["stopped"], json!(true));
+
+    let err = state
+        .0
+        .lock()
+        .unwrap()
+        .execute_with_context(
+            saturn_core::CommandRequest::new("playhead.set", json!({"tick": 100})),
+            &agent_ctx,
+        )
+        .unwrap_err();
+    assert!(err.to_string().contains("SessionStopped"), "unexpected: {err}");
+
+    // Bridge resume without human authority must fail with PermissionDenied.
+    let err = session_resume(&state, &json!({"session_id": "sess-bridge-1"})).unwrap_err();
+    assert!(err.contains("PermissionDenied"), "unexpected: {err}");
+    let err = session_resume(
+        &state,
+        &json!({"session_id": "sess-bridge-1", "caller": {"kind": "agent", "id": "rogue"}}),
+    )
+    .unwrap_err();
+    assert!(err.contains("PermissionDenied"), "unexpected: {err}");
+
+    // Human resume succeeds and clears stopped state.
+    let resumed =
+        session_resume(&state, &json!({"session_id": "sess-bridge-1", "caller": "human"})).unwrap();
+    assert_eq!(resumed["resumed"], json!(true));
+}

@@ -1,10 +1,22 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { AgentInbox } from "../tasksheet";
 import type { AgentSessionState, ProjectBriefState } from "./types";
+
+const EMPTY_BRIEF_DRAFT: ProjectBriefState = {
+  goal: "",
+  platform: "web-1080p",
+  target_duration_ticks: 0,
+  duration_tolerance_ticks: 0,
+  must_keep_clip_ids: [],
+  banned_content: [],
+  style_notes: "",
+  loudness_target_lufs: -14.0,
+  source: "user_prompt",
+};
 
 export interface AgentCardProps {
   session: AgentSessionState;
@@ -31,11 +43,16 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 }) => {
   const [instruction, setInstruction] = useState("");
   const [briefOpen, setBriefOpen] = useState(false);
-  const [briefDraft, setBriefDraft] = useState<ProjectBriefState>(session.brief);
+  const [briefDraft, setBriefDraft] = useState<ProjectBriefState>(session.brief ?? EMPTY_BRIEF_DRAFT);
   const [previewStripOpen, setPreviewStripOpen] = useState(false);
 
-  const isStopped = session.isStopped || session.status === "stopped";
-  const isWorking = session.status === "thinking" || session.status === "editing";
+  useEffect(() => {
+    setBriefDraft(session.brief ?? EMPTY_BRIEF_DRAFT);
+  }, [session.brief]);
+
+  const hasActiveSession = Boolean(session.activeSessionId);
+  const isStopped = hasActiveSession && (session.isStopped || session.status === "stopped");
+  const isWorking = hasActiveSession && (session.status === "thinking" || session.status === "editing");
 
   const handleSend = () => {
     if (!instruction.trim()) return;
@@ -89,7 +106,9 @@ export const AgentCard: React.FC<AgentCardProps> = ({
           />
           <div>
             <div style={{ fontWeight: 600, fontSize: "12px" }}>
-              {isStopped
+              {!hasActiveSession
+                ? "No Active Session"
+                : isStopped
                 ? "Session Stopped"
                 : isWorking
                 ? `Running (Step ${session.stepCurrent}/${session.stepTotal})`
@@ -103,7 +122,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           {isStopped ? (
-            <InteriorButton variant="secondary" size="sm" onClick={onResume}>
+            <InteriorButton variant="secondary" size="sm" onClick={onResume} disabled={!hasActiveSession}>
               Resume
             </InteriorButton>
           ) : (
@@ -111,6 +130,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               variant="secondary"
               size="sm"
               onClick={onStop}
+              disabled={!hasActiveSession}
               title="Immediate Stop: halts active session (≤ 1s, no late apply)"
             >
               Stop
@@ -118,6 +138,23 @@ export const AgentCard: React.FC<AgentCardProps> = ({
           )}
         </div>
       </div>
+
+      {session.lastError && (
+        <div
+          role="alert"
+          className="glass"
+          data-elev="2"
+          style={{
+            padding: "8px 12px",
+            borderRadius: "var(--radius-sm, 10px)",
+            borderLeft: "3px solid var(--error-text)",
+            color: "var(--error-text)",
+            fontSize: "12px",
+          }}
+        >
+          {session.lastError}
+        </div>
+      )}
 
       {/* Active Task Sheet & Budget Header */}
       {session.taskSheet && (
@@ -357,9 +394,13 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               </InteriorButton>
             </div>
           </div>
-        ) : (
+        ) : session.brief ? (
           <div style={{ fontSize: "12px", color: "var(--text-dim, #d1d5db)" }}>
-            <b>{session.brief.goal}</b> ({session.brief.platform}, {session.brief.loudness_target_lufs} LUFS)
+            <b>{session.brief.goal || "Untitled brief"}</b> ({session.brief.platform}, {session.brief.loudness_target_lufs} LUFS)
+          </div>
+        ) : (
+          <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+            No project brief configured yet.
           </div>
         )}
       </div>
@@ -378,7 +419,12 @@ export const AgentCard: React.FC<AgentCardProps> = ({
       >
         <div style={{ fontWeight: 600, fontSize: "12px" }}>🎯 Execution Plan</div>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          {session.plan.map((step) => {
+          {session.plan.length === 0 ? (
+            <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+              No execution plan steps yet.
+            </div>
+          ) : (
+            session.plan.map((step) => {
             const isStepCurrent = step.status === "current";
             const isStepDone = step.status === "done";
             return (
@@ -433,7 +479,8 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                 )}
               </div>
             );
-          })}
+          })
+          )}
         </div>
       </div>
 
@@ -466,9 +513,23 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
         {previewStripOpen && (
           <div style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)", display: "flex", flexDirection: "column", gap: "4px" }}>
-            <div>Last verified scope: <b>EBU R128 (-14.2 LUFS)</b></div>
-            <div>True Peak: <b>-1.1 dBTP</b> (threshold: -1.0 dBTP)</div>
-            <div>Face centroids: <b>Detected frame #36</b></div>
+            {session.lastTelemetry ? (
+              <>
+                {session.lastTelemetry.loudness_lufs != null && (
+                  <div>
+                    Integrated Loudness: <b>{session.lastTelemetry.loudness_lufs.toFixed(1)} LUFS</b>
+                  </div>
+                )}
+                {session.lastTelemetry.true_peak_dbtp != null && (
+                  <div>
+                    True Peak: <b>{session.lastTelemetry.true_peak_dbtp.toFixed(1)} dBTP</b>
+                  </div>
+                )}
+                {session.lastTelemetry.summary && <div>{session.lastTelemetry.summary}</div>}
+              </>
+            ) : (
+              <div>No measured telemetry captured yet.</div>
+            )}
           </div>
         )}
       </div>

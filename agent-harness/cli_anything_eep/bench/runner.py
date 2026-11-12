@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 # Also available under the EEP commercial licence — see LICENSING.md
-"""Deterministic EEP-Bench runner with honest scripted telemetry (null LLM cost/tokens)."""
+"""EEP-Bench (scripted conformance suite) runner with honest scripted telemetry (null LLM cost/tokens)."""
 
 from __future__ import annotations
 
@@ -20,10 +20,10 @@ def run_bench_task(
     cli_path: Optional[str] = None,
     mcp_path: Optional[str] = None,
 ) -> dict[str, Any]:
-    """Execute one deterministic EEP-Bench task and evaluate its verifiable invariants."""
+    """Execute one EEP-Bench (scripted conformance suite) task and evaluate its verifiable invariants."""
     spec = BENCH_TASKS.get(task_id)
     if spec is None:
-        raise KeyError(f"Unknown EEP-Bench task `{task_id}`; available: {list(BENCH_TASKS)}")
+        raise KeyError(f"Unknown EEP-Bench (scripted conformance suite) task `{task_id}`; available: {list(BENCH_TASKS)}")
 
     task_dir = Path(workdir) / task_id
     task_dir.mkdir(parents=True, exist_ok=True)
@@ -65,7 +65,7 @@ def run_bench_suite(
     cli_path: Optional[str] = None,
     mcp_path: Optional[str] = None,
 ) -> dict[str, Any]:
-    """Run all (or selected) deterministic EEP-Bench tasks and aggregate verifiable telemetry."""
+    """Run all (or selected) EEP-Bench (scripted conformance suite) tasks and aggregate verifiable telemetry."""
     selected = list(task_ids) if task_ids is not None else list(BENCH_TASKS.keys())
     t0 = time.monotonic()
     results = [
@@ -83,9 +83,10 @@ def run_bench_suite(
 
     return {
         "suite": "eep-bench-smoke",
+        "suite_label": "EEP-Bench (scripted conformance suite)",
         "mode": "scripted_deterministic",
         "note": (
-            "Scripted deterministic agent smoke against compiled Rust core/CLI/MCP binaries; "
+            "EEP-Bench (scripted conformance suite) against compiled Rust core/CLI/MCP binaries; "
             "token_usage, model_cost_usd, and aggregate_quality_score are explicitly null."
         ),
         "total_tasks": len(results),

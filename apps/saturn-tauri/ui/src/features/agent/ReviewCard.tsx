@@ -162,17 +162,46 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
         </div>
 
         <div style={{ display: "flex", gap: "6px" }}>
-          <InteriorButton size="sm" variant="primary" onClick={onAcceptAllBranch} title="Accept all branch edits">
+          <InteriorButton
+            size="sm"
+            variant="primary"
+            onClick={onAcceptAllBranch}
+            disabled={!session.activeBranch || session.activeBranch === "main"}
+            title="Accept all branch edits"
+          >
             Accept All
           </InteriorButton>
-          <InteriorButton size="sm" variant="secondary" onClick={onRejectAllBranch} title="Reject and revert branch edits">
+          <InteriorButton
+            size="sm"
+            variant="secondary"
+            onClick={onRejectAllBranch}
+            disabled={!session.activeBranch || session.activeBranch === "main"}
+            title="Reject and revert branch edits"
+          >
             Reject All
           </InteriorButton>
         </div>
       </div>
 
+      {session.lastError && (
+        <div
+          role="alert"
+          className="glass"
+          data-elev="2"
+          style={{
+            padding: "8px 12px",
+            borderRadius: "var(--radius-sm, 10px)",
+            borderLeft: "3px solid var(--error-text)",
+            color: "var(--error-text)",
+            fontSize: "12px",
+          }}
+        >
+          {session.lastError}
+        </div>
+      )}
+
       {/* Pro Review Notes & Revision Rounds (TS4) */}
-      {onAddReviewNote && onResolveReviewNote && onOpenReviewRound && onCloseReviewRound && (
+      {session.taskSheet && onAddReviewNote && onResolveReviewNote && onOpenReviewRound && onCloseReviewRound ? (
         <ReviewNotesSection
           taskSheet={session.taskSheet}
           playhead={playhead}
@@ -187,6 +216,19 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
           onCloseRound={onCloseReviewRound}
           noteInputRef={noteInputRef}
         />
+      ) : (
+        <div
+          className="glass"
+          data-elev="1"
+          style={{
+            padding: "8px 12px",
+            borderRadius: "var(--radius-sm, 10px)",
+            fontSize: "12px",
+            color: "var(--text-muted)",
+          }}
+        >
+          No task sheet attached. Load a Task Sheet in the Sheet tab to manage review rounds and notes.
+        </div>
       )}
 
       {/* Verification Evidence Summary */}
@@ -254,6 +296,20 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
       {/* Changes Queue */}
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         <div style={{ fontWeight: 600, fontSize: "12px" }}>Proposed Edits (Low-confidence first)</div>
+        {sortedChanges.length === 0 && (
+          <div
+            className="glass"
+            data-elev="1"
+            style={{
+              padding: "10px 12px",
+              borderRadius: "var(--radius-sm, 10px)",
+              fontSize: "12px",
+              color: "var(--text-muted)",
+            }}
+          >
+            No proposed agent changes yet.
+          </div>
+        )}
         {sortedChanges.map((change, idx) => {
           const isSelected = idx === selectedIndex;
           return (
@@ -306,6 +362,19 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                 {change.rationale}
               </div>
 
+              {change.conflict && (
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--warn-text)",
+                    borderLeft: "2px solid var(--warn-text)",
+                    paddingLeft: "6px",
+                  }}
+                >
+                  ⚠ Conflict: {change.conflict_reason || "Subsequent edits prevent selective revert"}
+                </div>
+              )}
+
               {/* Action Buttons for this Change */}
               <div
                 style={{
@@ -316,6 +385,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                 }}
               >
                 <span style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>
+                  {change.actor ? `${change.actor} · ` : ""}
                   Tier: <code>{change.tier}</code>
                 </span>
 
@@ -333,12 +403,14 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                   <InteriorButton
                     size="sm"
                     variant="secondary"
+                    disabled={Boolean(change.rejected || change.conflict)}
+                    title={change.conflict ? change.conflict_reason || "Cannot undo due to conflict" : undefined}
                     onClick={(e) => {
                       e.stopPropagation();
                       onRejectChange(change.change_id);
                     }}
                   >
-                    {change.rejected ? "Reverted" : "Reject (R)"}
+                    {change.rejected ? "Reverted" : change.conflict ? "Conflict" : "Reject (R)"}
                   </InteriorButton>
                   <InteriorButton
                     size="sm"

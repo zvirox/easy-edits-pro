@@ -11,7 +11,7 @@ import {
 } from "./types";
 
 export interface TaskSheetPanelProps {
-  sheet: TaskSheetState;
+  sheet: TaskSheetState | null;
   onUpdateSheet: (sheet: TaskSheetState) => void;
   onSubmitSheet: (reason?: string) => void;
   onLoadTemplate: (templateId: string) => void;
@@ -23,7 +23,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
   onUpdateSheet,
   onSubmitSheet,
   onLoadTemplate,
-  activeStatus = sheet.status,
+  activeStatus = sheet?.status ?? "draft",
 }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
@@ -38,6 +38,56 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
       setValidationMsg({ valid: true, text: "Template loaded successfully." });
     }
   };
+
+  if (!sheet) {
+    return (
+      <div
+        className="tasksheet-panel"
+        role="region"
+        aria-label="Task Sheet Work Order Panel"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+          padding: "12px",
+          height: "100%",
+          fontSize: "13px",
+        }}
+      >
+        <div
+          className="glass"
+          data-elev="1"
+          style={{
+            padding: "12px",
+            borderRadius: "var(--radius-sm, 10px)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+          }}
+        >
+          <div style={{ fontWeight: 600 }}>No Task Sheet attached</div>
+          <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+            Load a flagship work-order template or create one via an agent brief to begin.
+          </div>
+          <select
+            className="input glass"
+            data-elev="2"
+            value={selectedTemplateId}
+            onChange={(e) => handleTemplateChange(e.target.value)}
+            aria-label="Load Flagship Task Sheet Template"
+            style={{ width: "100%", padding: "6px 8px", borderRadius: "6px", fontSize: "12px" }}
+          >
+            <option value="">Choose a flagship template…</option>
+            {FLAGSHIP_TEMPLATES.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    );
+  }
 
   const handleValidate = () => {
     if (!sheet.title.trim()) {

@@ -8261,6 +8261,36 @@
   },
   {
     "aliases": [
+      "list review changes",
+      "agent change queue"
+    ],
+    "category": "Markers",
+    "id": "review.list_changes",
+    "label": "List Review Changes",
+    "menu": [
+      "Markers"
+    ],
+    "mutating": false,
+    "params": "{\"branch\":str?,\"actor\":str?,\"session_id\":str?}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "review",
+      "rough-cut",
+      "fine-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "read",
+    "tiers": [
+      "read"
+    ],
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
+    "aliases": [
       "resolve review note",
       "dismiss review note"
     ],

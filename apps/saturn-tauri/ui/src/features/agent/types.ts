@@ -2,10 +2,10 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 /**
- * Agent and Review UI types (AF6 / Packet 5.2).
+ * Agent and Review UI types (AF6 / AF6.1).
  */
 
-import type { AgentQuestion, TaskSheetState } from "../tasksheet/types";
+import type { AgentQuestion, TaskSheetState } from "../tasksheet/types.ts";
 
 export type AgentStatus = "idle" | "thinking" | "editing" | "waiting" | "stopped" | "error";
 
@@ -31,6 +31,9 @@ export interface PermissionRequest {
 
 export interface ReviewChange {
   change_id: number;
+  command_id?: string;
+  actor?: string;
+  branch?: string;
   step_id?: number;
   step_title?: string;
   tick_range: [number, number];
@@ -42,6 +45,9 @@ export interface ReviewChange {
   after_preview?: string;
   accepted?: boolean;
   rejected?: boolean;
+  undone?: boolean;
+  conflict?: boolean;
+  conflict_reason?: string | null;
   feedback?: string;
 }
 
@@ -74,6 +80,12 @@ export interface ProjectBriefState {
   source: string;
 }
 
+export interface AgentTelemetrySummary {
+  loudness_lufs?: number | null;
+  true_peak_dbtp?: number | null;
+  summary?: string | null;
+}
+
 export interface AgentSessionState {
   status: AgentStatus;
   activeSessionId: string | null;
@@ -82,22 +94,24 @@ export interface AgentSessionState {
   stepCurrent: number;
   stepTotal: number;
   elapsedSeconds: number;
-  lastActor: { type: "human" | "agent"; id: string };
+  lastActor: { type: "human" | "agent"; id: string } | null;
   isStopped: boolean;
   activeMode: string;
   loadedProfiles: string[];
   grantedTiers: string[];
   ghostPlayheadTick: number | null;
-  brief: ProjectBriefState;
+  brief: ProjectBriefState | null;
   plan: PlanStep[];
   pendingPermissions: PermissionRequest[];
   reviewQueue: ReviewChange[];
   verificationReport: VerificationReport | null;
-  taskSheet: TaskSheetState;
+  taskSheet: TaskSheetState | null;
   inbox: AgentQuestion[];
   budgetSpent: {
     wall_clock_seconds: number;
     model_cost_usd: number;
     render_seconds: number;
   };
+  lastError?: string | null;
+  lastTelemetry?: AgentTelemetrySummary | null;
 }

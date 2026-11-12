@@ -155,6 +155,7 @@ impl EditorEngine {
             "review.round_close" => Some(self.handle_round_close(params)),
             "review.note_add" => Some(self.handle_note_add(params)),
             "review.note_list" => Some(self.handle_note_list(params)),
+            "review.list_changes" => Some(self.handle_review_list_changes(params)),
             "review.note_resolve" => Some(self.handle_note_resolve(params)),
             _ => None,
         }

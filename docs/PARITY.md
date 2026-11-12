@@ -96,6 +96,6 @@ Full parity (all reference-editor commands) is explicitly **not** a Beta goal.
 
 Reference-editor commands: 701
 
-EEP commands: 491 (491 shipped, 0 planned)
+EEP commands: 492 (492 shipped, 0 planned)
 
 App-only families (no reference-editor counterpart): bus, delivery, dsp, interop, nodegraph, ocio, review, tasksheet, track, verify, view, viewport, workspace

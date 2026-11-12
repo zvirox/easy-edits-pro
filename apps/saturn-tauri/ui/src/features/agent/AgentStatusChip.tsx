@@ -13,8 +13,9 @@ export interface AgentStatusChipProps {
 }
 
 export const AgentStatusChip: React.FC<AgentStatusChipProps> = ({ session, onStop, onResume }) => {
-  const isStopped = session.isStopped || session.status === "stopped";
-  const isWorking = session.status === "thinking" || session.status === "editing";
+  const hasActiveSession = Boolean(session.activeSessionId);
+  const isStopped = hasActiveSession && (session.isStopped || session.status === "stopped");
+  const isWorking = hasActiveSession && (session.status === "thinking" || session.status === "editing");
 
   const handleOpenAgent = () => {
     window.dispatchEvent(new CustomEvent(PANEL_OPEN_EVENT, { detail: { id: "agent" } }));
@@ -72,7 +73,9 @@ export const AgentStatusChip: React.FC<AgentStatusChipProps> = ({ session, onSto
         />
         <span style={{ fontWeight: 600 }}>AI Agent</span>
         <span style={{ color: "var(--text-muted, #9ca3af)", fontSize: "11px" }}>
-          {isStopped
+          {!hasActiveSession
+            ? "No session"
+            : isStopped
             ? "Stopped"
             : isWorking
             ? `Step ${session.stepCurrent}/${session.stepTotal}`
@@ -87,6 +90,7 @@ export const AgentStatusChip: React.FC<AgentStatusChipProps> = ({ session, onSto
           variant="secondary"
           size="sm"
           onClick={onResume}
+          disabled={!hasActiveSession}
           title="Resume agent task execution"
           style={{ padding: "2px 8px", height: "22px", fontSize: "11px" }}
         >
@@ -97,6 +101,7 @@ export const AgentStatusChip: React.FC<AgentStatusChipProps> = ({ session, onSto
           variant="secondary"
           size="sm"
           onClick={onStop}
+          disabled={!hasActiveSession}
           title="Immediate Stop: halt agent session (≤ 1s, no late apply)"
           style={{
             padding: "2px 8px",

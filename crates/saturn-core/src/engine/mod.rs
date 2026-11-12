@@ -243,10 +243,12 @@ impl EditorEngine {
     }
 
     pub fn current_branch(&self) -> String {
-        self.current_context
-            .as_ref()
-            .map(|c| c.branch.clone())
-            .unwrap_or_else(|| crate::branch::MAIN_BRANCH.to_string())
+        if let Some(ctx) = self.current_context.as_ref() {
+            if ctx.branch != crate::branch::MAIN_BRANCH {
+                return ctx.branch.clone();
+            }
+        }
+        self.active_branch_name()
     }
 
     pub fn check_actor_context(&self, ctx: &ActorContext) -> Result<(), DispatchError> {
@@ -276,7 +278,13 @@ impl EditorEngine {
     pub fn get_or_create_session(&mut self, ctx: &ActorContext) -> &mut SessionViewState {
         self.sessions
             .entry(ctx.session_id.clone())
-            .or_insert_with(|| SessionViewState::new(ctx.actor.clone(), ctx.session_id.clone()))
+            .or_insert_with(|| {
+                let mut state = SessionViewState::new(ctx.actor.clone(), ctx.session_id.clone());
+                if ctx.branch != crate::branch::MAIN_BRANCH {
+                    state.active_branch = ctx.branch.clone();
+                }
+                state
+            })
     }
 
     pub fn stop_session(&mut self, session_id: &str) -> u64 {
@@ -467,49 +475,6 @@ impl EditorEngine {
             }
         }
         ids
-    }
-
-    pub fn undo_change(&mut self, change_id: u64, ctx: &ActorContext) -> Result<Value, DispatchError> {
-        self.check_actor_context(ctx)?;
-        let record = self
-            .journal
-            .check_undo_allowed(change_id)
-            .map_err(DispatchError::Operation)?
-            .clone();
-
-        for entity_id in &record.affected_entity_ids {
-            self.document
-                .locks
-                .check_clip_mutation(*entity_id, &ctx.actor)
-                .map_err(DispatchError::Operation)?;
-        }
-
-        let inverse_val = record.inverse_state.ok_or_else(|| {
-            DispatchError::Operation(format!("Change {change_id} has no inverse state"))
-        })?;
-
-        let restored_doc: ProjectDocument = serde_json::from_value(inverse_val)
-            .map_err(|e| DispatchError::Operation(format!("Failed to deserialize inverse state: {e}")))?;
-
-        self.checkpoint();
-        self.document = restored_doc;
-
-        let undo_change_id = self.journal.record_change(
-            0,
-            ctx.actor.clone(),
-            &ctx.session_id,
-            &ctx.branch,
-            format!("undo:{}", record.command_id),
-            record.affected_entity_ids.clone(),
-            None,
-        );
-
-        Ok(json!({
-            "undone_change_id": change_id,
-            "undo_change_id": undo_change_id,
-            "command_id": record.command_id,
-            "affected_entities": record.affected_entity_ids,
-        }))
     }
 
     pub fn execute_transaction(
@@ -774,6 +739,7 @@ impl EditorEngine {
         })()?;
 
         if command.mutating {
+            let affected = self.collect_changed_entities(affected, before_doc.as_ref());
             self.record_mutating_change(
                 command.id,
                 affected,

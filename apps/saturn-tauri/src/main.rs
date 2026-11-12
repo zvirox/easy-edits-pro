@@ -195,7 +195,11 @@ fn main() {
             present_gpu_preview_frame,
             measure_ebu_r128_loudness,
             import_network_media,
-            run_background_matting
+            run_background_matting,
+            agent_session_stop,
+            agent_session_resume,
+            agent_session_status,
+            agent_undo_change
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Easy Edits Pro");

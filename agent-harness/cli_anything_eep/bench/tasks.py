@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 # Also available under the EEP commercial licence — see LICENSING.md
-"""EEP-Bench deterministic scripted task specifications and AF5 CET safety task."""
+"""EEP-Bench (scripted conformance suite) task specifications and AF5 CET safety task."""
 
 from __future__ import annotations
 

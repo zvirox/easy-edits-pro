@@ -24,7 +24,7 @@ impl EditorEngine {
     /// The branch record backing the live state. The active viewport branch
     /// name may be stale after undo/redo; operations fall back to the
     /// implicit main branch instead of erroring on a ghost name.
-    fn active_branch_name(&self) -> String {
+    pub(super) fn active_branch_name(&self) -> String {
         let active = &self.viewport.active_branch;
         if active == MAIN_BRANCH || self.document.branches.iter().any(|b| b.name == *active) {
             active.clone()
@@ -189,7 +189,11 @@ impl EditorEngine {
                         )))
                     }
                 }
-                self.viewport.active_branch = name;
+                self.viewport.active_branch = name.clone();
+                let sid = self.current_session_id();
+                if let Some(session) = self.sessions.get_mut(&sid) {
+                    session.active_branch = name;
+                }
                 Ok(json!({"switched": true, "active_branch": self.viewport.active_branch}))
             })()),
             "project.branch_diff" => Some((|| {
@@ -233,7 +237,18 @@ impl EditorEngine {
                 self.checkpoint();
                 match params.action {
                     BranchMergeAction::Accept => {
-                        if !params.force && self.journal.head_revision != target.base_revision {
+                        let target_parent = target.parent.as_deref().unwrap_or(MAIN_BRANCH);
+                        let parent_mutated = self.journal.records.iter().any(|record| {
+                            record.result_revision > target.base_revision
+                                && record.branch == target_parent
+                                && !matches!(
+                                    record.command_id.as_str(),
+                                    "project.branch_create"
+                                        | "project.branch_switch"
+                                        | "project.branch_merge"
+                                )
+                        });
+                        if !params.force && parent_mutated {
                             return Err(DispatchError::Operation(format!(
                                 "Conflict: cannot merge branch '{}': target head revision {} does not match branch base revision {}. Baseline is stale.",
                                 target.name, self.journal.head_revision, target.base_revision

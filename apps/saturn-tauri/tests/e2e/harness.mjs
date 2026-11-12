@@ -6,6 +6,7 @@
 // route, and hands every area module the same `ctx` (page + shared state).
 import { readFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
+import net from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -13,37 +14,82 @@ import { chromium } from 'playwright';
 
 const appDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-async function waitForServer(server, serverOutput, outputAppend) {
+function probePortAvailable(port) {
+  return new Promise(resolve => {
+    const srv = net.createServer();
+    srv.unref();
+    srv.on('error', () => resolve(false));
+    srv.listen(port, '127.0.0.1', () => {
+      srv.close(() => resolve(true));
+    });
+  });
+}
+
+function getEphemeralPort() {
+  return new Promise((resolve, reject) => {
+    const srv = net.createServer();
+    srv.unref();
+    srv.on('error', reject);
+    srv.listen(0, '127.0.0.1', () => {
+      const addr = srv.address();
+      const port = typeof addr === 'object' && addr ? addr.port : 1420;
+      srv.close(() => resolve(port));
+    });
+  });
+}
+
+async function resolveE2EPort() {
+  if (process.env.SATURN_E2E_PORT) {
+    return Number(process.env.SATURN_E2E_PORT);
+  }
+  if (await probePortAvailable(1420)) {
+    return 1420;
+  }
+  return getEphemeralPort();
+}
+
+async function waitForServer(port, server, getServerOutput) {
   const deadline = Date.now() + 30_000;
+  const baseUrl = `http://127.0.0.1:${port}/`;
   while (Date.now() < deadline) {
-    if (server.exitCode !== null) throw new Error(`Vite exited early:\n${serverOutput}`);
+    if (server.exitCode !== null) throw new Error(`Vite exited early:\n${getServerOutput()}`);
     try {
-      const response = await fetch('http://127.0.0.1:1420/');
+      const response = await fetch(baseUrl);
       if (response.ok) return;
     } catch { /* Vite is not listening yet. */ }
     await delay(200);
   }
-  throw new Error(`Timed out waiting for Vite at 127.0.0.1:1420:\n${serverOutput}`);
+  throw new Error(`Timed out waiting for Vite at ${baseUrl}:\n${getServerOutput()}`);
 }
 
 export async function createHarness() {
+  const port = await resolveE2EPort();
+  const baseOrigin = `http://127.0.0.1:${port}`;
+  const baseUrl = `${baseOrigin}/`;
   const fixture = await readFile(path.join(appDirectory, 'tests/fixtures/editor-smoke.webm'));
   const catalogue = JSON.parse(
     await readFile(path.join(appDirectory, '../../docs/reference/command-catalogue.json'), 'utf8'),
   );
-  const server = spawn('pnpm', ['dev', '--host', '127.0.0.1', '--strictPort'], {
-    cwd: appDirectory,
-    // Own process group: teardown must be able to signal pnpm AND the Vite
-    // grandchild it spawns (see teardown below).
-    detached: true,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  const server = spawn(
+    'pnpm',
+    ['dev', '--host', '127.0.0.1', '--port', String(port), '--strictPort'],
+    {
+      cwd: appDirectory,
+      // Own process group: teardown must be able to signal pnpm AND the Vite
+      // grandchild it spawns (see teardown below).
+      detached: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  );
   let serverOutput = '';
   server.stdout.on('data', chunk => { serverOutput += chunk.toString(); });
   server.stderr.on('data', chunk => { serverOutput += chunk.toString(); });
 
   const harness = {
     appDirectory,
+    port,
+    baseOrigin,
+    baseUrl,
     fixture,
     mockVideoUrl: `data:video/webm;base64,${fixture.toString('base64')}`,
     catalogue,
@@ -55,7 +101,7 @@ export async function createHarness() {
     dialogPrompt: 'B roll',
   };
 
-  harness.waitForServer = () => waitForServer(server, serverOutput, () => {});
+  harness.waitForServer = () => waitForServer(port, server, () => serverOutput);
   harness.teardown = async () => {
     if (harness.browser) await harness.browser.close();
     // The dev server runs under `pnpm` (an extra process layer). Signal the
@@ -97,7 +143,7 @@ export async function createHarness() {
     const end = match?.[2] ? Math.min(Number(match[2]), fixture.length - 1) : fixture.length - 1;
     const headers = {
       'Accept-Ranges': 'bytes',
-      'Access-Control-Allow-Origin': 'http://127.0.0.1:1420',
+      'Access-Control-Allow-Origin': baseOrigin,
       'Content-Type': 'video/webm',
     };
     if (match) {

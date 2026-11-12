@@ -102,7 +102,7 @@ export function EditDockRight({
           onUpdateSheet={agent.updateTaskSheet}
           onSubmitSheet={agent.submitTaskSheet}
           onLoadTemplate={agent.loadTemplate}
-          activeStatus={agent.session.taskSheet.status}
+          activeStatus={agent.session.taskSheet?.status}
         />
       ),
     },

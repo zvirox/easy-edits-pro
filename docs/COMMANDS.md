@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-491 commands.
+492 commands.
 
 ## File
 
@@ -418,6 +418,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Mark Selection | `timeline.mark_selection` | shipped |  | `{"clips":[{"track_id":int,"clip_index":int}]}` |
 | Add Review Note | `review.note_add` | shipped |  | `{"text":str,"target_tick":i64?,"end_tick":i64?,"clip_id":u64?,"track_id":u64?,"round_number":u32?,"id":str?}` |
 | List Review Notes | `review.note_list` | shipped |  | `{"round_number":u32?,"status":str?,"clip_id":u64?,"track_id":u64?}` |
+| List Review Changes | `review.list_changes` | shipped |  | `{"branch":str?,"actor":str?,"session_id":str?}` |
 | Resolve Review Note | `review.note_resolve` | shipped |  | `{"note_id":str,"resolution":str,"status":str?}` |
 | Open Review Round | `review.round_open` | shipped |  | `{"label":str?,"reason":str?}` |
 | Close Review Round | `review.round_close` | shipped |  | `{"outcome":str,"round_number":u32?,"reason":str?}` |

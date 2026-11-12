@@ -14,7 +14,10 @@ use tokio::{
     net::{UnixListener, UnixStream},
 };
 
-use crate::{AppState, commands::execute_command_with_state};
+use crate::{
+    AppState,
+    commands::{execute_command_with_state_and_context},
+};
 
 #[path = "mcp_bridge_media.rs"]
 mod media;
@@ -272,10 +275,15 @@ async fn dispatch(
             if let Some(confidence) = params.get("confidence").and_then(|v| serde_json::from_value(v.clone()).ok()) {
                 req = req.with_confidence(confidence);
             }
-            match execute_command_with_state(
+            let ctx: saturn_core::ActorContext = params
+                .get("context")
+                .and_then(|v| serde_json::from_value(v.clone()).ok())
+                .unwrap_or_else(|| saturn_core::ActorContext::agent("mcp-bridge", "mcp-bridge"));
+            match execute_command_with_state_and_context(
                 app,
                 state,
                 req,
+                &ctx,
             ) {
                 Ok(value) => {
                     let _ = app.emit("mcp_project_changed", ());
@@ -373,7 +381,7 @@ async fn command_batch(
     let ctx: saturn_core::ActorContext = params
         .get("context")
         .and_then(|v| serde_json::from_value(v.clone()).ok())
-        .unwrap_or_default();
+        .unwrap_or_else(|| saturn_core::ActorContext::agent("mcp-bridge", "mcp-bridge"));
 
     if atomic {
         let mut cmd_steps = Vec::with_capacity(steps.len());
@@ -438,7 +446,7 @@ async fn command_batch(
             if let Some(confidence) = step.get("confidence").and_then(|v| serde_json::from_value(v.clone()).ok()) {
                 req = req.with_confidence(confidence);
             }
-            match execute_command_with_state(app, state, req) {
+            match execute_command_with_state_and_context(app, state, req, &ctx) {
                 Ok(val) => {
                     completed += 1;
                     results.push(json!({"ok": true, "result": val}));
@@ -455,58 +463,130 @@ async fn command_batch(
     }
 }
 
-fn session_stop(state: &AppState, params: &Value) -> Result<Value, String> {
+pub(crate) fn session_stop(state: &AppState, params: &Value) -> Result<Value, String> {
     let session_id = params
         .get("session_id")
         .and_then(Value::as_str)
-        .ok_or_else(|| "session.stop requires string `session_id`".to_owned())?;
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| "session.stop requires non-empty string `session_id`".to_owned())?;
     let mut guard = state.0.lock().map_err(|e| e.to_string())?;
     let generation = guard.stop_session(session_id);
     Ok(json!({ "session_id": session_id, "stopped": true, "generation": generation }))
 }
 
-fn session_resume(state: &AppState, params: &Value) -> Result<Value, String> {
+fn parse_resume_caller(params: &Value) -> saturn_core::ActorId {
+    match params.get("caller") {
+        Some(Value::String(s)) if s.trim().eq_ignore_ascii_case("human") => {
+            saturn_core::ActorId::Human
+        }
+        Some(Value::String(s)) => saturn_core::ActorId::Agent(s.trim().to_string()),
+        Some(v) => serde_json::from_value(v.clone())
+            .unwrap_or_else(|_| saturn_core::ActorId::Agent("mcp-bridge".into())),
+        None => saturn_core::ActorId::Agent("mcp-bridge".into()),
+    }
+}
+
+pub(crate) fn session_resume(state: &AppState, params: &Value) -> Result<Value, String> {
     let session_id = params
         .get("session_id")
         .and_then(Value::as_str)
-        .ok_or_else(|| "session.resume requires string `session_id`".to_owned())?;
-    let caller: saturn_core::ActorId = params
-        .get("caller")
-        .and_then(|v| serde_json::from_value(v.clone()).ok())
-        .unwrap_or(saturn_core::ActorId::Human);
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| "session.resume requires non-empty string `session_id`".to_owned())?;
+    let caller = parse_resume_caller(params);
     let mut guard = state.0.lock().map_err(|e| e.to_string())?;
     let generation = guard.resume_session(session_id, &caller).map_err(|e| e.to_string())?;
     Ok(json!({ "session_id": session_id, "resumed": true, "generation": generation }))
 }
 
-fn session_status(state: &AppState, params: &Value) -> Result<Value, String> {
-    let session_id = params
+pub(crate) fn session_status(state: &AppState, params: &Value) -> Result<Value, String> {
+    let requested = params
         .get("session_id")
         .and_then(Value::as_str)
-        .ok_or_else(|| "session.status requires string `session_id`".to_owned())?;
+        .map(str::trim)
+        .filter(|s| !s.is_empty());
     let guard = state.0.lock().map_err(|e| e.to_string())?;
-    let is_stopped = guard.is_session_stopped(session_id);
-    let session = guard.sessions.get(session_id);
+
+    let mut agent_sessions: Vec<&saturn_core::SessionViewState> = guard
+        .sessions
+        .values()
+        .filter(|s| !s.actor.is_human())
+        .collect();
+    agent_sessions.sort_by(|a, b| a.session_id.cmp(&b.session_id));
+
+    let summaries: Vec<Value> = agent_sessions
+        .iter()
+        .map(|s| {
+            json!({
+                "session_id": s.session_id,
+                "actor": s.actor,
+                "active_branch": s.active_branch,
+                "playhead": s.playhead.0,
+                "generation": s.generation,
+                "is_stopped": s.is_stopped || guard.is_session_stopped(&s.session_id),
+            })
+        })
+        .collect();
+
+    let resolved_id: Option<String> = match requested {
+        Some(id) => Some(id.to_owned()),
+        None => agent_sessions
+            .iter()
+            .find(|s| !s.is_stopped && !guard.is_session_stopped(&s.session_id))
+            .or_else(|| agent_sessions.first())
+            .map(|s| s.session_id.clone())
+            .or_else(|| {
+                let mut stopped: Vec<&String> = guard
+                    .stopped_sessions
+                    .iter()
+                    .filter(|sid| sid.as_str() != "human-gui")
+                    .collect();
+                stopped.sort();
+                stopped.into_iter().next().cloned()
+            }),
+    };
+
+    let Some(session_id) = resolved_id else {
+        return Ok(json!({
+            "has_active_session": false,
+            "session_id": Value::Null,
+            "is_stopped": false,
+            "generation": 0,
+            "actor": Value::Null,
+            "active_branch": saturn_core::branch::MAIN_BRANCH,
+            "playhead": 0,
+            "locks": [],
+            "sessions": summaries,
+        }));
+    };
+
+    let is_stopped = guard.is_session_stopped(&session_id);
+    let session = guard.sessions.get(&session_id);
+    let exists = session.is_some() || is_stopped;
     Ok(json!({
+        "has_active_session": exists,
         "session_id": session_id,
         "is_stopped": is_stopped,
         "generation": session.map(|s| s.generation).unwrap_or(1),
         "actor": session.map(|s| s.actor.clone()).unwrap_or(saturn_core::ActorId::Agent("bridge".into())),
         "active_branch": session.map(|s| s.active_branch.clone()).unwrap_or_else(|| saturn_core::branch::MAIN_BRANCH.to_string()),
         "playhead": session.map(|s| s.playhead.0).unwrap_or(0),
-        "locks": guard.document().locks.locks.iter().filter(|l| l.owner.session_id.as_deref() == Some(session_id)).collect::<Vec<_>>(),
+        "locks": guard.document().locks.locks.iter().filter(|l| l.owner.session_id.as_deref() == Some(session_id.as_str())).collect::<Vec<_>>(),
+        "sessions": summaries,
     }))
 }
 
-fn history_undo_change(app: &AppHandle, state: &AppState, params: &Value) -> Result<Value, String> {
+pub(crate) fn history_undo_change(app: &AppHandle, state: &AppState, params: &Value) -> Result<Value, String> {
     let change_id = params
         .get("change_id")
         .and_then(Value::as_u64)
         .ok_or_else(|| "history.undo_change requires integer `change_id`".to_owned())?;
+    validate_bridge_tool_origin(state, "history.undo_change", params)?;
     let ctx: saturn_core::ActorContext = params
         .get("context")
         .and_then(|v| serde_json::from_value(v.clone()).ok())
-        .unwrap_or_default();
+        .unwrap_or_else(|| saturn_core::ActorContext::agent("mcp-bridge", "mcp-bridge"));
     let mut guard = state.0.lock().map_err(|e| e.to_string())?;
     let res = guard.undo_change(change_id, &ctx).map_err(|e| e.to_string())?;
     let _ = app.emit("mcp_project_changed", ());

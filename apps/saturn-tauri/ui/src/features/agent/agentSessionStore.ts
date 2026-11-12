@@ -3,22 +3,30 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 /**
  * Shared external store backing `useAgentSession` so Dock Review/Agent/Sheet
- * panels, Header status chip, and Timeline ruler/clip overlays stay synchronized
- * without extra wrapper prop plumbing through App.tsx or WorkspaceRouter.tsx.
+ * panels, Header status chip, and Timeline overlays render real engine state
+ * and confirm engine execution before mutating UI state.
  */
 
 import type { ProjectDocument } from "../../app/projectTypes";
-import { FLAGSHIP_TEMPLATES, type AgentQuestion, type ReviewRound, type TaskSheetState } from "../tasksheet";
-import type { AgentSessionState, PlanStep, ProjectBriefState, ReviewChange, VerificationReport } from "./types";
+import { FLAGSHIP_TEMPLATES, type TaskSheetState } from "../tasksheet/types.ts";
+import { agentBridge, isDemoAgentMode } from "./agentBridge.ts";
+import { createDemoAgentSnapshot } from "./agentDemoSeed.ts";
 import {
-  ENGINE_TICKS_PER_SECOND,
-  applyLocalNoteAdd,
-  applyLocalNoteResolve,
-  applyLocalRoundClose,
-} from "./reviewHelpers";
+  mapBrief,
+  mapPlanSteps,
+  mapRawChange,
+  parseActor,
+  parseVerifyReport,
+  sheetHasRealState,
+} from "./agentPayloadMappers.ts";
+import type {
+  AgentSessionState,
+  ProjectBriefState,
+} from "./types.ts";
 
 export interface AgentHostBridge {
   perform?: (id: string, params?: unknown, successNotice?: string) => Promise<unknown>;
+  refreshProject?: () => Promise<unknown>;
   seek?: (ticks: number) => void;
   setNotice?: (notice: string | null) => void;
   playheadTicks: number;
@@ -32,190 +40,48 @@ export interface AgentStoreSnapshot {
   selectedNoteId: string | null;
 }
 
-const SEC = ENGINE_TICKS_PER_SECOND;
-
-const DEFAULT_BRIEF: ProjectBriefState = {
-  goal: "Highlight reel for social delivery",
-  platform: "web-1080p",
-  target_duration_ticks: 45 * SEC,
-  duration_tolerance_ticks: 2 * SEC,
-  must_keep_clip_ids: [],
-  banned_content: ["silent_gap", "flash_frames"],
-  style_notes: "Punchy edits, aligned transients, -14 LUFS loudness",
-  loudness_target_lufs: -14.0,
-  source: "user_prompt",
-};
-
-const INITIAL_PLAN: PlanStep[] = [
-  { id: 1, title: "Analyze audio loudness & silence gaps", status: "done", targetTick: 0 },
-  { id: 2, title: "Align match cuts on video transients", status: "current", targetTick: 2 * SEC },
-  { id: 3, title: "Quantize cuts to beat grid", status: "pending", targetTick: 4 * SEC },
-  { id: 4, title: "Verify delivery presets & loudness targets", status: "pending", targetTick: 6 * SEC },
-];
-
-const INITIAL_REVIEWS: ReviewChange[] = [
-  {
-    change_id: 101,
-    step_id: 2,
-    step_title: "Align match cuts on video transients",
-    tick_range: [0, 2 * SEC],
-    tier: "edit",
-    rationale: "Shifted incoming cut by +3 frames to match snare transient peak",
-    confidence: "low",
-    confidence_score: 0.62,
-    before_preview: "",
-    after_preview: "",
-  },
-  {
-    change_id: 102,
-    step_id: 2,
-    step_title: "Align match cuts on video transients",
-    tick_range: [2 * SEC, 4 * SEC],
-    tier: "edit",
-    rationale: "Audio crossfade applied across cut point",
-    confidence: "high",
-    confidence_score: 0.94,
-    before_preview: "",
-    after_preview: "",
-  },
-];
-
-const INITIAL_VERIFICATION: VerificationReport = {
-  preset: "web-1080p",
-  results: [
-    { check_id: "audio.integrated_loudness", status: "pass", measured_value: -14.2, threshold: -14.0 },
-    { check_id: "audio.true_peak", status: "pass", measured_value: -1.1, threshold: -1.0 },
-    { check_id: "audio.silence_dead_air", status: "pass", measured_value: 0.2, threshold: 1.5 },
-    { check_id: "video.frozen_frames", status: "warn", measured_value: 12, threshold: 8, tick_ref: 2 * SEC, message: "Short pause on title slate" },
-    { check_id: "project.brief_duration", status: "pass", measured_value: 45, threshold: 45 },
-  ],
-  unavailable_checks: ["video.face_focus_score"],
-  notes: { aggregate_score: null },
-};
-
-const INITIAL_ROUNDS: ReviewRound[] = [
-  {
-    round_number: 1,
-    label: "v1",
-    started_at_unix_ms: 1_762_900_000_000,
-    completed_at_unix_ms: 1_762_900_060_000,
-    opened_by: "agent:claude-editor",
-    closed_by: "human:reviewer",
-    outcome: "revision_requested",
-    notes: [
-      {
-        id: "note_r1_1",
-        author: "human:reviewer",
-        created_at_unix_ms: 1_762_900_020_000,
-        text: "Tighten pause before cold open hook",
-        target_tick: 1 * SEC,
-        status: "resolved",
-        resolution: "Trimmed 14 frames of dead air before intro line",
-        resolved_by: "agent:claude-editor",
-        resolved_at_unix_ms: 1_762_900_090_000,
+function createEmptyAgentSnapshot(): AgentStoreSnapshot {
+  return {
+    session: {
+      status: "idle",
+      activeSessionId: null,
+      activeBranch: "main",
+      currentAction: "No active agent session",
+      stepCurrent: 0,
+      stepTotal: 0,
+      elapsedSeconds: 0,
+      lastActor: null,
+      isStopped: false,
+      activeMode: "core",
+      loadedProfiles: ["core"],
+      grantedTiers: [],
+      ghostPlayheadTick: null,
+      brief: null,
+      plan: [],
+      pendingPermissions: [],
+      reviewQueue: [],
+      verificationReport: null,
+      taskSheet: null,
+      inbox: [],
+      budgetSpent: {
+        wall_clock_seconds: 0,
+        model_cost_usd: 0,
+        render_seconds: 0,
       },
-    ],
-  },
-  {
-    round_number: 2,
-    label: "v2",
-    started_at_unix_ms: 1_762_900_120_000,
-    opened_by: "agent:claude-editor",
-    diff_from_prior: {
-      from_round: 1,
-      to_round: 2,
-      from_revision: 1,
-      to_revision: 3,
-      changed_ranges: [
-        {
-          start_tick: 1 * SEC,
-          end_tick: 3 * SEC,
-          kind: "clip_modified",
-          entity_id: 101,
-          track_id: 1,
-          summary: "Trimmed cold-open pause and smoothed transient cut",
-        },
-      ],
-      clip_changes: [
-        {
-          kind: "modified",
-          clip_id: 101,
-          track_id: 1,
-          start_tick: 1 * SEC,
-          end_tick: 3 * SEC,
-          description: "Clip 101 trimmed by -14 frames on V1",
-        },
-      ],
-      merged_tick_ranges: [[1 * SEC, 3 * SEC]],
-      summary: "1 change(s) across 1 merged range(s) between v1 and v2",
+      lastError: null,
+      lastTelemetry: null,
     },
-    notes: [
-      {
-        id: "note_r2_1",
-        author: "human:reviewer",
-        created_at_unix_ms: 1_762_900_140_000,
-        text: "Verify audio crossfade smoothness at incoming transient",
-        target_tick: 2 * SEC,
-        end_tick: 3 * SEC,
-        status: "open",
-      },
-    ],
-  },
-];
+    playheadTicks: 0,
+    selectedRoundNumber: "all",
+    selectedNoteId: null,
+  };
+}
 
-const DEFAULT_TASKSHEET: TaskSheetState = {
-  ...FLAGSHIP_TEMPLATES[0].template,
-  rounds: INITIAL_ROUNDS,
-};
+function createInitialSnapshot(demo = isDemoAgentMode()): AgentStoreSnapshot {
+  return demo ? createDemoAgentSnapshot() : createEmptyAgentSnapshot();
+}
 
-const INITIAL_INBOX: AgentQuestion[] = [
-  {
-    id: "q_hook_selection",
-    question: "Select hook clip for Social Reel A",
-    context: "Two potential viral hooks detected in intro discussion around 01:24 and 04:12.",
-    options: [
-      { id: "opt_hook_1", label: "01:24 - AI editing paradigm shift", is_default: true, description: "Strong punchy quote, high speaker energy" },
-      { id: "opt_hook_2", label: "04:12 - Future of native codecs", is_default: false, description: "Deep technical insight" },
-    ],
-    default_option_id: "opt_hook_1",
-    deadline_seconds: 300,
-    status: "open",
-  },
-];
-
-let storeSnapshot: AgentStoreSnapshot = {
-  session: {
-    status: "idle",
-    activeSessionId: "session-claude-01",
-    activeBranch: "agent/rough-cut",
-    currentAction: "Ready for round v2 review",
-    stepCurrent: 2,
-    stepTotal: 4,
-    elapsedSeconds: 14,
-    lastActor: { type: "agent", id: "claude-editor" },
-    isStopped: false,
-    activeMode: "fine-cut",
-    loadedProfiles: ["core", "fine-cut", "review", "tasksheet"],
-    grantedTiers: ["read", "edit"],
-    ghostPlayheadTick: 2 * SEC,
-    brief: DEFAULT_BRIEF,
-    plan: INITIAL_PLAN,
-    pendingPermissions: [],
-    reviewQueue: INITIAL_REVIEWS,
-    verificationReport: INITIAL_VERIFICATION,
-    taskSheet: DEFAULT_TASKSHEET,
-    inbox: INITIAL_INBOX,
-    budgetSpent: {
-      wall_clock_seconds: 840,
-      model_cost_usd: 1.25,
-      render_seconds: 320,
-    },
-  },
-  playheadTicks: 0,
-  selectedRoundNumber: 2,
-  selectedNoteId: null,
-};
-
+let storeSnapshot: AgentStoreSnapshot = createInitialSnapshot();
 let hostBridge: AgentHostBridge = { playheadTicks: 0 };
 let lastSyncedSheetJson = "";
 const listeners = new Set<() => void>();
@@ -235,6 +101,13 @@ export function subscribeAgentStore(listener: () => void): () => void {
 
 export function getAgentStoreSnapshot(): AgentStoreSnapshot {
   return storeSnapshot;
+}
+
+export function resetAgentStoreForTest(demo = false): void {
+  storeSnapshot = createInitialSnapshot(demo);
+  hostBridge = { playheadTicks: 0 };
+  lastSyncedSheetJson = "";
+  emitChange();
 }
 
 export function updateAgentSessionState(
@@ -287,7 +160,7 @@ export function syncAgentHostBridge(patch: Partial<AgentHostBridge>) {
           taskSheet: {
             ...remoteSheet,
             rounds: remoteSheet.rounds ?? [],
-            questions: remoteSheet.questions ?? storeSnapshot.session.taskSheet.questions,
+            questions: remoteSheet.questions ?? storeSnapshot.session.inbox,
           },
           inbox: remoteSheet.questions ?? storeSnapshot.session.inbox,
         },
@@ -301,6 +174,24 @@ export function syncAgentHostBridge(patch: Partial<AgentHostBridge>) {
   }
 }
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function surfaceActionError(error: unknown): Error {
+  const message = errorMessage(error);
+  storeSnapshot = {
+    ...storeSnapshot,
+    session: {
+      ...storeSnapshot.session,
+      lastError: message,
+    },
+  };
+  emitChange();
+  hostBridge.setNotice?.(message);
+  return error instanceof Error ? error : new Error(message);
+}
+
 export function applyServerTaskSheet(rawSheet: unknown): boolean {
   if (!rawSheet || typeof rawSheet !== "object") return false;
   const sheet = rawSheet as TaskSheetState;
@@ -309,17 +200,440 @@ export function applyServerTaskSheet(rawSheet: unknown): boolean {
   const latestRound = sheet.rounds?.length
     ? sheet.rounds[sheet.rounds.length - 1].round_number
     : storeSnapshot.selectedRoundNumber;
+  const plan = mapPlanSteps(sheet);
   storeSnapshot = {
     ...storeSnapshot,
     selectedRoundNumber: latestRound,
     session: {
       ...storeSnapshot.session,
       taskSheet: sheet,
-      inbox: sheet.questions ?? storeSnapshot.session.inbox,
+      inbox: sheet.questions ?? [],
+      plan: plan.length > 0 ? plan : storeSnapshot.session.plan,
+      lastError: null,
     },
   };
   emitChange();
   return true;
+}
+
+export async function refreshAgentSessionFromEngine(options?: {
+  forceEvenInDemo?: boolean;
+}): Promise<void> {
+  if (isDemoAgentMode() && !options?.forceEvenInDemo) {
+    return;
+  }
+
+  let statusRes;
+  try {
+    statusRes = await agentBridge.getSessionStatus(storeSnapshot.session.activeSessionId);
+  } catch (error) {
+    const msg = errorMessage(error);
+    // Avoid showing noisy IPC errors when the preview runs in a plain browser without Tauri runtime.
+    if (msg.includes("__TAURI_INTERNALS__") || msg.includes("Tauri")) {
+      return;
+    }
+    throw surfaceActionError(error);
+  }
+
+  let branchList: { active?: string; branches?: Array<{ name: string }> } | null = null;
+  try {
+    branchList = await agentBridge.runCommand<{
+      active?: string;
+      branches?: Array<{ name: string }>;
+    }>("project.branch_list", {});
+  } catch (error) {
+    const msg = errorMessage(error);
+    if (msg.includes("No project")) {
+      return;
+    }
+    throw surfaceActionError(error);
+  }
+
+  const activeEngineBranch = branchList?.active || statusRes.active_branch || "main";
+  const agentBranches = (branchList?.branches ?? [])
+    .map((b) => b.name)
+    .filter((name) => name !== "main");
+  const reviewTargetBranch =
+    activeEngineBranch !== "main"
+      ? activeEngineBranch
+      : statusRes.active_branch && statusRes.active_branch !== "main"
+      ? statusRes.active_branch
+      : agentBranches[0] ?? "main";
+
+  const [briefRes, sheetRes, changesRes] = await Promise.all([
+    agentBridge.runCommand("project.brief_get", {}).catch(() => null),
+    agentBridge.runCommand<{ sheet?: TaskSheetState }>("tasksheet.get", {}).catch(() => null),
+    agentBridge
+      .runCommand<{ changes?: Array<Record<string, unknown>> }>(
+        "review.list_changes",
+        reviewTargetBranch !== "main" ? { branch: reviewTargetBranch } : {},
+      )
+      .catch(() => null),
+  ]);
+
+  const parsedBrief = mapBrief(briefRes);
+  const verifyRes = await agentBridge
+    .runCommand("verify.run", { preset: parsedBrief?.platform || "web-1080p" })
+    .catch(() => null);
+  const { report, telemetry } = parseVerifyReport(verifyRes);
+
+  const rawSheet = sheetRes?.sheet ?? null;
+  const keepSheet = sheetHasRealState(rawSheet, Boolean(hostBridge.project?.task_sheet));
+  const nextSheet = keepSheet ? rawSheet : null;
+  const plan = mapPlanSteps(nextSheet);
+
+  const rawChanges = changesRes?.changes ?? [];
+  const reviewQueue = rawChanges
+    .filter((item) => item.is_human === false || reviewTargetBranch !== "main")
+    .map(mapRawChange);
+
+  const prev = storeSnapshot.session;
+  const isStopped = Boolean(statusRes.has_active_session && statusRes.is_stopped);
+  const nextStatus = isStopped
+    ? "stopped"
+    : statusRes.has_active_session
+    ? prev.status === "thinking" || prev.status === "editing" || prev.status === "waiting"
+      ? prev.status
+      : "idle"
+    : "idle";
+
+  const latestRound = nextSheet?.rounds?.length
+    ? nextSheet.rounds[nextSheet.rounds.length - 1].round_number
+    : "all";
+
+  if (nextSheet) {
+    lastSyncedSheetJson = JSON.stringify(nextSheet);
+  }
+
+  const currentDoneCount = plan.filter((s) => s.status === "done").length;
+
+  storeSnapshot = {
+    ...storeSnapshot,
+    selectedRoundNumber: latestRound,
+    session: {
+      ...prev,
+      status: nextStatus,
+      activeSessionId: statusRes.has_active_session ? statusRes.session_id : null,
+      activeBranch: reviewTargetBranch,
+      currentAction: isStopped
+        ? "Session stopped by user"
+        : statusRes.has_active_session
+        ? `Session active on ${reviewTargetBranch}`
+        : reviewQueue.length > 0
+        ? `${reviewQueue.length} change(s) on ${reviewTargetBranch}`
+        : "No active agent session",
+      stepCurrent: currentDoneCount,
+      stepTotal: plan.length,
+      lastActor: parseActor(statusRes.actor),
+      isStopped,
+      ghostPlayheadTick: statusRes.has_active_session ? statusRes.playhead : null,
+      brief: parsedBrief,
+      plan,
+      reviewQueue,
+      verificationReport: report,
+      taskSheet: nextSheet,
+      inbox: nextSheet?.questions ?? [],
+      lastError: null,
+      lastTelemetry: telemetry,
+    },
+  };
+  emitChange();
+}
+
+export async function stopSessionAction(): Promise<void> {
+  let sessionId = storeSnapshot.session.activeSessionId;
+  try {
+    if (!sessionId) {
+      const status = await agentBridge.getSessionStatus(null);
+      sessionId = status.has_active_session ? status.session_id : null;
+    }
+    if (!sessionId) {
+      throw new Error("No active agent session to stop");
+    }
+    await agentBridge.stopSession(sessionId);
+    storeSnapshot = {
+      ...storeSnapshot,
+      session: {
+        ...storeSnapshot.session,
+        activeSessionId: sessionId,
+        status: "stopped",
+        isStopped: true,
+        currentAction: "Session stopped by user",
+        lastError: null,
+      },
+    };
+    emitChange();
+    hostBridge.setNotice?.("Agent session halted (immediate Stop)");
+  } catch (error) {
+    throw surfaceActionError(error);
+  }
+}
+
+export async function resumeSessionAction(): Promise<void> {
+  const sessionId = storeSnapshot.session.activeSessionId;
+  try {
+    if (!sessionId) {
+      throw new Error("No active agent session to resume");
+    }
+    await agentBridge.resumeSession(sessionId);
+    storeSnapshot = {
+      ...storeSnapshot,
+      session: {
+        ...storeSnapshot.session,
+        status: "idle",
+        isStopped: false,
+        currentAction: "Agent session resumed",
+        lastError: null,
+      },
+    };
+    emitChange();
+    hostBridge.setNotice?.("Agent session resumed");
+  } catch (error) {
+    throw surfaceActionError(error);
+  }
+}
+
+export async function updateBriefAction(newBrief: ProjectBriefState): Promise<void> {
+  try {
+    await agentBridge.runCommand("project.brief_set", newBrief);
+    storeSnapshot = {
+      ...storeSnapshot,
+      session: {
+        ...storeSnapshot.session,
+        brief: newBrief,
+        lastError: null,
+      },
+    };
+    emitChange();
+    await hostBridge.refreshProject?.();
+    hostBridge.setNotice?.("Project brief updated");
+  } catch (error) {
+    throw surfaceActionError(error);
+  }
+}
+
+export function acceptChangeAction(changeId: number): void {
+  storeSnapshot = {
+    ...storeSnapshot,
+    session: {
+      ...storeSnapshot.session,
+      reviewQueue: storeSnapshot.session.reviewQueue.map((item) =>
+        item.change_id === changeId ? { ...item, accepted: true, rejected: false } : item,
+      ),
+      lastError: null,
+    },
+  };
+  emitChange();
+  hostBridge.setNotice?.(`Accepted change #${changeId}`);
+}
+
+export async function rejectChangeAction(changeId: number): Promise<void> {
+  try {
+    await agentBridge.undoChange(changeId);
+    storeSnapshot = {
+      ...storeSnapshot,
+      session: {
+        ...storeSnapshot.session,
+        reviewQueue: storeSnapshot.session.reviewQueue.map((item) =>
+          item.change_id === changeId
+            ? { ...item, accepted: false, rejected: true, undone: true, conflict: false, conflict_reason: null }
+            : item,
+        ),
+        lastError: null,
+      },
+    };
+    emitChange();
+    await hostBridge.refreshProject?.();
+    await refreshAgentSessionFromEngine().catch(() => {});
+    hostBridge.setNotice?.(`Rejected change #${changeId}`);
+  } catch (error) {
+    const msg = errorMessage(error);
+    if (msg.toLowerCase().includes("conflict")) {
+      storeSnapshot = {
+        ...storeSnapshot,
+        session: {
+          ...storeSnapshot.session,
+          reviewQueue: storeSnapshot.session.reviewQueue.map((item) =>
+            item.change_id === changeId
+              ? { ...item, conflict: true, conflict_reason: msg }
+              : item,
+          ),
+        },
+      };
+    }
+    throw surfaceActionError(error);
+  }
+}
+
+async function resolveTargetMergeBranch(): Promise<{
+  targetBranch: string;
+  currentActive: string;
+}> {
+  const branchList = await agentBridge.runCommand<{
+    active?: string;
+    branches?: Array<{ name: string }>;
+  }>("project.branch_list", {});
+  const currentActive = branchList.active || "main";
+  const branches = (branchList.branches ?? []).map((b) => b.name).filter((n) => n !== "main");
+  const uiBranch = storeSnapshot.session.activeBranch;
+  const targetBranch =
+    uiBranch && uiBranch !== "main" && (branches.includes(uiBranch) || currentActive === uiBranch)
+      ? uiBranch
+      : currentActive !== "main"
+      ? currentActive
+      : branches[0] ?? "";
+
+  if (!targetBranch || targetBranch === "main") {
+    throw new Error("No active agent branch available to merge or discard");
+  }
+  return { targetBranch, currentActive };
+}
+
+export async function acceptAllBranchAction(options?: { force?: boolean }): Promise<void> {
+  try {
+    const { targetBranch, currentActive } = await resolveTargetMergeBranch();
+    if (currentActive === targetBranch) {
+      await agentBridge.runCommand("project.branch_switch", { name: "main" });
+    }
+    await agentBridge.runCommand("project.branch_merge", {
+      branch: targetBranch,
+      action: "accept",
+      ...(options?.force ? { force: true } : {}),
+    });
+    storeSnapshot = {
+      ...storeSnapshot,
+      session: {
+        ...storeSnapshot.session,
+        activeBranch: "main",
+        status: "idle",
+        reviewQueue: storeSnapshot.session.reviewQueue.map((item) =>
+          item.rejected ? item : { ...item, accepted: true },
+        ),
+        lastError: null,
+      },
+    };
+    emitChange();
+    await hostBridge.refreshProject?.();
+    await refreshAgentSessionFromEngine().catch(() => {});
+    hostBridge.setNotice?.(`Accepted and merged branch '${targetBranch}' into main`);
+  } catch (error) {
+    throw surfaceActionError(error);
+  }
+}
+
+export async function rejectAllBranchAction(): Promise<void> {
+  try {
+    const { targetBranch, currentActive } = await resolveTargetMergeBranch();
+    if (currentActive === targetBranch) {
+      await agentBridge.runCommand("project.branch_switch", { name: "main" });
+    }
+    await agentBridge.runCommand("project.branch_merge", {
+      branch: targetBranch,
+      action: "reject",
+    });
+    storeSnapshot = {
+      ...storeSnapshot,
+      session: {
+        ...storeSnapshot.session,
+        activeBranch: "main",
+        status: "idle",
+        reviewQueue: storeSnapshot.session.reviewQueue.map((item) => ({
+          ...item,
+          accepted: false,
+          rejected: true,
+        })),
+        lastError: null,
+      },
+    };
+    emitChange();
+    await hostBridge.refreshProject?.();
+    await refreshAgentSessionFromEngine().catch(() => {});
+    hostBridge.setNotice?.(`Discarded agent branch '${targetBranch}'`);
+  } catch (error) {
+    throw surfaceActionError(error);
+  }
+}
+
+export async function updateTaskSheetAction(newSheet: TaskSheetState): Promise<void> {
+  try {
+    const res = (await agentBridge.runCommand("tasksheet.update", newSheet)) as
+      | { sheet?: TaskSheetState }
+      | undefined;
+    if (!applyServerTaskSheet(res?.sheet ?? newSheet)) {
+      storeSnapshot = {
+        ...storeSnapshot,
+        session: { ...storeSnapshot.session, taskSheet: newSheet, lastError: null },
+      };
+      emitChange();
+    }
+    await hostBridge.refreshProject?.();
+  } catch (error) {
+    throw surfaceActionError(error);
+  }
+}
+
+export async function loadTemplateAction(templateId: string): Promise<void> {
+  const tmpl = FLAGSHIP_TEMPLATES.find((t) => t.id === templateId);
+  if (!tmpl) return;
+  const draftSheet: TaskSheetState = {
+    ...JSON.parse(JSON.stringify(tmpl.template)),
+    status: "draft",
+  };
+  try {
+    const res = (await agentBridge.runCommand("tasksheet.create", draftSheet)) as
+      | { sheet?: TaskSheetState }
+      | undefined;
+    applyServerTaskSheet(res?.sheet ?? draftSheet);
+    await hostBridge.refreshProject?.();
+    hostBridge.setNotice?.(`Loaded template: ${tmpl.label}`);
+  } catch (error) {
+    throw surfaceActionError(error);
+  }
+}
+
+export async function submitTaskSheetAction(reason?: string): Promise<void> {
+  const sheet = storeSnapshot.session.taskSheet;
+  try {
+    if (!sheet) {
+      throw new Error("No task sheet loaded to submit");
+    }
+    const res = (await agentBridge.runCommand("tasksheet.submit", {
+      sheet_id: sheet.id,
+      reason: reason ?? "Submitted from UI",
+    })) as { sheet?: TaskSheetState } | undefined;
+    const nextSheet: TaskSheetState = res?.sheet ?? { ...sheet, status: "ready" };
+    applyServerTaskSheet(nextSheet);
+    await hostBridge.refreshProject?.();
+    hostBridge.setNotice?.("Task sheet submitted to ready state");
+  } catch (error) {
+    throw surfaceActionError(error);
+  }
+}
+
+export async function answerQuestionAction(questionId: string, optionId: string): Promise<void> {
+  try {
+    const res = (await agentBridge.runCommand("tasksheet.question_answer", {
+      question_id: questionId,
+      option_id: optionId,
+    })) as { sheet?: TaskSheetState } | undefined;
+    if (!applyServerTaskSheet(res?.sheet)) {
+      storeSnapshot = {
+        ...storeSnapshot,
+        session: {
+          ...storeSnapshot.session,
+          inbox: storeSnapshot.session.inbox.map((q) =>
+            q.id === questionId ? { ...q, status: "answered", selected_option_id: optionId } : q,
+          ),
+          lastError: null,
+        },
+      };
+      emitChange();
+    }
+    await hostBridge.refreshProject?.();
+    hostBridge.setNotice?.("Question answered");
+  } catch (error) {
+    throw surfaceActionError(error);
+  }
 }
 
 export async function addReviewNoteAction(params: {
@@ -341,48 +655,17 @@ export async function addReviewNoteAction(params: {
       : {}),
   };
 
-  if (hostBridge.perform) {
-    try {
-      const res = (await hostBridge.perform("review.note_add", payload, "Added review note")) as {
-        sheet?: TaskSheetState;
-        note?: { id?: string };
-        round_number?: number;
-      } | undefined;
-      if (applyServerTaskSheet(res?.sheet)) {
-        if (res?.note?.id) setSelectedNoteId(res.note.id);
-        return;
-      }
-    } catch {
-      // Fall through only when perform throws in mocked/offline UI mode? Wait: real backend errors should surface notice!
-    }
+  try {
+    const res = (await agentBridge.runCommand("review.note_add", payload)) as
+      | { sheet?: TaskSheetState; note?: { id?: string } }
+      | undefined;
+    if (res?.sheet) applyServerTaskSheet(res.sheet);
+    if (res?.note?.id) setSelectedNoteId(res.note.id);
+    await hostBridge.refreshProject?.();
+    hostBridge.setNotice?.("Added review note");
+  } catch (error) {
+    throw surfaceActionError(error);
   }
-
-  const local = applyLocalNoteAdd(storeSnapshot.session.taskSheet.rounds ?? [], {
-    text: params.text,
-    targetTick: tick,
-    endTick: params.endTick,
-    clipId: params.clipId,
-    trackId: params.trackId,
-    roundNumber:
-      typeof storeSnapshot.selectedRoundNumber === "number"
-        ? storeSnapshot.selectedRoundNumber
-        : undefined,
-  });
-  storeSnapshot = {
-    ...storeSnapshot,
-    selectedRoundNumber: local.roundNumber,
-    selectedNoteId: local.note.id,
-    session: {
-      ...storeSnapshot.session,
-      taskSheet: {
-        ...storeSnapshot.session.taskSheet,
-        status: "in_review",
-        rounds: local.rounds,
-      },
-    },
-  };
-  emitChange();
-  hostBridge.setNotice?.(`Added review note to v${local.roundNumber}`);
 }
 
 export async function resolveReviewNoteAction(
@@ -392,120 +675,48 @@ export async function resolveReviewNoteAction(
 ): Promise<void> {
   const trimmed = resolution.trim();
   if (!trimmed) {
-    hostBridge.setNotice?.("Resolution explanation is required");
-    throw new Error("Resolution explanation is required");
+    throw surfaceActionError(new Error("Resolution explanation is required"));
   }
-
-  if (hostBridge.perform) {
-    try {
-      const res = (await hostBridge.perform(
-        "review.note_resolve",
-        { note_id: noteId, resolution: trimmed, status },
-        `Marked review note ${status}`,
-      )) as { sheet?: TaskSheetState } | undefined;
-      if (applyServerTaskSheet(res?.sheet)) {
-        return;
-      }
-    } catch {
-      // Mocked backend without review.note_resolve handler updates local state cleanly
-    }
+  try {
+    const res = (await agentBridge.runCommand("review.note_resolve", {
+      note_id: noteId,
+      resolution: trimmed,
+      status,
+    })) as { sheet?: TaskSheetState } | undefined;
+    if (res?.sheet) applyServerTaskSheet(res.sheet);
+    await hostBridge.refreshProject?.();
+    hostBridge.setNotice?.(`Marked review note ${status}`);
+  } catch (error) {
+    throw surfaceActionError(error);
   }
-
-  const local = applyLocalNoteResolve(storeSnapshot.session.taskSheet.rounds ?? [], {
-    noteId,
-    resolution: trimmed,
-    status,
-  });
-  storeSnapshot = {
-    ...storeSnapshot,
-    session: {
-      ...storeSnapshot.session,
-      taskSheet: {
-        ...storeSnapshot.session.taskSheet,
-        rounds: local.rounds,
-      },
-    },
-  };
-  emitChange();
-  hostBridge.setNotice?.(`Note ${status}: ${trimmed}`);
 }
 
 export async function openReviewRoundAction(label?: string): Promise<void> {
-  if (hostBridge.perform) {
-    try {
-      const res = (await hostBridge.perform("review.round_open", { label }, "Opened review round")) as {
-        sheet?: TaskSheetState;
-      } | undefined;
-      if (applyServerTaskSheet(res?.sheet)) {
-        return;
-      }
-    } catch {
-      // Fallback to local state in mocked mode
-    }
+  try {
+    const res = (await agentBridge.runCommand("review.round_open", { label })) as
+      | { sheet?: TaskSheetState }
+      | undefined;
+    if (res?.sheet) applyServerTaskSheet(res.sheet);
+    await hostBridge.refreshProject?.();
+    hostBridge.setNotice?.("Opened review round");
+  } catch (error) {
+    throw surfaceActionError(error);
   }
-
-  const existing = storeSnapshot.session.taskSheet.rounds ?? [];
-  if (existing.some((r) => r.completed_at_unix_ms == null)) {
-    hostBridge.setNotice?.("Close the current open round before opening a new round");
-    return;
-  }
-  const nextNum = existing.reduce((m, r) => Math.max(m, r.round_number), 0) + 1;
-  const nextRound: ReviewRound = {
-    round_number: nextNum,
-    label: label?.trim() || `v${nextNum}`,
-    started_at_unix_ms: Date.now(),
-    opened_by: "human:user",
-    notes: [],
-  };
-  storeSnapshot = {
-    ...storeSnapshot,
-    selectedRoundNumber: nextNum,
-    session: {
-      ...storeSnapshot.session,
-      taskSheet: {
-        ...storeSnapshot.session.taskSheet,
-        status: "in_review",
-        rounds: [...existing, nextRound],
-      },
-    },
-  };
-  emitChange();
-  hostBridge.setNotice?.(`Opened review round v${nextNum}`);
 }
 
 export async function closeReviewRoundAction(
   outcome: "revision_requested" | "approved",
   reason?: string,
 ): Promise<void> {
-  const currentRounds = storeSnapshot.session.taskSheet.rounds ?? [];
-  const local = applyLocalRoundClose(currentRounds, outcome);
-
-  if (hostBridge.perform) {
-    try {
-      const res = (await hostBridge.perform(
-        "review.round_close",
-        { outcome, reason },
-        `Closed review round (${outcome})`,
-      )) as { sheet?: TaskSheetState } | undefined;
-      if (applyServerTaskSheet(res?.sheet)) {
-        return;
-      }
-    } catch {
-      // Fallback to verified local update when mocked IPC lacks review handler
-    }
+  try {
+    const res = (await agentBridge.runCommand("review.round_close", {
+      outcome,
+      reason,
+    })) as { sheet?: TaskSheetState } | undefined;
+    if (res?.sheet) applyServerTaskSheet(res.sheet);
+    await hostBridge.refreshProject?.();
+    hostBridge.setNotice?.(`Closed review round (${outcome})`);
+  } catch (error) {
+    throw surfaceActionError(error);
   }
-
-  storeSnapshot = {
-    ...storeSnapshot,
-    session: {
-      ...storeSnapshot.session,
-      taskSheet: {
-        ...storeSnapshot.session.taskSheet,
-        status: local.sheetStatus,
-        rounds: local.rounds,
-      },
-    },
-  };
-  emitChange();
-  hostBridge.setNotice?.(`Round v${local.roundNumber} closed (${outcome})`);
 }

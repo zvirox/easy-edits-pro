@@ -20,6 +20,16 @@ import {
   countOpenReviewNotes,
   selectRoundNotes,
 } from "./reviewHelpers.ts";
+import { setAgentBridgeOverride } from "./agentBridge.ts";
+import {
+  acceptAllBranchAction,
+  getAgentStoreSnapshot,
+  refreshAgentSessionFromEngine,
+  rejectChangeAction,
+  resetAgentStoreForTest,
+  stopSessionAction,
+  syncAgentHostBridge,
+} from "./agentSessionStore.ts";
 
 test("AF6 Agent Session: initial state invariants and default brief", () => {
   const defaultBrief: ProjectBriefState = {
@@ -316,4 +326,191 @@ test("TS4 Low-Confidence Clip Matching: respects entity link, tick overlap, and 
     duration: ENGINE_TICKS_PER_SECOND,
   };
   assert.equal(clipHasLowConfidenceEdit(acceptedClip, queue), null);
+});
+
+test("AF6.1 Store Default State: contains no seeded fake session, queue, brief, or sheet outside ?demo=1", () => {
+  setAgentBridgeOverride(null);
+  resetAgentStoreForTest(false);
+  const { session } = getAgentStoreSnapshot();
+
+  assert.equal(session.activeSessionId, null);
+  assert.equal(session.activeBranch, "main");
+  assert.equal(session.brief, null);
+  assert.equal(session.taskSheet, null);
+  assert.equal(session.verificationReport, null);
+  assert.equal(session.plan.length, 0);
+  assert.equal(session.reviewQueue.length, 0);
+  assert.equal(session.inbox.length, 0);
+  assert.equal(session.budgetSpent.wall_clock_seconds, 0);
+  assert.equal(session.budgetSpent.model_cost_usd, 0);
+  assert.equal(session.budgetSpent.render_seconds, 0);
+
+  resetAgentStoreForTest(true);
+  const demo = getAgentStoreSnapshot().session;
+  assert.equal(demo.activeSessionId, "session-claude-01");
+  assert.equal(demo.activeBranch, "agent/rough-cut");
+  assert.ok(demo.reviewQueue.length > 0);
+  resetAgentStoreForTest(false);
+});
+
+test("AF6.1 Store Actions: stop failure keeps Stop enabled and surfaces error", async () => {
+  resetAgentStoreForTest(false);
+  const notices: Array<string | null> = [];
+  setAgentBridgeOverride({
+    getSessionStatus: async () => ({
+      has_active_session: true,
+      session_id: "sess-real-1",
+      is_stopped: false,
+      generation: 1,
+      actor: { kind: "agent", id: "worker" },
+      active_branch: "agent/cut-1",
+      playhead: 0,
+      locks: [],
+    }),
+    stopSession: async () => {
+      throw new Error("IPC stop failed: bridge offline");
+    },
+    runCommand: async <T,>(id: string): Promise<T> => {
+      if (id === "project.branch_list") {
+        return { active: "agent/cut-1", branches: [{ name: "agent/cut-1" }] } as T;
+      }
+      if (id === "review.list_changes") {
+        return { branch: "agent/cut-1", changes: [], count: 0 } as T;
+      }
+      return {} as T;
+    },
+  });
+  await refreshAgentSessionFromEngine({ forceEvenInDemo: true });
+  syncAgentHostBridge({ setNotice: (msg) => notices.push(msg) });
+
+  await assert.rejects(() => stopSessionAction(), /bridge offline/);
+  const afterFailure = getAgentStoreSnapshot().session;
+  assert.equal(afterFailure.isStopped, false);
+  assert.notEqual(afterFailure.status, "stopped");
+  assert.match(afterFailure.lastError ?? "", /bridge offline/);
+  assert.match(String(notices[notices.length - 1]), /bridge offline/);
+
+  setAgentBridgeOverride({
+    stopSession: async (sessionId) => ({ session_id: sessionId, stopped: true, generation: 2 }),
+  });
+  await stopSessionAction();
+  const afterSuccess = getAgentStoreSnapshot().session;
+  assert.equal(afterSuccess.isStopped, true);
+  assert.equal(afterSuccess.status, "stopped");
+  assert.equal(afterSuccess.lastError, null);
+
+  setAgentBridgeOverride(null);
+  resetAgentStoreForTest(false);
+});
+
+test("AF6.1 Branch Merge & Selective Reject: failure leaves state unchanged and switches away before merge", async () => {
+  resetAgentStoreForTest(false);
+  const calls: Array<{ id: string; params: unknown }> = [];
+  const notices: Array<string | null> = [];
+  setAgentBridgeOverride({
+    getSessionStatus: async () => ({
+      has_active_session: true,
+      session_id: "sess-merge-1",
+      is_stopped: false,
+      generation: 1,
+      actor: { kind: "agent", id: "worker" },
+      active_branch: "agent/cut-1",
+      playhead: 0,
+      locks: [],
+    }),
+    runCommand: async <T,>(id: string, params?: unknown): Promise<T> => {
+      calls.push({ id, params });
+      if (id === "project.branch_list") {
+        return { active: "agent/cut-1", branches: [{ name: "agent/cut-1" }] } as T;
+      }
+      if (id === "review.list_changes") {
+        return {
+          branch: "agent/cut-1",
+          changes: [
+            {
+              change_id: 7,
+              command_id: "timeline.add_clip",
+              actor: "agent:worker",
+              is_human: false,
+              branch: "agent/cut-1",
+              tier: "edit",
+              tick_range: [0, 1000],
+              rationale: "Inserted clip",
+              confidence: "low",
+              conflict: false,
+              undone: false,
+            },
+          ],
+          count: 1,
+        } as T;
+      }
+      if (id === "project.branch_merge") {
+        throw new Error("Conflict: Baseline is stale");
+      }
+      return {} as T;
+    },
+    undoChange: async () => {
+      throw new Error("Conflict: Cannot selectively undo change 7 because human edited clip");
+    },
+  });
+
+  await refreshAgentSessionFromEngine({ forceEvenInDemo: true });
+  syncAgentHostBridge({ setNotice: (msg) => notices.push(msg) });
+
+  // Conflicting single-change reject keeps item un-rejected and flags conflict
+  await assert.rejects(() => rejectChangeAction(7), /Conflict/);
+  const afterConflict = getAgentStoreSnapshot().session;
+  assert.equal(afterConflict.reviewQueue[0].rejected, false);
+  assert.equal(afterConflict.reviewQueue[0].conflict, true);
+
+  // Merge failure leaves branch and queue intact and surfaces error notice
+  await assert.rejects(() => acceptAllBranchAction(), /Baseline is stale/);
+  const afterMergeErr = getAgentStoreSnapshot().session;
+  assert.equal(afterMergeErr.activeBranch, "agent/cut-1");
+  assert.equal(afterMergeErr.reviewQueue[0].accepted, undefined);
+  assert.match(afterMergeErr.lastError ?? "", /Baseline is stale/);
+  assert.match(String(notices[notices.length - 1]), /Baseline is stale/);
+
+  // Successful merge must switch to main first, then call project.branch_merge { branch, action: "accept" }
+  calls.length = 0;
+  let activeMockBranch = "agent/cut-1";
+  let branchesMock = [{ name: "agent/cut-1" }];
+  setAgentBridgeOverride({
+    runCommand: async <T,>(id: string, params?: unknown): Promise<T> => {
+      calls.push({ id, params });
+      if (id === "project.branch_list") {
+        return { active: activeMockBranch, branches: branchesMock } as T;
+      }
+      if (id === "project.branch_switch") {
+        activeMockBranch = String((params as { name?: string })?.name ?? "main");
+      }
+      if (id === "project.branch_merge") {
+        branchesMock = branchesMock.filter(
+          (b) => b.name !== (params as { branch?: string })?.branch,
+        );
+      }
+      return {} as T;
+    },
+    getSessionStatus: async () => ({
+      has_active_session: false,
+      session_id: null,
+      is_stopped: false,
+      generation: 1,
+      actor: null,
+      active_branch: activeMockBranch,
+      playhead: 0,
+      locks: [],
+    }),
+  });
+
+  await acceptAllBranchAction();
+  const switchIdx = calls.findIndex((c) => c.id === "project.branch_switch");
+  const mergeIdx = calls.findIndex((c) => c.id === "project.branch_merge");
+  assert.ok(switchIdx >= 0 && mergeIdx > switchIdx, "should switch away to main before merging");
+  assert.deepEqual(calls[switchIdx].params, { name: "main" });
+  assert.deepEqual(calls[mergeIdx].params, { branch: "agent/cut-1", action: "accept" });
+  assert.equal(getAgentStoreSnapshot().session.activeBranch, "main");
+
+  setAgentBridgeOverride(null);
+  resetAgentStoreForTest(false);
 });

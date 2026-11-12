@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 export async function run(ctx) {
   const page = ctx.page;
 
-  await page.goto('http://127.0.0.1:1420/');
+  await page.goto(ctx.baseUrl ?? 'http://127.0.0.1:1420/');
   assert.equal(await page.title(), 'Easy Edits Pro', 'the intended app page should load');
   assert.match(await page.locator('body').innerText(), /Make room/, 'the welcome screen should render');
   await page.getByRole('button', { name: /Create a new project/ }).click();

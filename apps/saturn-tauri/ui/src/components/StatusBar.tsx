@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { useSyncExternalStore } from "react";
+import { getAgentStoreSnapshot, subscribeAgentStore } from "../features/agent/agentSessionStore";
 import { PANEL_OPEN_EVENT } from "../features/dock/panelEvents";
 import { InteriorButton } from "./interior/interior-button";
 
@@ -45,15 +47,26 @@ export function StatusBar({
   onToggleGpuTelemetry,
   onOpenSheet,
 }: StatusBarProps) {
-  const summary = sheetSummary ?? {
-    id: "ts_podcast_social",
-    title: "Podcast Episode Highlights & Vertical Clips",
-    status: "ready",
-    spentMin: 14,
-    budgetMin: 30,
-    spentUsd: 1.25,
-    budgetUsd: 2.5,
-  };
+  const { session } = useSyncExternalStore(subscribeAgentStore, getAgentStoreSnapshot);
+  const sheet = session.taskSheet;
+  const summary: StatusBarSheetSummary | null =
+    sheetSummary ??
+    (sheet
+      ? {
+          id: sheet.id,
+          title: sheet.title,
+          status: sheet.status,
+          spentMin: Math.round((session.budgetSpent.wall_clock_seconds ?? 0) / 60),
+          budgetMin: sheet.budget?.wall_clock_min ?? 60,
+          spentUsd: session.budgetSpent.model_cost_usd ?? 0,
+          budgetUsd: sheet.budget?.model_cost_usd ?? 5,
+        }
+      : null);
+  const resolvedBranch =
+    activeBranch ??
+    (session.activeBranch && session.activeBranch !== "main" ? session.activeBranch : undefined);
+  const resolvedMode = activeMode ?? (session.activeSessionId ? session.activeMode : undefined);
+  const resolvedActor = lastActor ?? session.lastActor ?? undefined;
 
   const handleOpenSheet = () => {
     if (onOpenSheet) {
@@ -67,19 +80,19 @@ export function StatusBar({
     <footer className="status-bar glass" data-elev="1">
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <span>{busy ? "Working…" : notice || "Autosave recovery enabled · saves every 30 seconds"}</span>
-        {activeBranch && (
+        {resolvedBranch && (
           <span style={{ color: "var(--accent-text, #f472b6)", fontWeight: 600 }}>
-            🌿 {activeBranch}
+            🌿 {resolvedBranch}
           </span>
         )}
-        {activeMode && (
+        {resolvedMode && (
           <span style={{ color: "var(--text-muted)" }}>
-            Profile: {activeMode}
+            Profile: {resolvedMode}
           </span>
         )}
-        {lastActor && (
+        {resolvedActor && (
           <span style={{ color: "var(--text-muted)" }}>
-            Actor: {lastActor.type === "agent" ? `🤖 ${lastActor.id}` : `👤 ${lastActor.id}`}
+            Actor: {resolvedActor.type === "agent" ? `🤖 ${resolvedActor.id}` : `👤 ${resolvedActor.id}`}
           </span>
         )}
         {summary && (

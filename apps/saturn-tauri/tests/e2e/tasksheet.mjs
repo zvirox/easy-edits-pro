@@ -14,7 +14,7 @@ export async function run(ctx) {
   await sheetTab.waitFor();
   await sheetTab.click();
 
-  // Verify TaskSheet panel mounts.
+  // Verify empty TaskSheet panel mounts without fake default sheet and exposes template selector.
   const sheetPanel = page.locator('.tasksheet-panel');
   await sheetPanel.waitFor();
   assert.equal(
@@ -22,14 +22,16 @@ export async function run(ctx) {
     'true',
     'the Sheet dock tab should be active',
   );
+  await sheetPanel.getByText('No Task Sheet attached').waitFor();
+  const templateSelect = sheetPanel.getByLabel('Load Flagship Task Sheet Template');
+  await templateSelect.selectOption('tutorial_screen');
 
-  // Verify recipe templates are available and pick "Tutorial & Screen Capture".
+  // Verify recipe templates are available inside loaded sheet.
   const tutorialTemplateBtn = sheetPanel.getByRole('button', {
     name: 'Tutorial & Screen Capture',
     exact: true,
   });
   await tutorialTemplateBtn.waitFor();
-  await tutorialTemplateBtn.click();
 
   // Validate the sheet.
   const validateBtn = sheetPanel.getByRole('button', { name: 'Validate', exact: true });
@@ -61,6 +63,30 @@ export async function run(ctx) {
   await expandBtn.click();
   await sheetPanel.waitFor();
 
+  // Agent posts a real question into the active TaskSheet via the engine bridge.
+  await page.evaluate(() => {
+    window.__mockAgentExecute('sess-tasksheet-e2e', 'planner', {
+      id: 'tasksheet.update',
+      params: {
+        status: 'needs_input',
+        questions: [
+          {
+            id: 'q_hook_selection',
+            question: 'Select hook clip for Social Reel A',
+            context: 'Two candidate intro segments detected.',
+            options: [
+              { id: 'opt_hook_1', label: '01:24 - AI editing paradigm shift', is_default: true, description: 'High energy hook' },
+              { id: 'opt_hook_2', label: '04:12 - Future of native codecs', is_default: false, description: 'Technical depth' },
+            ],
+            default_option_id: 'opt_hook_1',
+            deadline_seconds: 300,
+            status: 'open',
+          },
+        ],
+      },
+    });
+  });
+
   // 2. Switch to the "Agent" tab to verify the active sheet header and Inbox question.
   const agentTab = rightDock.getByRole('tab', { name: 'Agent', exact: true });
   await agentTab.click();
@@ -68,14 +94,8 @@ export async function run(ctx) {
   // Verify Agent Card displays sheet title and status chip.
   const agentCard = page.locator('.agent-card');
   await agentCard.waitFor();
-  assert.ok(
-    (await agentCard.getByText('Software Tutorial with Screen Studio Capture').count()) > 0,
-    'agent card should display the active sheet title',
-  );
-  assert.ok(
-    (await agentCard.getByText('ready', { exact: true }).count()) > 0,
-    'agent card should display ready status chip',
-  );
+  await agentCard.getByText('Software Tutorial with Screen Studio Capture').waitFor();
+  await agentCard.getByText('needs input', { exact: true }).waitFor();
 
   // Verify Agent Inbox displays question card with options and safe default.
   const inbox = agentCard.locator('.agent-inbox');
@@ -99,13 +119,9 @@ export async function run(ctx) {
   });
   await confirmBtn.click();
 
-  // Verify agent resumed.
-  await page.waitForTimeout(200);
-  assert.ok(
-    (await agentCard.getByText('Resumed with decision').count()) > 0 ||
-      (await agentCard.getByText('Running').count()) > 0,
-    'agent session should resume after question answer',
-  );
+  // Verify answer persisted to engine and transitioned sheet status to running.
+  await page.waitForTimeout(150);
+  await agentCard.getByText('running', { exact: true }).waitFor();
 
   // 3. Test responsive layout at 1280px and 900px viewports without horizontal clipping.
   // Test 1280px viewport (in collapse band, status bar summary is visible, no overflow)
@@ -119,7 +135,7 @@ export async function run(ctx) {
   const statusBarSheet = page.locator('.status-bar-sheet');
   await statusBarSheet.waitFor();
   assert.ok(
-    (await statusBarSheet.getByText('ready', { exact: true }).count()) > 0,
+    (await statusBarSheet.getByText('running', { exact: true }).count()) > 0,
     'status bar should display active sheet status chip in 1280px viewport',
   );
 

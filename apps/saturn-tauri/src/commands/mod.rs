@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+mod agent;
+pub use agent::{
+    agent_session_resume, agent_session_status, agent_session_stop, agent_undo_change,
+};
 mod assets;
 mod network;
 
@@ -9,7 +13,8 @@ pub use network::import_network_media;
 mod project;
 pub use project::{
     check_media_availability, command_status, current_project_dir, execute_command,
-    execute_command_with_state, get_command_catalogue, register_write_grant,
+    execute_command_with_state, execute_command_with_state_and_context, get_command_catalogue,
+    register_write_grant,
 };
 mod media;
 pub use media::{
