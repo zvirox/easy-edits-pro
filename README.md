@@ -15,108 +15,107 @@
 </p>
 
 <p align="center">
-  <a href="docs/planning.md">Documentation</a> ·
-  <a href="docs/architecture.md">Architecture</a> ·
   <a href="https://github.com/zvirox/easy-edits-pro/releases">Releases</a> ·
-  <a href="#what-currently-works">Features</a> ·
-  <a href="#install-and-try-it-alpha-packages">Install</a> ·
+  <a href="docs/planning.md">Project plan</a> ·
+  <a href="docs/AI_NATIVE_PLAN_CHECKLIST.md">Live progress checklist</a> ·
+  <a href="docs/PARITY.md">Command parity</a> ·
+  <a href="#install-and-try-it">Install</a> ·
   <a href="#development-setup">Development</a>
 </p>
 
 ## Project status
 
-Easy Edits Pro is in active alpha development, moving toward a first beta. It
-has a Rust-owned project model, a Tauri desktop shell, a multi-workspace
-editor, and an automation stack shared by the desktop app, CLI, MCP server,
-and control server.
+Easy Edits Pro is an alpha Linux desktop video editor. The Rust core owns
+project, timeline, task sheet, and review state; the desktop UI, CLI, MCP
+server, and control server send commands to that core.
 
-The generated catalogue contains **440 commands, all shipped** (each with a UI
-affordance and a test). The reference-editor parity audits for all three tiers report
-**100% coverage** (documented `na` divergences excluded); see [the generated
-parity report](docs/PARITY.md) for the current numbers - it is the source of
-truth for coverage.
+The current checkout's generated catalogue contains **492 shipped commands
+across 13 profiles**. The latest tagged release, [v0.1.2-alpha.7](https://github.com/zvirox/easy-edits-pro/releases/tag/v0.1.2-alpha.7),
+records 489 commands; the current checkout includes later task sheet work.
+The generated [command reference](docs/COMMANDS.md) and [parity report](docs/PARITY.md)
+are the sources for current command counts and audited coverage. All three
+audited parity tiers report 100% effective coverage, excluding documented
+`na` divergences; this does not mean every feature is complete or that full
+reference-editor parity is a beta goal.
 
-The most recent release is
-[v0.1.1-alpha.1](https://github.com/zvirox/easy-edits-pro/releases/tag/v0.1.1-alpha.1),
-with .deb, .rpm, a single-file Flatpak bundle, and SHA-256 checksum assets.
-Packages are experimental: a package build is not an install or
-hardware-compatibility claim. The recorded install evidence includes CI
-real-install proofs of all three routes plus automated acceptance runs (see
-*Known limitations*), but not yet a non-developer-machine report.
+The latest tagged alpha is experimental and Linux-focused. The current
+checkout contains work beyond that release tag, so use the [releases page](https://github.com/zvirox/easy-edits-pro/releases)
+for downloadable builds and the [changelog](CHANGELOG.md) for tagged-release
+contents.
 
-## What currently works
+## What works in the current checkout
 
-- Create, open, save, and recover versioned editor projects.
-- Import local media, inspect its metadata, organise project media, and place
-  clips on the timeline.
-- Use timeline selection, movement, split, trimming, playhead scrubbing, zoom,
-  transitions, titles, captions, markers, and Rust-backed undo/redo where the
-  corresponding command is marked shipped.
-- Preview source and program media in the desktop editor, with playback,
-  frame-stepping, and timeline transport controls.
-- Render MP4 or WebM through GStreamer. The confirmed render path on the
-  development laptop is software H.264/AAC through x264.
-- Use the Media, Edit, Color, Fairlight, Keyframes, Fusion, and Deliver
-  workspaces. Some advanced controls in these surfaces are intentionally still
-  marked incomplete.
-- Use saturn-mcp to inspect projects and sequences, search media, inspect
-  placements, execute real editor commands, and manage asynchronous render jobs.
-  On Unix desktops, --bridge works with the project open in the app.
+- Create, open, save, and recover versioned editor projects; import local
+  media, inspect it, organise it, and place clips on the timeline.
+- Edit with timeline selection, movement, split, trim, scrubbing, zoom,
+  transitions, titles, captions, markers, and Rust-backed undo/redo for shipped
+  commands.
+- Preview source and program media with playback, frame stepping, and timeline
+  transport controls. Render MP4 or WebM through GStreamer; codec availability
+  depends on the installed GStreamer plugins.
+- Analyze media with contact sheets, shot detection, semantic search,
+  audio/video telemetry, word-level transcription and script sync, plus
+  measured matting, depth, and motion tracking.
+- Work across media, editing, color, keyframe, node-graph, audio, and delivery
+  areas. The command catalogue and parity report describe the shipped surface.
+- Use `saturn-mcp` to inspect projects and sequences, search media, inspect
+  placements, run editor commands, and manage asynchronous render jobs. Its
+  desktop bridge uses a Unix socket.
+- Build task sheets with validation, human plan approval, questions, review
+  notes and rounds, delivery packages, checksums, and provenance.
+- Run three deterministic task sheet recipes for podcast clips, talking-head
+  tutorials, and webinar recaps. The synthetic Capture Event Track generator
+  supports repeatable tutorial-recipe checks.
+- Supervise agent sessions with Stop, branch review, conflict-aware reverts,
+  and an explicit demo mode. The AF6.1 end-to-end gate is recorded as closed in
+  the [progress checklist](docs/AI_NATIVE_PLAN_CHECKLIST.md).
 
-## Known limitations
+The current task sheet implementation is TS0–TS6. The progress checklist also
+tracks agent-first phases, verification work, and the remaining roadmap.
 
-- Hardware encoder detection is implemented, but hardware-encoded output has
-  not been verified on this laptop. Software encoding is the tested fallback.
-- The desktop MCP bridge uses a Unix socket; it has no Windows implementation.
-- media_preview reports asset metadata, source path, and placements. It does
-  not extract a still frame.
-- Motion tracking: the setup (track point, region) persists on the clip, but
-  analysis runs during the render pass; the preview-side analyzer reports
-  simulated points, not real per-frame tracking.
-- Proxies are single-profile 1280x720 VP9 WebM preview attachments per asset;
-  there is no preset system and no auto-regeneration over pruned attachments.
-- Text-to-speech is not included: the speech surface is transcription-only
-  (`speech.transcribe_to_subtitles`); captions are authored or imported.
-- Fairlight plugin slots store metadata only; there is no native VST3 host.
-  Denoise is currently a high-pass filter, and full render-DSP parity is open.
-- Fusion actions, advanced Color controls, effect parameter/reordering controls,
-  keyframe handle editing, and the export queue need further implementation.
-- Install evidence is honest and recorded: the alpha.26 .deb passed the
-  scripted extracted-prefix acceptance workflow on the dev laptop, and the
-  CI install-proof jobs have proven all three Linux routes (2026-10-27:
-  dpkg install in debian:12 + H.264 render PASS, dnf install in
-  fedora:latest + WebM/VP8 render PASS - the .rpm Requires were fixed:
-  they named rpmfusion-only plugins - and the Flatpak was built in CI,
-  acceptance-driven inside its sandbox, and verified H.264). Remaining:
-  one non-dev-machine report per route. The Flatpak ships for the first
-  time in v0.1.1-alpha.1 as a single-file bundle; record your own result
-  per [docs/distribution.md](docs/distribution.md).
-- `.saturn` project files embed absolute media paths; moving a project or its
-  media shows clips offline until they are relinked.
+## Known limitations and work in progress
 
-See [the delivery plan](docs/planning.md) for milestones, release feedback, and
-the evidence required before a feature is called complete.
+- This is alpha software for Linux. Windows and macOS packages are not built,
+  and package compatibility still needs reports from non-development machines.
+- Hardware encoding has not been verified. Export format and codec support
+  depend on the GStreamer plugins available on the machine.
+- The desktop MCP bridge uses a Unix socket. There is no Windows bridge.
+- Text-to-speech and speaker diarization are not implemented. Transcription is
+  available; speech separation for dialogue, music, ambience, and effects is
+  deferred until a verified, license-cleared model is available.
+- Proxy attachments exist, but proxy playback and cache regeneration are
+  unfinished.
+- EEP-Bench currently runs a scripted deterministic conformance suite. Its
+  real-agent `--agent` evaluation mode is planned; scripted results are not
+  model-evaluation results.
+- Task Sheet web API, Web Desk, runner, SSO, and the shared agent-contract
+  crate remain planned. See the live [AI-native progress checklist](docs/AI_NATIVE_PLAN_CHECKLIST.md)
+  for current gates and remaining work.
+
+See [distribution and releases](docs/distribution.md) for package policy and
+recorded installation evidence. The [delivery plan](docs/planning.md) records
+milestones and the evidence required before work is called complete.
 
 ## Architecture
 
 ~~~mermaid
 flowchart LR
-  UI[React workspaces] --> IPC[Tauri invoke commands]
-  IPC --> Core[saturn-core project engine]
+  UI[React editor and review UI] --> IPC[Tauri invoke commands]
+  IPC --> Core[Rust core: projects, tasks, and review]
   Core --> Render[saturn-render / GStreamer]
   Core --> Automation[CLI · MCP · control server]
   Render --> Output[Preview and media output]
 ~~~
 
 The Rust core owns project state and editing history. UI and automation clients
-submit commands and render returned project state. The module-level data flow is
-documented in [docs/architecture.md](docs/architecture.md).
+submit commands and render returned state. See the [architecture guide](docs/architecture.md)
+for module-level data flow.
 
-## Install and try it (alpha packages)
+## Install and try it
 
-Grab the newest [release](https://github.com/zvirox/easy-edits-pro/releases)
-assets, install the package for your distribution, and launch **Easy Edits Pro**
-from your application menu (binary: `saturn-tauri`):
+Download a package and its checksums from the [GitHub releases page](https://github.com/zvirox/easy-edits-pro/releases),
+then install the package for your Linux distribution and launch **Easy Edits
+Pro** from your application menu (binary: `saturn-tauri`):
 
 ~~~bash
 # Debian/Ubuntu and derivatives
@@ -125,17 +124,15 @@ sudo apt install ./Easy.Edits.Pro_<version>_amd64.deb
 sudo dnf install ./Easy.Edits.Pro_<version>_amd64.rpm
 ~~~
 
-To see what the maintained sample projects demonstrate (split, titles,
-captions, colour grade, multicam), generate them locally and open the `.saturn`
-files in the app:
+See [distribution and releases](docs/distribution.md) for Flatpak details and
+the package acceptance workflow.
+
+To generate the maintained sample projects (split, titles, captions, color
+grade, multicam), then open the `.saturn` files in the app:
 
 ~~~bash
 python3 tests/native/sample_projects.py --build samples-out
 ~~~
-
-Maintainers verifying a packaged build should run the scripted acceptance
-workflow instead of trusting a successful build - see the beta acceptance
-runbook in [docs/distribution.md](docs/distribution.md).
 
 ## Development setup
 
@@ -144,7 +141,7 @@ runbook in [docs/distribution.md](docs/distribution.md).
 - Linux with a current Rust toolchain, Node.js 20+, and pnpm.
 - Tauri 2 and GStreamer development dependencies. See
   [CONTRIBUTING.md](CONTRIBUTING.md) for Debian, Arch, and Fedora package lists.
-- Playwright Chromium only for the mocked browser smoke suite.
+- Playwright Chromium for the mocked browser smoke suite.
 
 ### Run the desktop app
 
@@ -167,10 +164,10 @@ pnpm --dir apps/saturn-tauri check:source-size --max-lines=800
 pnpm --dir apps/saturn-tauri test:e2e
 ~~~
 
-The browser smoke suite uses mocked Tauri IPC and a synthetic video. It does
-not verify the native desktop bridge, GStreamer, file dialogs, rendering, or
-an installed package. For changes to those areas, follow the native workflows
-in [docs/native-workflow.md](docs/native-workflow.md) and
+The browser smoke suite uses mocked Tauri IPC and synthetic video. It does not
+verify the native desktop bridge, GStreamer, file dialogs, rendering, or an
+installed package. For those areas, follow the native workflows in
+[docs/native-workflow.md](docs/native-workflow.md) and
 [docs/distribution.md](docs/distribution.md).
 
 ## Automation
@@ -192,20 +189,20 @@ cargo run -p saturn-mcp -- --project /path/to/project.saturn
 cargo run -p saturn-mcp -- --bridge
 ~~~
 
-See [crates/saturn-mcp/README.md](crates/saturn-mcp/README.md) for the available
-tools and connection model.
+See [crates/saturn-mcp/README.md](crates/saturn-mcp/README.md) for available
+tools and the connection model.
 
 ## Releases and feedback
 
-Push an alpha tag such as v0.1.0-alpha.2 to build and attach .deb, .rpm,
-and checksum assets to a GitHub prerelease. The packaging workflow is documented
-in [docs/distribution.md](docs/distribution.md).
+The [release workflow](docs/RELEASES.md) documents release gates and publishing.
+For current alpha packages, checksums, and tagged changes, use the [releases page](https://github.com/zvirox/easy-edits-pro/releases)
+and [changelog](CHANGELOG.md).
 
 For an alpha report, include the release version, distribution and desktop
 session, imported media codec, reproduction steps, and **Help → Copy System
 Diagnostics** output. Report it through the GitHub issue tracker. This feedback
-guides future alpha and beta work; it is how the project gathers information
-that cannot be tested on the development laptop.
+guides alpha and beta work and captures results that cannot be tested on the
+development laptop.
 
 ## Contributing
 
@@ -219,12 +216,12 @@ behaviour in docs and release notes.
 | Area | Examples | Difficulty |
 |---|---|---|
 | Testing and bug reports | Install the alpha on your distro and report what breaks | Easy |
-| Documentation and translations | Fix unclear docs, add how-tos, translate strings | Easy |
+| Documentation | Clarify setup and workflows | Easy |
 | UI polish | Missing icons, truncated labels, keyboard shortcuts | Easy to medium |
 | Test coverage | Regression tests for commands and importers | Medium |
-| Packaging | Verify or add package targets for other distributions | Medium |
-| Rendering and audio | GStreamer/GES performance, plugin host, DSP | Hard |
-| Agent tooling | MCP tools, command profiles, closed-loop tests | Medium to hard |
+| Packaging | Verify packages on more Linux distributions | Medium |
+| Rendering and audio | GStreamer/GES performance and DSP | Hard |
+| Agent tooling | MCP tools, task sheet recipes, and conformance tests | Medium to hard |
 
 Start with [CONTRIBUTING.md](CONTRIBUTING.md), the [roadmap](ROADMAP.md), and
 issues labelled `good first issue` or `help wanted`. Questions are welcome in
