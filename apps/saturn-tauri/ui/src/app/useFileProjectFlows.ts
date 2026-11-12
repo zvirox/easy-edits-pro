@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { invoke } from "@tauri-apps/api/core";
-import { confirm, save } from "@tauri-apps/plugin-dialog";
+import { confirm, open, save } from "@tauri-apps/plugin-dialog";
 import {
   INTEROP_EXPORTS,
   recoveryNotice,
@@ -102,6 +102,28 @@ export function createFileProjectFlows(options: FileFlowOptions) {
     await grantWrite(target);
     const ok = await perform(id, { path: target }, `Exported ${format.label}`);
     if (ok) options.rememberProject(project.name, projectPath ?? target);
+  };
+
+  const deliveryPackageFlow = async () => {
+    if (!project) return;
+    const target = await save({
+      title: "Create Delivery Package Folder",
+      defaultPath: `${sanitizeName(project.name)}-delivery`,
+    });
+    if (!target) return;
+    await grantWrite(target);
+    await perform("delivery.package", { path: target }, "Packaged delivery bundle with verified checksums");
+  };
+
+  const deliveryVerifyFlow = async () => {
+    const picked = await open({
+      directory: true,
+      multiple: false,
+      title: "Verify Delivery Package Folder",
+    });
+    const target = typeof picked === "string" ? picked : null;
+    if (!target) return;
+    await perform("delivery.verify", { path: target }, "Verified delivery package checksums");
   };
 
   /** File > New synthetic media: generate server-side, import as media. */
@@ -221,6 +243,12 @@ export function createFileProjectFlows(options: FileFlowOptions) {
         return true;
       case "export.frame":
         await exportFrameFlow();
+        return true;
+      case "delivery.package":
+        await deliveryPackageFlow();
+        return true;
+      case "delivery.verify":
+        await deliveryVerifyFlow();
         return true;
       default:
         if (INTEROP_EXPORTS[id]) {

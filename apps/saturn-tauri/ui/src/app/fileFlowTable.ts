@@ -47,6 +47,8 @@ export const FILE_FLOW_COMMANDS = [
   "project.autosave.status",
   "project.recovery.restore",
   "project.recovery.discard",
+  "delivery.package",
+  "delivery.verify",
 ] as const;
 
 export function isFileFlowCommand(id: string): boolean {

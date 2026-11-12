@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-use saturn_core::{CommandRequest, EditorEngine, command_catalogue};
+use saturn_core::{ActorContext, CommandRequest, EditorEngine, command_catalogue};
 use saturn_graphics::format::{load_template, save_template};
 use saturn_graphics::{GraphicsTemplate, TemplateCategory, TemplateMetadata};
 use serde_json::{Value, json};
@@ -106,6 +106,11 @@ fn run() -> Result<(), String> {
         "catalogue" => run_catalogue(args.collect())?,
         "control" => run_control(args.collect())?,
         "template" => run_template(args.collect())?,
+        "cet-gen" => saturn_cli::cet_cmd::run_cet_gen_cli(args.collect())?,
+        "cet-validate" => saturn_cli::cet_cmd::run_cet_validate(args.collect())?,
+        "cet-propose" => saturn_cli::cet_cmd::run_cet_propose(args.collect())?,
+        "cet-query" => saturn_cli::cet_cmd::run_cet_query(args.collect())?,
+        "analyze-recipe" => saturn_cli::cet_cmd::run_analyze_recipe(args.collect())?,
         "new" => {
             let path = required(&mut args, "project path")?;
             let name = args.next().unwrap_or_else(|| "Untitled project".into());
@@ -154,17 +159,45 @@ fn run() -> Result<(), String> {
 }
 
 /// JSON Lines control interface: one CommandRequest per input line, one result per output line.
-/// `--project <path>` optionally opens a saved project first so edits act on
-/// real files (this is how the native workflow test drives the true engine).
+/// `--project <path>` optionally opens a saved project first; `--actor <human|agent:id>` sets
+/// the execution context (defaults to human).
 fn run_control(tokens: Vec<String>) -> Result<(), String> {
-    let mut tokens = tokens.into_iter();
     let mut engine = EditorEngine::default();
-    if tokens.next().as_deref() == Some("--project") {
-        let path = tokens
-            .next()
-            .ok_or("--project requires the path of a saved project")?;
+    let mut project_path: Option<String> = None;
+    let mut actor_spec: Option<String> = None;
+    let mut iter = tokens.into_iter();
+    while let Some(tok) = iter.next() {
+        match tok.as_str() {
+            "--project" => {
+                project_path = Some(
+                    iter.next()
+                        .ok_or("--project requires the path of a saved project")?,
+                );
+            }
+            "--actor" => {
+                actor_spec = Some(iter.next().ok_or("--actor requires `human` or `agent:<id>`")?);
+            }
+            other => return Err(format!("unknown control flag: {other}")),
+        }
+    }
+    if let Some(path) = project_path {
         execute(&mut engine, "file.open", json!({ "path": path }))?;
     }
+    let actor_ctx = match actor_spec.as_deref() {
+        None | Some("human") => ActorContext::human(),
+        Some(spec) if spec.starts_with("agent:") => {
+            let agent_id = spec.trim_start_matches("agent:");
+            if agent_id.is_empty() {
+                return Err("--actor `agent:<id>` requires a non-empty agent identifier".into());
+            }
+            ActorContext::agent(agent_id, format!("cli-{agent_id}"))
+        }
+        Some(other) => {
+            return Err(format!(
+                "invalid --actor `{other}`; expected `human` or `agent:<id>`"
+            ))
+        }
+    };
     let stdin = io::stdin();
     for line in stdin.lock().lines() {
         let line = line.map_err(|error| format!("could not read control input: {error}"))?;
@@ -172,7 +205,7 @@ fn run_control(tokens: Vec<String>) -> Result<(), String> {
             continue;
         }
         let response = match serde_json::from_str::<CommandRequest>(&line) {
-            Ok(request) => match engine.execute(request) {
+            Ok(request) => match engine.execute_with_context(request, &actor_ctx) {
                 Ok(result) => json!({"ok": true, "result": result}),
                 Err(error) => json!({"ok": false, "error": error.to_string()}),
             },
@@ -423,5 +456,5 @@ fn print_json(value: &Value) -> Result<(), String> {
 }
 
 fn usage<T>() -> Result<T, String> {
-    Err("usage: saturn-cli commands [filter] [--json] | describe <id> | catalogue <docs|json> <path> [--check] | control [--project <project.saturn>] | new <project.saturn> [name] | inspect <project.saturn> | list-media <project.saturn> | add-media <project.saturn> <media-path> | render <project.saturn> <output.mp4|output.webm> | template create|inspect|list|export".into())
+    Err("usage: saturn-cli commands [filter] [--json] | describe <id> | catalogue <docs|json> <path> [--check] | control [--project <project.saturn>] [--actor human|agent:<id>] | new <project.saturn> [name] | inspect <project.saturn> | list-media <project.saturn> | add-media <project.saturn> <media-path> | render <project.saturn> <output.mp4|output.webm> | template create|inspect|list|export | cet-gen ... | cet-validate <file> | cet-propose <file> | cet-query <file> | analyze-recipe <podcast|webinar> <input.json>".into())
 }

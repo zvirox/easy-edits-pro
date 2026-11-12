@@ -7,7 +7,10 @@ use anyhow::{Context, Result};
 use rmcp::{ServiceExt, transport::stdio};
 use saturn_core::{
     CommandRequest, EditorEngine,
-    catalogue::policy::{SessionMode, SessionPolicy},
+    catalogue::{
+        Tier,
+        policy::{SessionMode, SessionPolicy},
+    },
 };
 
 mod server;
@@ -19,6 +22,7 @@ async fn main() -> Result<()> {
     let mut bridge = false;
     let mut profile = None;
     let mut mode = None;
+    let mut grant_tiers: Vec<Tier> = Vec::new();
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--bridge" => bridge = true,
@@ -31,9 +35,17 @@ async fn main() -> Result<()> {
             "--mode" => {
                 mode = Some(args.next().context("--mode requires a mode name (autopilot, coedit, review, manual)")?);
             }
+            "--grant-tiers" => {
+                let raw = args.next().context("--grant-tiers requires a comma-separated list of tiers")?;
+                for item in raw.split(',').map(str::trim).filter(|s| !s.is_empty()) {
+                    let parsed = Tier::parse(item)
+                        .ok_or_else(|| anyhow::anyhow!("unknown tier '{item}'; expected read, edit, destructive, or filesystem"))?;
+                    grant_tiers.push(parsed);
+                }
+            }
             "--help" | "-h" => {
                 println!(
-                    "saturn-mcp [--project <path> | --bridge] [--profile <name>] [--mode <mode>]\nRuns the Easy Edits Pro MCP server over stdio. --bridge connects to the running desktop app."
+                    "saturn-mcp [--project <path> | --bridge] [--profile <name>] [--mode <mode>] [--grant-tiers <tiers>]\nRuns the Easy Edits Pro MCP server over stdio. --bridge connects to the running desktop app."
                 );
                 return Ok(());
             }
@@ -62,6 +74,9 @@ async fn main() -> Result<()> {
         policy
             .load_profile(&prof)
             .map_err(|e| anyhow::anyhow!("{e}"))?;
+    }
+    for tier in grant_tiers {
+        policy.granted_tiers.insert(tier);
     }
 
     let server = if bridge {

@@ -343,4 +343,190 @@ impl EditorMcp {
                 .collect(),
         ))
     }
+
+    pub(super) async fn dispatch_analysis_tool(
+        &self,
+        name: &str,
+        arguments: &Value,
+    ) -> Option<Result<Value, String>> {
+        match name {
+            "vision_extract_frame_sheet" => Some(self.vision_extract_frame_sheet(arguments).await),
+            "render_preview_clip_proxy" => Some(self.render_preview_clip_proxy(arguments).await),
+            "color_read_scopes" => Some(self.color_read_scopes(arguments).await),
+            "audio_process" => Some(self.audio_process(arguments).await),
+            "edit_match_cut_align" => Some(self.edit_match_cut_align(arguments).await),
+            "timeline_beat_grid_quantize" => Some(self.timeline_beat_grid_quantize(arguments).await),
+            "color_match_shot_to_reference" => Some(self.color_match_shot_to_reference(arguments).await),
+            "audio_read_telemetry" => Some(self.audio_read_telemetry(arguments).await),
+            "media_semantic_query" => Some(match self.media_semantic_query(arguments).await {
+                Ok(res) => Ok(self.wrap_semantic_query_output(res).await),
+                Err(e) => Err(e),
+            }),
+            "edit_evaluate_cut_continuity" => Some(self.edit_evaluate_cut_continuity(arguments).await),
+            "capture_read_events" => Some(self.capture_read_events(arguments).await),
+            "verify.run" | "verify_run" => Some(self.verify_run(arguments).await),
+            _ => None,
+        }
+    }
+
+    /// `capture_read_events`: bounded inspection of CET v0.1 sidecar tracks with AF5 provenance marking.
+    pub(super) async fn capture_read_events(&self, arguments: &Value) -> Result<Value, String> {
+        if matches!(&self.backend, Backend::Bridge(_)) {
+            return self.bridge_call("capture_read_events", arguments.clone()).await;
+        }
+        let doc = self.headless_document().await?;
+        let proj_path = self.headless_project_path().await?;
+        let allowed_roots = self.allowed_filesystem_roots().await;
+
+        let requested = arguments
+            .get("path")
+            .and_then(Value::as_str)
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .or_else(|| {
+                doc.project
+                    .task_sheet
+                    .as_ref()
+                    .and_then(|s| {
+                        s.inputs
+                            .iter()
+                            .find(|i| i.role == saturn_core::tasksheet::InputRole::CaptureEventTrack)
+                            .map(|i| i.media.clone())
+                    })
+            })
+            .ok_or_else(|| {
+                "capture_read_events requires `path` or a Task Sheet capture_event_track input"
+                    .to_string()
+            })?;
+
+        let raw_rel = PathBuf::from(&requested);
+        if raw_rel
+            .components()
+            .any(|c| matches!(c, std::path::Component::ParentDir))
+        {
+            return Err("PermissionDenied: CET path cannot contain parent traversal (`..`)".into());
+        }
+
+        let resolved = if raw_rel.is_absolute() {
+            raw_rel
+        } else if let Some(ref p) = proj_path {
+            p.parent()
+                .map(|dir| dir.join(&raw_rel))
+                .unwrap_or_else(|| raw_rel.clone())
+        } else {
+            raw_rel.clone()
+        };
+
+        let canonical_target = std::fs::canonicalize(&resolved)
+            .map_err(|e| format!("Could not resolve CET file `{}`: {e}", resolved.display()))?;
+        let is_cet_ext = canonical_target
+            .extension()
+            .and_then(|s| s.to_str())
+            .is_some_and(|e| e.eq_ignore_ascii_case("jsonl"));
+        if !is_cet_ext {
+            return Err("Invalid CET file extension; expected `.cet.jsonl` or `.jsonl`".into());
+        }
+
+        let allowed = allowed_roots.iter().any(|root| {
+            std::fs::canonicalize(root)
+                .map(|canon_root| canonical_target.starts_with(&canon_root))
+                .unwrap_or(false)
+        });
+        if !allowed {
+            return Err(format!(
+                "PermissionDenied: CET path `{}` is outside allowed project/workspace roots",
+                canonical_target.display()
+            ));
+        }
+
+        let args_clone = arguments.clone();
+        let (query_res, proposals, untrusted_samples) = tokio::task::spawn_blocking(move || {
+            let meta = std::fs::metadata(&canonical_target)
+                .map_err(|e| format!("Could not stat CET file: {e}"))?;
+            if meta.len() as usize > saturn_core::tasksheet::CET_DEFAULT_MAX_BYTES {
+                return Err(format!(
+                    "CET file exceeds max size cap ({} bytes)",
+                    saturn_core::tasksheet::CET_DEFAULT_MAX_BYTES
+                ));
+            }
+            let raw = std::fs::read_to_string(&canonical_target)
+                .map_err(|e| format!("Could not read CET file: {e}"))?;
+
+            let qparams = saturn_core::tasksheet::CetQueryParams {
+                from_ms: args_clone.get("from_ms").and_then(Value::as_u64),
+                to_ms: args_clone.get("to_ms").and_then(Value::as_u64),
+                types: args_clone
+                    .get("types")
+                    .and_then(Value::as_array)
+                    .map(|arr| {
+                        arr.iter()
+                            .filter_map(Value::as_str)
+                            .map(str::to_string)
+                            .collect()
+                    })
+                    .unwrap_or_default(),
+                window: args_clone
+                    .get("window")
+                    .and_then(Value::as_str)
+                    .map(str::to_string),
+                limit: args_clone
+                    .get("limit")
+                    .and_then(Value::as_u64)
+                    .unwrap_or(100) as usize,
+            };
+
+            let qres = saturn_core::tasksheet::query_cet_events(&raw, &qparams)?;
+            let include_proposals = args_clone
+                .get("include_proposals")
+                .and_then(Value::as_bool)
+                .unwrap_or(true);
+            let proposals = if include_proposals {
+                let mut opts = saturn_core::tasksheet::CetProposalOptions::default();
+                if let Some(scale) = args_clone.get("scale").and_then(Value::as_f64) {
+                    opts.target_zoom_scale = scale;
+                }
+                Some(saturn_core::tasksheet::derive_cet_proposals_from_jsonl(&raw, &opts)?)
+            } else {
+                None
+            };
+
+            let mut untrusted_samples = Vec::new();
+            for item in &qres.events {
+                for s in [
+                    item.event.title.as_deref(),
+                    item.event.app.as_deref(),
+                    item.event.label.as_deref(),
+                    item.event.note.as_deref(),
+                ]
+                .into_iter()
+                .flatten()
+                {
+                    if !s.trim().is_empty() {
+                        untrusted_samples.push(s.to_string());
+                    }
+                }
+            }
+            Ok((qres, proposals, untrusted_samples))
+        })
+        .await
+        .map_err(|e| format!("CET read task failed: {e}"))??;
+
+        for text in untrusted_samples {
+            self.record_untrusted_text(saturn_core::provenance::UntrustedText::new(
+                text,
+                saturn_core::provenance::UntrustedSource::Metadata,
+            ))
+            .await;
+        }
+
+        let mut payload = serde_json::to_value(&query_res).map_err(|e| e.to_string())?;
+        if let (Some(obj), Some(props)) = (payload.as_object_mut(), proposals) {
+            obj.insert(
+                "proposals".to_string(),
+                serde_json::to_value(&props).map_err(|e| e.to_string())?,
+            );
+        }
+        Ok(payload)
+    }
 }

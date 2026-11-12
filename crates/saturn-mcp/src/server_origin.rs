@@ -64,6 +64,20 @@ impl EditorMcp {
             || id.contains("delete");
 
         if !is_filesystem_or_destructive {
+            if spec.mutating && (id.starts_with("tasksheet.") || id.starts_with("review.")) {
+                let tracker = self.origin_tracker.read().await;
+                let mut string_args = Vec::new();
+                collect_string_args(params, "", &mut string_args);
+                for (arg_name, arg_val) in string_args {
+                    if let Some(derivation) = tracker.detect_untrusted_derivation(&arg_val) {
+                        return Err(format!(
+                            "PermissionDenied: UntrustedOrigin `{arg_name}` (`{arg_val}`) appears derived from untrusted {} text (`{}`)",
+                            derivation.source,
+                            derivation.matched_text
+                        ));
+                    }
+                }
+            }
             return Ok(());
         }
 
@@ -95,6 +109,7 @@ impl EditorMcp {
     ) -> Result<(), String> {
         let is_fs = tool_name.starts_with("render_")
             || tool_name == "vision_extract_frame_sheet"
+            || tool_name == "capture_read_events"
             || tool_name == "audio_process";
 
         if !is_fs {

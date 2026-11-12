@@ -4,6 +4,7 @@
 pub(super) mod audio;
 pub(super) mod clip;
 pub(super) mod color;
+pub(super) mod delivery;
 pub(super) mod dsp;
 pub(super) mod edit;
 pub(super) mod effects;

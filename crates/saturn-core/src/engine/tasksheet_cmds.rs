@@ -54,6 +54,16 @@ impl EditorEngine {
                     .unwrap_or_else(|_| TaskSheet::new(id_val, title_val, requester_val));
                 sheet.schema = TASKSHEET_SCHEMA_VERSION.to_string();
 
+                if let Some(inputs) = params.get("inputs").and_then(Value::as_array) {
+                    sheet.inputs =
+                        serde_json::from_value::<Vec<SheetInput>>(Value::Array(inputs.clone()))
+                            .unwrap_or_default();
+                }
+                if let Some(handoff) = params.get("handoff") {
+                    if let Ok(h) = serde_json::from_value::<SheetHandoff>(handoff.clone()) {
+                        sheet.handoff = Some(h);
+                    }
+                }
                 if let Some(delivs) = params.get("deliverables").and_then(Value::as_array) {
                     sheet.deliverables =
                         serde_json::from_value(Value::Array(delivs.clone())).unwrap_or_default();

@@ -80,6 +80,7 @@ Full parity (all reference-editor commands) is explicitly **not** a Beta goal.
 | state | - | 1 | - | - | |
 | track | - | 0 | - | - | |
 | bus | - | 0 | - | - | |
+| delivery | - | 0 | - | - | |
 | dsp | - | 0 | - | - | |
 | nodegraph | - | 0 | - | - | |
 | interop | - | 0 | - | - | |
@@ -95,6 +96,6 @@ Full parity (all reference-editor commands) is explicitly **not** a Beta goal.
 
 Reference-editor commands: 701
 
-EEP commands: 489 (489 shipped, 0 planned)
+EEP commands: 491 (491 shipped, 0 planned)
 
-App-only families (no reference-editor counterpart): bus, dsp, interop, nodegraph, ocio, review, tasksheet, track, verify, view, viewport, workspace
+App-only families (no reference-editor counterpart): bus, delivery, dsp, interop, nodegraph, ocio, review, tasksheet, track, verify, view, viewport, workspace

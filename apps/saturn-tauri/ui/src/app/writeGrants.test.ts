@@ -19,6 +19,7 @@ const wirings: Array<[string, string, string]> = [
   ["./useFileProjectFlows.ts", 'await grantWrite(path);', '"file.save"'],
   ["./useFileProjectFlows.ts", "await grantWrite(target);", 'invoke("export_frame"'],
   ["./useFileProjectFlows.ts", "await grantWrite(target);", "{ path: target }, `Exported ${format.label}`"],
+  ["./useFileProjectFlows.ts", "await grantWrite(target);", '"delivery.package", { path: target }'],
   ["./useProjectOperations.ts", "await grantWrite(path);", '"file.save", { path }, "Project saved"'],
   ["./useProjectOperations.ts", "await grantWrite(path);", 'invoke("start_export"'],
   ["../features/preview/PreviewSection.tsx", "await grantWrite(target);", 'invoke("export_frame"'],
@@ -35,6 +36,11 @@ const wirings: Array<[string, string, string]> = [
     "../features/deliver/DeliverPresetBank.tsx",
     "grantWrite(path)",
     '"export.presets.export"',
+  ],
+  [
+    "../features/deliver/DeliverPresetBank.tsx",
+    "grantWrite(path)",
+    '"delivery.package"',
   ],
 ];
 
@@ -110,6 +116,7 @@ test("the engine write-command table stays covered (parity with the Rust surface
     "interop.export_otio",
     "shortcuts.export",
     "export.presets.export",
+    "delivery.package",
   ]) {
     assert.ok(
       rust.includes(`"${id}"`),

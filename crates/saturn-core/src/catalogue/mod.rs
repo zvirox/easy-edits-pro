@@ -187,6 +187,7 @@ static COMMANDS: std::sync::LazyLock<Vec<CommandSpec>> = std::sync::LazyLock::ne
     all.extend_from_slice(commands::audio::COMMANDS);
     all.extend_from_slice(commands::clip::COMMANDS);
     all.extend_from_slice(commands::color::COMMANDS);
+    all.extend_from_slice(commands::delivery::COMMANDS);
     all.extend_from_slice(commands::dsp::COMMANDS);
     all.extend_from_slice(commands::edit::COMMANDS);
     all.extend_from_slice(commands::effects::COMMANDS);

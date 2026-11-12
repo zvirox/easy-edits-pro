@@ -111,7 +111,7 @@ pub(super) fn valid_keyframe_value(property: &KeyframeProperty, value: f64) -> b
     }
 }
 
-pub(super) fn keyframe_value_at(
+pub(crate) fn keyframe_value_at(
     keyframes: &[Keyframe],
     property: &KeyframeProperty,
     time: i64,

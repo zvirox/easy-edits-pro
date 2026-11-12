@@ -332,8 +332,8 @@ fn test_ts1_lossless_project_brief_migration() {
     let mut brief = ProjectBrief::default();
     brief.goal = "Podcast social clips from interview".into();
     brief.platform = Some("vertical-9x16".into());
-    brief.target_duration_ticks = Some(45_000_000); // 45 seconds
-    brief.duration_tolerance_ticks = Some(5_000_000); // 5 seconds
+    brief.target_duration_ticks = Some(45 * saturn_core::TICKS_PER_SECOND as u64); // 45 seconds
+    brief.duration_tolerance_ticks = Some(5 * saturn_core::TICKS_PER_SECOND as u64); // 5 seconds
     brief.must_keep_clip_ids = vec![101, 102];
     brief.banned_content = vec!["dead_air_over_2s".into(), "profanity".into()];
     brief.style_notes = "Fast paced, kinetic subtitles".into();

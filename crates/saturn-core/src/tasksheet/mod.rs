@@ -8,13 +8,42 @@
 //! to/from `ProjectBrief`.
 
 pub mod cet;
+pub mod cet_analysis;
+pub mod cet_synthetic;
+pub mod delivery;
+pub mod delivery_report;
+pub mod delivery_verify;
+pub mod recipes;
 pub mod review;
 pub mod state_machine;
 pub mod types;
 
+pub use cet_analysis::{
+    CET_DEFAULT_MAX_BYTES, CET_UNTRUSTED_FIELDS, CetAnnotatedEvent, CetChapterProposal,
+    CetFocusSpan, CetIdleRange, CetProposalOptions, CetProposalReport, CetQueryParams,
+    CetQueryResult, CetValidationReport, CetZoomProposal, derive_cet_proposals,
+    derive_cet_proposals_from_jsonl, query_cet_events, validate_cet_jsonl,
+};
+pub use cet_synthetic::{CetScenario, SyntheticCetOptions, generate_synthetic_cet};
+pub use recipes::{
+    PodcastClipCandidate, PodcastClipRankParams, PodcastRankReport, PodcastReviewFlag,
+    WebinarAnalysisReport, WebinarAnalyzeParams, WebinarChapter, WebinarFlaggedHit,
+    WebinarHighlight, WebinarTopicCoverage, analyze_webinar_recap, find_word_boundary,
+    rank_podcast_clips,
+};
+
 pub use cet::{
     parse_cet_jsonl, CetCapture, CetClock, CetDisplay, CetEvent, CetEventType, CetGenerator,
     CetHeader, CetParseError, CetPrivacy, CetRecorder, CetTrust, CetVideo, CET_SPEC_VERSION,
+};
+pub use delivery::{
+    assemble_delivery_package, build_attributed_changelog, build_delivery_provenance,
+    compute_blake3_hex, compute_sha256_hex, format_changelog_markdown,
+    inspect_delivery_package_integrity, sanitize_file_stem, verify_delivery_package,
+    AttributedChangeLog, ClipAttributionEntry, DeliveryBuildOutput, DeliveryExportInput,
+    DeliveryManifest, DeliveryPackageOptions, DeliveryProvenance, DeliveryQcSummary,
+    ExportSourceSpec, PackageVerificationResult, PackagedFileEntry, ProvenanceMediaAsset,
+    DELIVERY_MANIFEST_SCHEMA_VERSION,
 };
 pub use review::{
     capture_timeline_snapshot, compute_round_diff, ChangedTickRange, ClipDiffEntry, ClipDiffKind,
@@ -41,10 +70,10 @@ impl TaskSheet {
         };
 
         let duration = brief.target_duration_ticks.map(|ticks| DurationConstraint {
-            target_s: ticks as f64 / 1_000_000.0,
+            target_s: ticks as f64 / crate::time::TICKS_PER_SECOND as f64,
             tolerance_s: brief
                 .duration_tolerance_ticks
-                .map(|tol| tol as f64 / 1_000_000.0),
+                .map(|tol| tol as f64 / crate::time::TICKS_PER_SECOND as f64),
         });
 
         let must_include = brief
@@ -134,12 +163,12 @@ impl TaskSheet {
 
         let target_duration_ticks = first_deliv
             .and_then(|d| d.duration)
-            .map(|dur| (dur.target_s * 1_000_000.0).round() as u64);
+            .map(|dur| (dur.target_s.max(0.0) * crate::time::TICKS_PER_SECOND as f64).round() as u64);
 
         let duration_tolerance_ticks = first_deliv
             .and_then(|d| d.duration)
             .and_then(|dur| dur.tolerance_s)
-            .map(|tol| (tol * 1_000_000.0).round() as u64);
+            .map(|tol| (tol.max(0.0) * crate::time::TICKS_PER_SECOND as f64).round() as u64);
 
         let mut must_keep_clip_ids = Vec::new();
         if let Some(deliv) = first_deliv {

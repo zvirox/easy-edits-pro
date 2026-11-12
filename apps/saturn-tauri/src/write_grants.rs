@@ -124,7 +124,8 @@ pub fn engine_write_target_param(id: &str) -> Option<&'static str> {
         | "interop.export_xmeml_xml"
         | "interop.export_otio"
         | "shortcuts.export"
-        | "export.presets.export" => "path",
+        | "export.presets.export"
+        | "delivery.package" => "path",
         _ => return None,
     })
 }
@@ -283,10 +284,17 @@ mod tests {
             "interop.export_otio",
             "shortcuts.export",
             "export.presets.export",
+            "delivery.package",
         ] {
             assert_eq!(engine_write_target_param(id), Some("path"), "{id}");
         }
-        for id in ["file.open", "file.save_as", "export.presets.import", "media.import"] {
+        for id in [
+            "file.open",
+            "file.save_as",
+            "export.presets.import",
+            "media.import",
+            "delivery.verify",
+        ] {
             assert_eq!(engine_write_target_param(id), None, "{id}");
         }
     }

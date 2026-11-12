@@ -22,6 +22,12 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 #[cfg(test)]
 #[path = "server_tests.rs"]
 mod server_tests;
+#[cfg(test)]
+#[path = "server_delivery_tests.rs"]
+mod server_delivery_tests;
+#[cfg(test)]
+#[path = "server_cet_tests.rs"]
+mod server_cet_tests;
 #[path = "server_tools.rs"]
 mod server_tools;
 #[path = "server_analysis.rs"]
@@ -51,6 +57,7 @@ enum Backend {
 }
 
 impl EditorMcp {
+    #[allow(dead_code)]
     pub fn new(engine: EditorEngine) -> Self {
         Self {
             backend: Backend::Headless(Arc::new(Mutex::new(engine))),
@@ -103,6 +110,7 @@ impl EditorMcp {
         }
     }
 
+    #[allow(dead_code)]
     pub fn bridge_with_path(path: PathBuf) -> Self {
         Self {
             backend: Backend::Bridge(path),
@@ -668,34 +676,19 @@ impl EditorMcp {
                     Err(e) => Err(e),
                 }
             }
-            "vision_extract_frame_sheet" => self.vision_extract_frame_sheet(&arguments).await,
-            "render_preview_clip_proxy" => self.render_preview_clip_proxy(&arguments).await,
-            "color_read_scopes" => self.color_read_scopes(&arguments).await,
-            "audio_process" => self.audio_process(&arguments).await,
-            "edit_match_cut_align" => self.edit_match_cut_align(&arguments).await,
-            "timeline_beat_grid_quantize" => self.timeline_beat_grid_quantize(&arguments).await,
-            "color_match_shot_to_reference" => {
-                self.color_match_shot_to_reference(&arguments).await
-            }
-            "audio_read_telemetry" => self.audio_read_telemetry(&arguments).await,
-            "media_semantic_query" => {
-                match self.media_semantic_query(&arguments).await {
-                    Ok(res) => Ok(self.wrap_semantic_query_output(res).await),
-                    Err(e) => Err(e),
-                }
-            }
-            "edit_evaluate_cut_continuity" => self.edit_evaluate_cut_continuity(&arguments).await,
-            "verify.run" | "verify_run" => self.verify_run(&arguments).await,
             "render_start" => self.start_render(&arguments).await,
             "render_status" => self.render_job_status(&arguments).await,
             "render_cancel" => self.cancel_render(&arguments).await,
             "render_project" => self.render_project(&arguments).await,
-            _ => {
-                return Err(ErrorData::invalid_params(
-                    format!("unknown tool: {}", request.name),
-                    None,
-                ));
-            }
+            other => match self.dispatch_analysis_tool(other, &arguments).await {
+                Some(result) => result,
+                None => {
+                    return Err(ErrorData::invalid_params(
+                        format!("unknown tool: {}", request.name),
+                        None,
+                    ));
+                }
+            },
         };
         Ok(match result {
             Ok(value) => {

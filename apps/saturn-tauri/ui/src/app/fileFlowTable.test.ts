@@ -34,6 +34,8 @@ test("file flow command list carries the FC save/close/recovery set", () => {
     "export.frame",
     "project.autosave.now",
     "project.recovery.discard",
+    "delivery.package",
+    "delivery.verify",
   ]) {
     assert.ok(isFileFlowCommand(id), id);
   }

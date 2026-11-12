@@ -1481,6 +1481,68 @@
     "undoGroup": "transaction"
   },
   {
+    "aliases": [
+      "package delivery",
+      "delivery bundle",
+      "handoff package"
+    ],
+    "category": "File",
+    "id": "delivery.package",
+    "label": "Package Delivery Bundle…",
+    "menu": [
+      "File",
+      "Delivery"
+    ],
+    "mutating": true,
+    "params": "{\"path\":str,\"exports\":[str]?,\"interchange\":[str]?,\"mark_delivered\":bool?,\"require_approved\":bool?,\"require_rendered_exports\":bool?,\"verify\":{\"preset\":str?}?}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "export"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "filesystem",
+    "tiers": [
+      "edit",
+      "filesystem"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
+      "verify delivery",
+      "check delivery checksums"
+    ],
+    "category": "File",
+    "id": "delivery.verify",
+    "label": "Verify Delivery Package…",
+    "menu": [
+      "File",
+      "Delivery"
+    ],
+    "mutating": false,
+    "params": "{\"path\":str}",
+    "profiles": [
+      "admin",
+      "tasksheet",
+      "export",
+      "review"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.5.0",
+    "tier": "filesystem",
+    "tiers": [
+      "read",
+      "filesystem"
+    ],
+    "uiOnly": false,
+    "undoGroup": "none"
+  },
+  {
     "aliases": [],
     "category": "Sequence",
     "id": "dsp.load_plugin",

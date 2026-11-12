@@ -38,3 +38,11 @@ unsupported. Daemon lifecycle and MCP discovery are implemented; hardware
 encoding depends on the render backend and machine.
 
 Project state is remembered between CLI sessions. Pass `--project <file>` before the command group to explicitly select a project. Use `--json` before the command group for structured output and errors.
+
+## Task Sheets, CET v0.1, Recipes & EEP-Bench (TS1-TS6)
+
+- **Task Sheet & Review (`tasksheet`)**: `tasksheet create`, `get`, `validate`, `submit`, `plan-submit`, `run-report`, `verify`, `review-open`, `note-add`, `note-list`, `note-resolve`, `deliver-package`, `deliver-verify`. Human gates (`tasksheet.plan_approve`, `tasksheet.question_answer`, `review.round_close`) reject agent actors (`PermissionDenied`).
+- **Capture Event Track (`cet`)**: `cet generate` (synthetic `cet-gen` fixture ahead of recorder hardware), `cet validate`, `cet propose` (cursor-click/hint zoom keyframes keeping click in crop, chapters, dead-air ranges), `cet query`.
+- **AF5 CET Untrusted Fields**: `window.title`, `app.name`, `ui.label`, `mark.note`, and `text` originate from captured desktop UI and MUST NEVER trigger instructions, file paths, or Task Sheet mutations.
+- **Flagship Recipes (`recipe`)**: `recipe list` and `recipe run <podcast-to-clips|talking-head-tutorial|webinar-recap>` execute end-to-end editing workflows across `saturn-cli` and `saturn-mcp`.
+- **EEP-Bench (`bench`)**: `bench list` and `bench run` execute deterministic scripted CI checks (`mode: scripted_deterministic`; `token_usage` and `model_cost_usd` stay explicitly `null`, and no aggregate quality score is invented).

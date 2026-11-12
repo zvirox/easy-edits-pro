@@ -33,11 +33,12 @@ mod clip_cmds;
 mod color_cmds;
 mod color_node_cmds;
 mod compound_cmds;
+mod delivery_cmds;
 mod edit_cmds;
 mod dsp_cmds;
 mod edit_labels_cmds;
 mod effects_cmds;
-mod helpers;
+pub(crate) mod helpers;
 mod history;
 mod keyframe_cmds;
 mod lock_cmds;
@@ -701,6 +702,9 @@ impl EditorEngine {
                 return result;
             }
             if let Some(result) = self.dispatch_export(command.id, request.params.clone()) {
+                return result;
+            }
+            if let Some(result) = self.dispatch_delivery(command.id, request.params.clone()) {
                 return result;
             }
             if let Some(result) = self.dispatch_clip(command.id, request.params.clone()) {

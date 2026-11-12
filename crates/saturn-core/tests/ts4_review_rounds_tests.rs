@@ -578,3 +578,61 @@ fn test_ts4_notes_and_rounds_survive_save_and_reopen() {
     assert_eq!(sheet.rounds[0].notes[0].status, ReviewNoteStatus::Resolved);
     assert_eq!(sheet.status, SheetStatus::RevisionRequested);
 }
+
+#[test]
+fn test_ts4_agent_notes_during_in_review_keep_edits_blocked() {
+    let (mut engine, human_ctx, agent_ctx, _, clip_ids) = setup_project_with_clips();
+    let dir = tempfile::tempdir().expect("tempdir");
+    let active_path = dir.path().join("ts4_active.eep");
+
+    engine
+        .execute_with_context(
+            CommandRequest::new("file.save", json!({"path": active_path})),
+            &human_ctx,
+        )
+        .expect("human save active_path");
+
+    // Agent opens review round v1 -> InReview
+    engine
+        .execute_with_context(
+            CommandRequest::new("review.round_open", json!({"label": "v1"})),
+            &agent_ctx,
+        )
+        .expect("agent review.round_open");
+
+    // Agent can flag human-judgement review notes and inspect notes during InReview
+    engine
+        .execute_with_context(
+            CommandRequest::new(
+                "review.note_add",
+                json!({"text": "Low confidence segment at 2s", "target_tick": 2 * TICKS_PER_SECOND}),
+            ),
+            &agent_ctx,
+        )
+        .expect("agent review.note_add during InReview");
+
+    engine
+        .execute_with_context(CommandRequest::new("review.note_list", json!({})), &agent_ctx)
+        .expect("agent review.note_list during InReview");
+
+    engine
+        .execute_with_context(
+            CommandRequest::new("file.save", json!({"path": active_path})),
+            &agent_ctx,
+        )
+        .expect("agent save to active current_path");
+
+    // Timeline edits, note resolution, and closing rounds remain denied during InReview
+    assert!(engine
+        .execute_with_context(
+            CommandRequest::new("clip.delete", json!({"clip_id": clip_ids[0]})),
+            &agent_ctx,
+        )
+        .is_err());
+    assert!(engine
+        .execute_with_context(
+            CommandRequest::new("review.round_close", json!({"outcome": "approved"})),
+            &agent_ctx,
+        )
+        .is_err());
+}

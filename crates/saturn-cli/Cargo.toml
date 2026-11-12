@@ -2,8 +2,17 @@
 name = "saturn-cli"
 version = "0.1.0"
 edition = "2024"
+default-run = "saturn-cli"
 license = "AGPL-3.0-or-later"
 description = "Headless command-line access to Project Saturn projects"
+
+[[bin]]
+name = "saturn-cli"
+path = "src/main.rs"
+
+[[bin]]
+name = "cet-gen"
+path = "src/bin/cet_gen.rs"
 
 [dependencies]
 saturn-core = { path = "../saturn-core" }

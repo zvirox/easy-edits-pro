@@ -187,6 +187,28 @@ export function DeliverPresetBank({
       })
       .catch((error) => onNotice(String(error)));
 
+  const packageDelivery = () =>
+    void save({
+      title: "Create Delivery Package Folder",
+      defaultPath: "delivery-package",
+    })
+      .then((path) => {
+        if (typeof path !== "string" || !path) return;
+        void grantWrite(path)
+          .then(() =>
+            runCommand<{
+              verified?: boolean;
+              verification?: { checked_files?: number };
+            }>("delivery.package", { path }),
+          )
+          .then((result) => {
+            const count = result.verification?.checked_files ?? 0;
+            onNotice(`Packaged & verified ${count} delivery artifact(s) in ${path}`);
+          })
+          .catch((error) => onNotice(String(error)));
+      })
+      .catch((error) => onNotice(String(error)));
+
   return (
     <div className="export-presets-shelf">
       <div className="export-presets-shelf-header">
@@ -228,7 +250,7 @@ export function DeliverPresetBank({
           Export
         </InteriorButton>
       </div>
-      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+      <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
         <InteriorButton
           type="button"
           className="batch-queue-btn"
@@ -237,6 +259,14 @@ export function DeliverPresetBank({
           title="Queue a full-timeline export with the factory source preset (export.quick)"
         >
           Quick Export
+        </InteriorButton>
+        <InteriorButton
+          type="button"
+          disabled={disabled}
+          onClick={packageDelivery}
+          title="Create a checksum-verified TS5 handoff package with project, FCPXML, OTIO, QC report, change log, and provenance (delivery.package)"
+        >
+          Package Delivery…
         </InteriorButton>
       </div>
     </div>

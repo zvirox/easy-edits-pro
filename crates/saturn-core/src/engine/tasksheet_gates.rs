@@ -493,6 +493,7 @@ impl EditorEngine {
             || request.id == "tasksheet.run_report"
             || request.id == "tasksheet.validate"
             || request.id == "tasksheet.get"
+            || request.id == "delivery.verify"
             || request.id.starts_with("agent.viewport_")
         {
             return Ok(());
@@ -548,7 +549,12 @@ impl EditorEngine {
             ));
         }
 
-        if sheet.status != SheetStatus::Running && sheet.status != SheetStatus::RevisionRequested {
+        let allowed_status = sheet.status == SheetStatus::Running
+            || sheet.status == SheetStatus::RevisionRequested
+            || (request.id == "delivery.package" && sheet.status == SheetStatus::Approved)
+            || (matches!(request.id.as_str(), "review.note_add" | "review.note_list")
+                && sheet.status == SheetStatus::InReview);
+        if !allowed_status {
             return Err(DispatchError::Operation(format!(
                 "AgentPaused: Agent edits not permitted while task sheet is in `{}` state",
                 sheet.status.as_str()

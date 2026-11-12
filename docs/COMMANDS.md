@@ -2,12 +2,14 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-489 commands.
+491 commands.
 
 ## File
 
 | Command | ID | Status | Shortcut | Params |
 |---|---|---|---|---|
+| Package Delivery Bundle… | `delivery.package` | shipped |  | `{"path":str,"exports":[str]?,"interchange":[str]?,"mark_delivered":bool?,"require_approved":bool?,"require_rendered_exports":bool?,"verify":{"preset":str?}?}` |
+| Verify Delivery Package… | `delivery.verify` | shipped |  | `{"path":str}` |
 | Create Timeline Branch | `project.branch_create` | shipped |  | `{"name":str,"note":str?}` |
 | List Timeline Branches | `project.branch_list` | shipped |  | `{}` |
 | Switch Timeline Branch | `project.branch_switch` | shipped |  | `{"name":str}` |

@@ -6,7 +6,8 @@
 //! Extracted from `speech.rs` to keep the speech-specific caption
 //! synchronisation separate from the generic clip range cutting.
 
-use crate::project::{Clip, Sequence};
+use crate::engine::helpers::keyframe_value_at;
+use crate::project::{Clip, Keyframe, KeyframeProperty, Sequence};
 use crate::time::Tick;
 use serde::{Deserialize, Serialize};
 
@@ -58,6 +59,56 @@ pub fn merge_time_ranges(ranges: &[(Tick, Tick)]) -> Vec<(Tick, Tick)> {
         .collect()
 }
 
+/// Rebase and trim keyframes to a sliced clip subrange `[offset, offset + new_dur]`,
+/// interpolating boundary keys so cuts remain valid and sample-accurate.
+fn slice_clip_keyframes(
+    keyframes: &[Keyframe],
+    offset: i64,
+    new_dur: i64,
+    orig_dur: i64,
+) -> Vec<Keyframe> {
+    if keyframes.is_empty() {
+        return Vec::new();
+    }
+    let mut properties: Vec<KeyframeProperty> = Vec::new();
+    for key in keyframes {
+        if !properties.contains(&key.property) {
+            properties.push(key.property.clone());
+        }
+    }
+
+    let end = offset.saturating_add(new_dur);
+    let mut sliced: Vec<Keyframe> = keyframes
+        .iter()
+        .filter(|key| key.time.0 >= offset && key.time.0 <= end)
+        .cloned()
+        .map(|mut key| {
+            key.time.0 -= offset;
+            key
+        })
+        .collect();
+
+    for property in properties {
+        if offset > 0 && !sliced.iter().any(|k| k.property == property && k.time.0 == 0) {
+            if let Some(val) = keyframe_value_at(keyframes, &property, offset) {
+                sliced.push(Keyframe::new(property.clone(), Tick(0), val));
+            }
+        }
+        if end < orig_dur
+            && !sliced
+                .iter()
+                .any(|k| k.property == property && k.time.0 == new_dur)
+        {
+            if let Some(val) = keyframe_value_at(keyframes, &property, end) {
+                sliced.push(Keyframe::new(property, Tick(new_dur), val));
+            }
+        }
+    }
+
+    sliced.sort_by_key(|k| k.time.0);
+    sliced
+}
+
 /// Cuts a track's clips against merged deleted ranges, leaving surviving
 /// fragments at their original positions (gaps are preserved). Returns the
 /// surviving fragments, whether anything changed, and how many fragments
@@ -102,6 +153,7 @@ pub(crate) fn cut_track_clips_against_ranges(
                 if frag_start < r_start {
                     let left_dur = r_start - frag_start;
                     let mut left = frag.clone();
+                    left.keyframes = slice_clip_keyframes(&frag.keyframes, 0, left_dur, frag_dur);
                     left.duration = Tick(left_dur);
                     next_fragments.push(left);
                 }
@@ -113,6 +165,8 @@ pub(crate) fn cut_track_clips_against_ranges(
                     let mut right = frag.clone();
                     right.timeline_start = Tick(r_end);
                     right.source_in = Tick(frag.source_in.0 + right_src_offset);
+                    right.keyframes =
+                        slice_clip_keyframes(&frag.keyframes, right_src_offset, right_dur, frag_dur);
                     right.duration = Tick(right_dur);
                     next_fragments.push(right);
                 }
@@ -294,6 +348,96 @@ mod tests {
         assert_eq!(empty.lifted_ranges_count, 0);
         assert_eq!(empty.tracks_affected, 0);
         assert_eq!(seq.tracks[0].clips.len(), before);
+    }
+
+    #[test]
+    fn test_lift_and_ripple_slice_clip_keyframes_validly() {
+        let mut clip = Clip {
+            id: 1,
+            media_id: 1,
+            timeline_start: Tick::from_millis(0),
+            source_in: Tick::from_millis(0),
+            duration: Tick::from_millis(10_000),
+            speed: 1.0,
+            group_id: None,
+            color: Default::default(),
+            effects: Vec::new(),
+            keyframes: vec![
+                Keyframe::new(KeyframeProperty::Scale, Tick::from_millis(0), 1.0),
+                Keyframe::new(KeyframeProperty::Scale, Tick::from_millis(5_000), 2.0),
+                Keyframe::new(KeyframeProperty::Scale, Tick::from_millis(10_000), 1.0),
+            ],
+            multicam_id: None,
+            multicam_angle_id: None,
+            tracking: None,
+            node_graph: None,
+            color_nodes: Vec::new(),
+            speed_ramp: None,
+            motion_blur: None,
+            compound_sequence_id: None,
+            label: String::new(),
+            volume_db: 0.0,
+            audio_enabled: true,
+            enabled: true,
+            agent_note: None,
+        };
+        clip.id = 1;
+        let mut seq = Sequence {
+            id: 1,
+            name: "Main".into(),
+            track_groups: Vec::new(),
+            tracks: vec![Track {
+                id: 1,
+                group_id: None,
+                kind: TrackKind::Video,
+                name: "V1".into(),
+                gain_db: 0.0,
+                pan: 0.0,
+                muted: false,
+                solo: false,
+                locked: false,
+                audio_processing: Default::default(),
+                bus: Default::default(),
+                automation: Default::default(),
+                dsp_plugin_chain: Vec::new(),
+                clips: vec![clip],
+                transitions: Vec::new(),
+            }],
+            mark_in: None,
+            mark_out: None,
+            graphics: Vec::new(),
+            caption_tracks: Vec::new(),
+            markers: Vec::new(),
+            multicam_clips: Vec::new(),
+            buses: Vec::new(),
+            node_graph: None,
+        };
+
+        lift_time_ranges(&mut seq, &[(Tick::from_millis(2_500), Tick::from_millis(7_500))])
+            .expect("lift with keyframes");
+
+        let clips = &seq.tracks[0].clips;
+        assert_eq!(clips.len(), 2);
+        for frag in clips {
+            assert!(!frag.keyframes.is_empty());
+            for kf in &frag.keyframes {
+                assert!(kf.time.0 >= 0 && kf.time.0 <= frag.duration.0);
+            }
+        }
+        // Left ends at 2500ms -> interpolated scale = 1.5
+        let left_end = clips[0]
+            .keyframes
+            .iter()
+            .find(|k| k.time == Tick::from_millis(2_500))
+            .expect("left boundary keyframe");
+        assert!((left_end.value - 1.5).abs() < 1e-6);
+        // Right starts at 0ms (original 7500ms) -> interpolated scale = 1.5
+        let right_start = clips[1]
+            .keyframes
+            .iter()
+            .find(|k| k.time == Tick::from_millis(0))
+            .expect("right boundary keyframe");
+        assert!((right_start.value - 1.5).abs() < 1e-6);
     }
 
 }

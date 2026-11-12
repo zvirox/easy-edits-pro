@@ -24,10 +24,18 @@ PROTOCOL_VERSION = "2024-11-05"
 class McpSession:
     """One initialized MCP connection over stdin/stdout."""
 
-    def __init__(self, binary: str, project: Optional[str] = None, timeout: float = 10.0):
+    def __init__(
+        self,
+        binary: str,
+        project: Optional[str] = None,
+        timeout: float = 10.0,
+        extra_args: Optional[list[str]] = None,
+    ):
         argv = [binary]
         if project:
             argv += ["--project", project]
+        if extra_args:
+            argv.extend(extra_args)
         self.timeout = timeout
         self._next_id = 0
         self._process = subprocess.Popen(
