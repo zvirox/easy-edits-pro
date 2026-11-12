@@ -13,16 +13,16 @@
 
 - **Completed:** AI-native Phases 0–3; Phase 4 plugin/offline operations; Packet
   5.1 J/L, match-cut and beat-grid slices; AF1–AF5; TS0–TS6 & CET v0.1 (`EEP-Bench (scripted conformance suite)`). The glass shell and geometry tests exist.
-- **Open:** AF6.1 remediation & E2E gate closure before AF7–AF9 / TS7–TS10; two remaining 5.1 verbs, Phases 6–7, real-agent `EEP-Bench --agent` mode, XP1–XP4, TS10, and TS-X. Phase 4 stays incomplete while cinema
+- **Open:** Active **UI-P0..UI-P7** UI layout & workspace consistency remediation track ([UI remediation plan](planning/ui-layout-workspace-remediation.md)); AF7–AF9 / TS7–TS10; two remaining 5.1 verbs, Phases 6–7, real-agent `EEP-Bench --agent` mode, XP1–XP4, and TS-X. Phase 4 stays incomplete while cinema
   Dialogue/Music/Ambience/SFX separation is deferred for a verified, license-cleared
   model. Keep the documented room-tone, diarization and plugin-packaging follow-ups.
 - **AF0 inventory/design recorded:** current dependency graphs and the older
   `v0.1.2-alpha.2` package payloads are inventoried; conservative actor/history,
   lock, Stop and atomic-batch contracts are reviewed. See the
   [inventory](audit/af0-inventory.md) and [design](planning/af0-actor-design.md).
-- **Next actionable work:** finish **AF6.1** (GUI Supervision Bridge, Real Engine State, `review.list_changes`, Conflict-Safe Revert, and E2E Proof) before **AF7/7.1**, **AF8/7.2**, **AF9**, and **TS7–TS10**.
+- **Next actionable work:** execute **UI-P0..UI-P7** (UI Layout & Workspace Consistency Remediation: Phase 0 baseline audit → Phase 1–7 chrome, scroll containment, Color/Fairlight unclipping, preview/vertical budget, workspace identity/Welcome, density/dock degradation, and matrix sign-off) alongside **AF7/7.1**, **AF8/7.2**, **AF9**, and **TS7–TS10** (AF6.1 closed `2026-11-12`).
 - **Proposed execution queue, pending maintainer decision:** AF0 → AF1 (Done) → AF2 (Done) →
-  AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (reopened for AF6.1) → TS0–TS6 (Implemented) → AF6.1 → AF7/7.1 → AF8/7.2 (with `EEP-Bench --agent`) →
+  AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → TS0–TS6 (Implemented) → AF6.1 (Done) → **UI-P0..UI-P7 (Active)** → AF7/7.1 → AF8/7.2 (with `EEP-Bench --agent`) →
   AF9 (before hosting) → TS7–TS10 → remaining 5.1 and Phase 5 gate → Phase 6. Base verification/recipe smoke may
   start when its prerequisites exist; it does not complete the larger gates.
   AF4 precedes full AF3 because verification reads brief/review metadata.
@@ -532,6 +532,48 @@ and delivery packages. Core/schema = Lane 2; MCP/harness/docs = Lane 4; UI = Lan
 
 ---
 
+## UI Layout & Workspace Consistency Remediation — UI-P0..UI-P7 — `status: active (UI-P0 done; UI-P1 in progress)`
+
+Specification: [planning/ui-layout-workspace-remediation.md](planning/ui-layout-workspace-remediation.md).  
+Scope: React/TypeScript UI (`apps/saturn-tauri/ui`), Tauri window chrome (`tauri.conf.json` / `main.rs` / `AppHeader.tsx`), persistent `WorkspaceShell`, panels, preview monitor, timeline, Welcome screen, and responsive viewports (`900x620`..`1920x1080`).  
+Lane ownership: Lane 1 (UI/glass/layout tests) with Lane 3/4 coordination on `tauri.conf.json` / `main.rs` if native chrome changes.
+
+> **Mandatory UI-P0..UI-P7 verification gate rule:** Every UI phase requires **live browser testing** — both automated Playwright geometry/overflow checks across the viewport matrix (`900x620`, `1024x768`, `1280x800`, `1366x700`, `1600x900`, `1920x1080`) × workspace matrix (`Welcome`, `Edit`, `Media`, `Color`, `Effects`, `Fusion`, `Audio`/`Fairlight`, `Keyframes`/`Curves`, `Deliver`) **AND** visual/browser screenshot inspection — plus `pnpm build`, `pnpm test`, `pnpm check:glass`, `pnpm check:source-size --max-lines=800`, and `pnpm test:e2e` before ticking `[x]`.
+
+### UI-P0 — Baseline, reproduction & layout inventory (`UI-01..UI-10`)
+- [x] Complete source + live Playwright layout audit across all viewports and workspaces (`Welcome`, `Edit`, `Media`, `Color`, `Effects`, `Fusion`, `Audio`/`Fairlight`, `Keyframes`/`Curves`, `Deliver`) with zero product behavior changes; record panel classification inventory and baseline measurements in [audit/ui-layout-baseline.md](audit/ui-layout-baseline.md).
+- [x] **Verification Gate (UI-P0):** Live Playwright baseline probe executed across the 6×9 matrix, 12 baseline screenshots captured and visually inspected, and root causes mapped to `UI-01..UI-10` — **PASSED 2026-11-12** ([audit/ui-layout-baseline.md](audit/ui-layout-baseline.md)).
+
+### UI-P1 — Window chrome & root shell authority (`UI-01`)
+- [ ] Eliminate duplicate native + custom window controls between `AppHeader.tsx` and `tauri.conf.json` / `main.rs`; lock `.app-shell` to `100dvh` with `overflow: clip` and zero root document scrolling.
+- [ ] **Verification Gate (UI-P1):** Live Playwright geometry/overflow checks across the viewport × workspace matrix + visual screenshot inspection show single window chrome and zero document scroll; `pnpm build`, `pnpm test`, `pnpm check:glass`, `pnpm check:source-size --max-lines=800`, and `pnpm test:e2e` pass.
+
+### UI-P2 — Panel shell & scroll containment (`UI-02`)
+- [ ] Enforce fixed header/toolbar/footer + `overflow: auto` body with `min-height: 0` / `min-width: 0` on `StudioPanel` / `.panel-shell` across Inspector, Telemetry/Scopes, Mixer, and Agent/Review/Sheet docks.
+- [ ] **Verification Gate (UI-P2):** Live Playwright geometry/overflow checks across the viewport × workspace matrix + visual screenshot inspection confirm dense panels scroll cleanly without clipping headers or hiding content; `pnpm build`, `pnpm test`, `pnpm check:glass`, `pnpm check:source-size --max-lines=800`, and `pnpm test:e2e` pass.
+
+### UI-P3 — Horizontal strip, Color wheels & Fairlight rack unclipping (`UI-03`)
+- [ ] Fix horizontal clipping of `ColorWheels.tsx` in constrained docks and rebalance `FairlightMixerRack.tsx` / `AudioMonitorMixer.tsx` strip sizing, rack fill, and horizontal scroll behavior.
+- [ ] **Verification Gate (UI-P3):** Live Playwright geometry/overflow checks across the viewport × workspace matrix + visual screenshot inspection confirm Color wheels and Fairlight mixer strips render unclipped and balanced; `pnpm build`, `pnpm test`, `pnpm check:glass`, `pnpm check:source-size --max-lines=800`, and `pnpm test:e2e` pass.
+
+### UI-P4 — Preview stage, vertical proportions & insets (`UI-04`, `UI-06`, `UI-07`)
+- [ ] Maximize Program & Deliver `.preview-stage` with `object-fit: contain` framing (no `.glass` over media), normalize oversized margins/insets, and balance vertical allocation between monitor, tool rail, and timeline on short viewports (`620px`–`768px`).
+- [ ] **Verification Gate (UI-P4):** Live Playwright geometry/overflow checks across the viewport × workspace matrix + visual screenshot inspection confirm preview stage sizing, compact insets, and timeline usability; `pnpm build`, `pnpm test`, `pnpm check:glass`, `pnpm check:source-size --max-lines=800`, and `pnpm test:e2e` pass.
+
+### UI-P5 — Workspace identity & Welcome screen clarity (`UI-05`, `UI-08`)
+- [ ] Clarify active workspace identity across persistent-shell switches and declutter `ProjectWelcomeScreen.tsx` recovery status and project path truncation.
+- [ ] **Verification Gate (UI-P5):** Live Playwright geometry/overflow checks across the viewport × workspace matrix + visual screenshot inspection confirm clear workspace identity and legible Welcome recovery/paths; `pnpm build`, `pnpm test`, `pnpm check:glass`, `pnpm check:source-size --max-lines=800`, and `pnpm test:e2e` pass.
+
+### UI-P6 — Density harmonization & responsive dock degradation (`UI-09`, `UI-10`)
+- [ ] Unify token-driven panel/control density across workspaces and replace abrupt `<=1280px` right-dock hiding (`display: none`) with accessible drawer/tab switching down to `900x620`.
+- [ ] **Verification Gate (UI-P6):** Live Playwright geometry/overflow checks across the viewport × workspace matrix + visual screenshot inspection confirm consistent density and reachable Inspector/Agent/Review/Sheet docks at `900x620` and `1024x768`; `pnpm build`, `pnpm test`, `pnpm check:glass`, `pnpm check:source-size --max-lines=800`, and `pnpm test:e2e` pass.
+
+### UI-P7 — Full matrix regression hardening & Definition of Done (`UI-01..UI-10`)
+- [ ] Lock automated Playwright geometry/overflow/visibility assertions across all 6 viewports × 9 workspaces into CI E2E and complete final visual & accessibility review.
+- [ ] **Verification Gate (UI-P7 / Definition of Done):** All 12 Definition of Done criteria in [planning/ui-layout-workspace-remediation.md](planning/ui-layout-workspace-remediation.md#7-definition-of-done-12-criteria) verified via live Playwright matrix + visual inspection, plus `pnpm build`, `pnpm test`, `pnpm check:glass`, `pnpm check:source-size --max-lines=800`, and `pnpm test:e2e` green with 0 browser errors.
+
+---
+
 ## Cross-Platform Workstream — XP1–XP4 — `status: planned`
 
 Specification: [planning/cross-platform-and-positioning.md](planning/cross-platform-and-positioning.md).
@@ -600,6 +642,7 @@ Specification: [planning/contributor-strategy.md](planning/contributor-strategy.
 
 | Date | Packet | Note / Evidence |
 |---|---|---|
+| 2026-11-12 | UI-P0 | **UI Layout & Workspace Consistency Remediation Plan adopted & Phase 0 baseline verified.** Added [planning/ui-layout-workspace-remediation.md](planning/ui-layout-workspace-remediation.md) (`UI-01..UI-10`, `UI-P0..UI-P7`, 6×9 matrix, 12-item DoD) and recorded Phase 0 audit in [audit/ui-layout-baseline.md](audit/ui-layout-baseline.md) (18-panel inventory, 6×9 Playwright geometry probe, 12 baseline screenshots, exact root causes for duplicate window controls, Inspector crushing, Color wheel / Fairlight strip clipping, Deliver `322×181` preview lock, and `<=1280px` right-dock collapse). |
 | 2026-11-12 | AF6.1 | **Supervision UI & Real Bridge Remediation closed (`main`).** Added `agent_session_stop`/`resume`/`status` & `agent_undo_change` Tauri IPC wrappers + `agentBridge.ts`; removed silent `perform()` error swallowing and fake `INITIAL_*`/status-bar defaults (demo seed isolated strictly to `?demo=1`); fixed real `project.branch_merge` contract and added `review.list_changes` + dependency-conflict checking in `history.undo_change`; split `agentPayloadMappers.ts` to keep `agentSessionStore.ts` under 800 lines; renamed bench to `EEP-Bench (scripted conformance suite)` with planned `--agent` mode; verified with Rust socket/wrapper test, 189 UI unit tests, and 12-area Playwright E2E (`agent`, `tasksheet`, `review` green, 0 browser errors). |
 | 2026-11-11 | Planning / Governance & Platform Decisions | **CET, Cross-Platform, and Task Sheet governance decisions recorded; CET repository established.** CET name confirmed as Capture Event Track; CC BY 4.0 (spec) and Apache-2.0 (schema/tests/libs) license split confirmed; dedicated standalone public repo created at [github.com/zvirox/capture-event-track](https://github.com/zvirox/capture-event-track); class-only key capture default with named shortcuts opt-in switch confirmed; Recipe 2 confirmed to start with `cet-gen` synthetic generator; Tier 1 Linux and Tier 2 macOS/Windows adopted with headless first; macOS desktop GUI confirmed first, then Windows; public tagline/positioning deferred to a later decision. |
 | 2026-11-10 | Planning / Task Sheet | **Task Sheet Plan, CET v0.1 spec, Pro-Editor philosophy, Cross-Platform tiers, and Contributor strategy adopted.** Added [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md) (packets TS0–TS10 & TS-X: work orders, review rounds, web desk, recipes), [planning/capture-event-track-v0.1.md](planning/capture-event-track-v0.1.md) (open screen event sidecar spec), [planning/agent-operated-pro-editor.md](planning/agent-operated-pro-editor.md), [planning/cross-platform-and-positioning.md](planning/cross-platform-and-positioning.md) (Tier 1 Linux, Tier 2 macOS/Windows; packets XP1–XP4), and [planning/contributor-strategy.md](planning/contributor-strategy.md) (packets C1–C3). Checklist and timeline integrated; next actionable work remains AF3 (`verify.run`). |
