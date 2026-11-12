@@ -288,37 +288,103 @@
 }
 
 /* Horizontal scrolling rack for vertical channel strips */
+.fairlight-mixer-dock-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.fairlight-mixer-dock-body .audio-matrix-global-actions {
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+}
+
 .fairlight-strips-scroll {
   flex: 1;
   min-height: 0;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: auto;
   padding-bottom: 4px;
 }
 
 .fairlight-strips-grid {
   display: flex;
+  align-items: stretch;
   gap: 8px;
-  height: 100%;
-  min-height: 480px;
+  min-height: 100%;
+  height: auto;
   width: max-content;
+  min-width: 100%;
 }
 
 /* Individual Channel Strip */
 .fairlight-channel-strip {
   display: flex;
   flex-direction: column;
-  width: 108px;
-  min-width: 108px;
-  height: 100%;
+  flex: 0 0 auto;
+  width: 132px;
+  min-width: 132px;
+  min-height: 100%;
+  height: auto;
+  box-sizing: border-box;
   background: var(--bg-strip);
   border: 1px solid var(--border-control);
   border-radius: 6px;
-  padding: 8px 6px;
-  gap: 8px;
+  padding: 6px;
+  gap: 5px;
   user-select: none;
   box-shadow: var(--shadow-soft);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fairlight-channel-strip .strip-bus-routing {
+  margin: 0;
+  min-width: 0;
+}
+
+.fairlight-channel-strip .strip-bus-select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fairlight-channel-strip .strip-automation-section {
+  margin: 0;
+  min-width: 0;
+}
+
+.fairlight-channel-strip .strip-automation-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fairlight-channel-strip .auto-pill {
+  flex: 1 1 20px;
+  min-width: 0;
+  font-size: 8px;
+  line-height: 1.2;
+  padding: 2px 1px;
+  white-space: nowrap;
+}
+
+.fairlight-channel-strip .strip-meter-fader-row {
+  flex: 1 1 96px;
+  min-height: 96px;
+  padding: 2px 0;
+  gap: 5px;
+}
+
+.fairlight-channel-strip .vertical-fader {
+  min-height: 84px;
 }
 
 .fairlight-channel-strip:hover {

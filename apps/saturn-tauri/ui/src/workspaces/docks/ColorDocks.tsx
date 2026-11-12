@@ -190,63 +190,24 @@ export function ColorDockRight({
       title: "Grade",
       render: () => (
         <div className="color-wheels-dock-wrapper">
-          <div
-            className="color-studio-tabs"
-            style={{
-              display: "flex",
-              gap: "8px",
-              marginBottom: "12px",
-              borderBottom: "1px solid #462d40",
-              paddingBottom: "8px",
-            }}
-          >
+          <div className="color-studio-tabs">
             <InteriorButton
               type="button"
-              className={`btn-secondary ${studioTab === "wheels" ? "active" : ""}`}
-              style={{
-                background: studioTab === "wheels" ? "#9f1249" : "#100810",
-                color: studioTab === "wheels" ? "#ffffff" : "#a0aec0",
-                fontWeight: 600,
-                fontSize: "12px",
-                padding: "6px 12px",
-                borderRadius: "4px",
-                border: "1px solid #462d40",
-                cursor: "pointer",
-              }}
+              className={`btn-secondary color-studio-tab-btn ${studioTab === "wheels" ? "active" : ""}`}
               onClick={() => setStudioTab("wheels")}
             >
               🎡 3-Way Color Wheels
             </InteriorButton>
             <InteriorButton
               type="button"
-              className={`btn-secondary ${studioTab === "curves" ? "active" : ""}`}
-              style={{
-                background: studioTab === "curves" ? "#9f1249" : "#100810",
-                color: studioTab === "curves" ? "#ffffff" : "#a0aec0",
-                fontWeight: 600,
-                fontSize: "12px",
-                padding: "6px 12px",
-                borderRadius: "4px",
-                border: "1px solid #462d40",
-                cursor: "pointer",
-              }}
+              className={`btn-secondary color-studio-tab-btn ${studioTab === "curves" ? "active" : ""}`}
               onClick={() => setStudioTab("curves")}
             >
               📈 RGB Curves
             </InteriorButton>
             <InteriorButton
               type="button"
-              className={`btn-secondary ${studioTab === "qualifier" ? "active" : ""}`}
-              style={{
-                background: studioTab === "qualifier" ? "#9f1249" : "#100810",
-                color: studioTab === "qualifier" ? "#ffffff" : "#a0aec0",
-                fontWeight: 600,
-                fontSize: "12px",
-                padding: "6px 12px",
-                borderRadius: "4px",
-                border: "1px solid #462d40",
-                cursor: "pointer",
-              }}
+              className={`btn-secondary color-studio-tab-btn ${studioTab === "qualifier" ? "active" : ""}`}
               onClick={() => setStudioTab("qualifier")}
             >
               🎯 HSL Secondary Qualifier

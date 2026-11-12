@@ -125,8 +125,8 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
         color: "#e2e8f0",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 14 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
             <input
               type="checkbox"
@@ -139,7 +139,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
             Color Isolation &amp; Keying
           </span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, cursor: "pointer", color: showMatte ? "#d9468f" : "#cbd5e0" }}>
             <input
               type="checkbox"
@@ -160,7 +160,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
       </div>
 
       {/* Target Presets */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, alignItems: "center" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14, alignItems: "center" }}>
         <span style={{ fontSize: 11, color: "#8b7284" }}>Key Presets:</span>
         <InteriorButton
           type="button"
@@ -193,7 +193,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
       </div>
 
       {/* Sliders Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 14 }}>
         {/* Hue Isolation */}
         <div style={{ background: "#100810", padding: 12, borderRadius: 6, border: "1px solid #462d40" }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, marginBottom: 8 }}>
@@ -305,7 +305,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
           <span>🎯 Secondary Grade Adjustment (Applied inside Matte)</span>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 10 }}>
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#cbd5e0", marginBottom: 4 }}>
               <span>Hue Shift</span>
