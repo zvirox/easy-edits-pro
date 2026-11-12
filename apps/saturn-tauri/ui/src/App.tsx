@@ -688,8 +688,6 @@ function EditorApp() {
         setAiChatDrawerOpen={mediaOps.setAiChatDrawerOpen}
         theme={theme}
         toggleTheme={toggleTheme}
-        fullscreen={projectOps.fullscreen}
-        toggleFullscreen={projectOps.toggleFullscreen}
       />
 
       <div className="app-workspace-region">

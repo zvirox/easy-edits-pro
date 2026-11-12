@@ -684,11 +684,6 @@ button:disabled { opacity: .48; cursor: not-allowed; }
   border: 1px solid rgba(168, 85, 247, 0.4);
   text-transform: uppercase;
 }
-.window-controls {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
 
 /* Tier 2: Workspace Switcher & Quick Actions (40px height) */
 .workspace-switcher-bar {

@@ -6,7 +6,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { backdropVariants, dialogVariants, menuVariants, useMotionPreset } from "../../motion/variants";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Icon } from "../../components/Icon";
 import { useClipSelection } from "../../app/selectionStore";
 import { ThemeToggle } from "../../components/interior/theme-toggle";
@@ -92,8 +91,6 @@ export interface AppHeaderProps {
   setAiChatDrawerOpen: (open: boolean) => void;
   theme: "dark" | "light";
   toggleTheme: () => void;
-  fullscreen: boolean;
-  toggleFullscreen: () => void;
 }
 
 export function AppHeader({
@@ -125,8 +122,6 @@ export function AppHeader({
   setAiChatDrawerOpen,
   theme,
   toggleTheme,
-  fullscreen,
-  toggleFullscreen,
 }: AppHeaderProps) {
   // F1: selection comes from the shared store; the prop is gone.
   const { clip: selectedClip } = useClipSelection();
@@ -524,58 +519,40 @@ export function AppHeader({
             type="button"
             className="system-util-btn"
             onClick={() => setAgentSettingsOpen(true)}
+            aria-label="Agent & Co-editing Settings"
             data-tooltip="Agent & Co-editing Settings"
             data-tooltip-pos="bottom"
           >
-            <span>🤖</span>
-            <span>Settings</span>
+            <span aria-hidden="true">🤖</span>
+            <span className="system-util-btn-label">Settings</span>
           </InteriorButton>
 
           <InteriorButton
             type="button"
             className="system-util-btn"
             onClick={() => setBatchQueueDrawerOpen(true)}
+            aria-label="Open Background Batch Render Queue"
             data-tooltip="Open Background Batch Render Queue"
             data-tooltip-pos="bottom"
           >
-            <span>📦</span>
-            <span>Queue</span>
+            <span aria-hidden="true">📦</span>
+            <span className="system-util-btn-label">Queue</span>
           </InteriorButton>
 
           <InteriorButton
             type="button"
             className="system-util-btn ai-btn"
             onClick={() => setAiChatDrawerOpen(true)}
+            aria-label="Open Local AI Assistant"
             data-tooltip="Open Local AI Assistant (Ollama) • Experimental"
             data-tooltip-pos="bottom"
           >
-            <span>🧠</span>
-            <span>AI Assistant</span>
+            <span aria-hidden="true">🧠</span>
+            <span className="system-util-btn-label">AI Assistant</span>
             <span className="exp-badge">EXP</span>
           </InteriorButton>
 
           <ThemeToggle theme={theme} onToggle={toggleTheme} />
-
-          <div className="window-controls">
-            <InteriorButton
-              className="icon-button"
-              onClick={() => void toggleFullscreen()}
-              aria-label={fullscreen ? "Leave fullscreen" : "Enter fullscreen"}
-              data-tooltip={fullscreen ? "Leave Fullscreen (F11)" : "Enter Fullscreen (F11)"}
-              data-tooltip-pos="bottom"
-            >
-              <Icon name={fullscreen ? "restore" : "fullscreen"} />
-            </InteriorButton>
-            <InteriorButton
-              className="icon-button close"
-              onClick={() => void getCurrentWindow().close()}
-              aria-label="Close Easy Edits Pro"
-              data-tooltip="Close Easy Edits Pro (Ctrl+Q)"
-              data-tooltip-pos="bottom"
-            >
-              <Icon name="close" />
-            </InteriorButton>
-          </div>
         </div>
       </div>
 

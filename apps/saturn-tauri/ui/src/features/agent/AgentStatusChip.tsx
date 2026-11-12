@@ -71,8 +71,8 @@ export const AgentStatusChip: React.FC<AgentStatusChipProps> = ({ session, onSto
             transition: "background-color var(--dur-fast, 120ms) var(--ease-out)",
           }}
         />
-        <span style={{ fontWeight: 600 }}>AI Agent</span>
-        <span style={{ color: "var(--text-muted, #9ca3af)", fontSize: "11px" }}>
+        <span className="agent-chip-title" style={{ fontWeight: 600 }}>AI Agent</span>
+        <span className="agent-chip-status" style={{ color: "var(--text-muted, #9ca3af)", fontSize: "11px" }}>
           {!hasActiveSession
             ? "No session"
             : isStopped
