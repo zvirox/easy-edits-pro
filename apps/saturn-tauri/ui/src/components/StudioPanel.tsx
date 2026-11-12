@@ -12,6 +12,7 @@ export interface StudioPanelProps {
   headerClassName?: string;
   scrollable?: boolean;
   noPadding?: boolean;
+  collapsed?: boolean;
   style?: CSSProperties;
 }
 
@@ -24,10 +25,15 @@ export function StudioPanel({
   headerClassName = "",
   scrollable = true,
   noPadding = false,
+  collapsed = false,
   style,
 }: StudioPanelProps) {
   return (
-    <section className={`studio-panel glass ${className}`} data-elev="1" style={style}>
+    <section
+      className={`studio-panel glass ${collapsed ? "is-collapsed " : ""}${className}`}
+      data-elev="1"
+      style={style}
+    >
       {(title != null || actions != null) && (
         <header className={`studio-panel-header ${headerClassName}`}>
           <div className="studio-panel-title">
@@ -36,13 +42,15 @@ export function StudioPanel({
           {actions && <div className="studio-panel-actions">{actions}</div>}
         </header>
       )}
-      <div
-        className={`studio-panel-body ${scrollable ? "is-scrollable scrollbar-thin" : "no-scroll"} ${
-          noPadding ? "no-padding" : ""
-        } ${bodyClassName}`}
-      >
-        {children}
-      </div>
+      {!collapsed && (
+        <div
+          className={`studio-panel-body ${scrollable ? "is-scrollable scrollbar-thin" : "no-scroll"} ${
+            noPadding ? "no-padding" : ""
+          } ${bodyClassName}`}
+        >
+          {children}
+        </div>
+      )}
     </section>
   );
 }

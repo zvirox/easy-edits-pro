@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   PANEL_OPEN_EVENT,
   PANEL_TOGGLE_EVENT,
@@ -31,6 +31,7 @@ export interface DockCardProps {
 export function DockCard({ className, tabs, ariaLabel }: DockCardProps) {
   const [activeId, setActiveId] = useState(() => tabs[0]?.id ?? "");
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   useEffect(() => {
     const focus = (event: Event) => {
@@ -47,6 +48,11 @@ export function DockCard({ className, tabs, ariaLabel }: DockCardProps) {
     };
   }, [tabs]);
 
+  useEffect(() => {
+    if (!active?.id) return;
+    tabRefs.current[active.id]?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [active?.id]);
+
   return (
     <section
       className={`glass card dock-card${className ? ` ${className}` : ""}`}
@@ -60,6 +66,9 @@ export function DockCard({ className, tabs, ariaLabel }: DockCardProps) {
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            ref={(el) => {
+              tabRefs.current[tab.id] = el;
+            }}
             type="button"
             role="tab"
             aria-selected={tab.id === active?.id}

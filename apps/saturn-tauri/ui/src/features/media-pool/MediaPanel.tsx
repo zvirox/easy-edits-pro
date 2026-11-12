@@ -180,11 +180,11 @@ export function MediaPanel({
         {assetTab === "media" && (
           <>
             <div className="panel-heading">
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div className="media-panel-title-group" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <strong>Project media</strong>
                 <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>({media.length})</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <div className="media-panel-actions">
                 <InteriorButton
                   type="button"
                   className="btn-secondary"
@@ -668,11 +668,11 @@ export function MediaPanel({
               <p style={{ margin: 0, fontSize: "11px", color: "var(--text-muted)", lineHeight: 1.4 }}>
                 Automated speech-to-subtitles generation and atomic ripple removal of silence gaps &amp; filler words.
               </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
+              <div className="media-ai-actions">
                 <InteriorButton
                   type="button"
                   className="primary"
-                  style={{ fontSize: "11px", padding: "6px 8px", whiteSpace: "nowrap" }}
+                  style={{ fontSize: "11px", padding: "6px 8px" }}
                   onClick={() => setTranscribeModalOpen(true)}
                 >
                   Transcribe Speech
@@ -680,7 +680,7 @@ export function MediaPanel({
                 <InteriorButton
                   type="button"
                   className="btn-secondary"
-                  style={{ fontSize: "11px", padding: "6px 8px", whiteSpace: "nowrap" }}
+                  style={{ fontSize: "11px", padding: "6px 8px" }}
                   onClick={() => {
                     void handleDetectSilence();
                     setSilenceModalOpen(true);

@@ -246,3 +246,327 @@ body,
     font-size: 11px;
   }
 }
+
+/* ==========================================================================
+   Phase 2 Layout Contracts — Panel Shell, Scroll Containment & Clipped Content (UI-02)
+   ========================================================================== */
+
+/* 1. Universal StudioPanel & dock-card scroll containment */
+.studio-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.studio-panel-header {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.studio-panel-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.studio-panel-body.no-scroll {
+  overflow: hidden;
+}
+
+.studio-panel.is-collapsed {
+  flex: 0 0 auto;
+  min-height: 0;
+  max-height: none;
+}
+
+.studio-panel-collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1px solid var(--border-panel);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.studio-panel-collapse-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+  color: var(--text-main);
+}
+
+.dock-card-body {
+  min-width: 0;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+.dock-card-body > * {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Nested dock panels: keep min-height: 0 / min-width: 0 and scroll containment */
+.agent-card,
+.review-card,
+.tasksheet-panel,
+.script-sync-panel,
+.agent-telemetry-drawer,
+.markers-panel,
+.captions-panel,
+.graphics-panel,
+.nodegraph-panel,
+.effects-stack-sidebar,
+.keyframes-curve-dock-body,
+.keyframes-tangent-dock-body,
+.fairlight-mixer-dock-body,
+.fairlight-master-dock-body,
+.fairlight-automation-dock-body,
+.media-dock-body {
+  min-width: 0;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+.nodegraph-panel,
+.tasksheet-panel {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.curve-editor-container,
+.curve-canvas-wrapper {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* 2. Right column Inspector vs Audio Monitor & Mixer vertical allocation */
+.editor-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.inspector-dock-panel {
+  flex: 1 1 58%;
+  min-width: 0;
+  min-height: 180px;
+}
+
+.audio-monitor-mixer-panel {
+  flex: 0 1 42%;
+  min-width: 0;
+  min-height: 132px;
+  max-height: 260px;
+}
+
+.audio-monitor-mixer-panel.is-collapsed {
+  flex: 0 0 auto;
+  min-height: 0;
+  max-height: none;
+}
+
+.audio-monitor-mixer-panel .audio-monitor-mixer-container {
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.audio-monitor-mixer-panel .meter-waveform-visual {
+  height: 34px;
+}
+
+.audio-monitor-mixer-panel .compact-mixer-strips {
+  overflow-y: visible;
+}
+
+/* 3. Timeline tool rail scroll containment across 620px..1080px heights */
+.shell-toolbox {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.shell-toolbox .timeline-tool-rail {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 4px 3px 6px;
+  gap: 1px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.shell-toolbox .timeline-tool-rail::-webkit-scrollbar {
+  width: 4px;
+}
+
+.shell-toolbox .timeline-tool-rail::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+
+@media (max-height: 820px) {
+  .shell-toolbox .timeline-tool-button {
+    width: 30px;
+    height: 28px;
+  }
+}
+
+/* 4. Dock card tabs horizontal scroll & Media Pool wrapping/containment */
+.dock-card-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 4px 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.dock-card-tabs::-webkit-scrollbar {
+  height: 3px;
+}
+
+.dock-card-tabs::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+
+.dock-card-tabs .tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 5px 8px;
+  font-size: 11.5px;
+}
+
+.dock-card-tabs .tab[aria-selected="true"]::after {
+  left: 8px;
+  right: 8px;
+  bottom: -3px;
+}
+
+.media-panel {
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+}
+
+.media-panel .asset-tabs {
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 4px 6px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.media-panel .asset-tab-btn {
+  padding: 4px 7px;
+  font-size: 11px;
+}
+
+.media-panel .asset-panel-content {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.media-panel .panel-heading {
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.media-panel .media-panel-title-group {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.media-panel .media-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.media-panel .media-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.media-panel .media-controls-row .search {
+  flex: 1 1 110px;
+  min-width: 0;
+  width: auto;
+  margin: 0;
+}
+
+.media-panel .media-bins-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.media-panel .media-table-list-wrapper {
+  min-width: 0;
+  min-height: 0;
+}
+
+.media-panel .media-ai-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.media-panel .media-ai-actions > button {
+  flex: 1 1 120px;
+  min-width: 0;
+}

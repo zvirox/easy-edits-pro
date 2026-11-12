@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "../../components/interior/interior-button";
-import type { Dispatch, SetStateAction } from "react";
+import { useState, type Dispatch, type SetStateAction } from "react";
 import { StudioPanel } from "../../components/StudioPanel";
 import { AudioMonitorMixer } from "../../components/AudioMonitorMixer";
 import { SubtitleInspector } from "./SubtitleInspector";
@@ -173,6 +173,7 @@ export interface InspectorPanelProps {
 }
 
 export function InspectorPanel(props: InspectorPanelProps) {
+  const [mixerCollapsed, setMixerCollapsed] = useState(false);
   // F1: selection comes from the shared store; the prop is gone.
   const { clip: selectedClip } = useClipSelection();
   function renderInspectorContent() {
@@ -493,7 +494,24 @@ export function InspectorPanel(props: InspectorPanelProps) {
       <StudioPanel title="Inspector" scrollable className="inspector-dock-panel">
         {renderInspectorContent()}
       </StudioPanel>
-      <StudioPanel title="Audio Monitor &amp; Mixer" scrollable className="audio-monitor-mixer-panel">
+      <StudioPanel
+        title="Audio Monitor &amp; Mixer"
+        scrollable
+        collapsed={mixerCollapsed}
+        className="audio-monitor-mixer-panel"
+        actions={
+          <button
+            type="button"
+            className="studio-panel-collapse-btn"
+            aria-expanded={!mixerCollapsed}
+            aria-label={mixerCollapsed ? "Expand Audio Monitor & Mixer" : "Collapse Audio Monitor & Mixer"}
+            title={mixerCollapsed ? "Expand Audio Monitor & Mixer" : "Collapse Audio Monitor & Mixer"}
+            onClick={() => setMixerCollapsed((prev) => !prev)}
+          >
+            {mixerCollapsed ? "▸" : "▾"}
+          </button>
+        }
+      >
         <AudioMonitorMixer
           project={props.project}
           masterVu={props.masterVu}

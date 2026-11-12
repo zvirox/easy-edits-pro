@@ -72,6 +72,11 @@
 }
 
 .shell-toolbox {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
   overflow: hidden;
   border: 1px solid var(--border-color);
   border-radius: 6px;
@@ -79,6 +84,8 @@
 }
 
 .shell-toolbox .timeline-tool-rail {
+  flex: 1 1 auto;
+  min-height: 0;
   height: 100%;
   border-right: 0;
   background: transparent;
