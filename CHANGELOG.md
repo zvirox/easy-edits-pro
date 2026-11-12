@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2-alpha.7] - 2026-11-12
+
+### Added
+- **TS0 — Task Sheet Design Freeze & Schemas:**
+  - Added versioned JSON schemas for task sheet work orders (`docs/schemas/tasksheet-1.schema.json`) and Capture Event Track (`docs/schemas/cet-0.1.schema.json`).
+  - Added flagship task sheet and CET reference templates (`docs/templates/tasksheets/`, `docs/templates/cet/`).
+  - Formalized task sheet lifecycle state machine (`draft → ready → planning → awaiting_plan_approval → running ⇄ needs_input → in_review → revision_requested → running … → approved → delivered`).
+- **TS1 — Core Sheet Engine & ProjectBrief Migration:**
+  - Implemented `saturn_core::tasksheet` module (`types`, `state_machine`, `validation`, `brief_migration`, `cet`, `review`) isolated from core timeline/media modules.
+  - Bumped project schema to v19 with lossless migration from v14–v18 preserving `ProjectBrief` fields and `project.brief_set`/`project.brief_get` shorthand commands.
+  - Registered the `tasksheet` tool profile (13 profiles total) and `tasksheet.*` commands (`create`, `update`, `validate`, `submit`, `get`, `plan_submit`, `plan_approve`, `plan_reject`, `run_report`, `question_ask`, `question_answer`), bringing the catalogue to 489 shipped commands.
+  - Added change-journal recording for sheet transitions and AF5 untrusted media text mutation guards.
+- **TS2 — Desktop Sheet Tab & Agent Inbox:**
+  - Added the right-dock **Sheet** panel (`TaskSheetPanel`) with recipe template picker, deliverables editor, validation, submission flow, and collapsible summary bar.
+  - Added **Agent Inbox** (`AgentInbox`) on `AgentCard` surfacing pending agent questions with safe defaults and keyboard/click resolution.
+  - Extended `StatusBar` with active task sheet ID, status chip, and budget meters across 900–1280 px responsive viewports.
+- **TS3 — Questions & Plan Approval Flow:**
+  - Implemented `tasksheet.question_ask` and human-only `tasksheet.question_answer` pause/resume orchestration with unanswered deadline expiration pausing safely without assuming destructive actions.
+  - Enforced default-required human plan approval blocking agent edit/render commands until approved.
+- **TS4 — Pro Review Notes & Revision Rounds:**
+  - Implemented `review.note_add`, `review.note_list`, `review.note_resolve`, `review.round_open`, and `review.round_close` with non-empty resolution explanations (preventing silent drops), approval blocking while open notes exist, and `RoundDiffReport` changed-tick-range isolation between rounds (`v1`, `v2`, …).
+  - Extended `ReviewCard` with `ReviewNotesSection` (round selector, `Diff v1 → v2` jump-to-tick chips, `Add Note at Playhead` + scoped `N` shortcut, mandatory explanation prompts, and `Approve Cut` gating).
+  - Added timeline ruler note pins (`ReviewNoteRulerPins`, `.timeline-review-pin`) and low-confidence clip indicator dots (`.clip-low-confidence-dot`), backed by shared reactive `agentSessionStore.ts`.
+
+### Changed
+- Synchronized command catalogue (`docs/reference/command-catalogue.json`, `docs/COMMANDS.md`) and parity report (`docs/PARITY.md`) to 489 shipped commands across 13 tool profiles.
+- Synchronized `useAgentSession.jumpToTick` to pass engine rational ticks (`254_016_000_000` ticks/s) directly to timeline seek.
+
+### Fixed
+- Fixed `useProjectOperations` omitting `setNotice` from its return object and added function guards in `ExportWorkspace.tsx` and `useAgentSession.ts`, preventing `setNotice is not a function` runtime errors after visiting the Deliver workspace.
+- Preserved existing `rounds` metadata across `tasksheet.update` and UI recipe template loads so review history is not dropped.
+
 ## [0.1.2-alpha.6] - 2026-11-11
 
 ### Added
