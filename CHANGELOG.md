@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2-alpha.8] - 2026-11-14
+
+### Added
+- **TS5 — Delivery Packaging & Export Verification:**
+  - Standardized multi-target delivery bundle packaging (`web-1080p`, `vertical-9x16`, `broadcast-r128`), checksum generation, and export verification against task sheet delivery criteria.
+- **TS6 — Flagship Recipes, CET Generator & EEP-Bench:**
+  - Implemented flagship recipes (`recipe.talking_head`, `recipe.cinematic_teaser`, `recipe.podcast_highlight`), Capture Event Track (CET) synthetic generators, and EEP-Bench evaluation suite.
+- **AF6.1 — GUI Supervision IPC & Real Queue/Merge:**
+  - Wired real-time agent GUI supervision IPC events, live supervision stream rendering, and safe merge/rejection queues.
+
+### Fixed
+- **UI-P1 — Window Chrome & Global Frame Authority:**
+  - Removed duplicate `.window-controls` in `AppHeader.tsx` to rely on native window decorations.
+  - Locked root `.app-shell` to `100dvh` with `overflow: clip` across all viewports (`900x620`–`1920x1080`).
+  - Added `190-layout-contracts.css` to prevent header, menu bar, and system utilities horizontal overflow.
+- **UI-P2 — Panel Shell & Scroll Containment:**
+  - Enforced flexible scroll containment across `StudioPanel` bodies.
+  - Rebalanced right column vertical allocation between Inspector and Audio Monitor Mixer, making the mixer collapsible and preventing crushed Inspector body heights.
+  - Made `.timeline-tool-rail` vertically scrollable on short viewports, keeping all 17 tool icons accessible.
+  - Enabled smooth horizontal scroll on `.dock-card-tabs` to prevent off-edge clipping of `Nodes`/`Color`/`Telemetry`.
+  - Added responsive wrapping and containment for Media workspace left-dock action buttons and drop panels.
+- **UI-P3 — Color Wheels, Scopes Header & Fairlight Mixer Unclipping:**
+  - Replaced rigid 4-column color wheel layout with responsive 2×2 grid with internal vertical scroll containment, eliminating clipping on `GAIN` and `OFFSET`.
+  - Replaced inline hardcoded hex color strings in `ColorDocks.tsx` and `VideoScopesPanel.tsx` with semantic design tokens.
+  - Moved scopes ceiling/bounds readout into a dedicated wrapping `.scopes-ai-bounds-bar` row to eliminate overlap with scope tabs.
+  - Removed `min-height: 480px` constraint on Fairlight strips grid and widened channel strips to 132px, ensuring all 5 automation pills (`OFF REA TOU LAT WRI`) and fader/routing controls are fully visible.
+
 ## [0.1.2-alpha.7] - 2026-11-12
 
 ### Added
