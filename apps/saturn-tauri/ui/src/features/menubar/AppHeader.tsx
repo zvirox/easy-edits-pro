@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { backdropVariants, dialogVariants, menuVariants, useMotionPreset } from "../../motion/variants";
-import { Icon } from "../../components/Icon";
+import { Icon, type IconName } from "../../components/Icon";
 import { useClipSelection } from "../../app/selectionStore";
 import { ThemeToggle } from "../../components/interior/theme-toggle";
 import { SegmentedControl } from "../../components/interior/segmented-control";
@@ -557,10 +557,21 @@ export function AppHeader({
       </div>
 
       {/* Tier 2 (36px Dedicated Workspace Bar) */}
-      <div className="workspace-bar-tier2">
+      <div className="workspace-bar-tier2" data-workspace={editorWorkspace}>
+        <div className="workspace-suite-badge" data-suite={editorWorkspace} aria-hidden="true">
+          <span className="workspace-suite-dot" />
+          <span className="workspace-suite-name">
+            {editorWorkspaces.find((w) => w.id === editorWorkspace)?.label ?? "Workspace"}
+          </span>
+        </div>
         <SegmentedControl
           label="Workspaces"
-          options={editorWorkspaces.map((w) => ({ value: w.id, label: w.label }))}
+          options={editorWorkspaces.map((w) => ({
+            value: w.id,
+            label: w.label,
+            icon: w.icon as IconName,
+            badge: w.isExperimental ? "EXP" : undefined,
+          }))}
           value={editorWorkspace}
           onValueChange={(val) => selectEditorWorkspace(val as EditorWorkspace)}
         />

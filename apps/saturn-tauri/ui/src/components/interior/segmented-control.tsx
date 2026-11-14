@@ -5,10 +5,17 @@ import { InteriorButton } from "./interior-button";
 // Adapted from Interior's MIT-licensed Segmented Control: https://www.interior.dev/docs/segmented-control
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import { Icon, type IconName } from "../Icon";
 
 const spring = { type: "spring", stiffness: 520, damping: 34, mass: 0.45 } as const;
 
-export type SegmentedOption = { value: string; label: string; disabled?: boolean };
+export type SegmentedOption = {
+  value: string;
+  label: string;
+  disabled?: boolean;
+  icon?: IconName;
+  badge?: string;
+};
 type SegmentedControlProps = {
   options: SegmentedOption[];
   label: string;
@@ -84,14 +91,26 @@ export function SegmentedControl({ options, label, value, defaultValue, onValueC
     <div role="radiogroup" aria-label={label} className={`interior-segmented ${className}`}>
       <div className="interior-segmented-grid" style={{ gridTemplateColumns: columns }}>
         {options.map((option, index) => (
-          <span key={option.value} aria-hidden="true" className={`interior-segment-label ${option.disabled ? "is-disabled" : index === selectedIndex ? "is-selected" : ""}`}>
-            {option.label}
+          <span
+            key={option.value}
+            aria-hidden="true"
+            className={`interior-segment-label ${option.disabled ? "is-disabled" : index === selectedIndex ? "is-selected" : ""}`}
+          >
+            {option.icon && <Icon name={option.icon} className="interior-segment-icon" aria-hidden="true" />}
+            <span className="interior-segment-text">{option.label}</span>
+            {option.badge && <span className="interior-segment-badge">{option.badge}</span>}
           </span>
         ))}
         <motion.div aria-hidden="true" className="interior-segment-thumb" style={{ width: `${100 / count}%`, x: thumbX }} initial={false}>
           <motion.div className="interior-segment-mask" style={{ x: labelX }} initial={false}>
             <div className="interior-segment-selected-labels" style={{ width: `${count * 100}%`, gridTemplateColumns: columns }}>
-              {options.map((option) => <span key={option.value} className="interior-segment-label">{option.label}</span>)}
+              {options.map((option) => (
+                <span key={option.value} className="interior-segment-label">
+                  {option.icon && <Icon name={option.icon} className="interior-segment-icon" aria-hidden="true" />}
+                  <span className="interior-segment-text">{option.label}</span>
+                  {option.badge && <span className="interior-segment-badge">{option.badge}</span>}
+                </span>
+              ))}
             </div>
           </motion.div>
         </motion.div>

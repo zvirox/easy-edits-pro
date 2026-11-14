@@ -39,7 +39,7 @@ export function WorkspaceShell({ mode, left, right, center, toolbox, timeline }:
     "--shell-right": `${rightRatio}%`,
   } as CSSProperties;
   return (
-    <main className="workspace-shell" data-workspace={mode} style={ratioVars}>
+    <main className="workspace-shell" data-workspace={mode} aria-label={`${mode} workspace`} style={ratioVars}>
       <div className="shell-top">
         {left}
         <section className="shell-center" aria-label="Program monitor">

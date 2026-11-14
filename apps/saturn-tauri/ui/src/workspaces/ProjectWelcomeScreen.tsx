@@ -208,12 +208,20 @@ export function ProjectWelcomeScreen({
               </div>
               {recoveryStatus.available && (
                 <div className="welcome-recovery">
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <RotateCcw className="size-4 text-amber-400 shrink-0" />
-                    <span>
-                      <strong>Recovered session available</strong>
-                      <small>{recoveryStatus.projectName ?? "Autosaved project"} · autosave found</small>
+                  <div className="welcome-recovery-info">
+                    <span className="welcome-recovery-icon" aria-hidden="true">
+                      <RotateCcw className="size-4 shrink-0" />
                     </span>
+                    <div className="welcome-recovery-text">
+                      <strong>Recovered session available</strong>
+                      <small title={recoveryStatus.projectName ?? "Autosaved project"}>
+                        <span className="welcome-recovery-project">
+                          {recoveryStatus.projectName ?? "Autosaved project"}
+                        </span>
+                        <span className="welcome-recovery-dot">·</span>
+                        <span className="welcome-recovery-status">autosave found</span>
+                      </small>
+                    </div>
                   </div>
                   <LoadingButton
                     className="welcome-recover-button"
@@ -247,7 +255,7 @@ export function ProjectWelcomeScreen({
                         <Film className="size-3.5" />
                       </span>
                       <span className="recent-project-name">
-                        <strong>{item.name}</strong>
+                        <strong title={item.name}>{item.name}</strong>
                         <small title={item.path}>{item.path}</small>
                       </span>
                       <ArrowRight className="recent-arrow" aria-hidden="true" />

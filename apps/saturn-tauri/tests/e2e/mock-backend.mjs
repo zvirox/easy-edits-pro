@@ -717,7 +717,7 @@ function setup({ mediaUrl, catalogue }) {
     unregisterCallback: () => {},
     convertFileSrc: () => mediaUrl,
     invoke: async (command, args = {}) => {
-      if (command === 'recovery_status') return { available: false };
+      if (command === 'recovery_status') return window.__MOCK_RECOVERY_STATUS__ ?? { available: false };
       if (command === 'register_write_grant') return null;
       if (command === 'get_command_catalogue') return catalogue;
       if (command === 'command_status') return { enabled: args.id === 'edit.undo', reason: null };

@@ -9,6 +9,7 @@
    changes per workspace mode; the program monitor, toolbox, and timeline
    are mounted once by the router and never move (plan v4 directive 5). */
 .workspace-shell {
+  position: relative;
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -197,4 +198,219 @@
   .shell-dock-right {
     display: none;
   }
+}
+
+/* ==========================================================================
+   Phase 5 — Workspace Suite Identity & Tier 2 Active Indicators (UI-05)
+   Unmistakable active cues per suite without altering persistent geometry.
+   ========================================================================== */
+
+.workspace-shell::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--suite-accent, transparent) 50%, transparent 100%);
+  opacity: 0.75;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Suite color mappings (using existing semantic tokens only — zero raw hex) */
+.workspace-bar-tier2[data-workspace="edit"],
+.workspace-shell[data-workspace="edit"] {
+  --suite-accent: var(--accent-text);
+  --suite-text: var(--accent-text);
+  --suite-bg: color-mix(in srgb, var(--accent-text) 12%, transparent);
+  --suite-border: color-mix(in srgb, var(--accent-text) 30%, transparent);
+  --suite-glow: color-mix(in srgb, var(--accent-text) 25%, transparent);
+}
+.workspace-shell[data-workspace="edit"] .monitor-unified .panel-tabs::after {
+  content: "Edit Suite";
+}
+
+.workspace-bar-tier2[data-workspace="color"],
+.workspace-shell[data-workspace="color"] {
+  --suite-accent: var(--status-warning-bright);
+  --suite-text: var(--status-warning-bright);
+  --suite-bg: color-mix(in srgb, var(--status-warning-bright) 12%, transparent);
+  --suite-border: color-mix(in srgb, var(--status-warning-bright) 30%, transparent);
+  --suite-glow: color-mix(in srgb, var(--status-warning-bright) 25%, transparent);
+}
+.workspace-shell[data-workspace="color"] .monitor-unified .panel-tabs::after {
+  content: "Color Suite";
+}
+
+.workspace-bar-tier2[data-workspace="audio"],
+.workspace-shell[data-workspace="audio"] {
+  --suite-accent: var(--status-success);
+  --suite-text: var(--status-success);
+  --suite-bg: color-mix(in srgb, var(--status-success) 12%, transparent);
+  --suite-border: color-mix(in srgb, var(--status-success) 30%, transparent);
+  --suite-glow: color-mix(in srgb, var(--status-success) 25%, transparent);
+}
+.workspace-shell[data-workspace="audio"] .monitor-unified .panel-tabs::after {
+  content: "Fairlight Suite";
+}
+
+.workspace-bar-tier2[data-workspace="fusion"],
+.workspace-shell[data-workspace="fusion"] {
+  --suite-accent: var(--accent-text-violet);
+  --suite-text: var(--accent-text-violet);
+  --suite-bg: color-mix(in srgb, var(--accent-text-violet) 12%, transparent);
+  --suite-border: color-mix(in srgb, var(--accent-text-violet) 30%, transparent);
+  --suite-glow: color-mix(in srgb, var(--accent-text-violet) 25%, transparent);
+}
+.workspace-shell[data-workspace="fusion"] .monitor-unified .panel-tabs::after {
+  content: "Fusion VFX";
+}
+
+.workspace-bar-tier2[data-workspace="media"],
+.workspace-shell[data-workspace="media"] {
+  --suite-accent: var(--accent-orange);
+  --suite-text: var(--accent-orange);
+  --suite-bg: color-mix(in srgb, var(--accent-orange) 12%, transparent);
+  --suite-border: color-mix(in srgb, var(--accent-orange) 30%, transparent);
+  --suite-glow: color-mix(in srgb, var(--accent-orange) 25%, transparent);
+}
+.workspace-shell[data-workspace="media"] .monitor-unified .panel-tabs::after {
+  content: "Media Suite";
+}
+
+.workspace-bar-tier2[data-workspace="effects"],
+.workspace-shell[data-workspace="effects"] {
+  --suite-accent: var(--accent-secondary);
+  --suite-text: var(--accent-text-hover);
+  --suite-bg: color-mix(in srgb, var(--accent-secondary) 15%, transparent);
+  --suite-border: color-mix(in srgb, var(--accent-secondary) 35%, transparent);
+  --suite-glow: color-mix(in srgb, var(--accent-secondary) 25%, transparent);
+}
+.workspace-shell[data-workspace="effects"] .monitor-unified .panel-tabs::after {
+  content: "Effects Suite";
+}
+
+.workspace-bar-tier2[data-workspace="keyframes"],
+.workspace-shell[data-workspace="keyframes"] {
+  --suite-accent: var(--accent-violet-pale);
+  --suite-text: var(--accent-text-violet);
+  --suite-bg: color-mix(in srgb, var(--accent-violet-pale) 12%, transparent);
+  --suite-border: color-mix(in srgb, var(--accent-violet-pale) 30%, transparent);
+  --suite-glow: color-mix(in srgb, var(--accent-violet-pale) 25%, transparent);
+}
+.workspace-shell[data-workspace="keyframes"] .monitor-unified .panel-tabs::after {
+  content: "Curves Suite";
+}
+
+.workspace-bar-tier2[data-workspace="deliver"] {
+  --suite-accent: var(--status-danger-bright);
+  --suite-text: var(--status-danger-bright);
+  --suite-bg: color-mix(in srgb, var(--status-danger-bright) 12%, transparent);
+  --suite-border: color-mix(in srgb, var(--status-danger-bright) 30%, transparent);
+  --suite-glow: color-mix(in srgb, var(--status-danger-bright) 25%, transparent);
+}
+
+/* Subtle Program Monitor Header Suite Badge */
+.workspace-shell[data-workspace] .monitor-unified .panel-tabs::after {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  align-self: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--suite-border);
+  background: var(--suite-bg);
+  color: var(--suite-text);
+  box-shadow: 0 0 10px -2px var(--suite-glow, transparent);
+  pointer-events: none;
+}
+
+/* Tier 2 Workspace Bar Enhancement */
+.workspace-suite-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  margin-right: 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: var(--suite-bg);
+  border: 1px solid var(--suite-border);
+  color: var(--suite-text);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.workspace-suite-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--suite-accent);
+  box-shadow: 0 0 6px var(--suite-accent);
+}
+
+@media (max-width: 1080px) {
+  .workspace-suite-badge {
+    display: none;
+  }
+}
+
+.workspace-bar-tier2 .interior-segment-thumb {
+  background: var(--bg-surface);
+  border: 1px solid var(--suite-border, var(--border-active));
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--color-black) 45%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-white) 10%, transparent);
+}
+
+.workspace-bar-tier2 .interior-segment-thumb::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  border-radius: 9999px;
+  background: var(--suite-accent, var(--accent-primary));
+  box-shadow: 0 0 8px var(--suite-glow, var(--accent-glow));
+}
+
+.workspace-bar-tier2 .interior-segment-selected-labels .interior-segment-label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.workspace-bar-tier2 .interior-segment-selected-labels .interior-segment-icon {
+  color: var(--suite-accent, var(--accent-text));
+  opacity: 1;
+}
+
+.interior-segment-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.interior-segment-icon {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  opacity: 0.72;
+}
+
+.interior-segment-badge {
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent-secondary) 25%, transparent);
+  color: var(--accent-text-violet);
+  letter-spacing: 0.04em;
+  line-height: 1;
 }
