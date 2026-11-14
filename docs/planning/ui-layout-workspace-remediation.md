@@ -1,7 +1,7 @@
 # UI Layout & Workspace Consistency Remediation Plan
 
 **Date:** 2026-11-12  
-**Status:** Adopted — active remediation track (`UI-P0..UI-P7`)  
+**Status:** Complete — verified and closed 2026-11-14 (`UI-P0..UI-P7`)  
 **Checklist:** [AI_NATIVE_PLAN_CHECKLIST.md](../AI_NATIVE_PLAN_CHECKLIST.md#ui-layout--workspace-consistency-remediation--ui-p0ui-p7)  
 **Design baseline:** [GLASS_CARDS_PLAN.md](../GLASS_CARDS_PLAN.md) · [design-qa.md](../design-qa.md)
 

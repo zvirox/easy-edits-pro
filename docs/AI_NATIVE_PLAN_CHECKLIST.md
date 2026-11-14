@@ -12,17 +12,17 @@
 ## Current checkpoint and next-work queue
 
 - **Completed:** AI-native Phases 0–3; Phase 4 plugin/offline operations; Packet
-  5.1 J/L, match-cut and beat-grid slices; AF1–AF5; TS0–TS6 & CET v0.1 (`EEP-Bench (scripted conformance suite)`). The glass shell and geometry tests exist.
-- **Open:** Active **UI-P0..UI-P7** UI layout & workspace consistency remediation track ([UI remediation plan](planning/ui-layout-workspace-remediation.md)); AF7–AF9 / TS7–TS10; two remaining 5.1 verbs, Phases 6–7, real-agent `EEP-Bench --agent` mode, XP1–XP4, and TS-X. Phase 4 stays incomplete while cinema
+  5.1 J/L, match-cut and beat-grid slices; AF1–AF5; TS0–TS6 & CET v0.1 (`EEP-Bench (scripted conformance suite)`); **UI-P0..UI-P7** UI layout & workspace consistency remediation track ([UI remediation plan](planning/ui-layout-workspace-remediation.md)). The glass shell and geometry tests exist.
+- **Open:** AF7–AF9 / TS7–TS10; two remaining 5.1 verbs, Phases 6–7, real-agent `EEP-Bench --agent` mode, XP1–XP4, and TS-X. Phase 4 stays incomplete while cinema
   Dialogue/Music/Ambience/SFX separation is deferred for a verified, license-cleared
   model. Keep the documented room-tone, diarization and plugin-packaging follow-ups.
 - **AF0 inventory/design recorded:** current dependency graphs and the older
   `v0.1.2-alpha.2` package payloads are inventoried; conservative actor/history,
   lock, Stop and atomic-batch contracts are reviewed. See the
   [inventory](audit/af0-inventory.md) and [design](planning/af0-actor-design.md).
-- **Next actionable work:** execute **UI-P0..UI-P7** (UI Layout & Workspace Consistency Remediation: Phase 0 baseline audit → Phase 1–7 chrome, scroll containment, Color/Fairlight unclipping, preview/vertical budget, workspace identity/Welcome, density/dock degradation, and matrix sign-off) alongside **AF7/7.1**, **AF8/7.2**, **AF9**, and **TS7–TS10** (AF6.1 closed `2026-11-12`).
+- **Next actionable work:** advance **AF7/7.1** (closed-loop recipes), **AF8/7.2** (`EEP-Bench --agent` evaluation), **AF9**, and **TS7–TS10** (AF6.1 and UI-P0..UI-P7 closed).
 - **Proposed execution queue, pending maintainer decision:** AF0 → AF1 (Done) → AF2 (Done) →
-  AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → TS0–TS6 (Implemented) → AF6.1 (Done) → **UI-P0..UI-P7 (Active)** → AF7/7.1 → AF8/7.2 (with `EEP-Bench --agent`) →
+  AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → TS0–TS6 (Implemented) → AF6.1 (Done) → **UI-P0..UI-P7 (Done)** → AF7/7.1 → AF8/7.2 (with `EEP-Bench --agent`) →
   AF9 (before hosting) → TS7–TS10 → remaining 5.1 and Phase 5 gate → Phase 6. Base verification/recipe smoke may
   start when its prerequisites exist; it does not complete the larger gates.
   AF4 precedes full AF3 because verification reads brief/review metadata.
