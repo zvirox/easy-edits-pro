@@ -268,6 +268,26 @@ const MODE_WALK = [
   { menu: 'Window', name: 'Workspace: Edit', mode: 'edit' },
 ];
 
+async function assertZeroDocumentOverflow(page, label) {
+  const overflow = await page.evaluate(() => {
+    const doc = document.documentElement;
+    return {
+      scrollW: doc.scrollWidth,
+      clientW: doc.clientWidth,
+      scrollH: doc.scrollHeight,
+      clientH: doc.clientHeight,
+    };
+  });
+  assert.ok(
+    overflow.scrollW <= overflow.clientW + 1,
+    `${label}: horizontal document overflow detected (${overflow.scrollW} > ${overflow.clientW})`,
+  );
+  assert.ok(
+    overflow.scrollH <= overflow.clientH + 1,
+    `${label}: vertical document overflow detected (${overflow.scrollH} > ${overflow.clientH})`,
+  );
+}
+
 // §9 acceptance: "read the bounding boxes of the top bar, toolbox, timeline,
 // meters and status bar. Assert they are identical across workspaces (within
 // 1px)" at every acceptance viewport. Baseline is edit mode at that viewport.
@@ -275,6 +295,7 @@ async function sweepViewport(page, ctx, width, height) {
   const label = `${width}x${height}`;
   await page.setViewportSize({ width, height });
   await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
+  await assertZeroDocumentOverflow(page, `${label} edit baseline`);
   const baseline = await snapshot(page);
   for (const step of MODE_WALK) {
     if (step.mode === 'edit') continue; // baseline mode
@@ -286,6 +307,7 @@ async function sweepViewport(page, ctx, width, height) {
     await assertStatusBarVisible(page, `${label} ${step.mode} status bar`);
     await assertMenuBarFits(page, `${label} ${step.mode} menu bar`);
     await assertNoCardOverlap(page, `${label} ${step.mode}`);
+    await assertZeroDocumentOverflow(page, `${label} ${step.mode}`);
   }
   // Deliver: full-page exception — the page mounts with no persistent
   // skeleton, but the status bar stays visible and the menu bar stays sane.
@@ -293,6 +315,7 @@ async function sweepViewport(page, ctx, width, height) {
   // so the bare status-bar checks are inlined.)
   await switchWorkspace(page, 'Window', 'Workspace: Deliver');
   await page.locator('.export-workspace').waitFor();
+  await assertZeroDocumentOverflow(page, `${label} deliver`);
   const deliverStatus = await page.locator('.status-bar').boundingBox();
   assert.ok(deliverStatus, `${label} deliver: status bar must be mounted`);
   const deliverViewport = page.viewportSize();
@@ -311,6 +334,7 @@ async function sweepViewport(page, ctx, width, height) {
   assertModeGeometry(baseline, await snapshot(page), 'edit', `${label}: deliver -> edit`, { expectRemount: true });
   await assertNoCardOverlap(page, `${label} edit`);
   await assertMenuBarFits(page, `${label} edit menu bar`);
+  await assertZeroDocumentOverflow(page, `${label} edit return`);
 }
 
 export async function run(ctx) {
@@ -320,10 +344,13 @@ export async function run(ctx) {
   await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
   await sweepViewport(page, ctx, 1920, 1080);
   await sweepViewport(page, ctx, 1600, 900);
-  await sweepViewport(page, ctx, 1280, 720);
+  await sweepViewport(page, ctx, 1366, 700);
+  await sweepViewport(page, ctx, 1280, 800);
+  await sweepViewport(page, ctx, 1024, 768);
+  await sweepViewport(page, ctx, 900, 620);
 
-  ctx.state.geometryInvariance = 'passed (1920/1600/1280, seven shell modes + full-page deliver)';
-  ctx.state.noCardOverlap = 'passed (all modes, three viewports)';
+  ctx.state.geometryInvariance = 'passed (full 6-viewport matrix across 1920/1600/1366/1280/1024/900, seven shell modes + full-page deliver)';
+  ctx.state.noCardOverlap = 'passed (all modes across full 6-viewport matrix, zero root document overflow)';
 
   // G7 debt (plan v4 §5): the right-dock collapse band. Above 1280 the card
   // mounts; inside 1100–1280 it must be out of layout while every shell
