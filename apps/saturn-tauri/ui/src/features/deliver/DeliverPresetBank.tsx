@@ -8,6 +8,7 @@ import { InteriorButton } from "../../components/interior/interior-button";
 import { Icon } from "../../components/Icon";
 import { runCommand } from "../../app/ProjectProvider";
 import { grantWrite } from "../../app/writeGrants.ts";
+import type { ProjectDocument } from "../../app/projectTypes";
 
 export interface EngineExportSettings {
   format?: string;
@@ -25,10 +26,57 @@ interface DeliverPresetBankProps {
   frameRate: string;
   useHardware: boolean;
   useMarkRange: boolean;
+  project?: ProjectDocument["project"] | null;
   /** Apply an engine preset's settings to the workspace controls. */
   applyPreset: (settings: EngineExportSettings) => void;
   onNotice: (message: string) => void;
   onQuickExport: () => Promise<void> | void;
+}
+
+function formatResolveSummary(
+  resolved: Record<string, unknown> | null | undefined,
+  fallback: {
+    format: "mp4" | "webm";
+    resolution: string;
+    frameRate: string;
+    useHardware: boolean;
+    useMarkRange: boolean;
+    project?: ProjectDocument["project"] | null;
+  },
+): string {
+  let width = typeof resolved?.width === "number" ? resolved.width : null;
+  let height = typeof resolved?.height === "number" ? resolved.height : null;
+  if (!width || !height) {
+    if (fallback.resolution && fallback.resolution !== "source") {
+      const parts = fallback.resolution.split("x").map(Number);
+      if (parts[0] && parts[1]) {
+        width = parts[0];
+        height = parts[1];
+      }
+    }
+    width ||= fallback.project?.settings.width ?? 1920;
+    height ||= fallback.project?.settings.height ?? 1080;
+  }
+
+  let num = typeof resolved?.frame_rate_numerator === "number" ? resolved.frame_rate_numerator : null;
+  let den = typeof resolved?.frame_rate_denominator === "number" ? resolved.frame_rate_denominator : null;
+  if (!num || !den) {
+    if (fallback.frameRate && fallback.frameRate !== "source") {
+      const parts = fallback.frameRate.split("/").map(Number);
+      if (parts[0] && parts[1]) {
+        num = parts[0];
+        den = parts[1];
+      }
+    }
+    num ||= fallback.project?.settings.frame_rate.numerator ?? 30;
+    den ||= fallback.project?.settings.frame_rate.denominator ?? 1;
+  }
+
+  const fmt = (typeof resolved?.format === "string" && resolved.format ? resolved.format : fallback.format) || "mp4";
+  const isMarkRange = typeof resolved?.use_mark_range === "boolean" ? resolved.use_mark_range : fallback.useMarkRange;
+  const isHardware = typeof resolved?.use_hardware === "boolean" ? resolved.use_hardware : fallback.useHardware;
+
+  return `${width}x${height} at ${num}/${den}, ${fmt}${isMarkRange ? ", marked range" : ""}${isHardware ? ", hardware encode" : ""}`;
 }
 
 /**
@@ -43,13 +91,16 @@ export function DeliverPresetBank({
   frameRate,
   useHardware,
   useMarkRange,
+  project,
   applyPreset,
   onNotice,
   onQuickExport,
 }: DeliverPresetBankProps) {
   const [presets, setPresets] = useState<string[]>([]);
   const [presetChoice, setPresetChoice] = useState("source");
-  const [summary, setSummary] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string>(() =>
+    formatResolveSummary(null, { format, resolution, frameRate, useHardware, useMarkRange, project }),
+  );
 
   const refresh = useCallback(async () => {
     try {
@@ -83,20 +134,20 @@ export function DeliverPresetBank({
     })
       .then((resolved) => {
         if (!active) return;
-        const rate = `${resolved.frame_rate_numerator}/${resolved.frame_rate_denominator}`;
         setSummary(
-          `${resolved.width}x${resolved.height} at ${rate}, ${String(resolved.format)}${
-            resolved.use_mark_range ? ", marked range" : ""
-          }${resolved.use_hardware ? ", hardware encode" : ""}`,
+          formatResolveSummary(resolved, { format, resolution, frameRate, useHardware, useMarkRange, project }),
         );
       })
-      .catch((error) => {
-        if (active) setSummary(String(error));
+      .catch(() => {
+        if (!active) return;
+        setSummary(
+          formatResolveSummary(null, { format, resolution, frameRate, useHardware, useMarkRange, project }),
+        );
       });
     return () => {
       active = false;
     };
-  }, [format, resolution, frameRate, useHardware, useMarkRange]);
+  }, [format, resolution, frameRate, useHardware, useMarkRange, project]);
 
   const apply = () =>
     void runCommand<{ settings: EngineExportSettings | null }>(
@@ -250,23 +301,24 @@ export function DeliverPresetBank({
           Export
         </InteriorButton>
       </div>
-      <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+      <div className="export-preset-bank-actions">
         <InteriorButton
           type="button"
-          className="batch-queue-btn"
+          className="quick-export-btn"
           disabled={disabled}
           onClick={() => void onQuickExport()}
           title="Queue a full-timeline export with the factory source preset (export.quick)"
         >
-          Quick Export
+          ⚡ Quick Export
         </InteriorButton>
         <InteriorButton
           type="button"
+          className="package-delivery-btn"
           disabled={disabled}
           onClick={packageDelivery}
           title="Create a checksum-verified TS5 handoff package with project, FCPXML, OTIO, QC report, change log, and provenance (delivery.package)"
         >
-          Package Delivery…
+          📦 Package Delivery…
         </InteriorButton>
       </div>
     </div>

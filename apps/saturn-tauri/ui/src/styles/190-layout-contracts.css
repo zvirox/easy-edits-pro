@@ -638,3 +638,87 @@ body,
   max-width: 100%;
   padding: 14px 10px;
 }
+
+/* ==========================================================================
+   Phase 4 Layout Contracts — Preview Stage, Timeline Containment & Deliver Split (UI-04, UI-06, UI-07)
+   Tokens only: no raw colours, named transitions only, no !important.
+   ========================================================================== */
+
+/* 1. Preview Stage & Aspect-Safe Monitor */
+.monitors,
+.monitor-unified,
+.monitor-tab-panel {
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+}
+
+.monitor-zoom-stage {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.program-stage,
+.preview-stage {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+}
+
+/* 2. Timeline Horizontal Containment */
+.timeline,
+.timeline-workbench,
+.timeline-body {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.timeline-labels-container {
+  min-width: 0;
+  max-width: 114px;
+  overflow: hidden;
+}
+
+.track-labels-scroller {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.track-labels-content {
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+/* 3. Deliver Workspace Split & Responsive Degradation */
+.export-workspace {
+  min-width: 0;
+  max-width: 100%;
+  grid-template-columns: minmax(0, 1.25fr) minmax(360px, 460px);
+}
+
+@media (max-width: 1024px) {
+  .export-workspace {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+}
+
+.export-preview-panel,
+.export-settings-column {
+  min-width: 0;
+  max-width: 100%;
+}

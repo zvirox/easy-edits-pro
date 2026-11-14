@@ -648,6 +648,50 @@ function setup({ mediaUrl, catalogue }) {
       track.audio_processing = { ...track.audio_processing, ...processing };
       return { updated: true };
     }
+    if (id === 'export.presets') {
+      return {
+        presets: {
+          source: { format: 'mp4', resolution: 'source', frame_rate: 'source' },
+          youtube_1080p: { format: 'mp4', resolution: '1920x1080', frame_rate: 'source' },
+          tiktok_1080x1920: { format: 'mp4', resolution: '1080x1920', frame_rate: 'source' },
+          instagram_square: { format: 'mp4', resolution: '1080x1080', frame_rate: 'source' },
+        },
+      };
+    }
+    if (id === 'export.resolve') {
+      const pSettings = doc?.project?.settings ?? { width: 1920, height: 1080, frame_rate: { numerator: 30, denominator: 1 } };
+      let width = pSettings.width;
+      let height = pSettings.height;
+      if (params?.resolution && params.resolution !== 'source') {
+        const parts = params.resolution.split('x').map(Number);
+        if (parts[0] && parts[1]) {
+          width = parts[0];
+          height = parts[1];
+        }
+      }
+      let frame_rate_numerator = pSettings.frame_rate?.numerator ?? 30;
+      let frame_rate_denominator = pSettings.frame_rate?.denominator ?? 1;
+      if (params?.frame_rate && params.frame_rate !== 'source') {
+        const parts = params.frame_rate.split('/').map(Number);
+        if (parts[0] && parts[1]) {
+          frame_rate_numerator = parts[0];
+          frame_rate_denominator = parts[1];
+        }
+      }
+      const format = params?.format || 'mp4';
+      const use_hardware = params?.use_hardware ?? (format === 'mp4');
+      const use_mark_range = Boolean(params?.use_mark_range);
+      return {
+        format,
+        width,
+        height,
+        frame_rate_numerator,
+        frame_rate_denominator,
+        use_mark_range,
+        use_hardware,
+        range: use_mark_range ? { start: doc?.project?.sequence?.mark_in ?? 0, end: doc?.project?.sequence?.mark_out ?? 1000 } : null,
+      };
+    }
     if (id === 'edit.undo') {
       if (undoStack.length) doc = undoStack.pop();
       return { undone: true };

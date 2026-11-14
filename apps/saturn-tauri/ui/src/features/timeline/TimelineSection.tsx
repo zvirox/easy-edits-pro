@@ -352,7 +352,7 @@ export function TimelineSection({
               }
             }}
           >
-            <div className="track-labels-content" style={{ minWidth: `${TRACK_LABEL_WIDTH}px` }}>
+            <div className="track-labels-content">
               {/* Subtitle Track Label */}
               <div className="track-label subtitle-track-label">
                 <div className="track-label-top">
@@ -360,28 +360,13 @@ export function TimelineSection({
                   <span className="subtitle-badge-pill">CC</span>
                 </div>
                 <div className="track-label-btns subtitle-track-btns">
-                  <InteriorButton
-                    type="button"
-                    className="track-mini-btn"
-                    title="Add Subtitle at Playhead"
-                    onClick={() => void addSubtitleAtPlayhead()}
-                  >
+                  <InteriorButton type="button" className="track-mini-btn" title="Add Subtitle at Playhead" onClick={() => void addSubtitleAtPlayhead()}>
                     ＋
                   </InteriorButton>
-                  <InteriorButton
-                    type="button"
-                    className="track-mini-btn"
-                    title="Import SRT/VTT Subtitles"
-                    onClick={() => void importSubtitlesDialog()}
-                  >
+                  <InteriorButton type="button" className="track-mini-btn" title="Import SRT/VTT Subtitles" onClick={() => void importSubtitlesDialog()}>
                     📥
                   </InteriorButton>
-                  <InteriorButton
-                    type="button"
-                    className="track-mini-btn"
-                    title="Export SRT/VTT Subtitles"
-                    onClick={() => void exportSubtitlesDialog()}
-                  >
+                  <InteriorButton type="button" className="track-mini-btn" title="Export SRT/VTT Subtitles" onClick={() => void exportSubtitlesDialog()}>
                     📤
                   </InteriorButton>
                 </div>
@@ -394,9 +379,7 @@ export function TimelineSection({
                   <div
                     className={`track-label track-group-label ${group.collapsed ? "is-collapsed" : ""}`}
                     key={`group-label-${group.id}`}
-                    style={{
-                      borderLeft: `4px solid ${group.color || "#9f1249"}`,
-                    }}
+                    style={{ borderLeft: `4px solid ${group.color || "var(--accent-primary)"}` }}
                   >
                     <div className="track-group-title-row">
                       <InteriorButton
@@ -654,7 +637,7 @@ export function TimelineSection({
                   <div
                     className="track-lane track-group-lane"
                     style={{
-                      backgroundColor: `${group.color || "#9f1249"}0a`,
+                      backgroundColor: group.color ? `${group.color}0a` : "color-mix(in srgb, var(--accent-primary) 4%, transparent)",
                     }}
                   >
                     {group.collapsed && (

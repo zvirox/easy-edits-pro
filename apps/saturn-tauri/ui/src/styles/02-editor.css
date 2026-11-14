@@ -380,13 +380,13 @@
 .empty-media small, .monitor-stage small { max-width: 210px; color: var(--text-muted); font-size: 10px; }
 .work-area { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 7px; }
 .monitors { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); gap: 6px; flex: 1 1 0; min-height: 150px; }
-.monitors .monitor-stage, .monitors .preview-stage, .monitors .program-stage { min-height: 60px; }
+.monitors .monitor-stage, .monitors .preview-stage, .monitors .program-stage { min-height: 0; }
 .monitor { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .monitor-name { color: var(--neutral-300); }
-.monitor-stage { display: flex; flex: 1; min-height: 180px; flex-direction: column; align-items: center; justify-content: center; gap: 7px; margin: 0 7px; background: var(--neutral-900); border: 1px solid var(--neutral-700); text-align: center; }
+.monitor-stage { display: flex; flex: 1; min-height: 0; flex-direction: column; align-items: center; justify-content: center; gap: 7px; margin: 0 7px; background: var(--neutral-900); border: 1px solid var(--neutral-700); text-align: center; }
 .monitor-stage strong { font-size: 12px; }
-.preview-stage { position: relative; display: grid; flex: 1; min-height: 180px; place-items: center; margin: 0 7px; overflow: hidden; background: var(--neutral-925); border: 1px solid var(--neutral-700); }
-.preview-stage video, .preview-stage img { width: 100%; height: 100%; max-height: 100%; object-fit: contain; }
+.preview-stage { position: relative; display: grid; flex: 1; min-height: 0; place-items: center; margin: 0 7px; overflow: hidden; background: var(--neutral-925); border: 1px solid var(--neutral-700); }
+.preview-stage video, .preview-stage img { width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; }
 .preview-stage audio { width: min(90%, 360px); }
 .preview-preparing { padding: 18px; text-align: center; }
 .preview-preparing small { max-width: 360px; color: var(--neutral-400); }

@@ -94,10 +94,15 @@
 .shell-timeline {
   min-width: 0;
   min-height: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .shell-timeline .timeline {
   height: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   border-right: 0;
   border-bottom: 0;
   border-left: 0;

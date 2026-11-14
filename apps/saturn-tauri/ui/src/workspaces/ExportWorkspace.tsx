@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "../components/interior/interior-button";
-import type { Dispatch, SetStateAction, ReactNode } from "react";
+import type { Dispatch, SetStateAction, ReactNode, CSSProperties } from "react";
 import { Icon } from "../components/Icon";
 import { StudioPanel } from "../components/StudioPanel";
 import {
@@ -136,153 +136,205 @@ export function ExportWorkspace({
       )
     : "Choose a destination folder";
 
+  const seqWidth = project?.settings.width ?? 1920;
+  const seqHeight = project?.settings.height ?? 1080;
+  const seqAspectVal = (seqWidth / seqHeight).toFixed(5);
+
   return (
     <main className="export-workspace">
-      <StudioPanel title="Destinations" className="export-destinations" scrollable>
-        <div style={{ marginBottom: "6px" }}>
-          <AgentStatusChip
-            session={agent.session}
-            onStop={agent.stopSession}
-            onResume={agent.resumeSession}
-          />
+      {/* Column 1: Larger fluid Export Preview Stage + crisp metadata summary */}
+      <StudioPanel
+        title={
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+            <span>PREVIEW &amp; RENDER</span>
+            <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "var(--bg-subpanel)", border: "1px solid var(--border-panel)", color: "var(--accent-primary)", textTransform: "none" }}>{exportFormat === "mp4" ? "H.264" : "VP8"}</span>
+          </div>
+        }
+        className="export-preview-panel"
+        scrollable
+      >
+        <div
+          className="export-preview-stage"
+          style={{ "--timeline-aspect-val": seqAspectVal } as CSSProperties}
+        >
+          {renderPreview(activeClip?.media ?? selectedMedia, true)}
         </div>
-        <InteriorButton
-          className={`export-destination ${deliverDestination === "render" ? "selected" : ""}`}
-          onClick={() => setDeliverDestination("render")}
-        >
-          <Icon name="export" />
-          <span>
-            <strong>Media File</strong>
-            <small>Render a video file</small>
-          </span>
-        </InteriorButton>
-        <InteriorButton
-          className={`export-destination ${deliverDestination === "interop" ? "selected" : ""}`}
-          onClick={() => setDeliverDestination("interop")}
-        >
-          <Icon name="deliver" />
-          <span>
-            <strong>Timeline Interchange</strong>
-            <small>FCPXML · Editor XML · EDL</small>
-          </span>
-        </InteriorButton>
-        <div className="batch-queue-container">
-          <div className="batch-queue-header">
-            <strong>Batch Render Queue ({batchQueue.length})</strong>
-            <div className="batch-queue-btn-group">
-              <InteriorButton
-                type="button"
-                className={`batch-queue-btn ${queuePaused ? "paused" : ""}`}
-                onClick={() => void toggleQueuePause()}
-                title={queuePaused ? "Resume paused queue" : "Pause render queue"}
-              >
-                {queuePaused ? "▶ Resume" : "⏸ Pause"}
-              </InteriorButton>
-              <InteriorButton
-                type="button"
-                className="batch-queue-btn"
-                onClick={() => setBatchQueue([])}
-                title="Clear queue list"
-              >
-                Clear
-              </InteriorButton>
+        <div className="export-range-select">
+          Range <strong>{exportMarkedRange ? "Marked In / Out" : "Entire sequence"}</strong>
+        </div>
+        <div className="export-summary">
+          <h2>Summary</h2>
+          <dl>
+            <dt>Output</dt>
+            <dd>{exportOutputPath || `${exportFileName || project?.name || "Main Edit"}.${exportFormat}`}</dd>
+            <dt>Video</dt>
+            <dd>
+              {outputResolution.width} × {outputResolution.height} · {outputFrameRate.numerator}/
+              {outputFrameRate.denominator} fps
+            </dd>
+            <dt>Engine</dt>
+            <dd>
+              {encoderInfo?.hasHardwareEncoder && useHardwareEncoding && exportFormat === "mp4"
+                ? `Hardware Accelerated (${encoderInfo.preferredEncoder})`
+                : "CPU Software (x264enc)"}
+            </dd>
+            <dt>Container</dt>
+            <dd>{exportFormat === "mp4" ? "H.264 (MP4)" : "VP8 (WebM)"}</dd>
+            <dt>Audio</dt>
+            <dd>
+              {exportFormat === "mp4" ? "AAC" : "Vorbis"} · {project?.settings.audio_sample_rate ?? 48_000} Hz
+            </dd>
+            <dt>Range</dt>
+            <dd>{formatTime(rangeDuration)}</dd>
+          </dl>
+        </div>
+        {renderProgress && (
+          <div className="render-progress">
+            <progress max={100} value={renderProgress.fractionPercent} />
+            <small>
+              {renderProgress.phase} · {renderProgress.fractionPercent}%
+            </small>
+          </div>
+        )}
+        <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+          <InteriorButton
+            className="secondary"
+            style={{ flex: 1, padding: "8px 12px", fontWeight: 700 }}
+            disabled={!hasClips || rendering}
+            onClick={() => void addExportToQueue()}
+          >
+            + Add to Queue
+          </InteriorButton>
+          <InteriorButton
+            className="primary export-submit"
+            style={{ flex: 1 }}
+            disabled={!hasClips || rendering}
+            onClick={() => void exportProject()}
+          >
+            {rendering ? "Rendering…" : "Export video"}
+          </InteriorButton>
+        </div>
+        <small className="export-footer-note">
+          Color controls and track gain are included. Animated keyframes are preview-only.
+        </small>
+      </StudioPanel>
+
+      {/* Column 2: Scrollable Render Queue & Export Settings Form */}
+      <div className="export-settings-column">
+        <StudioPanel title="Destinations & Queue" className="export-destinations" scrollable>
+          <div style={{ marginBottom: "6px" }}>
+            <AgentStatusChip
+              session={agent.session}
+              onStop={agent.stopSession}
+              onResume={agent.resumeSession}
+            />
+          </div>
+          <InteriorButton
+            className={`export-destination ${deliverDestination === "render" ? "selected" : ""}`}
+            onClick={() => setDeliverDestination("render")}
+          >
+            <Icon name="export" />
+            <span>
+              <strong>Media File</strong>
+              <small>Render a video file</small>
+            </span>
+          </InteriorButton>
+          <InteriorButton
+            className={`export-destination ${deliverDestination === "interop" ? "selected" : ""}`}
+            onClick={() => setDeliverDestination("interop")}
+          >
+            <Icon name="deliver" />
+            <span>
+              <strong>Timeline Interchange</strong>
+              <small>FCPXML · Editor XML · EDL</small>
+            </span>
+          </InteriorButton>
+          <div className="batch-queue-container">
+            <div className="batch-queue-header">
+              <strong>Batch Render Queue ({batchQueue.length})</strong>
+              <div className="batch-queue-btn-group">
+                <InteriorButton
+                  type="button"
+                  className={`batch-queue-btn ${queuePaused ? "paused" : ""}`}
+                  onClick={() => void toggleQueuePause()}
+                  title={queuePaused ? "Resume paused queue" : "Pause render queue"}
+                >
+                  {queuePaused ? "▶ Resume" : "⏸ Pause"}
+                </InteriorButton>
+                <InteriorButton
+                  type="button"
+                  className="batch-queue-btn"
+                  onClick={() => setBatchQueue([])}
+                  title="Clear queue list"
+                >
+                  Clear
+                </InteriorButton>
+              </div>
+            </div>
+            <div className="batch-queue-list">
+              {batchQueue.length === 0 ? (
+                <div
+                  style={{
+                    fontSize: "11px",
+                    color: "var(--text-muted)",
+                    padding: "10px 0",
+                    textAlign: "center",
+                  }}
+                >
+                  Queue is empty. Click "+ Add to Queue" to batch multiple render jobs.
+                </div>
+              ) : (
+                batchQueue.map((item) => (
+                  <div key={item.id} className="batch-queue-card">
+                    <div className="batch-queue-card-top">
+                      <strong title={item.name}>{item.name}</strong>
+                      <span className={`batch-status-pill ${item.status}`}>{item.status}</span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: "10px",
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      <span>
+                        {item.format} · {item.resolution}
+                      </span>
+                      <span>{item.status === "completed" ? "Done" : `${Math.round(item.progress * 100)}%`}</span>
+                    </div>
+                    <div className="batch-queue-progress-bar">
+                      <div
+                        className="batch-queue-progress-fill"
+                        style={{ transform: `scaleX(${Math.max(0, Math.min(1, item.progress))})` }}
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
-          <div className="batch-queue-list">
-            {batchQueue.length === 0 ? (
-              <div
-                style={{
-                  fontSize: "11px",
-                  color: "var(--text-muted)",
-                  padding: "10px 0",
-                  textAlign: "center",
-                }}
-              >
-                Queue is empty. Click "+ Add to Queue" to batch multiple render jobs.
-              </div>
-            ) : (
-              batchQueue.map((item) => (
-                <div key={item.id} className="batch-queue-card">
-                  <div className="batch-queue-card-top">
-                    <strong title={item.name}>{item.name}</strong>
-                    <span className={`batch-status-pill ${item.status}`}>{item.status}</span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "10px",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    <span>
-                      {item.format} · {item.resolution}
-                    </span>
-                    <span>{item.status === "completed" ? "Done" : `${Math.round(item.progress * 100)}%`}</span>
-                  </div>
-                  <div className="batch-queue-progress-bar">
-                    <div
-                      className="batch-queue-progress-fill"
-                      style={{ transform: `scaleX(${Math.max(0, Math.min(1, item.progress))})` }}
-                    />
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </StudioPanel>
+        </StudioPanel>
       {deliverDestination === "interop" ? (
         <StudioPanel
           title="Timeline Interchange"
           className="export-settings-panel interop-settings-panel"
           scrollable
         >
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: "16px",
-              marginTop: "16px",
-            }}
-          >
+          <div className="interop-cards-grid">
             {/* Apple FCPXML Card */}
-            <div
-              className="interop-card"
-              style={{
-                background: "var(--bg-subpanel)",
-                border: "1px solid var(--border-color)",
-                borderRadius: "8px",
-                padding: "16px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "14px", color: "var(--accent-primary)" }}>Apple Final Cut Pro</strong>
-                <span
-                  style={{
-                    fontSize: "10px",
-                    background: "var(--accent-primary)",
-                    color: "#fff",
-                    padding: "2px 8px",
-                    borderRadius: "10px",
-                    fontWeight: 700,
-                  }}
-                >
-                  FCPXML v1.9
-                </span>
+            <div className="interop-card">
+              <div className="interop-card-header">
+                <strong className="interop-card-title fcpxml">Apple Final Cut Pro</strong>
+                <span className="interop-card-badge fcpxml">FCPXML v1.9</span>
               </div>
-              <p style={{ margin: 0, fontSize: "11.5px", color: "var(--text-sub)", lineHeight: 1.5 }}>
+              <p className="interop-card-desc">
                 Exports multi-track clips, audio/video layers, cut coordinates, and asset paths into standard FCPXML.
               </p>
-              <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
+              <div className="interop-card-actions">
                 <InteriorButton
                   type="button"
                   className="primary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
                   onClick={() => void handleExportTimelineInterop("fcpxml")}
                   disabled={isInteropBusy}
                 >
@@ -291,7 +343,6 @@ export function ExportWorkspace({
                 <InteriorButton
                   type="button"
                   className="secondary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
                   onClick={() => void handleImportTimelineInterop()}
                   disabled={isInteropBusy}
                 >
@@ -301,41 +352,18 @@ export function ExportWorkspace({
             </div>
 
             {/* Editor XML (xmeml) Card */}
-            <div
-              className="interop-card"
-              style={{
-                background: "var(--bg-subpanel)",
-                border: "1px solid var(--border-color)",
-                borderRadius: "8px",
-                padding: "16px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "14px", color: "var(--accent-violet)" }}>Editor XML (xmeml)</strong>
-                <span
-                  style={{
-                    fontSize: "10px",
-                    background: "var(--accent-violet)",
-                    color: "#fff",
-                    padding: "2px 8px",
-                    borderRadius: "10px",
-                    fontWeight: 700,
-                  }}
-                >
-                  xmeml v5
-                </span>
+            <div className="interop-card">
+              <div className="interop-card-header">
+                <strong className="interop-card-title xmeml">Editor XML (xmeml)</strong>
+                <span className="interop-card-badge xmeml">xmeml v5</span>
               </div>
-              <p style={{ margin: 0, fontSize: "11.5px", color: "var(--text-sub)", lineHeight: 1.5 }}>
+              <p className="interop-card-desc">
                 Standard sequence exchange format (xmeml) preserving track layouts, in/out ticks, and frame rates.
               </p>
-              <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
+              <div className="interop-card-actions">
                 <InteriorButton
                   type="button"
                   className="primary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
                   onClick={() => void handleExportTimelineInterop("xmeml")}
                   disabled={isInteropBusy}
                 >
@@ -344,7 +372,6 @@ export function ExportWorkspace({
                 <InteriorButton
                   type="button"
                   className="secondary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
                   onClick={() => void handleImportTimelineInterop()}
                   disabled={isInteropBusy}
                 >
@@ -354,41 +381,18 @@ export function ExportWorkspace({
             </div>
 
             {/* CMX 3600 EDL Card */}
-            <div
-              className="interop-card"
-              style={{
-                background: "var(--bg-subpanel)",
-                border: "1px solid var(--border-color)",
-                borderRadius: "8px",
-                padding: "16px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "14px", color: "var(--accent-green)" }}>Broadcast EDL</strong>
-                <span
-                  style={{
-                    fontSize: "10px",
-                    background: "var(--accent-green)",
-                    color: "#fff",
-                    padding: "2px 8px",
-                    borderRadius: "10px",
-                    fontWeight: 700,
-                  }}
-                >
-                  CMX 3600
-                </span>
+            <div className="interop-card">
+              <div className="interop-card-header">
+                <strong className="interop-card-title edl">Broadcast EDL</strong>
+                <span className="interop-card-badge edl">CMX 3600</span>
               </div>
-              <p style={{ margin: 0, fontSize: "11.5px", color: "var(--text-sub)", lineHeight: 1.5 }}>
+              <p className="interop-card-desc">
                 SMPTE standard non-drop frame edit decision list for conform in color-suite-style editors.
               </p>
-              <div style={{ display: "flex", gap: "8px", marginTop: "auto" }}>
+              <div className="interop-card-actions">
                 <InteriorButton
                   type="button"
                   className="primary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
                   onClick={() => void handleExportTimelineInterop("edl")}
                   disabled={isInteropBusy}
                 >
@@ -397,7 +401,6 @@ export function ExportWorkspace({
                 <InteriorButton
                   type="button"
                   className="secondary"
-                  style={{ flex: 1, padding: "7px 10px", fontSize: "11px" }}
                   onClick={() => void handleImportTimelineInterop()}
                   disabled={isInteropBusy}
                 >
@@ -407,13 +410,12 @@ export function ExportWorkspace({
             </div>
           </div>
 
-          <div style={{ marginTop: "24px", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className="interop-viewer-section">
+            <div className="interop-viewer-header">
               <strong>Interchange Payload Viewer</strong>
               <InteriorButton
                 type="button"
-                className="secondary"
-                style={{ fontSize: "11px", padding: "4px 10px" }}
+                className="secondary interop-copy-btn"
                 disabled={!interopContent}
                 onClick={async () => {
                   if (interopContent) {
@@ -427,17 +429,7 @@ export function ExportWorkspace({
             </div>
             <textarea
               readOnly
-              style={{
-                width: "100%",
-                background: "var(--bg-subpanel)",
-                border: "1px solid var(--border-color)",
-                borderRadius: "6px",
-                color: "var(--text-main)",
-                fontFamily: "monospace",
-                fontSize: "11px",
-                padding: "10px",
-                resize: "vertical",
-              }}
+              className="interop-textarea"
               rows={12}
               placeholder="Exported XML or EDL string will be displayed here for instant inspection..."
               value={interopContent}
@@ -519,6 +511,7 @@ export function ExportWorkspace({
               frameRate={exportFrameRate}
               useHardware={useHardwareEncoding}
               useMarkRange={exportMarkedRange}
+              project={project}
               applyPreset={(settings) => {
                 if (typeof settings.format === "string" && (settings.format === "mp4" || settings.format === "webm")) {
                   setExportFormat(settings.format);
@@ -700,78 +693,9 @@ export function ExportWorkspace({
               </details>
             </div>
           </StudioPanel>
-          <StudioPanel
-            title={
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-                <span>PREVIEW &amp; RENDER</span>
-                <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "var(--bg-subpanel)", border: "1px solid var(--border-panel)", color: "var(--accent-primary)", textTransform: "none" }}>{exportFormat === "mp4" ? "H.264" : "VP8"}</span>
-              </div>
-            }
-            className="export-preview-panel"
-            scrollable
-          >
-            <div className="export-preview-stage">{renderPreview(activeClip?.media ?? selectedMedia, true)}</div>
-            <div className="export-range-select">
-              Range <strong>{exportMarkedRange ? "Marked In / Out" : "Entire sequence"}</strong>
-            </div>
-            <div className="export-summary">
-              <h2>Summary</h2>
-              <dl>
-                <dt>Output</dt>
-                <dd>{exportOutputPath || `${exportFileName || project?.name || "Main Edit"}.${exportFormat}`}</dd>
-                <dt>Video</dt>
-                <dd>
-                  {outputResolution.width} × {outputResolution.height} · {outputFrameRate.numerator}/
-                  {outputFrameRate.denominator} fps
-                </dd>
-                <dt>Engine</dt>
-                <dd>
-                  {encoderInfo?.hasHardwareEncoder && useHardwareEncoding && exportFormat === "mp4"
-                    ? `Hardware Accelerated (${encoderInfo.preferredEncoder})`
-                    : "CPU Software (x264enc)"}
-                </dd>
-                <dt>Container</dt>
-                <dd>{exportFormat === "mp4" ? "H.264 (MP4)" : "VP8 (WebM)"}</dd>
-                <dt>Audio</dt>
-                <dd>
-                  {exportFormat === "mp4" ? "AAC" : "Vorbis"} · {project?.settings.audio_sample_rate ?? 48_000} Hz
-                </dd>
-                <dt>Range</dt>
-                <dd>{formatTime(rangeDuration)}</dd>
-              </dl>
-            </div>
-            {renderProgress && (
-              <div className="render-progress">
-                <progress max={100} value={renderProgress.fractionPercent} />
-                <small>
-                  {renderProgress.phase} · {renderProgress.fractionPercent}%
-                </small>
-              </div>
-            )}
-            <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
-              <InteriorButton
-                className="secondary"
-                style={{ flex: 1, padding: "8px 12px", fontWeight: 700 }}
-                disabled={!hasClips || rendering}
-                onClick={() => void addExportToQueue()}
-              >
-                + Add to Queue
-              </InteriorButton>
-              <InteriorButton
-                className="primary export-submit"
-                style={{ flex: 1 }}
-                disabled={!hasClips || rendering}
-                onClick={() => void exportProject()}
-              >
-                {rendering ? "Rendering…" : "Export video"}
-              </InteriorButton>
-            </div>
-            <small className="export-footer-note">
-              Color controls and track gain are included. Animated keyframes are preview-only.
-            </small>
-          </StudioPanel>
         </>
       )}
-    </main>
-  );
+    </div>
+  </main>
+);
 }

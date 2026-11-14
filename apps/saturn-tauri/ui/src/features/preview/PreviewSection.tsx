@@ -160,11 +160,14 @@ export function PreviewSection({
   }, [project?.name, playhead, refreshProject, setProgramPreviewError]);
   const zoomFactor = monitorZoom === "fit" ? null : Number(monitorZoom) / 100;
   const settings = project?.settings;
+  const seqWidth = settings?.width ?? 1920;
+  const seqHeight = settings?.height ?? 1080;
+  const seqAspectVal = (seqWidth / Math.max(1, seqHeight)).toFixed(5);
   const fps =
     settings?.frame_rate && settings.frame_rate.denominator > 0
       ? Math.round((settings.frame_rate.numerator / settings.frame_rate.denominator) * 100) / 100
       : null;
-  const resolutionLabel = `${settings?.width ?? 1920}×${settings?.height ?? 1080}${fps ? ` · ${fps} fps` : ""}`;
+  const resolutionLabel = `${seqWidth}×${seqHeight}${fps ? ` · ${fps} fps` : ""}`;
 
   // §7.5: which deck the program currently shows, and whether its media is
   // offline. Deck A is the program deck; during a transition the visible
@@ -271,7 +274,7 @@ export function PreviewSection({
         className={`title-overlay-box style-${titleProps.style || "lower_third"}`}
         style={{
           fontFamily: titleProps.font_family || "Inter",
-          color: titleProps.color || "#ffffff",
+          color: titleProps.color || "var(--color-white)",
           backgroundColor: titleProps.bg_color || "rgba(15, 23, 42, 0.75)",
         }}
       >
@@ -291,7 +294,7 @@ export function PreviewSection({
     const currentError = programPreviewError;
 
     return (
-      <div className="program-stage">
+      <div className="program-stage" style={{ "--timeline-aspect-val": seqAspectVal } as CSSProperties}>
         {deckSnapshot && (deckSnapshot.hasVideoMedia || deckSnapshot.inTransition) && (
           <div className={`program-deck-indicator ${deckSnapshot.inTransition ? "transitioning" : ""}`}>
             <span className="deck-dot" />
@@ -480,8 +483,8 @@ export function PreviewSection({
             display: "flex",
             justifyContent: "flex-end",
             padding: "8px 12px",
-            background: "#110910",
-            borderTop: "1px solid #221220",
+            background: "var(--bg-subpanel)",
+            borderTop: "1px solid var(--border-color)",
           }}
         >
           <InteriorButton
@@ -522,7 +525,7 @@ export function PreviewSection({
     }
     if (item.kind === "video")
       return (
-        <div className="preview-stage">
+        <div className="preview-stage" style={{ "--timeline-aspect-val": seqAspectVal } as CSSProperties}>
           <video
             key={`source-${item.id}-${sourcePath}-${startSeconds}`}
             ref={sourceVideoRef}
@@ -572,7 +575,7 @@ export function PreviewSection({
       );
     if (item.kind === "image")
       return (
-        <div className="preview-stage">
+        <div className="preview-stage" style={{ "--timeline-aspect-val": seqAspectVal } as CSSProperties}>
           <img src={source} alt={item.name} style={visualStyle} />
         </div>
       );
@@ -653,83 +656,31 @@ export function PreviewSection({
             {monitorMode === "multicam" ? renderMulticamMonitor() : renderProgramMonitor()}
           </div>
           <div className="transport">
-            <InteriorButton
-              aria-label="Add marker at playhead"
-              data-tooltip="Add Marker (M)"
-              data-tooltip-pos="top"
-              disabled={transportBusy}
-              onClick={() => runTransportCommand("marker.add", { at: playhead })}
-            >
+            <InteriorButton aria-label="Add marker at playhead" data-tooltip="Add Marker (M)" data-tooltip-pos="top" disabled={transportBusy} onClick={() => runTransportCommand("marker.add", { at: playhead })}>
               M
             </InteriorButton>
-            <InteriorButton
-              aria-label="Mark clip In point"
-              data-tooltip="Mark In (mark range start)"
-              data-tooltip-pos="top"
-              disabled={transportBusy}
-              onClick={() => runTransportCommand("timeline.set_mark_in", { at: playhead })}
-            >
+            <InteriorButton aria-label="Mark clip In point" data-tooltip="Mark In (mark range start)" data-tooltip-pos="top" disabled={transportBusy} onClick={() => runTransportCommand("timeline.set_mark_in", { at: playhead })}>
               In
             </InteriorButton>
-            <InteriorButton
-              aria-label="Mark clip Out point"
-              data-tooltip="Mark Out (mark range end)"
-              data-tooltip-pos="top"
-              disabled={transportBusy}
-              onClick={() => runTransportCommand("timeline.set_mark_out", { at: playhead })}
-            >
+            <InteriorButton aria-label="Mark clip Out point" data-tooltip="Mark Out (mark range end)" data-tooltip-pos="top" disabled={transportBusy} onClick={() => runTransportCommand("timeline.set_mark_out", { at: playhead })}>
               Out
             </InteriorButton>
-            <InteriorButton
-              aria-label="Previous frame"
-              data-tooltip="Previous Frame (Left Arrow)"
-              data-tooltip-pos="top"
-              onClick={() => stepProgramFrame(-1)}
-            >
+            <InteriorButton aria-label="Previous frame" data-tooltip="Previous Frame (Left Arrow)" data-tooltip-pos="top" onClick={() => stepProgramFrame(-1)}>
               ◀
             </InteriorButton>
-            <InteriorButton
-              className={programPlaying ? "active-toggle" : ""}
-              aria-label={programPlaying ? "Pause playback" : "Play clip"}
-              data-tooltip={programPlaying ? "Pause Playback (Space / K)" : "Play Timeline (Space / L)"}
-              data-tooltip-pos="top"
-              onClick={() => toggleProgramPlayback()}
-            >
+            <InteriorButton className={programPlaying ? "active-toggle" : ""} aria-label={programPlaying ? "Pause playback" : "Play clip"} data-tooltip={programPlaying ? "Pause Playback (Space / K)" : "Play Timeline (Space / L)"} data-tooltip-pos="top" onClick={() => toggleProgramPlayback()}>
               {programPlaying ? "Ⅱ" : "▶"}
             </InteriorButton>
-            <InteriorButton
-              aria-label="Next frame"
-              data-tooltip="Next Frame (Right Arrow)"
-              data-tooltip-pos="top"
-              onClick={() => stepProgramFrame(1)}
-            >
+            <InteriorButton aria-label="Next frame" data-tooltip="Next Frame (Right Arrow)" data-tooltip-pos="top" onClick={() => stepProgramFrame(1)}>
               ▶|
             </InteriorButton>
-            <InteriorButton
-              aria-label="Lift marked range (leave gaps)"
-              data-tooltip={markRange ? "Lift (remove range, keep gaps)" : "Set Mark In and Out first"}
-              data-tooltip-pos="top"
-              disabled={transportBusy || !markRange}
-              onClick={() => runTransportCommand("sequence.lift", { ranges: [[markIn, markOut]] })}
-            >
+            <InteriorButton aria-label="Lift marked range (leave gaps)" data-tooltip={markRange ? "Lift (remove range, keep gaps)" : "Set Mark In and Out first"} data-tooltip-pos="top" disabled={transportBusy || !markRange} onClick={() => runTransportCommand("sequence.lift", { ranges: [[markIn, markOut]] })}>
               Lift
             </InteriorButton>
-            <InteriorButton
-              aria-label="Extract marked range (ripple close)"
-              data-tooltip={markRange ? "Extract (remove range, close gap)" : "Set Mark In and Out first"}
-              data-tooltip-pos="top"
-              disabled={transportBusy || !markRange}
-              onClick={() => runTransportCommand("sequence.extract", { ranges: [[markIn, markOut]] })}
-            >
+            <InteriorButton aria-label="Extract marked range (ripple close)" data-tooltip={markRange ? "Extract (remove range, close gap)" : "Set Mark In and Out first"} data-tooltip-pos="top" disabled={transportBusy || !markRange} onClick={() => runTransportCommand("sequence.extract", { ranges: [[markIn, markOut]] })}>
               Extract
             </InteriorButton>
-            <InteriorButton
-              aria-label="Export the current frame as PNG"
-              data-tooltip="Export Frame (PNG)"
-              data-tooltip-pos="top"
-              disabled={transportBusy}
-              onClick={() => void exportProgramFrame()}
-            >
+            <InteriorButton aria-label="Export the current frame as PNG" data-tooltip="Export Frame (PNG)" data-tooltip-pos="top" disabled={transportBusy} onClick={() => void exportProgramFrame()}>
               PNG
             </InteriorButton>
             {shuttleSpeed !== 1 && programPlaying && (
