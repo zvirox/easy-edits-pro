@@ -165,7 +165,8 @@ export function EditDockRight({
     { id: "captions", title: "Captions", render: () => <CaptionsPanel {...captionsPanelProps} /> },
     {
       id: "graphics",
-      title: "Essential Graphics",
+      title: "Graphics",
+      tooltip: "Essential Graphics",
       render: () => (
         <GraphicsPanel ops={graphicsPanelProps.ops} playhead={graphicsPanelProps.playhead} frame={graphicsPanelProps.frame} />
       ),

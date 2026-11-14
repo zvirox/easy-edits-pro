@@ -343,10 +343,80 @@ export async function run(ctx) {
   await assertStatusBarVisible(page, '1150px status bar');
   await assertMenuBarFits(page, '1150px menu bar');
   await assertNoCardOverlap(page, '1150px collapse band');
-  ctx.state.rightDockCollapse = 'passed (collapses across 1100–1280, mounts at 1281px, invariants hold)';
+
+  // UI-10 / UI-P6: Responsive dock degradation assertions
+  // Verify dock drawer toggle button is accessible on <=1280px
+  const drawerToggle = page.locator('.dock-drawer-toggle');
+  assert.ok(await drawerToggle.isVisible(), '1150px: dock drawer toggle button must be visible');
+  assert.equal(
+    await drawerToggle.getAttribute('aria-label'),
+    'Toggle inspector dock drawer',
+    '1150px: dock drawer toggle must have accessible label',
+  );
+  assert.equal(
+    await drawerToggle.getAttribute('aria-expanded'),
+    'false',
+    '1150px: toggle starts in collapsed state with aria-expanded="false"',
+  );
+
+  // Clicking toggle button opens the right dock drawer
+  await drawerToggle.click();
+  await page.waitForTimeout(280);
+  const rightDock = page.locator('.shell-dock-right');
+  assert.ok(await rightDock.isVisible(), '1150px: right dock must be visible when drawer is open');
+  const rightDockBox = await rightDock.boundingBox();
+  assert.ok(
+    rightDockBox && rightDockBox.width > 200,
+    `1150px: right dock drawer width (${rightDockBox?.width}) must be > 200px`,
+  );
+  assert.equal(
+    await drawerToggle.getAttribute('aria-expanded'),
+    'true',
+    '1150px: toggle must reflect aria-expanded="true" when open',
+  );
+
+  // Tabs inside right dock drawer become visible and reachable
+  const inspectorTab = rightDock.getByRole('tab', { name: 'Inspector' });
+  assert.ok(await inspectorTab.isVisible(), '1150px: Inspector tab is reachable in drawer');
+  const graphicsTab = rightDock.getByRole('tab', { name: 'Graphics' });
+  assert.ok(await graphicsTab.isVisible(), '1150px: Graphics tab is reachable in drawer');
+
+  // Closing the drawer returns to collapsed resting state
+  const drawerClose = page.locator('.dock-drawer-close');
+  if (await drawerClose.isVisible()) {
+    await drawerClose.click();
+  } else {
+    await drawerToggle.click();
+  }
+  await page.waitForTimeout(280);
+  await assertRightDockCollapsed(page, '1150px after drawer close');
+  assert.equal(
+    await drawerToggle.getAttribute('aria-expanded'),
+    'false',
+    '1150px: toggle must reflect aria-expanded="false" after close',
+  );
+
+  // Panel open event auto-opens drawer on <=1280px and Escape key dismisses it
+  await page.evaluate(() => {
+    window.dispatchEvent(new CustomEvent('eep:panel-open', { detail: { id: 'markers' } }));
+  });
+  await page.waitForTimeout(280);
+  assert.ok(await rightDock.isVisible(), '1150px: panel event auto-opens right dock drawer');
+  const markersTab = rightDock.getByRole('tab', { name: 'Markers' });
+  assert.equal(await markersTab.getAttribute('aria-selected'), 'true', 'Markers tab focused');
+
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(280);
+  await assertRightDockCollapsed(page, '1150px after Escape dismiss');
+
+  ctx.state.rightDockCollapse = 'passed (collapses across 1100–1280, mounts at 1281px, invariants hold, drawer accessible)';
 
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.locator('.workspace-shell[data-workspace="edit"]').waitFor();
+  assert.ok(
+    !(await page.locator('.dock-drawer-toggle').isVisible()),
+    '1920px: dock drawer toggle must be hidden above 1280px',
+  );
 
   // G6 item 1: menu bar must not overflow the app chrome below 1300px.
   await page.setViewportSize({ width: 1240, height: 900 });

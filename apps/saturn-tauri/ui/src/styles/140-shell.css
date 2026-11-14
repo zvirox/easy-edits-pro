@@ -30,6 +30,7 @@
   gap: 8px;
   min-width: 0;
   min-height: 0;
+  position: relative;
 }
 
 .shell-dock.shell-dock-left {
@@ -54,6 +55,7 @@
   gap: 7px;
   min-width: 0;
   min-height: 0;
+  position: relative;
 }
 
 /* One monitor in the shell center: the unified monitor owns the column. */
@@ -197,6 +199,94 @@
 
   .shell-dock-right {
     display: none;
+  }
+}
+
+/* Accessible Responsive Dock Drawer Degradation (UI-10 / UI-P6) */
+.dock-drawer-toggle {
+  display: none;
+}
+
+.dock-drawer-close {
+  display: none;
+}
+
+@media (max-width: 1280px) {
+  .dock-drawer-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    z-index: 30;
+    height: 24px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm, 4px);
+    cursor: pointer;
+    line-height: 1;
+    white-space: nowrap;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  }
+
+  .dock-drawer-toggle:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  .dock-drawer-toggle[aria-expanded="true"] {
+    display: none;
+  }
+
+  .workspace-shell[data-workspace] .monitor-unified .panel-tabs::after {
+    margin-right: 92px;
+  }
+
+  .shell-dock-right.is-drawer-open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(380px, 48vw);
+    z-index: 50;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-panel);
+    border-radius: var(--radius-md, 6px);
+    box-shadow: -4px 0 24px color-mix(in srgb, var(--color-black) 45%, transparent);
+    overflow: hidden;
+  }
+
+  .shell-dock-right.is-drawer-open .dock-drawer-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid var(--border-panel);
+    border-radius: var(--radius-sm, 4px);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  }
+
+  .shell-dock-right.is-drawer-open .dock-drawer-close:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-strong);
+    color: var(--text-primary);
   }
 }
 

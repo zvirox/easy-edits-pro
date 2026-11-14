@@ -7,11 +7,14 @@ import {
   PANEL_TOGGLE_EVENT,
   type PanelOpenDetail,
 } from "./panelEvents";
+import { useDockDrawer } from "./dockDrawerContext";
 
 export interface DockTab {
   /** Stable panel id — also the id used by PANEL_OPEN/TOGLE events. */
   id: string;
   title: string;
+  /** Optional title tooltip (prevents horizontal blowout while keeping descriptive label). */
+  tooltip?: string;
   render: () => ReactNode;
 }
 
@@ -20,6 +23,8 @@ export interface DockCardProps {
   tabs: DockTab[];
   /** Accessible name for the card and its tablist. */
   ariaLabel?: string;
+  /** Optional drawer close handler when rendered as an overlay drawer on <=1280px. */
+  onClose?: () => void;
 }
 
 /**
@@ -28,10 +33,15 @@ export interface DockCardProps {
  * be pinned; PANEL_OPEN/TOGGLE events focus the owning tab instead. Only the active
  * tab stays mounted, so hidden panels (scopes, canvases) stop their work.
  */
-export function DockCard({ className, tabs, ariaLabel }: DockCardProps) {
+export function DockCard({ className, tabs, ariaLabel, onClose }: DockCardProps) {
   const [activeId, setActiveId] = useState(() => tabs[0]?.id ?? "");
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const { isDrawerOpen, closeDrawer } = useDockDrawer();
+
+  const isRightDock = Boolean(className?.includes("shell-dock-right"));
+  const drawerClass = isRightDock && isDrawerOpen ? " is-drawer-open" : "";
+  const handleClose = onClose ?? (isRightDock ? closeDrawer : undefined);
 
   useEffect(() => {
     const focus = (event: Event) => {
@@ -55,7 +65,7 @@ export function DockCard({ className, tabs, ariaLabel }: DockCardProps) {
 
   return (
     <section
-      className={`glass card dock-card${className ? ` ${className}` : ""}`}
+      className={`glass card dock-card${className ? ` ${className}` : ""}${drawerClass}`}
       aria-label={ariaLabel}
     >
       <header
@@ -73,11 +83,23 @@ export function DockCard({ className, tabs, ariaLabel }: DockCardProps) {
             role="tab"
             aria-selected={tab.id === active?.id}
             className="tab"
+            title={tab.tooltip ?? tab.title}
             onClick={() => setActiveId(tab.id)}
           >
             {tab.title}
           </button>
         ))}
+        {handleClose ? (
+          <button
+            type="button"
+            className="dock-drawer-close"
+            aria-label="Close inspector dock drawer"
+            title="Close dock drawer (Esc)"
+            onClick={handleClose}
+          >
+            ✕
+          </button>
+        ) : null}
       </header>
       {active ? (
         <div
