@@ -5,6 +5,8 @@ on:
   push:
     tags:
       - "v*-alpha.*"
+      - "v*-beta.*"
+      - "v*-beta"
 
 permissions:
   contents: write
@@ -48,13 +50,13 @@ jobs:
         working-directory: apps/saturn-tauri
         run: pnpm install --frozen-lockfile
 
-      - name: Set package version from alpha tag
-        if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-alpha.')
+      - name: Set package version from release tag
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-alpha\.[0-9]+$ ]]; then
-            echo "Expected an alpha tag like v0.1.0-alpha.1; got $RELEASE_TAG" >&2
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta)(\.[0-9]+)?)?$ ]]; then
+            echo "Expected a release tag like v0.1.0-alpha.1 or v0.1.3-beta.1; got $RELEASE_TAG" >&2
             exit 1
           fi
           version="${RELEASE_TAG#v}"
@@ -81,13 +83,14 @@ jobs:
           if-no-files-found: error
 
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-alpha.')
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           name: Easy Edits Pro ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           prerelease: true
-          generate_release_notes: true
+          generate_release_notes: false
+          body_path: RELEASE_NOTES.md
           files: |
             apps/saturn-tauri/target/release/bundle/deb/*.deb
             apps/saturn-tauri/target/release/bundle/rpm/*.rpm

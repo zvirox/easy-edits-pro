@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3-beta.1] - 2026-11-14
+
+### Added
+- **First Beta Milestone:**
+  - Transitioned release cycle from Alpha to Beta (`v0.1.3-beta.1`).
+  - Added CI support for Beta release packaging across `.deb`, `.rpm`, and Flatpak in `.github/workflows/linux-packages.yml`.
+- **UI-P5 — Workspace Identity & Suite Cues:**
+  - Added active Tier 1 suite badge, Tier 2 glowing indicator with suite icons, and Program Monitor suite headers across all 8 suites (`Media`, `Edit`, `Fusion`, `Color`, `Fairlight`, `Effects`, `Curves`, `Deliver`).
+- **UI-P6 — Responsive Dock Degradation & Overlay Drawer:**
+  - Replaced abrupt `<=1280px` dock hiding (`display: none`) with an accessible overlay dock drawer (`WorkspaceShell.tsx`, `DockCard.tsx`, `dockDrawerContext.ts`) supporting `.dock-drawer-toggle` trigger (`aria-label`, `aria-expanded`), auto-opening on `eep:panel-open`/`toggle` events, close button and `Escape` key dismiss down to `900x620`.
+- **UI-P7 — Full Matrix Regression Hardening:**
+  - Locked automated Playwright assertions across all 6 viewports (`1920x1080`, `1600x900`, `1366x700`, `1280x800`, `1024x768`, `900x620`) × 9 workspaces with zero root document overflow assertions (`assertZeroDocumentOverflow`). All 12 Definition of Done criteria verified and satisfied.
+
+### Fixed
+- **UI-P4 — Preview Stage Scaling, Timeline Containment & Deliver Split:**
+  - Implemented fluid 16:9 (`1.778`) and portrait 9:16 (`0.562`) preview monitor scaling with zero `.glass` blur over video.
+  - Constrained outer `.timeline` card with zero horizontal overflow (`clientW === scrollW`) and unclipped transport controls.
+  - Rebuilt Deliver workspace into a responsive 2-column layout with real sequence summary strings replacing `undefined`.
+- **UI-P5 — Welcome Screen Clarity:**
+  - Decluttered single-line project recovery banner with clear `Recover` action and nested path ellipsis without document scrollbar leakage at `900x620`.
+- **UI-P6 — Density Harmonization:**
+  - Shortened `Graphics` tab title in `EditDocks.tsx` removing third-party Premiere trademark.
+  - Harmonized dock tab styling (compact 11px font, `4px 6px` padding) and normalized token dock body padding.
+
 ## [0.1.2-alpha.8] - 2026-11-14
 
 ### Added
