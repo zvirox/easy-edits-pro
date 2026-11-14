@@ -615,6 +615,22 @@ fn validate_bridge_command_origin(
     let doc = document_snapshot(state)?;
     let tracker = saturn_core::OriginTracker::from_document(&doc);
 
+    let mut string_args = Vec::new();
+    collect_bridge_string_args(params, "", &mut string_args);
+
+    let bypass = std::env::var(crate::write_grants::BYPASS_ENV).is_ok();
+    if bypass {
+        for (arg_name, arg_val) in string_args {
+            if let Some(derivation) = tracker.detect_untrusted_derivation(&arg_val) {
+                return Err(format!(
+                    "PermissionDenied: argument `{arg_name}` appears derived from untrusted {} text",
+                    derivation.source
+                ));
+            }
+        }
+        return Ok(());
+    }
+
     let mut allowed_roots = Vec::new();
     allowed_roots.push(std::env::temp_dir());
     if let Some(proj_dir) = crate::commands::current_project_dir(state) {
@@ -623,9 +639,6 @@ fn validate_bridge_command_origin(
     if let Ok(cwd) = std::env::current_dir() {
         allowed_roots.push(cwd);
     }
-
-    let mut string_args = Vec::new();
-    collect_bridge_string_args(params, "", &mut string_args);
 
     for (arg_name, arg_val) in string_args {
         if let Err(err) = tracker.validate_argument(
@@ -657,6 +670,22 @@ fn validate_bridge_tool_origin(
     let doc = document_snapshot(state)?;
     let tracker = saturn_core::OriginTracker::from_document(&doc);
 
+    let mut string_args = Vec::new();
+    collect_bridge_string_args(arguments, "", &mut string_args);
+
+    let bypass = std::env::var(crate::write_grants::BYPASS_ENV).is_ok();
+    if bypass {
+        for (arg_name, arg_val) in string_args {
+            if let Some(derivation) = tracker.detect_untrusted_derivation(&arg_val) {
+                return Err(format!(
+                    "PermissionDenied: argument `{arg_name}` appears derived from untrusted {} text",
+                    derivation.source
+                ));
+            }
+        }
+        return Ok(());
+    }
+
     let mut allowed_roots = Vec::new();
     allowed_roots.push(std::env::temp_dir());
     if let Some(proj_dir) = crate::commands::current_project_dir(state) {
@@ -665,9 +694,6 @@ fn validate_bridge_tool_origin(
     if let Ok(cwd) = std::env::current_dir() {
         allowed_roots.push(cwd);
     }
-
-    let mut string_args = Vec::new();
-    collect_bridge_string_args(arguments, "", &mut string_args);
 
     for (arg_name, arg_val) in string_args {
         if let Err(err) = tracker.validate_argument(

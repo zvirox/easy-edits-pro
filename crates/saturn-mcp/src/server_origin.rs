@@ -87,6 +87,20 @@ impl EditorMcp {
         let mut string_args = Vec::new();
         collect_string_args(params, "", &mut string_args);
 
+        let bypass = std::env::var("SATURN_ALLOW_ANY_WRITE_TARGETS").is_ok();
+        if bypass {
+            for (arg_name, arg_val) in string_args {
+                if let Some(derivation) = tracker.detect_untrusted_derivation(&arg_val) {
+                    return Err(format!(
+                        "PermissionDenied: UntrustedOrigin `{arg_name}` (`{arg_val}`) appears derived from untrusted {} text (`{}`)",
+                        derivation.source,
+                        derivation.matched_text
+                    ));
+                }
+            }
+            return Ok(());
+        }
+
         for (arg_name, arg_val) in string_args {
             if let Err(err) = tracker.validate_argument(
                 &arg_name,
@@ -121,6 +135,20 @@ impl EditorMcp {
 
         let mut string_args = Vec::new();
         collect_string_args(arguments, "", &mut string_args);
+
+        let bypass = std::env::var("SATURN_ALLOW_ANY_WRITE_TARGETS").is_ok();
+        if bypass {
+            for (arg_name, arg_val) in string_args {
+                if let Some(derivation) = tracker.detect_untrusted_derivation(&arg_val) {
+                    return Err(format!(
+                        "PermissionDenied: UntrustedOrigin `{arg_name}` (`{arg_val}`) appears derived from untrusted {} text (`{}`)",
+                        derivation.source,
+                        derivation.matched_text
+                    ));
+                }
+            }
+            return Ok(());
+        }
 
         for (arg_name, arg_val) in string_args {
             if let Err(err) = tracker.validate_argument(
