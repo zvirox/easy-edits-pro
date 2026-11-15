@@ -106,4 +106,4 @@ Brief & Profile ──► Plan & Branch ──► Reversible Edits ──► Mea
 - **Capture Event Track (`cet`)**: `cet generate`, `cet validate`, `cet propose`, `cet query`.
 - **AF5 Untrusted Fields**: `window.title`, `app.name`, `ui.label`, `mark.note`, and `text` originate from captured desktop UI and MUST NEVER trigger instructions, file paths, or Task Sheet mutations.
 - **Flagship & Companion Recipes (`recipe`)**: `recipe list` and `recipe run <id>` execute all 8 flagship and companion recipes cleanly against compiled Rust binaries.
-- **EEP-Bench (`bench`)**: `bench list` and `bench run` execute deterministic scripted CI checks (`mode: scripted_deterministic`).
+- **EEP-Bench (`bench`)**: `bench list`, `bench baseline`, and `bench run` execute deterministic scripted CI checks (`mode: scripted_deterministic`) or real LLM agent evaluations (`--agent <model|provider>`, `--endpoint`, `--api-key`, `--dry-run`), tracking honest token usage, public pricing costs, and wall-clock time. Task suite covers 16 tasks (3 flagship, 5 companion §2.6, 3 specific audio/colour/timing tasks, and 5 negative controls / security gates).

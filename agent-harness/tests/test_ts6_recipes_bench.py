@@ -160,8 +160,8 @@ def test_eep_bench_suite_subprocess_smoke(tmp_path: Path):
     assert report["suite_label"] == "EEP-Bench (scripted conformance suite)"
     assert report["mode"] == "scripted_deterministic"
     assert report["passed"] is True
-    assert report["total_tasks"] == 4
-    assert report["passed_tasks"] == 4
+    assert report["total_tasks"] == 16
+    assert report["passed_tasks"] == 16
     assert report["failed_tasks"] == 0
     assert report["token_usage"] is None
     assert report["model_cost_usd"] is None
