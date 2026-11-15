@@ -43,12 +43,13 @@ def test_recipe_and_bench_registries():
     assert set(RECIPES.keys()) == set(recipe_ids)
 
     bench_ids = [b["id"] for b in list_bench_tasks()]
-    assert set(bench_ids) == {
+    assert len(bench_ids) == 16
+    assert {
         "bench_podcast_to_clips",
         "bench_talking_head_cet",
         "bench_webinar_recap",
         "bench_cet_untrusted_isolation",
-    }
+    }.issubset(set(bench_ids))
     assert set(BENCH_TASKS.keys()) == set(bench_ids)
 
 
@@ -80,7 +81,7 @@ def test_cli_groups_registered_and_honest_list_output():
     res_bench = runner.invoke(cli, ["--json", "bench", "list"])
     assert res_bench.exit_code == 0, res_bench.output
     data_bench = json.loads(res_bench.output)
-    assert len(data_bench["tasks"]) == 4
+    assert len(data_bench["tasks"]) == 16
 
 
 def test_bench_runner_telemetry_never_invents_tokens_or_quality(monkeypatch, tmp_path: Path):
