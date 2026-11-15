@@ -27,9 +27,12 @@ _UNJOURNALLED_COMMANDS = {
     "file.open",
     "file.save",
     "media.list",
+    "project.branch_diff",
+    "project.branch_list",
     "project.inspect",
     "project.status",
     "timeline.list",
+    "verify.run",
 }
 
 # Commands that must not trigger the implicit save that follows a mutation.
@@ -37,8 +40,11 @@ _NO_AUTOSAVE_COMMANDS = {
     "file.open",
     "file.save",
     "media.list",
+    "project.branch_diff",
+    "project.branch_list",
     "project.inspect",
     "project.status",
+    "verify.run",
 }
 
 

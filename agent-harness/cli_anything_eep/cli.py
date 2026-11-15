@@ -21,9 +21,9 @@ from typing import Optional, List, Dict, Any
 
 # Import command groups
 from cli_anything_eep.commands import (
-    audio, bench, cet, clip, color, command, daemon, interop, mcp, media,
-    multicam, nodegraph, project, recipe, render, speech, subtitle, tasksheet,
-    template, timeline, title, track,
+    audio, bench, branch, cet, clip, color, command, daemon, interop, mcp, media,
+    multicam, nodegraph, ocio, perception, project, recipe, render, speech, subtitle,
+    tasksheet, telemetry, template, timeline, title, track, vfx,
 )
 
 # Import core
@@ -245,6 +245,11 @@ cli.add_command(tasksheet.tasksheet_group)
 cli.add_command(cet.cet_group)
 cli.add_command(recipe.recipe_group)
 cli.add_command(bench.bench_group)
+cli.add_command(branch.branch_group)
+cli.add_command(ocio.ocio_group)
+cli.add_command(telemetry.telemetry_group)
+cli.add_command(perception.perception_group)
+cli.add_command(vfx.vfx_group)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

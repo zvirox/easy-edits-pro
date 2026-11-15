@@ -38,7 +38,8 @@ def test_tick_conversion_and_templates():
 
 def test_recipe_and_bench_registries():
     recipe_ids = [r["id"] for r in list_recipes()]
-    assert recipe_ids == ["podcast-to-clips", "talking-head-tutorial", "webinar-recap"]
+    for flagship in ["podcast-to-clips", "talking-head-tutorial", "webinar-recap"]:
+        assert flagship in recipe_ids
     assert set(RECIPES.keys()) == set(recipe_ids)
 
     bench_ids = [b["id"] for b in list_bench_tasks()]
@@ -74,7 +75,7 @@ def test_cli_groups_registered_and_honest_list_output():
     res_recipe = runner.invoke(cli, ["--json", "recipe", "list"])
     assert res_recipe.exit_code == 0, res_recipe.output
     data_recipe = json.loads(res_recipe.output)
-    assert len(data_recipe["recipes"]) == 3
+    assert len(data_recipe["recipes"]) == 8
 
     res_bench = runner.invoke(cli, ["--json", "bench", "list"])
     assert res_bench.exit_code == 0, res_bench.output

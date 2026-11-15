@@ -36,6 +36,7 @@ def recipe_list(ctx: click.Context):
 @click.option("--approve-review/--no-approve-review", default=False, show_default=True)
 @click.option("--package-delivery/--no-package-delivery", default=False, show_default=True)
 @click.option("--skip-audio-dsp", is_flag=True, help="Skip real audio_process normalization pass")
+@click.option("--auto-merge/--no-auto-merge", default=False, show_default=True, help="Auto-merge branch upon approved review under explicit policy")
 @click.pass_context
 def recipe_run(
     ctx: click.Context,
@@ -46,8 +47,9 @@ def recipe_run(
     approve_review: bool,
     package_delivery: bool,
     skip_audio_dsp: bool,
+    auto_merge: bool,
 ):
-    """Execute a flagship recipe cleanly against compiled Rust binaries."""
+    """Execute a flagship or companion recipe cleanly against compiled Rust binaries."""
     target_dir = Path(workdir) if workdir else Path(tempfile.mkdtemp(prefix=f"eep_{recipe_id}_"))
     kwargs: dict[str, object] = {
         "sheet_path": sheet_path,
@@ -55,6 +57,14 @@ def recipe_run(
         "package_delivery": package_delivery,
         "run_audio_dsp": not skip_audio_dsp,
     }
+    if auto_merge and recipe_id in {
+        "podcast-cleanup",
+        "transcript-interview-rough-cut",
+        "captioned-vertical-excerpt",
+        "sequence-colour-matching",
+        "music-bed-ducking-master",
+    }:
+        kwargs["auto_merge"] = auto_merge
     if cet_path and recipe_id == "talking-head-tutorial":
         kwargs["cet_path"] = cet_path
     try:
