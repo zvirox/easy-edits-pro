@@ -12,18 +12,18 @@
 ## Current checkpoint and next-work queue
 
 - **Completed:** AI-native Phases 0–3; Phase 4 plugin/offline operations; Packet
-  5.1 J/L, match-cut and beat-grid slices; AF1–AF5; TS0–TS6 & CET v0.1 (`EEP-Bench (scripted conformance suite)`); **UI-P0..UI-P7** UI layout & workspace consistency remediation track ([UI remediation plan](planning/ui-layout-workspace-remediation.md)); **AF7 / Packet 7.1** (`cli-anything-eep` 5 subcommand groups, 5 companion §2.6 recipes, closed-loop skill definitions). The glass shell and geometry tests exist.
-- **Open:** AF8–AF9 / TS7–TS10; two remaining 5.1 verbs, Phases 6–7, real-agent `EEP-Bench --agent` mode, XP1–XP4, and TS-X. Phase 4 stays incomplete while cinema
+  5.1 J/L, match-cut and beat-grid slices; AF1–AF5; TS0–TS6 & CET v0.1 (`EEP-Bench (scripted conformance suite)`); **UI-P0..UI-P7** UI layout & workspace consistency remediation track ([UI remediation plan](planning/ui-layout-workspace-remediation.md)); **AF7 / Packet 7.1** (`cli-anything-eep` 5 subcommand groups, 5 companion §2.6 recipes, closed-loop skill definitions); **AF8 / Packet 7.2** (`EEP-Bench` 16 tasks, real LLM `--agent` evaluation mode with honest null telemetry, separate published baseline, live-bridge acceptance suite `ai_closed_loop_workflow.py` with seeded failure controls). The glass shell and geometry tests exist.
+- **Open:** AF9 / TS7–TS10; two remaining 5.1 verbs, Phase 6 (Phase 7 complete), XP1–XP4, and TS-X. Phase 4 stays incomplete while cinema
   Dialogue/Music/Ambience/SFX separation is deferred for a verified, license-cleared
   model. Keep the documented room-tone, diarization and plugin-packaging follow-ups.
 - **AF0 inventory/design recorded:** current dependency graphs and the older
   `v0.1.2-alpha.2` package payloads are inventoried; conservative actor/history,
   lock, Stop and atomic-batch contracts are reviewed. See the
   [inventory](audit/af0-inventory.md) and [design](planning/af0-actor-design.md).
-- **Next actionable work:** advance **AF8/7.2** (`EEP-Bench --agent` evaluation & closed-loop acceptance suite), **AF9**, and **TS7–TS10** (AF6.1, UI-P0..UI-P7, and AF7/7.1 closed).
+- **Next actionable work:** advance **AF9** (Authenticated long-lived daemon) and **TS7–TS10** (AF6.1, UI-P0..UI-P7, AF7/7.1, and AF8/7.2 closed).
 - **Proposed execution queue, pending maintainer decision:** AF0 → AF1 (Done) → AF2 (Done) →
-  AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → TS0–TS6 (Implemented) → AF6.1 (Done) → **UI-P0..UI-P7 (Done)** → **AF7/7.1 (Done)** → **AF8/7.2 (with `EEP-Bench --agent`)** →
-  AF9 (before hosting) → TS7–TS10 → remaining 5.1 and Phase 5 gate → Phase 6. Base verification/recipe smoke may
+  AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → TS0–TS6 (Implemented) → AF6.1 (Done) → **UI-P0..UI-P7 (Done)** → **AF7/7.1 (Done)** → **AF8/7.2 (Done)** →
+  **AF9 (before hosting — Next)** → TS7–TS10 → remaining 5.1 and Phase 5 gate → Phase 6. Base verification/recipe smoke may
   start when its prerequisites exist; it does not complete the larger gates.
   AF4 precedes full AF3 because verification reads brief/review metadata.
 - **Pending product choices:** default autopilot/co-edit mode, auto-merge policy,
@@ -340,7 +340,7 @@ Morph cuts, storyline pins and Packet 5.2 remain planned.
 
 ---
 
-## Phase 7 — Agent Harness Expansion & Closed-Loop Acceptance — `status: in_progress (Packet 7.1 done, Packet 7.2 next)`
+## Phase 7 — Agent Harness Expansion & Closed-Loop Acceptance — `status: done (verified on commits b19dfcd, eca1150, 6b0dded)`
 
 ### Packet 7.1 — `cli-anything-eep` CLI & skill upgrade (Lane 4) — `status: done (verified on commit b19dfcd)`
 > Shared with AF7; add supervised recipes and profile/session/verify controls as
@@ -350,32 +350,33 @@ Morph cuts, storyline pins and Packet 5.2 remain planned.
 - [x] Update `agent-harness/cli_anything_eep/skills/cli-anything-eep.md` with closed-loop agent skill definitions, exact tool shapes, undo boundaries, and verification flow (Lane 4, landed `b19dfcd`).
 - [x] Add CLI subcommand group and recipe unit/integration tests under `agent-harness/tests/` (`test_af7_companion_recipes.py`, `test_af7_cli_groups.py`; 55/55 passed) (Lane 4, landed `b19dfcd`).
 
-### Packet 7.2 — Closed-loop acceptance suite (Lane 3)
+### Packet 7.2 — Closed-loop acceptance suite (Lane 3) — `status: done (verified on commits eca1150 + 6b0dded)`
 > Shared with AF8; reuse this suite for live-bridge acceptance and keep scripted
 > smoke results distinct from real-model benchmark results.
-- [ ] Create `tests/native/ai_closed_loop_workflow.py` (multi-cam rough cut → continuity check → ACEScg grade → supplied dialogue/music-track ducking + EBU R128 master → H.264/WebM export, over the live socket bridge; cinema-stem separation coverage waits for the verified model and cannot be claimed by this fixture)
+- [x] Create `tests/native/ai_closed_loop_workflow.py` over live socket bridge (multi-cam rough cut → continuity check → ACEScg grade → supplied dialogue/music-track ducking + EBU R128 master → H.264/WebM export) with deterministic CI smoke and seeded failure controls (Lane 3, landed `eca1150`).
+- [x] Build 16 benchmark tasks in `agent-harness/cli_anything_eep/bench/tasks.py` (covering 3 flagship, 5 §2.6 companion, 3 specific, 5 negative controls) and add real LLM `--agent <model|provider>` evaluation mode with honest null telemetry and separate published baselines in `runner.py`, `baseline.py`, and `commands/bench.py` (Lane 4, landed `6b0dded`).
 
 ### ✅ Phase 7 Final Release Gates (all must pass)
-- [ ] `cargo test --workspace`
-- [ ] `pnpm --dir apps/saturn-tauri build`
-- [ ] `pnpm --dir apps/saturn-tauri test`
-- [ ] `pnpm --dir apps/saturn-tauri check:glass`
-- [ ] `pnpm --dir apps/saturn-tauri check:commands`
-- [ ] `pnpm --dir apps/saturn-tauri check:source-size --max-lines=800`
-- [ ] `pnpm --dir apps/saturn-tauri test:e2e`
-- [ ] `python3 -m pytest agent-harness/tests -q`
-- [ ] `python3 tests/native/mcp_command_matrix.py`
-- [ ] `python3 tests/native/ai_closed_loop_workflow.py`
+- [x] `cargo test --workspace` (101 unit tests + all integration suites pass)
+- [x] `pnpm --dir apps/saturn-tauri build` (clean Vite build & typecheck)
+- [x] `pnpm --dir apps/saturn-tauri test` (189/189 green)
+- [x] `pnpm --dir apps/saturn-tauri check:glass` (306 token pairs pass, 0 raw hex colours, 134 tokens frozen)
+- [x] `pnpm --dir apps/saturn-tauri check:commands` (492/492 shipped)
+- [x] `pnpm --dir apps/saturn-tauri check:source-size --max-lines=800` (all files <= 682 lines)
+- [x] `pnpm --dir apps/saturn-tauri test:e2e` (all 12 areas green across full 6-viewport matrix)
+- [x] `python3 -m pytest agent-harness/tests -q` (96 passed in 228s)
+- [x] `python3 tests/native/mcp_command_matrix.py` (tier 4 torture suite; live socket bridge verified in `ai_closed_loop_workflow.py`)
+- [x] `python3 tests/native/ai_closed_loop_workflow.py` (passed full run, `--smoke`, `--keep`, and 3 seeded failure negative controls on `eca1150`)
 
 ---
 
-## Agent-first companion — AF0–AF9 — `status: AF0–AF7 done; AF8–AF9 planned`
+## Agent-first companion — AF0–AF9 — `status: AF0–AF8 done; AF9 planned`
 
 Specification: [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md) and companion [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md).
 Each milestone below may need several sequential, single-lane commits. Core/schema = Lane 2;
 MCP/harness/docs = Lane 4; UI = Lane 1; packaging/native verification = Lane 3.
 Packet IDs are stable labels; follow the integrated timeline queue:
-**AF0 (Done) → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → Task Sheet v1 (TS0–TS6) & Flagship Recipes (with CET v0.1) → AF6.1 (Done) → UI-P0..UI-P7 (Done) → AF7/7.1 (Done) → AF8/7.2 (`--agent` bench) → AF9 / TS7–TS9 (Daemon, Web API & Web Desk) → XP1–XP4 (Cross-platform) → TS10 (SSO) & TS-X (Shared agent-contract crate).**
+**AF0 (Done) → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → Task Sheet v1 (TS0–TS6) & Flagship Recipes (with CET v0.1) → AF6.1 (Done) → UI-P0..UI-P7 (Done) → AF7/7.1 (Done) → AF8/7.2 (Done) → **AF9 / TS7–TS9 (In progress / next)** → XP1–XP4 (Cross-platform) → TS10 (SSO) & TS-X (Shared agent-contract crate).**
 
 ### AF0 — Baseline, housekeeping and actor design
 - [x] Reconcile the supplied plan at `7c20b98`, add companion/cross-links and refresh the local `docs/planning.md` index (kept ignored per repository policy); retain completed work and blocked stems. Move misplaced match-cut evidence into the progress log and correct stale checklist header/Phase 3 status.
@@ -437,10 +438,11 @@ Packet IDs are stable labels; follow the integrated timeline queue:
 - [x] Add unit and integration test coverage in `agent-harness/tests/` (`test_af7_companion_recipes.py`, `test_af7_cli_groups.py`; 55/55 passed in 31s) keeping all files <= 800 lines (Lane 4, landed `b19dfcd`).
 - [x] **Gate:** Scripted podcast cleanup reaches measured verification pass and human review; exact tool shapes and undo/preparation limits documented; `PYTHONPATH=agent-harness pytest agent-harness/tests/unit agent-harness/tests/test_af7_companion_recipes.py` passes (55/55); full workspace gates pass (`cargo test --workspace` [101 tests + all integration suites], `pnpm build`, `pnpm test` [189/189], `check:glass` [306 pairs, 0 raw hex, 134 tokens], `check:commands` [492], `check:source-size --max-lines=800` [all <= 490L], `license-headers check` [724], `pnpm test:e2e` [all 12 smoke areas, 0 browser errors across full 6-viewport matrix]) — **PASSED 2026-11-15** (`b19dfcd`).
 
-### AF8 — Benchmark and Packet 7.2 closed-loop suite
-- [ ] Build 10–20 synthetic/approved-CC0 tasks, provenance records, metric/structure evaluation and labelled model/version/call/token/time reports; add real LLM `--agent` mode to `EEP-Bench` (distinct from the scripted conformance suite); unavailable metrics remain explicit (Lane 4).
-- [ ] Reuse Packet 7.2 live-bridge suite and add deterministic CI smoke with seeded failure controls (Lane 3).
-- [ ] **Gate:** CI smoke, `--agent` three-recipe runs, and live workflow pass; publish a real-model baseline separately from `EEP-Bench (scripted conformance suite)` results; Phase 7 final gates remain required for full completion.
+### AF8 — Benchmark and Packet 7.2 closed-loop suite — `status: done (verified on commits eca1150 + 6b0dded)`
+- [x] Build 10–20 benchmark tasks in `agent-harness/cli_anything_eep/bench/tasks.py` covering flagship recipes, companion §2.6 recipes, 3-shot colour match, 30s highlight, caption repair, and seeded failure controls; record provenance in `docs/benchmarks/eep-bench-tasks.md` and test coverage in `agent-harness/tests/test_eep_bench_suite.py` (16 tasks total: 3 flagship, 5 companion §2.6, 3 specific, 5 negative controls/security gates; 9/9 unit tests passing) (Lane 4, landed `6b0dded`).
+- [x] Add real LLM `--agent <model|provider>` evaluation mode to `agent-harness/cli_anything_eep/bench/runner.py` and `commands/bench.py` with honest telemetry (`token_usage`, `model_cost_usd`, `model_name`, `provider`, `wall_clock_ms`, `tool_calls`; unavailable metrics remain explicit `null`) and publish real-model baseline separately from `EEP-Bench (scripted conformance suite)` (Lane 4, landed `6b0dded`).
+- [x] Implement `tests/native/ai_closed_loop_workflow.py` over live desktop MCP socket bridge (multi-cam rough cut → continuity check → ACEScg grade → dialogue/music-track ducking + EBU R128 master → H.264/WebM export) with deterministic CI smoke and seeded failure controls (audio clipping +3 dBTP violation, inverted render geometry bounds, unverified cinema-stem separation rejection cleanly fail) (Lane 3, landed `eca1150`).
+- [x] **Gate:** CI smoke, `--agent` three-recipe runs, and live socket workflow pass; seeded failure controls fail cleanly; publish real-model baseline separately from scripted conformance results; full Phase 7 workspace gates pass (`cargo test --workspace` [101 tests + all integration suites], `pnpm build`, `pnpm test` [189/189], `check:glass` [306 pairs, 0 raw hex, 134 tokens], `check:commands` [492], `check:source-size --max-lines=800` [all <= 682L], `license-headers check` [729], `pytest agent-harness/tests/` [96 passed in 228s], `pnpm test:e2e` [all 12 areas across 6 viewports]) — **PASSED 2026-11-15** (`eca1150` + `6b0dded`).
 
 ### AF9 — Authenticated long-lived daemon
 - [ ] Extend existing MCP/control components with project lifecycle, UDS session tokens, rate/time budgets and bounded JSONL audit records; reuse AF2 Stop and AF5 provenance (Lane 4).
@@ -498,7 +500,7 @@ and delivery packages. Core/schema = Lane 2; MCP/harness/docs = Lane 4; UI = Lan
 - [x] Build Recipe 2: Talking-head & tutorial with CET integration (silence/filler cleanup, chaptering, zooms/cuts from CET cursor/window events, QC) (Lane 4). **2026-11-12:** `saturn-core::tasksheet::{cet_analysis,cet_synthetic}` + `cli_anything_eep/recipes/talking_head_tutorial.py` (`recipe talking-head-tutorial`) parse & validate CET tracks, enforce AF5 untrusted isolation on `capture_read_events` -> `tasksheet.update`, apply click/hint zoom keyframes kept inside crop, remove dead-air silences/fillers (`timeline_edits::slice_clip_keyframes` preserves valid clipped keyframes), add safe chapters/captions, and pass `verify.run` QC.
 - [x] Build Recipe 3: Webinar & training recap (transcript chaptering, topic coverage check, highlight selection, full + reel exports, QC) (Lane 4). **2026-11-12:** `saturn-core::tasksheet::recipes::analyze_webinar_recap` + `saturn-cli analyze-recipe webinar` + `cli_anything_eep/recipes/webinar_recap.py` (`recipe webinar-recap`) check `must_include` coverage (escalating missing topics via `tasksheet.question_ask`), flag `must_not` hits in Review Notes while excluding them from the Summary Reel sequence, and pass `verify.run` + `delivery.verify` on full and reel sequences.
 - [x] Build synthetic CET generator (`cet-gen`) for Recipe 2 verification ahead of physical recorder hardware (Lane 4). **2026-11-12:** `saturn-core::tasksheet::cet_synthetic` (`generate_synthetic_cet`), `saturn-cli cet-gen`/`cet-validate`/`cet-propose`/`cet-query`, standalone `cet-gen` binary (`crates/saturn-cli/src/bin/cet-gen.rs`), and `cli_anything_eep cet` commands (`gen`, `validate`, `propose`, `query`) with privacy default `keys=classes_only`, `text=off`.
-- [ ] Add real-agent `--agent` evaluation mode (BYO LLM endpoints executing the three flagship recipes end-to-end; required before any public benchmark claim; tracked with AF8) (Lane 4).
+- [x] Add real-agent `--agent` evaluation mode (BYO LLM endpoints executing the three flagship recipes end-to-end; required before any public benchmark claim; tracked with AF8) (Lane 4, landed `6b0dded`).
 - [x] **Gate:** Scripted agents pass deterministic conformance suite in CI for all three recipes; Recipe 2 parses synthetic CET event track without error. **2026-11-12:** `cli_anything_eep/bench/` (`EEP-Bench (scripted conformance suite)` — `bench list` / `bench run`, `mode: scripted_deterministic`, honest `null` LLM tokens/cost/aggregate score), `cargo test --workspace` (`ts6_recipes_and_cet_tests`, `ts_tasksheet_tests`, `ts4_review_rounds_tests`, `timeline_edits`, `saturn-mcp`), and `pytest agent-harness/tests` verify all three flagship recipes, CET parsing, AF5 isolation, and delivery checksums.
 
 ### AF6.1 — Supervision UI Integrity & Real Bridge Remediation (before TS7)
@@ -646,6 +648,7 @@ Specification: [planning/contributor-strategy.md](planning/contributor-strategy.
 
 | Date | Packet | Note / Evidence |
 |---|---|---|
+| 2026-11-15 | AF8 / 7.2 | **Benchmark expansion, `--agent` evaluation & live-bridge acceptance (`eca1150`, `6b0dded`).** Expanded `EEP-Bench` to 16 tasks in `bench/tasks.py` (3 flagship, 5 companion §2.6, 3 specific, 5 negative controls/security gates) with CC0/MIT provenance in `docs/benchmarks/eep-bench-tasks.md`; implemented real LLM `--agent <model|provider>` evaluation mode in `agent_eval.py`, `runner.py`, and `commands/bench.py` with honest telemetry (`token_usage`, `model_cost_usd`, `model_name`, `provider`, `wall_clock_ms`, `tool_calls`; unmeasured fields remain explicit `null`) and separate published baselines (`bench baseline`); implemented autonomous live-bridge acceptance suite in `tests/native/ai_closed_loop_workflow.py` over Unix domain socket bridge (multi-cam rough cut → cut continuity check → ACEScg grade → dialogue/music ducking + EBU R128 master normalization → H.264/WebM render & export → ffprobe/gst-discoverer media probing & loudness compliance verification) with deterministic CI smoke (`--smoke`) and seeded failure negative controls (audio clipping +3 dBTP violation, inverted geometry bounds, unverified cinema-stem separation rejection). Verified: `cargo test --workspace` (101 unit tests + all integration suites), `pnpm build`, `pnpm test` (189/189), `pnpm check:glass` (306 token pairs, 0 raw hex colours, 134 frozen tokens), `pnpm check:commands` (492), `pnpm check:source-size --max-lines=800` (all <= 682L), `node scripts/license-headers.mjs check` (729 files), `pytest agent-harness/tests/` (96 passed in 228s), `ai_closed_loop_workflow.py` (`--smoke`, `--format mp4`, `--keep`, and 3 seeded failure negative controls), and `pnpm test:e2e` (all 12 smoke areas, 0 browser errors across full 6-viewport matrix). |
 | 2026-11-15 | AF7 / 7.1 | **Closed-loop recipes & Packet 7.1 CLI (`b19dfcd`).** Added 5 CLI subcommand groups (`branch`, `ocio`, `telemetry`, `perception`, `vfx`) under `agent-harness/cli_anything_eep/commands/` with structured typed errors for unbacked/deferred actions (per A4 rule); implemented the Five Companion §2.6 Recipes under `agent-harness/cli_anything_eep/recipes/` (`podcast-cleanup`, `transcript-interview-rough-cut`, `captioned-vertical-excerpt`, `sequence-colour-matching`, `music-bed-ducking-master` with `--auto-merge` option); updated closed-loop agent skill definitions in `cli-anything-eep.md`. Verified: `cargo test --workspace` (101 unit tests + all integration suites), `pnpm build`, `pnpm test` (189/189), `pnpm check:glass` (306 token pairs, 0 raw colours, 134 frozen tokens), `pnpm check:commands` (492), `pnpm check:source-size --max-lines=800` (all <= 490L), `license-headers check` (724 files), `pytest agent-harness/tests/` (55/55 passed in 31s), and `pnpm test:e2e` (all 12 smoke areas, 0 browser errors across full 6-viewport matrix). |
 | 2026-11-14 | UI-P7 | **Full matrix regression hardening & Definition of Done (`241ffb9`).** Locked automated Playwright assertions across all 6 viewports (`1920x1080`, `1600x900`, `1366x700`, `1280x800`, `1024x768`, `900x620`) × 9 workspaces (`Welcome`, `Edit`, `Media`, `Fusion`, `Color`, `Fairlight`, `Effects`, `Curves`, `Deliver`) in `geometry.mjs`, verifying geometry invariance, no card overlap, unclipped menu bar, status bar visibility, and zero root document overflow (`assertZeroDocumentOverflow`). All 12 Definition of Done criteria verified and satisfied: `cargo test --workspace`, `pnpm build`, `pnpm test` (`189/189`), `pnpm check:glass` (306 pairs, 0 raw colours, 134 frozen tokens), `pnpm check:commands` (`492`), `pnpm check:source-size --max-lines=800`, `license-headers check` (`712`), and `pnpm test:e2e` (all 12 smoke areas green, 0 browser errors). UI Layout & Workspace Consistency Remediation Plan (`UI-P0..UI-P7`) closed. |
 | 2026-11-14 | UI-P6 | **Density harmonization & responsive dock degradation (`349d3cc`).** Replaced abrupt `<=1280px` right-dock hiding (`display: none`) with an accessible dock drawer (`WorkspaceShell.tsx`, `DockCard.tsx`, `dockDrawerContext.ts`) supporting `.dock-drawer-toggle` trigger (`aria-label`, `aria-expanded`), auto-open on `eep:panel-open`/`toggle` events, `.dock-drawer-close` button and `Escape` key dismiss down to `900x620`; harmonized dock tab density (`11px` compact font, `4px 6px` padding), shortened `Graphics` tab title in `EditDocks.tsx` removing third-party Premiere trademark, and normalized token dock body padding. Verified: `cargo test --workspace`, `pnpm build`, `pnpm test` (`189/189`), `pnpm check:glass` (306 pairs, 0 raw colours, 134 frozen tokens), `pnpm check:commands` (`492`), `pnpm check:source-size --max-lines=800`, `license-headers check` (`712`), `pnpm test:e2e` (all 12 areas, 0 browser errors), and live Playwright matrix + screenshot verification across `900x620`, `1024x768`, and `1281x800`. |
