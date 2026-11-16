@@ -22,7 +22,7 @@ from typing import Optional, List, Dict, Any
 # Import command groups
 from cli_anything_eep.commands import (
     audio, bench, branch, cet, clip, color, command, daemon, interop, mcp, media,
-    multicam, nodegraph, ocio, perception, project, recipe, render, speech, subtitle,
+    multicam, nodegraph, ocio, perception, project, recipe, render, runner, speech, subtitle,
     tasksheet, telemetry, template, timeline, title, track, vfx,
 )
 
@@ -250,6 +250,7 @@ cli.add_command(ocio.ocio_group)
 cli.add_command(telemetry.telemetry_group)
 cli.add_command(perception.perception_group)
 cli.add_command(vfx.vfx_group)
+cli.add_command(runner.runner_group)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -14,6 +14,7 @@ pub mod budget;
 pub mod handlers;
 pub mod project;
 pub mod provenance;
+pub mod runner;
 pub mod server;
 pub mod session;
 pub mod uds;
@@ -23,6 +24,10 @@ pub use auth::{AuthClaims, AuthError, AuthManager};
 pub use budget::{BudgetError, RateLimiter, TimeBudget};
 pub use project::{ProjectError, project_close, project_open, project_save, project_status};
 pub use provenance::{ProvenanceError, validate_path_containment, validate_untrusted_media_text};
+pub use runner::{
+    ByoEndpoint, EndpointError, JobRecord, JobState, RunnerConfig, RunnerError, RunnerService,
+    RunnerStatus, WorkerBudget, WorkerError, WorkerLease, WorkerUsage,
+};
 pub use server::{ControlServer, DaemonConfig};
 pub use session::{DaemonSession, SessionError, SessionManager};
 pub use uds::UdsServer;

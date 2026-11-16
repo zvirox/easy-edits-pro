@@ -8,6 +8,7 @@
 
 pub mod questions;
 pub mod review;
+pub mod runner;
 pub mod tasksheet;
 pub mod verify;
 
@@ -240,6 +241,19 @@ pub fn mount_api_routes(mut router: Router<Arc<ControlServer>>) -> Router<Arc<Co
         .route("/delivery/verify", post(verify::delivery_verify_handler))
         .route("/api/v1/verify/run", post(verify::verify_run_handler))
         .route("/api/v1/delivery/verify", post(verify::delivery_verify_handler));
+
+    // Runner & Multi-Job Execution routes (TS9)
+    router = router
+        .route("/runner/status", get(runner::runner_status_handler))
+        .route("/runner/start", post(runner::runner_start_handler))
+        .route("/runner/stop", post(runner::runner_stop_handler))
+        .route("/runner/jobs", get(runner::runner_jobs_list_handler))
+        .route("/runner/jobs/:id/cancel", post(runner::runner_job_cancel_handler))
+        .route("/api/v1/runner/status", get(runner::runner_status_handler))
+        .route("/api/v1/runner/start", post(runner::runner_start_handler))
+        .route("/api/v1/runner/stop", post(runner::runner_stop_handler))
+        .route("/api/v1/runner/jobs", get(runner::runner_jobs_list_handler))
+        .route("/api/v1/runner/jobs/:id/cancel", post(runner::runner_job_cancel_handler));
 
     router
 }

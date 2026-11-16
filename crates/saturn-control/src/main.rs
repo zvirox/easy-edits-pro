@@ -69,6 +69,7 @@ async fn main() -> Result<()> {
         project_root: args.project_root.clone(),
         audit_log_path: args.audit_file.clone(),
         max_audit_entries: args.max_audit_entries,
+        ..Default::default()
     };
 
     let server = Arc::new(ControlServer::with_config(Arc::clone(&app), config));
