@@ -23,7 +23,7 @@
 - **Next actionable work:** advance **TS9** (Runner & multi-job execution — active) and **TS10** (Enterprise SSO; TS8, TS7, AF0–AF9 closed).
 - **Proposed execution queue, pending maintainer decision:** AF0 → AF1 (Done) → AF2 (Done) →
   AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → TS0–TS6 (Implemented) → AF6.1 (Done) → **UI-P0..UI-P7 (Done)** → **AF7/7.1 (Done)** → **AF8/7.2 (Done)** →
-  **AF9 (Done)** → **TS7 (Done)** → **TS8 (Done)** → **TS9 (Next)** → TS10 → remaining 5.1 and Phase 5 gate → Phase 6. Base verification/recipe smoke may
+  **AF9 (Done)** → **TS7 (Done)** → **TS8 (Done)** → **TS9 (In progress)** → TS10 → remaining 5.1 and Phase 5 gate → Phase 6. Base verification/recipe smoke may
   start when its prerequisites exist; it does not complete the larger gates.
   AF4 precedes full AF3 because verification reads brief/review metadata.
 - **Pending product choices:** default autopilot/co-edit mode, auto-merge policy,
@@ -376,7 +376,7 @@ Specification: [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md) and companion [TASK_SH
 Each milestone below may need several sequential, single-lane commits. Core/schema = Lane 2;
 MCP/harness/docs = Lane 4; UI = Lane 1; packaging/native verification = Lane 3.
 Packet IDs are stable labels; follow the integrated timeline queue:
-**AF0 (Done) → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → Task Sheet v1 (TS0–TS6) & Flagship Recipes (with CET v0.1) → AF6.1 (Done) → UI-P0..UI-P7 (Done) → AF7/7.1 (Done) → AF8/7.2 (Done) → AF9 (Done) → TS7 (Done) → **TS8 (Done)** → **TS9 (In progress / next)** → TS10 (Daemon, Web API & Web Desk) → XP1–XP4 (Cross-platform) → TS10 (SSO) & TS-X (Shared agent-contract crate).**
+**AF0 (Done) → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → Task Sheet v1 (TS0–TS6) & Flagship Recipes (with CET v0.1) → AF6.1 (Done) → UI-P0..UI-P7 (Done) → AF7/7.1 (Done) → AF8/7.2 (Done) → AF9 (Done) → TS7 (Done) → **TS8 (Done)** → **TS9 (In progress)** → TS10 (SSO) & TS-X (Shared agent-contract crate).**
 
 ### AF0 — Baseline, housekeeping and actor design
 - [x] Reconcile the supplied plan at `7c20b98`, add companion/cross-links and refresh the local `docs/planning.md` index (kept ignored per repository policy); retain completed work and blocked stems. Move misplaced match-cut evidence into the progress log and correct stale checklist header/Phase 3 status.
@@ -538,10 +538,17 @@ and delivery packages. Core/schema = Lane 2; MCP/harness/docs = Lane 4; UI = Lan
 - [x] Add Playwright E2E suite in `apps/saturn-tauri/tests/e2e/webdesk.mjs` verifying: load `?mode=desk` → check AGPL §13 source/licence link → create job from template → submit → approve plan → agent execution & question flow → review page with playhead & timecoded notes → approve delivery (Lane 1/3, landed `4fb84a2`).
 - [x] **Gate:** Playwright E2E suite passes (`pnpm test:e2e` across all 13 areas including `webdesk: passed` with 0 browser errors); 193/193 unit tests pass (including `webdesk.test.ts`); all workspace gates pass (`cargo test --workspace`, `pnpm build`, `pnpm test`, `check:glass` [306 pairs, 0 raw hex colours, 134 tokens, raw media surfaces], `check:commands` [492], `check:source-size --max-lines=800` [all <= 657L], `license-headers check` [756 files carry AGPL-3.0-or-later SPDX headers], `agent-harness/tests/` [101/101 passed in 227s]) — **PASSED 2026-11-16** (`4fb84a2`).
 
-### TS9 — Runner & multi-job execution — `status: next`
-- [ ] Runner daemon service: watches `ready` sheets, leases worker sessions, enforces budget limits (wall-clock, token cost, render minutes) (Lane 4).
-- [ ] Support bring-your-own model endpoints (cloud API keys or local LLM/vision endpoints) (Lane 4).
-- [ ] **Gate:** Two concurrent task sheets complete within assigned budgets; kill switch / Stop cleanly cancels execution.
+### TS9 — Runner & multi-job execution — `status: in_progress`
+- [ ] Runner daemon service: watches and polls for task sheets in state `ready`, leases worker sessions from `SessionManager` (`crates/saturn-control/src/session.rs`), assigns agent actor (`agent-worker-<id>`) with `tasksheet` permission profile, sliding-window rate limit, wall-clock time budget (`budget_secs`), token cost budget (`budget_usd`, `max_tokens`), and render minutes budget (`max_render_minutes`) (Lane 4).
+- [ ] Concurrent worker pool and kill switch: manages concurrent worker leases (`max_concurrent_workers >= 2`) and wires AF2 generation-fenced kill switch (`session_stop`) immediately aborting active execution with `SessionStopped` and fencing subsequent calls within `<= 1s` (Lane 4).
+- [ ] Bring-Your-Own (BYO) model endpoints: configuration and adapter supporting local endpoints (Ollama, vLLM, llama.cpp on `http://localhost:.../v1` or local socket) and cloud endpoints (Anthropic, OpenAI, Gemini, OpenRouter) with endpoint resolution, parameter validation, and secure credential handling (zero plaintext secrets in `audit.jsonl`) (Lane 4).
+- [ ] REST API & CLI integration: mount runner endpoints in `saturn-control` (`GET /runner/status`, `POST /runner/start`, `POST /runner/stop`, `GET /runner/jobs`, `POST /runner/jobs/:id/cancel`) and add CLI group in `agent-harness/cli_anything_eep/commands/runner.py` (`cli-anything-eep runner start / status / stop / list`) with full CLI subprocess tests (Lane 4).
+- [ ] **Gate:** Conformance test suite in `crates/saturn-control/tests/ts9_runner_tests.rs` passes:
+  - Concurrency gate: At least two concurrent task sheets leased and executed simultaneously by worker pool (`agent-worker-1`, `agent-worker-2`) with distinct sessions, isolated state, and zero lock contention.
+  - Budget enforcement gate: Workers strictly bounded by wall-clock time (`budget_secs`), token/dollar cost (`budget_usd`, `max_tokens`), and render limits (`max_render_minutes`), stopping cleanly with typed `BudgetExceeded` errors.
+  - Kill switch gate: Calling `session_stop` immediately fences leased worker session with `SessionStopped` and terminates work within `<= 1s`.
+  - BYO endpoint gate: Local and cloud endpoint resolution and invocation with redacted credentials in audit logs.
+  - Repository gates: `check:source-size --max-lines=800`, SPDX AGPL-3.0-or-later headers (`license-headers.mjs check`), `cargo test -p saturn-control`, `cargo test --workspace`, `pnpm test`, `pnpm test:e2e`, and `agent-harness/tests/` (101+ passed).
 
 ### TS10 — Enterprise SSO
 - [ ] OIDC / SAML authentication support for Web Desk deployments (Lane 4).
