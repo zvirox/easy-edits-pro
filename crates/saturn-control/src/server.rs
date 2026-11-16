@@ -17,6 +17,7 @@ use tokio::sync::broadcast;
 use crate::audit::{AuditLogger, DEFAULT_MAX_AUDIT_ENTRIES, SharedAuditLogger};
 use crate::auth::AuthManager;
 use crate::handlers;
+use crate::runner::{RunnerConfig, RunnerService};
 use crate::session::SessionManager;
 use crate::uds::UdsServer;
 
@@ -31,6 +32,7 @@ pub struct DaemonConfig {
     pub project_root: Option<PathBuf>,
     pub audit_log_path: Option<PathBuf>,
     pub max_audit_entries: usize,
+    pub max_concurrent_workers: usize,
 }
 
 impl Default for DaemonConfig {
@@ -42,6 +44,7 @@ impl Default for DaemonConfig {
             project_root: None,
             audit_log_path: None,
             max_audit_entries: DEFAULT_MAX_AUDIT_ENTRIES,
+            max_concurrent_workers: 2,
         }
     }
 }
@@ -55,6 +58,7 @@ pub struct ControlServer {
     pub sessions: Arc<SessionManager>,
     pub audit: SharedAuditLogger,
     pub project_root: Option<PathBuf>,
+    pub runner: Arc<RunnerService>,
 }
 
 impl ControlServer {
@@ -82,6 +86,12 @@ impl ControlServer {
             .expect("initialize audit logger");
         let audit = Arc::new(Mutex::new(audit_logger));
 
+        let runner_config = RunnerConfig {
+            max_concurrent_workers: config.max_concurrent_workers,
+            ..Default::default()
+        };
+        let runner = Arc::new(RunnerService::new(runner_config, Arc::clone(&sessions)));
+
         Self {
             app,
             events,
@@ -90,6 +100,7 @@ impl ControlServer {
             sessions,
             audit,
             project_root: config.project_root,
+            runner,
         }
     }
 
@@ -118,6 +129,7 @@ impl ControlServer {
             sessions: Arc::clone(&self.sessions),
             audit: Arc::clone(&self.audit),
             project_root: self.project_root.clone(),
+            runner: Arc::clone(&self.runner),
         });
         let base_router = Router::new()
             .route("/health", get(handlers::health))
