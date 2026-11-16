@@ -69,7 +69,11 @@ impl DaemonSession {
         time_budget_secs: Option<u64>,
     ) -> Self {
         let session_id = id.into();
-        let actor = ActorId::agent(actor_name);
+        let actor = if actor_name.contains("human") || actor_name == "admin" || actor_name == "daemon-admin" {
+            ActorId::human()
+        } else {
+            ActorId::agent(actor_name)
+        };
         Self {
             id: session_id,
             actor,

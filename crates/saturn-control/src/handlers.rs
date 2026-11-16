@@ -240,16 +240,23 @@ pub async fn session_stop_handler(
     };
 
     match server.sessions.stop_session(&session_id) {
-        Ok(generation) => (
-            StatusCode::OK,
-            Json(json!({
-                "success": true,
-                "stopped": true,
+        Ok(generation) => {
+            server.broadcast(json!({
+                "type": "session_stopped",
                 "session_id": session_id,
                 "generation": generation,
-            })),
-        )
-            .into_response(),
+            }));
+            (
+                StatusCode::OK,
+                Json(json!({
+                    "success": true,
+                    "stopped": true,
+                    "session_id": session_id,
+                    "generation": generation,
+                })),
+            )
+            .into_response()
+        }
         Err(e) => (
             StatusCode::NOT_FOUND,
             Json(ErrorResponse {
@@ -285,16 +292,23 @@ pub async fn session_resume_handler(
     };
 
     match server.sessions.resume_session(&session_id, &caller) {
-        Ok(generation) => (
-            StatusCode::OK,
-            Json(json!({
-                "success": true,
-                "resumed": true,
+        Ok(generation) => {
+            server.broadcast(json!({
+                "type": "session_resumed",
                 "session_id": session_id,
                 "generation": generation,
-            })),
-        )
-            .into_response(),
+            }));
+            (
+                StatusCode::OK,
+                Json(json!({
+                    "success": true,
+                    "resumed": true,
+                    "session_id": session_id,
+                    "generation": generation,
+                })),
+            )
+            .into_response()
+        }
         Err(e) => (
             StatusCode::FORBIDDEN,
             Json(ErrorResponse {
@@ -487,6 +501,7 @@ pub async fn websocket(
 
 async fn stream_events(mut socket: WebSocket, server: Arc<ControlServer>) {
     let mut events = server.subscribe();
+    let mut broadcasts = server.subscribe_broadcasts();
     let hello = json!({
         "type": "connected",
         "commands": server.app().registry.all_specs().len(),
@@ -507,6 +522,18 @@ async fn stream_events(mut socket: WebSocket, server: Arc<ControlServer>) {
                 }
                 Err(broadcast::error::RecvError::Lagged(skipped)) => {
                     warn!(skipped, "websocket client lagged");
+                    continue;
+                }
+                Err(broadcast::error::RecvError::Closed) => break,
+            },
+            broadcast_msg = broadcasts.recv() => match broadcast_msg {
+                Ok(msg) => {
+                    if socket.send(Message::Text(msg.to_string())).await.is_err() {
+                        break;
+                    }
+                }
+                Err(broadcast::error::RecvError::Lagged(skipped)) => {
+                    warn!(skipped, "websocket broadcast lagged");
                     continue;
                 }
                 Err(broadcast::error::RecvError::Closed) => break,

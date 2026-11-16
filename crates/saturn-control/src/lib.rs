@@ -7,6 +7,7 @@
 //! authentication, budget, session isolation, and audit modules are
 //! exposed here so integration tests and embedders can mount them directly.
 
+pub mod api;
 pub mod audit;
 pub mod auth;
 pub mod budget;

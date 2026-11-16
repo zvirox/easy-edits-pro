@@ -50,6 +50,7 @@ impl Default for DaemonConfig {
 pub struct ControlServer {
     pub app: Arc<AppContext>,
     pub events: broadcast::Sender<AppEvent>,
+    pub broadcasts: broadcast::Sender<serde_json::Value>,
     pub auth: Arc<AuthManager>,
     pub sessions: Arc<SessionManager>,
     pub audit: SharedAuditLogger,
@@ -69,6 +70,8 @@ impl ControlServer {
             let _ = sender.send(event);
         });
 
+        let (broadcasts, _) = broadcast::channel(EVENT_BUFFER);
+
         let auth = Arc::new(AuthManager::new(config.master_token));
         let sessions = Arc::new(SessionManager::new(
             config.rate_limit_per_minute,
@@ -82,6 +85,7 @@ impl ControlServer {
         Self {
             app,
             events,
+            broadcasts,
             auth,
             sessions,
             audit,
@@ -93,6 +97,14 @@ impl ControlServer {
         self.events.subscribe()
     }
 
+    pub fn broadcast(&self, message: serde_json::Value) {
+        let _ = self.broadcasts.send(message);
+    }
+
+    pub fn subscribe_broadcasts(&self) -> broadcast::Receiver<serde_json::Value> {
+        self.broadcasts.subscribe()
+    }
+
     pub fn app(&self) -> &Arc<AppContext> {
         &self.app
     }
@@ -101,12 +113,13 @@ impl ControlServer {
         let state = Arc::new(Self {
             app: Arc::clone(&self.app),
             events: self.events.clone(),
+            broadcasts: self.broadcasts.clone(),
             auth: Arc::clone(&self.auth),
             sessions: Arc::clone(&self.sessions),
             audit: Arc::clone(&self.audit),
             project_root: self.project_root.clone(),
         });
-        Router::new()
+        let base_router = Router::new()
             .route("/health", get(handlers::health))
             .route("/auth/token", post(handlers::issue_token))
             .route("/project/open", post(handlers::project_open_handler))
@@ -118,8 +131,9 @@ impl ControlServer {
             .route("/session/status", get(handlers::session_status_handler))
             .route("/commands", get(handlers::list_commands))
             .route("/commands/:id/execute", post(handlers::execute_command))
-            .route("/ws", get(handlers::websocket))
-            .with_state(state)
+            .route("/ws", get(handlers::websocket));
+
+        crate::api::mount_api_routes(base_router).with_state(state)
     }
 
     pub fn create_uds_server(&self, socket_path: impl Into<PathBuf>) -> UdsServer {

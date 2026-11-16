@@ -15,7 +15,6 @@ thiserror = "2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 axum = { version = "0.7", features = ["ws", "json"] }
-tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 anyhow = "1"
 parking_lot = "0.12"
@@ -24,6 +23,8 @@ chrono = { version = "0.4", features = ["serde"] }
 
 [dev-dependencies]
 tokio = { version = "1.54", features = ["rt-multi-thread", "macros", "net", "sync", "time", "io-util", "fs", "signal"] }
+tokio-tungstenite = "0.21"
+futures-util = "0.3"
 tower = { version = "0.5", features = ["util"] }
 http-body-util = "0.1"
 tempfile = "3"
