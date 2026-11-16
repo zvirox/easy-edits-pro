@@ -22,6 +22,7 @@ import * as motion from './motion.mjs';
 import * as agent from './agent.mjs';
 import * as tasksheet from './tasksheet.mjs';
 import * as review from './review.mjs';
+import * as webdesk from './webdesk.mjs';
 
 // Area modules run in the original smoke order; each one receives the shared
 // harness context and appends its results to `ctx.state`.
@@ -38,6 +39,7 @@ const areaModules = [
   ['agent', agent],
   ['tasksheet', tasksheet],
   ['review', review],
+  ['webdesk', webdesk],
 ];
 
 const harness = await createHarness();
@@ -98,6 +100,7 @@ try {
     agent: state.agent,
     tasksheet: state.tasksheet,
     review: state.review,
+    webdesk: state.webdesk,
     editorScreenshot: '/tmp/easy-edits-pro-editor-smoke.png',
     importScreenshot: '/tmp/easy-edits-pro-import-workspace.png',
     exportScreenshot: '/tmp/easy-edits-pro-export-workspace.png',

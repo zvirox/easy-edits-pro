@@ -4,3 +4,4 @@
  * Also available under the EEP commercial licence — see LICENSING.md
  */
 @import "./styles/index.css";
+@import "./features/webdesk/webdesk.css";

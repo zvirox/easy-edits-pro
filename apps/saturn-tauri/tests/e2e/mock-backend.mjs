@@ -225,6 +225,7 @@ function setup({ mediaUrl, catalogue }) {
       return { updated: true, brief: structuredClone(doc.project.brief) };
     }
     if (id === 'tasksheet.create') {
+      doc ??= { project: { settings: { width: 1920, height: 1080 }, media: [], sequence: { tracks: [] } } };
       doc.project.task_sheet = structuredClone({ schema: 'tasksheet/1', rounds: [], questions: [], ...params });
       return { created: true, sheet: structuredClone(doc.project.task_sheet) };
     }
@@ -246,6 +247,33 @@ function setup({ mediaUrl, catalogue }) {
       sheet.questions = (sheet.questions ?? []).map(q => q.id === params.question_id ? { ...q, status: 'answered', selected_option_id: params.option_id } : q);
       if (sheet.status === 'needs_input') sheet.status = 'running';
       return { answered: true, sheet: structuredClone(sheet) };
+    }
+    if (id === 'tasksheet.plan_submit') {
+      doc.project.task_sheet ??= { schema: 'tasksheet/1', id: 'ts_default', title: 'Task Sheet', requester: 'human:user', deliverables: [], status: 'planning', rounds: [], questions: [] };
+      doc.project.task_sheet.plan = { steps: params.steps || [], submitted_by: ctx.actor, submitted_at_unix_ms: Date.now() };
+      doc.project.task_sheet.status = 'awaiting_plan_approval';
+      return { submitted: true, status: 'awaiting_plan_approval', sheet: structuredClone(doc.project.task_sheet) };
+    }
+    if (id === 'tasksheet.plan_approve') {
+      const sheet = doc.project.task_sheet;
+      if (!sheet) throw new Error('No task sheet attached');
+      sheet.plan = { ...(sheet.plan || { steps: [] }), approved_by: ctx.actor, approved_at_unix_ms: Date.now() };
+      sheet.status = 'running';
+      return { approved: true, status: 'running', sheet: structuredClone(sheet) };
+    }
+    if (id === 'tasksheet.plan_reject') {
+      const sheet = doc.project.task_sheet;
+      if (!sheet) throw new Error('No task sheet attached');
+      sheet.plan = { ...(sheet.plan || { steps: [] }), rejection_reason: params.reason || 'Plan rejected' };
+      sheet.status = 'planning';
+      return { rejected: true, status: 'planning', sheet: structuredClone(sheet) };
+    }
+    if (id === 'tasksheet.question_ask') {
+      doc.project.task_sheet ??= { schema: 'tasksheet/1', id: 'ts_default', title: 'Task Sheet', requester: 'human:user', deliverables: [], status: 'running', rounds: [], questions: [] };
+      const sheet = doc.project.task_sheet;
+      sheet.questions = [...(sheet.questions || []), { id: params.id || `q_${Date.now()}`, question: params.question, context: params.context || null, options: params.options || [], status: 'open' }];
+      sheet.status = 'needs_input';
+      return { asked: true, status: 'needs_input', sheet: structuredClone(sheet) };
     }
     if (id === 'review.list_changes') {
       const filtered = history
@@ -477,25 +505,13 @@ function setup({ mediaUrl, catalogue }) {
       push();
       const track = doc.project.sequence.tracks.find(item => item.id === params.track_id);
       const clip = track.clips[params.clip_index];
-      const oldDuration = clip.duration;
-      const oldSpeed = clip.speed > 0 ? clip.speed : 1;
+      const oldDuration = clip.duration, oldSpeed = clip.speed > 0 ? clip.speed : 1;
       let newSpeed = params.speed ?? oldSpeed;
-      let newDuration = params.new_duration ??
-        Math.round((oldDuration * oldSpeed) / newSpeed);
-      if (!params.new_duration) {
-        newSpeed = params.speed;
-      } else {
-        newSpeed = (oldDuration * oldSpeed) / newDuration;
-      }
+      let newDuration = params.new_duration ?? Math.round((oldDuration * oldSpeed) / newSpeed);
+      if (!params.new_duration) newSpeed = params.speed; else newSpeed = (oldDuration * oldSpeed) / newDuration;
       clip.duration = Math.max(1, newDuration);
       clip.speed = Math.round(newSpeed * 1000) / 1000;
-      return {
-        stretched: true,
-        duration: clip.duration,
-        speed: clip.speed,
-        linked: Boolean(params.linked),
-        affected: 1,
-      };
+      return { stretched: true, duration: clip.duration, speed: clip.speed, linked: Boolean(params.linked), affected: 1 };
     }
     if (id === 'sequence.create' || id === 'sequence.duplicate' || id === 'sequence.rename' || id === 'sequence.delete' || id === 'project.switch_sequence') {
       const allocId = () => {
@@ -649,14 +665,7 @@ function setup({ mediaUrl, catalogue }) {
       return { updated: true };
     }
     if (id === 'export.presets') {
-      return {
-        presets: {
-          source: { format: 'mp4', resolution: 'source', frame_rate: 'source' },
-          youtube_1080p: { format: 'mp4', resolution: '1920x1080', frame_rate: 'source' },
-          tiktok_1080x1920: { format: 'mp4', resolution: '1080x1920', frame_rate: 'source' },
-          instagram_square: { format: 'mp4', resolution: '1080x1080', frame_rate: 'source' },
-        },
-      };
+      return { presets: { source: { format: 'mp4', resolution: 'source', frame_rate: 'source' }, youtube_1080p: { format: 'mp4', resolution: '1920x1080', frame_rate: 'source' }, tiktok_1080x1920: { format: 'mp4', resolution: '1080x1920', frame_rate: 'source' }, instagram_square: { format: 'mp4', resolution: '1080x1080', frame_rate: 'source' } } };
     }
     if (id === 'export.resolve') {
       const pSettings = doc?.project?.settings ?? { width: 1920, height: 1080, frame_rate: { numerator: 30, denominator: 1 } };

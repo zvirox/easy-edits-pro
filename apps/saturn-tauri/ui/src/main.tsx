@@ -4,12 +4,18 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import { WebDeskShell } from "./features/webdesk";
 import { probeEnvironment, tagGlassCapability } from "./app/runtimeEnvironment";
 import "./style.css";
 
 // Tag the document before glass is painted so WebKitGTK machines with DMA-BUF
 // disabled fall back to the lite token set.
 void probeEnvironment().then(tagGlassCapability);
+
+const isWebDesk =
+  typeof window !== "undefined" &&
+  (new URLSearchParams(window.location.search).get("mode") === "desk" ||
+    new URLSearchParams(window.location.search).get("desk") === "1");
 
 // Phase 0 feasibility spike. `VITE_GLASS_SPIKE=1 pnpm tauri dev` mounts the
 // benchmark instead of the editor. The dynamic import keeps the spike out of
@@ -21,6 +27,12 @@ if (import.meta.env.VITE_GLASS_SPIKE === "1") {
   void import("./spike/GlassSpike").then(({ GlassSpike }) => {
     root.render(<GlassSpike />);
   });
+} else if (isWebDesk) {
+  root.render(
+    <React.StrictMode>
+      <WebDeskShell />
+    </React.StrictMode>,
+  );
 } else {
   root.render(
     <React.StrictMode>
