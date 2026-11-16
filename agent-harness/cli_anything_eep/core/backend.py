@@ -488,3 +488,134 @@ def close_saturn_cli() -> None:
     if _saturn_cli is not None:
         _saturn_cli.close()
         _saturn_cli = None
+
+
+class DaemonClient:
+    """Connect to an authenticated headless saturn-control daemon over UDS (AF9)."""
+
+    def __init__(
+        self,
+        socket_path: str,
+        token: Optional[str] = None,
+        *,
+        session_id: Optional[str] = None,
+        actor: str = "agent-harness",
+        timeout: float = 30.0,
+    ):
+        self.socket_path = socket_path
+        self.token = token
+        self.session_id = session_id or f"harness-{os.getpid()}"
+        self.actor = actor
+        self.timeout = timeout
+        self._socket: Optional[socket.socket] = None
+        self._lock = threading.Lock()
+        self.authenticated = False
+
+    def connect(self) -> dict[str, Any]:
+        """Establish UDS connection and authenticate if token is supplied."""
+        with self._lock:
+            if self._socket is not None:
+                return {"authenticated": self.authenticated}
+            try:
+                sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                sock.settimeout(self.timeout)
+                sock.connect(str(self.socket_path))
+                self._socket = sock
+            except OSError as error:
+                raise EepError(
+                    ErrorCode.BACKEND_ERROR,
+                    f"Could not connect to daemon at {self.socket_path}: {error}",
+                ) from error
+
+        if self.token:
+            return self.auth(self.token)
+        return {"connected": True}
+
+    def auth(self, token: str) -> dict[str, Any]:
+        res = self.call("auth", {"token": token, "session_id": self.session_id, "actor": self.actor})
+        self.authenticated = True
+        return res
+
+    def call(self, method: str, params: Optional[dict[str, Any]] = None) -> Any:
+        with self._lock:
+            if self._socket is None:
+                self.connect()
+            assert self._socket is not None
+            payload: dict[str, Any] = {"method": method, "params": params or {}}
+            if self.token and not self.authenticated:
+                payload["token"] = self.token
+            try:
+                line = json.dumps(payload, separators=(",", ":")) + "\n"
+                self._socket.sendall(line.encode("utf-8"))
+                buffer = bytearray()
+                while not buffer.endswith(b"\n"):
+                    chunk = self._socket.recv(4096)
+                    if not chunk:
+                        self.close()
+                        raise EepError(ErrorCode.BACKEND_ERROR, "Daemon closed connection")
+                    buffer.extend(chunk)
+                response = json.loads(bytes(buffer).decode("utf-8"))
+            except (BrokenPipeError, OSError) as error:
+                self.close()
+                raise EepError(ErrorCode.BACKEND_ERROR, f"Daemon communication error: {error}") from error
+
+        if not response.get("ok"):
+            err_type = str(response.get("error", "DaemonError"))
+            msg = str(response.get("message", "Daemon command failed"))
+            if err_type in ("MissingAuthToken", "InvalidAuthToken"):
+                raise EepError(ErrorCode.UNAUTHORIZED, f"{err_type}: {msg}")
+            elif err_type == "RateLimitExceeded":
+                raise EepError(ErrorCode.RATE_LIMIT_EXCEEDED, f"{err_type}: {msg}")
+            elif err_type == "BudgetExceeded":
+                raise EepError(ErrorCode.BUDGET_EXCEEDED, f"{err_type}: {msg}")
+            elif err_type == "SessionStopped":
+                raise EepError(ErrorCode.SESSION_STOPPED, f"{err_type}: {msg}")
+            elif err_type in ("PathOutsideProjectRoot", "UntrustedMediaOrigin"):
+                raise EepError(ErrorCode.PERMISSION_DENIED, f"{err_type}: {msg}")
+            else:
+                raise EepError(ErrorCode.BACKEND_ERROR, f"{err_type}: {msg}")
+
+        return response.get("result")
+
+    def project_open(self, path: Optional[str] = None) -> dict[str, Any]:
+        params = {"path": path} if path else {}
+        return self.call("project.open", params)
+
+    def project_close(self) -> dict[str, Any]:
+        return self.call("project.close")
+
+    def project_status(self) -> dict[str, Any]:
+        return self.call("project.status")
+
+    def project_save(self, path: Optional[str] = None) -> dict[str, Any]:
+        params = {"path": path} if path else {}
+        return self.call("project.save", params)
+
+    def session_stop(self) -> dict[str, Any]:
+        return self.call("session.stop", {"session_id": self.session_id})
+
+    def session_resume(self, caller: str = "human") -> dict[str, Any]:
+        return self.call("session.resume", {"session_id": self.session_id, "caller": caller})
+
+    def session_status(self) -> dict[str, Any]:
+        return self.call("session.status", {"session_id": self.session_id})
+
+    def execute_command(self, command_id: str, params: Optional[dict[str, Any]] = None) -> Any:
+        return self.call(command_id, params)
+
+    def close(self) -> None:
+        with self._lock:
+            sock, self._socket = self._socket, None
+            self.authenticated = False
+            if sock is not None:
+                try:
+                    sock.close()
+                except OSError:
+                    pass
+
+    def __enter__(self) -> "DaemonClient":
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()

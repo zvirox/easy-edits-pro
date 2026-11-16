@@ -167,6 +167,9 @@ impl EditorEngine {
     pub fn document(&self) -> &ProjectDocument {
         &self.document
     }
+    pub fn document_mut(&mut self) -> &mut ProjectDocument {
+        &mut self.document
+    }
     pub fn current_path(&self) -> Option<&std::path::Path> {
         self.current_path.as_deref()
     }
@@ -174,6 +177,10 @@ impl EditorEngine {
         serde_json::to_string(&self.document)
             .map(|snapshot| snapshot != self.saved_snapshot)
             .unwrap_or(true)
+    }
+
+    pub fn mark_saved(&mut self) {
+        self.saved_snapshot = serde_json::to_string(&self.document).unwrap_or_default();
     }
 
     pub fn restore_recovery(

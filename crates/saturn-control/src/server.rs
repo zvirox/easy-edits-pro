@@ -1,41 +1,92 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
-//! Control server state and routing.
+//! Control server state, router, and UDS runner (AF9).
 
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use axum::{
     Router,
     routing::{get, post},
 };
+use parking_lot::Mutex;
 use saturn_commands::context::{AppContext, AppEvent};
 use tokio::sync::broadcast;
 
+use crate::audit::{AuditLogger, DEFAULT_MAX_AUDIT_ENTRIES, SharedAuditLogger};
+use crate::auth::AuthManager;
 use crate::handlers;
+use crate::session::SessionManager;
+use crate::uds::UdsServer;
 
-/// Broadcast capacity for control-socket events. Slow subscribers drop the
-/// oldest events rather than blocking command execution.
 const EVENT_BUFFER: usize = 1024;
 
-/// Owns the application context and the event stream exposed over WebSocket.
+/// Configuration for the control server and daemon.
+#[derive(Clone, Debug)]
+pub struct DaemonConfig {
+    pub master_token: Option<String>,
+    pub rate_limit_per_minute: u32,
+    pub session_time_budget_secs: Option<u64>,
+    pub project_root: Option<PathBuf>,
+    pub audit_log_path: Option<PathBuf>,
+    pub max_audit_entries: usize,
+}
+
+impl Default for DaemonConfig {
+    fn default() -> Self {
+        Self {
+            master_token: None,
+            rate_limit_per_minute: 120,
+            session_time_budget_secs: Some(3600),
+            project_root: None,
+            audit_log_path: None,
+            max_audit_entries: DEFAULT_MAX_AUDIT_ENTRIES,
+        }
+    }
+}
+
+/// Owns the application context, authentication, sessions, and audit logging.
 pub struct ControlServer {
-    app: Arc<AppContext>,
-    events: broadcast::Sender<AppEvent>,
+    pub app: Arc<AppContext>,
+    pub events: broadcast::Sender<AppEvent>,
+    pub auth: Arc<AuthManager>,
+    pub sessions: Arc<SessionManager>,
+    pub audit: SharedAuditLogger,
+    pub project_root: Option<PathBuf>,
 }
 
 impl ControlServer {
     pub fn new(app: Arc<AppContext>) -> Self {
+        Self::with_config(app, DaemonConfig::default())
+    }
+
+    pub fn with_config(app: Arc<AppContext>, config: DaemonConfig) -> Self {
         let (events, _) = broadcast::channel(EVENT_BUFFER);
         let sender = events.clone();
 
-        // Bridge the registry's synchronous event bus into the async broadcast
-        // channel that WebSocket clients subscribe to.
         app.events.subscribe(move |event| {
             let _ = sender.send(event);
         });
 
-        Self { app, events }
+        let auth = Arc::new(AuthManager::new(config.master_token));
+        let sessions = Arc::new(SessionManager::new(
+            config.rate_limit_per_minute,
+            config.session_time_budget_secs,
+            config.project_root.clone(),
+        ));
+        let audit_logger = AuditLogger::new(config.audit_log_path.clone(), config.max_audit_entries)
+            .expect("initialize audit logger");
+        let audit = Arc::new(Mutex::new(audit_logger));
+
+        Self {
+            app,
+            events,
+            auth,
+            sessions,
+            audit,
+            project_root: config.project_root,
+        }
     }
 
     pub fn subscribe(&self) -> broadcast::Receiver<AppEvent> {
@@ -46,13 +97,46 @@ impl ControlServer {
         &self.app
     }
 
-    pub fn router(self) -> Router {
-        let state = Arc::new(self);
+    pub fn router(&self) -> Router {
+        let state = Arc::new(Self {
+            app: Arc::clone(&self.app),
+            events: self.events.clone(),
+            auth: Arc::clone(&self.auth),
+            sessions: Arc::clone(&self.sessions),
+            audit: Arc::clone(&self.audit),
+            project_root: self.project_root.clone(),
+        });
         Router::new()
             .route("/health", get(handlers::health))
+            .route("/auth/token", post(handlers::issue_token))
+            .route("/project/open", post(handlers::project_open_handler))
+            .route("/project/close", post(handlers::project_close_handler))
+            .route("/project/status", get(handlers::project_status_handler))
+            .route("/project/save", post(handlers::project_save_handler))
+            .route("/session/stop", post(handlers::session_stop_handler))
+            .route("/session/resume", post(handlers::session_resume_handler))
+            .route("/session/status", get(handlers::session_status_handler))
             .route("/commands", get(handlers::list_commands))
             .route("/commands/:id/execute", post(handlers::execute_command))
             .route("/ws", get(handlers::websocket))
             .with_state(state)
+    }
+
+    pub fn create_uds_server(&self, socket_path: impl Into<PathBuf>) -> UdsServer {
+        UdsServer::new(
+            socket_path,
+            self.auth.clone(),
+            self.sessions.clone(),
+            self.audit.clone(),
+            self.app.clone(),
+            self.project_root.clone(),
+        )
+    }
+
+    pub async fn run_uds(&self, socket_path: impl Into<PathBuf>) -> std::io::Result<()> {
+        let uds = self.create_uds_server(socket_path);
+        let listener = uds.bind().await?;
+        uds.run(listener).await;
+        Ok(())
     }
 }

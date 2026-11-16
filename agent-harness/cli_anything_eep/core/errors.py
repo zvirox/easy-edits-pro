@@ -65,6 +65,12 @@ class ErrorCode(str, Enum):
     COMMAND_VALIDATION_FAILED = "COMMAND_VALIDATION_FAILED"
     COMMAND_EXECUTION_FAILED = "COMMAND_EXECUTION_FAILED"
 
+    # Auth & Daemon (AF9)
+    UNAUTHORIZED = "UNAUTHORIZED"
+    RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED"
+    BUDGET_EXCEEDED = "BUDGET_EXCEEDED"
+    SESSION_STOPPED = "SESSION_STOPPED"
+
 
 class EepError(Exception):
     """Base exception for Easy Edits Pro CLI errors."""
@@ -137,6 +143,26 @@ class ProjectNotOpenError(EepError):
             "No project is currently open. Use 'project open' or 'project create' first.",
             recoverable=True
         )
+
+
+class AuthError(EepError):
+    def __init__(self, message: str = "Authentication required or invalid token."):
+        super().__init__(ErrorCode.UNAUTHORIZED, message, recoverable=False)
+
+
+class RateLimitExceededError(EepError):
+    def __init__(self, message: str = "Rate limit exceeded."):
+        super().__init__(ErrorCode.RATE_LIMIT_EXCEEDED, message, recoverable=True)
+
+
+class BudgetExceededError(EepError):
+    def __init__(self, message: str = "Session time budget exceeded."):
+        super().__init__(ErrorCode.BUDGET_EXCEEDED, message, recoverable=False)
+
+
+class SessionStoppedError(EepError):
+    def __init__(self, message: str = "Session has been stopped."):
+        super().__init__(ErrorCode.SESSION_STOPPED, message, recoverable=False)
 
 
 class TimelineNotFoundError(EepError):

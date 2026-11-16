@@ -93,6 +93,27 @@ def http_json(url: str, timeout: float = 2.0) -> dict[str, Any]:
     return payload
 
 
+def uds_json(socket_path: str, token: Optional[str] = None, timeout: float = 2.0) -> dict[str, Any]:
+    """Send health probe over Unix Domain Socket."""
+    import socket
+    try:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+            client.settimeout(timeout)
+            client.connect(socket_path)
+            payload = {"method": "health"}
+            if token:
+                payload["token"] = token
+            client.sendall(json.dumps(payload).encode("utf-8") + b"\n")
+            line = client.makefile("r", encoding="utf-8").readline()
+            return json.loads(line)
+    except Exception as error:
+        raise EepError(
+            ErrorCode.BACKEND_ERROR,
+            f"Could not reach UDS {socket_path}: {error}",
+            details={"socket": socket_path},
+        ) from error
+
+
 @dataclass
 class ServiceRecord:
     """One daemon started by this CLI."""
@@ -103,6 +124,8 @@ class ServiceRecord:
     port: int
     command: list[str]
     log: str
+    socket: Optional[str] = None
+    token: Optional[str] = None
     started_at: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat(timespec="seconds")
     )
@@ -128,6 +151,8 @@ class ServiceRecord:
             port=int(value.get("port", 0)),
             command=[str(part) for part in value.get("command", [])],
             log=str(value.get("log", "")),
+            socket=value.get("socket"),
+            token=value.get("token"),
             started_at=str(value.get("started_at", "")),
         )
 
@@ -186,8 +211,10 @@ class ManagedService:
         self,
         argv: list[str],
         *,
-        host: str,
-        port: int,
+        host: str = "127.0.0.1",
+        port: int = 0,
+        socket_path: Optional[str] = None,
+        token: Optional[str] = None,
         health_path: str = "/health",
         timeout: float = START_TIMEOUT,
     ) -> dict[str, Any]:
@@ -219,6 +246,8 @@ class ManagedService:
             port=port,
             command=argv,
             log=str(log_path),
+            socket=socket_path,
+            token=token,
         )
 
         deadline = time.monotonic() + timeout
@@ -226,7 +255,13 @@ class ManagedService:
             if process.poll() is not None:
                 break
             try:
-                health = http_json(f"http://{host}:{port}{health_path}", timeout=1.0)
+                if socket_path:
+                    if not Path(socket_path).exists():
+                        time.sleep(0.1)
+                        continue
+                    health = uds_json(socket_path, token=token, timeout=1.0)
+                else:
+                    health = http_json(f"http://{host}:{port}{health_path}", timeout=1.0)
             except EepError:
                 time.sleep(0.1)
                 continue
@@ -242,9 +277,10 @@ class ManagedService:
             except subprocess.TimeoutExpired:
                 process.kill()
 
+        target_desc = f"socket {socket_path}" if socket_path else f"http://{host}:{port}{health_path}"
         raise EepError(
             ErrorCode.BACKEND_ERROR,
-            f"{self.name} did not become healthy on http://{host}:{port}{health_path}.",
+            f"{self.name} did not become healthy on {target_desc}.",
             details={"log": str(log_path), "tail": _tail(log_path), "command": argv},
             recoverable=False,
         )
@@ -259,9 +295,12 @@ class ManagedService:
 
         result: dict[str, Any] = {**record.to_dict(), "state": "running"}
         try:
-            result["health"] = http_json(
-                f"http://{record.host}:{record.port}/health", timeout=1.5
-            )
+            if record.socket and Path(record.socket).exists():
+                result["health"] = uds_json(record.socket, token=record.token, timeout=1.5)
+            elif record.port > 0:
+                result["health"] = http_json(
+                    f"http://{record.host}:{record.port}/health", timeout=1.5
+                )
         except EepError as error:
             result["health_error"] = error.message
         return result
