@@ -74,21 +74,25 @@ fn extract_auth(headers: &HeaderMap, server: &ControlServer) -> Result<(String, 
     }
 }
 
-/// `GET /health` — liveness probe with command specs and active daemon sessions.
-pub async fn health(State(server): State<Arc<ControlServer>>) -> impl IntoResponse {
+/// `GET /health` — unauthenticated liveness probe; deliberately exposes no inventory.
+pub async fn health() -> impl IntoResponse {
     Json(json!({
         "status": "ok",
         "version": env!("CARGO_PKG_VERSION"),
-        "commands": server.app().registry.all_specs().len(),
-        "active_sessions": server.sessions.count(),
     }))
 }
 
 /// `POST /auth/token` — issue a new session token.
 pub async fn issue_token(
     State(server): State<Arc<ControlServer>>,
+    headers: HeaderMap,
     body: Option<Json<Value>>,
-) -> impl IntoResponse {
+) -> Response {
+    let header_val = headers
+        .get("authorization")
+        .or_else(|| headers.get("x-auth-token"))
+        .and_then(|v| v.to_str().ok());
+
     let payload = body.map(|Json(v)| v).unwrap_or_else(|| json!({}));
     let session_id = payload
         .get("session_id")
@@ -99,8 +103,48 @@ pub async fn issue_token(
         .and_then(Value::as_str)
         .unwrap_or("agent");
 
+    let denial = server
+        .auth
+        .require_master(header_val)
+        .and_then(|()| crate::auth::validate_identity(session_id, actor));
+    if let Err(e) = denial {
+        let status = match e {
+            crate::auth::AuthError::MissingAuthToken => StatusCode::UNAUTHORIZED,
+            crate::auth::AuthError::InvalidIdentity(_) => StatusCode::BAD_REQUEST,
+            crate::auth::AuthError::TokenIssuanceDisabled => StatusCode::SERVICE_UNAVAILABLE,
+            _ => StatusCode::FORBIDDEN,
+        };
+        let _ = server.audit.lock().record(
+            "unauthenticated",
+            "anonymous",
+            "auth.token",
+            &json!({ "session_id": session_id, "actor": actor }),
+            "admin",
+            0,
+            e.error_code(),
+        );
+        return (
+            status,
+            Json(ErrorResponse {
+                success: false,
+                error: e.to_string(),
+                code: Some(e.error_code().to_string()),
+            }),
+        )
+            .into_response();
+    }
+
     let token = server.auth.issue_session_token(session_id, actor);
     let _session = server.sessions.get_or_create(session_id, actor);
+    let _ = server.audit.lock().record(
+        session_id,
+        actor,
+        "auth.token",
+        &json!({ "session_id": session_id, "actor": actor }),
+        "admin",
+        0,
+        "ok",
+    );
 
     (
         StatusCode::OK,
@@ -111,6 +155,7 @@ pub async fn issue_token(
             "actor": actor,
         })),
     )
+        .into_response()
 }
 
 /// `POST /project/open` — open project headless in session.
@@ -349,8 +394,14 @@ pub async fn session_status_handler(
 }
 
 /// `GET /commands` — every registered command spec, for client introspection.
-pub async fn list_commands(State(server): State<Arc<ControlServer>>) -> Json<Vec<CommandSpec>> {
-    Json(server.app().registry.all_specs())
+pub async fn list_commands(
+    State(server): State<Arc<ControlServer>>,
+    headers: HeaderMap,
+) -> Response {
+    if let Err(err) = extract_auth(&headers, &server) {
+        return err.into_response();
+    }
+    Json::<Vec<CommandSpec>>(server.app().registry.all_specs()).into_response()
 }
 
 /// `POST /commands/:id/execute` — run one command and return its JSON result.
@@ -379,7 +430,7 @@ pub async fn execute_command(
         .filter(|value| !value.is_null())
         .unwrap_or_else(|| json!({}));
 
-    // If auth header is provided, enforce session state, rate limit, and budget
+    // Authentication is mandatory: enforce token, session state, rate limit, and budget.
     let auth_info = headers
         .get("authorization")
         .or_else(|| headers.get("x-auth-token"))
@@ -430,7 +481,16 @@ pub async fn execute_command(
             }
         }
     } else {
-        ("anonymous".to_string(), "anonymous".to_string())
+        let e = crate::auth::AuthError::MissingAuthToken;
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(ErrorResponse {
+                success: false,
+                error: e.to_string(),
+                code: Some(e.error_code().to_string()),
+            }),
+        )
+            .into_response();
     };
 
     debug!(%command_id, "executing control command");
@@ -492,10 +552,47 @@ pub async fn execute_command(
 }
 
 /// `GET /ws` — upgrade to a WebSocket that streams registry events.
+///
+/// Requires a valid token, sent either as an `Authorization`/`X-Auth-Token` header or, for
+/// browsers (which cannot set headers on WebSocket), as the subprotocol `bearer.<token>`.
 pub async fn websocket(
     State(server): State<Arc<ControlServer>>,
+    headers: HeaderMap,
     upgrade: WebSocketUpgrade,
 ) -> Response {
+    let proto_token = headers
+        .get("sec-websocket-protocol")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| v.split(',').map(str::trim).find(|p| p.starts_with("bearer.")))
+        .map(str::to_string);
+    let header_token = headers
+        .get("authorization")
+        .or_else(|| headers.get("x-auth-token"))
+        .and_then(|v| v.to_str().ok())
+        .map(str::to_string);
+    let presented = header_token.or_else(|| {
+        proto_token
+            .as_deref()
+            .and_then(|p| p.strip_prefix("bearer."))
+            .map(str::to_string)
+    });
+
+    if let Err(e) = server.auth.validate_token(presented.as_deref()) {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(ErrorResponse {
+                success: false,
+                error: e.to_string(),
+                code: Some(e.error_code().to_string()),
+            }),
+        )
+            .into_response();
+    }
+
+    let upgrade = match proto_token {
+        Some(p) => upgrade.protocols([p]),
+        None => upgrade,
+    };
     upgrade.on_upgrade(move |socket| stream_events(socket, server))
 }
 

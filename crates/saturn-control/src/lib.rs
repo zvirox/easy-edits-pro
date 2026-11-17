@@ -11,6 +11,7 @@ pub mod api;
 pub mod audit;
 pub mod auth;
 pub mod budget;
+pub mod guard;
 pub mod handlers;
 pub mod project;
 pub mod provenance;

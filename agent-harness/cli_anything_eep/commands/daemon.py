@@ -57,8 +57,12 @@ def daemon_start(
             port = 9090
             argv.extend(["--host", host, "--port", str(port)])
 
-        if auth_token:
-            argv.extend(["--auth-token", auth_token])
+        if not auth_token:
+            # The daemon refuses to run open and would otherwise generate a token this
+            # client could not learn, so mint one here and hand it to the service record.
+            import secrets
+            auth_token = secrets.token_urlsafe(32)
+        argv.extend(["--auth-token", auth_token])
         if rate_limit:
             argv.extend(["--rate-limit", str(rate_limit)])
         if time_budget:

@@ -59,7 +59,8 @@ async fn main() -> Result<()> {
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
 
-    let args = parse_args(std::env::args().skip(1))?;
+    let mut args = parse_args(std::env::args().skip(1))?;
+    resolve_secure_defaults(&mut args)?;
     let app = Arc::new(build_context()?);
 
     let config = DaemonConfig {
@@ -135,6 +136,43 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
+/// Never run open: ensure a master token exists and file access is confined to a project root.
+fn resolve_secure_defaults(args: &mut ServerArgs) -> Result<()> {
+    if args.auth_token.is_some() {
+        tracing::warn!(
+            "--auth-token is visible in the process list; prefer EEP_CONTROL_TOKEN or --auth-token-file"
+        );
+    }
+    if args.auth_token.is_none() {
+        args.auth_token = std::env::var("EEP_CONTROL_TOKEN").ok().filter(|t| !t.trim().is_empty());
+    }
+    if args.auth_token.as_deref().is_some_and(|t| t.trim().len() < 16) {
+        anyhow::bail!("the master token must be at least 16 characters");
+    }
+    if args.auth_token.is_none() {
+        let generated = format!(
+            "{}{}",
+            uuid::Uuid::new_v4().simple(),
+            uuid::Uuid::new_v4().simple()
+        );
+        eprintln!("saturn-control: no master token supplied; generated one for this run:\n  {generated}");
+        args.auth_token = Some(generated);
+    }
+    if args.project_root.is_none() {
+        let root = std::env::current_dir()?.join("eep-daemon-projects");
+        std::fs::create_dir_all(&root)?;
+        tracing::warn!(root = %root.display(), "no --project-root given; confining file access to this directory");
+        args.project_root = Some(root);
+    }
+    if args.port.is_some() && !matches!(args.host.as_str(), "127.0.0.1" | "localhost" | "::1") {
+        tracing::warn!(
+            host = %args.host,
+            "binding to a non-loopback address: the daemon speaks plain HTTP; put it behind a TLS reverse proxy"
+        );
+    }
+    Ok(())
+}
+
 /// Build the shared application context with every builtin command registered.
 fn build_context() -> Result<AppContext> {
     let registry = CommandRegistry::new();
@@ -186,6 +224,14 @@ fn parse_args(args: impl Iterator<Item = String>) -> Result<ServerArgs> {
                         .ok_or_else(|| anyhow::anyhow!("{arg} requires a token string"))?,
                 );
             }
+            "--auth-token-file" => {
+                let path = args
+                    .next()
+                    .ok_or_else(|| anyhow::anyhow!("{arg} requires a file path"))?;
+                let token = std::fs::read_to_string(&path)
+                    .map_err(|e| anyhow::anyhow!("cannot read token file {path}: {e}"))?;
+                result.auth_token = Some(token.trim().to_string());
+            }
             "--rate-limit" => {
                 let val = args
                     .next()
@@ -218,7 +264,7 @@ fn parse_args(args: impl Iterator<Item = String>) -> Result<ServerArgs> {
                        --host, -H          Bind host (default 127.0.0.1)\n\
                        --port, -p          TCP port (default 8080)\n\
                        --socket, --uds, -s Unix Domain Socket path\n\
-                       --auth-token        Master bearer token for daemon authentication\n\
+                       --auth-token        Master bearer token (visible in `ps`; prefer EEP_CONTROL_TOKEN or --auth-token-file;\n                              if none is given a random one is generated and printed once)\n                       --auth-token-file   Read the master token from a file\n\
                        --rate-limit        Max requests per minute per session (default 120)\n\
                        --time-budget       Max session lifetime in seconds (default 3600)\n\
                        --project-root      Allowed directory root for filesystem operations\n\

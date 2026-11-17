@@ -37,6 +37,8 @@ use tempfile::tempdir;
 use tokio::net::TcpListener;
 use tower::ServiceExt;
 
+const TEST_MASTER: &str = "test-master-token-0123456789";
+
 struct TestHarness {
     #[allow(dead_code)]
     server: Arc<ControlServer>,
@@ -52,6 +54,9 @@ impl TestHarness {
         let audit_path = dir.path().join("audit.jsonl");
         config.audit_log_path = Some(audit_path.clone());
         config.project_root = Some(dir.path().to_path_buf());
+        if config.master_token.is_none() {
+            config.master_token = Some(TEST_MASTER.to_string());
+        }
 
         let registry = CommandRegistry::new();
         register_builtin_commands(&registry).expect("register builtin commands");
@@ -137,7 +142,7 @@ impl TestHarness {
             .post(
                 "/auth/token",
                 json!({ "session_id": session_id, "actor": actor }),
-                None,
+                Some(TEST_MASTER),
             )
             .await;
         assert_eq!(status, StatusCode::OK);
@@ -484,7 +489,21 @@ async fn test_07_websocket_broadcast_integration() {
     let harness = TestHarness::new(DaemonConfig::default()).await;
     let ws_url = format!("ws://{}/ws", harness.addr);
 
-    let (mut ws_stream, _) = tokio_tungstenite::connect_async(&ws_url)
+    // /ws requires a token (no anonymous event stream).
+    {
+        use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+        let anon = tokio_tungstenite::connect_async(ws_url.as_str().into_client_request().unwrap()).await;
+        assert!(anon.is_err(), "anonymous websocket upgrade must be refused");
+    }
+    let ws_token = harness.issue_token("ws-probe", "agent").await;
+    let mut ws_req = {
+        use tokio_tungstenite::tungstenite::client::IntoClientRequest;
+        ws_url.as_str().into_client_request().unwrap()
+    };
+    ws_req
+        .headers_mut()
+        .insert("authorization", format!("Bearer {ws_token}").parse().unwrap());
+    let (mut ws_stream, _) = tokio_tungstenite::connect_async(ws_req)
         .await
         .expect("connect to /ws");
 

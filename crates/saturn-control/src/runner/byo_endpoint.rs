@@ -68,18 +68,30 @@ impl LocalEndpoint {
 
     /// Validate that the base_url is local (localhost, 127.x, ::1, or Unix socket path).
     pub fn validate(&self) -> Result<(), EndpointError> {
-        let url = self.base_url();
-        let is_local = url.starts_with("http://localhost")
-            || url.starts_with("http://127.")
-            || url.starts_with("http://[::1]")
-            || url.starts_with("unix://")
-            || url.starts_with('/'); // Unix socket path
+        let url = self.base_url().trim();
+        // Unix socket forms are explicit and cannot name a remote host.
+        if url.starts_with("unix://") || url.starts_with('/') {
+            return Ok(());
+        }
+        let invalid = || EndpointError::InvalidEndpoint {
+            message: format!(
+                "Local endpoint base_url must be http://localhost, a loopback IP, or a Unix socket path, got '{url}'"
+            ),
+        };
+        // Parse the URL: prefix matching accepts `http://localhost.evil.com` and
+        // `http://localhost@evil.com`, which would send prompts to a remote host.
+        let parsed = url::Url::parse(url).map_err(|_| invalid())?;
+        if parsed.scheme() != "http" || !parsed.username().is_empty() || parsed.password().is_some() {
+            return Err(invalid());
+        }
+        let is_local = match parsed.host() {
+            Some(url::Host::Domain(d)) => d.eq_ignore_ascii_case("localhost"),
+            Some(url::Host::Ipv4(ip)) => ip.is_loopback(),
+            Some(url::Host::Ipv6(ip)) => ip.is_loopback(),
+            None => false,
+        };
         if !is_local {
-            return Err(EndpointError::InvalidEndpoint {
-                message: format!(
-                    "Local endpoint base_url must be localhost or a Unix socket path, got '{url}'"
-                ),
-            });
+            return Err(invalid());
         }
         Ok(())
     }
@@ -231,6 +243,26 @@ mod tests {
         };
         let err = ep.validate().unwrap_err();
         assert_eq!(err.error_code(), "InvalidEndpoint");
+    }
+
+    #[test]
+    fn local_endpoint_rejects_prefix_and_userinfo_bypasses() {
+        for bad in [
+            "http://localhost.evil.com/v1",
+            "http://127.evil.com/v1",
+            "http://localhost@evil.com/v1",
+            "http://127.0.0.1@evil.com/v1",
+            "https://localhost:11434/v1",
+            "http://[::1].evil.com/v1",
+            "http://10.0.0.5:11434/v1",
+        ] {
+            let ep = LocalEndpoint::GenericLocal { base_url: bad.into(), model: "m".into() };
+            assert!(ep.validate().is_err(), "{bad} must be rejected");
+        }
+        for good in ["http://localhost:11434/v1", "http://127.0.0.1:8000", "http://[::1]:8080/v1", "unix:///run/llm.sock", "/run/llm.sock"] {
+            let ep = LocalEndpoint::GenericLocal { base_url: good.into(), model: "m".into() };
+            assert!(ep.validate().is_ok(), "{good} must be accepted");
+        }
     }
 
     #[test]

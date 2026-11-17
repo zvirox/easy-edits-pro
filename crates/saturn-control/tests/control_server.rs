@@ -16,7 +16,7 @@ use saturn_commands::{
     context::{AppContext, AppState, EventBus},
     register_builtin_commands,
 };
-use saturn_control::server::ControlServer;
+use saturn_control::server::{ControlServer, DaemonConfig};
 use serde_json::{Value, json};
 use tower::ServiceExt;
 
@@ -30,8 +30,14 @@ fn app() -> axum::Router {
         shortcuts: Arc::new(ShortcutManager::new()),
         events: Arc::new(EventBus::new()),
     });
-    ControlServer::new(context).router()
+    let config = DaemonConfig {
+        master_token: Some(MASTER.to_string()),
+        ..Default::default()
+    };
+    ControlServer::with_config(context, config).router()
 }
+
+const MASTER: &str = "control-server-test-token-01";
 
 async fn body_json(response: axum::response::Response) -> Value {
     let bytes = response.into_body().collect().await.unwrap().to_bytes();
@@ -39,7 +45,7 @@ async fn body_json(response: axum::response::Response) -> Value {
 }
 
 #[tokio::test]
-async fn health_reports_status_and_command_count() {
+async fn health_reports_status_without_inventory() {
     let response = app()
         .oneshot(Request::get("/health").body(Body::empty()).unwrap())
         .await
@@ -48,13 +54,14 @@ async fn health_reports_status_and_command_count() {
     assert_eq!(response.status(), StatusCode::OK);
     let body = body_json(response).await;
     assert_eq!(body["status"], "ok");
-    assert!(body["commands"].as_u64().unwrap() > 0);
+    // /health is unauthenticated, so it must not expose inventory.
+    assert!(body.get("commands").is_none());
 }
 
 #[tokio::test]
 async fn commands_endpoint_lists_registered_specs() {
     let response = app()
-        .oneshot(Request::get("/commands").body(Body::empty()).unwrap())
+        .oneshot(Request::get("/commands").header("authorization", format!("Bearer {MASTER}")).body(Body::empty()).unwrap())
         .await
         .unwrap();
 
@@ -73,7 +80,7 @@ async fn commands_endpoint_lists_registered_specs() {
 async fn execute_runs_a_command_and_returns_its_value() {
     let response = app()
         .oneshot(
-            Request::post("/commands/test.echo/execute")
+            Request::post("/commands/test.echo/execute").header("authorization", format!("Bearer {MASTER}"))
                 .header("content-type", "application/json")
                 .body(Body::from(r#"{"params":{"message":"hello"}}"#))
                 .unwrap(),
@@ -92,7 +99,7 @@ async fn execute_runs_a_command_and_returns_its_value() {
 async fn unknown_command_is_a_not_found_error() {
     let response = app()
         .oneshot(
-            Request::post("/commands/nope.nothing/execute")
+            Request::post("/commands/nope.nothing/execute").header("authorization", format!("Bearer {MASTER}"))
                 .header("content-type", "application/json")
                 .body(Body::from(json!({}).to_string()))
                 .unwrap(),
@@ -109,7 +116,7 @@ async fn unknown_command_is_a_not_found_error() {
 async fn invalid_params_are_a_client_error() {
     let response = app()
         .oneshot(
-            Request::post("/commands/test.echo/execute")
+            Request::post("/commands/test.echo/execute").header("authorization", format!("Bearer {MASTER}"))
                 .header("content-type", "application/json")
                 .body(Body::from(json!({}).to_string()))
                 .unwrap(),

@@ -19,6 +19,7 @@ uuid = { version = "1", features = ["v4", "serde"] }
 anyhow = "1"
 parking_lot = "0.12"
 sha2 = "0.10"
+url = "2"
 chrono = { version = "0.4", features = ["serde"] }
 
 [dev-dependencies]

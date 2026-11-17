@@ -19,6 +19,12 @@ pub enum AuthError {
     MissingAuthToken,
     #[error("InvalidAuthToken: invalid authentication token")]
     InvalidAuthToken,
+    #[error("AdminRequired: this endpoint requires the daemon master token")]
+    AdminRequired,
+    #[error("TokenIssuanceDisabled: the daemon was started without a master token")]
+    TokenIssuanceDisabled,
+    #[error("InvalidIdentity: {0}")]
+    InvalidIdentity(String),
 }
 
 impl AuthError {
@@ -26,6 +32,9 @@ impl AuthError {
         match self {
             Self::MissingAuthToken => "MissingAuthToken",
             Self::InvalidAuthToken => "InvalidAuthToken",
+            Self::AdminRequired => "AdminRequired",
+            Self::TokenIssuanceDisabled => "TokenIssuanceDisabled",
+            Self::InvalidIdentity(_) => "InvalidIdentity",
         }
     }
 }
@@ -91,7 +100,7 @@ impl AuthManager {
         let token = extract_bearer_token(raw);
 
         if let Some(ref master) = self.master_token {
-            if token == master.trim() {
+            if constant_time_eq(token.as_bytes(), master.trim().as_bytes()) {
                 return Ok(AuthClaims {
                     session_id: "master-session".to_string(),
                     actor: "daemon-admin".to_string(),
@@ -107,6 +116,28 @@ impl AuthManager {
         Err(AuthError::InvalidAuthToken)
     }
 
+    /// True only when `token_opt` is the configured master token (constant-time compare).
+    pub fn is_master(&self, token_opt: Option<&str>) -> bool {
+        let (Some(raw), Some(master)) = (token_opt, self.master_token.as_deref()) else {
+            return false;
+        };
+        let token = extract_bearer_token(raw);
+        !token.is_empty() && constant_time_eq(token.as_bytes(), master.trim().as_bytes())
+    }
+
+    /// Gate for admin-only endpoints such as `POST /auth/token`.
+    pub fn require_master(&self, token_opt: Option<&str>) -> Result<(), AuthError> {
+        if self.master_token.is_none() {
+            return Err(AuthError::TokenIssuanceDisabled);
+        }
+        match token_opt {
+            None => Err(AuthError::MissingAuthToken),
+            Some(t) if t.trim().is_empty() => Err(AuthError::MissingAuthToken),
+            Some(_) if self.is_master(token_opt) => Ok(()),
+            Some(_) => Err(AuthError::AdminRequired),
+        }
+    }
+
     pub fn revoke_token(&self, token: &str) -> bool {
         let normalized = extract_bearer_token(token.trim());
         self.session_tokens.write().remove(normalized).is_some()
@@ -116,6 +147,39 @@ impl AuthManager {
         let mut tokens = self.session_tokens.write();
         tokens.retain(|_, claims| claims.session_id != session_id);
     }
+}
+
+/// Compare two byte strings without early exit on the first differing byte.
+pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    let mut diff = (a.len() ^ b.len()) as u32;
+    let n = a.len().max(b.len());
+    for i in 0..n {
+        let x = a.get(i).copied().unwrap_or(0);
+        let y = b.get(i).copied().unwrap_or(0);
+        diff |= u32::from(x ^ y);
+    }
+    diff == 0
+}
+
+/// Session ids and actor names come from the caller of `/auth/token`; restrict them to a
+/// safe charset and reserve the identities the daemon itself uses for the master token.
+pub fn validate_identity(session_id: &str, actor: &str) -> Result<(), AuthError> {
+    let ok = |v: &str| {
+        !v.is_empty()
+            && v.len() <= 64
+            && v.chars()
+                .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_' | '.' | ':' | '@'))
+    };
+    if !ok(session_id) {
+        return Err(AuthError::InvalidIdentity("session_id must be 1-64 chars of [A-Za-z0-9-_.:@]".into()));
+    }
+    if !ok(actor) {
+        return Err(AuthError::InvalidIdentity("actor must be 1-64 chars of [A-Za-z0-9-_.:@]".into()));
+    }
+    if session_id == "master-session" || actor == "daemon-admin" {
+        return Err(AuthError::InvalidIdentity("reserved identity".into()));
+    }
+    Ok(())
 }
 
 pub fn extract_bearer_token(input: &str) -> &str {
@@ -162,6 +226,34 @@ mod tests {
 
         let claims_bearer = auth.validate_token(Some("Bearer secret-master")).unwrap();
         assert_eq!(claims_bearer.actor, "daemon-admin");
+    }
+
+    #[test]
+    fn require_master_rejects_session_tokens_and_unset_master() {
+        let auth = AuthManager::new(Some("secret-master".into()));
+        let session = auth.issue_session_token("s1", "agent");
+        assert_eq!(auth.require_master(None), Err(AuthError::MissingAuthToken));
+        assert_eq!(auth.require_master(Some(&session)), Err(AuthError::AdminRequired));
+        assert_eq!(auth.require_master(Some("Bearer secret-master")), Ok(()));
+        let open = AuthManager::new(None);
+        assert_eq!(open.require_master(Some("anything")), Err(AuthError::TokenIssuanceDisabled));
+    }
+
+    #[test]
+    fn identities_are_validated_and_reserved_names_blocked() {
+        assert!(validate_identity("job-1", "human:reviewer").is_ok());
+        assert!(validate_identity("master-session", "agent").is_err());
+        assert!(validate_identity("s", "daemon-admin").is_err());
+        assert!(validate_identity("", "agent").is_err());
+        assert!(validate_identity("a b", "agent").is_err());
+        assert!(validate_identity(&"x".repeat(65), "agent").is_err());
+    }
+
+    #[test]
+    fn constant_time_eq_matches_normal_eq() {
+        assert!(constant_time_eq(b"abc", b"abc"));
+        assert!(!constant_time_eq(b"abc", b"abd"));
+        assert!(!constant_time_eq(b"abc", b"abcd"));
     }
 
     #[test]

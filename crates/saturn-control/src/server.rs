@@ -145,7 +145,9 @@ impl ControlServer {
             .route("/commands/:id/execute", post(handlers::execute_command))
             .route("/ws", get(handlers::websocket));
 
-        crate::api::mount_api_routes(base_router).with_state(state)
+        crate::api::mount_api_routes(base_router)
+            .layer(axum::middleware::from_fn(crate::guard::origin_guard))
+            .with_state(state)
     }
 
     pub fn create_uds_server(&self, socket_path: impl Into<PathBuf>) -> UdsServer {

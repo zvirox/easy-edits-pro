@@ -50,11 +50,10 @@ pub fn validate_path_containment(
         candidate_path.to_path_buf()
     };
 
-    // Check canonicalization if path exists, or normalized lexical path if not yet created
-    let normalized = match resolved.canonicalize() {
-        Ok(c) => c,
-        Err(_) => normalize_lexical(&resolved),
-    };
+    // Resolve symlinks on the deepest existing ancestor, then re-append the not-yet-created
+    // remainder. Falling back to a purely lexical check would let `root/link/new.eep` escape
+    // the root through a symlinked directory.
+    let normalized = resolve_existing_prefix(&normalize_lexical(&resolved));
 
     if !normalized.starts_with(&canonical_root) {
         return Err(ProvenanceError::PathOutsideProjectRoot {
@@ -64,6 +63,28 @@ pub fn validate_path_containment(
     }
 
     Ok(normalized)
+}
+
+/// Canonicalize the longest existing prefix of `path` and append the remaining components.
+fn resolve_existing_prefix(path: &Path) -> PathBuf {
+    let mut existing = path.to_path_buf();
+    let mut tail: Vec<std::ffi::OsString> = Vec::new();
+    loop {
+        if let Ok(canon) = existing.canonicalize() {
+            let mut out = canon;
+            for part in tail.iter().rev() {
+                out.push(part);
+            }
+            return out;
+        }
+        match (existing.parent().map(Path::to_path_buf), existing.file_name()) {
+            (Some(parent), Some(name)) => {
+                tail.push(name.to_os_string());
+                existing = parent;
+            }
+            _ => return path.to_path_buf(),
+        }
+    }
 }
 
 /// Pure lexical path normalization without disk access.
@@ -175,5 +196,24 @@ mod tests {
 
         // Allowed for read tier
         assert!(validate_untrusted_media_text(&payload, Tier::Read).is_ok());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn symlinked_directory_cannot_escape_root_for_new_files() {
+        let root = tempfile::tempdir().unwrap();
+        let outside = tempfile::tempdir().unwrap();
+        std::os::unix::fs::symlink(outside.path(), root.path().join("link")).unwrap();
+        let err = validate_path_containment(Path::new("link/new.eep"), Some(root.path()));
+        assert!(err.is_err(), "write through symlink must be rejected");
+        let ok = validate_path_containment(Path::new("sub/new.eep"), Some(root.path()));
+        assert!(ok.is_ok());
+    }
+
+    #[test]
+    fn parent_dir_escape_is_rejected() {
+        let root = tempfile::tempdir().unwrap();
+        assert!(validate_path_containment(Path::new("../x.eep"), Some(root.path())).is_err());
+        assert!(validate_path_containment(Path::new("/etc/passwd"), Some(root.path())).is_err());
     }
 }

@@ -8,7 +8,12 @@ Control Server for Easy Edits Pro — external automation via TCP/Unix socket.
 - **Command execution** — Execute any registered command
 - **State queries** — Query timeline state, project metadata, media bins
 - **Event subscriptions** — Real-time updates via Server-Sent Events
-- **Authentication** — Optional token-based auth
+- **Authentication** — Mandatory. Every route except `/health` needs a bearer token.
+  `POST /auth/token` needs the master token (`EEP_CONTROL_TOKEN`, `--auth-token-file`,
+  or `--auth-token`; if none is given a random one is generated and printed once).
+  `/ws` takes the token as an `Authorization` header or a `bearer.<token>` subprotocol.
+  Requests with a cross-site `Origin` are refused. File access is confined to
+  `--project-root` (default `./eep-daemon-projects`), including through symlinks.
 
 ## Usage
 
