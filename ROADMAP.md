@@ -35,6 +35,11 @@ semantic search), try changes on branches, and a human reviews the result.
   gates, structured agent questions, pro review notes and round diffs, delivery
   package exporter, and Capture Event Track (CET v0.1) integration. See
   [docs/TASK_SHEET_PLAN.md](docs/TASK_SHEET_PLAN.md).
+- **Starship Control Orchestration & `starship-plugin` SDK Integration**:
+  - Embed the shared `starship-plugin` SDK crate.
+  - Auto-generate the discovery manifest at `$XDG_DATA_HOME/starship/plugins/eep.json`.
+  - Expose the live GUI Unix domain socket bridge at `$XDG_RUNTIME_DIR/starship/bridges/eep.sock` (`SO_PEERCRED` verified).
+  - Enable bidirectional MCP JSON-RPC 2.0 communication allowing **Starship Control** to orchestrate timeline edits, audio dubs, and CET-driven cuts.
 - Remaining editing verbs (morph cut, storyline pins).
 - Flagship recipes (podcast clips, talking-head/tutorials, webinar recaps) and
   the EEP-Bench public benchmark.

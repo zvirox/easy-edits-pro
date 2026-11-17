@@ -109,6 +109,14 @@ Conflict hotspots: `crates/saturn-core/src/catalogue/commands/<menu>.rs` +
 only), `apps/saturn-tauri/src/main.rs` handler list (separate small commits,
 merged in order).
 
+## Starship Control Orchestration & Ecosystem Law
+
+Easy Edits Pro is orchestrated by **Starship Control** (`Mother Ship / Starship Control`), the native Linux AI Agent Cockpit.
+- **`starship-plugin` SDK**: EEP imports the shared `starship-plugin` crate to expose its tool catalogue and handle discovery.
+- **Discovery Manifest**: EEP publishes its discovery metadata to `$XDG_DATA_HOME/starship/plugins/eep.json`.
+- **Hybrid Bridge**: In live GUI mode, EEP listens on Unix domain socket `$XDG_RUNTIME_DIR/starship/bridges/eep.sock` (`SO_PEERCRED` authenticated). In headless mode, EEP runs via `easy-edits-pro --mcp` stdio.
+- **Task Sheets & Risk Tiers**: All autonomous modifications orchestrated by Starship Control execute via `tasksheet/1` plans, respecting EEP's project branches, checkpoints, and Tier 2 mutating approval gates.
+
 ## Before you report a packet done — run the gates
 
 ```
