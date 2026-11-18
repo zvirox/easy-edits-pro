@@ -203,7 +203,7 @@ def test_daemon_cli_start_stop_status(tmp_path: Path):
     registry_file = tmp_path / "services.json"
     registry = ServiceRegistry(registry_file)
     sock_path = str(tmp_path / "cli_daemon.sock")
-    token = "cli-token-123"
+    token = "cli-token-123456789"
 
     runner = CliRunner()
     env = {
