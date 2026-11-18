@@ -12,6 +12,8 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
 
+pub use crate::sso::rbac::Role;
+
 #[derive(Debug, Error, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "error", content = "message")]
 pub enum AuthError {
@@ -44,6 +46,28 @@ pub struct AuthClaims {
     pub session_id: String,
     pub actor: String,
     pub issued_at_unix_ms: u64,
+    #[serde(default)]
+    pub role: Role,
+    #[serde(default)]
+    pub is_agent: bool,
+}
+
+impl AuthClaims {
+    pub fn is_agent(&self) -> bool {
+        self.is_agent
+    }
+
+    pub fn can_approve_plan(&self) -> bool {
+        !self.is_agent() && (self.role == Role::Approver || self.role == Role::Admin)
+    }
+
+    pub fn can_approve_delivery(&self) -> bool {
+        !self.is_agent() && (self.role == Role::Approver || self.role == Role::Admin)
+    }
+
+    pub fn can_submit_jobs(&self) -> bool {
+        self.role == Role::Requester || self.role == Role::Approver || self.role == Role::Admin
+    }
 }
 
 #[derive(Clone)]
@@ -72,21 +96,58 @@ impl AuthManager {
     }
 
     pub fn issue_session_token(&self, session_id: &str, actor: &str) -> String {
+        let is_agent = actor.starts_with("agent");
+        let role = if is_agent {
+            Role::Requester
+        } else {
+            Role::Approver
+        };
+        self.issue_session_token_with_role(session_id, actor, role, is_agent)
+    }
+
+    pub fn issue_session_token_with_role(
+        &self,
+        session_id: &str,
+        actor: &str,
+        role: Role,
+        is_agent: bool,
+    ) -> String {
         let token = format!("saturn-{}", Uuid::new_v4());
         let claims = AuthClaims {
             session_id: session_id.to_string(),
             actor: actor.to_string(),
             issued_at_unix_ms: now_ms(),
+            role,
+            is_agent,
         };
         self.session_tokens.write().insert(token.clone(), claims);
         token
     }
 
     pub fn register_token(&self, token: &str, session_id: &str, actor: &str) {
+        let is_agent = actor.starts_with("agent");
+        let role = if is_agent {
+            Role::Requester
+        } else {
+            Role::Approver
+        };
+        self.register_token_with_role(token, session_id, actor, role, is_agent);
+    }
+
+    pub fn register_token_with_role(
+        &self,
+        token: &str,
+        session_id: &str,
+        actor: &str,
+        role: Role,
+        is_agent: bool,
+    ) {
         let claims = AuthClaims {
             session_id: session_id.to_string(),
             actor: actor.to_string(),
             issued_at_unix_ms: now_ms(),
+            role,
+            is_agent,
         };
         self.session_tokens.write().insert(token.to_string(), claims);
     }
@@ -105,6 +166,8 @@ impl AuthManager {
                     session_id: "master-session".to_string(),
                     actor: "daemon-admin".to_string(),
                     issued_at_unix_ms: now_ms(),
+                    role: Role::Admin,
+                    is_agent: false,
                 });
             }
         }

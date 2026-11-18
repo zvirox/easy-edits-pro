@@ -120,6 +120,41 @@ pub async fn delivery_verify_handler(
             }
         }
 
+        // RBAC and Agent Invariant checks
+        if ctx.claims.is_agent() {
+            return record_audit_and_respond(
+                &server,
+                &ctx.session_id,
+                &ctx.actor,
+                endpoint,
+                &params,
+                tier,
+                ctx.start_time,
+                Err((
+                    StatusCode::FORBIDDEN,
+                    "AgentApprovalForbidden",
+                    "AgentApprovalForbidden: agent actors cannot verify deliveries".into(),
+                )),
+            );
+        }
+
+        if !ctx.claims.can_approve_delivery() {
+            return record_audit_and_respond(
+                &server,
+                &ctx.session_id,
+                &ctx.actor,
+                endpoint,
+                &params,
+                tier,
+                ctx.start_time,
+                Err((
+                    StatusCode::FORBIDDEN,
+                    "PermissionDenied",
+                    "PermissionDenied: caller does not have permission to verify deliveries".into(),
+                )),
+            );
+        }
+
         let act_ctx = session.actor_context();
         if let Some(ref mut engine) = session.engine {
             let req = CommandRequest::new(endpoint, params.clone());
@@ -134,6 +169,115 @@ pub async fn delivery_verify_handler(
                         "success": true,
                         "verified": true,
                         "verification": val,
+                    }))
+                }
+                Err(e) => Err((StatusCode::BAD_REQUEST, "CommandExecutionFailed", e.to_string())),
+            }
+        } else {
+            Err((
+                StatusCode::BAD_REQUEST,
+                "ProjectNotOpen",
+                "no project is currently open in this session".into(),
+            ))
+        }
+    };
+
+    record_audit_and_respond(
+        &server,
+        &ctx.session_id,
+        &ctx.actor,
+        endpoint,
+        &params,
+        tier,
+        ctx.start_time,
+        result,
+    )
+}
+
+/// `POST /delivery/approve` or `POST /api/v1/delivery/approve` — approve delivery package.
+pub async fn delivery_approve_handler(
+    State(server): State<Arc<ControlServer>>,
+    headers: HeaderMap,
+    body: Option<Json<Value>>,
+) -> Response {
+    let endpoint = "delivery.approve";
+    let params = body.map(|Json(v)| v).unwrap_or_else(|| json!({}));
+    let tier = "edit";
+
+    let ctx = match authenticate_and_check(&headers, &server, endpoint, &params, tier) {
+        Ok(c) => c,
+        Err(res) => return res,
+    };
+
+    let result = {
+        let mut session = ctx.session_arc.write();
+
+        // Path containment validation
+        if let Some(p) = params.get("path").and_then(Value::as_str) {
+            let effective_root = server.project_root.as_deref().or(session.project_root.as_deref());
+            if let Err(e) = validate_path_containment(Path::new(p), effective_root) {
+                return record_audit_and_respond(
+                    &server,
+                    &ctx.session_id,
+                    &ctx.actor,
+                    endpoint,
+                    &params,
+                    tier,
+                    ctx.start_time,
+                    Err((StatusCode::FORBIDDEN, e.error_code(), e.to_string())),
+                );
+            }
+        }
+
+        // RBAC and Agent Invariant checks
+        if ctx.claims.is_agent() {
+            return record_audit_and_respond(
+                &server,
+                &ctx.session_id,
+                &ctx.actor,
+                endpoint,
+                &params,
+                tier,
+                ctx.start_time,
+                Err((
+                    StatusCode::FORBIDDEN,
+                    "AgentApprovalForbidden",
+                    "AgentApprovalForbidden: agent actors cannot approve deliveries".into(),
+                )),
+            );
+        }
+
+        if !ctx.claims.can_approve_delivery() {
+            return record_audit_and_respond(
+                &server,
+                &ctx.session_id,
+                &ctx.actor,
+                endpoint,
+                &params,
+                tier,
+                ctx.start_time,
+                Err((
+                    StatusCode::FORBIDDEN,
+                    "PermissionDenied",
+                    "PermissionDenied: caller does not have permission to approve deliveries".into(),
+                )),
+            );
+        }
+
+        let act_ctx = session.actor_context();
+        if let Some(ref mut engine) = session.engine {
+            let req = CommandRequest::new("delivery.package", params.clone());
+            match engine.execute_with_context(req, &act_ctx) {
+                Ok(val) => {
+                    server.broadcast(json!({
+                        "type": "delivery_approved",
+                        "session_id": ctx.session_id,
+                    }));
+
+                    Ok(json!({
+                        "success": true,
+                        "approved": true,
+                        "details": val,
                     }))
                 }
                 Err(e) => Err((StatusCode::BAD_REQUEST, "CommandExecutionFailed", e.to_string())),

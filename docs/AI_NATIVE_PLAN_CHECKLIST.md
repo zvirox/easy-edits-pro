@@ -12,18 +12,18 @@
 ## Current checkpoint and next-work queue
 
 - **Completed:** AI-native Phases 0–3; Phase 4 plugin/offline operations; Packet
-  5.1 J/L, match-cut and beat-grid slices; AF1–AF5; TS0–TS6 & CET v0.1 (`EEP-Bench (scripted conformance suite)`); **UI-P0..UI-P7** UI layout & workspace consistency remediation track ([UI remediation plan](planning/ui-layout-workspace-remediation.md)); **AF7 / Packet 7.1** (`cli-anything-eep` 5 subcommand groups, 5 companion §2.6 recipes, closed-loop skill definitions); **AF8 / Packet 7.2** (`EEP-Bench` 16 tasks, real LLM `--agent` evaluation mode with honest null telemetry, separate published baseline, live-bridge acceptance suite `ai_closed_loop_workflow.py` with seeded failure controls); **AF9** (Authenticated long-lived daemon on UDS and TCP with bearer tokens, headless project lifecycle, sliding-window rate limits, session time budgets, bounded JSONL audit log, AF2 Stop & AF5 provenance); **TS7** (Daemon Web API on `saturn-control` with REST endpoints for tasksheets, questions, review, verify/delivery, and WebSocket `/ws` event broadcast); **TS8** (Web Desk MVP browser UI for B2B self-hosting with Jobs board, New job modal, Job detail, Plan approval, Questions inbox, Web Review view with raw proxy video player, AGPL §13 source/licence link, and 13-area Playwright E2E suite); **TS9** (Runner & multi-job execution with `RunnerService`, semaphore-based worker pool, session leasing from `SessionManager`, wall-clock time, token/cost, and render minutes budget enforcement, AF2 kill switch halting <= 1s, Bring-Your-Own local/cloud model endpoints with credential redaction in audit logs, REST `/runner/*` endpoints, and `cli-anything-eep runner` CLI). The glass shell and geometry tests exist.
-- **Open:** TS10; two remaining 5.1 verbs, Phase 6 (Phase 7 complete), XP1–XP4, and TS-X. Phase 4 stays incomplete while cinema
+  5.1 J/L, match-cut and beat-grid slices; AF1–AF5; TS0–TS6 & CET v0.1 (`EEP-Bench (scripted conformance suite)`); **UI-P0..UI-P7** UI layout & workspace consistency remediation track ([UI remediation plan](planning/ui-layout-workspace-remediation.md)); **AF7 / Packet 7.1** (`cli-anything-eep` 5 subcommand groups, 5 companion §2.6 recipes, closed-loop skill definitions); **AF8 / Packet 7.2** (`EEP-Bench` 16 tasks, real LLM `--agent` evaluation mode with honest null telemetry, separate published baseline, live-bridge acceptance suite `ai_closed_loop_workflow.py` with seeded failure controls); **AF9** (Authenticated long-lived daemon on UDS and TCP with bearer tokens, headless project lifecycle, sliding-window rate limits, session time budgets, bounded JSONL audit log, AF2 Stop & AF5 provenance); **TS7** (Daemon Web API on `saturn-control` with REST endpoints for tasksheets, questions, review, verify/delivery, and WebSocket `/ws` event broadcast); **TS8** (Web Desk MVP browser UI for B2B self-hosting with Jobs board, New job modal, Job detail, Plan approval, Questions inbox, Web Review view with raw proxy video player, AGPL §13 source/licence link, and 13-area Playwright E2E suite); **TS9** (Runner & multi-job execution with `RunnerService`, semaphore-based worker pool, session leasing from `SessionManager`, wall-clock time, token/cost, and render minutes budget enforcement, AF2 kill switch halting <= 1s, Bring-Your-Own local/cloud model endpoints with credential redaction in audit logs, REST `/runner/*` endpoints, and `cli-anything-eep runner` CLI); **TS10** (Enterprise SSO OIDC/SAML 2.0 & RBAC in `saturn-control` with Okta, Azure AD/Entra ID, Keycloak claim mapping, strict agent approval rejection 403 Forbidden, dual-mounted Axum REST endpoints under `/auth/sso` and `/api/v1/auth/sso`, audit secret redaction, and 10-scenario conformance suite in `ts10_sso_tests.rs`). The glass shell and geometry tests exist.
+- **Open:** Two remaining 5.1 verbs, Phase 6 (Phase 7 complete), XP1–XP4, and TS-X. Phase 4 stays incomplete while cinema
   Dialogue/Music/Ambience/SFX separation is deferred for a verified, license-cleared
   model. Keep the documented room-tone, diarization and plugin-packaging follow-ups.
 - **AF0 inventory/design recorded:** current dependency graphs and the older
   `v0.1.2-alpha.2` package payloads are inventoried; conservative actor/history,
   lock, Stop and atomic-batch contracts are reviewed. See the
   [inventory](audit/af0-inventory.md) and [design](planning/af0-actor-design.md).
-- **Next actionable work:** advance **TS10** (Enterprise SSO — active; TS9, TS8, TS7, AF0–AF9 closed).
+- **Next actionable work:** advance remaining **Phase 5.1** verbs and Phase 5 gate, XP1–XP4, and TS-X (TS0–TS10, AF0–AF9 closed).
 - **Proposed execution queue, pending maintainer decision:** AF0 → AF1 (Done) → AF2 (Done) →
   AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → TS0–TS6 (Implemented) → AF6.1 (Done) → **UI-P0..UI-P7 (Done)** → **AF7/7.1 (Done)** → **AF8/7.2 (Done)** →
-  **AF9 (Done)** → **TS7 (Done)** → **TS8 (Done)** → **TS9 (Done)** → **TS10 (In progress)** → remaining 5.1 and Phase 5 gate → Phase 6. Base verification/recipe smoke may
+  **AF9 (Done)** → **TS7 (Done)** → **TS8 (Done)** → **TS9 (Done)** → **TS10 (Done)** → remaining 5.1 and Phase 5 gate → Phase 6. Base verification/recipe smoke may
   start when its prerequisites exist; it does not complete the larger gates.
   AF4 precedes full AF3 because verification reads brief/review metadata.
 - **Pending product choices:** default autopilot/co-edit mode, auto-merge policy,
@@ -376,7 +376,7 @@ Specification: [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md) and companion [TASK_SH
 Each milestone below may need several sequential, single-lane commits. Core/schema = Lane 2;
 MCP/harness/docs = Lane 4; UI = Lane 1; packaging/native verification = Lane 3.
 Packet IDs are stable labels; follow the integrated timeline queue:
-**AF0 (Done) → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → Task Sheet v1 (TS0–TS6) & Flagship Recipes (with CET v0.1) → AF6.1 (Done) → UI-P0..UI-P7 (Done) → AF7/7.1 (Done) → AF8/7.2 (Done) → AF9 (Done) → TS7 (Done) → **TS8 (Done)** → **TS9 (Done)** → **TS10 (In progress)** (Enterprise SSO) → XP1–XP4 (Cross-platform) → TS-X (Shared agent-contract crate).**
+**AF0 (Done) → AF1 (Done) → AF2 (Done) → AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → Task Sheet v1 (TS0–TS6) & Flagship Recipes (with CET v0.1) → AF6.1 (Done) → UI-P0..UI-P7 (Done) → AF7/7.1 (Done) → AF8/7.2 (Done) → AF9 (Done) → TS7 (Done) → **TS8 (Done)** → **TS9 (Done)** → **TS10 (Done)** (Enterprise SSO) → XP1–XP4 (Cross-platform) → TS-X (Shared agent-contract crate).**
 
 ### AF0 — Baseline, housekeeping and actor design
 - [x] Reconcile the supplied plan at `7c20b98`, add companion/cross-links and refresh the local `docs/planning.md` index (kept ignored per repository policy); retain completed work and blocked stems. Move misplaced match-cut evidence into the progress log and correct stale checklist header/Phase 3 status.
@@ -456,7 +456,7 @@ Packet IDs are stable labels; follow the integrated timeline queue:
 
 ---
 
-## Task Sheet companion — TS0–TS10 & TS-X — `status: TS0–TS9 implemented; TS10 in progress; TS-X planned`
+## Task Sheet companion — TS0–TS10 & TS-X — `status: TS0–TS10 implemented; TS-X planned`
 
 Specification: [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md). Companion to [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md);
 extends AF4's `ProjectBrief` to structured work orders, plan approval gates, pro review rounds with diffs,
@@ -551,18 +551,18 @@ and delivery packages. Core/schema = Lane 2; MCP/harness/docs = Lane 4; UI = Lan
   - REST API lifecycle: `/runner/start`, `/runner/status`, `/runner/jobs`, `/runner/jobs/:id/cancel`, `/runner/stop`.
   - Repository gates: `check:source-size --max-lines=800` (all TS9 files <= 486L), SPDX AGPL-3.0-or-later headers (`license-headers.mjs check` [763 files]), `cargo test -p saturn-control` (67/67 passed), `cargo test --workspace` (all workspace crates pass), `pnpm test` (193/193 passed), `pnpm check:glass` (306 pairs, 0 raw hex colours, 134 tokens), `pnpm test:e2e` (all 13 areas green including `webdesk: passed`, 0 browser errors), and `pytest agent-harness/tests/` (105/105 passed in 232s) — **PASSED 2026-11-16** (`3ea6d8f`).
 
-### TS10 — Enterprise SSO — `status: in_progress`
-- [ ] OIDC provider integration in `saturn-control`: configuration (`issuer`, `client_id`, `client_secret`, `jwks_url`, `redirect_uri`), token verification, claims extraction, and session token issuance (Lane 4).
-- [ ] SAML 2.0 provider integration in `saturn-control`: configuration (`idp_entity_id`, `idp_sso_url`, `idp_certificate`, `sp_entity_id`), assertion parsing, signature validation, and session issuance (Lane 4).
-- [ ] Role-Based Access Control (RBAC) and group mapping: roles (`Requester`, `Reviewer`, `Approver`, `Admin`), group/claims mapping from IdP, permission enforcement on job submit, review notes, plan approve, and delivery verify; invariant: plan and delivery approval strictly rejected for agent actors (Lane 4).
-- [ ] REST API endpoints mounted under `/auth/sso` and `/api/v1/auth/sso`: `POST /auth/sso/oidc/login` & `/callback`, `POST /auth/sso/saml/login` & `/callback`, `GET /auth/sso/status`, `GET /auth/sso/roles` (Lane 4).
-- [ ] **Gate:** Conformance test suite in `crates/saturn-control/tests/ts10_sso_tests.rs` passes:
+### TS10 — Enterprise SSO — `status: complete`
+- [x] OIDC provider integration in `saturn-control`: configuration (`issuer`, `client_id`, `client_secret`, `jwks_url`, `redirect_uri`), token verification, claims extraction, and session token issuance (Lane 4).
+- [x] SAML 2.0 provider integration in `saturn-control`: configuration (`idp_entity_id`, `idp_sso_url`, `idp_certificate`, `sp_entity_id`), assertion parsing, signature validation, and session issuance (Lane 4).
+- [x] Role-Based Access Control (RBAC) and group mapping: roles (`Requester`, `Reviewer`, `Approver`, `Admin`), group/claims mapping from IdP, permission enforcement on job submit, review notes, plan approve, and delivery verify; invariant: plan and delivery approval strictly rejected for agent actors (Lane 4).
+- [x] REST API endpoints mounted under `/auth/sso` and `/api/v1/auth/sso`: `POST /auth/sso/oidc/login` & `/callback`, `POST /auth/sso/saml/login` & `/callback`, `GET /auth/sso/status`, `GET /auth/sso/roles` (Lane 4).
+- [x] **Gate:** Conformance test suite in `crates/saturn-control/tests/ts10_sso_tests.rs` passes:
   - OIDC login flow with simulated claims and session token issuance.
   - SAML 2.0 assertion parsing and role mapping.
   - Role enforcement: `Requester` can submit jobs but is rejected on plan approval (403 Forbidden); `Approver` can approve plans and deliveries; `Agent` actor is strictly rejected on approval; `Admin` has unrestricted access.
-  - Group mapping from IdP claims/groups.
+  - Group mapping from IdP claims/groups (Okta, Azure AD / Entra ID, Keycloak).
   - Secret redaction: zero tokens/passwords/client-secrets in `audit.jsonl`.
-  - Repository gates: `check:source-size --max-lines=800`, SPDX AGPL-3.0-or-later headers (`license-headers.mjs check`), `cargo test -p saturn-control`, `cargo test --workspace`, `pnpm test`, `pnpm test:e2e`, and `agent-harness/tests/` (105+ passed).
+  - Repository gates: `check:source-size --max-lines=800`, SPDX AGPL-3.0-or-later headers (`license-headers.mjs check`), `cargo test -p saturn-control` (111/111 passed), `cargo test --workspace` (100% green), `pnpm test` (193/193 passed), `pnpm check:glass`, and `pnpm check:commands` — **PASSED 2026-11-18**.
 
 ### TS-X — Shared agent contract crate
 - [ ] Extract product-agnostic agent contract (task sheet, rounds, notes, questions, verify result types, tiers/profiles, actors, audit log) into a shared crate when Audio Labs Pro (ALP) or Screen Studio Pro (SSP) becomes the second active consumer (Lane 2/4).

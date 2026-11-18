@@ -9,6 +9,7 @@
 pub mod questions;
 pub mod review;
 pub mod runner;
+pub mod sso;
 pub mod tasksheet;
 pub mod verify;
 
@@ -24,6 +25,7 @@ use axum::{
 use parking_lot::RwLock;
 use serde_json::Value;
 
+use crate::auth::AuthClaims;
 use crate::handlers::ErrorResponse;
 use crate::server::ControlServer;
 use crate::session::DaemonSession;
@@ -32,6 +34,7 @@ pub struct AuthSessionContext {
     pub session_arc: Arc<RwLock<DaemonSession>>,
     pub session_id: String,
     pub actor: String,
+    pub claims: AuthClaims,
     pub start_time: Instant,
 }
 
@@ -132,8 +135,9 @@ pub fn authenticate_and_check(
 
     Ok(AuthSessionContext {
         session_arc,
-        session_id: claims.session_id,
-        actor: claims.actor,
+        session_id: claims.session_id.clone(),
+        actor: claims.actor.clone(),
+        claims,
         start_time,
     })
 }
@@ -239,8 +243,25 @@ pub fn mount_api_routes(mut router: Router<Arc<ControlServer>>) -> Router<Arc<Co
     router = router
         .route("/verify/run", post(verify::verify_run_handler))
         .route("/delivery/verify", post(verify::delivery_verify_handler))
+        .route("/delivery/approve", post(verify::delivery_approve_handler))
         .route("/api/v1/verify/run", post(verify::verify_run_handler))
-        .route("/api/v1/delivery/verify", post(verify::delivery_verify_handler));
+        .route("/api/v1/delivery/verify", post(verify::delivery_verify_handler))
+        .route("/api/v1/delivery/approve", post(verify::delivery_approve_handler));
+
+    // SSO routes (TS10)
+    router = router
+        .route("/auth/sso/status", get(sso::sso_status_handler))
+        .route("/auth/sso/roles", get(sso::sso_roles_handler))
+        .route("/auth/sso/oidc/login", post(sso::oidc_login_handler).get(sso::oidc_login_handler))
+        .route("/auth/sso/oidc/callback", post(sso::oidc_callback_handler))
+        .route("/auth/sso/saml/login", post(sso::saml_login_handler).get(sso::saml_login_handler))
+        .route("/auth/sso/saml/callback", post(sso::saml_callback_handler))
+        .route("/api/v1/auth/sso/status", get(sso::sso_status_handler))
+        .route("/api/v1/auth/sso/roles", get(sso::sso_roles_handler))
+        .route("/api/v1/auth/sso/oidc/login", post(sso::oidc_login_handler).get(sso::oidc_login_handler))
+        .route("/api/v1/auth/sso/oidc/callback", post(sso::oidc_callback_handler))
+        .route("/api/v1/auth/sso/saml/login", post(sso::saml_login_handler).get(sso::saml_login_handler))
+        .route("/api/v1/auth/sso/saml/callback", post(sso::saml_callback_handler));
 
     // Runner & Multi-Job Execution routes (TS9)
     router = router

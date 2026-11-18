@@ -33,6 +33,7 @@ pub struct DaemonConfig {
     pub audit_log_path: Option<PathBuf>,
     pub max_audit_entries: usize,
     pub max_concurrent_workers: usize,
+    pub sso_config: Option<crate::sso::SsoConfig>,
 }
 
 impl Default for DaemonConfig {
@@ -45,6 +46,7 @@ impl Default for DaemonConfig {
             audit_log_path: None,
             max_audit_entries: DEFAULT_MAX_AUDIT_ENTRIES,
             max_concurrent_workers: 2,
+            sso_config: None,
         }
     }
 }
@@ -59,6 +61,7 @@ pub struct ControlServer {
     pub audit: SharedAuditLogger,
     pub project_root: Option<PathBuf>,
     pub runner: Arc<RunnerService>,
+    pub sso: Arc<crate::sso::SsoManager>,
 }
 
 impl ControlServer {
@@ -91,6 +94,7 @@ impl ControlServer {
             ..Default::default()
         };
         let runner = Arc::new(RunnerService::new(runner_config, Arc::clone(&sessions)));
+        let sso = Arc::new(crate::sso::SsoManager::new(config.sso_config.unwrap_or_default()));
 
         Self {
             app,
@@ -101,6 +105,7 @@ impl ControlServer {
             audit,
             project_root: config.project_root,
             runner,
+            sso,
         }
     }
 
@@ -130,6 +135,7 @@ impl ControlServer {
             audit: Arc::clone(&self.audit),
             project_root: self.project_root.clone(),
             runner: Arc::clone(&self.runner),
+            sso: Arc::clone(&self.sso),
         });
         let base_router = Router::new()
             .route("/health", get(handlers::health))

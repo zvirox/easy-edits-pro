@@ -21,6 +21,8 @@ parking_lot = "0.12"
 sha2 = "0.10"
 url = "2"
 chrono = { version = "0.4", features = ["serde"] }
+roxmltree = "0.20"
+base64 = "0.22"
 
 [dev-dependencies]
 tokio = { version = "1.54", features = ["rt-multi-thread", "macros", "net", "sync", "time", "io-util", "fs", "signal"] }

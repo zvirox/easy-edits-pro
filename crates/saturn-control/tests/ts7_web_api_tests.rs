@@ -331,6 +331,7 @@ async fn test_03_tasksheet_rest_lifecycle_and_api_v1() {
 #[tokio::test]
 async fn test_04_questions_pause_and_resume_lifecycle() {
     let harness = TestHarness::new(DaemonConfig::default()).await;
+    let human_token = harness.issue_token("q-session", "human:producer").await;
     let token = harness.issue_token("q-session", "agent").await;
     harness.open_project(&token).await;
 
@@ -343,7 +344,7 @@ async fn test_04_questions_pause_and_resume_lifecycle() {
             Some(&token),
         )
         .await;
-    harness.post("/tasksheet/plan/approve", json!({}), Some(&token)).await;
+    harness.post("/tasksheet/plan/approve", json!({}), Some(&human_token)).await;
 
     // 1. Agent asks structured question -> pauses session into needs_input
     let ask_payload = json!({

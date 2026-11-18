@@ -18,10 +18,11 @@ pub mod provenance;
 pub mod runner;
 pub mod server;
 pub mod session;
+pub mod sso;
 pub mod uds;
 
 pub use audit::{AuditLogger, AuditRecord, compute_argument_hash};
-pub use auth::{AuthClaims, AuthError, AuthManager};
+pub use auth::{AuthClaims, AuthError, AuthManager, Role};
 pub use budget::{BudgetError, RateLimiter, TimeBudget};
 pub use project::{ProjectError, project_close, project_open, project_save, project_status};
 pub use provenance::{ProvenanceError, validate_path_containment, validate_untrusted_media_text};
@@ -31,4 +32,5 @@ pub use runner::{
 };
 pub use server::{ControlServer, DaemonConfig};
 pub use session::{DaemonSession, SessionError, SessionManager};
+pub use sso::{SsoAuthSuccess, SsoConfig, SsoError, SsoManager};
 pub use uds::UdsServer;

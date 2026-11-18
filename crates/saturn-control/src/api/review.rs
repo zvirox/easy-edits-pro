@@ -9,12 +9,13 @@ use axum::{
     Json,
     extract::{Path, State},
     http::{HeaderMap, StatusCode},
-    response::Response,
+    response::{IntoResponse, Response},
 };
 use saturn_core::command::CommandRequest;
 use serde_json::{Value, json};
 
 use super::{authenticate_and_check, record_audit_and_respond};
+use crate::handlers::ErrorResponse;
 use crate::server::ControlServer;
 
 /// `GET /review/notes` or `GET /api/v1/review/notes` — list review notes.
@@ -323,6 +324,55 @@ pub async fn review_round_close_handler(
         Ok(c) => c,
         Err(res) => return res,
     };
+
+    let outcome = params
+        .get("outcome")
+        .and_then(Value::as_str)
+        .unwrap_or("approved");
+
+    if outcome == "approved" {
+        if ctx.claims.is_agent() {
+            let _ = server.audit.lock().record(
+                &ctx.session_id,
+                &ctx.actor,
+                endpoint,
+                &params,
+                tier,
+                ctx.start_time.elapsed().as_millis() as u64,
+                "AgentApprovalForbidden",
+            );
+            return (
+                StatusCode::FORBIDDEN,
+                Json(ErrorResponse {
+                    success: false,
+                    error: "AgentApprovalForbidden: agent actors cannot approve review rounds".into(),
+                    code: Some("AgentApprovalForbidden".into()),
+                }),
+            )
+                .into_response();
+        }
+
+        if !ctx.claims.can_approve_plan() {
+            let _ = server.audit.lock().record(
+                &ctx.session_id,
+                &ctx.actor,
+                endpoint,
+                &params,
+                tier,
+                ctx.start_time.elapsed().as_millis() as u64,
+                "PermissionDenied",
+            );
+            return (
+                StatusCode::FORBIDDEN,
+                Json(ErrorResponse {
+                    success: false,
+                    error: "PermissionDenied: caller does not have permission to approve review rounds".into(),
+                    code: Some("PermissionDenied".into()),
+                }),
+            )
+                .into_response();
+        }
+    }
 
     let result = {
         let mut session = ctx.session_arc.write();

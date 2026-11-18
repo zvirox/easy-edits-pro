@@ -2893,10 +2893,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "axum",
+ "base64 0.22.1",
  "chrono",
  "futures-util",
  "http-body-util",
  "parking_lot",
+ "roxmltree",
  "saturn-commands",
  "saturn-core",
  "serde",

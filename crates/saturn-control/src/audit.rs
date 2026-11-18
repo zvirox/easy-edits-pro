@@ -55,6 +55,12 @@ fn sanitize_for_hashing(value: &Value) -> Value {
                     || lower.contains("password")
                     || lower.contains("api_key")
                     || lower.contains("auth")
+                    || lower.contains("assertion")
+                    || lower.contains("saml")
+                    || lower.contains("credential")
+                    || lower.contains("private_key")
+                    || lower.contains("cert")
+                    || lower.contains("code")
                 {
                     out.insert(k.clone(), Value::String("[REDACTED]".to_string()));
                 } else {

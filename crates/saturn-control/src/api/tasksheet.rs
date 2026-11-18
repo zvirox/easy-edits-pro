@@ -9,7 +9,7 @@ use axum::{
     Json,
     extract::State,
     http::{HeaderMap, StatusCode},
-    response::Response,
+    response::{IntoResponse, Response},
 };
 use saturn_core::actor::{ActorContext, ActorId};
 use saturn_core::command::CommandRequest;
@@ -17,6 +17,7 @@ use saturn_core::tasksheet::TaskSheet;
 use serde_json::{Value, json};
 
 use super::{authenticate_and_check, record_audit_and_respond};
+use crate::handlers::ErrorResponse;
 use crate::server::ControlServer;
 
 /// `GET /tasksheet` or `GET /api/v1/tasksheet` — fetch active task sheet.
@@ -154,6 +155,27 @@ pub async fn tasksheet_submit_handler(
         Err(res) => return res,
     };
 
+    if !ctx.claims.can_submit_jobs() {
+        let _ = server.audit.lock().record(
+            &ctx.session_id,
+            &ctx.actor,
+            endpoint,
+            &params,
+            tier,
+            ctx.start_time.elapsed().as_millis() as u64,
+            "PermissionDenied",
+        );
+        return (
+            StatusCode::FORBIDDEN,
+            Json(ErrorResponse {
+                success: false,
+                error: "PermissionDenied: caller does not have permission to submit task sheets".into(),
+                code: Some("PermissionDenied".into()),
+            }),
+        )
+            .into_response();
+    }
+
     let result = {
         let mut session = ctx.session_arc.write();
         let act_ctx = session.actor_context();
@@ -272,6 +294,48 @@ pub async fn tasksheet_plan_approve_handler(
         Err(res) => return res,
     };
 
+    if ctx.claims.is_agent() {
+        let _ = server.audit.lock().record(
+            &ctx.session_id,
+            &ctx.actor,
+            endpoint,
+            &params,
+            tier,
+            ctx.start_time.elapsed().as_millis() as u64,
+            "AgentApprovalForbidden",
+        );
+        return (
+            StatusCode::FORBIDDEN,
+            Json(ErrorResponse {
+                success: false,
+                error: "AgentApprovalForbidden: agent actors cannot approve plans".into(),
+                code: Some("AgentApprovalForbidden".into()),
+            }),
+        )
+            .into_response();
+    }
+
+    if !ctx.claims.can_approve_plan() {
+        let _ = server.audit.lock().record(
+            &ctx.session_id,
+            &ctx.actor,
+            endpoint,
+            &params,
+            tier,
+            ctx.start_time.elapsed().as_millis() as u64,
+            "PermissionDenied",
+        );
+        return (
+            StatusCode::FORBIDDEN,
+            Json(ErrorResponse {
+                success: false,
+                error: "PermissionDenied: caller does not have permission to approve plans".into(),
+                code: Some("PermissionDenied".into()),
+            }),
+        )
+            .into_response();
+    }
+
     let result = {
         let mut session = ctx.session_arc.write();
         let act_ctx = ActorContext {
@@ -335,6 +399,48 @@ pub async fn tasksheet_plan_reject_handler(
         Ok(c) => c,
         Err(res) => return res,
     };
+
+    if ctx.claims.is_agent() {
+        let _ = server.audit.lock().record(
+            &ctx.session_id,
+            &ctx.actor,
+            endpoint,
+            &params,
+            tier,
+            ctx.start_time.elapsed().as_millis() as u64,
+            "AgentApprovalForbidden",
+        );
+        return (
+            StatusCode::FORBIDDEN,
+            Json(ErrorResponse {
+                success: false,
+                error: "AgentApprovalForbidden: agent actors cannot reject plans".into(),
+                code: Some("AgentApprovalForbidden".into()),
+            }),
+        )
+            .into_response();
+    }
+
+    if !ctx.claims.can_approve_plan() {
+        let _ = server.audit.lock().record(
+            &ctx.session_id,
+            &ctx.actor,
+            endpoint,
+            &params,
+            tier,
+            ctx.start_time.elapsed().as_millis() as u64,
+            "PermissionDenied",
+        );
+        return (
+            StatusCode::FORBIDDEN,
+            Json(ErrorResponse {
+                success: false,
+                error: "PermissionDenied: caller does not have permission to reject plans".into(),
+                code: Some("PermissionDenied".into()),
+            }),
+        )
+            .into_response();
+    }
 
     let result = {
         let mut session = ctx.session_arc.write();
