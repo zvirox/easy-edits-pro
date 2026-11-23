@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3-beta.2] - 2026-11-23
+
+### Added
+- **Agent harness & verification (AF7/AF8, Packets 7.1/7.2):** five CLI command groups, five companion recipes, a 16-task `EEP-Bench (scripted conformance suite)`, real-agent `--agent` evaluation mode with honest telemetry, and the live-bridge acceptance suite with seeded failure controls.
+- **Authenticated daemon (AF9):** long-lived `saturn-control` on UDS and TCP with bearer tokens, sliding-window rate limits, session budgets, bounded JSONL audit logging, AF2 Stop fencing and AF5 provenance checks.
+- **Task Sheet web stack (TS7–TS10):** REST + WebSocket daemon API, Web Desk MVP for self-hosting, runner with concurrent worker leases and budget enforcement, and enterprise OIDC/SAML SSO with RBAC and secret redaction.
+- **Starship Control:** integration contract documented in `AGENTS.md` and `ROADMAP.md` (documentation only; no SDK or bridge code shipped in this release).
+
+### Changed
+- **Whole-app UI unslop pass:** sentence-case labels, line icons replacing emoji across 46 source files, removal of gradient text, chrome glows and non-live looping motion, and product-specific copy on the welcome and Web Desk screens. The locked plum/magenta glass palette and ambient stage are unchanged.
+- **Daemon health contract:** `GET /health` deliberately exposes no command inventory; the Python harness assertion was aligned with the security regression tests.
+
+### Fixed
+- CI regression in `agent-harness/tests/test_services.py` that expected the removed inventory field from the unauthenticated health endpoint.
+
 ## [0.1.3-beta.1] - 2026-11-14
 
 ### Added

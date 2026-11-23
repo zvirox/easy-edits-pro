@@ -75,8 +75,9 @@ tracks agent-first phases, verification work, and the remaining roadmap.
 
 ## Known limitations and work in progress
 
-- This is alpha software for Linux. Windows and macOS packages are not built,
-  and package compatibility still needs reports from non-development machines.
+- This is beta software for Linux (v0.1.3-beta.1). Windows and macOS packages
+  are not built, and package compatibility still needs reports from
+  non-development machines.
 - Hardware encoding has not been verified. Export format and codec support
   depend on the GStreamer plugins available on the machine.
 - The desktop MCP bridge uses a Unix socket. There is no Windows bridge.
@@ -85,11 +86,13 @@ tracks agent-first phases, verification work, and the remaining roadmap.
   deferred until a verified, license-cleared model is available.
 - Proxy attachments exist, but proxy playback and cache regeneration are
   unfinished.
-- EEP-Bench currently runs a scripted deterministic conformance suite. Its
-  real-agent `--agent` evaluation mode is planned; scripted results are not
-  model-evaluation results.
-- Task Sheet web API, Web Desk, runner, SSO, and the shared agent-contract
-  crate remain planned. See the live [AI-native progress checklist](docs/AI_NATIVE_PLAN_CHECKLIST.md)
+- EEP-Bench's default run is a scripted deterministic conformance suite. A
+  real-agent `--agent` evaluation mode exists, but no real-model baseline has
+  been published; scripted results are not model-evaluation results.
+- The Task Sheet web API, Web Desk, runner and enterprise SSO are implemented.
+  The shared agent-contract crate (TS-X) remains planned until a second product
+  consumes it. Cross-platform work (XP1–XP4) and Phase 6 VFX work remain open.
+  See the live [AI-native progress checklist](docs/AI_NATIVE_PLAN_CHECKLIST.md)
   for current gates and remaining work.
 
 See [distribution and releases](docs/distribution.md) for package policy and
