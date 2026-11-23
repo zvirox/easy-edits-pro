@@ -51,7 +51,9 @@ def test_daemon_start_status_and_stop_round_trip():
         assert start_payload["state"] == "running"
         assert start_payload["pid"] > 0
         assert start_payload["health"]["status"] == "ok"
-        assert start_payload["health"]["commands"] > 0
+        # /health is unauthenticated: the security contract requires that it
+        # exposes no command inventory (see security_hardening_tests.rs).
+        assert "commands" not in start_payload["health"]
 
         status = _invoke(["daemon", "status"])
         assert status.exit_code == 0
