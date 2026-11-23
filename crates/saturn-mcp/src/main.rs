@@ -14,6 +14,7 @@ use saturn_core::{
 };
 
 mod server;
+pub mod starship_bridge;
 
 #[tokio::main]
 async fn main() -> Result<()> {
