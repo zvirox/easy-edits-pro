@@ -39,11 +39,10 @@ export function SilenceRemovalModal({
   return (
     <GlassDialog
       open={isOpen}
-      cardClassName="modal-dialog-card glass speech-modal"
-      cardProps={{ style: { maxWidth: "540px" } }}
+      cardClassName="modal-dialog-card glass speech-modal" cardProps={{ style: { maxWidth: "540px" } }}
     >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-          <h2 style={{ margin: 0, fontSize: "16px" }}>✂️ Automated Silence &amp; Filler Word Removal</h2>
+          <h2 style={{ margin: 0, fontSize: "16px" }}>Automated Silence &amp; Filler Word Removal</h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
         <p className="modal-desc" style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px" }}>
@@ -53,33 +52,21 @@ export function SilenceRemovalModal({
           <label style={{ fontSize: "11px", display: "flex", justifyContent: "space-between" }}>
             <span>Silence Threshold ({silenceThresholdDb} dBFS)</span>
             <input
-              type="range"
-              min="-60"
-              max="-15"
-              step="1"
-              value={silenceThresholdDb}
+              type="range" min="-60" max="-15" step="1" value={silenceThresholdDb}
               onChange={(e) => setSilenceThresholdDb(Number(e.target.value))}
             />
           </label>
           <label style={{ fontSize: "11px", display: "flex", justifyContent: "space-between" }}>
             <span>Min Silence Duration ({silenceMinDurationMs} ms)</span>
             <input
-              type="range"
-              min="200"
-              max="1500"
-              step="50"
-              value={silenceMinDurationMs}
+              type="range" min="200" max="1500" step="50" value={silenceMinDurationMs}
               onChange={(e) => setSilenceMinDurationMs(Number(e.target.value))}
             />
           </label>
           <label style={{ fontSize: "11px", display: "flex", justifyContent: "space-between" }}>
             <span>Edge Padding ({silencePaddingMs} ms)</span>
             <input
-              type="range"
-              min="10"
-              max="200"
-              step="10"
-              value={silencePaddingMs}
+              type="range" min="10" max="200" step="10" value={silencePaddingMs}
               onChange={(e) => setSilencePaddingMs(Number(e.target.value))}
             />
           </label>
@@ -91,33 +78,27 @@ export function SilenceRemovalModal({
             <span style={{ fontSize: "11px", color: "var(--text-muted)", marginLeft: "8px" }}>· 2 Verbal Fillers (&quot;um&quot;, &quot;like&quot;)</span>
           </div>
           <InteriorButton
-            type="button"
-            className="btn-secondary"
-            style={{ fontSize: "11px", padding: "4px 8px" }}
+            type="button" className="btn-secondary" style={{ fontSize: "11px", padding: "4px 8px" }}
             onClick={() => void handleDetectSilence()}
             disabled={isDetectingSilence}
           >
-            {isDetectingSilence ? "Scanning…" : "🔄 Re-Analyze"}
+            {isDetectingSilence ? "Scanning…" : "Re-Analyze"}
           </InteriorButton>
         </div>
 
         <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
           <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
           <InteriorButton
-            type="button"
-            className="btn-secondary"
-            onClick={() => void handleRippleDeleteFillers()}
+            type="button" className="btn-secondary" onClick={() => void handleRippleDeleteFillers()}
             disabled={busy}
           >
-            ✂️ Ripple Remove Fillers
+            Ripple Remove Fillers
           </InteriorButton>
           <InteriorButton
-            type="button"
-            className="primary"
-            onClick={() => void handleRippleDeleteSilence()}
+            type="button" className="primary" onClick={() => void handleRippleDeleteSilence()}
             disabled={busy}
           >
-            ✂️ Ripple Delete Pauses ({silenceIntervalsLength})
+            Ripple Delete Pauses ({silenceIntervalsLength})
           </InteriorButton>
         </div>
     </GlassDialog>

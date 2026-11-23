@@ -45,11 +45,7 @@ export const AiBranchDiffRibbon: React.FC<AiBranchDiffRibbonProps> = ({
 
   return (
     <div
-      className="ai-branch-diff-ribbon glass"
-      data-elev="1"
-      role="region"
-      aria-label="AI Branch Diff Ribbon"
-      style={{
+      className="ai-branch-diff-ribbon glass" data-elev="1" role="region" aria-label="AI Branch Diff Ribbon" style={{
         position: "relative",
         height: "28px",
         minHeight: "28px",
@@ -78,7 +74,7 @@ export const AiBranchDiffRibbon: React.FC<AiBranchDiffRibbonProps> = ({
             gap: "4px",
           }}
         >
-          🌿 {activeBranch}
+           {activeBranch}
         </span>
         <span style={{ color: "var(--text-muted)" }}>
           {changes.length} proposed {changes.length === 1 ? "edit" : "edits"}
@@ -158,48 +154,38 @@ export const AiBranchDiffRibbon: React.FC<AiBranchDiffRibbonProps> = ({
         {selectedChangeId != null && (
           <div style={{ display: "flex", alignItems: "center", gap: "4px", marginRight: "6px" }}>
             <InteriorButton
-              variant="secondary"
-              size="sm"
-              style={{ height: "20px", padding: "1px 6px", fontSize: "10px" }}
+              variant="secondary" size="sm" style={{ height: "20px", padding: "1px 6px", fontSize: "10px" }}
               onClick={() => onLockForMe?.(selectedChangeId)}
               title="Lock this clip against agent modifications"
             >
-              🔒 Lock for me
+               Lock for me
             </InteriorButton>
             <InteriorButton
-              variant="secondary"
-              size="sm"
-              style={{ height: "20px", padding: "1px 6px", fontSize: "10px" }}
+              variant="secondary" size="sm" style={{ height: "20px", padding: "1px 6px", fontSize: "10px" }}
               onClick={() => onAskAgentRedo?.(selectedChangeId)}
               title="Request agent to redo this specific edit"
             >
-              🔄 Redo
+               Redo
             </InteriorButton>
             <InteriorButton
-              variant="secondary"
-              size="sm"
-              style={{ height: "20px", padding: "1px 6px", fontSize: "10px" }}
+              variant="secondary" size="sm" style={{ height: "20px", padding: "1px 6px", fontSize: "10px" }}
               onClick={() => onExplainEdit?.(selectedChangeId)}
               title="Explain the agent rationale for this cut"
             >
-              💬 Explain
+               Explain
             </InteriorButton>
           </div>
         )}
 
         <InteriorButton
-          variant="secondary"
-          size="sm"
-          style={{ height: "20px", padding: "2px 8px", fontSize: "11px" }}
+          variant="secondary" size="sm" style={{ height: "20px", padding: "2px 8px", fontSize: "11px" }}
           onClick={onRejectAll}
           title="Discard all proposed changes and keep current sequence (project.branch_merge reject)"
         >
           Reject All
         </InteriorButton>
         <InteriorButton
-          variant="primary"
-          size="sm"
-          style={{ height: "20px", padding: "2px 8px", fontSize: "11px" }}
+          variant="primary" size="sm" style={{ height: "20px", padding: "2px 8px", fontSize: "11px" }}
           onClick={onAcceptAll}
           title="Merge agent branch changes into main (project.branch_merge accept)"
         >

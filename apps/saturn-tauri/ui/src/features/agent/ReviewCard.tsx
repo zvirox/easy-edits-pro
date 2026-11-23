@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { CircleCheck, TriangleAlert } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { ReviewNotesSection } from "./ReviewNotesSection";
@@ -129,8 +130,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
 
   return (
     <div
-      className="review-card"
-      style={{
+      className="review-card" style={{
         display: "flex",
         flexDirection: "column",
         gap: "var(--gap, 12px)",
@@ -142,9 +142,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
     >
       {/* Whole-Branch Actions Bar */}
       <div
-        className="glass"
-        data-elev="2"
-        style={{
+        className="glass" data-elev="2" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -163,18 +161,14 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
 
         <div style={{ display: "flex", gap: "6px" }}>
           <InteriorButton
-            size="sm"
-            variant="primary"
-            onClick={onAcceptAllBranch}
+            size="sm" variant="primary" onClick={onAcceptAllBranch}
             disabled={!session.activeBranch || session.activeBranch === "main"}
             title="Accept all branch edits"
           >
             Accept All
           </InteriorButton>
           <InteriorButton
-            size="sm"
-            variant="secondary"
-            onClick={onRejectAllBranch}
+            size="sm" variant="secondary" onClick={onRejectAllBranch}
             disabled={!session.activeBranch || session.activeBranch === "main"}
             title="Reject and revert branch edits"
           >
@@ -185,10 +179,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
 
       {session.lastError && (
         <div
-          role="alert"
-          className="glass"
-          data-elev="2"
-          style={{
+          role="alert" className="glass" data-elev="2" style={{
             padding: "8px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             borderLeft: "3px solid var(--error-text)",
@@ -218,9 +209,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
         />
       ) : (
         <div
-          className="glass"
-          data-elev="1"
-          style={{
+          className="glass" data-elev="1" style={{
             padding: "8px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             fontSize: "12px",
@@ -234,9 +223,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
       {/* Verification Evidence Summary */}
       {session.verificationReport && (
         <div
-          className="glass"
-          data-elev="1"
-          style={{
+          className="glass" data-elev="1" style={{
             padding: "8px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             display: "flex",
@@ -265,15 +252,14 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                 }}
               >
                 <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span>{item.status === "pass" ? "✅" : "⚠️"}</span>
+                  <span>{item.status === "pass" ? <CircleCheck size={14} aria-hidden="true" /> : <TriangleAlert size={14} aria-hidden="true" />}</span>
                   <span>{item.check_id}</span>
                 </span>
                 <span style={{ color: "var(--text-dim, #d1d5db)" }}>
                   {item.measured_value} (target: {item.threshold})
                   {item.tick_ref != null && (
                     <button
-                      type="button"
-                      onClick={() => onJumpToTick(item.tick_ref!)}
+                      type="button" onClick={() => onJumpToTick(item.tick_ref!)}
                       style={{
                         background: "transparent",
                         border: "none",
@@ -298,9 +284,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
         <div style={{ fontWeight: 600, fontSize: "12px" }}>Proposed Edits (Low-confidence first)</div>
         {sortedChanges.length === 0 && (
           <div
-            className="glass"
-            data-elev="1"
-            style={{
+            className="glass" data-elev="1" style={{
               padding: "10px 12px",
               borderRadius: "var(--radius-sm, 10px)",
               fontSize: "12px",
@@ -316,8 +300,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
             <div
               key={change.change_id}
               onClick={() => setSelectedIndex(idx)}
-              className="glass"
-              data-elev={isSelected ? "3" : "1"}
+              className="glass" data-elev={isSelected ? "3" : "1"}
               style={{
                 padding: "8px 12px",
                 borderRadius: "var(--radius-sm, 10px)",
@@ -371,7 +354,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                     paddingLeft: "6px",
                   }}
                 >
-                  ⚠ Conflict: {change.conflict_reason || "Subsequent edits prevent selective revert"}
+                  Conflict: {change.conflict_reason || "Subsequent edits prevent selective revert"}
                 </div>
               )}
 
@@ -391,8 +374,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
 
                 <div style={{ display: "flex", gap: "6px" }}>
                   <InteriorButton
-                    size="sm"
-                    variant={change.accepted ? "primary" : "secondary"}
+                    size="sm" variant={change.accepted ? "primary" : "secondary"}
                     onClick={(e) => {
                       e.stopPropagation();
                       onAcceptChange(change.change_id);
@@ -401,9 +383,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                     {change.accepted ? "✓ Accepted" : "Accept (A)"}
                   </InteriorButton>
                   <InteriorButton
-                    size="sm"
-                    variant="secondary"
-                    disabled={Boolean(change.rejected || change.conflict)}
+                    size="sm" variant="secondary" disabled={Boolean(change.rejected || change.conflict)}
                     title={change.conflict ? change.conflict_reason || "Cannot undo due to conflict" : undefined}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -413,9 +393,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                     {change.rejected ? "Reverted" : change.conflict ? "Conflict" : "Reject (R)"}
                   </InteriorButton>
                   <InteriorButton
-                    size="sm"
-                    variant="secondary"
-                    onClick={(e) => {
+                    size="sm" variant="secondary" onClick={(e) => {
                       e.stopPropagation();
                       setFixInputOpen(fixInputOpen === change.change_id ? null : change.change_id);
                     }}
@@ -432,18 +410,12 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <input
-                    type="text"
-                    className="input glass"
-                    data-elev="2"
-                    placeholder="Feedback (e.g. 'Shift cut +2 frames later')..."
-                    value={fixFeedback}
+                    type="text" className="input glass" data-elev="2" placeholder="Feedback (e.g. 'Shift cut +2 frames later')..." value={fixFeedback}
                     onChange={(e) => setFixFeedback(e.target.value)}
                     style={{ flex: 1, padding: "4px 8px", fontSize: "11px", borderRadius: "6px" }}
                   />
                   <InteriorButton
-                    size="sm"
-                    variant="primary"
-                    onClick={() => {
+                    size="sm" variant="primary" onClick={() => {
                       if (fixFeedback.trim()) {
                         onFixChange(change.change_id, fixFeedback.trim());
                         setFixFeedback("");

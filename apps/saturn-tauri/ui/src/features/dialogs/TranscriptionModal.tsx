@@ -35,11 +35,10 @@ export function TranscriptionModal({
   return (
     <GlassDialog
       open={isOpen}
-      cardClassName="modal-dialog-card glass speech-modal"
-      cardProps={{ style: { maxWidth: "520px" } }}
+      cardClassName="modal-dialog-card glass speech-modal" cardProps={{ style: { maxWidth: "520px" } }}
     >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-          <h2 style={{ margin: 0, fontSize: "16px" }}>🎙️ Auto-Speech Transcription (Whisper AI)</h2>
+          <h2 style={{ margin: 0, fontSize: "16px" }}> Auto-Speech Transcription (Whisper AI)</h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
         <p className="modal-desc" style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px" }}>
@@ -77,16 +76,14 @@ export function TranscriptionModal({
           Optional Script / Voiceover Text (Overrides audio analysis)
           <textarea
             rows={3}
-            placeholder="Leave blank to analyze timeline audio tracks automatically, or paste script text here..."
-            value={transcribeTextOverride}
+            placeholder="Leave blank to analyze timeline audio tracks automatically, or paste script text here..." value={transcribeTextOverride}
             onChange={(e) => setTranscribeTextOverride(e.target.value)}
             style={{ width: "100%", padding: "6px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px", resize: "vertical" }}
           />
         </label>
         <label style={{ fontSize: "11px", display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", cursor: "pointer" }}>
           <input
-            type="checkbox"
-            checked={transcribeReplaceExisting}
+            type="checkbox" checked={transcribeReplaceExisting}
             onChange={(e) => setTranscribeReplaceExisting(e.target.checked)}
           />
           <span>Replace existing subtitles in current sequence</span>
@@ -94,12 +91,10 @@ export function TranscriptionModal({
         <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
           <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
           <InteriorButton
-            type="button"
-            className="primary"
-            onClick={() => void handleAutoTranscribe()}
+            type="button" className="primary" onClick={() => void handleAutoTranscribe()}
             disabled={isTranscribing}
           >
-            {isTranscribing ? "Transcribing Audio…" : "🎙️ Generate Subtitles"}
+            {isTranscribing ? "Transcribing Audio…" : "Generate Subtitles"}
           </InteriorButton>
         </div>
     </GlassDialog>

@@ -129,9 +129,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
     <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "var(--gap, 12px)", overflow: "hidden" }}>
       {/* Top Header Bar */}
       <div
-        className="glass"
-        data-elev="2"
-        style={{
+        className="glass" data-elev="2" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -141,20 +139,17 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <InteriorButton
-            size="sm"
-            variant="ghost"
-            onClick={() => setActiveView("detail")}
+            size="sm" variant="ghost" onClick={() => setActiveView("detail")}
             data-testid="back-to-detail-btn"
           >
             ← Back to Job Detail
           </InteriorButton>
-          <span style={{ fontWeight: 700, fontSize: "15px" }}>🎬 Review: {job.title}</span>
+          <span style={{ fontWeight: 700, fontSize: "15px" }}> Review: {job.title}</span>
           {rounds.length > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>Round:</span>
               <select
-                className="webdesk-select"
-                value={selectedRoundIndex}
+                className="webdesk-select" value={selectedRoundIndex}
                 onChange={(e) => setSelectedRoundIndex(Number(e.target.value))}
                 style={{ height: "26px", fontSize: "11px" }}
                 data-testid="round-selector"
@@ -172,17 +167,13 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
         {/* Decision Actions Bar */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <InteriorButton
-            size="sm"
-            variant="secondary"
-            onClick={() => setShowRevisionModal(true)}
+            size="sm" variant="secondary" onClick={() => setShowRevisionModal(true)}
             data-testid="request-revision-btn"
           >
-            🔄 Request Revision
+             Request Revision
           </InteriorButton>
           <InteriorButton
-            size="sm"
-            variant="primary"
-            onClick={handleApprove}
+            size="sm" variant="primary" onClick={handleApprove}
             data-testid="approve-delivery-btn"
           >
             ✓ Approve Delivery
@@ -198,8 +189,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
           <div className="webdesk-player-surface" data-testid="video-player-surface">
             <video
               ref={videoRef}
-              className="webdesk-video-element"
-              src={job.media_proxy_url || "editor-smoke.webm"}
+              className="webdesk-video-element" src={job.media_proxy_url || "editor-smoke.webm"}
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={handleLoadedMetadata}
               data-testid="proxy-video-player"
@@ -208,27 +198,21 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
             {/* Custom Scrubber Bar */}
             <div className="webdesk-player-controls">
               <InteriorButton
-                size="sm"
-                variant="ghost"
-                onClick={togglePlay}
+                size="sm" variant="ghost" onClick={togglePlay}
                 data-testid="play-pause-btn"
               >
                 {isPlaying ? "⏸" : "▶"}
               </InteriorButton>
 
               <button
-                type="button"
-                className="webdesk-nav-btn"
-                style={{ padding: "0 6px" }}
+                type="button" className="webdesk-nav-btn" style={{ padding: "0 6px" }}
                 onClick={() => handleNudge(-1 / 30)}
                 title="Step Back 1 Frame"
               >
                 -1f
               </button>
               <button
-                type="button"
-                className="webdesk-nav-btn"
-                style={{ padding: "0 6px" }}
+                type="button" className="webdesk-nav-btn" style={{ padding: "0 6px" }}
                 onClick={() => handleNudge(1 / 30)}
                 title="Step Forward 1 Frame"
               >
@@ -236,15 +220,12 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
               </button>
 
               <input
-                type="range"
-                className="webdesk-scrubber"
-                min={0}
+                type="range" className="webdesk-scrubber" min={0}
                 max={duration || 100}
                 step={0.01}
                 value={currentTime}
                 onChange={(e) => handleSeek(Number(e.target.value))}
-                data-testid="video-scrubber"
-                aria-label="Video Scrub Bar"
+                data-testid="video-scrubber" aria-label="Video Scrub Bar"
               />
 
               <div className="webdesk-timecode-display" data-testid="timecode-display">
@@ -255,9 +236,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
 
           {/* Round Diff Summary */}
           <div
-            className="glass"
-            data-elev="1"
-            style={{
+            className="glass" data-elev="1" style={{
               padding: "12px 14px",
               borderRadius: "var(--radius, 14px)",
               display: "flex",
@@ -268,7 +247,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "13px", fontWeight: 700 }}>
-                📊 Round Diff Summary ({currentRound?.label ?? "v1"})
+                 Round Diff Summary ({currentRound?.label ?? "v1"})
               </span>
               <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                 Opened by {currentRound?.opened_by ?? "system"}
@@ -296,9 +275,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
 
         {/* Right Column: Timecoded Revision Notes */}
         <div
-          className="glass"
-          data-elev="2"
-          style={{
+          className="glass" data-elev="2" style={{
             padding: "14px",
             borderRadius: "var(--radius, 14px)",
             display: "flex",
@@ -310,7 +287,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: "13px", fontWeight: 700 }}>
-              💬 Timecoded Notes ({notes.length})
+               Timecoded Notes ({notes.length})
             </span>
             <span
               style={{
@@ -327,10 +304,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             <div style={{ display: "flex", gap: "6px" }}>
               <input
-                type="text"
-                className="webdesk-search-input"
-                placeholder="Note at current playhead position..."
-                value={noteDraft}
+                type="text" className="webdesk-search-input" placeholder="Note at current playhead position..." value={noteDraft}
                 onChange={(e) => setNoteDraft(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -338,13 +312,10 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
                     void handleAddNote();
                   }
                 }}
-                data-testid="note-input"
-                aria-label="Add review note"
+                data-testid="note-input" aria-label="Add review note"
               />
               <InteriorButton
-                size="sm"
-                variant="primary"
-                onClick={handleAddNote}
+                size="sm" variant="primary" onClick={handleAddNote}
                 data-testid="add-note-btn"
               >
                 Add @ {formatTimecode(currentTime)}
@@ -367,13 +338,10 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
                   <div key={note.id} className="webdesk-note-item glass" data-elev="1" data-testid={`note-item-${note.id}`}>
                     <div className="webdesk-note-header">
                       <button
-                        type="button"
-                        className="webdesk-note-timecode-btn"
-                        onClick={() => handleJumpToTick(note.target_tick ?? 0)}
-                        title="Jump to timecode"
-                        data-testid="note-timecode-btn"
+                        type="button" className="webdesk-note-timecode-btn" onClick={() => handleJumpToTick(note.target_tick ?? 0)}
+                        title="Jump to timecode" data-testid="note-timecode-btn"
                       >
-                        ⏱ {formatTimecode(tickSeconds)}
+                        {formatTimecode(tickSeconds)}
                       </button>
                       <span
                         style={{
@@ -409,9 +377,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
                     {note.status === "open" && !isResolving && (
                       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "4px" }}>
                         <InteriorButton
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setResolvingNoteId(note.id)}
+                          size="sm" variant="ghost" onClick={() => setResolvingNoteId(note.id)}
                           data-testid="resolve-note-btn"
                         >
                           Resolve Note
@@ -422,19 +388,13 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
                     {isResolving && (
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "6px" }}>
                         <input
-                          type="text"
-                          className="webdesk-search-input"
-                          placeholder="Resolution details (e.g. cut adjusted in take 2)..."
-                          value={resolutionDraft}
+                          type="text" className="webdesk-search-input" placeholder="Resolution details (e.g. cut adjusted in take 2)..." value={resolutionDraft}
                           onChange={(e) => setResolutionDraft(e.target.value)}
-                          aria-label="Note Resolution Comment"
-                          data-testid="resolution-input"
+                          aria-label="Note Resolution Comment" data-testid="resolution-input"
                         />
                         <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
                           <InteriorButton
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
+                            size="sm" variant="ghost" onClick={() => {
                               setResolvingNoteId(null);
                               setResolutionDraft("");
                             }}
@@ -442,9 +402,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
                             Cancel
                           </InteriorButton>
                           <InteriorButton
-                            size="sm"
-                            variant="primary"
-                            onClick={() => handleConfirmResolve(note.id)}
+                            size="sm" variant="primary" onClick={() => handleConfirmResolve(note.id)}
                             data-testid="confirm-resolve-btn"
                           >
                             Confirm Resolution
@@ -463,16 +421,12 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
       {/* Revision Request Modal */}
       {showRevisionModal && (
         <div
-          className="webdesk-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="revision-modal-title"
-          data-testid="revision-modal"
+          className="webdesk-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="revision-modal-title" data-testid="revision-modal"
         >
           <div className="webdesk-modal glass" data-elev="4">
             <div className="webdesk-modal-header">
               <h2 id="revision-modal-title" className="webdesk-modal-title">
-                🔄 Request Revision (Round {rounds.length + 1})
+                 Request Revision (Round {rounds.length + 1})
               </h2>
               <InteriorButton size="sm" variant="ghost" onClick={() => setShowRevisionModal(false)}>
                 ✕
@@ -482,13 +436,9 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
             <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "13px" }}>
               <span>Explain required revisions for the autonomous agent:</span>
               <input
-                type="text"
-                className="webdesk-search-input"
-                placeholder="Describe key adjustments..."
-                value={revisionReason}
+                type="text" className="webdesk-search-input" placeholder="Describe key adjustments..." value={revisionReason}
                 onChange={(e) => setRevisionReason(e.target.value)}
-                aria-label="Revision Instructions"
-                data-testid="revision-reason-input"
+                aria-label="Revision Instructions" data-testid="revision-reason-input"
               />
               <div style={{ color: "var(--text-muted)", fontSize: "11px" }}>
                 This will close review round {rounds.length} and return the job to the agent with open review notes attached.
@@ -500,9 +450,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
                 Cancel
               </InteriorButton>
               <InteriorButton
-                size="md"
-                variant="primary"
-                onClick={handleConfirmRevision}
+                size="md" variant="primary" onClick={handleConfirmRevision}
                 data-testid="confirm-revision-btn"
               >
                 Send Revision to Agent

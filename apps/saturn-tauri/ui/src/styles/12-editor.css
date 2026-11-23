@@ -134,7 +134,6 @@
 
 .plugin-power-dot.active {
   background: var(--status-success-bright);
-  box-shadow: 0 0 5px var(--status-success-bright);
 }
 
 .plugin-name-label {

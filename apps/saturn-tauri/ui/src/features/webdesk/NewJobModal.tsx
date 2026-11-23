@@ -115,17 +115,13 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
 
   return (
     <div
-      className="webdesk-modal-backdrop"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="new-job-title"
-      data-testid="new-job-modal"
+      className="webdesk-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="new-job-title" data-testid="new-job-modal"
     >
       <div className="webdesk-modal glass" data-elev="4">
         {/* Modal Header */}
         <div className="webdesk-modal-header">
           <h2 id="new-job-title" className="webdesk-modal-title">
-            ➕ Create New Task Sheet Job
+            Create New Task Sheet Job
           </h2>
           <InteriorButton size="sm" variant="ghost" onClick={onClose} aria-label="Close modal">
             ✕
@@ -139,8 +135,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
           </label>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px" }}>
             <button
-              type="button"
-              className={`webdesk-nav-btn ${selectedTemplateId === "podcast_social" ? "active" : ""}`}
+              type="button" className={`webdesk-nav-btn ${selectedTemplateId === "podcast_social" ? "active" : ""}`}
               style={{ justifyContent: "center", height: "36px", textAlign: "center" }}
               onClick={() => handleSelectTemplate("podcast_social")}
               data-testid="template-btn-podcast"
@@ -148,8 +143,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
               Podcast & Social Clips
             </button>
             <button
-              type="button"
-              className={`webdesk-nav-btn ${selectedTemplateId === "tutorial_screen" ? "active" : ""}`}
+              type="button" className={`webdesk-nav-btn ${selectedTemplateId === "tutorial_screen" ? "active" : ""}`}
               style={{ justifyContent: "center", height: "36px", textAlign: "center" }}
               onClick={() => handleSelectTemplate("tutorial_screen")}
               data-testid="template-btn-tutorial"
@@ -157,8 +151,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
               Tutorial & Screen Capture
             </button>
             <button
-              type="button"
-              className={`webdesk-nav-btn ${selectedTemplateId === "webinar_recap" ? "active" : ""}`}
+              type="button" className={`webdesk-nav-btn ${selectedTemplateId === "webinar_recap" ? "active" : ""}`}
               style={{ justifyContent: "center", height: "36px", textAlign: "center" }}
               onClick={() => handleSelectTemplate("webinar_recap")}
               data-testid="template-btn-webinar"
@@ -175,12 +168,9 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
               Job Title
             </label>
             <input
-              type="text"
-              className="webdesk-search-input"
-              value={title}
+              type="text" className="webdesk-search-input" value={title}
               onChange={(e) => setTitle(e.target.value)}
-              aria-label="Job Title"
-              data-testid="job-title-input"
+              aria-label="Job Title" data-testid="job-title-input"
             />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -188,12 +178,9 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
               Requester / Owner
             </label>
             <input
-              type="text"
-              className="webdesk-search-input"
-              value={requester}
+              type="text" className="webdesk-search-input" value={requester}
               onChange={(e) => setRequester(e.target.value)}
-              aria-label="Requester"
-              data-testid="job-requester-input"
+              aria-label="Requester" data-testid="job-requester-input"
             />
           </div>
         </div>
@@ -205,9 +192,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
               Media Inputs ({inputs.length})
             </label>
             <InteriorButton
-              size="sm"
-              variant="ghost"
-              onClick={() =>
+              size="sm" variant="ghost" onClick={() =>
                 setInputs([
                   ...inputs,
                   {
@@ -226,9 +211,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
             {inputs.map((inp, idx) => (
               <div
                 key={inp.id}
-                className="glass"
-                data-elev="1"
-                style={{
+                className="glass" data-elev="1" style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -255,9 +238,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
                     {inp.trust === "untrusted" ? "UNTRUSTED" : "TRUSTED"}
                   </span>
                   <InteriorButton
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setInputs(inputs.filter((_, i) => i !== idx))}
+                    size="sm" variant="ghost" onClick={() => setInputs(inputs.filter((_, i) => i !== idx))}
                   >
                     ✕
                   </InteriorButton>
@@ -274,9 +255,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
               Deliverable Targets ({deliverables.length})
             </label>
             <InteriorButton
-              size="sm"
-              variant="ghost"
-              onClick={() =>
+              size="sm" variant="ghost" onClick={() =>
                 setDeliverables([
                   ...deliverables,
                   {
@@ -297,9 +276,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
             {deliverables.map((deliv, idx) => (
               <div
                 key={deliv.id}
-                className="glass"
-                data-elev="1"
-                style={{
+                className="glass" data-elev="1" style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -315,9 +292,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
                   </span>
                 </div>
                 <InteriorButton
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setDeliverables(deliverables.filter((_, i) => i !== idx))}
+                  size="sm" variant="ghost" onClick={() => setDeliverables(deliverables.filter((_, i) => i !== idx))}
                 >
                   ✕
                 </InteriorButton>
@@ -333,9 +308,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
               Wall-Clock (min)
             </label>
             <input
-              type="number"
-              className="webdesk-search-input"
-              value={budget.wall_clock_min}
+              type="number" className="webdesk-search-input" value={budget.wall_clock_min}
               onChange={(e) => setBudget({ ...budget, wall_clock_min: Number(e.target.value) })}
             />
           </div>
@@ -344,10 +317,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
               Model Budget ($)
             </label>
             <input
-              type="number"
-              step="0.5"
-              className="webdesk-search-input"
-              value={budget.model_cost_usd}
+              type="number" step="0.5" className="webdesk-search-input" value={budget.model_cost_usd}
               onChange={(e) => setBudget({ ...budget, model_cost_usd: Number(e.target.value) })}
             />
           </div>
@@ -356,9 +326,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
               Render (min)
             </label>
             <input
-              type="number"
-              className="webdesk-search-input"
-              value={budget.render_min}
+              type="number" className="webdesk-search-input" value={budget.render_min}
               onChange={(e) => setBudget({ ...budget, render_min: Number(e.target.value) })}
             />
           </div>
@@ -394,16 +362,14 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
             }}
             data-testid="validation-error"
           >
-            ⚠ {validationError}
+            {validationError}
           </div>
         )}
 
         {/* Modal Footer Actions */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "8px" }}>
           <InteriorButton
-            size="md"
-            variant="secondary"
-            onClick={handleValidate}
+            size="md" variant="secondary" onClick={handleValidate}
             data-testid="validate-job-btn"
           >
             Validate
@@ -414,9 +380,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
               Cancel
             </InteriorButton>
             <InteriorButton
-              size="md"
-              variant="primary"
-              onClick={handleSubmit}
+              size="md" variant="primary" onClick={handleSubmit}
               data-testid="submit-job-btn"
             >
               Submit Job

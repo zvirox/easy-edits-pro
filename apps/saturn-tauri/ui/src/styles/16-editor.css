@@ -173,7 +173,6 @@
 
 .multicam-tile.active-angle {
   border-color: var(--status-danger-bright) !important;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--status-danger-bright) 40%, transparent);
 }
 
 .multicam-tile.active-angle .multicam-tally-badge {
@@ -192,7 +191,7 @@
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.05em;
-  text-transform: uppercase;
+  text-transform: none;
   padding: 1px 4px;
   border-radius: 3px;
   background: color-mix(in srgb, var(--accent-violet-bright) 20%, transparent);

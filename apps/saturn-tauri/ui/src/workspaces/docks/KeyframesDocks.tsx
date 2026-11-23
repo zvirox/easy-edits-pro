@@ -116,9 +116,7 @@ export function KeyframesDockRight({
 
   return (
     <DockCard
-        className="shell-dock shell-dock-right"
-        ariaLabel="Keyframes dock"
-        tabs={[
+        className="shell-dock shell-dock-right" ariaLabel="Keyframes dock" tabs={[
           {
             id: "keyframes-curves",
             title: "Curves",
@@ -140,8 +138,7 @@ export function KeyframesDockRight({
                 {keyframeOptions.map((opt) => (
                   <InteriorButton
                     key={opt.value}
-                    type="button"
-                    className={`property-pill-btn ${keyframeProperty === opt.value ? "active" : ""}`}
+                    type="button" className={`property-pill-btn ${keyframeProperty === opt.value ? "active" : ""}`}
                     onClick={() => {
                       setKeyframeProperty(opt.value);
                       setKeyframeValue(String(opt.defaultValue));
@@ -180,25 +177,20 @@ export function KeyframesDockRight({
             {/* Curve Transport Bar */}
             <div className="curve-transport-bar">
               <InteriorButton
-                type="button"
-                className="transport-btn"
-                onClick={jumpPrevKeyframe}
+                type="button" className="transport-btn" onClick={jumpPrevKeyframe}
                 title="Jump to Previous Keyframe"
               >
                 ⏮
               </InteriorButton>
               <InteriorButton
-                type="button"
-                className={`transport-btn ${programPlaying ? "active-toggle" : ""}`}
+                type="button" className={`transport-btn ${programPlaying ? "active-toggle" : ""}`}
                 onClick={() => toggleProgramPlayback()}
                 title={programPlaying ? "Pause Playback" : "Play Clip"}
               >
-                {programPlaying ? "⏸ Pause" : "▶ Play"}
+                {programPlaying ? "⏸ Pause" : "Video · Play"}
               </InteriorButton>
               <InteriorButton
-                type="button"
-                className="transport-btn"
-                onClick={jumpNextKeyframe}
+                type="button" className="transport-btn" onClick={jumpNextKeyframe}
                 title="Jump to Next Keyframe"
               >
                 ⏭
@@ -207,9 +199,7 @@ export function KeyframesDockRight({
               <div className="curve-transport-divider" />
 
               <InteriorButton
-                type="button"
-                className="btn-primary-subtle"
-                disabled={!selectedClip}
+                type="button" className="btn-primary-subtle" disabled={!selectedClip}
                 onClick={() => {
                   const hInX =
                     keyframeInterpDraft === "ease_in"
@@ -252,12 +242,10 @@ export function KeyframesDockRight({
 
               {activeKf && (
                 <InteriorButton
-                  type="button"
-                  className="danger-button"
-                  onClick={() => void deleteKeyframe(activeKf.property, activeKf.time)}
+                  type="button" className="danger-button" onClick={() => void deleteKeyframe(activeKf.property, activeKf.time)}
                   title="Delete Selected Keyframe"
                 >
-                  🗑 Delete Keyframe
+                   Delete Keyframe
                 </InteriorButton>
               )}
             </div>

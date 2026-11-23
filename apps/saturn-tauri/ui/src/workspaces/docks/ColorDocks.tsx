@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { LucideGlyph } from "../../components/LucideGlyph";
 import { useState } from "react";
 import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction, RefObject } from "react";
@@ -37,25 +38,25 @@ export const LUT_PRESETS: LutPresetItem[] = [
     id: "teal_orange",
     name: "Teal & Orange",
     description: "Blockbuster cinematic contrast with cool cyan shadows & warm skin tones",
-    icon: "🌅",
+    icon: "Sunrise",
   },
   {
     id: "vintage",
     name: "Warm Vintage",
     description: "Golden 70s celluloid film with rich amber warmth & soft roll-off",
-    icon: "🎞️",
+    icon: "Film",
   },
   {
     id: "film_noir",
     name: "Film Noir",
     description: "Deep dramatic black & white with rich silver tones and crisp highlights",
-    icon: "🎥",
+    icon: "Video",
   },
   {
     id: "rec709",
     name: "Clean Rec.709",
     description: "Neutral studio broadcast calibration curve with accurate skin tones",
-    icon: "📺",
+    icon: "Tv",
   },
 ];
 
@@ -192,25 +193,22 @@ export function ColorDockRight({
         <div className="color-wheels-dock-wrapper">
           <div className="color-studio-tabs">
             <InteriorButton
-              type="button"
-              className={`btn-secondary color-studio-tab-btn ${studioTab === "wheels" ? "active" : ""}`}
+              type="button" className={`btn-secondary color-studio-tab-btn ${studioTab === "wheels" ? "active" : ""}`}
               onClick={() => setStudioTab("wheels")}
             >
-              🎡 3-Way Color Wheels
+               3-Way Color Wheels
             </InteriorButton>
             <InteriorButton
-              type="button"
-              className={`btn-secondary color-studio-tab-btn ${studioTab === "curves" ? "active" : ""}`}
+              type="button" className={`btn-secondary color-studio-tab-btn ${studioTab === "curves" ? "active" : ""}`}
               onClick={() => setStudioTab("curves")}
             >
-              📈 RGB Curves
+               RGB Curves
             </InteriorButton>
             <InteriorButton
-              type="button"
-              className={`btn-secondary color-studio-tab-btn ${studioTab === "qualifier" ? "active" : ""}`}
+              type="button" className={`btn-secondary color-studio-tab-btn ${studioTab === "qualifier" ? "active" : ""}`}
               onClick={() => setStudioTab("qualifier")}
             >
-              🎯 HSL Secondary Qualifier
+               HSL Secondary Qualifier
             </InteriorButton>
           </div>
 
@@ -256,11 +254,7 @@ export function ColorDockRight({
                   <b>{colorDraft.exposure > 0 ? `+${colorDraft.exposure.toFixed(1)}` : colorDraft.exposure.toFixed(1)}</b>
                 </div>
                 <input
-                  type="range"
-                  min="-5"
-                  max="5"
-                  step="0.1"
-                  disabled={!selectedClip}
+                  type="range" min="-5" max="5" step="0.1" disabled={!selectedClip}
                   value={colorDraft.exposure}
                   onChange={(e) => setColorDraft((v) => ({ ...v, exposure: Number(e.target.value) }))}
                   onPointerUp={(e) => updateColorField("exposure", Number(e.currentTarget.value))}
@@ -274,11 +268,7 @@ export function ColorDockRight({
                   <b>{colorDraft.contrast.toFixed(2)}</b>
                 </div>
                 <input
-                  type="range"
-                  min="0"
-                  max="2"
-                  step="0.01"
-                  disabled={!selectedClip}
+                  type="range" min="0" max="2" step="0.01" disabled={!selectedClip}
                   value={colorDraft.contrast}
                   onChange={(e) => setColorDraft((v) => ({ ...v, contrast: Number(e.target.value) }))}
                   onPointerUp={(e) => updateColorField("contrast", Number(e.currentTarget.value))}
@@ -292,11 +282,7 @@ export function ColorDockRight({
                   <b>{colorDraft.saturation.toFixed(2)}</b>
                 </div>
                 <input
-                  type="range"
-                  min="0"
-                  max="2"
-                  step="0.01"
-                  disabled={!selectedClip}
+                  type="range" min="0" max="2" step="0.01" disabled={!selectedClip}
                   value={colorDraft.saturation}
                   onChange={(e) => setColorDraft((v) => ({ ...v, saturation: Number(e.target.value) }))}
                   onPointerUp={(e) => updateColorField("saturation", Number(e.currentTarget.value))}
@@ -310,11 +296,7 @@ export function ColorDockRight({
                   <b>{((colorDraft.hue ?? 0) * 180).toFixed(0)}°</b>
                 </div>
                 <input
-                  type="range"
-                  min="-1"
-                  max="1"
-                  step="0.01"
-                  disabled={!selectedClip}
+                  type="range" min="-1" max="1" step="0.01" disabled={!selectedClip}
                   value={colorDraft.hue ?? 0}
                   onChange={(e) => setColorDraft((v) => ({ ...v, hue: Number(e.target.value) }))}
                   onPointerUp={(e) => updateColorField("hue", Number(e.currentTarget.value))}
@@ -323,8 +305,7 @@ export function ColorDockRight({
               </label>
             </div>
             <InteriorButton
-              className="btn-secondary"
-              style={{ padding: "3px 10px", fontSize: "11px" }}
+              className="btn-secondary" style={{ padding: "3px 10px", fontSize: "11px" }}
               onClick={resetColorGrading}
               disabled={!selectedClip}
               title="Reset exposure, contrast, saturation, and color wheels to neutral"
@@ -342,12 +323,11 @@ export function ColorDockRight({
               {COLOR_PRESETS.map((preset) => (
                 <InteriorButton
                   key={preset.id}
-                  className="color-preset-card compact"
-                  disabled={!selectedClip}
+                  className="color-preset-card compact" disabled={!selectedClip}
                   onClick={() => void applyColorPreset(preset)}
                   title={`Apply ${preset.label} grade`}
                 >
-                  <span className="preset-card-icon">{preset.icon}</span>
+                  <span className="preset-card-icon"><LucideGlyph name={preset.icon} /></span>
                   <strong className="preset-card-title">{preset.label}</strong>
                 </InteriorButton>
               ))}
@@ -363,24 +343,21 @@ export function ColorDockRight({
               {LUT_PRESETS.map((lut) => (
                 <InteriorButton
                   key={lut.id}
-                  className="color-preset-card compact"
-                  disabled={!selectedClip}
+                  className="color-preset-card compact" disabled={!selectedClip}
                   onClick={() => void applyLutPreset(lut)}
                   title={`Apply ${lut.name}: ${lut.description}`}
                 >
-                  <span className="preset-card-icon">{lut.icon}</span>
+                  <span className="preset-card-icon"><LucideGlyph name={lut.icon} /></span>
                   <strong className="preset-card-title">{lut.name}</strong>
                 </InteriorButton>
               ))}
             </div>
             <InteriorButton
-              type="button"
-              className="btn-secondary lut-open-btn"
-              disabled={!selectedClip}
+              type="button" className="btn-secondary lut-open-btn" disabled={!selectedClip}
               onClick={() => void loadLutCubeDialog()}
               style={{ marginTop: "8px", width: "100%", fontSize: "11px", padding: "6px" }}
             >
-              📂 Load Custom .cube File…
+               Load Custom .cube File…
             </InteriorButton>
           </div>
         </aside>

@@ -80,7 +80,7 @@ export function SourceAudioVisualizer({ item, src }: SourceAudioVisualizerProps)
       {/* Top Metadata Header */}
       <div className="source-audio-top-info">
         <div className="source-audio-badge">
-          <span>♪ AUDIO CLIP</span>
+          <span>AUDIO CLIP</span>
           <span style={{ color: "var(--text-muted)", fontSize: "9px" }}>
             {item.name}
           </span>
@@ -92,14 +92,11 @@ export function SourceAudioVisualizer({ item, src }: SourceAudioVisualizerProps)
 
       {/* Interactive Waveform Visualizer Display */}
       <div
-        className="source-audio-waveform-wrapper"
-        onClick={handleWaveformClick}
+        className="source-audio-waveform-wrapper" onClick={handleWaveformClick}
         title="Click or scrub to seek audio position"
       >
         <svg
-          className="source-audio-waveform-svg"
-          viewBox="0 0 100 40"
-          preserveAspectRatio="none"
+          className="source-audio-waveform-svg" viewBox="0 0 100 40" preserveAspectRatio="none"
         >
           <defs>
             <linearGradient id="sourceAudioGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -115,16 +112,13 @@ export function SourceAudioVisualizer({ item, src }: SourceAudioVisualizerProps)
               const x = (i / waveform.length) * 100;
               return `M ${x.toFixed(1)} ${(20 - norm).toFixed(1)} L ${x.toFixed(1)} ${(20 + norm).toFixed(1)}`;
             }).join(" ")}
-            stroke="url(#sourceAudioGrad)"
-            strokeWidth="1.4"
-            strokeLinecap="round"
+            stroke="url(#sourceAudioGrad)" strokeWidth="1.4" strokeLinecap="round"
           />
         </svg>
 
         {/* Playhead Marker */}
         <div
-          className="source-audio-playhead"
-          style={{ left: `${progressPct.toFixed(2)}%` }}
+          className="source-audio-playhead" style={{ left: `${progressPct.toFixed(2)}%` }}
         />
       </div>
 
@@ -132,61 +126,48 @@ export function SourceAudioVisualizer({ item, src }: SourceAudioVisualizerProps)
       <div className="source-audio-transport">
         <div className="source-audio-btns">
           <InteriorButton
-            type="button"
-            className="source-transport-btn"
-            onClick={() => seekRelative(-5)}
+            type="button" className="source-transport-btn" onClick={() => seekRelative(-5)}
             title="Rewind 5s (J)"
           >
             ◀◀ -5s
           </InteriorButton>
           <InteriorButton
-            type="button"
-            className="source-transport-btn"
-            onClick={() => seekRelative(-1)}
+            type="button" className="source-transport-btn" onClick={() => seekRelative(-1)}
             title="Step Back 1s"
           >
             ◀|
           </InteriorButton>
           <InteriorButton
-            type="button"
-            className="source-transport-btn play"
-            onClick={togglePlay}
+            type="button" className="source-transport-btn play" onClick={togglePlay}
             title="Play / Pause (Space)"
           >
-            {isPlaying ? "⏸ Pause" : "▶ Play"}
+            {isPlaying ? "⏸ Pause" : "Video · Play"}
           </InteriorButton>
           <InteriorButton
-            type="button"
-            className="source-transport-btn"
-            onClick={() => seekRelative(1)}
+            type="button" className="source-transport-btn" onClick={() => seekRelative(1)}
             title="Step Forward 1s"
           >
             |▶
           </InteriorButton>
           <InteriorButton
-            type="button"
-            className="source-transport-btn"
-            onClick={() => seekRelative(5)}
+            type="button" className="source-transport-btn" onClick={() => seekRelative(5)}
             title="Fast Forward 5s (L)"
           >
             +5s ▶▶
           </InteriorButton>
           <InteriorButton
-            type="button"
-            className={`source-transport-btn ${isLooping ? "active-toggle" : ""}`}
+            type="button" className={`source-transport-btn ${isLooping ? "active-toggle" : ""}`}
             onClick={() => setIsLooping((v) => !v)}
             title="Toggle Loop Playback"
           >
-            🔁 {isLooping ? "Loop On" : "Loop"}
+             {isLooping ? "Loop On" : "Loop"}
           </InteriorButton>
         </div>
 
         {/* Volume & Mute Controls */}
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <InteriorButton
-            type="button"
-            className="source-transport-btn"
-            onClick={() => {
+            type="button" className="source-transport-btn" onClick={() => {
               if (audioRef.current) {
                 audioRef.current.muted = !isMuted;
                 setIsMuted(!isMuted);
@@ -194,14 +175,10 @@ export function SourceAudioVisualizer({ item, src }: SourceAudioVisualizerProps)
             }}
             title={isMuted ? "Unmute" : "Mute"}
           >
-            {isMuted ? "🔇" : "🔊"}
+            {isMuted ? "" : ""}
           </InteriorButton>
           <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
-            value={isMuted ? 0 : volume}
+            type="range" min="0" max="1" step="0.05" value={isMuted ? 0 : volume}
             onChange={(e) => {
               const val = Number(e.target.value);
               setVolume(val);

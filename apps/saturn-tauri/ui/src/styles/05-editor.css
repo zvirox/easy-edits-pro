@@ -50,21 +50,18 @@
   background: var(--status-danger-bright);
   color: var(--color-white);
   border-color: var(--status-danger-dark);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--status-danger-bright) 40%, transparent);
 }
 
 .strip-btn.btn-solo.active {
   background: var(--status-warning);
   color: var(--color-black);
   border-color: var(--status-warning-deep);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--status-warning) 40%, transparent);
 }
 
 .strip-btn.btn-lock.active {
   background: var(--accent-secondary);
   color: var(--color-black);
   border-color: var(--accent-secondary);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-secondary) 40%, transparent);
 }
 
 .master-bus-placeholder {
@@ -465,7 +462,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 0 16px color-mix(in srgb, var(--master-accent) 8%, transparent);
 }
 
 .master-bus-header {

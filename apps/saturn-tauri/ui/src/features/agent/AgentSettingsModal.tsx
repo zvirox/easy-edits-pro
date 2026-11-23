@@ -64,16 +64,14 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
   return (
     <GlassDialog
       open={isOpen}
-      cardClassName="modal-dialog-card glass agent-settings-modal"
-      onBackdropClick={onClose}
+      cardClassName="modal-dialog-card glass agent-settings-modal" onBackdropClick={onClose}
       cardProps={{
         style: { maxWidth: "580px", width: "100%", maxHeight: "85vh", overflowY: "auto" },
         onClick: (e) => e.stopPropagation(),
       }}
     >
       <div
-        className="modal-header"
-        style={{
+        className="modal-header" style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -82,7 +80,7 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
           paddingBottom: "8px",
         }}
       >
-        <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>🤖 Agent & Co-Editing Settings</h2>
+        <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}> Agent & Co-Editing Settings</h2>
         <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
       </div>
 
@@ -108,9 +106,7 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
                 }}
               >
                 <input
-                  type="radio"
-                  name="provider"
-                  value={p}
+                  type="radio" name="provider" value={p}
                   checked={provider === p}
                   onChange={() => setProvider(p)}
                 />
@@ -124,11 +120,9 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
           <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
             <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Endpoint / Socket Path</span>
             <input
-              type="text"
-              value={endpoint}
+              type="text" value={endpoint}
               onChange={(e) => setEndpoint(e.target.value)}
-              placeholder="http://127.0.0.1:4404 or /tmp/saturn-daemon.sock"
-              style={{
+              placeholder="http://127.0.0.1:4404 or /tmp/saturn-daemon.sock" style={{
                 width: "100%",
                 padding: "6px 8px",
                 borderRadius: "var(--radius-sm, 6px)",
@@ -193,8 +187,7 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
                 }}
               >
                 <input
-                  type="checkbox"
-                  checked={grants.includes(id)}
+                  type="checkbox" checked={grants.includes(id)}
                   onChange={() => toggleGrant(id)}
                 />
                 <span>{label}</span>
@@ -214,20 +207,14 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
               <input
-                type="radio"
-                name="autoMergePolicy"
-                value="manual"
-                checked={autoMergePolicy === "manual"}
+                type="radio" name="autoMergePolicy" value="manual" checked={autoMergePolicy === "manual"}
                 onChange={() => setAutoMergePolicy("manual")}
               />
               <span>Manual review required (Recommended — human review via Review Card)</span>
             </label>
             <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
               <input
-                type="radio"
-                name="autoMergePolicy"
-                value="verified_pass"
-                checked={autoMergePolicy === "verified_pass"}
+                type="radio" name="autoMergePolicy" value="verified_pass" checked={autoMergePolicy === "verified_pass"}
                 onChange={() => setAutoMergePolicy("verified_pass")}
               />
               <span>Auto-merge only when all <code>verify.run</code> checks pass and confidence is high</span>
@@ -241,8 +228,7 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
             Audit Log Location (JSONL)
           </label>
           <input
-            type="text"
-            value={auditLogPath}
+            type="text" value={auditLogPath}
             onChange={(e) => setAuditLogPath(e.target.value)}
             style={{
               width: "100%",
@@ -271,11 +257,9 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
             Run a closed-loop sample task (podcast dialogue cleanup & match cut alignment) on a synthetic CC0 demo project to test daemon connectivity and verification.
           </p>
           <InteriorButton
-            variant="secondary"
-            size="sm"
-            onClick={handleDemo}
+            variant="secondary" size="sm" onClick={handleDemo}
           >
-            🚀 Run Sample Task on Demo Project
+             Run Sample Task on Demo Project
           </InteriorButton>
           {demoNotice && (
             <span style={{ marginLeft: "10px", fontSize: "11px", color: "var(--accent-text, #f472b6)" }}>

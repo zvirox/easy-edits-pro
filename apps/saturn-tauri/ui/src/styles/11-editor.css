@@ -50,7 +50,6 @@
 
 .multicam-tile.active-angle {
   border-color: var(--status-danger-bright);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--status-danger-bright) 40%, transparent);
 }
 
 .multicam-tile-video {
@@ -93,7 +92,6 @@
 
 .multicam-tile.active-angle .multicam-tally-dot {
   background: var(--color-white);
-  box-shadow: 0 0 6px var(--color-white);
 }
 
 .multicam-angle-meta {
@@ -254,7 +252,7 @@
 .batch-status-pill {
   font-size: 9px;
   font-weight: 800;
-  text-transform: uppercase;
+  text-transform: none;
   padding: 2px 5px;
   border-radius: 3px;
   background: var(--border-strong-solid);
@@ -377,7 +375,6 @@
   width: 90px;
   height: 90px;
   border: 2px dashed var(--accent-bright);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-bright) 40%, transparent), inset 0 0 10px color-mix(in srgb, var(--accent-bright) 20%, transparent);
   border-radius: 4px;
   pointer-events: none;
   z-index: 10;

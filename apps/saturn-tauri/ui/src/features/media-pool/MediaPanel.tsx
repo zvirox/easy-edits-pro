@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { Menu, PenLine } from "lucide-react";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { useEffect, useRef, type PointerEvent } from "react";
 import { Icon, type IconName } from "../../components/Icon";
@@ -156,21 +157,15 @@ export function MediaPanel({
             className={`asset-tab-btn ${assetTab === tab.id ? "active" : ""}`}
             onClick={() => setAssetTab(tab.id)}
             data-tooltip={tab.tooltip}
-            data-tooltip-pos="bottom"
-            role="tab"
-            aria-selected={assetTab === tab.id}
+            data-tooltip-pos="bottom" role="tab" aria-selected={assetTab === tab.id}
           >
             <Icon name={tab.icon} />
             <span>{tab.label}</span>
           </InteriorButton>
         ))}
         <InteriorButton
-          type="button"
-          className="asset-tab-btn add-tab-btn"
-          onClick={() => void importMedia()}
-          data-tooltip="Import Media or Add Assets"
-          data-tooltip-pos="bottom"
-          title="Import Media or Add Assets"
+          type="button" className="asset-tab-btn add-tab-btn" onClick={() => void importMedia()}
+          data-tooltip="Import Media or Add Assets" data-tooltip-pos="bottom" title="Import Media or Add Assets"
         >
           ＋
         </InteriorButton>
@@ -186,67 +181,50 @@ export function MediaPanel({
               </div>
               <div className="media-panel-actions">
                 <InteriorButton
-                  type="button"
-                  className="btn-secondary"
-                  style={{ padding: "4px 7px", fontSize: "11px" }}
+                  type="button" className="btn-secondary" style={{ padding: "4px 7px", fontSize: "11px" }}
                   onClick={() => void checkMissingMedia()}
                   disabled={busy}
-                  data-tooltip="Scan & relink missing media files"
-                  data-tooltip-pos="bottom"
+                  data-tooltip="Scan & relink missing media files" data-tooltip-pos="bottom"
                 >
-                  🔍 Scan
+                   Scan
                 </InteriorButton>
                 <InteriorButton
-                  type="button"
-                  className="btn-secondary"
-                  style={{ padding: "4px 7px", fontSize: "11px" }}
+                  type="button" className="btn-secondary" style={{ padding: "4px 7px", fontSize: "11px" }}
                   onClick={() => void onUpdateMetadata()}
                   disabled={busy || selectedMediaId === null}
-                  data-tooltip="Re-probe the selected file and update its metadata"
-                  data-tooltip-pos="bottom"
+                  data-tooltip="Re-probe the selected file and update its metadata" data-tooltip-pos="bottom"
                 >
                   <Icon name="undo" /> Update
                 </InteriorButton>
                 <InteriorButton
-                  type="button"
-                  className="btn-secondary"
-                  style={{ padding: "4px 7px", fontSize: "11px" }}
+                  type="button" className="btn-secondary" style={{ padding: "4px 7px", fontSize: "11px" }}
                   onClick={() => void onReplaceSelectedClip()}
                   disabled={busy || selectedMediaId === null}
-                  data-tooltip="Swap the selected timeline clip's source for this asset (keeps timing and effects)"
-                  data-tooltip-pos="bottom"
+                  data-tooltip="Swap the selected timeline clip's source for this asset (keeps timing and effects)" data-tooltip-pos="bottom"
                 >
                   Replace Clip
                 </InteriorButton>
                 <InteriorButton
-                  type="button"
-                  className="btn-secondary"
-                  style={{ padding: "4px 7px", fontSize: "11px" }}
+                  type="button" className="btn-secondary" style={{ padding: "4px 7px", fontSize: "11px" }}
                   onClick={() => setCreateBinModalOpen(true)}
                   disabled={busy}
-                  data-tooltip="Create new media bin / folder"
-                  data-tooltip-pos="bottom"
+                  data-tooltip="Create new media bin / folder" data-tooltip-pos="bottom"
                 >
                   ＋ Bin
                 </InteriorButton>
                 <InteriorButton
-                  type="button"
-                  className="btn-secondary"
-                  style={{ padding: "4px 8px", fontSize: "11px" }}
+                  type="button" className="btn-secondary" style={{ padding: "4px 8px", fontSize: "11px" }}
                   onClick={() => setNetworkImportModalOpen(true)}
                   disabled={busy}
-                  data-tooltip="Import from Network / Cloud URL (HTTP/HTTPS/S3)"
-                  data-tooltip-pos="bottom"
+                  data-tooltip="Import from Network / Cloud URL (HTTP/HTTPS/S3)" data-tooltip-pos="bottom"
                 >
-                  🌐 URL
+                   URL
                 </InteriorButton>
                 <InteriorButton
-                  className="primary"
-                  style={{ padding: "4px 8px", fontSize: "11px" }}
+                  className="primary" style={{ padding: "4px 8px", fontSize: "11px" }}
                   onClick={() => void importMedia()}
                   disabled={busy}
-                  data-tooltip="Import Media Files (Ctrl+I)"
-                  data-tooltip-pos="bottom"
+                  data-tooltip="Import Media Files (Ctrl+I)" data-tooltip-pos="bottom"
                 >
                   Import
                 </InteriorButton>
@@ -256,10 +234,8 @@ export function MediaPanel({
             <div className="media-controls-row">
               <input
                 ref={searchRef}
-                className="search"
-                value={search}
-                placeholder="Search media, tags…"
-                onChange={(event) => setSearch(event.target.value)}
+                className="search" value={search}
+                placeholder="Search media" onChange={(event) => setSearch(event.target.value)}
               />
               <InteriorButton type="button" className="view-mode-btn" disabled={busy}
                 onClick={() => void hygiene.relinkMoved()}
@@ -278,59 +254,51 @@ export function MediaPanel({
               </InteriorButton>
               <div className="media-view-toggle">
                 <InteriorButton
-                  type="button"
-                  className={`view-mode-btn ${mediaViewMode === "grid" ? "active" : ""}`}
+                  type="button" className={`view-mode-btn ${mediaViewMode === "grid" ? "active" : ""}`}
                   onClick={() => setMediaViewMode("grid")}
                   title="Thumbnail Grid View"
                 >
                   ▦
                 </InteriorButton>
                 <InteriorButton
-                  type="button"
-                  className={`view-mode-btn ${mediaViewMode === "list" ? "active" : ""}`}
+                  type="button" className={`view-mode-btn ${mediaViewMode === "list" ? "active" : ""}`}
                   onClick={() => setMediaViewMode("list")}
                   title="Detailed List Table View"
                 >
-                  ☰
+                  <Menu size={16} aria-hidden="true" />
                 </InteriorButton>
               </div>
             </div>
 
             <div className="media-bins-strip scrollbar-thin">
               <InteriorButton
-                type="button"
-                className={`media-bin-pill ${activeBinId === null ? "active" : ""}`}
+                type="button" className={`media-bin-pill ${activeBinId === null ? "active" : ""}`}
                 onClick={() => setActiveBinId(null)}
               >
-                📁 All ({allMedia.length})
+                 All ({allMedia.length})
               </InteriorButton>
               {(project?.bins ?? []).map((bin) => {
                 const binCount = allMedia.filter((m) => m.bin_id === bin.id).length;
                 return (
                   <InteriorButton
                     key={bin.id}
-                    type="button"
-                    className={`media-bin-pill ${activeBinId === bin.id ? "active" : ""}`}
+                    type="button" className={`media-bin-pill ${activeBinId === bin.id ? "active" : ""}`}
                     onClick={() => setActiveBinId(bin.id)}
                     style={{ borderLeftColor: bin.color || "var(--accent-primary)" }}
                   >
                     <span>{bin.name}</span>
                     <span className="bin-count">({binCount})</span>
                     <span
-                      className="bin-rename-btn"
-                      onClick={(e) => {
+                      className="bin-rename-btn" onClick={(e) => {
                         e.stopPropagation();
                         void renameBin(bin.id);
                       }}
-                      title="Rename Bin"
-                      role="button"
-                      aria-label={`Rename bin ${bin.name}`}
+                      title="Rename Bin" role="button" aria-label={`Rename bin ${bin.name}`}
                     >
-                      ✎
+                      <PenLine size={14} aria-hidden="true" />
                     </span>
                     <span
-                      className="bin-close-btn"
-                      onClick={(e) => {
+                      className="bin-close-btn" onClick={(e) => {
                         e.stopPropagation();
                         void deleteBin(bin.id);
                       }}
@@ -364,15 +332,14 @@ export function MediaPanel({
                             ? `MISSING MEDIA: ${item.path} (Click to Relink)`
                             : `${item.kind.toUpperCase()} · ${item.width && item.height ? `${item.width}×${item.height} · ` : ""}${item.duration ? formatTime(item.duration) : "Still"} · Click & drag to timeline`
                         }
-                        data-tooltip-pos="right"
-                        style={item.color_tag ? { borderLeft: `3px solid ${item.color_tag}` } : undefined}
+                        data-tooltip-pos="right" style={item.color_tag ? { borderLeft: `3px solid ${item.color_tag}` } : undefined}
                       >
                         <Icon name={getMediaIconName(item.kind)} />
                         <span>
                           <strong>{item.name}</strong>
                           <small>
                             {isMissing ? (
-                              <span style={{ color: "#ef4444", fontWeight: 700 }}>⚠ Offline File</span>
+                              <span style={{ color: "var(--status-danger)", fontWeight: 700 }}>Offline File</span>
                             ) : (
                               <>
                                 {item.width && item.height ? `${item.width}×${item.height} · ` : ""}
@@ -384,15 +351,13 @@ export function MediaPanel({
                         </span>
                       </InteriorButton>
                       <InteriorButton
-                        type="button"
-                        className="media-edit-meta-btn"
-                        onClick={(e) => {
+                        type="button" className="media-edit-meta-btn" onClick={(e) => {
                           e.stopPropagation();
                           setMediaEditPropsId(item.id);
                         }}
                         title="Edit metadata, color tag & comments"
                       >
-                        ✎
+                        <PenLine size={14} aria-hidden="true" />
                       </InteriorButton>
                     </div>
                   );
@@ -444,15 +409,13 @@ export function MediaPanel({
                           <td className="cell-bin">{binName || "—"}</td>
                           <td className="cell-actions">
                             <InteriorButton
-                              type="button"
-                              className="btn-tiny"
-                              onClick={(e) => {
+                              type="button" className="btn-tiny" onClick={(e) => {
                                 e.stopPropagation();
                                 setMediaEditPropsId(item.id);
                               }}
                               title="Edit Tags"
                             >
-                              ✎
+                              <PenLine size={14} aria-hidden="true" />
                             </InteriorButton>
                           </td>
                         </tr>
@@ -496,8 +459,7 @@ export function MediaPanel({
               {titlePresets.map((preset) => (
                 <InteriorButton
                   key={preset.id}
-                  className="asset-preset-card"
-                  onClick={() => void addPresetTitle(preset)}
+                  className="asset-preset-card" onClick={() => void addPresetTitle(preset)}
                   data-tooltip={`Add ${preset.name} at playhead (${formatTime(playhead)})`}
                   data-tooltip-pos="right"
                 >
@@ -522,8 +484,7 @@ export function MediaPanel({
               {transitionPresets.map((preset) => (
                 <InteriorButton
                   key={preset.id}
-                  className="asset-preset-card"
-                  onClick={() => void addPresetTransition(preset.id)}
+                  className="asset-preset-card" onClick={() => void addPresetTransition(preset.id)}
                   data-tooltip={`Apply ${preset.name} at cut/playhead`}
                   data-tooltip-pos="right"
                 >
@@ -583,11 +544,9 @@ export function MediaPanel({
               <small>Openverse</small>
             </div>
             <input
-              className="search"
-              value={assetQuery}
+              className="search" value={assetQuery}
               maxLength={200}
-              placeholder="Search photos, audio…"
-              onChange={(event) => setAssetQuery(event.target.value)}
+              placeholder="Search photos, audio…" onChange={(event) => setAssetQuery(event.target.value)}
             />
             <div style={{ display: "flex", gap: "6px", margin: "4px 9px" }}>
               <select
@@ -606,12 +565,9 @@ export function MediaPanel({
                 <option value="audio">Audio</option>
               </select>
               <LoadingButton
-                className="primary"
-                disabled={busy || !assetQuery.trim()}
+                className="primary" disabled={busy || !assetQuery.trim()}
                 onAction={searchAssets}
-                pendingLabel="…"
-                successLabel="Done"
-                errorLabel="Failed"
+                pendingLabel="…" successLabel="Done" errorLabel="Failed"
               >
                 Search
               </LoadingButton>
@@ -639,8 +595,7 @@ export function MediaPanel({
           <div style={{ padding: "4px 9px", display: "flex", flexDirection: "column", gap: "10px" }}>
             {/* Offline Whisper AI & Ripple Deletion Card */}
             <div
-              className="ai-speech-intelligence-card"
-              style={{
+              className="ai-speech-intelligence-card" style={{
                 background: "rgba(159, 18, 73, 0.05)",
                 border: "1px solid rgba(159, 18, 73, 0.22)",
                 borderRadius: "6px",
@@ -651,7 +606,7 @@ export function MediaPanel({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <strong style={{ fontSize: "12px", color: "var(--accent-primary)" }}>🎙️ Speech Intelligence</strong>
+                <strong style={{ fontSize: "12px", color: "var(--accent-primary)" }}> Speech Intelligence</strong>
                 <span
                   style={{
                     fontSize: "9px",
@@ -670,17 +625,13 @@ export function MediaPanel({
               </p>
               <div className="media-ai-actions">
                 <InteriorButton
-                  type="button"
-                  className="primary"
-                  style={{ fontSize: "11px", padding: "6px 8px" }}
+                  type="button" className="primary" style={{ fontSize: "11px", padding: "6px 8px" }}
                   onClick={() => setTranscribeModalOpen(true)}
                 >
                   Transcribe Speech
                 </InteriorButton>
                 <InteriorButton
-                  type="button"
-                  className="btn-secondary"
-                  style={{ fontSize: "11px", padding: "6px 8px" }}
+                  type="button" className="btn-secondary" style={{ fontSize: "11px", padding: "6px 8px" }}
                   onClick={() => {
                     void handleDetectSilence();
                     setSilenceModalOpen(true);
@@ -727,13 +678,11 @@ export function MediaPanel({
                   resize: "vertical",
                 }}
                 value={aiPrompt}
-                placeholder="Ask for editing ideas, shot pacing, or script notes…"
-                onChange={(event) => setAiPrompt(event.target.value)}
+                placeholder="Ask for editing ideas, shot pacing, or script notes…" onChange={(event) => setAiPrompt(event.target.value)}
               />
             </label>
             <InteriorButton
-              className="primary"
-              disabled={busy || !aiPrompt.trim() || !aiModel.trim()}
+              className="primary" disabled={busy || !aiPrompt.trim() || !aiModel.trim()}
               onClick={() => void askAi()}
             >
               Generate Suggestions

@@ -43,12 +43,11 @@ export function InteropModal({
   return (
     <GlassDialog
       open={isOpen}
-      cardClassName="modal-dialog-card glass interop-modal"
-      cardProps={{ style: { maxWidth: "600px" } }}
+      cardClassName="modal-dialog-card glass interop-modal" cardProps={{ style: { maxWidth: "600px" } }}
     >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
           <h2 style={{ margin: 0, fontSize: "16px" }}>
-            {interopMode === "export" ? "📤 Export Timeline Interchange" : "📥 Import Timeline Interchange"}
+            {interopMode === "export" ? "Export Timeline Interchange" : "Import Timeline Interchange"}
           </h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
@@ -56,8 +55,7 @@ export function InteropModal({
           {(["fcpxml", "xmeml", "edl", "otio"] as const).map((fmt) => (
             <InteriorButton
               key={fmt}
-              type="button"
-              className={`interop-tab-btn ${interopFormat === fmt ? "active" : ""}`}
+              type="button" className={`interop-tab-btn ${interopFormat === fmt ? "active" : ""}`}
               onClick={() => {
                 setInteropFormat(fmt);
                 if (interopMode === "export") void handleExportTimelineInterop(fmt);
@@ -92,21 +90,17 @@ export function InteropModal({
             <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "12px" }}>
               <InteriorButton type="button" onClick={onClose}>Close</InteriorButton>
               <InteriorButton
-                type="button"
-                className="btn-secondary"
-                onClick={async () => {
+                type="button" className="btn-secondary" onClick={async () => {
                   await navigator.clipboard.writeText(interopContent);
                   setNotice("Copied to clipboard");
                 }}
               >
-                📋 Copy Code
+                 Copy Code
               </InteriorButton>
               <InteriorButton
-                type="button"
-                className="primary"
-                onClick={() => void handleExportTimelineInterop(interopFormat)}
+                type="button" className="primary" onClick={() => void handleExportTimelineInterop(interopFormat)}
               >
-                💾 Save As File…
+                 Save As File…
               </InteriorButton>
             </div>
           </div>
@@ -124,8 +118,7 @@ export function InteropModal({
               Paste XML or EDL Content Below
               <textarea
                 rows={8}
-                placeholder="Paste FCPXML, editor XML (xmeml), or CMX 3600 EDL text here..."
-                value={interopContent}
+                placeholder="Paste FCPXML, editor XML (xmeml), or CMX 3600 EDL text here..." value={interopContent}
                 onChange={(e) => setInteropContent(e.target.value)}
                 style={{
                   width: "100%",
@@ -143,16 +136,12 @@ export function InteropModal({
             <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
               <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
               <InteriorButton
-                type="button"
-                className="btn-secondary"
-                onClick={() => void handleImportTimelineInterop()}
+                type="button" className="btn-secondary" onClick={() => void handleImportTimelineInterop()}
               >
-                📂 Browse File…
+                 Browse File…
               </InteriorButton>
               <InteriorButton
-                type="button"
-                className="primary"
-                disabled={!interopContent.trim() || isInteropBusy}
+                type="button" className="primary" disabled={!interopContent.trim() || isInteropBusy}
                 onClick={async () => {
                   setIsInteropBusy(true);
                   try {

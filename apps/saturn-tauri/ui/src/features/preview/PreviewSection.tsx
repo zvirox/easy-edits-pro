@@ -315,11 +315,8 @@ export function PreviewSection({
               <strong>Offline media</strong>
               <span>This clip's file moved or is unavailable on disk.</span>
               <InteriorButton
-                type="button"
-                className="btn-secondary"
-                onClick={() => void relinkMedia(offlineProgramMediaId)}
-                data-tooltip="Locate the file and relink this media"
-                data-tooltip-pos="bottom"
+                type="button" className="btn-secondary" onClick={() => void relinkMedia(offlineProgramMediaId)}
+                data-tooltip="Locate the file and relink this media" data-tooltip-pos="bottom"
               >
                 Relink media
               </InteriorButton>
@@ -332,14 +329,11 @@ export function PreviewSection({
             style={deckSnapshot?.deckA.style}
             muted={!deckSnapshot?.deckA.visible}
             playsInline
-            preload="auto"
-            crossOrigin="anonymous"
-            onCanPlay={() => setProgramPreviewError(null)}
+            preload="auto" crossOrigin="anonymous" onCanPlay={() => setProgramPreviewError(null)}
           />
           {deckSnapshot?.deckA.vignette && deckSnapshot.deckA.visible && (
             <div
-              className="deck-vignette-overlay deck-a-vignette"
-              style={{
+              className="deck-vignette-overlay deck-a-vignette" style={{
                 position: "absolute",
                 inset: 0,
                 pointerEvents: "none",
@@ -356,14 +350,11 @@ export function PreviewSection({
             style={deckSnapshot?.deckB.style}
             muted={!deckSnapshot?.deckB.visible}
             playsInline
-            preload="auto"
-            crossOrigin="anonymous"
-            onCanPlay={() => setProgramPreviewError(null)}
+            preload="auto" crossOrigin="anonymous" onCanPlay={() => setProgramPreviewError(null)}
           />
           {deckSnapshot?.deckB.vignette && deckSnapshot.deckB.visible && (
             <div
-              className="deck-vignette-overlay deck-b-vignette"
-              style={{
+              className="deck-vignette-overlay deck-b-vignette" style={{
                 position: "absolute",
                 inset: 0,
                 pointerEvents: "none",
@@ -405,9 +396,7 @@ export function PreviewSection({
                   key={audioKey}
                   src={audioItem.src}
                   autoPlay={programPlaying}
-                  preload="auto"
-                  crossOrigin="anonymous"
-                  ref={(el) => {
+                  preload="auto" crossOrigin="anonymous" ref={(el) => {
                     if (el) {
                       audioPlayersRef.current.set(audioKey, el);
                       audioClockMaster.connectMediaElement(audioItem.track.id, el);
@@ -488,12 +477,10 @@ export function PreviewSection({
           }}
         >
           <InteriorButton
-            type="button"
-            className="multicam-sync-btn"
-            onClick={() => void syncMulticamWaveforms()}
+            type="button" className="multicam-sync-btn" onClick={() => void syncMulticamWaveforms()}
             title="Auto-synchronize multi-angle media via audio waveform cross-correlation"
           >
-            <span>⚡ Sync Waveforms</span>
+            <span>Sync Waveforms</span>
           </InteriorButton>
         </div>
       </div>
@@ -533,9 +520,7 @@ export function PreviewSection({
             style={visualStyle}
             controls
             playsInline
-            preload="auto"
-            crossOrigin="anonymous"
-            onTimeUpdate={(event) =>
+            preload="auto" crossOrigin="anonymous" onTimeUpdate={(event) =>
               setSourceTime(Math.round(event.currentTarget.currentTime * TICKS_PER_SECOND))
             }
             onCanPlay={() => setCurrentError(null)}
@@ -606,7 +591,7 @@ export function PreviewSection({
             }}
             style={{ cursor: "pointer" }}
           >
-            🎥 Multi-Cam Quad (4 Angles)
+             Multi-Cam Quad (4 Angles)
           </span>
           <span
             className={monitorMode === "source" ? "selected" : ""}
@@ -632,9 +617,7 @@ export function PreviewSection({
             <label className="monitor-zoom">
               <span className="monitor-zoom-label">Zoom</span>
               <select
-                className="monitor-zoom-select"
-                aria-label="Monitor zoom"
-                value={monitorZoom}
+                className="monitor-zoom-select" aria-label="Monitor zoom" value={monitorZoom}
                 onChange={(event) => setMonitorZoom(event.target.value as MonitorZoom)}
               >
                 <option value="fit">Fit</option>
@@ -650,8 +633,7 @@ export function PreviewSection({
             playback keeps running behind the tab switch. */}
         <div className="monitor-tab-panel" hidden={monitorMode === "source"}>
           <div
-            className="monitor-zoom-stage"
-            style={zoomFactor == null ? undefined : { transform: `scale(${zoomFactor})` }}
+            className="monitor-zoom-stage" style={zoomFactor == null ? undefined : { transform: `scale(${zoomFactor})` }}
           >
             {monitorMode === "multicam" ? renderMulticamMonitor() : renderProgramMonitor()}
           </div>
@@ -694,19 +676,13 @@ export function PreviewSection({
         <div className="monitor-tab-panel source-tab-panel" hidden={monitorMode !== "source"}>
           <div className="source-edit-bar">
             <InteriorButton
-              aria-label="Mark source In"
-              data-tooltip="Mark Source In (I)"
-              data-tooltip-pos="top"
-              disabled={!sourcePreview}
+              aria-label="Mark source In" data-tooltip="Mark Source In (I)" data-tooltip-pos="top" disabled={!sourcePreview}
               onClick={markSourceIn}
             >
               Mark In
             </InteriorButton>
             <InteriorButton
-              aria-label="Mark source Out"
-              data-tooltip="Mark Source Out (O)"
-              data-tooltip-pos="top"
-              disabled={!sourcePreview}
+              aria-label="Mark source Out" data-tooltip="Mark Source Out (O)" data-tooltip-pos="top" disabled={!sourcePreview}
               onClick={markSourceOut}
             >
               Mark Out
@@ -720,19 +696,13 @@ export function PreviewSection({
               <small>source {formatTime(sourceTime)}</small>
             </span>
             <InteriorButton
-              aria-label="Insert source range"
-              data-tooltip="Insert Edit at Playhead (,)"
-              data-tooltip-pos="top"
-              disabled={!sourcePreview}
+              aria-label="Insert source range" data-tooltip="Insert Edit at Playhead (,)" data-tooltip-pos="top" disabled={!sourcePreview}
               onClick={() => applyThreePointEdit("insert")}
             >
               Insert
             </InteriorButton>
             <InteriorButton
-              aria-label="Overwrite source range"
-              data-tooltip="Overwrite Edit at Playhead (.)"
-              data-tooltip-pos="top"
-              disabled={!sourcePreview}
+              aria-label="Overwrite source range" data-tooltip="Overwrite Edit at Playhead (.)" data-tooltip-pos="top" disabled={!sourcePreview}
               onClick={() => applyThreePointEdit("overwrite")}
             >
               Overwrite

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { Lock, LockKeyholeOpen, Zap } from "lucide-react";
 import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, MouseEvent, SetStateAction, PointerEvent } from "react";
 import { formatTime, getClipWaveform } from "../../utils/formatters";
@@ -85,24 +86,21 @@ export function TimelineTrackLabel({
           the header carries no sliders (plan v4 directive). */}
       <div className="track-label-btns">
         <InteriorButton
-          type="button"
-          className={`track-mini-btn ${track.locked ? "active lock" : ""}`}
+          type="button" className={`track-mini-btn ${track.locked ? "active lock" : ""}`}
           onClick={() => void toggleTrackLock(track)}
           title={track.locked ? "Unlock track" : "Lock track"}
         >
-          {track.locked ? "🔒" : "🔓"}
+          {track.locked ? <Lock size={14} aria-hidden="true" /> : <LockKeyholeOpen size={14} aria-hidden="true" />}
         </InteriorButton>
         <InteriorButton
-          type="button"
-          className={`track-mini-btn ${track.muted ? "active mute" : ""}`}
+          type="button" className={`track-mini-btn ${track.muted ? "active mute" : ""}`}
           onClick={() => void toggleTrackMute(track)}
           title={track.muted ? "Unmute track" : "Mute track"}
         >
           M
         </InteriorButton>
         <InteriorButton
-          type="button"
-          className={`track-mini-btn ${track.solo ? "active solo" : ""}`}
+          type="button" className={`track-mini-btn ${track.solo ? "active solo" : ""}`}
           onClick={() => void toggleTrackSolo(track)}
           title={track.solo ? "Solo active" : "Solo track"}
         >
@@ -110,13 +108,11 @@ export function TimelineTrackLabel({
         </InteriorButton>
         {track.linked_group_id != null && (
           <span className="track-group-pill" title={`Audio/Video Sync Group #${track.linked_group_id}`}>
-            🔗
+            
           </span>
         )}
         <InteriorButton
-          type="button"
-          className="track-mini-btn"
-          onClick={() => void promptAssignGroup()}
+          type="button" className="track-mini-btn" onClick={() => void promptAssignGroup()}
           disabled={busy}
           title={parentGroup ? `In folder: ${parentGroup.name} — click to change` : "Move track into a folder group"}
         >
@@ -124,8 +120,7 @@ export function TimelineTrackLabel({
         </InteriorButton>
         <span style={{ flex: 1 }} />
         <InteriorButton
-          className="track-delete-btn"
-          onClick={() => void removeTrackFromTimeline(track.id)}
+          className="track-delete-btn" onClick={() => void removeTrackFromTimeline(track.id)}
           disabled={busy || tracksCount <= 1}
           title="Delete Track"
         >
@@ -235,8 +230,7 @@ export function TimelineTrackLane({
           return (
             <div
               key={`gap-${track.id}-${gap.start}-${gIdx}`}
-              className="timeline-gap-segment"
-              style={{ left: `${gapLeft}px`, width: `${gapWidth}px` }}
+              className="timeline-gap-segment" style={{ left: `${gapLeft}px`, width: `${gapWidth}px` }}
               title={`Empty Gap: ${((gap.end - gap.start) / TICKS_PER_SECOND).toFixed(2)}s · Click to ripple close`}
               onClick={(e) => {
                 e.stopPropagation();
@@ -316,8 +310,7 @@ export function TimelineTrackLane({
             >
               {/* Left Trim Handle */}
               <span
-                className="clip-trim-handle clip-trim-left"
-                onPointerDown={(e) => beginTimelineClipTrim(e, track.id, index, clip, "start")}
+                className="clip-trim-handle clip-trim-left" onPointerDown={(e) => beginTimelineClipTrim(e, track.id, index, clip, "start")}
                 onPointerMove={moveTimelineClipTrim}
                 onPointerUp={finishTimelineClipTrim}
                 onPointerCancel={finishTimelineClipTrim}
@@ -326,8 +319,7 @@ export function TimelineTrackLane({
 
               {/* Right Trim Handle */}
               <span
-                className="clip-trim-handle clip-trim-right"
-                onPointerDown={(e) => beginTimelineClipTrim(e, track.id, index, clip, "end")}
+                className="clip-trim-handle clip-trim-right" onPointerDown={(e) => beginTimelineClipTrim(e, track.id, index, clip, "end")}
                 onPointerMove={moveTimelineClipTrim}
                 onPointerUp={finishTimelineClipTrim}
                 onPointerCancel={finishTimelineClipTrim}
@@ -359,8 +351,7 @@ export function TimelineTrackLane({
                           })
                           .join(" ")}
                         stroke={`url(#${gradId})`}
-                        strokeWidth="1.2"
-                        strokeLinecap="round"
+                        strokeWidth="1.2" strokeLinecap="round"
                       />
                     </svg>
                   </div>
@@ -370,21 +361,18 @@ export function TimelineTrackLane({
               <strong>{item?.name ?? `Media #${clip.media_id}`}</strong>
               {lowConfEdit && (
                 <span
-                  className="clip-low-confidence-dot"
-                  title={`Low-confidence AI edit: ${lowConfEdit.rationale}`}
+                  className="clip-low-confidence-dot" title={`Low-confidence AI edit: ${lowConfEdit.rationale}`}
                   aria-label="Low-confidence AI edit"
                 />
               )}
               <small>
                 {isMissing
-                  ? "⚠ Offline Media"
+                  ? "Offline Media"
                   : `${formatTime(clip.source_in)} · ${formatTime(clip.duration)}`}
               </small>
               {isCompound && (
                 <span
-                  className="clip-compound-badge"
-                  title="Compound Clip · Double-click to open nested sequence"
-                  onClick={(e) => {
+                  className="clip-compound-badge" title="Compound Clip · Double-click to open nested sequence" onClick={(e) => {
                     e.stopPropagation();
                     const targetSeqId = clip.compound_sequence_id ?? item?.nested_sequence?.id;
                     if (targetSeqId) void switchSequence(targetSeqId);
@@ -394,11 +382,11 @@ export function TimelineTrackLane({
                 </span>
               )}
               {clip.speed && clip.speed !== 1.0 && (
-                <span className="clip-speed-badge">⚡{Math.round(clip.speed * 100)}%</span>
+                <span className="clip-speed-badge"><Zap size={12} aria-hidden="true" /> {Math.round(clip.speed * 100)}%</span>
               )}
               {clip.group_id != null && (
                 <span className="clip-group-badge" title={`Linked Group #${clip.group_id}`}>
-                  🔗
+                  
                 </span>
               )}
             </div>

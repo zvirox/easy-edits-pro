@@ -133,10 +133,7 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
 
   return (
     <div
-      className="agent-telemetry-drawer"
-      role="region"
-      aria-label="Agent Telemetry and Audit Drawer"
-      style={{
+      className="agent-telemetry-drawer" role="region" aria-label="Agent Telemetry and Audit Drawer" style={{
         display: "flex",
         flexDirection: "column",
         height: "100%",
@@ -149,7 +146,7 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
       {/* Top Header & Actions */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <span style={{ fontWeight: 600, fontSize: "13px" }}>⚡ Telemetry & Tool Audit</span>
+          <span style={{ fontWeight: 600, fontSize: "13px" }}>Telemetry & Tool Audit</span>
           <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
             AF2 Actor Audit · AF3 Measured Deltas
           </div>
@@ -157,20 +154,16 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
 
         <div style={{ display: "flex", gap: "6px" }}>
           <InteriorButton
-            variant="secondary"
-            size="sm"
-            onClick={handleExport}
+            variant="secondary" size="sm" onClick={handleExport}
             title="Download session audit logs in JSONL format"
           >
-            📥 Export JSONL
+             Export JSONL
           </InteriorButton>
           <InteriorButton
-            variant="secondary"
-            size="sm"
-            onClick={() => setSkillModalOpen(true)}
+            variant="secondary" size="sm" onClick={() => setSkillModalOpen(true)}
             title="Save successful recipe sequence as a reusable agent skill"
           >
-            💾 Save as Skill
+             Save as Skill
           </InteriorButton>
         </div>
       </div>
@@ -191,9 +184,7 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
 
       {/* Before / After Telemetry Deltas */}
       <div
-        className="glass"
-        data-elev="1"
-        style={{
+        className="glass" data-elev="1" style={{
           borderRadius: "var(--radius-sm, 8px)",
           padding: "10px",
           border: "1px solid var(--border-subtle, rgba(255,255,255,0.08))",
@@ -248,9 +239,7 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
             return (
               <div
                 key={c.id}
-                className="glass"
-                data-elev="1"
-                style={{
+                className="glass" data-elev="1" style={{
                   padding: "8px 10px",
                   borderRadius: "6px",
                   border: "1px solid var(--border-subtle, rgba(255,255,255,0.06))",
@@ -306,8 +295,7 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
             Persist successful sequence recipes with retained AF5 provenance into <code>.agents/skills/</code>.
           </p>
           <input
-            type="text"
-            value={skillName}
+            type="text" value={skillName}
             onChange={(e) => setSkillName(e.target.value)}
             style={{
               padding: "4px 8px",

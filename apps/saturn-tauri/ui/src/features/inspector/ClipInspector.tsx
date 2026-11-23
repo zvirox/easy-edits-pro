@@ -107,9 +107,7 @@ export function ClipInspector({
           {[-3, -1, 1, 3].map((delta) => (
             <InteriorButton
               key={delta}
-              type="button"
-              className="speed-preset-btn"
-              disabled={busy}
+              type="button" className="speed-preset-btn" disabled={busy}
               onClick={() =>
                 void saveClipVolumeDb(
                   clampVolume((selectedTimelineClip.volume_db ?? 0) + delta),
@@ -120,9 +118,7 @@ export function ClipInspector({
             </InteriorButton>
           ))}
           <InteriorButton
-            type="button"
-            className="speed-preset-btn"
-            disabled={busy}
+            type="button" className="speed-preset-btn" disabled={busy}
             onClick={() => void saveClipVolumeDb(0)}
           >
             0 dB
@@ -173,11 +169,9 @@ export function ClipInspector({
         {/* Motion Tracking & Camera Stabilization (Phase 7.3) */}
         <div className="tracking-inspector-card">
           <div className="tracking-header-row">
-            <strong>🎯 Motion Tracking &amp; Stabilization</strong>
+            <strong> Motion Tracking &amp; Stabilization</strong>
             <InteriorButton
-              type="button"
-              className="track-mini-btn"
-              style={{ fontSize: "10px", padding: "2px 6px" }}
+              type="button" className="track-mini-btn" style={{ fontSize: "10px", padding: "2px 6px" }}
               onClick={() => setShowTrackingBox((v) => !v)}
             >
               {showTrackingBox ? "Hide Box" : "Show Box"}
@@ -187,8 +181,7 @@ export function ClipInspector({
             {(["stabilize", "transform", "pin"] as TrackingMode[]).map((mode) => (
               <InteriorButton
                 key={mode}
-                type="button"
-                className={`tracking-mode-btn ${trackingMode === mode ? "active" : ""}`}
+                type="button" className={`tracking-mode-btn ${trackingMode === mode ? "active" : ""}`}
                 onClick={() => setTrackingMode(mode)}
               >
                 {mode === "stabilize" ? "Stabilize" : mode === "transform" ? "Point Track" : "Pin Overlay"}
@@ -210,11 +203,7 @@ export function ClipInspector({
                 <b>{Math.round(trackingSmoothness * 100)}%</b>
               </div>
               <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={trackingSmoothness}
+                type="range" min="0" max="1" step="0.05" value={trackingSmoothness}
                 onChange={(e) => void updateStabilizationSmoothness(Number(e.target.value))}
               />
             </label>
@@ -256,18 +245,14 @@ export function ClipInspector({
           )}
           <div className="tracking-actions-row">
             <InteriorButton
-              type="button"
-              className="tracking-action-btn"
-              disabled={isAnalyzingTracking}
+              type="button" className="tracking-action-btn" disabled={isAnalyzingTracking}
               onClick={() => void runMotionTracker(false)}
               title="Track feature backwards"
             >
               ◀ Track Backward
             </InteriorButton>
             <InteriorButton
-              type="button"
-              className="tracking-action-btn"
-              disabled={isAnalyzingTracking}
+              type="button" className="tracking-action-btn" disabled={isAnalyzingTracking}
               onClick={() => void runMotionTracker(true)}
               title="Track feature forwards"
             >
@@ -285,7 +270,7 @@ export function ClipInspector({
         {/* Optical Flow Speed Ramping (Phase 11.1) */}
         <div className="speed-ramp-inspector-card">
           <div className="speed-ramp-header">
-            <strong>⚡ Optical Flow Speed Ramp</strong>
+            <strong>Optical Flow Speed Ramp</strong>
             <span className="speed-factor-pill">
               {((selectedTimelineClip.speed_ramp?.points[0]?.speed_factor ?? selectedTimelineClip.speed ?? 1.0) * 100).toFixed(0)}%
             </span>
@@ -294,8 +279,7 @@ export function ClipInspector({
             {[0.25, 0.5, 1.0, 2.0, 4.0].map((factor) => (
               <InteriorButton
                 key={factor}
-                type="button"
-                className={`speed-preset-btn ${
+                type="button" className={`speed-preset-btn ${
                   (selectedTimelineClip.speed_ramp?.points[0]?.speed_factor ?? selectedTimelineClip.speed ?? 1.0) === factor
                     ? "active"
                     : ""
@@ -314,8 +298,7 @@ export function ClipInspector({
           </div>
           <label className="checkbox-field" style={{ marginTop: "6px" }}>
             <input
-              type="checkbox"
-              checked={selectedTimelineClip.speed_ramp?.frame_blend ?? false}
+              type="checkbox" checked={selectedTimelineClip.speed_ramp?.frame_blend ?? false}
               onChange={(e) => {
                 const cur = selectedTimelineClip.speed_ramp ?? {
                   points: [
@@ -334,11 +317,10 @@ export function ClipInspector({
         {/* Dynamic Shutter Angle Motion Blur (Phase 11.2) */}
         <div className="motion-blur-inspector-card">
           <div className="motion-blur-header">
-            <strong>🌀 Dynamic Shutter Motion Blur</strong>
+            <strong> Dynamic Shutter Motion Blur</strong>
             <label className="switch-label">
               <input
-                type="checkbox"
-                checked={selectedTimelineClip.motion_blur?.enabled ?? false}
+                type="checkbox" checked={selectedTimelineClip.motion_blur?.enabled ?? false}
                 onChange={(e) => {
                   const cur = selectedTimelineClip.motion_blur ?? {
                     enabled: false,
@@ -359,11 +341,7 @@ export function ClipInspector({
                   <b>{(selectedTimelineClip.motion_blur.shutter_angle_deg ?? 180).toFixed(0)}°</b>
                 </div>
                 <input
-                  type="range"
-                  min="0"
-                  max="360"
-                  step="15"
-                  value={selectedTimelineClip.motion_blur.shutter_angle_deg ?? 180}
+                  type="range" min="0" max="360" step="15" value={selectedTimelineClip.motion_blur.shutter_angle_deg ?? 180}
                   onChange={(e) => {
                     const cur = selectedTimelineClip.motion_blur!;
                     void saveMotionBlur({ ...cur, shutter_angle_deg: Number(e.target.value) });
@@ -374,8 +352,7 @@ export function ClipInspector({
                 {[90, 180, 270, 360].map((deg) => (
                   <InteriorButton
                     key={deg}
-                    type="button"
-                    className={`shutter-btn ${
+                    type="button" className={`shutter-btn ${
                       Math.round(selectedTimelineClip.motion_blur?.shutter_angle_deg ?? 180) === deg ? "active" : ""
                     }`}
                     onClick={() => {
@@ -393,11 +370,7 @@ export function ClipInspector({
                   <b>{selectedTimelineClip.motion_blur.samples ?? 8} samples</b>
                 </div>
                 <input
-                  type="range"
-                  min="4"
-                  max="32"
-                  step="2"
-                  value={selectedTimelineClip.motion_blur.samples ?? 8}
+                  type="range" min="4" max="32" step="2" value={selectedTimelineClip.motion_blur.samples ?? 8}
                   onChange={(e) => {
                     const cur = selectedTimelineClip.motion_blur!;
                     void saveMotionBlur({ ...cur, samples: Number(e.target.value) });

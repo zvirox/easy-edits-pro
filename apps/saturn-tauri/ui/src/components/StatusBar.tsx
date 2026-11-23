@@ -82,7 +82,7 @@ export function StatusBar({
         <span>{busy ? "Working…" : notice || "Autosave recovery enabled · saves every 30 seconds"}</span>
         {resolvedBranch && (
           <span style={{ color: "var(--accent-text, #f472b6)", fontWeight: 600 }}>
-            🌿 {resolvedBranch}
+             {resolvedBranch}
           </span>
         )}
         {resolvedMode && (
@@ -92,13 +92,12 @@ export function StatusBar({
         )}
         {resolvedActor && (
           <span style={{ color: "var(--text-muted)" }}>
-            Actor: {resolvedActor.type === "agent" ? `🤖 ${resolvedActor.id}` : `👤 ${resolvedActor.id}`}
+            Actor: {resolvedActor.id}
           </span>
         )}
         {summary && (
           <span
-            className="status-bar-sheet"
-            onClick={handleOpenSheet}
+            className="status-bar-sheet" onClick={handleOpenSheet}
             style={{
               cursor: "pointer",
               display: "inline-flex",
@@ -110,7 +109,7 @@ export function StatusBar({
             }}
             title={`Active Task Sheet: ${summary.title} (Click to open)`}
           >
-            <span>📋 {summary.id}</span>
+            <span> {summary.id}</span>
             <span
               style={{
                 fontSize: "10px",
@@ -130,7 +129,7 @@ export function StatusBar({
               {summary.status}
             </span>
             <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-              ⏱ {summary.spentMin ?? 0}/{summary.budgetMin ?? 60}m · 💲 ${(summary.spentUsd ?? 0).toFixed(2)}/${(summary.budgetUsd ?? 5).toFixed(2)}
+              {summary.spentMin ?? 0}/{summary.budgetMin ?? 60}m ·  ${(summary.spentUsd ?? 0).toFixed(2)}/${(summary.budgetUsd ?? 5).toFixed(2)}
             </span>
           </span>
         )}
@@ -139,16 +138,14 @@ export function StatusBar({
         {toolLabel ? <span className="status-bar-tool">Tool · {toolLabel}</span> : null}
         {editDetail ? <span className="status-bar-tool">{editDetail}</span> : null}
         <InteriorButton
-          type="button"
-          className="gpu-status-pill"
-          onClick={() => {
+          type="button" className="gpu-status-pill" onClick={() => {
             void onFetchGpuTelemetry();
             onToggleGpuTelemetry();
           }}
           title="Native wgpu GPU Preview Surface Telemetry"
         >
           <span className="gpu-status-dot" />
-          <span>⚡ Native GPU Preview (60 FPS)</span>
+          <span>Native GPU Preview (60 FPS)</span>
         </InteriorButton>
         <span>{connection}</span>
       </div>

@@ -44,9 +44,7 @@ export function SubtitleInspector({
       <div className="subtitle-inspector-header">
         <h2>Subtitle Inspector</h2>
         <InteriorButton
-          type="button"
-          className="inspector-close-btn"
-          onClick={() => setSelectedSubtitle(null)}
+          type="button" className="inspector-close-btn" onClick={() => setSelectedSubtitle(null)}
           title="Close Subtitle Inspector"
         >
           ×
@@ -59,8 +57,7 @@ export function SubtitleInspector({
         <textarea
           rows={4}
           value={subtitleTextDraft !== null ? subtitleTextDraft : selectedSubtitle.text}
-          placeholder="Enter subtitle caption text…"
-          onChange={(e) => setSubtitleTextDraft(e.target.value)}
+          placeholder="Enter subtitle caption text…" onChange={(e) => setSubtitleTextDraft(e.target.value)}
           onBlur={(e) => {
             const val = e.target.value;
             void updateSubtitle(selectedSubtitle.id, { text: val });
@@ -75,9 +72,7 @@ export function SubtitleInspector({
           <code className="subtitle-tc-value">{formatTime(selectedSubtitle.start_ticks)}</code>
           <div className="subtitle-nudge-row">
             <InteriorButton
-              type="button"
-              className="btn-tiny"
-              onClick={() => {
+              type="button" className="btn-tiny" onClick={() => {
                 const newStart = Math.max(0, selectedSubtitle.start_ticks - Math.round(0.5 * TICKS_PER_SECOND));
                 void updateSubtitle(selectedSubtitle.id, { start_ticks: newStart });
               }}
@@ -86,9 +81,7 @@ export function SubtitleInspector({
               -0.5s
             </InteriorButton>
             <InteriorButton
-              type="button"
-              className="btn-tiny"
-              onClick={() => {
+              type="button" className="btn-tiny" onClick={() => {
                 const newStart = Math.min(
                   selectedSubtitle.end_ticks - Math.round(0.2 * TICKS_PER_SECOND),
                   selectedSubtitle.start_ticks + Math.round(0.5 * TICKS_PER_SECOND)
@@ -107,9 +100,7 @@ export function SubtitleInspector({
           <code className="subtitle-tc-value">{formatTime(selectedSubtitle.end_ticks)}</code>
           <div className="subtitle-nudge-row">
             <InteriorButton
-              type="button"
-              className="btn-tiny"
-              onClick={() => {
+              type="button" className="btn-tiny" onClick={() => {
                 const newEnd = Math.max(
                   selectedSubtitle.start_ticks + Math.round(0.2 * TICKS_PER_SECOND),
                   selectedSubtitle.end_ticks - Math.round(0.5 * TICKS_PER_SECOND)
@@ -121,9 +112,7 @@ export function SubtitleInspector({
               -0.5s
             </InteriorButton>
             <InteriorButton
-              type="button"
-              className="btn-tiny"
-              onClick={() => {
+              type="button" className="btn-tiny" onClick={() => {
                 const newEnd = selectedSubtitle.end_ticks + Math.round(0.5 * TICKS_PER_SECOND);
                 void updateSubtitle(selectedSubtitle.id, { end_ticks: newEnd });
               }}
@@ -144,9 +133,7 @@ export function SubtitleInspector({
 
       <div className="subtitle-action-buttons">
         <InteriorButton
-          type="button"
-          className="btn-secondary"
-          onClick={() => {
+          type="button" className="btn-secondary" onClick={() => {
             const start = selectedSubtitle.end_ticks;
             const end = start + 3 * TICKS_PER_SECOND;
             void perform("subtitle.add", { start_ticks: start, end_ticks: end, text: "Next Subtitle" });
@@ -155,44 +142,35 @@ export function SubtitleInspector({
           ＋ Add Subtitle Next
         </InteriorButton>
         <InteriorButton
-          type="button"
-          className="danger-button"
-          onClick={() => void removeSubtitle(selectedSubtitle.id)}
+          type="button" className="danger-button" onClick={() => void removeSubtitle(selectedSubtitle.id)}
         >
-          🗑 Delete Subtitle
+           Delete Subtitle
         </InteriorButton>
       </div>
 
       <div className="subtitle-io-buttons">
         <InteriorButton
-          type="button"
-          className="btn-secondary"
-          onClick={() => void importSubtitlesDialog()}
+          type="button" className="btn-secondary" onClick={() => void importSubtitlesDialog()}
         >
-          📥 Import .SRT/.VTT
+           Import .SRT/.VTT
         </InteriorButton>
         <InteriorButton
-          type="button"
-          className="btn-secondary"
-          onClick={() => void exportSubtitlesDialog()}
+          type="button" className="btn-secondary" onClick={() => void exportSubtitlesDialog()}
         >
-          📤 Export .SRT/.VTT
+           Export .SRT/.VTT
         </InteriorButton>
       </div>
 
       <InteriorButton
-        type="button"
-        className="danger-button"
-        style={{ marginTop: "4px" }}
+        type="button" className="danger-button" style={{ marginTop: "4px" }}
         onClick={() => void clearSubtitles()}
         title="Delete all subtitles in the project"
       >
-        🗑 Clear All Subtitles
+         Clear All Subtitles
       </InteriorButton>
 
       <div
-        className="subtitle-ai-buttons"
-        style={{
+        className="subtitle-ai-buttons" style={{
           display: "flex",
           flexDirection: "column",
           gap: "6px",
@@ -202,25 +180,21 @@ export function SubtitleInspector({
         }}
       >
         <InteriorButton
-          type="button"
-          className="primary"
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+          type="button" className="primary" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
           onClick={() => setTranscribeModalOpen(true)}
           title="Transcribe speech with offline Whisper AI directly into Subtitle track"
         >
-          <span>🎙️ Auto-Transcribe (Whisper AI)</span>
+          <span> Auto-Transcribe (Whisper AI)</span>
         </InteriorButton>
         <InteriorButton
-          type="button"
-          className="btn-secondary"
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+          type="button" className="btn-secondary" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
           onClick={() => {
             void handleDetectSilence();
             setSilenceModalOpen(true);
           }}
           title="Detect and ripple-delete silence intervals and verbal hesitation fillers"
         >
-          <span>✂️ Remove Silence &amp; Fillers</span>
+          <span>Remove Silence &amp; Fillers</span>
         </InteriorButton>
       </div>
     </div>

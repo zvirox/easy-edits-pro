@@ -42,9 +42,7 @@ export function MediaDockLeft({
 }: MediaDockProps) {
   return (
     <DockCard
-        className="shell-dock shell-dock-left"
-        ariaLabel="Project media dock"
-        tabs={[
+        className="shell-dock shell-dock-left" ariaLabel="Project media dock" tabs={[
           {
             id: "project-media",
             title: "Project Media",
@@ -52,8 +50,7 @@ export function MediaDockLeft({
               <div className="media-dock-body">
       {/* Compact Studio Header */}
       <header
-        className="workspace-page-heading media-dock-heading"
-        style={{
+        className="workspace-page-heading media-dock-heading" style={{
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
@@ -64,8 +61,7 @@ export function MediaDockLeft({
         }}
       >
         <div
-          className="media-dock-heading-info"
-          style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "6px 10px", minWidth: 0 }}
+          className="media-dock-heading-info" style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "6px 10px", minWidth: 0 }}
         >
           <strong style={{ fontSize: "14px", fontWeight: 700, letterSpacing: "0.04em", color: "var(--text-primary)" }}>
             MEDIA POOL
@@ -75,32 +71,28 @@ export function MediaDockLeft({
           </span>
         </div>
         <div
-          className="media-dock-heading-actions"
-          style={{ display: "flex", flexWrap: "wrap", gap: "6px", minWidth: 0, maxWidth: "100%" }}
+          className="media-dock-heading-actions" style={{ display: "flex", flexWrap: "wrap", gap: "6px", minWidth: 0, maxWidth: "100%" }}
         >
           <InteriorButton
-            className="primary workspace-heading-action"
-            style={{ padding: "6px 12px", fontSize: "11px" }}
+            className="primary workspace-heading-action" style={{ padding: "6px 12px", fontSize: "11px" }}
             onClick={() => void importMedia()}
             disabled={busy}
           >
             <Icon name="import" /> Browse Local Files…
           </InteriorButton>
           <InteriorButton
-            className="btn-secondary"
-            style={{ padding: "6px 12px", fontSize: "11px", background: "var(--bg-elevated)", color: "var(--accent-primary)" }}
+            className="btn-secondary" style={{ padding: "6px 12px", fontSize: "11px", background: "var(--bg-elevated)", color: "var(--accent-primary)" }}
             onClick={() => setNetworkImportModalOpen(true)}
             disabled={busy}
           >
-            🌐 Import from URL / S3
+             Import from URL / S3
           </InteriorButton>
         </div>
       </header>
 
       {/* Drop / Import Banner */}
       <section
-        className="import-drop-panel"
-        style={{
+        className="import-drop-panel" style={{
           background: "var(--bg-elevated)",
           border: "1px dashed var(--border-panel)",
           borderRadius: "6px",
@@ -131,11 +123,7 @@ export function MediaDockLeft({
             <h2 style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>Project Media</h2>
           </div>
           <input
-            className="search"
-            type="search"
-            placeholder="Search project media"
-            aria-label="Search project media"
-            value={search}
+            className="search" type="search" placeholder="Search project media" aria-label="Search project media" value={search}
             onChange={(event) => setSearch(event.target.value)}
             style={{ background: "var(--bg-input)", color: "var(--text-primary)", borderColor: "var(--border-panel)" }}
           />
@@ -153,8 +141,7 @@ export function MediaDockLeft({
                   setSelectedClips([]);
                   selectEditorWorkspace("edit");
                 }}
-                title="Select this media and open the Edit workspace"
-                style={{
+                title="Select this media and open the Edit workspace" style={{
                   background: "var(--bg-panel)",
                   borderColor: selectedMediaId === item.id ? "var(--accent-primary)" : "var(--border-panel)",
                 }}

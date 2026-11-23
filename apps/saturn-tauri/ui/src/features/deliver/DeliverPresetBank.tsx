@@ -273,8 +273,7 @@ export function DeliverPresetBank({
           value={presetChoice}
           disabled={disabled}
           onChange={(event) => setPresetChoice(event.target.value)}
-          aria-label="Engine export preset"
-          style={{ flex: 1, minWidth: 140 }}
+          aria-label="Engine export preset" style={{ flex: 1, minWidth: 140 }}
         >
           {presets.map((name) => (
             <option key={name} value={name}>
@@ -303,22 +302,18 @@ export function DeliverPresetBank({
       </div>
       <div className="export-preset-bank-actions">
         <InteriorButton
-          type="button"
-          className="quick-export-btn"
-          disabled={disabled}
+          type="button" className="quick-export-btn" disabled={disabled}
           onClick={() => void onQuickExport()}
           title="Queue a full-timeline export with the factory source preset (export.quick)"
         >
-          ⚡ Quick Export
+          Quick Export
         </InteriorButton>
         <InteriorButton
-          type="button"
-          className="package-delivery-btn"
-          disabled={disabled}
+          type="button" className="package-delivery-btn" disabled={disabled}
           onClick={packageDelivery}
           title="Create a checksum-verified TS5 handoff package with project, FCPXML, OTIO, QC report, change log, and provenance (delivery.package)"
         >
-          📦 Package Delivery…
+           Package Delivery…
         </InteriorButton>
       </div>
     </div>

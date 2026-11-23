@@ -42,10 +42,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
   if (!sheet) {
     return (
       <div
-        className="tasksheet-panel"
-        role="region"
-        aria-label="Task Sheet Work Order Panel"
-        style={{
+        className="tasksheet-panel" role="region" aria-label="Task Sheet Work Order Panel" style={{
           display: "flex",
           flexDirection: "column",
           gap: "12px",
@@ -55,9 +52,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
         }}
       >
         <div
-          className="glass"
-          data-elev="1"
-          style={{
+          className="glass" data-elev="1" style={{
             padding: "12px",
             borderRadius: "var(--radius-sm, 10px)",
             display: "flex",
@@ -70,12 +65,9 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
             Load a flagship work-order template or create one via an agent brief to begin.
           </div>
           <select
-            className="input glass"
-            data-elev="2"
-            value={selectedTemplateId}
+            className="input glass" data-elev="2" value={selectedTemplateId}
             onChange={(e) => handleTemplateChange(e.target.value)}
-            aria-label="Load Flagship Task Sheet Template"
-            style={{ width: "100%", padding: "6px 8px", borderRadius: "6px", fontSize: "12px" }}
+            aria-label="Load Flagship Task Sheet Template" style={{ width: "100%", padding: "6px 8px", borderRadius: "6px", fontSize: "12px" }}
           >
             <option value="">Choose a flagship template…</option>
             {FLAGSHIP_TEMPLATES.map((t) => (
@@ -169,9 +161,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
   if (collapsed) {
     return (
       <div
-        className="tasksheet-panel-collapsed glass"
-        data-elev="1"
-        style={{
+        className="tasksheet-panel-collapsed glass" data-elev="1" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -182,7 +172,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontWeight: 600 }}>📋 {sheet.id}</span>
+          <span style={{ fontWeight: 600 }}> {sheet.id}</span>
           <span
             style={{
               padding: "2px 6px",
@@ -208,10 +198,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
 
   return (
     <div
-      className="tasksheet-panel"
-      role="region"
-      aria-label="Task Sheet Work Order Panel"
-      style={{
+      className="tasksheet-panel" role="region" aria-label="Task Sheet Work Order Panel" style={{
         display: "flex",
         flexDirection: "column",
         gap: "12px",
@@ -223,9 +210,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
     >
       {/* Header bar */}
       <div
-        className="glass"
-        data-elev="2"
-        style={{
+        className="glass" data-elev="2" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -234,10 +219,9 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontWeight: 700, fontSize: "14px" }}>📋 Task Sheet</span>
+          <span style={{ fontWeight: 700, fontSize: "14px" }}> Task Sheet</span>
           <span
-            className="status-chip"
-            style={{
+            className="status-chip" style={{
               padding: "2px 8px",
               borderRadius: "4px",
               fontSize: "11px",
@@ -257,9 +241,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
       {/* Template picker */}
       {isEditable && (
         <div
-          className="glass"
-          data-elev="1"
-          style={{
+          className="glass" data-elev="1" style={{
             display: "flex",
             flexDirection: "column",
             gap: "6px",
@@ -274,8 +256,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
             {FLAGSHIP_TEMPLATES.map((tmpl) => (
               <InteriorButton
                 key={tmpl.id}
-                size="sm"
-                variant={selectedTemplateId === tmpl.id ? "primary" : "secondary"}
+                size="sm" variant={selectedTemplateId === tmpl.id ? "primary" : "secondary"}
                 onClick={() => handleTemplateChange(tmpl.id)}
                 title={tmpl.description}
               >
@@ -288,9 +269,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
 
       {/* Title & Requester */}
       <div
-        className="glass"
-        data-elev="1"
-        style={{
+        className="glass" data-elev="1" style={{
           display: "flex",
           flexDirection: "column",
           gap: "8px",
@@ -302,8 +281,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
           <div style={{ flex: 1 }}>
             <label style={{ fontSize: "11px", color: "var(--text-muted)" }}>SHEET TITLE</label>
             <input
-              type="text"
-              value={sheet.title}
+              type="text" value={sheet.title}
               disabled={!isEditable}
               onChange={(e) => onUpdateSheet({ ...sheet, title: e.target.value })}
               style={{
@@ -328,9 +306,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
 
       {/* Deliverables Section */}
       <div
-        className="glass"
-        data-elev="1"
-        style={{
+        className="glass" data-elev="1" style={{
           display: "flex",
           flexDirection: "column",
           gap: "8px",
@@ -368,8 +344,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
               </span>
               {isEditable && sheet.deliverables.length > 1 && (
                 <button
-                  type="button"
-                  onClick={() => handleRemoveDeliverable(deliv.id)}
+                  type="button" onClick={() => handleRemoveDeliverable(deliv.id)}
                   style={{
                     background: "transparent",
                     border: "none",
@@ -420,9 +395,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
 
       {/* Inputs Section */}
       <div
-        className="glass"
-        data-elev="1"
-        style={{
+        className="glass" data-elev="1" style={{
           display: "flex",
           flexDirection: "column",
           gap: "8px",
@@ -450,7 +423,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <span>📁</span>
+                <span></span>
                 <span>{inp.media}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -488,9 +461,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
 
       {/* Budget & Acceptance Section */}
       <div
-        className="glass"
-        data-elev="1"
-        style={{
+        className="glass" data-elev="1" style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
           gap: "10px",
@@ -503,9 +474,9 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
             BUDGET LIMITS
           </label>
           <div style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
-            <div>⏱ Wall clock: {sheet.budget?.wall_clock_min ?? 60}m</div>
-            <div>💲 Model cost: ${sheet.budget?.model_cost_usd?.toFixed(2) ?? "5.00"}</div>
-            <div>⚡ Render limit: {sheet.budget?.render_min ?? 30}m</div>
+            <div>Wall clock: {sheet.budget?.wall_clock_min ?? 60}m</div>
+            <div> Model cost: ${sheet.budget?.model_cost_usd?.toFixed(2) ?? "5.00"}</div>
+            <div>Render limit: {sheet.budget?.render_min ?? 30}m</div>
           </div>
         </div>
 
@@ -548,11 +519,8 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
         </InteriorButton>
         {isEditable && (
           <InteriorButton
-            size="sm"
-            variant="primary"
-            onClick={() => onSubmitSheet("Submitted by operator")}
-            title="Submit Sheet to Ready State"
-            disabled={activeStatus === "ready"}
+            size="sm" variant="primary" onClick={() => onSubmitSheet("Submitted by operator")}
+            title="Submit Sheet to Ready State" disabled={activeStatus === "ready"}
           >
             {activeStatus === "ready" ? "Ready for Agent" : "Submit Sheet"}
           </InteriorButton>

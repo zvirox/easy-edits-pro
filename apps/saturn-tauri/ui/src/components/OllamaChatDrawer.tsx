@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { Brain } from "lucide-react";
 import { InteriorButton } from "./interior/interior-button";
 import React, { useState, useRef, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
@@ -32,37 +33,37 @@ const AVAILABLE_MODELS = [
 
 const QUICK_ACTIONS = [
   {
-    label: "🎬 Ripple Delete Pauses",
+    label: "Ripple Delete Pauses",
     prompt: "Scan the timeline for silence intervals below -38 dBFS and explain how ripple deletion will compact dialogue pauses.",
     actionKey: "ripple_delete_pauses",
   },
   {
-    label: "🎨 Warm Sunset Curve",
+    label: "Warm Sunset Curve",
     prompt: "Recommend an S-curve contrast with lifted warm red highlights and cool teal shadow offsets for cinematic sunset grading.",
     actionKey: "warm_sunset_curves",
   },
   {
-    label: "🎚️ EBU R128 Normalization",
+    label: "EBU R128 Normalization",
     prompt: "Analyze loudness compliance for broadcast delivery (-23 LUFS integrated, -1.0 dBTP true peak) and suggest track gain adjustments.",
     actionKey: "ebu_r128_normalize",
   },
   {
-    label: "📁 Group Dialogue Tracks",
+    label: "Group Dialogue Tracks",
     prompt: "How should dialogue tracks (DX1, DX2, Lav, Boom) be grouped, color-coded, and routed to the dialogue submix bus?",
     actionKey: "group_dialogue_tracks",
   },
   {
-    label: "📺 Add Retro CRT Shader",
+    label: "Add Retro CRT Shader",
     prompt: "How can I configure the custom GLSL fragment shader for authentic CRT scanlines, aperture grille, and chromatic aberration?",
     actionKey: "add_crt_shader",
   },
   {
-    label: "🤖 AI Background Matting",
+    label: "AI Background Matting",
     prompt: "Explain how RobustVideoMatting (RVM) extracts foreground alpha mattes without a green screen using temporal recurrent memory.",
     actionKey: "ai_matting_rvm",
   },
   {
-    label: "📐 Export to OpenTimelineIO",
+    label: "Export to OpenTimelineIO",
     prompt: "Guide me through exporting the current sequence to OpenTimelineIO (.otio) format for interchange with other editors.",
     actionKey: "export_otio",
   },
@@ -86,7 +87,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
     {
       role: "assistant",
       content:
-        "👋 Hello! I am your Saturn AI Timeline Assistant powered by local Ollama. Ask me about cuts, color curves, secondary qualifiers, batch rendering, or click any quick action below to get started.",
+        "Local assistant ready. Ask about cuts, color, audio or rendering, or choose a quick action.",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -197,15 +198,11 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
 
   return (
     <aside
-      className="ai-chat-drawer glass"
-      role="complementary"
-      aria-label="AI Assistant"
-      data-open={isOpen ? "true" : "false"}
+      className="ai-chat-drawer glass" role="complementary" aria-label="AI Assistant" data-open={isOpen ? "true" : "false"}
     >
         {/* Header */}
         <header
-          className="ai-chat-drawer-header"
-          style={{
+          className="ai-chat-drawer-header" style={{
             padding: "14px 18px",
             borderBottom: "1px solid var(--border-default)",
             background: "transparent",
@@ -215,7 +212,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 22 }}>🧠</span>
+            <Brain size={18} aria-hidden="true" />
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <strong style={{ fontSize: 15, color: "var(--text-primary)" }}>Saturn AI Assistant</strong>
@@ -240,10 +237,8 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <InteriorButton
-              type="button"
-              onClick={handleClearChat}
-              title="Clear Chat History"
-              style={{
+              type="button" onClick={handleClearChat}
+              title="Clear Chat History" style={{
                 background: "transparent",
                 border: "1px solid var(--border-default)",
                 color: "var(--text-secondary)",
@@ -253,11 +248,10 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                 cursor: "pointer",
               }}
             >
-              🧹 Clear
+               Clear
             </InteriorButton>
             <InteriorButton
-              type="button"
-              onClick={onClose}
+              type="button" onClick={onClose}
               style={{
                 background: "transparent",
                 border: "none",
@@ -316,11 +310,9 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
               ) : (
                 <div style={{ display: "flex", gap: 4, flex: 1 }}>
                   <input
-                    type="text"
-                    value={customModel}
+                    type="text" value={customModel}
                     onChange={(e) => setCustomModel(e.target.value)}
-                    placeholder="e.g. llama3:70b"
-                    style={{
+                    placeholder="e.g. llama3:70b" style={{
                       flex: 1,
                       background: "var(--bg-elevated)",
                       border: "1px solid var(--accent-primary)",
@@ -331,8 +323,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                     }}
                   />
                   <InteriorButton
-                    type="button"
-                    onClick={() => setShowCustomModel(false)}
+                    type="button" onClick={() => setShowCustomModel(false)}
                     style={{
                       background: "var(--border-default)",
                       border: "none",
@@ -350,8 +341,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
             </div>
 
             <InteriorButton
-              type="button"
-              onClick={() => setShowSystemPrompt(!showSystemPrompt)}
+              type="button" onClick={() => setShowSystemPrompt(!showSystemPrompt)}
               style={{
                 background: showSystemPrompt ? "var(--border-default)" : "transparent",
                 border: "1px solid var(--border-default)",
@@ -362,7 +352,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                 cursor: "pointer",
               }}
             >
-              ⚙️ System Prompt
+              System Prompt
             </InteriorButton>
           </div>
 
@@ -387,8 +377,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
               />
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
                 <InteriorButton
-                  type="button"
-                  onClick={() => setSystemPrompt(DEFAULT_SYSTEM_PROMPT)}
+                  type="button" onClick={() => setSystemPrompt(DEFAULT_SYSTEM_PROMPT)}
                   style={{
                     background: "transparent",
                     border: "none",
@@ -420,8 +409,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
           {QUICK_ACTIONS.map((action, idx) => (
             <InteriorButton
               key={idx}
-              type="button"
-              onClick={() => handleSendMessage(action.prompt, action.actionKey)}
+              type="button" onClick={() => handleSendMessage(action.prompt, action.actionKey)}
               disabled={isSending}
               style={{
                 background: "var(--bg-elevated)",
@@ -496,8 +484,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                 </div>
                 {msg.actionKey && !isUser && onExecuteAction && (
                   <InteriorButton
-                    type="button"
-                    onClick={() => onExecuteAction(msg.actionKey!)}
+                    type="button" onClick={() => onExecuteAction(msg.actionKey!)}
                     style={{
                       marginTop: 6,
                       background: "color-mix(in srgb, var(--status-success) 18%, transparent)",
@@ -513,7 +500,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                       gap: 4,
                     }}
                   >
-                    ⚡ Apply Suggested Action
+                    Apply Suggested Action
                   </InteriorButton>
                 )}
               </div>
@@ -567,8 +554,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
               onChange={(e) => setInputPrompt(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isSending}
-              placeholder="Ask Saturn AI about edits, color, audio, or shaders... (Enter to send, Shift+Enter for newline)"
-              rows={2}
+              placeholder="Ask about edits, color or audio" rows={2}
               style={{
                 flex: 1,
                 background: "var(--bg-input)",
@@ -583,8 +569,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
               }}
             />
             <InteriorButton
-              type="button"
-              onClick={() => handleSendMessage()}
+              type="button" onClick={() => handleSendMessage()}
               disabled={!inputPrompt.trim() || isSending}
               style={{
                 height: 48,
@@ -602,12 +587,12 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                 gap: 6,
               }}
             >
-              Send ✈️
+              Send ✈
             </InteriorButton>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
-              💡 Runs completely offline via local Ollama endpoint (http://127.0.0.1:11434).
+               Runs completely offline via local Ollama endpoint (http://127.0.0.1:11434).
             </span>
           </div>
         </div>

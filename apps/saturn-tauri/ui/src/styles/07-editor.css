@@ -419,7 +419,6 @@
 .reel-clip-card.selected {
   border-color: var(--accent-primary);
   background: color-mix(in srgb, var(--accent-secondary) 8%, transparent);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-secondary) 20%, transparent);
 }
 
 .reel-clip-badge {

@@ -60,10 +60,7 @@ export const AgentInbox: React.FC<AgentInboxProps> = ({ questions, onAnswer }) =
 
   return (
     <div
-      className="agent-inbox"
-      role="region"
-      aria-label="Agent Question Inbox"
-      style={{
+      className="agent-inbox" role="region" aria-label="Agent Question Inbox" style={{
         display: "flex",
         flexDirection: "column",
         gap: "10px",
@@ -71,7 +68,7 @@ export const AgentInbox: React.FC<AgentInboxProps> = ({ questions, onAnswer }) =
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--warn-text, #f59e0b)" }}>
-          📬 Inbox: Decisions Needed ({activeQuestions.length})
+           Inbox: Decisions Needed ({activeQuestions.length})
         </span>
         <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
           Keys 1–{Math.min(9, activeQuestions[0].options.length)} select
@@ -84,9 +81,7 @@ export const AgentInbox: React.FC<AgentInboxProps> = ({ questions, onAnswer }) =
         return (
           <div
             key={q.id}
-            className="glass"
-            data-elev="2"
-            style={{
+            className="glass" data-elev="2" style={{
               padding: "10px 12px",
               borderRadius: "var(--radius-sm, 10px)",
               border: "1px solid var(--warn-text, #f59e0b)",
@@ -185,9 +180,7 @@ export const AgentInbox: React.FC<AgentInboxProps> = ({ questions, onAnswer }) =
             {/* Answer button */}
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "4px" }}>
               <InteriorButton
-                size="sm"
-                variant="primary"
-                onClick={() => onAnswer(q.id, selectedId)}
+                size="sm" variant="primary" onClick={() => onAnswer(q.id, selectedId)}
                 title="Submit decision and resume agent execution"
               >
                 Confirm Choice & Resume

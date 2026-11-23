@@ -116,8 +116,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
 
   return (
     <div
-      className="hsl-qualifier-editor"
-      style={{
+      className="hsl-qualifier-editor" style={{
         background: "#180d17",
         border: "1px solid #462d40",
         borderRadius: 8,
@@ -129,8 +128,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>
             <input
-              type="checkbox"
-              checked={current.enabled}
+              type="checkbox" checked={current.enabled}
               onChange={(e) => updateField("enabled", e.target.checked)}
             />
             HSL Secondary Qualifier
@@ -142,16 +140,14 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, cursor: "pointer", color: showMatte ? "#d9468f" : "#cbd5e0" }}>
             <input
-              type="checkbox"
-              checked={showMatte}
+              type="checkbox" checked={showMatte}
               onChange={(e) => onToggleShowMatte(e.target.checked)}
             />
             Show Matte (B&amp;W Key)
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, cursor: "pointer", color: "#cbd5e0" }}>
             <input
-              type="checkbox"
-              checked={current.invert}
+              type="checkbox" checked={current.invert}
               onChange={(e) => updateField("invert", e.target.checked)}
             />
             Invert
@@ -163,32 +159,28 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14, alignItems: "center" }}>
         <span style={{ fontSize: 11, color: "#8b7284" }}>Key Presets:</span>
         <InteriorButton
-          type="button"
-          onClick={() => applyPreset("skin")}
+          type="button" onClick={() => applyPreset("skin")}
           style={{ background: "#462d40", border: "none", color: "#ecc94b", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
         >
-          👤 Skin Tones (25°)
+           Skin Tones (25°)
         </InteriorButton>
         <InteriorButton
-          type="button"
-          onClick={() => applyPreset("sky")}
+          type="button" onClick={() => applyPreset("sky")}
           style={{ background: "#462d40", border: "none", color: "#d9468f", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
         >
-          🌤️ Sky Blue (205°)
+           Sky Blue (205°)
         </InteriorButton>
         <InteriorButton
-          type="button"
-          onClick={() => applyPreset("foliage")}
+          type="button" onClick={() => applyPreset("foliage")}
           style={{ background: "#462d40", border: "none", color: "#68d391", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
         >
-          🌿 Foliage Green (115°)
+           Foliage Green (115°)
         </InteriorButton>
         <InteriorButton
-          type="button"
-          onClick={() => applyPreset("fire")}
+          type="button" onClick={() => applyPreset("fire")}
           style={{ background: "#462d40", border: "none", color: "#fc8181", fontSize: 11, padding: "3px 8px", borderRadius: 4, cursor: "pointer" }}
         >
-          🔥 Fire Red (10°)
+           Fire Red (10°)
         </InteriorButton>
       </div>
 
@@ -197,7 +189,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
         {/* Hue Isolation */}
         <div style={{ background: "#100810", padding: 12, borderRadius: 6, border: "1px solid #462d40" }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 600, marginBottom: 8 }}>
-            <span>🎨 Hue Isolation</span>
+            <span> Hue Isolation</span>
             <span style={{ color: "#cbd5e0" }}>{Math.round(current.hue_center)}° ± {Math.round(current.hue_width / 2)}°</span>
           </div>
 
@@ -207,11 +199,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
               <span>{Math.round(current.hue_center)}°</span>
             </div>
             <input
-              type="range"
-              min="0"
-              max="360"
-              step="1"
-              value={current.hue_center}
+              type="range" min="0" max="360" step="1" value={current.hue_center}
               onChange={(e) => updateField("hue_center", parseFloat(e.target.value))}
               style={{
                 width: "100%",
@@ -231,11 +219,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
                 <span>{Math.round(current.hue_width)}°</span>
               </div>
               <input
-                type="range"
-                min="5"
-                max="180"
-                step="1"
-                value={current.hue_width}
+                type="range" min="5" max="180" step="1" value={current.hue_width}
                 onChange={(e) => updateField("hue_width", parseFloat(e.target.value))}
                 style={{ width: "100%" }}
               />
@@ -246,11 +230,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
                 <span>{Math.round(current.hue_softness)}°</span>
               </div>
               <input
-                type="range"
-                min="1"
-                max="90"
-                step="1"
-                value={current.hue_softness}
+                type="range" min="1" max="90" step="1" value={current.hue_softness}
                 onChange={(e) => updateField("hue_softness", parseFloat(e.target.value))}
                 style={{ width: "100%" }}
               />
@@ -271,11 +251,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
               <span>{Math.round(current.sat_center * 100)}%</span>
             </div>
             <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={current.sat_center}
+              type="range" min="0" max="1" step="0.01" value={current.sat_center}
               onChange={(e) => updateField("sat_center", parseFloat(e.target.value))}
               style={{ width: "100%" }}
             />
@@ -287,11 +263,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
               <span>{Math.round(current.luma_center * 100)}%</span>
             </div>
             <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={current.luma_center}
+              type="range" min="0" max="1" step="0.01" value={current.luma_center}
               onChange={(e) => updateField("luma_center", parseFloat(e.target.value))}
               style={{ width: "100%" }}
             />
@@ -302,7 +274,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
       {/* Secondary Color Adjustment Controls */}
       <div style={{ background: "#342033", padding: 12, borderRadius: 6, border: "1px solid #462d40" }}>
         <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 10, color: "#d9468f", display: "flex", alignItems: "center", gap: 6 }}>
-          <span>🎯 Secondary Grade Adjustment (Applied inside Matte)</span>
+          <span> Secondary Grade Adjustment (Applied inside Matte)</span>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 10 }}>
@@ -312,11 +284,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
               <span>{Math.round(current.hue_shift)}°</span>
             </div>
             <input
-              type="range"
-              min="-180"
-              max="180"
-              step="1"
-              value={current.hue_shift}
+              type="range" min="-180" max="180" step="1" value={current.hue_shift}
               onChange={(e) => updateField("hue_shift", parseFloat(e.target.value))}
               style={{ width: "100%" }}
             />
@@ -328,11 +296,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
               <span>{current.sat_boost.toFixed(2)}x</span>
             </div>
             <input
-              type="range"
-              min="0.0"
-              max="2.5"
-              step="0.05"
-              value={current.sat_boost}
+              type="range" min="0.0" max="2.5" step="0.05" value={current.sat_boost}
               onChange={(e) => updateField("sat_boost", parseFloat(e.target.value))}
               style={{ width: "100%" }}
             />
@@ -344,11 +308,7 @@ export const HslQualifierEditor: React.FC<HslQualifierEditorProps> = ({
               <span>{current.exposure_shift > 0 ? `+${current.exposure_shift.toFixed(2)}` : current.exposure_shift.toFixed(2)} EV</span>
             </div>
             <input
-              type="range"
-              min="-2.0"
-              max="2.0"
-              step="0.05"
-              value={current.exposure_shift}
+              type="range" min="-2.0" max="2.0" step="0.05" value={current.exposure_shift}
               onChange={(e) => updateField("exposure_shift", parseFloat(e.target.value))}
               style={{ width: "100%" }}
             />

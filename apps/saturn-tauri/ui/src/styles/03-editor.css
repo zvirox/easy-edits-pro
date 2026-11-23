@@ -83,7 +83,6 @@
 
 .program-deck-indicator.transitioning .deck-dot {
   background: var(--accent-violet-bright);
-  box-shadow: 0 0 6px var(--accent-violet-bright);
 }
 
 .transport { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 36px; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; max-width: 100%; scrollbar-width: none; }
@@ -126,7 +125,7 @@
 .timeline-tool-button { width: 34px; height: 34px; }
 .timeline-icon-button { width: 30px; height: 30px; }
 .timeline-tool-button:hover, .timeline-icon-button:hover:not(:disabled) { border-color: var(--border-strong); color: var(--text-main); background: var(--bg-hover); }
-.timeline-tool-button.active { border-color: var(--accent-primary); color: var(--color-white); background: var(--accent-primary); box-shadow: 0 0 10px var(--border-glow); }
+.timeline-tool-button.active { border-color: var(--accent-primary); color: var(--color-white); background: var(--accent-primary); }
 .timeline-icon-button.active-toggle { border-color: var(--accent-primary); color: var(--accent-text); background: var(--bg-selected); }
 .timeline-tool-button svg, .timeline-icon-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .timeline-workbench { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; padding: 4px 8px 8px; background: var(--bg-panel); overflow: hidden; }
@@ -310,7 +309,7 @@
 .track-label { flex-direction: column; align-items: stretch; justify-content: space-between; border-right: 1px solid var(--neutral-650); background: var(--bg-subpanel); }
 .track-label-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
 .track-label-top b { color: var(--text-muted); font-size: 10.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.track-label-top span { color: var(--text-muted); font-size: 8px; text-transform: uppercase; letter-spacing: 0.4px; }
+.track-label-top span { color: var(--text-muted); font-size: 8px; text-transform: none; letter-spacing: 0.2px; }
 .track-label-btns { display: flex; align-items: center; gap: 2px; width: 100%; margin-top: 2px; }
 .track-mini-btn {
   flex: 1;
@@ -332,11 +331,11 @@
 .track-mini-btn.lock-btn.active { background: var(--accent-secondary); color: var(--color-black); border-color: var(--accent-secondary); }
 .track-lane { position: relative; flex: 1; min-width: 0; min-height: 48px; }
 .timeline-clip { position: absolute; top: 6px; height: 33px; display: flex; align-items: center; overflow: hidden; padding: 0 7px; border: 1px solid var(--accent-primary); border-radius: 4px; color: white; background: linear-gradient(110deg, var(--border-strong-solid), var(--bg-elevated)); cursor: grab; user-select: none; transition: transform 0.08s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
-.timeline-clip:hover { border-color: var(--accent-primary-hover); box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 25%, transparent); }
+.timeline-clip:hover { border-color: var(--accent-primary-hover); }
 .timeline-clip.audio { border-color: var(--status-success-deep); background: linear-gradient(110deg, var(--status-success-darkest), var(--status-success-ink)); }
-.timeline-clip.audio:hover { border-color: var(--status-success); box-shadow: 0 0 8px color-mix(in srgb, var(--status-success) 25%, transparent); }
+.timeline-clip.audio:hover { border-color: var(--status-success); }
 .timeline-clip.title-clip { border-color: var(--accent-secondary); background: linear-gradient(110deg, var(--accent-violet-deep), var(--accent-violet-dark)); color: var(--accent-violet-100); }
-.timeline-clip.title-clip:hover { border-color: var(--accent-violet-soft); box-shadow: 0 0 8px color-mix(in srgb, var(--accent-violet-soft) 35%, transparent); }
+.timeline-clip.title-clip:hover { border-color: var(--accent-violet-soft); }
 .timeline-clip.selected { outline: 2px solid var(--accent-primary-hover); outline-offset: 1px; z-index: 2; }
 .timeline-clip.title-clip.selected { outline: 2px solid var(--accent-violet-pale); }
 .timeline-clip.audio.selected { outline: 2px solid var(--status-success-mint); }
@@ -401,8 +400,8 @@
 }
 
 /* Transitions */
-.timeline-transition-badge { position: absolute; top: 9px; height: 26px; z-index: 3; display: flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 4px; background: linear-gradient(135deg, color-mix(in srgb, var(--bg-elevated) 95%, transparent), color-mix(in srgb, var(--bg-base) 95%, transparent)); border: 1px solid var(--accent-primary); color: var(--text-on-accent); font-size: 8.5px; font-weight: 600; cursor: pointer; user-select: none; overflow: hidden; box-shadow: 0 2px 8px color-mix(in srgb, var(--color-black) 50%, transparent), 0 0 6px var(--accent-glow); transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base); }
-.timeline-transition-badge:hover { border-color: var(--accent-bright); box-shadow: 0 0 10px color-mix(in srgb, var(--accent-bright) 40%, transparent); transform: translateY(-1px); }
+.timeline-transition-badge { position: absolute; top: 9px; height: 26px; z-index: 3; display: flex; align-items: center; gap: 4px; padding: 0 6px; border-radius: 4px; background: linear-gradient(135deg, color-mix(in srgb, var(--bg-elevated) 95%, transparent), color-mix(in srgb, var(--bg-base) 95%, transparent)); border: 1px solid var(--accent-primary); color: var(--text-on-accent); font-size: 8.5px; font-weight: 600; cursor: pointer; user-select: none; overflow: hidden; box-shadow: 0 2px 8px color-mix(in srgb, var(--color-black) 50%, transparent); transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base); }
+.timeline-transition-badge:hover { border-color: var(--accent-bright); transform: translateY(-1px); }
 .timeline-transition-badge.selected { border-color: var(--accent-bright); outline: 2px solid var(--accent-bright); outline-offset: 1px; background: linear-gradient(135deg, color-mix(in srgb, var(--accent-secondary) 95%, transparent), color-mix(in srgb, var(--accent-primary) 95%, transparent)); color: var(--color-white); }
 .timeline-transition-badge .transition-icon svg { width: 11px; height: 11px; stroke: currentColor; fill: none; }
 .timeline-transition-badge .transition-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize; }

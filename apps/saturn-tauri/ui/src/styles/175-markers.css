@@ -221,7 +221,7 @@
   background: var(--bg-subpanel);
   color: var(--text-sub);
   font-size: 9px;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.04em;
 }
 

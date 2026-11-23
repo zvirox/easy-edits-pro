@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { LucideGlyph } from "./LucideGlyph";
+import { Brain } from "lucide-react";
 import { InteriorButton } from "./interior/interior-button";
 import React, { useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
@@ -91,8 +93,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
 
   return (
     <div
-      className="background-matting-card"
-      style={{
+      className="background-matting-card" style={{
         background: "#180d17",
         border: "1px solid #462d40",
         borderRadius: 8,
@@ -102,7 +103,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 18 }}>🧠</span>
+          <Brain size={16} aria-hidden="true" />
           <div>
             <h4 style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Neural Background Matting (AI)</h4>
             <span style={{ fontSize: 11, color: "#a0aec0" }}>
@@ -131,15 +132,14 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
         </label>
         <div style={{ display: "flex", gap: 6 }}>
           {[
-            { id: "transparent", label: "Transparent Alpha", icon: "🏁" },
-            { id: "green", label: "Green Screen", icon: "🟩" },
-            { id: "black", label: "Cinema Black", icon: "⬛" },
-            { id: "white", label: "Studio White", icon: "⬜" },
+            { id: "transparent", label: "Transparent Alpha", icon: "Flag" },
+            { id: "green", label: "Green Screen", icon: "Square" },
+            { id: "black", label: "Cinema Black", icon: "Square" },
+            { id: "white", label: "Studio White", icon: "Circle" },
           ].map((mode) => (
             <InteriorButton
               key={mode.id}
-              type="button"
-              onClick={() => setBackgroundMode(mode.id as typeof backgroundMode)}
+              type="button" onClick={() => setBackgroundMode(mode.id as typeof backgroundMode)}
               style={{
                 flex: 1,
                 padding: "4px 6px",
@@ -156,7 +156,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
                 gap: 2,
               }}
             >
-              <span>{mode.icon}</span>
+              <LucideGlyph name={mode.icon} />
               <span style={{ fontSize: 9 }}>{mode.label}</span>
             </InteriorButton>
           ))}
@@ -171,11 +171,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
             <span>{threshold.toFixed(2)}</span>
           </div>
           <input
-            type="range"
-            min="0.1"
-            max="0.9"
-            step="0.05"
-            value={threshold}
+            type="range" min="0.1" max="0.9" step="0.05" value={threshold}
             onChange={(e) => setThreshold(parseFloat(e.target.value))}
             style={{ width: "100%" }}
           />
@@ -187,11 +183,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
             <span>{featherRadius.toFixed(1)} px</span>
           </div>
           <input
-            type="range"
-            min="0"
-            max="15"
-            step="1"
-            value={featherRadius}
+            type="range" min="0" max="15" step="1" value={featherRadius}
             onChange={(e) => setFeatherRadius(parseInt(e.target.value, 10))}
             style={{ width: "100%" }}
           />
@@ -234,8 +226,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
       )}
 
       <InteriorButton
-        type="button"
-        onClick={handleApplyMatting}
+        type="button" onClick={handleApplyMatting}
         disabled={processing}
         style={{
           width: "100%",
@@ -253,7 +244,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
           gap: 6,
         }}
       >
-        {processing ? "⏳ Running MODNet on the decoded frame…" : "🪄 Background Removal on First Frame"}
+        {processing ? "⏳ Running MODNet on the decoded frame…" : "Background Removal on First Frame"}
       </InteriorButton>
     </div>
   );

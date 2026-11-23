@@ -67,8 +67,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
   return (
     <div
-      className="agent-card"
-      style={{
+      className="agent-card" style={{
         display: "flex",
         flexDirection: "column",
         gap: "var(--gap, 12px)",
@@ -80,9 +79,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
     >
       {/* Pinned Top Status Line */}
       <div
-        className="glass"
-        data-elev="2"
-        style={{
+        className="glass" data-elev="2" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -127,9 +124,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
             </InteriorButton>
           ) : (
             <InteriorButton
-              variant="secondary"
-              size="sm"
-              onClick={onStop}
+              variant="secondary" size="sm" onClick={onStop}
               disabled={!hasActiveSession}
               title="Immediate Stop: halts active session (≤ 1s, no late apply)"
             >
@@ -141,10 +136,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
       {session.lastError && (
         <div
-          role="alert"
-          className="glass"
-          data-elev="2"
-          style={{
+          role="alert" className="glass" data-elev="2" style={{
             padding: "8px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             borderLeft: "3px solid var(--error-text)",
@@ -159,9 +151,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
       {/* Active Task Sheet & Budget Header */}
       {session.taskSheet && (
         <div
-          className="glass"
-          data-elev="1"
-          style={{
+          className="glass" data-elev="1" style={{
             padding: "8px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             display: "flex",
@@ -171,7 +161,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span style={{ fontWeight: 600, fontSize: "12px" }}>📋 {session.taskSheet.title}</span>
+              <span style={{ fontWeight: 600, fontSize: "12px" }}> {session.taskSheet.title}</span>
               <span
                 style={{
                   fontSize: "10px",
@@ -208,13 +198,13 @@ export const AgentCard: React.FC<AgentCardProps> = ({
             }}
           >
             <span>
-              ⏱ {Math.round(session.budgetSpent.wall_clock_seconds / 60)}m / {session.taskSheet.budget?.wall_clock_min ?? 60}m
+              {Math.round(session.budgetSpent.wall_clock_seconds / 60)}m / {session.taskSheet.budget?.wall_clock_min ?? 60}m
             </span>
             <span>
-              💲 ${session.budgetSpent.model_cost_usd.toFixed(2)} / ${(session.taskSheet.budget?.model_cost_usd ?? 5.0).toFixed(2)}
+               ${session.budgetSpent.model_cost_usd.toFixed(2)} / ${(session.taskSheet.budget?.model_cost_usd ?? 5.0).toFixed(2)}
             </span>
             <span>
-              ⚡ {Math.round(session.budgetSpent.render_seconds / 60)}m / {session.taskSheet.budget?.render_min ?? 30}m
+              {Math.round(session.budgetSpent.render_seconds / 60)}m / {session.taskSheet.budget?.render_min ?? 30}m
             </span>
           </div>
         </div>
@@ -228,9 +218,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
       {/* Permission Requests Banner */}
       {session.pendingPermissions.length > 0 && (
         <div
-          className="glass"
-          data-elev="3"
-          style={{
+          className="glass" data-elev="3" style={{
             padding: "10px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             borderLeft: "3px solid var(--accent-text)",
@@ -277,43 +265,35 @@ export const AgentCard: React.FC<AgentCardProps> = ({
         }}
       >
         <span
-          className="glass"
-          data-elev="1"
-          style={{ padding: "2px 8px", borderRadius: "6px" }}
+          className="glass" data-elev="1" style={{ padding: "2px 8px", borderRadius: "6px" }}
           title="Active Session Branch"
         >
-          🌿 {session.activeBranch}
+           {session.activeBranch}
         </span>
         <span
-          className="glass"
-          data-elev="1"
-          style={{ padding: "2px 8px", borderRadius: "6px" }}
+          className="glass" data-elev="1" style={{ padding: "2px 8px", borderRadius: "6px" }}
           title="Active Tool Profile"
         >
-          🎯 {session.activeMode}
+           {session.activeMode}
         </span>
         {session.grantedTiers.map((tier) => (
           <span
             key={tier}
-            className="glass"
-            data-elev="1"
-            style={{
+            className="glass" data-elev="1" style={{
               padding: "2px 8px",
               borderRadius: "6px",
               color: tier === "filesystem" || tier === "admin" ? "var(--accent-text)" : undefined,
             }}
             title={`Granted Tier: ${tier}`}
           >
-            🔒 {tier}
+             {tier}
           </span>
         ))}
       </div>
 
       {/* Project Brief Section */}
       <div
-        className="glass"
-        data-elev="1"
-        style={{
+        className="glass" data-elev="1" style={{
           padding: "8px 12px",
           borderRadius: "var(--radius-sm, 10px)",
           display: "flex",
@@ -330,7 +310,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
           }}
           onClick={() => setBriefOpen(!briefOpen)}
         >
-          <span style={{ fontWeight: 600, fontSize: "12px" }}>📋 Project Brief</span>
+          <span style={{ fontWeight: 600, fontSize: "12px" }}> Project Brief</span>
           <span style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>
             {briefOpen ? "Collapse" : "Edit brief"}
           </span>
@@ -341,10 +321,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
             <div>
               <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Goal</label>
               <input
-                type="text"
-                className="input glass"
-                data-elev="2"
-                style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
+                type="text" className="input glass" data-elev="2" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
                 value={briefDraft.goal}
                 onChange={(e) => setBriefDraft({ ...briefDraft, goal: e.target.value })}
               />
@@ -353,10 +330,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               <div>
                 <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Platform</label>
                 <input
-                  type="text"
-                  className="input glass"
-                  data-elev="2"
-                  style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
+                  type="text" className="input glass" data-elev="2" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
                   value={briefDraft.platform}
                   onChange={(e) => setBriefDraft({ ...briefDraft, platform: e.target.value })}
                 />
@@ -364,11 +338,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               <div>
                 <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Target Loudness</label>
                 <input
-                  type="number"
-                  step="0.5"
-                  className="input glass"
-                  data-elev="2"
-                  style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
+                  type="number" step="0.5" className="input glass" data-elev="2" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
                   value={briefDraft.loudness_target_lufs}
                   onChange={(e) => setBriefDraft({ ...briefDraft, loudness_target_lufs: parseFloat(e.target.value) || -14 })}
                 />
@@ -377,9 +347,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
             <div>
               <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Style Notes</label>
               <textarea
-                className="input glass"
-                data-elev="2"
-                rows={2}
+                className="input glass" data-elev="2" rows={2}
                 style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px", resize: "none" }}
                 value={briefDraft.style_notes}
                 onChange={(e) => setBriefDraft({ ...briefDraft, style_notes: e.target.value })}
@@ -407,9 +375,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
       {/* Numbered Plan */}
       <div
-        className="glass"
-        data-elev="1"
-        style={{
+        className="glass" data-elev="1" style={{
           padding: "8px 12px",
           borderRadius: "var(--radius-sm, 10px)",
           display: "flex",
@@ -417,7 +383,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
           gap: "8px",
         }}
       >
-        <div style={{ fontWeight: 600, fontSize: "12px" }}>🎯 Execution Plan</div>
+        <div style={{ fontWeight: 600, fontSize: "12px" }}> Execution Plan</div>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           {session.plan.length === 0 ? (
             <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
@@ -486,9 +452,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
       {/* Collapsed Last-Seen Frame / Telemetry Strip */}
       <div
-        className="glass"
-        data-elev="1"
-        style={{
+        className="glass" data-elev="1" style={{
           padding: "8px 12px",
           borderRadius: "var(--radius-sm, 10px)",
           display: "flex",
@@ -505,7 +469,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
           }}
           onClick={() => setPreviewStripOpen(!previewStripOpen)}
         >
-          <span style={{ fontWeight: 600, fontSize: "12px" }}>📸 Last-Seen Telemetry</span>
+          <span style={{ fontWeight: 600, fontSize: "12px" }}> Last-Seen Telemetry</span>
           <span style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>
             {previewStripOpen ? "Hide" : "Expand"}
           </span>
@@ -545,10 +509,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
       >
         <textarea
           rows={2}
-          className="input glass"
-          data-elev="2"
-          placeholder="Instruct agent (e.g. 'Align cut at 12s with the beat')..."
-          value={instruction}
+          className="input glass" data-elev="2" placeholder="Instruct agent (e.g. 'Align cut at 12s with the beat')..." value={instruction}
           onChange={(e) => setInstruction(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -566,9 +527,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
         />
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
           <InteriorButton
-            size="sm"
-            variant="primary"
-            onClick={handleSend}
+            size="sm" variant="primary" onClick={handleSend}
             disabled={!instruction.trim() || isStopped}
           >
             Send to Agent

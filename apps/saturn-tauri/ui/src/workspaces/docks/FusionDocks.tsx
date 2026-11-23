@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { Square } from "lucide-react";
+import { LucideGlyph } from "../../components/LucideGlyph";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { DockCard } from "../../features/dock/DockCard";
 import { type MouseEvent } from "react";
@@ -123,7 +125,7 @@ export function FusionDockRight({
         void connectFusionSockets(fromNode, fromSock, toNode, toSock);
         setNotice("Connected sockets");
       } else {
-        setNotice("⚠️ Connect an output socket to an input socket");
+        setNotice("Connect an output socket to an input socket");
       }
       setConnectingSocket(null);
     }
@@ -140,9 +142,7 @@ export function FusionDockRight({
 
   return (
     <DockCard
-        className="shell-dock shell-dock-right"
-        ariaLabel="Fusion dock"
-        tabs={[
+        className="shell-dock shell-dock-right" ariaLabel="Fusion dock" tabs={[
           {
             id: "fusion-canvas",
             title: "Fusion Canvas",
@@ -166,8 +166,7 @@ export function FusionDockRight({
             )}
           </div>
         <div
-          className="fusion-canvas-container"
-          onMouseDown={handleCanvasMouseDown}
+          className="fusion-canvas-container" onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleCanvasMouseUp}
         >
@@ -201,15 +200,12 @@ export function FusionDockRight({
                 <g key={`${c.from_node}-${c.to_node}-${i}`} className="fusion-wire-group">
                   <path
                     d={pathData}
-                    className="fusion-wire-hitbox"
-                    onClick={() => void disconnectFusionSockets(c.from_node, c.from_socket, c.to_node, c.to_socket)}
+                    className="fusion-wire-hitbox" onClick={() => void disconnectFusionSockets(c.from_node, c.from_socket, c.to_node, c.to_socket)}
                   />
                   <path
                     d={pathData}
-                    className="fusion-wire"
-                    stroke={isMaskWire ? "url(#maskWireGrad)" : "url(#wireGrad)"}
-                    strokeWidth="2.5"
-                    fill="none"
+                    className="fusion-wire" stroke={isMaskWire ? "url(#maskWireGrad)" : "url(#wireGrad)"}
+                    strokeWidth="2.5" fill="none"
                   />
                 </g>
               );
@@ -220,13 +216,13 @@ export function FusionDockRight({
           {nodes.map((node: CompositingNode) => {
             const isSelected = selectedNodeId === node.id;
             const nodeIcons: Record<CompositingNodeKind, string> = {
-              merge: "🔀",
-              transform: "📐",
-              keyer: "🟩",
-              mask: "✂️",
-              particles: "✨",
-              media_source: "🎬",
-              output_sink: "🖥️",
+              merge: "Shuffle",
+              transform: "Ruler",
+              keyer: "Square",
+              mask: "Scissors",
+              particles: "Sparkles",
+              media_source: "Clapperboard",
+              output_sink: "Monitor",
             };
 
             return (
@@ -240,15 +236,12 @@ export function FusionDockRight({
                 }}
               >
                 <div
-                  className="fusion-node-header"
-                  onMouseDown={(e) => handleNodeDragStart(e, node)}
+                  className="fusion-node-header" onMouseDown={(e) => handleNodeDragStart(e, node)}
                 >
-                  <span className="node-icon">{nodeIcons[node.kind as CompositingNodeKind] || "🔷"}</span>
+                  <span className="node-icon"><LucideGlyph name={nodeIcons[node.kind as CompositingNodeKind] || "Diamond"} /></span>
                   <strong className="node-title">{node.title}</strong>
                   <InteriorButton
-                    type="button"
-                    className="node-delete-btn"
-                    onClick={(e) => {
+                    type="button" className="node-delete-btn" onClick={(e) => {
                       e.stopPropagation();
                       void removeFusionNode(node.id);
                     }}
@@ -354,8 +347,7 @@ export function FusionDockRight({
                     <label className="param-field">
                       <span>Key Color:</span>
                       <input
-                        type="color"
-                        value={(selectedNode.params?.color as string) || "#00ff00"}
+                        type="color" value={(selectedNode.params?.color as string) || "#00ff00"}
                         onChange={(e) =>
                           void updateFusionNodeParams(selectedNode.id, {
                             ...selectedNode.params,
@@ -367,10 +359,7 @@ export function FusionDockRight({
                     <label className="param-field">
                       <span>Tolerance: {((selectedNode.params?.tolerance as number) ?? 40).toFixed(0)}</span>
                       <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={(selectedNode.params?.tolerance as number) ?? 40}
+                        type="range" min="0" max="100" value={(selectedNode.params?.tolerance as number) ?? 40}
                         onChange={(e) =>
                           void updateFusionNodeParams(selectedNode.id, {
                             ...selectedNode.params,
@@ -384,11 +373,7 @@ export function FusionDockRight({
                         Spill Suppression: {(((selectedNode.params?.spill_suppression as number) ?? 0.75) * 100).toFixed(0)}%
                       </span>
                       <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        value={(selectedNode.params?.spill_suppression as number) ?? 0.75}
+                        type="range" min="0" max="1" step="0.05" value={(selectedNode.params?.spill_suppression as number) ?? 0.75}
                         onChange={(e) =>
                           void updateFusionNodeParams(selectedNode.id, {
                             ...selectedNode.params,
@@ -406,11 +391,7 @@ export function FusionDockRight({
                     <label className="param-field">
                       <span>Scale: {((selectedNode.params?.scale as number) ?? 1.0).toFixed(2)}x</span>
                       <input
-                        type="range"
-                        min="0.1"
-                        max="3"
-                        step="0.05"
-                        value={(selectedNode.params?.scale as number) ?? 1.0}
+                        type="range" min="0.1" max="3" step="0.05" value={(selectedNode.params?.scale as number) ?? 1.0}
                         onChange={(e) =>
                           void updateFusionNodeParams(selectedNode.id, {
                             ...selectedNode.params,
@@ -422,10 +403,7 @@ export function FusionDockRight({
                     <label className="param-field">
                       <span>X Offset: {((selectedNode.params?.x as number) ?? 0).toFixed(0)}px</span>
                       <input
-                        type="range"
-                        min="-500"
-                        max="500"
-                        value={(selectedNode.params?.x as number) ?? 0}
+                        type="range" min="-500" max="500" value={(selectedNode.params?.x as number) ?? 0}
                         onChange={(e) =>
                           void updateFusionNodeParams(selectedNode.id, {
                             ...selectedNode.params,
@@ -437,10 +415,7 @@ export function FusionDockRight({
                     <label className="param-field">
                       <span>Rotation: {((selectedNode.params?.rotation as number) ?? 0).toFixed(0)}°</span>
                       <input
-                        type="range"
-                        min="-180"
-                        max="180"
-                        value={(selectedNode.params?.rotation as number) ?? 0}
+                        type="range" min="-180" max="180" value={(selectedNode.params?.rotation as number) ?? 0}
                         onChange={(e) =>
                           void updateFusionNodeParams(selectedNode.id, {
                             ...selectedNode.params,
@@ -478,11 +453,7 @@ export function FusionDockRight({
                         Foreground Opacity: {(((selectedNode.params?.opacity as number) ?? 1.0) * 100).toFixed(0)}%
                       </span>
                       <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        value={(selectedNode.params?.opacity as number) ?? 1.0}
+                        type="range" min="0" max="1" step="0.05" value={(selectedNode.params?.opacity as number) ?? 1.0}
                         onChange={(e) =>
                           void updateFusionNodeParams(selectedNode.id, {
                             ...selectedNode.params,
@@ -500,11 +471,7 @@ export function FusionDockRight({
                     <label className="param-field">
                       <span>Edge Feather: {fusionMaskFeather.toFixed(1)}px</span>
                       <input
-                        type="range"
-                        min="0"
-                        max="30"
-                        step="0.5"
-                        value={fusionMaskFeather}
+                        type="range" min="0" max="30" step="0.5" value={fusionMaskFeather}
                         onChange={(e) => {
                           setFusionMaskFeather(Number(e.target.value));
                           void updateFusionNodeParams(selectedNode.id, {
@@ -516,8 +483,7 @@ export function FusionDockRight({
                     </label>
                     <label className="checkbox-field">
                       <input
-                        type="checkbox"
-                        checked={fusionMaskInverted}
+                        type="checkbox" checked={fusionMaskInverted}
                         onChange={(e) => {
                           setFusionMaskInverted(e.target.checked);
                           void updateFusionNodeParams(selectedNode.id, {
@@ -529,8 +495,7 @@ export function FusionDockRight({
                       <span>Invert Mask Matte</span>
                     </label>
                     <InteriorButton
-                      className="secondary-btn"
-                      style={{ marginTop: "8px" }}
+                      className="secondary-btn" style={{ marginTop: "8px" }}
                       onClick={() =>
                         void addRotoSplineMask(fusionMaskPoints, fusionMaskFeather, true, fusionMaskInverted)
                       }
@@ -546,10 +511,7 @@ export function FusionDockRight({
                     <label className="param-field">
                       <span>Emission Speed: {((selectedNode.params?.speed as number) ?? 120).toFixed(0)} px/s</span>
                       <input
-                        type="range"
-                        min="20"
-                        max="300"
-                        value={(selectedNode.params?.speed as number) ?? 120}
+                        type="range" min="20" max="300" value={(selectedNode.params?.speed as number) ?? 120}
                         onChange={(e) =>
                           void updateFusionNodeParams(selectedNode.id, {
                             ...selectedNode.params,
@@ -561,10 +523,7 @@ export function FusionDockRight({
                     <label className="param-field">
                       <span>Gravity Y: {((selectedNode.params?.gravity as number) ?? 50).toFixed(0)}</span>
                       <input
-                        type="range"
-                        min="-100"
-                        max="200"
-                        value={(selectedNode.params?.gravity as number) ?? 50}
+                        type="range" min="-100" max="200" value={(selectedNode.params?.gravity as number) ?? 50}
                         onChange={(e) =>
                           void updateFusionNodeParams(selectedNode.id, {
                             ...selectedNode.params,
@@ -601,8 +560,7 @@ export function FusionDockRight({
                 )}
 
                 <InteriorButton
-                  className="danger-button"
-                  style={{ marginTop: "16px" }}
+                  className="danger-button" style={{ marginTop: "16px" }}
                   onClick={() => void removeFusionNode(selectedNode.id)}
                 >
                   Remove Node
@@ -611,7 +569,7 @@ export function FusionDockRight({
             </div>
           ) : (
             <div className="fusion-empty-inspector">
-              <span className="empty-icon">🔲</span>
+              <span className="empty-icon"><Square size={18} aria-hidden="true" /></span>
               <p>Select any node on the graph canvas to inspect parameters and routing sockets.</p>
             </div>
           )}

@@ -82,7 +82,7 @@ export function ProjectWelcomeScreen({
           <span />
           <span />
         </div>
-        <p className="welcome-kicker">EASY EDITS PRO</p>
+        <p className="welcome-kicker">Easy Edits Pro</p>
         <h1>{loadingMessage}</h1>
         <p className="welcome-muted">Getting your workspace ready</p>
         <div className="loading-track">
@@ -101,7 +101,7 @@ export function ProjectWelcomeScreen({
           <img src="/eep-icon.png" alt="" />
           <span>
             <strong>Easy Edits Pro</strong>
-            <small>VIDEO EDITING WORKSPACE</small>
+            <small>Video editor</small>
           </span>
         </div>
         <div className="welcome-status">
@@ -113,13 +113,13 @@ export function ProjectWelcomeScreen({
         <section className="welcome-hero">
           <div className="welcome-hero-copy">
             <p className="welcome-kicker">
-              PROJECT STUDIO <span>·</span> {new Date().getFullYear()}
+              Projects <span>·</span> {new Date().getFullYear()}
             </p>
             <h1>
-              Make room<br />for the <em>next cut.</em>
+              Shape the cut.<br /><em>Keep the review.</em>
             </h1>
             <p className="welcome-intro">
-              Pick up where you left off or shape a fresh timeline, tuned to the way you shoot.
+              Open a saved project or start a new sequence. Agents prepare the cut; you review it.
             </p>
           </div>
           <div className="welcome-editor-art" aria-hidden="true">
@@ -128,13 +128,12 @@ export function ProjectWelcomeScreen({
               <span />
               <span />
               <i />
-              <b>PROGRAM</b>
+              <b>Program</b>
               <small>00:00:12:08</small>
             </div>
             <div className="welcome-art-preview">
-              <span className="art-sun" />
               <span className="art-horizon" />
-              <span className="art-caption">A FRAME OF YOUR OWN</span>
+              <span className="art-caption">Program · V1</span>
             </div>
             <div className="welcome-art-timeline">
               <div className="art-ruler">
@@ -156,9 +155,9 @@ export function ProjectWelcomeScreen({
             </div>
           </div>
           <div className="welcome-hero-foot">
-            <span>01 <i /> Shape the sequence</span>
-            <span>02 <i /> Find your rhythm</span>
-            <span>03 <i /> Make it yours</span>
+            <span>01 <i /> Open a project</span>
+            <span>02 <i /> Review agent edits</span>
+            <span>03 <i /> Deliver the cut</span>
           </div>
         </section>
 
@@ -166,14 +165,13 @@ export function ProjectWelcomeScreen({
           {welcomeMode === "home" ? (
             <>
               <div className="welcome-panel-heading">
-                <p className="welcome-kicker">YOUR WORKSPACE</p>
-                <h2>Welcome back.</h2>
-                <p>Start something new or continue a project.</p>
+                <p className="welcome-kicker">Projects</p>
+                <h2>Start or open a project</h2>
+                <p>Create a sequence or reopen a saved project.</p>
               </div>
               <div className="welcome-actions">
                 <InteriorButton
-                  className="welcome-action-card new"
-                  onClick={() => {
+                  className="welcome-action-card new" onClick={() => {
                     setSetupProjectName("Untitled project");
                     setSetupSequenceName("Sequence 1");
                     setWelcomeMode("new-project");
@@ -189,12 +187,9 @@ export function ProjectWelcomeScreen({
                   <ArrowRight className="welcome-action-arrow" aria-hidden="true" />
                 </InteriorButton>
                 <LoadingButton
-                  className="welcome-action-card open"
-                  onAction={() => openProject()}
+                  className="welcome-action-card open" onAction={() => openProject()}
                   onError={(error) => setNotice(String(error))}
-                  pendingLabel="Opening project…"
-                  successLabel="Project ready"
-                  errorLabel="Could not open project"
+                  pendingLabel="Opening project…" successLabel="Project ready" errorLabel="Could not open project"
                 >
                   <span className="welcome-action-icon folder">
                     <FolderOpen className="size-4" />
@@ -224,12 +219,9 @@ export function ProjectWelcomeScreen({
                     </div>
                   </div>
                   <LoadingButton
-                    className="welcome-recover-button"
-                    onAction={recoverProjectFromWelcome}
+                    className="welcome-recover-button" onAction={recoverProjectFromWelcome}
                     onError={(error) => setNotice(String(error))}
-                    pendingLabel="Restoring…"
-                    successLabel="Restored"
-                    errorLabel="Restore failed"
+                    pendingLabel="Restoring…" successLabel="Restored" errorLabel="Restore failed"
                   >
                     Recover
                   </LoadingButton>
@@ -244,12 +236,9 @@ export function ProjectWelcomeScreen({
                   {recentProjects.map((item) => (
                     <LoadingButton
                       key={item.path}
-                      className="welcome-recent-item"
-                      onAction={() => openProject(item.path)}
+                      className="welcome-recent-item" onAction={() => openProject(item.path)}
                       onError={(error) => setNotice(String(error))}
-                      pendingLabel="Opening…"
-                      successLabel="Opened"
-                      errorLabel="Could not open"
+                      pendingLabel="Opening…" successLabel="Opened" errorLabel="Could not open"
                     >
                       <span className="recent-project-icon">
                         <Film className="size-3.5" />
@@ -280,8 +269,7 @@ export function ProjectWelcomeScreen({
                 <p>Choose the timeline format for this edit.</p>
               </div>
               <form
-                className="project-setup-form"
-                onSubmit={(event) => {
+                className="project-setup-form" onSubmit={(event) => {
                   event.preventDefault();
                   void createProjectFromWelcome().catch((error: unknown) => setNotice(String(error)));
                 }}
@@ -349,10 +337,7 @@ export function ProjectWelcomeScreen({
                       Width
                       <input
                         required
-                        type="number"
-                        min="1"
-                        max="16384"
-                        value={setupWidth}
+                        type="number" min="1" max="16384" value={setupWidth}
                         onChange={(event) => setSetupWidth(event.target.value)}
                       />
                     </label>
@@ -361,10 +346,7 @@ export function ProjectWelcomeScreen({
                       Height
                       <input
                         required
-                        type="number"
-                        min="1"
-                        max="16384"
-                        value={setupHeight}
+                        type="number" min="1" max="16384" value={setupHeight}
                         onChange={(event) => setSetupHeight(event.target.value)}
                       />
                     </label>
@@ -386,19 +368,14 @@ export function ProjectWelcomeScreen({
                 )}
                 <div className="setup-actions">
                   <InteriorButton
-                    type="button"
-                    className="welcome-secondary-button"
-                    onClick={() => setWelcomeMode("home")}
+                    type="button" className="welcome-secondary-button" onClick={() => setWelcomeMode("home")}
                   >
                     Cancel
                   </InteriorButton>
                   <LoadingButton
-                    className="welcome-create-button"
-                    onAction={createProjectFromWelcome}
+                    className="welcome-create-button" onAction={createProjectFromWelcome}
                     onError={(error) => setNotice(String(error))}
-                    pendingLabel="Creating project…"
-                    successLabel="Project created"
-                    errorLabel="Could not create"
+                    pendingLabel="Creating project…" successLabel="Project created" errorLabel="Could not create"
                   >
                     Create project <span>→</span>
                   </LoadingButton>

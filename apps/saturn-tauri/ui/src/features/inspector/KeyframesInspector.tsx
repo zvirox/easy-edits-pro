@@ -67,12 +67,10 @@ export function KeyframesInspector({
       <div className="keyframes-inspector-header">
         <h2>Keyframes &amp; Curves</h2>
         <InteriorButton
-          type="button"
-          className="btn-primary-subtle"
-          onClick={() => selectEditorWorkspace("keyframes")}
+          type="button" className="btn-primary-subtle" onClick={() => selectEditorWorkspace("keyframes")}
           title="Open Dedicated Full-Screen Curve Editor (Shift+6)"
         >
-          📈 Full Curve Editor
+           Full Curve Editor
         </InteriorButton>
       </div>
       <p>{selectedTimelineClip ? "Edit animated properties and smooth bezier transitions." : "Select a timeline clip to edit its keyframes."}</p>
@@ -101,8 +99,7 @@ export function KeyframesInspector({
       <label>
         Value ({option.label})
         <input
-          type="number"
-          min={option.min}
+          type="number" min={option.min}
           max={option.max}
           step={option.step}
           disabled={!selectedClip}
@@ -119,8 +116,7 @@ export function KeyframesInspector({
             return (
               <InteriorButton
                 key={kind}
-                type="button"
-                className={`ease-pill-btn ${isCurrent ? "active" : ""}`}
+                type="button" className={`ease-pill-btn ${isCurrent ? "active" : ""}`}
                 disabled={!selectedClip}
                 onClick={() => {
                   setKeyframeInterpDraft(kind);
@@ -141,8 +137,7 @@ export function KeyframesInspector({
       </div>
 
       <InteriorButton
-        className="primary"
-        disabled={!selectedClip || !Number.isFinite(Number(keyframeValue))}
+        className="primary" disabled={!selectedClip || !Number.isFinite(Number(keyframeValue))}
         onClick={() => {
           const hInX = keyframeInterpDraft === "ease_in" ? 1.0 : keyframeInterpDraft === "ease_out" ? 0.58 : keyframeInterpDraft === "ease_in_out" ? 0.58 : keyframeHandleInX;
           const hInY = keyframeInterpDraft === "ease_in" ? 0.42 : keyframeInterpDraft === "ease_out" ? 1.0 : keyframeInterpDraft === "ease_in_out" ? 1.0 : keyframeHandleInY;
@@ -169,8 +164,7 @@ export function KeyframesInspector({
               <b>{formatTime(kf.time)}</b> · {kf.value} · <i>{(kf.interpolation ?? "linear").replace("_", " ")}</i>
             </span>
             <InteriorButton
-              aria-label="Remove keyframe"
-              onClick={(e) => {
+              aria-label="Remove keyframe" onClick={(e) => {
                 e.stopPropagation();
                 void deleteKeyframe(kf.property, kf.time);
               }}

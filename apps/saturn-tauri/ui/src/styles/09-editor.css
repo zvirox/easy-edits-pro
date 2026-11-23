@@ -205,7 +205,6 @@
 /* Channel Strip DSP badges & active selection styles */
 .fairlight-channel-strip.is-selected {
   border-color: var(--strip-accent);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--strip-accent) 25%, transparent);
   background: linear-gradient(180deg, color-mix(in srgb, var(--strip-accent) 8%, transparent) 0%, var(--strip-end) 35%);
 }
 
@@ -323,7 +322,6 @@
 
 .subtitle-clip:hover {
   border-color: var(--accent-violet-pale);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-violet-300) 50%, transparent);
 }
 
 .subtitle-clip.selected {

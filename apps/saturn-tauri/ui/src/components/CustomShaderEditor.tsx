@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { WandSparkles } from "lucide-react";
 import { InteriorButton } from "./interior/interior-button";
 import React, { useState, useEffect } from "react";
 import type { CustomShaderParams } from "../engine/playbackEngine";
@@ -163,8 +164,7 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
 
   return (
     <div
-      className="custom-shader-editor"
-      style={{
+      className="custom-shader-editor" style={{
         background: "#180d17",
         border: "1px solid #462d40",
         borderRadius: 8,
@@ -174,7 +174,7 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 18 }}>✨</span>
+          <WandSparkles size={16} aria-hidden="true" />
           <div>
             <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>Custom GLSL Shader Plugin</h3>
             <span style={{ fontSize: 11, color: "#a0aec0" }}>
@@ -183,8 +183,7 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
           </div>
         </div>
         <InteriorButton
-          type="button"
-          onClick={handleSave}
+          type="button" onClick={handleSave}
           style={{
             padding: "6px 14px",
             background: "#9f1249",
@@ -221,15 +220,13 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
               {p.name}
             </option>
           ))}
-          <option value="custom">✏️ Custom GLSL Code</option>
+          <option value="custom">Custom GLSL Code</option>
         </select>
 
         <input
-          type="text"
-          value={name}
+          type="text" value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Plugin Display Name"
-          style={{
+          placeholder="Plugin Display Name" style={{
             flex: 1,
             background: "#100810",
             border: "1px solid #5a4053",
@@ -253,7 +250,7 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
           }}
         >
           <span style={{ fontSize: 11, fontWeight: 600, color: "#d9468f", display: "block", marginBottom: 8 }}>
-            🎛️ Active Uniform Parameters:
+             Active Uniform Parameters:
           </span>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {Object.entries(uniforms).map(([key, val]) => (
@@ -263,11 +260,7 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
                   <span>{val.toFixed(2)}</span>
                 </div>
                 <input
-                  type="range"
-                  min="0.0"
-                  max="1.5"
-                  step="0.01"
-                  value={val}
+                  type="range" min="0.0" max="1.5" step="0.01" value={val}
                   onChange={(e) => handleUniformChange(key, parseFloat(e.target.value))}
                   style={{ width: "100%" }}
                 />

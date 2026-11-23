@@ -107,7 +107,7 @@
   color: var(--text-muted);
   font-size: 9px;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .preferences-panel {
@@ -190,7 +190,7 @@
   color: var(--text-muted);
   font-size: 10px;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .preferences-facts dd {

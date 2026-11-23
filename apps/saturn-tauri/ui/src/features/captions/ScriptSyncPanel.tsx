@@ -170,10 +170,7 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
 
   return (
     <div
-      className="script-sync-panel"
-      role="region"
-      aria-label="Script Sync Panel"
-      style={{
+      className="script-sync-panel" role="region" aria-label="Script Sync Panel" style={{
         display: "flex",
         flexDirection: "column",
         height: "100%",
@@ -186,10 +183,9 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
       {/* Header with Search and AF5 Provenance Badge */}
       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontWeight: 600, fontSize: "14px" }}>🎙️ Script Sync & Takes</span>
+          <span style={{ fontWeight: 600, fontSize: "14px" }}> Script Sync & Takes</span>
           <span
-            title="AF5 provenance: media-derived transcript data is untrusted by default and cannot execute filesystem actions"
-            style={{
+            title="AF5 provenance: media-derived transcript data is untrusted by default and cannot execute filesystem actions" style={{
               padding: "2px 6px",
               borderRadius: "4px",
               fontSize: "10px",
@@ -199,15 +195,13 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
               border: "1px solid rgba(245, 158, 11, 0.3)",
             }}
           >
-            🛡️ untrusted: true (whisper)
+             untrusted: true (whisper)
           </span>
         </div>
 
         <div style={{ display: "flex", gap: "8px" }}>
           <input
-            type="text"
-            placeholder="Search transcript..."
-            value={searchQuery}
+            type="text" placeholder="Search transcript..." value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
               flex: 1,
@@ -222,16 +216,13 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
 
           {selectedWordIds.size > 0 && (
             <InteriorButton
-              variant="secondary"
-              size="sm"
-              onClick={handleRippleCutSelected}
-              title="Ripple-cut selected word duration from timeline"
-              style={{
+              variant="secondary" size="sm" onClick={handleRippleCutSelected}
+              title="Ripple-cut selected word duration from timeline" style={{
                 color: "var(--accent-text, #f472b6)",
                 borderColor: "var(--accent-text, #f472b6)",
               }}
             >
-              ✂️ Ripple Cut ({selectedWordIds.size})
+              Ripple Cut ({selectedWordIds.size})
             </InteriorButton>
           )}
         </div>
@@ -245,9 +236,7 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
           return (
             <div
               key={line.id}
-              className="glass"
-              data-elev="1"
-              style={{
+              className="glass" data-elev="1" style={{
                 borderRadius: "var(--radius-sm, 8px)",
                 padding: "10px",
                 display: "flex",
@@ -268,8 +257,7 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
                     {line.takes.map((t) => (
                       <button
                         key={t.takeIndex}
-                        type="button"
-                        onClick={() => handleChooseTake(line.id, t.takeIndex)}
+                        type="button" onClick={() => handleChooseTake(line.id, t.takeIndex)}
                         title={`${t.label} (${Math.round(t.confidence * 100)}% match)`}
                         style={{
                           padding: "1px 6px",

@@ -77,10 +77,8 @@ export function MediaPropsModal({
   const proxyPath = asset?.proxy_path ?? null;
   return (
     <GlassDialog
-      as="form"
-      open={mediaEditPropsId !== null}
-      cardClassName="modal-dialog-card glass"
-      cardProps={{
+      as="form" open={mediaEditPropsId !== null}
+      cardClassName="modal-dialog-card glass" cardProps={{
         style: { maxWidth: "460px" },
         onSubmit: (e) => {
           e.preventDefault();
@@ -101,14 +99,13 @@ export function MediaPropsModal({
       }}
     >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-          <h2 style={{ margin: 0, fontSize: "16px" }}>🏷️ Edit Asset Properties</h2>
+          <h2 style={{ margin: 0, fontSize: "16px" }}> Edit Asset Properties</h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
         <label style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
           Asset Name
           <input
-            type="text"
-            value={mediaEditPropsName}
+            type="text" value={mediaEditPropsName}
             onChange={(e) => setMediaEditPropsName(e.target.value)}
             style={{ padding: "8px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
           />
@@ -119,8 +116,7 @@ export function MediaPropsModal({
             {["", "#be185d", "#10b981", "#f59e0b", "#ef4444", "#6b21a8", "#ec4899", "#7d6377"].map((c) => (
               <InteriorButton
                 key={c || "none"}
-                type="button"
-                onClick={() => setMediaEditPropsColor(c)}
+                type="button" onClick={() => setMediaEditPropsColor(c)}
                 style={{
                   width: "24px",
                   height: "24px",
@@ -144,9 +140,7 @@ export function MediaPropsModal({
         <label style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
           Tags (Comma-separated)
           <input
-            type="text"
-            placeholder="e.g. interview, b-roll, drone, 4k"
-            value={mediaEditPropsTags}
+            type="text" placeholder="e.g. interview, b-roll, drone, 4k" value={mediaEditPropsTags}
             onChange={(e) => setMediaEditPropsTags(e.target.value)}
             style={{ padding: "8px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
           />
@@ -155,18 +149,14 @@ export function MediaPropsModal({
           <label>
             Scene
             <input
-              type="text"
-              placeholder="12B"
-              value={mediaEditPropsScene}
+              type="text" placeholder="12B" value={mediaEditPropsScene}
               onChange={(e) => setMediaEditPropsScene(e.target.value)}
             />
           </label>
           <label>
             Take
             <input
-              type="text"
-              placeholder="3"
-              value={mediaEditPropsTake}
+              type="text" placeholder="3" value={mediaEditPropsTake}
               onChange={(e) => setMediaEditPropsTake(e.target.value)}
             />
           </label>
@@ -175,8 +165,7 @@ export function MediaPropsModal({
           Comment
           <textarea
             rows={3}
-            placeholder="Notes that travel with the asset (never rendered)"
-            value={mediaEditPropsComment}
+            placeholder="Notes that travel with the asset (never rendered)" value={mediaEditPropsComment}
             onChange={(e) => setMediaEditPropsComment(e.target.value)}
           />
         </label>
@@ -191,9 +180,9 @@ export function MediaPropsModal({
             }}
             style={{ padding: "8px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
           >
-            <option value="">📁 Root / All Media (No Bin)</option>
+            <option value=""> Root / All Media (No Bin)</option>
             {(project?.bins ?? []).map((b) => (
-              <option key={b.id} value={b.id}>📁 {b.name}</option>
+              <option key={b.id} value={b.id}> {b.name}</option>
             ))}
           </select>
         </label>
@@ -223,8 +212,7 @@ export function MediaPropsModal({
           {asset && !asset.is_missing && asset.kind !== "title" && asset.kind !== "compound_sequence" ? (
             <div>
               <InteriorButton
-                type="button"
-                onClick={() => {
+                type="button" onClick={() => {
                   if (mediaEditPropsId !== null) {
                     void hygiene.makeOffline(mediaEditPropsId);
                     onClose();

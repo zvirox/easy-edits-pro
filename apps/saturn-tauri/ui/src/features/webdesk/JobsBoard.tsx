@@ -149,20 +149,14 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
       <div className="webdesk-board-controls">
         <div className="webdesk-filter-group">
           <input
-            type="text"
-            className="webdesk-search-input"
-            placeholder="Search jobs by title, requester, or recipe..."
-            value={filter.search}
+            type="text" className="webdesk-search-input" placeholder="Search jobs" value={filter.search}
             onChange={(e) => setFilter({ ...filter, search: e.target.value })}
-            data-testid="search-jobs-input"
-            aria-label="Search jobs"
+            data-testid="search-jobs-input" aria-label="Search jobs"
           />
           <select
-            className="webdesk-select"
-            value={filter.status}
+            className="webdesk-select" value={filter.status}
             onChange={(e) => setFilter({ ...filter, status: e.target.value as SheetStatus | "all" })}
-            data-testid="filter-status-select"
-            aria-label="Filter jobs by status"
+            data-testid="filter-status-select" aria-label="Filter jobs by status"
           >
             <option value="all">All States</option>
             <option value="draft">Draft</option>
@@ -181,16 +175,14 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <div style={{ display: "flex", borderRadius: "var(--radius-sm, 8px)", overflow: "hidden", border: "1px solid var(--glass-border)" }}>
             <button
-              type="button"
-              className={`webdesk-nav-btn ${boardMode === "kanban" ? "active" : ""}`}
+              type="button" className={`webdesk-nav-btn ${boardMode === "kanban" ? "active" : ""}`}
               onClick={() => setBoardMode("kanban")}
               data-testid="view-kanban-btn"
             >
               Columns
             </button>
             <button
-              type="button"
-              className={`webdesk-nav-btn ${boardMode === "list" ? "active" : ""}`}
+              type="button" className={`webdesk-nav-btn ${boardMode === "list" ? "active" : ""}`}
               onClick={() => setBoardMode("list")}
               data-testid="view-list-btn"
             >
@@ -199,12 +191,10 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
           </div>
 
           <InteriorButton
-            size="sm"
-            variant="primary"
-            onClick={() => setActiveView("new_job")}
+            size="sm" variant="primary" onClick={() => setActiveView("new_job")}
             data-testid="create-job-btn"
           >
-            ➕ New Job
+            New Job
           </InteriorButton>
         </div>
       </div>
@@ -212,9 +202,7 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
       {/* Main Board Area */}
       {filteredJobs.length === 0 ? (
         <div
-          className="glass"
-          data-elev="1"
-          style={{
+          className="glass" data-elev="1" style={{
             flex: 1,
             display: "flex",
             flexDirection: "column",
@@ -227,17 +215,14 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
           }}
           data-testid="empty-jobs-board"
         >
-          <div style={{ fontSize: "28px" }}>📭</div>
-          <div style={{ fontSize: "15px", fontWeight: 600 }}>No jobs found</div>
+          <div style={{ fontSize: "15px", fontWeight: 500 }}>No jobs yet</div>
           <div style={{ fontSize: "12px", color: "var(--text-muted)", maxWidth: "340px" }}>
-            Create a task sheet job using one of the three flagship recipes (Podcast, Tutorial, or Webinar) to start autonomous post-production.
+            Start from a recipe to create your first job.
           </div>
           <InteriorButton
-            size="md"
-            variant="primary"
-            onClick={() => setActiveView("new_job")}
+            size="md" variant="primary" onClick={() => setActiveView("new_job")}
           >
-            Create First Job
+            Create a job
           </InteriorButton>
         </div>
       ) : boardMode === "kanban" ? (
@@ -258,15 +243,13 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
                       <div
                         key={job.id}
                         className={`webdesk-job-card glass ${job.id === activeJobId ? "active" : ""}`}
-                        data-elev="2"
-                        onClick={() => handleCardClick(job)}
+                        data-elev="2" onClick={() => handleCardClick(job)}
                         data-testid={`job-card-${job.id}`}
                       >
                         <div className="webdesk-job-card-header">
                           <span className="webdesk-job-card-title">{job.title}</span>
                           <span
-                            className="status-chip"
-                            style={{
+                            className="status-chip" style={{
                               padding: "2px 6px",
                               borderRadius: "4px",
                               fontSize: "10px",
@@ -282,21 +265,19 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
                         </div>
 
                         <div className="webdesk-job-card-meta">
-                          <span>👤 {job.requester}</span>
-                          <span>📦 {job.deliverables.length} deliv</span>
+                          <span> {job.requester}</span>
+                          <span> {job.deliverables.length} deliv</span>
                         </div>
 
                         {job.templateId && (
                           <div style={{ fontSize: "11px", color: "var(--accent-text)" }}>
-                            🏷️ {job.templateId.replace(/_/g, " ")}
+                             {job.templateId.replace(/_/g, " ")}
                           </div>
                         )}
 
                         <div className="webdesk-job-card-actions">
                           <InteriorButton
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => {
+                            size="sm" variant="ghost" onClick={(e) => {
                               e.stopPropagation();
                               handleCardClick(job);
                             }}
@@ -305,12 +286,10 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
                           </InteriorButton>
                           {(job.status === "in_review" || job.status === "approved" || job.status === "delivered" || (job.rounds && job.rounds.length > 0)) && (
                             <InteriorButton
-                              size="sm"
-                              variant="secondary"
-                              onClick={(e) => handleReviewClick(e, job)}
+                              size="sm" variant="secondary" onClick={(e) => handleReviewClick(e, job)}
                               data-testid={`review-btn-${job.id}`}
                             >
-                              🎬 Review
+                               Review
                             </InteriorButton>
                           )}
                         </div>
@@ -345,8 +324,7 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
                     <td style={{ fontWeight: 600 }}>{job.title}</td>
                     <td>
                       <span
-                        className="status-chip"
-                        style={{
+                        className="status-chip" style={{
                           padding: "2px 6px",
                           borderRadius: "4px",
                           fontSize: "10px",
@@ -366,9 +344,7 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
                     <td>
                       <div style={{ display: "flex", gap: "6px" }}>
                         <InteriorButton
-                          size="sm"
-                          variant="ghost"
-                          onClick={(e) => {
+                          size="sm" variant="ghost" onClick={(e) => {
                             e.stopPropagation();
                             handleCardClick(job);
                           }}
@@ -376,9 +352,7 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
                           Detail
                         </InteriorButton>
                         <InteriorButton
-                          size="sm"
-                          variant="secondary"
-                          onClick={(e) => handleReviewClick(e, job)}
+                          size="sm" variant="secondary" onClick={(e) => handleReviewClick(e, job)}
                         >
                           Review
                         </InteriorButton>

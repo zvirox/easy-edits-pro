@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { Bot, Brain, Package } from "lucide-react";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -236,10 +237,7 @@ export function AppHeader({
     return (
       <div className="app-menu" key={menu}>
         <button
-          type="button"
-          className="app-menu-trigger"
-          aria-haspopup="menu"
-          aria-expanded={openMenu === menu}
+          type="button" className="app-menu-trigger" aria-haspopup="menu" aria-expanded={openMenu === menu}
           onClick={(event) => {
             if (openMenu === menu) {
               setOpenMenu(null);
@@ -265,12 +263,8 @@ export function AppHeader({
         {openMenu === menu && menuAnchor && createPortal(
           <motion.div
             ref={menuPopoverRef}
-            className="menu-popover glass"
-            data-elev="3"
-            role="menu"
-            initial={motionPreset.initial}
-            animate="animate"
-            variants={menuVariants}
+            className="menu-popover glass" data-elev="3" role="menu" initial={motionPreset.initial}
+            animate="animate" variants={menuVariants}
             transition={motionPreset.transition}
             style={{
               position: "fixed",
@@ -324,10 +318,8 @@ export function AppHeader({
             {projectState?.is_dirty && <span className="dirty-indicator" title="Unsaved changes">•</span>}
           </div>
           <InteriorButton
-            className="command-search-trigger"
-            onClick={() => { setCommandQuery(""); setCommandPaletteOpen(true); }}
-            aria-label="Search editor commands"
-            title="Search commands (Ctrl+K)"
+            className="command-search-trigger" onClick={() => { setCommandQuery(""); setCommandPaletteOpen(true); }}
+            aria-label="Search editor commands" title="Search commands (Ctrl+K)"
           >
             <Icon name="search" />
             <span className="command-search-label">Find command</span>
@@ -342,8 +334,7 @@ export function AppHeader({
           </nav>
           <nav className="file-actions" aria-label="Project actions" style={{ display: "flex", gap: "2px" }}>
             <InteriorButton
-              className="icon-button"
-              onClick={() => {
+              className="icon-button" onClick={() => {
                 void ensureDiscardIsOkay().then((ok) => {
                   if (ok) {
                     setNewProjectName("Untitled project");
@@ -351,37 +342,26 @@ export function AppHeader({
                   }
                 });
               }}
-              data-tooltip="New Project (Ctrl+N)"
-              data-tooltip-pos="bottom"
-              style={{ width: "24px", height: "24px", padding: "3px" }}
+              data-tooltip="New Project (Ctrl+N)" data-tooltip-pos="bottom" style={{ width: "24px", height: "24px", padding: "3px" }}
             >
               <Icon name="fileNew" />
             </InteriorButton>
             <InteriorButton
-              className="icon-button"
-              onClick={() => void openProject().catch((error: unknown) => setNotice(String(error)))}
-              data-tooltip="Open Project (Ctrl+O)"
-              data-tooltip-pos="bottom"
-              style={{ width: "24px", height: "24px", padding: "3px" }}
+              className="icon-button" onClick={() => void openProject().catch((error: unknown) => setNotice(String(error)))}
+              data-tooltip="Open Project (Ctrl+O)" data-tooltip-pos="bottom" style={{ width: "24px", height: "24px", padding: "3px" }}
             >
               <Icon name="fileOpen" />
             </InteriorButton>
             <InteriorButton
-              className="icon-button"
-              onClick={() => void saveProject()}
-              data-tooltip="Save Project (Ctrl+S)"
-              data-tooltip-pos="bottom"
-              style={{ width: "24px", height: "24px", padding: "3px" }}
+              className="icon-button" onClick={() => void saveProject()}
+              data-tooltip="Save Project (Ctrl+S)" data-tooltip-pos="bottom" style={{ width: "24px", height: "24px", padding: "3px" }}
             >
               <Icon name="fileSave" />
             </InteriorButton>
             <InteriorButton
-              className="icon-button"
-              onClick={() => void importMedia()}
+              className="icon-button" onClick={() => void importMedia()}
               disabled={busy}
-              data-tooltip="Import Media Files (Ctrl+I)"
-              data-tooltip-pos="bottom"
-              style={{ width: "24px", height: "24px", padding: "3px" }}
+              data-tooltip="Import Media Files (Ctrl+I)" data-tooltip-pos="bottom" style={{ width: "24px", height: "24px", padding: "3px" }}
             >
               <Icon name="import" />
             </InteriorButton>
@@ -395,8 +375,7 @@ export function AppHeader({
             <InteriorButton
               className={`job-status-pill ${activeJobs.length > 0 ? "has-active" : ""}`}
               onClick={() => setJobDrawerOpen((prev) => !prev)}
-              aria-label="Background Task Queue"
-              data-tooltip={
+              aria-label="Background Task Queue" data-tooltip={
                 activeJobs.length > 0
                   ? `${activeJobs.length} active background task${activeJobs.length === 1 ? "" : "s"}`
                   : "Background Tasks (All idle)"
@@ -424,12 +403,8 @@ export function AppHeader({
             <AnimatePresence>
               {jobDrawerOpen && (
                 <motion.div
-                  className="job-drawer-popover glass"
-                  data-elev="3"
-                  initial={motionPreset.initial}
-                  animate="animate"
-                  exit="exit"
-                  variants={menuVariants}
+                  className="job-drawer-popover glass" data-elev="3" initial={motionPreset.initial}
+                  animate="animate" exit="exit" variants={menuVariants}
                   transition={motionPreset.transition}
                   style={{ transformOrigin: "top right" }}
                 >
@@ -443,16 +418,14 @@ export function AppHeader({
                   <div className="job-drawer-actions">
                     {activeJobs.length > 0 && (
                       <InteriorButton
-                        className="job-cancel-all-btn"
-                        onClick={() => void cancelAllJobs()}
+                        className="job-cancel-all-btn" onClick={() => void cancelAllJobs()}
                         title="Cancel all running tasks"
                       >
                         Cancel All
                       </InteriorButton>
                     )}
                     <InteriorButton
-                      className="job-clear-btn"
-                      onClick={() => void clearJobHistory()}
+                      className="job-clear-btn" onClick={() => void clearJobHistory()}
                       title="Clear completed history"
                     >
                       Clear History
@@ -475,8 +448,7 @@ export function AppHeader({
                           </span>
                           {(job.state.status === "running" || job.state.status === "queued") && (
                             <InteriorButton
-                              className="job-item-cancel"
-                              onClick={() => void cancelJob(job.id)}
+                              className="job-item-cancel" onClick={() => void cancelJob(job.id)}
                               title="Cancel this task"
                             >
                               ✕
@@ -487,8 +459,7 @@ export function AppHeader({
                         {job.state.status === "running" && (
                           <div className="job-progress-bar-wrapper">
                             <div
-                              className="job-progress-bar-fill"
-                              style={{ transform: `scaleX(${Math.max(0, Math.min(1, job.state.progress || 0))})` }}
+                              className="job-progress-bar-fill" style={{ transform: `scaleX(${Math.max(0, Math.min(1, job.state.progress || 0))})` }}
                             />
                             <div className="job-progress-text-row">
                               <small>{job.state.phase || "Processing…"}</small>
@@ -516,38 +487,26 @@ export function AppHeader({
           />
 
           <InteriorButton
-            type="button"
-            className="system-util-btn"
-            onClick={() => setAgentSettingsOpen(true)}
-            aria-label="Agent & Co-editing Settings"
-            data-tooltip="Agent & Co-editing Settings"
-            data-tooltip-pos="bottom"
+            type="button" className="system-util-btn" onClick={() => setAgentSettingsOpen(true)}
+            aria-label="Agent & Co-editing Settings" data-tooltip="Agent & Co-editing Settings" data-tooltip-pos="bottom"
           >
-            <span aria-hidden="true">🤖</span>
+            <Bot size={16} aria-hidden="true" />
             <span className="system-util-btn-label">Settings</span>
           </InteriorButton>
 
           <InteriorButton
-            type="button"
-            className="system-util-btn"
-            onClick={() => setBatchQueueDrawerOpen(true)}
-            aria-label="Open Background Batch Render Queue"
-            data-tooltip="Open Background Batch Render Queue"
-            data-tooltip-pos="bottom"
+            type="button" className="system-util-btn" onClick={() => setBatchQueueDrawerOpen(true)}
+            aria-label="Open Background Batch Render Queue" data-tooltip="Open Background Batch Render Queue" data-tooltip-pos="bottom"
           >
-            <span aria-hidden="true">📦</span>
+            <Package size={16} aria-hidden="true" />
             <span className="system-util-btn-label">Queue</span>
           </InteriorButton>
 
           <InteriorButton
-            type="button"
-            className="system-util-btn ai-btn"
-            onClick={() => setAiChatDrawerOpen(true)}
-            aria-label="Open Local AI Assistant"
-            data-tooltip="Open Local AI Assistant (Ollama) • Experimental"
-            data-tooltip-pos="bottom"
+            type="button" className="system-util-btn ai-btn" onClick={() => setAiChatDrawerOpen(true)}
+            aria-label="Open Local AI Assistant" data-tooltip="Open Local AI Assistant (Ollama) • Experimental" data-tooltip-pos="bottom"
           >
-            <span aria-hidden="true">🧠</span>
+            <Brain size={16} aria-hidden="true" />
             <span className="system-util-btn-label">AI Assistant</span>
             <span className="exp-badge">EXP</span>
           </InteriorButton>
@@ -565,8 +524,7 @@ export function AppHeader({
           </span>
         </div>
         <SegmentedControl
-          label="Workspaces"
-          options={editorWorkspaces.map((w) => ({
+          label="Workspaces" options={editorWorkspaces.map((w) => ({
             value: w.id,
             label: w.label,
             icon: w.icon as IconName,
@@ -580,24 +538,14 @@ export function AppHeader({
     <AnimatePresence>
     {commandPaletteOpen && (
       <motion.div
-        className="command-palette-backdrop"
-        onMouseDown={(event) => { if (event.target === event.currentTarget) setCommandPaletteOpen(false); }}
+        className="command-palette-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCommandPaletteOpen(false); }}
         initial={motionPreset.initial}
-        animate="animate"
-        exit="exit"
-        variants={backdropVariants}
+        animate="animate" exit="exit" variants={backdropVariants}
         transition={motionPreset.transition}
       >
         <motion.section
-          className="command-palette glass"
-          data-elev="4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="command-palette-title"
-          initial={motionPreset.initial}
-          animate="animate"
-          exit="exit"
-          variants={dialogVariants}
+          className="command-palette glass" data-elev="4" role="dialog" aria-modal="true" aria-labelledby="command-palette-title" initial={motionPreset.initial}
+          animate="animate" exit="exit" variants={dialogVariants}
           transition={motionPreset.transition}
           style={{ transformOrigin: "top center" }}
         >
@@ -605,8 +553,7 @@ export function AppHeader({
           <div className="command-palette-search">
             <Icon name="search" />
             <input
-              id="command-palette-search"
-              ref={commandSearchRef}
+              id="command-palette-search" ref={commandSearchRef}
               autoFocus
               value={commandQuery}
               onChange={(event) => setCommandQuery(event.target.value)}
@@ -618,10 +565,7 @@ export function AppHeader({
             {matchingCommands.length ? matchingCommands.map((command) => (
               <InteriorButton
                 key={command.id}
-                className="command-palette-result"
-                role="option"
-                aria-selected="false"
-                onClick={() => {
+                className="command-palette-result" role="option" aria-selected="false" onClick={() => {
                   setCommandPaletteOpen(false);
                   void invokeMenuCommand(command.id).catch((error: unknown) => setNotice(String(error)));
                 }}

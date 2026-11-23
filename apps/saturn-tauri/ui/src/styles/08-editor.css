@@ -34,12 +34,10 @@
 
 .hw-dot.active {
   background: var(--status-success);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--status-success) 50%, transparent);
 }
 
 .hw-dot.fallback {
   background: var(--status-warning);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--status-warning) 40%, transparent);
 }
 
 .hw-status-details {
@@ -130,7 +128,6 @@
 .export-preset-card.selected {
   border-color: var(--border-card-selected);
   background: var(--bg-card-selected);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--border-card-selected) 20%, transparent);
 }
 
 .preset-card-icon {
@@ -444,20 +441,17 @@
   background: color-mix(in srgb, var(--accent-secondary) 20%, transparent);
   border-color: var(--accent-secondary);
   color: var(--accent-text);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-secondary) 20%, transparent);
 }
 
 .dsp-power-btn.comp.active {
   background: color-mix(in srgb, var(--status-warning) 20%, transparent);
   border-color: var(--status-warning);
   color: var(--status-warning-bright);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--status-warning) 20%, transparent);
 }
 
 .dsp-power-btn.denoise.active {
   background: color-mix(in srgb, var(--status-success) 20%, transparent);
   border-color: var(--status-success);
   color: var(--status-success-text);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--status-success) 20%, transparent);
 }
 

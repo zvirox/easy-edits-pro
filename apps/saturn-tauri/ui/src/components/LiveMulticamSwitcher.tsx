@@ -71,8 +71,7 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
 
   return (
     <div
-      className="live-multicam-switcher"
-      style={{
+      className="live-multicam-switcher" style={{
         background: "#180d17",
         border: "1px solid #462d40",
         borderRadius: 8,
@@ -82,7 +81,7 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 18 }}>🎥</span>
+          <span style={{ fontSize: 18 }}></span>
           <div>
             <h4 style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Live Multi-Cam Switcher</h4>
             <span style={{ fontSize: 11, color: "#a0aec0" }}>
@@ -94,16 +93,14 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: liveCutMode ? "#e53e3e" : "#a0aec0", cursor: "pointer", fontWeight: 600 }}>
             <input
-              type="checkbox"
-              checked={liveCutMode}
+              type="checkbox" checked={liveCutMode}
               onChange={(e) => setLiveCutMode(e.target.checked)}
             />
-            🔴 Live Cut Mode (Keys 1-9)
+             Live Cut Mode (Keys 1-9)
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#a0aec0", cursor: "pointer" }}>
             <input
-              type="checkbox"
-              checked={audioFollowVideo}
+              type="checkbox" checked={audioFollowVideo}
               onChange={(e) => setAudioFollowVideo(e.target.checked)}
             />
             AFV (Audio Follows Video)
@@ -157,7 +154,7 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
                     letterSpacing: 0.5,
                   }}
                 >
-                  {isPgm ? "🔴 PGM" : isPvw ? "🟢 PVW" : `CAM ${idx + 1}`}
+                  {isPgm ? "PGM" : isPvw ? "PVW" : `CAM ${idx + 1}`}
                 </span>
                 <span style={{ fontSize: 11, fontWeight: 700, color: "#8b7284" }}>
                   Key [{idx + 1}]
@@ -171,7 +168,7 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
 
               {/* Status info */}
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#8b7284", marginTop: 4 }}>
-                <span>{audioFollowVideo && isPgm ? "🔊 Audio Active" : "Locked Mic A"}</span>
+                <span>{audioFollowVideo && isPgm ? "Audio Active" : "Locked Mic A"}</span>
                 <span>{isPgm && isPlaying ? "ON AIR" : "Standby"}</span>
               </div>
             </div>
@@ -181,7 +178,7 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: "#8b7284" }}>
         <span>
-          💡 Tip: During playback, press keys <strong>1-{angles.length}</strong> to perform live cuts on the beat.
+           Tip: During playback, press keys <strong>1-{angles.length}</strong> to perform live cuts on the beat.
         </span>
         <span>
           Active: <strong style={{ color: "#e53e3e" }}>CAM {angles.findIndex((a) => a.id === pgmAngleId) + 1}</strong>

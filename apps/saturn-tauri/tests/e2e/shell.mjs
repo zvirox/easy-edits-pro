@@ -10,7 +10,7 @@ export async function run(ctx) {
 
   await page.goto(ctx.baseUrl ?? 'http://127.0.0.1:1420/');
   assert.equal(await page.title(), 'Easy Edits Pro', 'the intended app page should load');
-  assert.match(await page.locator('body').innerText(), /Make room/, 'the welcome screen should render');
+  assert.match(await page.locator('body').innerText(), /Shape the cut/, 'the welcome screen should render');
   await page.getByRole('button', { name: /Create a new project/ }).click();
   await page.getByRole('button', { name: /Create project/ }).click();
   await page.locator('.app-shell').waitFor();

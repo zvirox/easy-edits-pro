@@ -254,7 +254,7 @@
 .label {
   font-size: 10.5px;
   letter-spacing: 0.09em;
-  text-transform: uppercase;
+  text-transform: none;
   font-weight: 600;
   color: var(--text-muted);
 }

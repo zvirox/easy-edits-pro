@@ -30,7 +30,7 @@ export const WebDeskShell: React.FC = () => {
       {/* Shell Header */}
       <header className="webdesk-header glass" data-elev="2">
         <div className="webdesk-brand">
-          <span className="webdesk-title">🪐 Easy Edits Pro</span>
+          <span className="webdesk-title"> Easy Edits Pro</span>
           <span className="webdesk-badge">Web Desk (B2B Self-Host)</span>
           <div className="webdesk-daemon-indicator" title="Connected to saturn-control daemon">
             <span className="webdesk-daemon-dot" />
@@ -41,38 +41,34 @@ export const WebDeskShell: React.FC = () => {
         {/* View Navigation */}
         <nav className="webdesk-nav" aria-label="Web Desk Navigation">
           <button
-            type="button"
-            className={`webdesk-nav-btn ${activeView === "jobs" ? "active" : ""}`}
+            type="button" className={`webdesk-nav-btn ${activeView === "jobs" ? "active" : ""}`}
             onClick={() => setActiveView("jobs")}
             data-testid="nav-jobs"
           >
-            📋 Jobs Board
+             Jobs Board
           </button>
           <button
-            type="button"
-            className={`webdesk-nav-btn ${activeView === "new_job" ? "active" : ""}`}
+            type="button" className={`webdesk-nav-btn ${activeView === "new_job" ? "active" : ""}`}
             onClick={() => setActiveView("new_job")}
             data-testid="nav-new-job"
           >
-            ➕ New Job
+            New Job
           </button>
           {activeJob && (
             <>
               <button
-                type="button"
-                className={`webdesk-nav-btn ${activeView === "detail" ? "active" : ""}`}
+                type="button" className={`webdesk-nav-btn ${activeView === "detail" ? "active" : ""}`}
                 onClick={() => setActiveView("detail")}
                 data-testid="nav-detail"
               >
-                📄 Job Detail
+                 Job Detail
               </button>
               <button
-                type="button"
-                className={`webdesk-nav-btn ${activeView === "review" ? "active" : ""}`}
+                type="button" className={`webdesk-nav-btn ${activeView === "review" ? "active" : ""}`}
                 onClick={() => setActiveView("review")}
                 data-testid="nav-review"
               >
-                🎬 Review
+                 Review
               </button>
             </>
           )}
@@ -81,10 +77,7 @@ export const WebDeskShell: React.FC = () => {
         {/* Header Actions & AGPL Notice Link */}
         <div className="webdesk-header-actions">
           <a
-            href="#agpl-license"
-            role="link"
-            className="webdesk-agpl-link"
-            onClick={(e) => {
+            href="#agpl-license" role="link" className="webdesk-agpl-link" onClick={(e) => {
               e.preventDefault();
               setIsAgplNoticeOpen(true);
             }}
@@ -119,21 +112,15 @@ export const WebDeskShell: React.FC = () => {
       {/* AGPL §13 Source and Licence Modal */}
       {isAgplNoticeOpen && (
         <div
-          className="webdesk-modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="agpl-modal-title"
-          data-testid="agpl-license-modal"
+          className="webdesk-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="agpl-modal-title" data-testid="agpl-license-modal"
         >
           <div className="webdesk-modal glass" data-elev="4">
             <div className="webdesk-modal-header">
               <h2 id="agpl-modal-title" className="webdesk-modal-title">
-                ⚖️ Source and Licence (AGPL §13)
+                ⚖ Source and Licence (AGPL §13)
               </h2>
               <InteriorButton
-                size="sm"
-                variant="ghost"
-                onClick={() => setIsAgplNoticeOpen(false)}
+                size="sm" variant="ghost" onClick={() => setIsAgplNoticeOpen(false)}
                 aria-label="Close Licence Notice"
               >
                 ✕
@@ -147,9 +134,7 @@ export const WebDeskShell: React.FC = () => {
               </p>
 
               <div
-                className="glass"
-                data-elev="1"
-                style={{
+                className="glass" data-elev="1" style={{
                   padding: "10px 14px",
                   borderRadius: "var(--radius-sm, 8px)",
                   border: "1px solid var(--glass-border)",
@@ -170,10 +155,7 @@ export const WebDeskShell: React.FC = () => {
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 <span style={{ fontWeight: 600 }}>Source Code Repository:</span>
                 <a
-                  href="https://github.com/zvirox/easy-edits-pro"
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: "var(--accent-text)", wordBreak: "break-all" }}
+                  href="https://github.com/zvirox/easy-edits-pro" target="_blank" rel="noreferrer" style={{ color: "var(--accent-text)", wordBreak: "break-all" }}
                 >
                   https://github.com/zvirox/easy-edits-pro
                 </a>
@@ -190,9 +172,7 @@ export const WebDeskShell: React.FC = () => {
 
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
               <InteriorButton
-                size="md"
-                variant="primary"
-                onClick={() => setIsAgplNoticeOpen(false)}
+                size="md" variant="primary" onClick={() => setIsAgplNoticeOpen(false)}
               >
                 Understood
               </InteriorButton>

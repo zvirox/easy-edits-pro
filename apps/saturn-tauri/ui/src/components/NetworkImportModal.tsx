@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { Globe } from "lucide-react";
 import { InteriorButton } from "./interior/interior-button";
 import { GlassDialog } from "../motion/GlassDialog";
 import React, { useState } from "react";
@@ -63,11 +64,9 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
   return (
     <GlassDialog
       open={isOpen}
-      backdropClassName="modal-backdrop"
-      backdropStyle={{ zIndex: 10000 }}
+      backdropClassName="modal-backdrop" backdropStyle={{ zIndex: 10000 }}
       onBackdropClick={onClose}
-      cardClassName="modal-card network-import-modal glass"
-      cardProps={{
+      cardClassName="modal-card network-import-modal glass" cardProps={{
         onClick: (e) => e.stopPropagation(),
         style: {
           width: 540,
@@ -86,7 +85,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 20 }}>🌐</span>
+            <Globe size={18} aria-hidden="true" />
             <div>
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Import from Network / Cloud URL</h2>
               <p style={{ margin: 0, fontSize: 12, color: "var(--text-secondary)" }}>
@@ -115,9 +114,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               Network Asset URL (HTTP / HTTPS / Cloud Storage)
             </label>
             <input
-              type="url"
-              placeholder="https://example.com/footage/interview_cam1.mp4"
-              value={url}
+              type="url" placeholder="https://example.com/footage/interview_cam1.mp4" value={url}
               onChange={(e) => setUrl(e.target.value)}
               disabled={downloading}
               required
@@ -139,9 +136,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               Custom Asset Name (Optional)
             </label>
             <input
-              type="text"
-              placeholder="e.g. Remote Interview 4K"
-              value={customName}
+              type="text" placeholder="e.g. Remote Interview 4K" value={customName}
               onChange={(e) => setCustomName(e.target.value)}
               disabled={downloading}
               style={{
@@ -165,8 +160,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               {sampleUrls.map((sample, i) => (
                 <InteriorButton
                   key={i}
-                  type="button"
-                  onClick={() => {
+                  type="button" onClick={() => {
                     setUrl(sample.url);
                     setCustomName(sample.label);
                   }}
@@ -199,7 +193,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
                 marginBottom: 16,
               }}
             >
-              ⚠️ {error}
+              {error}
             </div>
           )}
 
@@ -224,8 +218,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
 
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 20 }}>
             <InteriorButton
-              type="button"
-              onClick={onClose}
+              type="button" onClick={onClose}
               disabled={downloading}
               style={{
                 padding: "8px 16px",
@@ -240,8 +233,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
               Cancel
             </InteriorButton>
             <InteriorButton
-              type="submit"
-              disabled={downloading || !url.trim()}
+              type="submit" disabled={downloading || !url.trim()}
               style={{
                 padding: "8px 18px",
                 background: downloading ? "var(--bg-elevated)" : "var(--accent-primary)",
@@ -256,7 +248,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
                 gap: 6,
               }}
             >
-              {downloading ? "Downloading…" : "📥 Download & Import"}
+              {downloading ? "Downloading…" : "Download & Import"}
             </InteriorButton>
           </div>
         </form>

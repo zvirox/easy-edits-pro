@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { PenLine } from "lucide-react";
 import { InteriorButton } from "../../components/interior/interior-button";
 
 export interface SequenceTab {
@@ -46,9 +47,7 @@ export function SequenceTabs({
           return (
             <button
               key={sequence.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
+              type="button" role="tab" aria-selected={isActive}
               className={`sequence-tab ${isActive ? "active" : ""}`}
               onClick={() => {
                 if (!isActive) onSelect(sequence.id);
@@ -73,52 +72,37 @@ export function SequenceTabs({
       </div>
       <div className="sequence-tabs-actions">
         <InteriorButton
-          type="button"
-          className="sequence-tab-action"
-          disabled={busy}
+          type="button" className="sequence-tab-action" disabled={busy}
           onClick={onCreate}
-          data-tooltip="New Sequence"
-          data-tooltip-pos="top"
-          aria-label="New Sequence"
+          data-tooltip="New Sequence" data-tooltip-pos="top" aria-label="New Sequence"
         >
           ＋
         </InteriorButton>
         <InteriorButton
-          type="button"
-          className="sequence-tab-action"
-          disabled={busy || !active}
+          type="button" className="sequence-tab-action" disabled={busy || !active}
           onClick={onDuplicate}
-          data-tooltip="Duplicate Active Sequence"
-          data-tooltip-pos="top"
-          aria-label="Duplicate Active Sequence"
+          data-tooltip="Duplicate Active Sequence" data-tooltip-pos="top" aria-label="Duplicate Active Sequence"
         >
           ⧉
         </InteriorButton>
         <InteriorButton
-          type="button"
-          className="sequence-tab-action"
-          disabled={busy || !active}
+          type="button" className="sequence-tab-action" disabled={busy || !active}
           onClick={onRename}
-          data-tooltip="Rename Active Sequence"
-          data-tooltip-pos="top"
-          aria-label="Rename Active Sequence"
+          data-tooltip="Rename Active Sequence" data-tooltip-pos="top" aria-label="Rename Active Sequence"
         >
-          ✎
+          <PenLine size={14} aria-hidden="true" />
         </InteriorButton>
         <InteriorButton
-          type="button"
-          className="sequence-tab-action is-danger"
-          disabled={busy || lastSequence || active?.isCompound}
+          type="button" className="sequence-tab-action is-danger" disabled={busy || lastSequence || active?.isCompound}
           onClick={onDelete}
           data-tooltip={
             lastSequence
               ? "A project must keep one sequence"
               : "Delete Active Sequence"
           }
-          data-tooltip-pos="top"
-          aria-label="Delete Active Sequence"
+          data-tooltip-pos="top" aria-label="Delete Active Sequence"
         >
-          🗑
+          
         </InteriorButton>
       </div>
     </div>

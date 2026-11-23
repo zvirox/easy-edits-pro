@@ -24,10 +24,8 @@ export function MediaBinModal({
 }: MediaBinModalProps) {
   return (
     <GlassDialog
-      as="form"
-      open={isOpen}
-      cardClassName="modal-dialog-card glass"
-      cardProps={{
+      as="form" open={isOpen}
+      cardClassName="modal-dialog-card glass" cardProps={{
         style: { maxWidth: "420px" },
         onSubmit: (e) => {
           e.preventDefault();
@@ -36,7 +34,7 @@ export function MediaBinModal({
       }}
     >
         <div className="modal-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-          <h2 style={{ margin: 0, fontSize: "16px" }}>📁 Create New Media Bin</h2>
+          <h2 style={{ margin: 0, fontSize: "16px" }}> Create New Media Bin</h2>
           <InteriorButton type="button" className="close-btn" onClick={onClose}>✕</InteriorButton>
         </div>
         <p className="modal-desc" style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "14px" }}>
@@ -46,9 +44,7 @@ export function MediaBinModal({
           Bin Name
           <input
             autoFocus
-            type="text"
-            placeholder="e.g. B-Roll, Interview Audio, VFX"
-            value={newBinName}
+            type="text" placeholder="e.g. B-Roll, Interview Audio, VFX" value={newBinName}
             onChange={(e) => setNewBinName(e.target.value)}
             style={{ padding: "8px", background: "var(--bg-input)", color: "var(--text-main)", border: "1px solid var(--border-color)", borderRadius: "4px" }}
           />
@@ -59,8 +55,7 @@ export function MediaBinModal({
             {["#be185d", "#10b981", "#f59e0b", "#ef4444", "#6b21a8", "#ec4899", "#7d6377"].map((c) => (
               <InteriorButton
                 key={c}
-                type="button"
-                onClick={() => setNewBinColor(c)}
+                type="button" onClick={() => setNewBinColor(c)}
                 style={{
                   width: "24px",
                   height: "24px",

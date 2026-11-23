@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { Moon, Sun } from "lucide-react";
 import { InteriorButton } from "./interior-button";
 // Adapted from Interior's MIT-licensed Component System: https://www.interior.dev/
 import { useCallback, useEffect, useRef } from "react";
@@ -49,18 +50,14 @@ export function ThemeToggle({ theme, onToggle, className = "" }: ThemeToggleProp
     >
       <InteriorButton
         ref={buttonRef}
-        type="button"
-        role="switch"
-        aria-checked={isDark}
+        type="button" role="switch" aria-checked={isDark}
         aria-label={`Toggle theme, currently ${theme} mode`}
-        className="interior-theme-toggle-switch"
-        onClick={onToggle}
+        className="interior-theme-toggle-switch" onClick={onToggle}
         onKeyDown={handleKeyDown}
       >
         {/* Animated sliding thumb */}
         <motion.span
-          className="interior-theme-thumb"
-          style={{ x: thumbX }}
+          className="interior-theme-thumb" style={{ x: thumbX }}
           aria-hidden="true"
         />
 
@@ -94,8 +91,8 @@ export function ThemeToggle({ theme, onToggle, className = "" }: ThemeToggleProp
 
         {/* Invisible reserve layout to guarantee 0 layout shift */}
         <span className="interior-theme-reserve" aria-hidden="true">
-          <span>☀️</span>
-          <span>🌙</span>
+          <Sun size={16} aria-hidden="true" />
+          <Moon size={16} aria-hidden="true" />
         </span>
       </InteriorButton>
     </div>

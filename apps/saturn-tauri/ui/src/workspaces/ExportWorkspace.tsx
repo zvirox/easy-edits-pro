@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { LucideGlyph } from "../components/LucideGlyph";
 import { InteriorButton } from "../components/interior/interior-button";
 import type { Dispatch, SetStateAction, ReactNode, CSSProperties } from "react";
 import { Icon } from "../components/Icon";
@@ -150,12 +151,10 @@ export function ExportWorkspace({
             <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "3px", background: "var(--bg-subpanel)", border: "1px solid var(--border-panel)", color: "var(--accent-primary)", textTransform: "none" }}>{exportFormat === "mp4" ? "H.264" : "VP8"}</span>
           </div>
         }
-        className="export-preview-panel"
-        scrollable
+        className="export-preview-panel" scrollable
       >
         <div
-          className="export-preview-stage"
-          style={{ "--timeline-aspect-val": seqAspectVal } as CSSProperties}
+          className="export-preview-stage" style={{ "--timeline-aspect-val": seqAspectVal } as CSSProperties}
         >
           {renderPreview(activeClip?.media ?? selectedMedia, true)}
         </div>
@@ -198,16 +197,14 @@ export function ExportWorkspace({
         )}
         <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
           <InteriorButton
-            className="secondary"
-            style={{ flex: 1, padding: "8px 12px", fontWeight: 700 }}
+            className="secondary" style={{ flex: 1, padding: "8px 12px", fontWeight: 700 }}
             disabled={!hasClips || rendering}
             onClick={() => void addExportToQueue()}
           >
             + Add to Queue
           </InteriorButton>
           <InteriorButton
-            className="primary export-submit"
-            style={{ flex: 1 }}
+            className="primary export-submit" style={{ flex: 1 }}
             disabled={!hasClips || rendering}
             onClick={() => void exportProject()}
           >
@@ -254,17 +251,14 @@ export function ExportWorkspace({
               <strong>Batch Render Queue ({batchQueue.length})</strong>
               <div className="batch-queue-btn-group">
                 <InteriorButton
-                  type="button"
-                  className={`batch-queue-btn ${queuePaused ? "paused" : ""}`}
+                  type="button" className={`batch-queue-btn ${queuePaused ? "paused" : ""}`}
                   onClick={() => void toggleQueuePause()}
                   title={queuePaused ? "Resume paused queue" : "Pause render queue"}
                 >
-                  {queuePaused ? "▶ Resume" : "⏸ Pause"}
+                  {queuePaused ? "Video · Resume" : "⏸ Pause"}
                 </InteriorButton>
                 <InteriorButton
-                  type="button"
-                  className="batch-queue-btn"
-                  onClick={() => setBatchQueue([])}
+                  type="button" className="batch-queue-btn" onClick={() => setBatchQueue([])}
                   title="Clear queue list"
                 >
                   Clear
@@ -305,8 +299,7 @@ export function ExportWorkspace({
                     </div>
                     <div className="batch-queue-progress-bar">
                       <div
-                        className="batch-queue-progress-fill"
-                        style={{ transform: `scaleX(${Math.max(0, Math.min(1, item.progress))})` }}
+                        className="batch-queue-progress-fill" style={{ transform: `scaleX(${Math.max(0, Math.min(1, item.progress))})` }}
                       />
                     </div>
                   </div>
@@ -317,9 +310,7 @@ export function ExportWorkspace({
         </StudioPanel>
       {deliverDestination === "interop" ? (
         <StudioPanel
-          title="Timeline Interchange"
-          className="export-settings-panel interop-settings-panel"
-          scrollable
+          title="Timeline Interchange" className="export-settings-panel interop-settings-panel" scrollable
         >
           <div className="interop-cards-grid">
             {/* Apple FCPXML Card */}
@@ -333,20 +324,16 @@ export function ExportWorkspace({
               </p>
               <div className="interop-card-actions">
                 <InteriorButton
-                  type="button"
-                  className="primary"
-                  onClick={() => void handleExportTimelineInterop("fcpxml")}
+                  type="button" className="primary" onClick={() => void handleExportTimelineInterop("fcpxml")}
                   disabled={isInteropBusy}
                 >
-                  📤 Export FCPXML
+                   Export FCPXML
                 </InteriorButton>
                 <InteriorButton
-                  type="button"
-                  className="secondary"
-                  onClick={() => void handleImportTimelineInterop()}
+                  type="button" className="secondary" onClick={() => void handleImportTimelineInterop()}
                   disabled={isInteropBusy}
                 >
-                  📥 Import FCPXML
+                   Import FCPXML
                 </InteriorButton>
               </div>
             </div>
@@ -362,20 +349,16 @@ export function ExportWorkspace({
               </p>
               <div className="interop-card-actions">
                 <InteriorButton
-                  type="button"
-                  className="primary"
-                  onClick={() => void handleExportTimelineInterop("xmeml")}
+                  type="button" className="primary" onClick={() => void handleExportTimelineInterop("xmeml")}
                   disabled={isInteropBusy}
                 >
-                  📤 Export XML
+                   Export XML
                 </InteriorButton>
                 <InteriorButton
-                  type="button"
-                  className="secondary"
-                  onClick={() => void handleImportTimelineInterop()}
+                  type="button" className="secondary" onClick={() => void handleImportTimelineInterop()}
                   disabled={isInteropBusy}
                 >
-                  📥 Import XML
+                   Import XML
                 </InteriorButton>
               </div>
             </div>
@@ -391,20 +374,16 @@ export function ExportWorkspace({
               </p>
               <div className="interop-card-actions">
                 <InteriorButton
-                  type="button"
-                  className="primary"
-                  onClick={() => void handleExportTimelineInterop("edl")}
+                  type="button" className="primary" onClick={() => void handleExportTimelineInterop("edl")}
                   disabled={isInteropBusy}
                 >
-                  📤 Export EDL
+                   Export EDL
                 </InteriorButton>
                 <InteriorButton
-                  type="button"
-                  className="secondary"
-                  onClick={() => void handleImportTimelineInterop()}
+                  type="button" className="secondary" onClick={() => void handleImportTimelineInterop()}
                   disabled={isInteropBusy}
                 >
-                  📥 Import EDL
+                   Import EDL
                 </InteriorButton>
               </div>
             </div>
@@ -414,9 +393,7 @@ export function ExportWorkspace({
             <div className="interop-viewer-header">
               <strong>Interchange Payload Viewer</strong>
               <InteriorButton
-                type="button"
-                className="secondary interop-copy-btn"
-                disabled={!interopContent}
+                type="button" className="secondary interop-copy-btn" disabled={!interopContent}
                 onClick={async () => {
                   if (interopContent) {
                     await navigator.clipboard.writeText(interopContent);
@@ -424,24 +401,20 @@ export function ExportWorkspace({
                   }
                 }}
               >
-                📋 Copy Code
+                 Copy Code
               </InteriorButton>
             </div>
             <textarea
               readOnly
-              className="interop-textarea"
-              rows={12}
-              placeholder="Exported XML or EDL string will be displayed here for instant inspection..."
-              value={interopContent}
+              className="interop-textarea" rows={12}
+              placeholder="Exported XML or EDL string will be displayed here for instant inspection..." value={interopContent}
             />
           </div>
         </StudioPanel>
       ) : (
         <>
           <StudioPanel
-            title="Export Settings"
-            className="export-settings-panel"
-            scrollable
+            title="Export Settings" className="export-settings-panel" scrollable
           >
             {/* Live Hardware Acceleration Badge */}
             <div className="export-hw-status-card">
@@ -481,8 +454,7 @@ export function ExportWorkspace({
                   return (
                     <InteriorButton
                       key={preset.id}
-                      type="button"
-                      className={`export-preset-card ${isSelected ? "selected" : ""}`}
+                      type="button" className={`export-preset-card ${isSelected ? "selected" : ""}`}
                       onClick={() => {
                         setSelectedExportPreset(preset.id);
                         setExportResolution(preset.resolution);
@@ -491,7 +463,7 @@ export function ExportWorkspace({
                       }}
                       title={`Configure for ${preset.name}`}
                     >
-                      <span className="preset-card-icon">{preset.icon}</span>
+                      <span className="preset-card-icon"><LucideGlyph name={preset.icon} /></span>
                       <div className="preset-card-text">
                         <strong>{preset.name}</strong>
                         <small>{preset.subtitle}</small>
@@ -638,8 +610,7 @@ export function ExportWorkspace({
                 </div>
                 <label className={`export-check ${exportFormat !== "mp4" ? "disabled" : ""}`}>
                   <input
-                    type="checkbox"
-                    checked={useHardwareEncoding}
+                    type="checkbox" checked={useHardwareEncoding}
                     disabled={rendering || exportFormat !== "mp4"}
                     onChange={(event) => setUseHardwareEncoding(event.target.checked)}
                   />
@@ -666,8 +637,7 @@ export function ExportWorkspace({
                 <summary>More settings</summary>
                 <label className="range-export export-check">
                   <input
-                    type="checkbox"
-                    checked={exportMarkedRange}
+                    type="checkbox" checked={exportMarkedRange}
                     disabled={project?.sequence.mark_in == null || project?.sequence.mark_out == null || rendering}
                     onChange={(event) => setExportMarkedRange(event.target.checked)}
                   />

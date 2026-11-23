@@ -40,7 +40,7 @@ export async function run(ctx) {
   await propsModal
     .locator('textarea')
     .fill('Checked the rooftop audio; clean take.');
-  await propsModal.locator('select').selectOption({ label: '📁 Selects 4K' });
+  await propsModal.locator('select').selectOption({ label: 'Selects 4K' });
   await propsModal.getByRole('button', { name: 'Save Properties' }).click();
   await page.waitForFunction(() =>
     document.querySelector('.media-list')?.textContent?.includes('Selects 4K'),

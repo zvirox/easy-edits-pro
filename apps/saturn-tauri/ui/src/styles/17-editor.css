@@ -144,7 +144,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   color: var(--text-secondary);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .meter-strip-badges {
@@ -257,7 +257,7 @@
   font-weight: 700;
   letter-spacing: 0.05em;
   color: var(--text-secondary);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .compact-mixer-strips {
@@ -433,7 +433,6 @@
   bottom: 0;
   width: 2px;
   background: var(--accent-primary-hover);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-primary) 80%, transparent);
   pointer-events: none;
 }
 

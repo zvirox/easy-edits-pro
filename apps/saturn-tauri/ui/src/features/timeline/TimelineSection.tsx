@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { PenLine } from "lucide-react";
 import { TimelineTrackLabel, TimelineTrackLane } from "./TimelineTrackLane";
 import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction, PointerEvent } from "react";
@@ -339,8 +340,7 @@ export function TimelineSection({
             <span className="track-spacer">Track</span>
           </div>
           <div
-            className="track-labels-scroller"
-            onPointerDown={handleTimelinePanStart}
+            className="track-labels-scroller" onPointerDown={handleTimelinePanStart}
             onPointerMove={handleTimelinePanMove}
             onPointerUp={handleTimelinePanEnd}
             onPointerCancel={handleTimelinePanEnd}
@@ -364,10 +364,10 @@ export function TimelineSection({
                     ＋
                   </InteriorButton>
                   <InteriorButton type="button" className="track-mini-btn" title="Import SRT/VTT Subtitles" onClick={() => void importSubtitlesDialog()}>
-                    📥
+                    
                   </InteriorButton>
                   <InteriorButton type="button" className="track-mini-btn" title="Export SRT/VTT Subtitles" onClick={() => void exportSubtitlesDialog()}>
-                    📤
+                    
                   </InteriorButton>
                 </div>
               </div>
@@ -383,9 +383,7 @@ export function TimelineSection({
                   >
                     <div className="track-group-title-row">
                       <InteriorButton
-                        type="button"
-                        className="track-group-collapse-btn"
-                        onClick={() => void handleToggleGroupCollapse(group.id)}
+                        type="button" className="track-group-collapse-btn" onClick={() => void handleToggleGroupCollapse(group.id)}
                         title={group.collapsed ? "Expand Group" : "Collapse Group"}
                       >
                         {group.collapsed ? "▶" : "▼"}
@@ -397,17 +395,13 @@ export function TimelineSection({
                     </div>
                     <div className="track-group-actions">
                       <InteriorButton
-                        type="button"
-                        className="track-mini-btn"
-                        onClick={() => void handleEditTrackGroup(group.id)}
+                        type="button" className="track-mini-btn" onClick={() => void handleEditTrackGroup(group.id)}
                         title="Edit Folder Name / Color"
                       >
-                        ✎
+                        <PenLine size={14} aria-hidden="true" />
                       </InteriorButton>
                       <InteriorButton
-                        type="button"
-                        className="track-mini-btn"
-                        onClick={() => void handleDeleteTrackGroup(group.id)}
+                        type="button" className="track-mini-btn" onClick={() => void handleDeleteTrackGroup(group.id)}
                         title="Delete Folder (tracks stay)"
                       >
                         ×
@@ -467,8 +461,7 @@ export function TimelineSection({
 
               {/* Add Track Drop Zones */}
               <div
-                className="track-label add-track-drop-zone video"
-                onDragOver={handleDragOverEmptySpace}
+                className="track-label add-track-drop-zone video" onDragOver={handleDragOverEmptySpace}
                 onDrop={handleDropOnEmptySpace}
                 title="Drop video clip here to create new video track"
               >
@@ -476,8 +469,7 @@ export function TimelineSection({
                 <span className="add-track-text">Add Video Track</span>
               </div>
               <div
-                className="track-label add-track-drop-zone audio"
-                onDragOver={handleDragOverEmptySpace}
+                className="track-label add-track-drop-zone audio" onDragOver={handleDragOverEmptySpace}
                 onDrop={handleDropOnEmptySpace}
                 title="Drop audio clip here to create new audio track"
               >
@@ -513,16 +505,14 @@ export function TimelineSection({
                 the playhead, ruler labels and clips all line up on one x-axis. */}
             <div className="timeline-ruler">
               <div
-                className="ruler-lane"
-                onPointerDown={beginTimelineScrub}
+                className="ruler-lane" onPointerDown={beginTimelineScrub}
                 onPointerMove={moveTimelineScrub}
                 onPointerUp={finishTimelineScrub}
                 onPointerCancel={finishTimelineScrub}
               >
                 {project?.sequence.mark_in != null && (
                   <i
-                    className="sequence-marker in-point"
-                    style={{ left: `${(project.sequence.mark_in / TICKS_PER_SECOND) * timelineZoom}px` }}
+                    className="sequence-marker in-point" style={{ left: `${(project.sequence.mark_in / TICKS_PER_SECOND) * timelineZoom}px` }}
                     title={`In · ${formatTime(project.sequence.mark_in)}`}
                   >
                     <Icon name="markIn" />
@@ -530,8 +520,7 @@ export function TimelineSection({
                 )}
                 {project?.sequence.mark_out != null && (
                   <i
-                    className="sequence-marker out-point"
-                    style={{ left: `${(project.sequence.mark_out / TICKS_PER_SECOND) * timelineZoom}px` }}
+                    className="sequence-marker out-point" style={{ left: `${(project.sequence.mark_out / TICKS_PER_SECOND) * timelineZoom}px` }}
                     title={`Out · ${formatTime(project.sequence.mark_out)}`}
                   >
                     <Icon name="markOut" />
@@ -552,7 +541,7 @@ export function TimelineSection({
                       {Array.from({ length: tickCount }, (_, index) => (
                         <i
                           key={`tick-${index}`}
-                          className={`ruler-tick${(index * tickStep) % labelStep === 0 ? " major" : ""}`}
+                          className={`ruler-tick${(index * tickStep) % labelStep === 0 ? "major" : ""}`}
                           style={{ left: `${index * tickStep * timelineZoom}px` }}
                         />
                       ))}
@@ -574,11 +563,8 @@ export function TimelineSection({
                 {/* Unified Playhead - one grip in the ruler, its line spans the
                     whole timeline content (containing block: .timeline-content). */}
                 <div
-                  className="playhead-grip ruler-playhead-grip unified-playhead"
-                  style={{ left: `${playheadX}px` }}
-                  role="slider"
-                  aria-label="Timeline playhead"
-                  aria-valuenow={playhead / TICKS_PER_SECOND}
+                  className="playhead-grip ruler-playhead-grip unified-playhead" style={{ left: `${playheadX}px` }}
+                  role="slider" aria-label="Timeline playhead" aria-valuenow={playhead / TICKS_PER_SECOND}
                   aria-valuemin={0}
                   aria-valuemax={timelineEndSeconds}
                   onPointerDown={beginTimelineScrub}
@@ -594,8 +580,7 @@ export function TimelineSection({
             {/* Subtitle Track Lane */}
             <div className="track-row subtitle-track-row">
               <div
-                className="track-lane subtitle-track-lane"
-                onClick={() => {
+                className="track-lane subtitle-track-lane" onClick={() => {
                   setSelectedSubtitle(null);
                   setSelectedClip(null);
                 }}
@@ -635,14 +620,13 @@ export function TimelineSection({
                   key={`group-lane-${group.id}`}
                 >
                   <div
-                    className="track-lane track-group-lane"
-                    style={{
+                    className="track-lane track-group-lane" style={{
                       backgroundColor: group.color ? `${group.color}0a` : "color-mix(in srgb, var(--accent-primary) 4%, transparent)",
                     }}
                   >
                     {group.collapsed && (
                       <span className="track-group-collapsed-hint">
-                        📁 {group.name} ({memberTracks.length} tracks hidden) — Click arrow to expand
+                         {group.name} ({memberTracks.length} tracks hidden) — Click arrow to expand
                       </span>
                     )}
                   </div>
@@ -730,8 +714,7 @@ export function TimelineSection({
 
             {/* Empty Space Drop Zones - for auto track creation */}
             <div
-              className="track-row empty-drop-zone video"
-              onDragOver={handleDragOverEmptySpace}
+              className="track-row empty-drop-zone video" onDragOver={handleDragOverEmptySpace}
               onDrop={handleDropOnEmptySpace}
             >
               <div className="track-lane empty-drop-lane video">
@@ -745,8 +728,7 @@ export function TimelineSection({
               </div>
             </div>
             <div
-              className="track-row empty-drop-zone audio"
-              onDragOver={handleDragOverEmptySpace}
+              className="track-row empty-drop-zone audio" onDragOver={handleDragOverEmptySpace}
               onDrop={handleDropOnEmptySpace}
             >
               <div className="track-lane empty-drop-lane audio">

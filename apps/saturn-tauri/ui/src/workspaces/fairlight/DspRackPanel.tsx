@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { Zap } from "lucide-react";
 import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction } from "react";
 import type { Track, TrackAudioProcessing } from "../../types";
@@ -70,7 +71,7 @@ export function DspRackPanel({
           >
             {tracks.map((t) => (
               <option key={t.id} value={t.id}>
-                {t.kind === "audio" ? "♪ " : "▶ "} {t.name}
+                {t.kind === "audio" ? "" : "Video · "} {t.name}
               </option>
             ))}
           </select>
@@ -87,8 +88,7 @@ export function DspRackPanel({
               <small>Low Shelf · Mid Bell · High-Mid Bell · High Shelf</small>
             </div>
             <InteriorButton
-              type="button"
-              className={`dsp-power-btn ${activeDsp.eq_enabled ? "active" : ""}`}
+              type="button" className={`dsp-power-btn ${activeDsp.eq_enabled ? "active" : ""}`}
               onClick={() => void saveTrackAudioProcessing(activeTrackId, { eq_enabled: !activeDsp.eq_enabled })}
             >
               {activeDsp.eq_enabled ? "ACTIVE" : "BYPASS"}
@@ -127,11 +127,7 @@ export function DspRackPanel({
                 <b>{lowGain > 0 ? `+${lowGain.toFixed(1)}` : lowGain.toFixed(1)} dB</b>
               </div>
               <input
-                type="range"
-                min="-15"
-                max="15"
-                step="0.5"
-                value={lowGain}
+                type="range" min="-15" max="15" step="0.5" value={lowGain}
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_low_gain: val } }));
@@ -148,11 +144,7 @@ export function DspRackPanel({
                 <b>{midGain > 0 ? `+${midGain.toFixed(1)}` : midGain.toFixed(1)} dB</b>
               </div>
               <input
-                type="range"
-                min="-15"
-                max="15"
-                step="0.5"
-                value={midGain}
+                type="range" min="-15" max="15" step="0.5" value={midGain}
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_mid_gain: val } }));
@@ -169,11 +161,7 @@ export function DspRackPanel({
                 <b>{himidGain > 0 ? `+${himidGain.toFixed(1)}` : himidGain.toFixed(1)} dB</b>
               </div>
               <input
-                type="range"
-                min="-15"
-                max="15"
-                step="0.5"
-                value={himidGain}
+                type="range" min="-15" max="15" step="0.5" value={himidGain}
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_highmid_gain: val } }));
@@ -190,11 +178,7 @@ export function DspRackPanel({
                 <b>{highGain > 0 ? `+${highGain.toFixed(1)}` : highGain.toFixed(1)} dB</b>
               </div>
               <input
-                type="range"
-                min="-15"
-                max="15"
-                step="0.5"
-                value={highGain}
+                type="range" min="-15" max="15" step="0.5" value={highGain}
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, eq_high_gain: val } }));
@@ -216,8 +200,7 @@ export function DspRackPanel({
               <small>Threshold · Ratio · Attack · Release</small>
             </div>
             <InteriorButton
-              type="button"
-              className={`dsp-power-btn comp ${activeDsp.comp_enabled ? "active" : ""}`}
+              type="button" className={`dsp-power-btn comp ${activeDsp.comp_enabled ? "active" : ""}`}
               onClick={() => void saveTrackAudioProcessing(activeTrackId, { comp_enabled: !activeDsp.comp_enabled })}
             >
               {activeDsp.comp_enabled ? "ACTIVE" : "BYPASS"}
@@ -234,8 +217,7 @@ export function DspRackPanel({
             </div>
             <div className="gr-meter-bar-slot">
               <div
-                className="gr-meter-bar-fill"
-                style={{ width: `${Math.min(100, Math.max(0, -activeTrackGr * 4.16))}%` }}
+                className="gr-meter-bar-fill" style={{ width: `${Math.min(100, Math.max(0, -activeTrackGr * 4.16))}%` }}
               />
             </div>
             <div className="gr-scale-marks">
@@ -254,11 +236,7 @@ export function DspRackPanel({
                 <b>{(activeDsp.comp_threshold ?? -24).toFixed(0)} dB</b>
               </div>
               <input
-                type="range"
-                min="-60"
-                max="0"
-                step="1"
-                value={activeDsp.comp_threshold ?? -24}
+                type="range" min="-60" max="0" step="1" value={activeDsp.comp_threshold ?? -24}
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_threshold: val } }));
@@ -275,11 +253,7 @@ export function DspRackPanel({
                 <b>{(activeDsp.comp_ratio ?? 4).toFixed(1)}:1</b>
               </div>
               <input
-                type="range"
-                min="1"
-                max="20"
-                step="0.5"
-                value={activeDsp.comp_ratio ?? 4}
+                type="range" min="1" max="20" step="0.5" value={activeDsp.comp_ratio ?? 4}
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_ratio: val } }));
@@ -296,11 +270,7 @@ export function DspRackPanel({
                 <b>{Math.round((activeDsp.comp_attack ?? 0.02) * 1000)} ms</b>
               </div>
               <input
-                type="range"
-                min="1"
-                max="200"
-                step="1"
-                value={Math.round((activeDsp.comp_attack ?? 0.02) * 1000)}
+                type="range" min="1" max="200" step="1" value={Math.round((activeDsp.comp_attack ?? 0.02) * 1000)}
                 onChange={(e) => {
                   const val = Number(e.target.value) / 1000;
                   setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_attack: val } }));
@@ -317,11 +287,7 @@ export function DspRackPanel({
                 <b>{Math.round((activeDsp.comp_release ?? 0.25) * 1000)} ms</b>
               </div>
               <input
-                type="range"
-                min="20"
-                max="1000"
-                step="10"
-                value={Math.round((activeDsp.comp_release ?? 0.25) * 1000)}
+                type="range" min="20" max="1000" step="10" value={Math.round((activeDsp.comp_release ?? 0.25) * 1000)}
                 onChange={(e) => {
                   const val = Number(e.target.value) / 1000;
                   setAudioProcessingDrafts((prev) => ({ ...prev, [activeTrackId]: { ...activeDsp, comp_release: val } }));
@@ -343,8 +309,7 @@ export function DspRackPanel({
               <small>80 Hz High-Pass Sub Cut · Real-Time Spectral Clean</small>
             </div>
             <InteriorButton
-              type="button"
-              className={`dsp-power-btn denoise ${activeDsp.denoise_enabled ? "active" : ""}`}
+              type="button" className={`dsp-power-btn denoise ${activeDsp.denoise_enabled ? "active" : ""}`}
               onClick={() => void saveTrackAudioProcessing(activeTrackId, { denoise_enabled: !activeDsp.denoise_enabled })}
             >
               {activeDsp.denoise_enabled ? "ACTIVE" : "BYPASS"}
@@ -353,7 +318,7 @@ export function DspRackPanel({
 
           <div className="denoise-controls-row">
             <div className="denoise-rumble-badge">
-              <span className="rumble-icon">⚡</span>
+              <span className="rumble-icon"><Zap size={14} aria-hidden="true" /></span>
               <div className="rumble-text">
                 <strong>80 Hz High-Pass Rumble Filter</strong>
                 <small>Removes low-end mic bumps &amp; sub-bass rumble</small>
@@ -369,11 +334,7 @@ export function DspRackPanel({
                 <b>{Math.round((activeDsp.denoise_amount ?? 0.5) * 100)}%</b>
               </div>
               <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                disabled={!activeDsp.denoise_enabled}
+                type="range" min="0" max="1" step="0.05" disabled={!activeDsp.denoise_enabled}
                 value={activeDsp.denoise_amount ?? 0.5}
                 onChange={(e) => {
                   const val = Number(e.target.value);

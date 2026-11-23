@@ -80,9 +80,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
     <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "var(--gap, 12px)", overflow: "hidden" }}>
       {/* Header bar */}
       <div
-        className="glass"
-        data-elev="2"
-        style={{
+        className="glass" data-elev="2" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -92,17 +90,14 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <InteriorButton
-            size="sm"
-            variant="ghost"
-            onClick={() => setActiveView("jobs")}
+            size="sm" variant="ghost" onClick={() => setActiveView("jobs")}
             data-testid="back-to-jobs-btn"
           >
             ← Back to Jobs
           </InteriorButton>
           <span style={{ fontWeight: 700, fontSize: "15px" }}>{job.title}</span>
           <span
-            className="status-chip"
-            style={{
+            className="status-chip" style={{
               padding: "2px 8px",
               borderRadius: "4px",
               fontSize: "11px",
@@ -122,12 +117,10 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
             Requester: <strong>{job.requester}</strong>
           </span>
           <InteriorButton
-            size="sm"
-            variant="secondary"
-            onClick={() => setActiveView("review")}
+            size="sm" variant="secondary" onClick={() => setActiveView("review")}
             data-testid="open-review-btn"
           >
-            🎬 Open Review →
+             Open Review →
           </InteriorButton>
         </div>
       </div>
@@ -139,9 +132,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
           {/* Plan Approval Card */}
           {plan && (
             <div
-              className="glass"
-              data-elev="2"
-              style={{
+              className="glass" data-elev="2" style={{
                 padding: "14px",
                 borderRadius: "var(--radius, 14px)",
                 display: "flex",
@@ -153,7 +144,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: "13px", fontWeight: 700 }}>
-                  📝 Agent Execution Plan {plan.approved_at_unix_ms ? "(Approved)" : "(Pending Approval)"}
+                   Agent Execution Plan {plan.approved_at_unix_ms ? "(Approved)" : "(Pending Approval)"}
                 </span>
                 {plan.approved_at_unix_ms ? (
                   <span style={{ fontSize: "11px", color: "var(--accent-text-hover)", fontWeight: 600 }}>
@@ -171,9 +162,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
                 {plan.steps.map((st) => (
                   <div
                     key={st.id}
-                    className="glass"
-                    data-elev="1"
-                    style={{
+                    className="glass" data-elev="1" style={{
                       padding: "8px 12px",
                       borderRadius: "var(--radius-sm, 8px)",
                       display: "flex",
@@ -206,17 +195,13 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
                   {!showRejectInput ? (
                     <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
                       <InteriorButton
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => setShowRejectInput(true)}
+                        size="sm" variant="secondary" onClick={() => setShowRejectInput(true)}
                         data-testid="reject-plan-btn"
                       >
                         Reject / Request Changes
                       </InteriorButton>
                       <InteriorButton
-                        size="sm"
-                        variant="primary"
-                        onClick={handleApprovePlan}
+                        size="sm" variant="primary" onClick={handleApprovePlan}
                         data-testid="approve-plan-btn"
                       >
                         Approve Plan & Run
@@ -225,10 +210,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                       <input
-                        type="text"
-                        className="webdesk-search-input"
-                        placeholder="State reason for rejecting plan..."
-                        value={rejectReason}
+                        type="text" className="webdesk-search-input" placeholder="State reason for rejecting plan..." value={rejectReason}
                         onChange={(e) => setRejectReason(e.target.value)}
                         aria-label="Rejection Reason"
                       />
@@ -249,9 +231,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
 
           {/* Task Sheet Specification Card */}
           <div
-            className="glass"
-            data-elev="1"
-            style={{
+            className="glass" data-elev="1" style={{
               padding: "14px",
               borderRadius: "var(--radius, 14px)",
               display: "flex",
@@ -261,7 +241,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
             data-testid="tasksheet-specs-card"
           >
             <span style={{ fontSize: "13px", fontWeight: 700 }}>
-              📋 Task Sheet Specification ({job.id})
+               Task Sheet Specification ({job.id})
             </span>
 
             {/* Deliverables Targets */}
@@ -272,9 +252,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
               {job.deliverables.map((deliv) => (
                 <div
                   key={deliv.id}
-                  className="glass"
-                  data-elev="1"
-                  style={{
+                  className="glass" data-elev="1" style={{
                     padding: "8px 10px",
                     borderRadius: "var(--radius-sm, 6px)",
                     fontSize: "12px",
@@ -298,9 +276,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
               {job.inputs.map((inp) => (
                 <div
                   key={inp.id}
-                  className="glass"
-                  data-elev="1"
-                  style={{
+                  className="glass" data-elev="1" style={{
                     padding: "8px 10px",
                     borderRadius: "var(--radius-sm, 6px)",
                     fontSize: "12px",
@@ -351,9 +327,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
           {/* Questions Inbox */}
           {openQuestions.length > 0 && (
             <div
-              className="glass"
-              data-elev="2"
-              style={{
+              className="glass" data-elev="2" style={{
                 padding: "14px",
                 borderRadius: "var(--radius, 14px)",
                 border: "1px solid var(--accent-text-violet)",
@@ -375,9 +349,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
 
           {/* Live Agent Run Log */}
           <div
-            className="glass"
-            data-elev="1"
-            style={{
+            className="glass" data-elev="1" style={{
               padding: "14px",
               borderRadius: "var(--radius, 14px)",
               flex: 1,
@@ -390,7 +362,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "13px", fontWeight: 700 }}>
-                ⚡ Live Agent Execution Log ({job.runLog.length} events)
+                Live Agent Execution Log ({job.runLog.length} events)
               </span>
               <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
                 Audited & Tier-Enforced (AF9)
@@ -401,9 +373,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
               {job.runLog.map((log) => (
                 <div
                   key={log.id}
-                  className="glass"
-                  data-elev="1"
-                  style={{
+                  className="glass" data-elev="1" style={{
                     padding: "8px 10px",
                     borderRadius: "var(--radius-sm, 6px)",
                     fontSize: "12px",

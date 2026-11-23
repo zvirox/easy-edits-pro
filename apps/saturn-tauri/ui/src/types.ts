@@ -350,7 +350,7 @@ export const exportPresets = [
     resolution: "1080x1920",
     frameRate: "30/1",
     format: "mp4" as const,
-    icon: "📱",
+    icon: "Smartphone",
   },
   {
     id: "instagram_square",
@@ -359,7 +359,7 @@ export const exportPresets = [
     resolution: "1080x1080",
     frameRate: "30/1",
     format: "mp4" as const,
-    icon: "📷",
+    icon: "Camera",
   },
   {
     id: "cinema_4k",
@@ -368,7 +368,7 @@ export const exportPresets = [
     resolution: "3840x2160",
     frameRate: "24/1",
     format: "mp4" as const,
-    icon: "🎬",
+    icon: "Clapperboard",
   },
   {
     id: "web_hd",
@@ -377,7 +377,7 @@ export const exportPresets = [
     resolution: "1280x720",
     frameRate: "30/1",
     format: "mp4" as const,
-    icon: "🌐",
+    icon: "Globe",
   },
 ];
 
@@ -402,12 +402,12 @@ export const TICKS_PER_SECOND = 254_016_000_000;
 export const TRACK_LABEL_WIDTH = 114;
 
 export const COLOR_PRESETS: { id: string; label: string; icon: string; exposure: number; contrast: number; saturation: number }[] = [
-  { id: "neutral", label: "Neutral Rec.709", icon: "⚪", exposure: 0, contrast: 1.0, saturation: 1.0 },
-  { id: "teal_orange", label: "Teal & Orange", icon: "🎬", exposure: 0.2, contrast: 1.25, saturation: 1.35 },
-  { id: "film_noir", label: "Black & White Noir", icon: "🖤", exposure: -0.1, contrast: 1.45, saturation: 0.0 },
-  { id: "vintage_warm", label: "Warm Vintage", icon: "🌅", exposure: 0.15, contrast: 1.1, saturation: 1.2 },
-  { id: "bleach_bypass", label: "Bleach Bypass", icon: "📽️", exposure: 0.1, contrast: 1.5, saturation: 0.5 },
-  { id: "cyberpunk", label: "Cyberpunk Glow", icon: "🔮", exposure: 0.25, contrast: 1.3, saturation: 1.6 },
+  { id: "neutral", label: "Neutral Rec.709", icon: "Circle", exposure: 0, contrast: 1.0, saturation: 1.0 },
+  { id: "teal_orange", label: "Teal & Orange", icon: "Clapperboard", exposure: 0.2, contrast: 1.25, saturation: 1.35 },
+  { id: "film_noir", label: "Black & White Noir", icon: "Circle", exposure: -0.1, contrast: 1.45, saturation: 0.0 },
+  { id: "vintage_warm", label: "Warm Vintage", icon: "Sunrise", exposure: 0.15, contrast: 1.1, saturation: 1.2 },
+  { id: "bleach_bypass", label: "Bleach Bypass", icon: "Film", exposure: 0.1, contrast: 1.5, saturation: 0.5 },
+  { id: "cyberpunk", label: "Cyberpunk Glow", icon: "Sparkle", exposure: 0.25, contrast: 1.3, saturation: 1.6 },
 ];
 
 export const DEFAULT_COLOR_WHEELS: BackendColorWheels = {

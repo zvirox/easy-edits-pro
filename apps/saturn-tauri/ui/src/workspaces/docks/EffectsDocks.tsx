@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { Eye, EyeOff } from "lucide-react";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { CustomShaderEditor } from "../../components/CustomShaderEditor";
 import { BackgroundMattingCard } from "../../components/BackgroundMattingCard";
@@ -64,8 +65,7 @@ export function EffectDockRight({
 
   return (
     <DockCard
-      className="shell-dock shell-dock-right"
-      tabs={[
+      className="shell-dock shell-dock-right" tabs={[
         {
           id: "effects-stack",
           title: "Effect Stack",
@@ -74,22 +74,20 @@ export function EffectDockRight({
           {selectedClip && (
             <div className="add-effect-control">
               <select
-                className="add-effect-select"
-                defaultValue=""
-                onChange={(e) => {
+                className="add-effect-select" defaultValue="" onChange={(e) => {
                   if (e.target.value) {
                     void addEffect(e.target.value as EffectKind);
                     e.target.value = "";
                   }
                 }}
               >
-                <option value="" disabled>＋ Add Effect to Clip…</option>
-                <option value="gaussian_blur">💧 Gaussian Blur</option>
-                <option value="crop">✂️ Crop</option>
-                <option value="vignette">🔘 Vignette</option>
-                <option value="chroma_key">🟩 Chroma Key</option>
-                <option value="color_correction">🎨 Color Correction</option>
-                <option value="lut">🎬 3D LUT (.cube)</option>
+                <option value=""disabled>＋ Add Effect to Clip…</option>
+                <option value="gaussian_blur"> Gaussian Blur</option>
+                <option value="crop">Crop</option>
+                <option value="vignette"> Vignette</option>
+                <option value="chroma_key"> Chroma Key</option>
+                <option value="color_correction"> Color Correction</option>
+                <option value="lut"> 3D LUT (.cube)</option>
                 <option value="custom_shader">✨ Custom GLSL Shader</option>
               </select>
             </div>
@@ -115,12 +113,11 @@ export function EffectDockRight({
                   <article key={eff.id} className={`effect-stack-card ${eff.enabled ? "is-active" : "is-bypassed"}`}>
                     <header className="effect-card-header">
                       <InteriorButton
-                        type="button"
-                        className={`effect-toggle-btn ${eff.enabled ? "enabled" : "bypassed"}`}
+                        type="button" className={`effect-toggle-btn ${eff.enabled ? "enabled" : "bypassed"}`}
                         title={eff.enabled ? "Bypass Effect" : "Enable Effect"}
                         onClick={() => void toggleEffect(eff.id, !eff.enabled)}
                       >
-                        {eff.enabled ? "👁" : "👁‍🗨"}
+                        {eff.enabled ? <Eye size={14} aria-hidden="true" /> : <EyeOff size={14} aria-hidden="true" />}
                       </InteriorButton>
                       <div className="effect-card-title">
                         <strong>{eff.name}</strong>
@@ -128,28 +125,19 @@ export function EffectDockRight({
                       </div>
                       <div className="effect-card-actions">
                         <InteriorButton
-                          type="button"
-                          className="effect-action-btn"
-                          disabled={idx === 0}
-                          title="Move Up"
-                          onClick={() => void reorderEffect(idx, idx - 1)}
+                          type="button" className="effect-action-btn" disabled={idx === 0}
+                          title="Move Up" onClick={() => void reorderEffect(idx, idx - 1)}
                         >
                           ▲
                         </InteriorButton>
                         <InteriorButton
-                          type="button"
-                          className="effect-action-btn"
-                          disabled={idx === effects.length - 1}
-                          title="Move Down"
-                          onClick={() => void reorderEffect(idx, idx + 1)}
+                          type="button" className="effect-action-btn" disabled={idx === effects.length - 1}
+                          title="Move Down" onClick={() => void reorderEffect(idx, idx + 1)}
                         >
                           ▼
                         </InteriorButton>
                         <InteriorButton
-                          type="button"
-                          className="effect-action-btn delete"
-                          title="Remove Effect"
-                          onClick={() => void removeEffect(eff.id)}
+                          type="button" className="effect-action-btn delete" title="Remove Effect" onClick={() => void removeEffect(eff.id)}
                         >
                           ×
                         </InteriorButton>
@@ -165,11 +153,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Exposure ({p.exposure > 0 ? `+${p.exposure.toFixed(1)}` : p.exposure.toFixed(1)})</span>
                                 <input
-                                  type="range"
-                                  min="-5"
-                                  max="5"
-                                  step="0.1"
-                                  value={p.exposure ?? 0}
+                                  type="range" min="-5" max="5" step="0.1" value={p.exposure ?? 0}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "color_correction",
                                     params: { ...p, exposure: Number(e.target.value) },
@@ -179,11 +163,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Contrast ({p.contrast.toFixed(2)})</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="2"
-                                  step="0.01"
-                                  value={p.contrast ?? 1}
+                                  type="range" min="0" max="2" step="0.01" value={p.contrast ?? 1}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "color_correction",
                                     params: { ...p, contrast: Number(e.target.value) },
@@ -193,11 +173,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Saturation ({p.saturation.toFixed(2)})</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="2"
-                                  step="0.01"
-                                  value={p.saturation ?? 1}
+                                  type="range" min="0" max="2" step="0.01" value={p.saturation ?? 1}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "color_correction",
                                     params: { ...p, saturation: Number(e.target.value) },
@@ -207,11 +183,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Hue Shift ({Math.round((p.hue ?? 0) * 180)}°)</span>
                                 <input
-                                  type="range"
-                                  min="-1"
-                                  max="1"
-                                  step="0.01"
-                                  value={p.hue ?? 0}
+                                  type="range" min="-1" max="1" step="0.01" value={p.hue ?? 0}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "color_correction",
                                     params: { ...p, hue: Number(e.target.value) },
@@ -228,11 +200,7 @@ export function EffectDockRight({
                             <label>
                               <span>Blur Radius ({p.sigma.toFixed(1)} px)</span>
                               <input
-                                type="range"
-                                min="0"
-                                max="20"
-                                step="0.1"
-                                value={p.sigma ?? 2}
+                                type="range" min="0" max="20" step="0.1" value={p.sigma ?? 2}
                                 onChange={(e) => void updateEffectPayload(eff.id, {
                                   kind: "gaussian_blur",
                                   params: { sigma: Number(e.target.value) },
@@ -249,11 +217,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Top ({p.top ?? 0}%)</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="100"
-                                  step="0.5"
-                                  value={p.top ?? 0}
+                                  type="range" min="0" max="100" step="0.5" value={p.top ?? 0}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "crop",
                                     params: { ...p, top: Number(e.target.value) },
@@ -263,11 +227,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Bottom ({p.bottom ?? 0}%)</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="100"
-                                  step="0.5"
-                                  value={p.bottom ?? 0}
+                                  type="range" min="0" max="100" step="0.5" value={p.bottom ?? 0}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "crop",
                                     params: { ...p, bottom: Number(e.target.value) },
@@ -277,11 +237,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Left ({p.left ?? 0}%)</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="100"
-                                  step="0.5"
-                                  value={p.left ?? 0}
+                                  type="range" min="0" max="100" step="0.5" value={p.left ?? 0}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "crop",
                                     params: { ...p, left: Number(e.target.value) },
@@ -291,11 +247,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Right ({p.right ?? 0}%)</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="100"
-                                  step="0.5"
-                                  value={p.right ?? 0}
+                                  type="range" min="0" max="100" step="0.5" value={p.right ?? 0}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "crop",
                                     params: { ...p, right: Number(e.target.value) },
@@ -313,11 +265,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Intensity ({Math.round((p.intensity ?? 0.5) * 100)}%)</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="1"
-                                  step="0.01"
-                                  value={p.intensity ?? 0.5}
+                                  type="range" min="0" max="1" step="0.01" value={p.intensity ?? 0.5}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "vignette",
                                     params: { ...p, intensity: Number(e.target.value) },
@@ -327,11 +275,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Radius ({p.radius?.toFixed(2) ?? "0.80"})</span>
                                 <input
-                                  type="range"
-                                  min="0.1"
-                                  max="2"
-                                  step="0.01"
-                                  value={p.radius ?? 0.8}
+                                  type="range" min="0.1" max="2" step="0.01" value={p.radius ?? 0.8}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "vignette",
                                     params: { ...p, radius: Number(e.target.value) },
@@ -341,11 +285,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Softness ({Math.round((p.softness ?? 0.5) * 100)}%)</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="1"
-                                  step="0.01"
-                                  value={p.softness ?? 0.5}
+                                  type="range" min="0" max="1" step="0.01" value={p.softness ?? 0.5}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "vignette",
                                     params: { ...p, softness: Number(e.target.value) },
@@ -364,8 +304,7 @@ export function EffectDockRight({
                                 <span>Key Color</span>
                                 <div className="chroma-inputs">
                                   <input
-                                    type="color"
-                                    value={p.color ?? "#00ff00"}
+                                    type="color" value={p.color ?? "#00ff00"}
                                     onChange={(e) => void updateEffectPayload(eff.id, {
                                       kind: "chroma_key",
                                       params: { ...p, color: e.target.value },
@@ -377,11 +316,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Tolerance ({Math.round(p.tolerance ?? 25)}%)</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="100"
-                                  step="1"
-                                  value={p.tolerance ?? 25}
+                                  type="range" min="0" max="100" step="1" value={p.tolerance ?? 25}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "chroma_key",
                                     params: { ...p, tolerance: Number(e.target.value) },
@@ -391,11 +326,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Edge Softness ({Math.round(p.softness ?? 10)}%)</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="50"
-                                  step="1"
-                                  value={p.softness ?? 10}
+                                  type="range" min="0" max="50" step="1" value={p.softness ?? 10}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "chroma_key",
                                     params: { ...p, softness: Number(e.target.value) },
@@ -405,11 +336,7 @@ export function EffectDockRight({
                               <label>
                                 <span>Spill Suppression ({Math.round((p.spill_suppression ?? 0.5) * 100)}%)</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="1"
-                                  step="0.01"
-                                  value={p.spill_suppression ?? 0.5}
+                                  type="range" min="0" max="1" step="0.01" value={p.spill_suppression ?? 0.5}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "chroma_key",
                                     params: { ...p, spill_suppression: Number(e.target.value) },
@@ -449,9 +376,9 @@ export function EffectDockRight({
                                   }}
                                 >
                                   {LUT_PRESETS.map((pr) => (
-                                    <option key={pr.id} value={pr.id}>{pr.icon} {pr.name}</option>
+                                    <option key={pr.id} value={pr.id}>{pr.name}</option>
                                   ))}
-                                  <option value="custom">📁 Custom .cube File…</option>
+                                  <option value="custom"> Custom .cube File…</option>
                                 </select>
                               </div>
 
@@ -462,21 +389,15 @@ export function EffectDockRight({
                               )}
 
                               <InteriorButton
-                                type="button"
-                                className="btn-secondary lut-browse-btn"
-                                onClick={() => void loadLutCubeDialog(eff.id)}
+                                type="button" className="btn-secondary lut-browse-btn" onClick={() => void loadLutCubeDialog(eff.id)}
                               >
-                                📂 Browse .cube File…
+                                 Browse .cube File…
                               </InteriorButton>
 
                               <label>
                                 <span>LUT Intensity ({Math.round((p.intensity ?? 1.0) * 100)}%)</span>
                                 <input
-                                  type="range"
-                                  min="0"
-                                  max="1"
-                                  step="0.01"
-                                  value={p.intensity ?? 1.0}
+                                  type="range" min="0" max="1" step="0.01" value={p.intensity ?? 1.0}
                                   onChange={(e) => void updateEffectPayload(eff.id, {
                                     kind: "lut",
                                     params: { ...p, intensity: Number(e.target.value) },

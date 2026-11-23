@@ -102,7 +102,6 @@
   left: 6px;
   width: 1px;
   background: var(--playhead);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--playhead) 80%, transparent);
   pointer-events: none;
 }
 
@@ -236,7 +235,7 @@
   color: var(--accent-text);
   font-size: 7.5px;
   font-weight: 700;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.05em;
 }
 
@@ -441,7 +440,6 @@
   left: 6px;
   width: 1px;
   background: var(--playhead);
-  box-shadow: 0 0 6px color-mix(in srgb, var(--playhead) 80%, transparent);
 }
 
 /* Track row height variants */
