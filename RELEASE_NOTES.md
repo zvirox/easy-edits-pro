@@ -47,11 +47,20 @@ glass palette unchanged.
   [docs/distribution.md](docs/distribution.md) (install proofs for `.deb`,
   `.rpm` and Flatpak in CI containers and inside the Flatpak sandbox). Those
   rows describe those releases, not this one.
-- The install and edit-to-render proof for `v0.1.3-beta.2` runs in the tagged
-  Linux package workflow after this tag is pushed. Until that workflow reports
-  green, this beta has **no recorded install evidence of its own**; a green
-  build is not a claim that it works on your machine.
-- Local pre-tag gates: `cargo test --workspace`, `pnpm build`, `pnpm test`
+- **Tagged proof for `v0.1.3-beta.2`: PASS** — workflow run
+  [45211424805](https://github.com/zvirox/easy-edits-pro/actions/runs/45211424805)
+  at tag commit `f98ca5a`, all four jobs green. This is a CI-container proof,
+  not a report from a non-development machine:
+  - `.deb`, real dpkg install in debian:12: `PASS - container install: h264
+    1920x1080, 6.02s, 1465938 bytes`.
+  - `.rpm`, real dnf install in fedora:latest: `PASS - container install: vp8
+    1920x1080, 6.03s, 251161 bytes`.
+  - Flatpak, full Builder build + local install + in-sandbox acceptance drive:
+    `PASS - flatpak spike of io.github.zvirox.EasyEditsPro: h264 render verified,
+    6.02s, 1477119 bytes`. The bundle and its checksum were attached to the
+    release by the proof job.
+- Pre-tag CI run [45207688108](https://github.com/zvirox/easy-edits-pro/actions/runs/45207688108)
+  was green on the tagged commit (all three jobs). Local gates: `cargo test --workspace`, `pnpm build`, `pnpm test`
   (193/193), `pnpm check:glass`, `pnpm check:commands` (492 shipped),
   `pnpm check:source-size --max-lines=800` and `pnpm test:e2e` (13 areas, 0
   browser errors).
