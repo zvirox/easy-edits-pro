@@ -47,7 +47,7 @@ The application pairs a high-performance Rust core and GStreamer rendering engin
 
 Easy Edits Pro is a completely self-contained video editor. You can create projects, import media, trim clips, and render final videos without installing any other tools.
 
-When you want intelligent, hands-free timeline assistance, Easy Edits Pro connects directly with **Starship Control**, the unified Linux desktop AI assistant.
+When you want intelligent, hands-free timeline assistance, Easy Edits Pro connects directly with [Starship Control](https://github.com/zvirox/starship-control) ([Releases](https://github.com/zvirox/starship-control/releases)), the unified Linux desktop AI assistant.
 
 ### Why It Exists
 
@@ -66,7 +66,7 @@ Getting connected is fully automated:
 1. **Automatic Discovery**: When Easy Edits Pro launches, it creates its discovery manifest in `$XDG_DATA_HOME/starship/plugins/eep.json`.
 2. **Private Local Socket**: Communication occurs through a private Unix domain socket at `$XDG_RUNTIME_DIR/starship/bridges/eep.sock`.
 3. **Linux Kernel Security**: Connections are validated using operating system peer credentials (`SO_PEERCRED`). Only programs running under your exact Linux user account can send commands. No web ports are opened, and your video footage never leaves your machine.
-4. **Instant Control**: Open Starship Control or press `Super+Shift+Space`. It immediately detects Easy Edits Pro and stands ready to execute timeline adjustments and batch edits.
+4. **Instant Control**: Open Starship Control or press `Super+Shift+Space`. It immediately detects Easy Edits Pro and stands ready to execute timeline adjustments and batch edits. For setup guides and downloads, visit the [Starship Control repository](https://github.com/zvirox/starship-control) and [releases](https://github.com/zvirox/starship-control/releases).
 
 ---
 
