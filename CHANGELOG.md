@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3-beta.3] - 2026-11-24
+
+### Added
+- **Unified Linear-Style Design System**: Full migration of timeline, inspector, monitor, and modals to solid elevated surfaces (`#121215`, `#17171c`, `#202026`), hairline precision borders (`#23232a`), and zero blur.
+- **Packaging & CI Matrix**: Standardized reusable release pipeline producing .deb, .rpm, .apk, and .tar.gz distributions.
+- **Automated Verification**: Enforced `check:linear` gates preventing off-palette colors and glass artifacts in CI.
+
 ## [0.1.3-beta.2] - 2026-11-23
 
 ### Added

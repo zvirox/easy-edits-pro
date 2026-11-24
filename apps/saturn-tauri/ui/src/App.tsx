@@ -660,7 +660,7 @@ function EditorApp() {
 
   return (
     <div className="app-shell" tabIndex={0} onKeyDown={shortcuts}>
-      <TitleBar title="Easy Edits Pro" version="v0.1.0" onThemeToggle={toggleTheme} />
+      <TitleBar title="Easy Edits Pro" version="v0.1.3-beta.3" onThemeToggle={toggleTheme} />
       <AppHeader
         project={project} projectState={projectState} commands={effectiveCommands}
         busy={busy} undoStatus={undoStatus} redoStatus={redoStatus} selectedMedia={selectedMedia}

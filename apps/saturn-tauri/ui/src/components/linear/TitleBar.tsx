@@ -13,8 +13,8 @@ export interface TitleBarProps {
 }
 
 export const TitleBar: React.FC<TitleBarProps> = ({
-  title = 'Starship Control',
-  version = 'v0.1.0',
+  title = 'Easy Edits Pro',
+  version = 'v0.1.3-beta.3',
   icon,
   compact = false,
   className = '',
