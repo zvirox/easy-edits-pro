@@ -23,9 +23,12 @@
         "title": "Easy Edits Pro",
         "width": 1280,
         "height": 800,
-        "minWidth": 900,
-        "minHeight": 620,
-        "resizable": true
+        "minWidth": 960,
+        "minHeight": 600,
+        "resizable": true,
+        "decorations": false,
+        "transparent": false,
+        "shadow": true
       }
     ]
   },

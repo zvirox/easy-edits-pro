@@ -35,35 +35,35 @@ pairs are enforced by `pnpm check:contrast` at WCAG AA (4.5:1).
 | `--bg-surface` | `#180d17` | `#fffafd` |
 | `--bg-elevated` | `#221220` | `#ede1e9` |
 | `--bg-glass` | `rgba(24, 13, 23, 0.82)` | `rgba(255, 250, 253, 0.86)` |
-| `--bg-stage` | `radial-gradient(48vw 42vh at 18% 22%, rgba(255, 92, 148, 0.2), transparent 62%),     radial-gradient(42vw 46vh at 82% 74%, rgba(88, 132, 255, 0.18), transparent 64%),     radial-gradient(36vw 32vh at 62% 18%, rgba(255, 184, 92, 0.1), transparent 60%),     linear-gradient(160deg, #170c16 0%, #0b060a 54%, #120a14 100%)` | `radial-gradient(48vw 42vh at 18% 22%, rgba(255, 92, 148, 0.14), transparent 62%),     radial-gradient(42vw 46vh at 82% 74%, rgba(88, 132, 255, 0.12), transparent 64%),     radial-gradient(36vw 32vh at 62% 18%, rgba(255, 184, 92, 0.1), transparent 60%),     linear-gradient(160deg, #fff7fb 0%, #f1e8ef 54%, #f7eef4 100%)` |
+| `--bg-stage` | `#08080a` | `radial-gradient(48vw 42vh at 18% 22%, rgba(255, 92, 148, 0.14), transparent 62%),     radial-gradient(42vw 46vh at 82% 74%, rgba(88, 132, 255, 0.12), transparent 64%),     radial-gradient(36vw 32vh at 62% 18%, rgba(255, 184, 92, 0.1), transparent 60%),     linear-gradient(160deg, #fff7fb 0%, #f1e8ef 54%, #f7eef4 100%)` |
 
 ## Glass
 
 | Token | Dark | Light |
 |---|---|---|
-| `--glass-l1` | `rgba(24, 13, 23, 0.56)` | `rgba(255, 250, 253, 0.66)` |
-| `--glass-l2` | `rgba(24, 13, 23, 0.68)` | `rgba(255, 250, 253, 0.78)` |
-| `--glass-l3` | `rgba(24, 13, 23, 0.8)` | `rgba(255, 250, 253, 0.88)` |
-| `--glass-l4` | `rgba(17, 9, 16, 0.9)` | `rgba(255, 250, 253, 0.94)` |
-| `--glass-border` | `rgba(244, 215, 235, 0.14)` | `rgba(83, 41, 67, 0.16)` |
-| `--glass-highlight` | `rgba(255, 255, 255, 0.08)` | `rgba(255, 255, 255, 0.72)` |
-| `--glass-shadow` | `0 18px 48px rgba(0, 0, 0, 0.45)` | `0 18px 40px rgba(40, 22, 34, 0.16)` |
-| `--shadow-soft` | `0 1px 4px rgba(0, 0, 0, 0.35)` | `0 1px 4px rgba(0, 0, 0, 0.04)` |
-| `--shadow-soft-lg` | `0 4px 14px rgba(0, 0, 0, 0.45)` | `0 4px 14px rgba(17, 9, 16, 0.08)` |
-| `--glass-saturate` | `145%` | `135%` |
-| `--blur-l1` | `8px` | `8px` |
-| `--blur-l2` | `14px` | `14px` |
-| `--blur-l3` | `20px` | `20px` |
-| `--blur-l4` | `28px` | `28px` |
+| `--glass-l1` | `#121215` | `rgba(255, 250, 253, 0.66)` |
+| `--glass-l2` | `#17171c` | `rgba(255, 250, 253, 0.78)` |
+| `--glass-l3` | `#202026` | `rgba(255, 250, 253, 0.88)` |
+| `--glass-l4` | `#121215` | `rgba(255, 250, 253, 0.94)` |
+| `--glass-border` | `#23232a` | `rgba(83, 41, 67, 0.16)` |
+| `--glass-highlight` | `rgba(255, 255, 255, 0.07)` | `rgba(255, 255, 255, 0.72)` |
+| `--glass-shadow` | `inset 0 1px 0 0 rgba(255, 255, 255, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.4), 0 12px 30px -10px rgba(0, 0, 0, 0.85)` | `0 18px 40px rgba(40, 22, 34, 0.16)` |
+| `--shadow-soft` | `0 1px 2px rgba(0, 0, 0, 0.4)` | `0 1px 4px rgba(0, 0, 0, 0.04)` |
+| `--shadow-soft-lg` | `inset 0 1px 0 0 rgba(255, 255, 255, 0.07), 0 12px 30px -10px rgba(0, 0, 0, 0.85)` | `0 4px 14px rgba(17, 9, 16, 0.08)` |
+| `--glass-saturate` | `100%` | `135%` |
+| `--blur-l1` | `0px` | `8px` |
+| `--blur-l2` | `0px` | `14px` |
+| `--blur-l3` | `0px` | `20px` |
+| `--blur-l4` | `0px` | `28px` |
 
 ## Card shape and insets (Plan v4 G1)
 
 | Token | Dark | Light |
 |---|---|---|
 | `--gap` | `12px` | `—` |
-| `--radius` | `16px` | `—` |
-| `--radius-sm` | `10px` | `—` |
-| `--card-inset` | `rgba(255, 255, 255, 0.045)` | `—` |
+| `--radius` | `12px` | `—` |
+| `--radius-sm` | `8px` | `—` |
+| `--card-inset` | `#17171c` | `—` |
 
 ## Component surfaces (G1d)
 

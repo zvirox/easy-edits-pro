@@ -28,6 +28,7 @@ import { createShortcutMachineCommand } from "./app/shortcutMachineCommands";
 import { applyViewCommand } from "./app/viewCommands";
 
 import { AppHeader } from "./features/menubar";
+import { TitleBar } from "./components/linear/TitleBar";
 import { WorkspaceRouter } from "./workspaces/WorkspaceRouter";
 import { StatusBar } from "./components/StatusBar";
 import { EditorModals } from "./features/dialogs";
@@ -659,35 +660,20 @@ function EditorApp() {
 
   return (
     <div className="app-shell" tabIndex={0} onKeyDown={shortcuts}>
+      <TitleBar title="Easy Edits Pro" version="v0.1.0" onThemeToggle={toggleTheme} />
       <AppHeader
-        project={project}
-        projectState={projectState}
-        commands={effectiveCommands}
-        busy={busy}
-        undoStatus={undoStatus}
-        redoStatus={redoStatus}
-        selectedMedia={selectedMedia}
-        snapEnabled={timelineOps.snapEnabled}
-        workspace={projectOps.workspace as any}
-        editorWorkspace={projectOps.editorWorkspace}
-        selectEditorWorkspace={selectEditorWorkspace}
-        invokeMenuCommand={dispatchCommand}
-        ensureDiscardIsOkay={projectOps.ensureDiscardIsOkay}
-        setNewProjectName={projectOps.setNewProjectName}
-        setNewProjectOpen={projectOps.setNewProjectOpen}
-        openProject={projectOps.openProject}
-        saveProject={projectOps.saveProject}
-        importMedia={mediaOps.importMedia}
-        setNotice={setNotice}
-        activeJobs={jobsHook.activeJobs}
-        jobs={jobsHook.jobs}
-        cancelJob={jobsHook.cancelJob}
-        cancelAllJobs={jobsHook.cancelAllJobs}
-        clearJobHistory={jobsHook.clearJobHistory}
+        project={project} projectState={projectState} commands={effectiveCommands}
+        busy={busy} undoStatus={undoStatus} redoStatus={redoStatus} selectedMedia={selectedMedia}
+        snapEnabled={timelineOps.snapEnabled} workspace={projectOps.workspace as any}
+        editorWorkspace={projectOps.editorWorkspace} selectEditorWorkspace={selectEditorWorkspace}
+        invokeMenuCommand={dispatchCommand} ensureDiscardIsOkay={projectOps.ensureDiscardIsOkay}
+        setNewProjectName={projectOps.setNewProjectName} setNewProjectOpen={projectOps.setNewProjectOpen}
+        openProject={projectOps.openProject} saveProject={projectOps.saveProject}
+        importMedia={mediaOps.importMedia} setNotice={setNotice}
+        activeJobs={jobsHook.activeJobs} jobs={jobsHook.jobs} cancelJob={jobsHook.cancelJob}
+        cancelAllJobs={jobsHook.cancelAllJobs} clearJobHistory={jobsHook.clearJobHistory}
         setBatchQueueDrawerOpen={mediaOps.setBatchQueueDrawerOpen}
-        setAiChatDrawerOpen={mediaOps.setAiChatDrawerOpen}
-        theme={theme}
-        toggleTheme={toggleTheme}
+        setAiChatDrawerOpen={mediaOps.setAiChatDrawerOpen} theme={theme} toggleTheme={toggleTheme}
       />
 
       <div className="app-workspace-region">
