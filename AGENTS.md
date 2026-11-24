@@ -48,14 +48,16 @@ These rules are enforced by gates or review. Violating them is a failed packet.
 ## Design and styling
 
 - **Design tokens only.** Never hard-code colours, radii, or spacing in
-  components; use the token files. `pnpm check:styles` gates the raw-colour
-  ratchet.
+  components; use the token files / Tailwind v4 `@theme`. `pnpm check:styles`
+  gates the raw-colour ratchet.
 - **Never `transition: all`.** Name the properties you animate; respect
   `prefers-reduced-motion`.
-- **Glass only through the `.glass` surface classes.** Never hand-roll
-  `backdrop-filter`/blur in a component.
-- **Media surfaces never glass.** Video/preview/audio-render surfaces stay
-  raw; blur over them wastes frame budget and skews colour.
+- **Solid elevated surfaces (No Glass).** Panels are 100% opaque matte
+  graphite/charcoal (`#121215`, `#17171c`, `#202026`) with 1px hairline
+  precision borders (`#23232a`) and dual-shadow bevel illumination. Zero
+  `backdrop-filter: blur()`.
+- **Media surfaces never glass or blurred.** Video/preview/audio-render surfaces
+  stay raw; blur over them wastes frame budget and skews colour.
 
 ## Code and engine
 
@@ -123,7 +125,7 @@ Easy Edits Pro is orchestrated by **Starship Control** (`Mother Ship / Starship 
 cargo test --workspace
 pnpm build          # typecheck + vite build
 pnpm test
-pnpm check:glass    # contrast + styles + tokens
+pnpm check:linear   # contrast + styles + tokens + zero blur verification
 pnpm check:commands
 pnpm check:source-size --max-lines=800
 pnpm test:e2e       # UI contract against a mocked backend - not an engine claim

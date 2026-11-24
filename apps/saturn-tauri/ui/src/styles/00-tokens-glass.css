@@ -18,38 +18,34 @@
   --accent-text-hover: #f9a8d4;
   --accent-text-violet: #c084fc;
 
-  /* Glass surfaces, L1 (subtle) to L4 (modal). */
-  --glass-l1: rgba(24, 13, 23, 0.56);
-  --glass-l2: rgba(24, 13, 23, 0.68);
-  --glass-l3: rgba(24, 13, 23, 0.8);
-  --glass-l4: rgba(17, 9, 16, 0.9);
-  --glass-border: rgba(244, 215, 235, 0.14);
-  --glass-highlight: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
-  --shadow-soft: 0 1px 4px rgba(0, 0, 0, 0.35);
-  --shadow-soft-lg: 0 4px 14px rgba(0, 0, 0, 0.45);
-  --glass-saturate: 145%;
+  /* Glass surfaces, L1 (subtle) to L4 (modal) -> Solid Linear Matte Surfaces */
+  --glass-l1: #121215;
+  --glass-l2: #17171c;
+  --glass-l3: #202026;
+  --glass-l4: #121215;
+  --glass-border: #23232a;
+  --glass-highlight: rgba(255, 255, 255, 0.07);
+  --glass-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.4), 0 12px 30px -10px rgba(0, 0, 0, 0.85);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-soft-lg: inset 0 1px 0 0 rgba(255, 255, 255, 0.07), 0 12px 30px -10px rgba(0, 0, 0, 0.85);
+  --glass-saturate: 100%;
 
-  /* Backdrop blur radii, L1-L4. */
-  --blur-l1: 8px;
-  --blur-l2: 14px;
-  --blur-l3: 20px;
-  --blur-l4: 28px;
+  /* Backdrop blur radii, L1-L4 (Zero Blur - Linear Solid Standard) */
+  --blur-l1: 0px;
+  --blur-l2: 0px;
+  --blur-l3: 0px;
+  --blur-l4: 0px;
 
   /* Plan v4 shape tokens (docs/GLASS_CARDS_PLAN.md §3): spacing and shape
      only. --card-inset is the single sanctioned colour addition and enters
      the token-freeze snapshot with this commit. Both themes inherit these. */
   --gap: 12px;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --card-inset: rgba(255, 255, 255, 0.045);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --card-inset: #17171c;
 
-  /* Stage background behind the glass. */
-  --bg-stage:
-    radial-gradient(48vw 42vh at 18% 22%, rgba(255, 92, 148, 0.2), transparent 62%),
-    radial-gradient(42vw 46vh at 82% 74%, rgba(88, 132, 255, 0.18), transparent 64%),
-    radial-gradient(36vw 32vh at 62% 18%, rgba(255, 184, 92, 0.1), transparent 60%),
-    linear-gradient(160deg, #170c16 0%, #0b060a 54%, #120a14 100%);
+  /* Solid obsidian canvas under all layers (Linear-Style spec) */
+  --bg-stage: #08080a;
 
   /* Motion. */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
