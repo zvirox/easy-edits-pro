@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Easy Edits Pro
+GenericName=Video Editor
+Comment=Open source video editor for Linux
+Exec=easy-edits-pro %U
+Icon=easy-edits-pro
+Terminal=false
+StartupNotify=true
+StartupWMClass=easy-edits-pro
+Categories=AudioVideo;Video;AudioVideoEditing;
+Keywords=video;editor;timeline;cut;render;gstreamer;
+MimeType=video/mp4;video/x-matroska;video/quicktime;video/webm;

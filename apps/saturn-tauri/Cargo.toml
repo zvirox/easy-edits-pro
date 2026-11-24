@@ -5,6 +5,10 @@ edition = "2024"
 build = "build.rs"
 license = "AGPL-3.0-or-later"
 
+[[bin]]
+name = "easy-edits-pro"
+path = "src/main.rs"
+
 [workspace]
 
 [build-dependencies]

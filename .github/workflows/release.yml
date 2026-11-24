@@ -1,0 +1,23 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: zvirox/release-workflows/.github/workflows/linux-release.yml@v1
+    with:
+      app_name: ${{ github.event.repository.name }}
+      package_manager: pnpm
+      frontend_dir: apps/saturn-tauri
+      system_deps: libxdo-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev libges-1.0-dev gstreamer1.0-tools gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly gstreamer1.0-libav
+      extra_binaries_cmd: cargo build --release --locked -p saturn-plugin-worker
+      build_cmd: cargo build --release --locked --manifest-path apps/saturn-tauri/Cargo.toml --target-dir target
+      binary_path: target/release/easy-edits-pro
+      nfpm_config: packaging/nfpm.yaml
+    secrets: inherit

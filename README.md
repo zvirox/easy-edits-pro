@@ -114,21 +114,40 @@ The Rust core owns project state and editing history. UI and automation clients
 submit commands and render returned state. See the [architecture guide](docs/architecture.md)
 for module-level data flow.
 
-## Install and try it
+## 📦 Installation
 
-Download a package and its checksums from the [GitHub releases page](https://github.com/zvirox/easy-edits-pro/releases),
-then install the package for your Linux distribution and launch **Easy Edits
-Pro** from your application menu (binary: `saturn-tauri`):
+Download the appropriate package and `SHA256SUMS` from the [Latest Release](https://github.com/zvirox/easy-edits-pro/releases/latest).
 
-~~~bash
-# Debian/Ubuntu and derivatives
-sudo apt install ./Easy.Edits.Pro_<version>_amd64.deb
-# Fedora/RPM-based distributions
-sudo dnf install ./Easy.Edits.Pro_<version>_amd64.rpm
-~~~
+### Debian / Ubuntu (`.deb`)
 
-See [distribution and releases](docs/distribution.md) for Flatpak details and
-the package acceptance workflow.
+```bash
+sudo apt install ./easy-edits-pro_<version>_amd64.deb
+```
+
+### Fedora / RHEL (`.rpm`)
+
+```bash
+sudo dnf install ./easy-edits-pro-<version>-1.x86_64.rpm
+```
+
+### Arch Linux / Manjaro (`.pkg.tar.zst`)
+
+```bash
+sudo pacman -U ./easy-edits-pro-<version>-1-x86_64.pkg.tar.zst
+```
+
+### Verify Checksums
+
+Verify file integrity against the release manifest:
+
+```bash
+sha256sum -c SHA256SUMS --ignore-missing
+```
+
+> [!NOTE]
+> **Packaging Update:** Flatpak, AppImage, and AUR builds are retired in favor of native packages (`.deb`, `.rpm`, `.pkg.tar.zst`).
+
+Launch **Easy Edits Pro** from your application menu or run `easy-edits-pro`.
 
 To generate the maintained sample projects (split, titles, captions, color
 grade, multicam), then open the `.saturn` files in the app:
