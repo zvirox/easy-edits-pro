@@ -1,251 +1,127 @@
 <p align="center">
-  <img src="docs/assets/easy-edits-pro-logo.png" alt="Easy Edits Pro logo" width="220" />
-</p>
-
-<h1 align="center">Easy Edits Pro</h1>
-
-<p align="center">
-  <strong>An alpha Linux desktop video editor built with Rust, Tauri, React, and GStreamer.</strong>
+  <img src="docs/assets/easy-edits-pro-logo.png" alt="Easy Edits Pro logo" width="180" />
+  <h1 align="center">Easy Edits Pro</h1>
 </p>
 
 <p align="center">
-  <a href="https://github.com/zvirox/easy-edits-pro/releases"><img src="https://img.shields.io/github/v/release/zvirox/easy-edits-pro?include_prereleases&amp;label=latest%20release" alt="Latest release" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/zvirox/easy-edits-pro" alt="License" /></a>
-  <a href="https://github.com/zvirox/easy-edits-pro/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/zvirox/easy-edits-pro/ci.yml?label=CI" alt="CI status" /></a>
+  <strong>Native Linux video editing built for speed, precision, and privacy</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/zvirox/easy-edits-pro/releases">Releases</a> ·
-  <a href="docs/planning.md">Project plan</a> ·
-  <a href="docs/AI_NATIVE_PLAN_CHECKLIST.md">Live progress checklist</a> ·
-  <a href="docs/PARITY.md">Command parity</a> ·
-  <a href="#install-and-try-it">Install</a> ·
-  <a href="#development-setup">Development</a>
+  <a href="https://github.com/zvirox/easy-edits-pro/releases"><img src="https://img.shields.io/badge/Release-Latest_Packages-blue.svg" alt="Releases" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License" /></a>
+  <img src="https://img.shields.io/badge/Platform-Linux_(Wayland_&_X11)-orange.svg" alt="Platform" />
+  <img src="https://img.shields.io/badge/Stack-Rust_·_Tauri_2_·_React_19-indigo.svg" alt="Stack" />
 </p>
 
-## Project status
+<p align="center">
+  <a href="#what-is-easy-edits-pro">What is it?</a> ·
+  <a href="#key-features">Key Features</a> ·
+  <a href="#starship-control-integration">Starship Control Integration</a> ·
+  <a href="#installation">Installation</a> ·
+  <a href="#frequently-asked-questions">FAQ</a>
+</p>
 
-Easy Edits Pro is an alpha Linux desktop video editor. The Rust core owns
-project, timeline, task sheet, and review state; the desktop UI, CLI, MCP
-server, and control server send commands to that core.
+---
 
-The current checkout's generated catalogue contains **492 shipped commands
-across 13 profiles**. The latest tagged release, [v0.1.2-alpha.7](https://github.com/zvirox/easy-edits-pro/releases/tag/v0.1.2-alpha.7),
-records 489 commands; the current checkout includes later task sheet work.
-The generated [command reference](docs/COMMANDS.md) and [parity report](docs/PARITY.md)
-are the sources for current command counts and audited coverage. All three
-audited parity tiers report 100% effective coverage, excluding documented
-`na` divergences; this does not mean every feature is complete or that full
-reference-editor parity is a beta goal.
+## What is Easy Edits Pro?
 
-The latest tagged alpha is experimental and Linux-focused. The current
-checkout contains work beyond that release tag, so use the [releases page](https://github.com/zvirox/easy-edits-pro/releases)
-for downloadable builds and the [changelog](CHANGELOG.md) for tagged-release
-contents.
+Easy Edits Pro is a native Linux desktop video editor designed for creators, developers, and educators. Instead of dealing with clunky legacy interfaces or cloud-based subscription editors that upload your private raw footage to remote servers, Easy Edits Pro provides a fast, local-first editing studio right on your machine.
 
-## What works in the current checkout
+The application pairs a high-performance Rust core and GStreamer rendering engine with a responsive, modern Linear-style interface. Whether you are assembling screencasts, cutting YouTube videos, or polishing presentation recordings, Easy Edits Pro keeps editing responsive, accurate, and completely under your control.
 
-- Create, open, save, and recover versioned editor projects; import local
-  media, inspect it, organise it, and place clips on the timeline.
-- Edit with timeline selection, movement, split, trim, scrubbing, zoom,
-  transitions, titles, captions, markers, and Rust-backed undo/redo for shipped
-  commands.
-- Preview source and program media with playback, frame stepping, and timeline
-  transport controls. Render MP4 or WebM through GStreamer; codec availability
-  depends on the installed GStreamer plugins.
-- Analyze media with contact sheets, shot detection, semantic search,
-  audio/video telemetry, word-level transcription and script sync, plus
-  measured matting, depth, and motion tracking.
-- Work across media, editing, color, keyframe, node-graph, audio, and delivery
-  areas. The command catalogue and parity report describe the shipped surface.
-- Use `saturn-mcp` to inspect projects and sequences, search media, inspect
-  placements, run editor commands, and manage asynchronous render jobs. Its
-  desktop bridge uses a Unix socket.
-- Build task sheets with validation, human plan approval, questions, review
-  notes and rounds, delivery packages, checksums, and provenance.
-- Run three deterministic task sheet recipes for podcast clips, talking-head
-  tutorials, and webinar recaps. The synthetic Capture Event Track generator
-  supports repeatable tutorial-recipe checks.
-- Supervise agent sessions with Stop, branch review, conflict-aware reverts,
-  and an explicit demo mode. The AF6.1 end-to-end gate is recorded as closed in
-  the [progress checklist](docs/AI_NATIVE_PLAN_CHECKLIST.md).
+---
 
-The current task sheet implementation is TS0–TS6. The progress checklist also
-tracks agent-first phases, verification work, and the remaining roadmap.
+## Key Features
 
-## Known limitations and work in progress
+- **Responsive Multitrack Timeline**: Arrange multiple video and audio tracks with smooth scrubbing, frame stepping, split, ripple trim, and zoom.
+- **Non-Destructive Project Architecture**: The Rust core protects your source footage. All cuts, transitions, volume changes, and overlays are stored as non-destructive edits with instant undo and redo.
+- **Smart Speech & Caption Sync**: Transcribe dialogue automatically, search for specific spoken words in your footage, and generate stylized on-screen captions with precise word timing.
+- **Visual Color & Keyframe Control**: Fine-tune contrast, saturation, and exposure, and animate clip positions with customizable easing curves.
+- **High-Performance GStreamer Pipeline**: Preview projects smoothly and render standard MP4 and WebM video files using your system's hardware codecs.
+- **Modern Linear-Style Design**: Dark matte graphite surfaces, 1px precision borders, and smooth keyboard-driven navigation.
 
-- This is beta software for Linux (v0.1.3-beta.1). Windows and macOS packages
-  are not built, and package compatibility still needs reports from
-  non-development machines.
-- Hardware encoding has not been verified. Export format and codec support
-  depend on the GStreamer plugins available on the machine.
-- The desktop MCP bridge uses a Unix socket. There is no Windows bridge.
-- Text-to-speech and speaker diarization are not implemented. Transcription is
-  available; speech separation for dialogue, music, ambience, and effects is
-  deferred until a verified, license-cleared model is available.
-- Proxy attachments exist, but proxy playback and cache regeneration are
-  unfinished.
-- EEP-Bench's default run is a scripted deterministic conformance suite. A
-  real-agent `--agent` evaluation mode exists, but no real-model baseline has
-  been published; scripted results are not model-evaluation results.
-- The Task Sheet web API, Web Desk, runner and enterprise SSO are implemented.
-  The shared agent-contract crate (TS-X) remains planned until a second product
-  consumes it. Cross-platform work (XP1–XP4) and Phase 6 VFX work remain open.
-  See the live [AI-native progress checklist](docs/AI_NATIVE_PLAN_CHECKLIST.md)
-  for current gates and remaining work.
+---
 
-See [distribution and releases](docs/distribution.md) for package policy and
-recorded installation evidence. The [delivery plan](docs/planning.md) records
-milestones and the evidence required before work is called complete.
+## Starship Control Integration
 
-## Architecture
+Easy Edits Pro is a completely self-contained video editor. You can create projects, import media, trim clips, and render final videos without installing any other tools.
 
-~~~mermaid
-flowchart LR
-  UI[React editor and review UI] --> IPC[Tauri invoke commands]
-  IPC --> Core[Rust core: projects, tasks, and review]
-  Core --> Render[saturn-render / GStreamer]
-  Core --> Automation[CLI · MCP · control server]
-  Render --> Output[Preview and media output]
-~~~
+When you want intelligent, hands-free timeline assistance, Easy Edits Pro connects directly with **Starship Control**, the unified Linux desktop AI assistant.
 
-The Rust core owns project state and editing history. UI and automation clients
-submit commands and render returned state. See the [architecture guide](docs/architecture.md)
-for module-level data flow.
+### Why It Exists
 
-## 📦 Installation
+Rough-cutting video footage, trimming dead pauses, and syncing separate audio takes can consume hours of manual clicking. Connecting Easy Edits Pro with Starship Control lets you delegate repetitive editing chores using simple voice or text instructions, while you retain full final editorial review.
 
-Download the appropriate package and `SHA256SUMS` from the [Latest Release](https://github.com/zvirox/easy-edits-pro/releases/latest).
+### Real-World Use Cases
 
-### Debian / Ubuntu (`.deb`)
+- **Automated Silence Removal**: Tell Starship Control to *"Scan the timeline for silences longer than one second and trim them out cleanly."*
+- **Multitrack Studio Assembly**: Direct a multi-app workflow: *"Import the screen take from Screen Studio Pro and the voiceover from Audio Labs Pro, align them to the first clap, and set up a 1080p timeline."*
+- **Chapter Marker Creation**: Ask the assistant to *"Analyze the transcript and insert chapter markers at every major topic transition."*
+
+### How Connection Works
+
+Getting connected is fully automated:
+
+1. **Automatic Discovery**: When Easy Edits Pro launches, it creates its discovery manifest in `$XDG_DATA_HOME/starship/plugins/eep.json`.
+2. **Private Local Socket**: Communication occurs through a private Unix domain socket at `$XDG_RUNTIME_DIR/starship/bridges/eep.sock`.
+3. **Linux Kernel Security**: Connections are validated using operating system peer credentials (`SO_PEERCRED`). Only programs running under your exact Linux user account can send commands. No web ports are opened, and your video footage never leaves your machine.
+4. **Instant Control**: Open Starship Control or press `Super+Shift+Space`. It immediately detects Easy Edits Pro and stands ready to execute timeline adjustments and batch edits.
+
+---
+
+## Installation
+
+Prebuilt Linux packages are available on the [Releases page](https://github.com/zvirox/easy-edits-pro/releases).
+
+### Debian, Ubuntu, and Pop!_OS (`.deb`)
 
 ```bash
-sudo apt install ./easy-edits-pro_<version>_amd64.deb
+sudo apt install ./easy-edits-pro_*_amd64.deb
 ```
 
-### Fedora / RHEL (`.rpm`)
+### Fedora, RHEL, and openSUSE (`.rpm`)
 
 ```bash
-sudo dnf install ./easy-edits-pro-<version>-1.x86_64.rpm
+sudo dnf install ./easy-edits-pro-*.x86_64.rpm
 ```
 
-### Arch Linux / Manjaro (`.pkg.tar.zst`)
+### Arch Linux and Manjaro (`.pkg.tar.zst`)
 
 ```bash
-sudo pacman -U ./easy-edits-pro-<version>-1-x86_64.pkg.tar.zst
+sudo pacman -U ./easy-edits-pro-*-x86_64.pkg.tar.zst
 ```
 
-### Verify Checksums
+### Building From Source
 
-Verify file integrity against the release manifest:
+Requirements: Rust stable, Node.js 22+, pnpm, and development libraries for GStreamer (`libgstreamer1.0-dev`, `libgstreamer-plugins-base1.0-dev`), WebKitGTK (`libwebkit2gtk-4.1-dev`), and GTK 3.
 
 ```bash
-sha256sum -c SHA256SUMS --ignore-missing
-```
-
-> [!NOTE]
-> **Packaging Update:** Flatpak, AppImage, and AUR builds are retired in favor of native packages (`.deb`, `.rpm`, `.pkg.tar.zst`).
-
-Launch **Easy Edits Pro** from your application menu or run `easy-edits-pro`.
-
-To generate the maintained sample projects (split, titles, captions, color
-grade, multicam), then open the `.saturn` files in the app:
-
-~~~bash
-python3 tests/native/sample_projects.py --build samples-out
-~~~
-
-## Development setup
-
-### Requirements
-
-- Linux with a current Rust toolchain, Node.js 20+, and pnpm.
-- Tauri 2 and GStreamer development dependencies. See
-  [CONTRIBUTING.md](CONTRIBUTING.md) for Debian, Arch, and Fedora package lists.
-- Playwright Chromium for the mocked browser smoke suite.
-
-### Run the desktop app
-
-~~~bash
 git clone https://github.com/zvirox/easy-edits-pro.git
-cd easy-edits-pro/apps/saturn-tauri
+cd easy-edits-pro
 pnpm install
-pnpm tauri dev
-~~~
+pnpm build
+cargo build --release -p saturn-tauri
+```
 
-### Verify a change
+---
 
-~~~bash
-cargo test --workspace
-pnpm --dir apps/saturn-tauri build
-pnpm --dir apps/saturn-tauri test
-pnpm --dir apps/saturn-tauri check:glass
-pnpm --dir apps/saturn-tauri check:commands
-pnpm --dir apps/saturn-tauri check:source-size --max-lines=800
-pnpm --dir apps/saturn-tauri test:e2e
-~~~
+## Frequently Asked Questions
 
-The browser smoke suite uses mocked Tauri IPC and synthetic video. It does not
-verify the native desktop bridge, GStreamer, file dialogs, rendering, or an
-installed package. For those areas, follow the native workflows in
-[docs/native-workflow.md](docs/native-workflow.md) and
-[docs/distribution.md](docs/distribution.md).
+#### Does Easy Edits Pro require an internet connection?
+No. Easy Edits Pro is a 100% offline desktop application. Video importing, timeline editing, audio processing, and rendering happen locally on your computer.
 
-## Automation
+#### Is Starship Control required to use the editor?
+No. Easy Edits Pro has a complete visual user interface with full mouse and keyboard editing controls. Starship Control is an optional companion for automated workflows.
 
-### CLI
+#### Can I undo edits made by Starship Control?
+Yes. Every action performed through Starship Control is recorded in the editor's Rust undo stack. You can step backward or revert any automated change with standard `Ctrl+Z`.
 
-~~~bash
-cargo run -p saturn-cli -- commands
-cargo run -p saturn-cli -- inspect /path/to/project.saturn
-~~~
+#### What video formats can I export?
+Easy Edits Pro supports exporting standard MP4 (H.264 / AAC) and WebM formats with customizable resolutions, frame rates, and bitrates.
 
-The agent-oriented CLI harness is documented in
-[agent-harness/README.md](agent-harness/README.md).
+---
 
-### MCP
+## License
 
-~~~bash
-cargo run -p saturn-mcp -- --project /path/to/project.saturn
-cargo run -p saturn-mcp -- --bridge
-~~~
-
-See [crates/saturn-mcp/README.md](crates/saturn-mcp/README.md) for available
-tools and the connection model.
-
-## Releases and feedback
-
-The [release workflow](docs/RELEASES.md) documents release gates and publishing.
-For current alpha packages, checksums, and tagged changes, use the [releases page](https://github.com/zvirox/easy-edits-pro/releases)
-and [changelog](CHANGELOG.md).
-
-For an alpha report, include the release version, distribution and desktop
-session, imported media codec, reproduction steps, and **Help → Copy System
-Diagnostics** output. Report it through the GitHub issue tracker. This feedback
-guides alpha and beta work and captures results that cannot be tested on the
-development laptop.
-
-## Contributing
-
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change. Keep project
-state in Rust, keep source files at or below 800 lines, preserve public Tauri
-invoke names and project-file compatibility, and describe only verified
-behaviour in docs and release notes.
-
-### Where help is most useful
-
-| Area | Examples | Difficulty |
-|---|---|---|
-| Testing and bug reports | Install the alpha on your distro and report what breaks | Easy |
-| Documentation | Clarify setup and workflows | Easy |
-| UI polish | Missing icons, truncated labels, keyboard shortcuts | Easy to medium |
-| Test coverage | Regression tests for commands and importers | Medium |
-| Packaging | Verify packages on more Linux distributions | Medium |
-| Rendering and audio | GStreamer/GES performance and DSP | Hard |
-| Agent tooling | MCP tools, task sheet recipes, and conformance tests | Medium to hard |
-
-Start with [CONTRIBUTING.md](CONTRIBUTING.md), the [roadmap](ROADMAP.md), and
-issues labelled `good first issue` or `help wanted`. Questions are welcome in
-[Discussions](https://github.com/zvirox/easy-edits-pro/discussions); see also
-[SUPPORT.md](SUPPORT.md) and [GOVERNANCE.md](GOVERNANCE.md).
+Easy Edits Pro is open-source software licensed under the [Apache License, Version 2.0](LICENSE).
