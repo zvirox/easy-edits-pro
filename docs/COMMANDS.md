@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-496 commands.
+497 commands.
 
 ## File
 
@@ -326,6 +326,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Verify Sequence | `verify.run` | shipped |  | `{"preset": "web-1080p\|vertical-9x16\|broadcast-r128"}` |
 | Quantize Cuts to Music... | `timeline.beat_grid_quantize` | shipped |  | `{"music_track_id":int,"video_track_id":int,"subdivision":"bar\|half\|quarter","strength":num,"downbeat_tick":ticks?}` |
 | Create J/L Split Edit... | `timeline.asymmetric_trim` | shipped |  | `{"track_id":int,"clip_index":int,"video_delta":ticks,"audio_delta":ticks,"fade_ticks":ticks?}` |
+| Remove Object (Clean Plate)... | `vfx.inpaint_object_removal` | shipped |  | `{"track_id":int,"clip_index":int,"region":[num,num,num,num],"search_frames":int}` |
 | Depth Map Composite... | `vfx.depth_map_compositor` | shipped |  | `{"track_id":int,"clip_index":int,"mode":"z_threshold\|dof_bokeh","threshold":num,"blur_radius":int?}` |
 | Planar Corner Pin... | `vfx.planar_corner_pin` | shipped |  | `{"track_id":int,"clip_index":int,"corners":[[num,num],[num,num],[num,num],[num,num]],"motion_blur":bool?}` |
 | Create Fluid Morph Cut... | `timeline.fluid_morph_cut` | shipped |  | `{"track_id":int,"cut_at":ticks,"duration":ticks,"measurement":{"dx_px":num,"dy_px":num,"confidence":num,"ticks_per_px":num,"audio_crossfade_ticks":ticks},"expected_digest":str}` |

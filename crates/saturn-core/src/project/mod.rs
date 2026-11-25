@@ -107,6 +107,7 @@ impl ProjectDocument {
             storyline_pins: Vec::new(),
             vfx_corner_pins: Vec::new(),
             vfx_depth_composites: Vec::new(),
+            vfx_inpaints: Vec::new(),
         }
     }
 

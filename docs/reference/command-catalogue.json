@@ -10375,6 +10375,33 @@
   },
   {
     "aliases": [
+      "object removal",
+      "clean plate"
+    ],
+    "category": "Sequence",
+    "id": "vfx.inpaint_object_removal",
+    "label": "Remove Object (Clean Plate)...",
+    "menu": [
+      "Sequence",
+      "VFX"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"region\":[num,num,num,num],\"search_frames\":int}",
+    "profiles": [
+      "rough-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
       "depth composite",
       "depth of field"
     ],

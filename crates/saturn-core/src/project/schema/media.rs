@@ -27,6 +27,9 @@ pub struct ProjectDocument {
     /// Depth compositor settings from Packet 6.1.
     #[serde(default)]
     pub vfx_depth_composites: Vec<crate::depth_composite::ClipDepthComposite>,
+    /// Object-removal settings from Packet 6.1.
+    #[serde(default)]
+    pub vfx_inpaints: Vec<crate::inpaint_object::ClipInpaint>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

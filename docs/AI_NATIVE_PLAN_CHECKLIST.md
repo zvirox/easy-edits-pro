@@ -321,12 +321,12 @@ All five Phase 5.1 verbs shipped; morph is a documented bounded motion-compensat
 
 ---
 
-## Phase 6 — VFX, Depth Compositing & Kinetic Typography — `status: in progress (template apply landed; VFX commands and kinetic typography pending)`
+## Phase 6 — VFX, Depth Compositing & Kinetic Typography — `status: in progress (all Packet 6.1 VFX commands landed; kinetic typography pending)`
 
 ### Packet 6.1 — Depth compositing, corner-pin & object removal (Lane 2)
 - [x] Implement `vfx.depth_map_compositor` — core stores per-clip mode/threshold/blur settings; `saturn-render::depth_compositor` performs real near-pixel alpha masking and depth-weighted box-blur bokeh over a caller-supplied DA-V2 depth grid. Documented: bokeh is a depth-weighted blur, not a lens simulation. Unit + command tests green.
 - [x] Implement `vfx.planar_corner_pin` — core command validates and persists a normalized four-corner quad on `ProjectDocument.vfx_corner_pins`; `saturn-render::corner_pin` performs the real inverse-homography bilinear warp with a three-tap edge-direction blur; unit + integration tests green.
-- [ ] Implement `vfx.inpaint_object_removal` (optical-flow clean-plate inpainting)
+- [x] Implement `vfx.inpaint_object_removal` — core stores a validated normalized removal region and temporal donor budget; `saturn-render::inpaint` reconstructs pixels from caller-supplied tracked donor frames with a deterministic nearest-border fallback. No generative fill claimed. Unit + command tests green.
 
 ### Packet 6.2 — Kinetic typography & `.sgt` template fix (Lane 2)
 - [x] Fix `template apply` end-to-end — `saturn-cli template apply <file.sgt> --project <project> [--tick <ticks>]` converts visible `.sgt` layers into project graphics, applies them through `graphic.template_apply`, and saves; `cli-anything-eep template apply` has matching `--project`/`--tick` options. `template create` now seeds an editable text layer; `test_editing_verbs.py::test_template_group_round_trip` passes (no more `COMMAND_NOT_FOUND`).
