@@ -28,7 +28,7 @@ green and add install proofs.
 
 | Runner | Run | Result | First root cause |
 |---|---|---|---|
-| macOS (`macos-latest`) | [45577028503](https://github.com/zvirox/easy-edits-pro/actions/runs/45577028503) | FAIL (exit 101) | `error[E0432]: unresolved import \`wgpu::hal::vulkan\`` at `crates/saturn-render/src/gpu_context.rs:17` — the Vulkan HAL module is compiled out on macOS |
+| macOS (`macos-latest`) | [45577028503](https://github.com/zvirox/easy-edits-pro/actions/runs/45577028503) | FAIL (exit 101) | `error[E0432]: unresolved import `wgpu::hal::vulkan`` at `crates/saturn-render/src/gpu_context.rs:17` — the Vulkan HAL module is compiled out on macOS |
 | Windows (`windows-latest`) | [45577028503](https://github.com/zvirox/easy-edits-pro/actions/runs/45577028503) | FAIL (exit 1) | `ort-sys v2.0.0-rc.10` build script panics at `build.rs:126` (`Os { code: 3, NotFound }`) while staging DirectML.dll; ONNX Runtime prebuilt setup is Windows-incomplete |
 
 Earlier runs in this sequence exposed two setup issues that are now fixed in
