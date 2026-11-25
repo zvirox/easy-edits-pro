@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3-beta.4] - 2026-11-25
+
+### Changed
+- **Parity Report Sync**: Regenerated `docs/PARITY.md` against the 498-command catalogue (`pnpm check:parity`).
+- **Locked Release Packaging**: Enforced `nfpm` `.deb`/`.rpm`/`.pkg.tar.zst` distribution manifest and enabled GPG `SHA256SUMS.sig` release signing.
+
 ## [0.1.3-beta.3] - 2026-11-24
 
 ### Added
