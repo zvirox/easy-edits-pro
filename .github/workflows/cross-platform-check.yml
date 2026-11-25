@@ -1,0 +1,59 @@
+name: Cross-platform Check Matrix
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+# XP1: cheap `cargo check --workspace` jobs on the Tier 2 runners. Their purpose
+# is to expose breakage before any porting work (XP2–XP4), so a red job here is
+# evidence, not a release blocker. Tier 1 (Linux) full gates stay in ci.yml.
+concurrency:
+  group: xp1-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-macos:
+    name: cargo check (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install GStreamer development packages
+        run: |
+          brew update
+          brew install gstreamer gst-plugins-base gst-plugins-good \
+            gst-plugins-bad gst-plugins-ugly gst-editing-services pkg-config
+
+      - name: Check workspace
+        run: cargo check --workspace --all-targets
+
+  check-windows:
+    name: cargo check (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install GStreamer development packages
+        shell: pwsh
+        run: |
+          choco install gstreamer gstreamer-devel --yes --no-progress
+          "GSTREAMER_1_0_ROOT_MSVC_X86_64=C:\gstreamer\1.0\msvc_x86_64\" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "$env:GSTREAMER_1_0_ROOT_MSVC_X86_64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Check workspace
+        shell: pwsh
+        run: cargo check --workspace --all-targets
