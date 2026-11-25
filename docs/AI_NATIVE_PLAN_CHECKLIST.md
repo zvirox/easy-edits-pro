@@ -624,8 +624,8 @@ Headless first (`saturn-cli` + `saturn-mcp` daemon), then desktop shell.
 
 ### XP1 — CI check matrix & breakage inventory
 - [x] Add `cargo check --workspace` jobs on `windows-latest` and `macos-latest` to GitHub Actions (Lane 3) — `.github/workflows/cross-platform-check.yml`.
-- [x] Document the Unix-specific dependency inventory (Lane 4) — `docs/audit/xp1-breakage-inventory.md` (static inventory recorded; CI error rows pending).
-- [ ] **Gate:** CI check runs green on Windows and macOS; breakage catalog filled with the first real compiler/pkg-config errors.
+- [x] Document the Unix-specific dependency inventory (Lane 4) — `docs/audit/xp1-breakage-inventory.md` (static inventory plus real first-error rows from runs 45573171772/45574626307/45575911665/45577028503).
+- [ ] **Gate:** CI check runs green on Windows and macOS; breakage catalog filled with the first real compiler/pkg-config errors. **Catalog filled; gate red by design** — macOS fails on `wgpu::hal::vulkan` in `gpu_context.rs`, Windows fails in `ort-sys` DirectML staging. XP2/XP3 must resolve both before this gate closes.
 
 ### XP2 — `saturn-platform` abstraction crate
 - [ ] Create `crates/saturn-platform` owning OS-specific abstractions: IPC (Unix sockets vs Windows named pipes), shared memory rings, plugin worker sandboxing, standard dirs (config, cache, runtime, CLAP paths), GPU/encoder detection (Lane 2).

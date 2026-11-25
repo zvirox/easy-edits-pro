@@ -78,13 +78,12 @@ git push origin v0.1.2-alpha.X
 ```
 
 ### Step 3: CI Automation & Artifact Packaging
-Pushing the tag triggers `.github/workflows/linux-packages.yml` on GitHub Actions:
-- Injects version string into `apps/saturn-tauri/tauri.conf.json`.
-- Builds Debian package (`.deb`) and RPM package (`.rpm`).
-- Generates `SHA256SUMS`.
-- Compiles the Flatpak bundle (`easy-edits-pro-linux-x86_64.flatpak`).
-- Runs acceptance tests (`tests/native/installed_package_workflow.py`) verifying in-container installation and edit-to-render proof.
-- Automatically attaches all packages and checksums to the GitHub release.
+Pushing the tag triggers `.github/workflows/release.yml` calling the shared `zvirox/release-workflows/.github/workflows/linux-release.yml@v1` pipeline:
+- Enforces manifest version parity across `package.json`, `apps/saturn-tauri/tauri.conf.json`, and `apps/saturn-tauri/Cargo.toml`.
+- Builds the `easy-edits-pro` and `saturn-plugin-worker` release binaries.
+- Assembles **exclusively** the three locked native Linux packages via `packaging/nfpm.yaml`: Debian (`.deb`), Fedora (`.rpm`), and Arch (`.pkg.tar.zst`), plus `SHA256SUMS` (+ `.sig` when signed). Flatpak, AppImage, tarballs, and AUR are permanently retired.
+- Runs clean-container smoke tests (`ubuntu:22.04`, `ubuntu:24.04`, `fedora:latest`, `archlinux:latest`) verifying installation, binary placement, desktop entry validation, and clean removal. No manual VM package tests are required.
+- Automatically attaches the three packages and checksums to the GitHub release.
 
 ### Step 4: Publish Standard Release Notes on GitHub
 Every release on GitHub must contain the following standardized sections:

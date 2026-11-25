@@ -30,23 +30,14 @@ These artifacts are experimental alpha packages. They prove that the GitHub
 release workflow can build and publish packages; they do **not** prove that an
 installed package launches or completes an edit on another system.
 
-## Delivery policy
+## Delivery policy (Locked)
 
-- The development laptop is the only controlled verification environment.
-- Software H.264 export is the verified local render path. Hardware encoding
-  remains optional and unverified.
-- Flatpak is the intended supported delivery route because it can bundle known
-  WebKitGTK and GStreamer versions. The E.5 spike (2026-10-27) proved the full
-  loop inside the sandbox on GNOME 49 - build (manifest + pinned GES module in
-  `packaging/flatpak/`), user-scope install, launch, MCP-driven edit, H.264
-  render verified by ffprobe - so the decision is FOR Beta 1. It is not yet a
-  *published* artifact: no tagged release has shipped one, and the spike drive
-  used a CI dispatch build of main rather than a release asset. It becomes a
-  supported route once the manifest runs in CI against a tagged release and a
-  launch result is recorded for it.
-- AppImage is not part of the current delivery plan.
-- Future alpha and beta releases gather compatibility feedback through issue
-  reports. The project does not maintain a planned external hardware matrix.
+- **Final & Locked Linux Package Manifest:** Releases ship **exclusively** three native packages built by `nfpm` from `packaging/nfpm.yaml` via `zvirox/release-workflows`: `.deb`, `.rpm`, and `.pkg.tar.zst` plus `SHA256SUMS` (+ `.sig` when signed).
+- **Retired Formats:** Flatpak, AppImage, plain tarballs, and AUR packages are permanently retired and excluded from current and future release milestones.
+- **Verification:** Clean-container smoke tests (`ubuntu:22.04`, `ubuntu:24.04`, `fedora:latest`, `archlinux:latest`) gate every GitHub Release. Manual VM release-package tests are removed from planning requirements.
+- The development laptop is the only controlled local media verification environment.
+- Software H.264 export is the verified local render path. Hardware encoding remains optional and unverified.
+- Future alpha and beta releases gather compatibility feedback through issue reports. The project does not maintain a planned external hardware matrix.
 
 ### Beta delivery matrix (live status, planning.md 6e E.3)
 

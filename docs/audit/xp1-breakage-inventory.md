@@ -26,11 +26,26 @@ green and add install proofs.
 
 ## CI results
 
-| Runner | Run | Result | Errors |
+| Runner | Run | Result | First root cause |
 |---|---|---|---|
-| macOS (`macos-latest`) | pending first matrix run | — | — |
-| Windows (`windows-latest`) | pending first matrix run | — | — |
+| macOS (`macos-latest`) | [45577028503](https://github.com/zvirox/easy-edits-pro/actions/runs/45577028503) | FAIL (exit 101) | `error[E0432]: unresolved import \`wgpu::hal::vulkan\`` at `crates/saturn-render/src/gpu_context.rs:17` — the Vulkan HAL module is compiled out on macOS |
+| Windows (`windows-latest`) | [45577028503](https://github.com/zvirox/easy-edits-pro/actions/runs/45577028503) | FAIL (exit 1) | `ort-sys v2.0.0-rc.10` build script panics at `build.rs:126` (`Os { code: 3, NotFound }`) while staging DirectML.dll; ONNX Runtime prebuilt setup is Windows-incomplete |
 
-Record the first failing compiler/pkg-config lines here verbatim (trimmed to
-the actionable first error per root cause), then link the run. Do not record
-"build succeeded" as support: XP1 only checks compilation.
+Earlier runs in this sequence exposed two setup issues that are now fixed in
+the workflow: a missing `pkg-config` on the Windows runner, and the GStreamer
+MSI installing under `C:\Program Files\gstreamer\...` rather than
+`C:\gstreamer\...`. Those were runner setup, not product defects.
+
+### Triage
+
+- **macOS:** `gpu_context.rs` imports the Linux Vulkan backend unconditionally.
+  XP2 must move backend selection into `saturn-platform` (Metal on macOS,
+  DirectX 12 on Windows) with a copy fallback where DMA-BUF is unavailable.
+- **Windows:** `ort-sys` cannot stage its DirectML dependency in this runner.
+  XP2/XP3 need a deterministic ONNX Runtime provisioning path and a Windows
+  shared-library layout before the perception crate compiles.
+- The static inventory above remains the roadmap for the remaining Unix paths
+  (UDS bridge, `/dev/shm` sandbox, XDG dirs, CLAP trust paths, VA-API).
+
+XP1 gate is **not green** — that is the expected discovery result. It closes
+only when XP2–XP4 make both jobs green; no Tier 2 support is claimed here.

@@ -204,6 +204,8 @@ cargo build --release -p saturn-tauri
 
 </details>
 
+Official Linux releases ship exclusively as native `.deb`, `.rpm`, and `.pkg.tar.zst` packages alongside `SHA256SUMS`. Legacy AppImage, Flatpak, tarball, and AUR packages are retired and no longer updated.
+
 ---
 
 ## Tech Stack

@@ -182,7 +182,7 @@ Repo: github.com/zvirox/easy-edits-pro
 | 1–2 | Fix contact addresses; rename "Prowl" in `AGENTS.md`; fix CONTRIBUTING numbering; set repo topics, description, social preview image |
 | 3–4 | Add PR template, SUPPORT, CODEOWNERS, labels; enable Discussions; add `docs/README.md` index |
 | 5–6 | Turn on CLA bot; add AI-contribution policy; check the remaining licence fixes from the audit |
-| 7–9 | Write `setup-dev` script or devcontainer and `doctor` script; test on a clean Ubuntu 24.04 VM or container and a Fedora one |
+| 7–9 | Write `setup-dev` script or devcontainer and `doctor` script; verify on clean Ubuntu 24.04 and Fedora CI containers |
 | 10–11 | Write and label 10–15 starter issues with acceptance tests; add `ROADMAP.md` |
 | 12 | Record a 60–90 s demo; update README top section |
 | 13 | Submit to Good First Issue, Up For Grabs, CodeTriage |

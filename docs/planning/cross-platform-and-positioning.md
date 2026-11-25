@@ -26,7 +26,7 @@ Yes. It is on `main` as `b7e1d51`. Checked on the repo: all 10 new files present
 | Preview cache | `$XDG_RUNTIME_DIR/easy-edits-pro/previews` | Use a cross-platform dirs library with an owner-only mode per OS |
 | DMA-BUF GPU import | Linux only | Fall back to a copy path elsewhere |
 | ONNX Runtime, whisper.cpp | `ort` and `whisper-rs` | Both have Windows/macOS builds (general knowledge); your glibc floor workaround does not apply there |
-| Packaging | `.deb`, `.rpm`, Flatpak | Add Windows installer (MSI/NSIS) and macOS `.dmg` |
+| Packaging | Locked Linux format: `.deb`, `.rpm`, `.pkg.tar.zst` (`nfpm` via `zvirox/release-workflows`; Flatpak/AppImage/AUR/VM tests retired) | Add Windows installer (MSI/NSIS) and macOS `.dmg` |
 | CI | Ubuntu runners only | Add Windows and macOS jobs |
 
 **Costs people forget**
