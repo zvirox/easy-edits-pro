@@ -138,6 +138,13 @@ def test_template_group_round_trip(tmp_path):
     assert exported.exit_code == 0, exported.output
     assert (tmp_path / "copy.sgt").is_file()
 
-    applied = invoke("template", "apply", str(source))
-    assert applied.exit_code == 1
-    assert json.loads(applied.output)["error"] == "COMMAND_NOT_FOUND"
+    project = tmp_path / "template-project.eep"
+    created_project = invoke("project", "create", "--name", "Template project", "--path", str(project))
+    assert created_project.exit_code == 0, created_project.output
+
+    applied = invoke("template", "apply", str(source), "--project", str(project), "--tick", "120")
+    assert applied.exit_code == 0, applied.output
+    result = json.loads(applied.output)["data"]
+    assert result["applied"] is True
+    assert result["start_ticks"] == 120
+    assert result["graphic_ids"], "the template should create at least one graphic"

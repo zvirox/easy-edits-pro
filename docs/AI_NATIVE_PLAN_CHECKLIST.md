@@ -321,7 +321,7 @@ All five Phase 5.1 verbs shipped; morph is a documented bounded motion-compensat
 
 ---
 
-## Phase 6 — VFX, Depth Compositing & Kinetic Typography — `status: todo`
+## Phase 6 — VFX, Depth Compositing & Kinetic Typography — `status: in progress (template apply landed; VFX commands and kinetic typography pending)`
 
 ### Packet 6.1 — Depth compositing, corner-pin & object removal (Lane 2)
 - [ ] Implement `vfx.depth_map_compositor` (Depth-Anything-V2 z-threshold compositing / DOF bokeh)
@@ -329,7 +329,7 @@ All five Phase 5.1 verbs shipped; morph is a documented bounded motion-compensat
 - [ ] Implement `vfx.inpaint_object_removal` (optical-flow clean-plate inpainting)
 
 ### Packet 6.2 — Kinetic typography & `.sgt` template fix (Lane 2)
-- [ ] Fix `template apply` end-to-end (`crates/saturn-graphics` + `agent-harness`; remove `COMMAND_NOT_FOUND`)
+- [x] Fix `template apply` end-to-end — `saturn-cli template apply <file.sgt> --project <project> [--tick <ticks>]` converts visible `.sgt` layers into project graphics, applies them through `graphic.template_apply`, and saves; `cli-anything-eep template apply` has matching `--project`/`--tick` options. `template create` now seeds an editable text layer; `test_editing_verbs.py::test_template_group_round_trip` passes (no more `COMMAND_NOT_FOUND`).
 - [ ] Implement `graphic.kinetic_typography` (per-word spring physics on Whisper timestamps, face-avoidant layout)
 
 ### ✅ Phase 6 Verification Gate

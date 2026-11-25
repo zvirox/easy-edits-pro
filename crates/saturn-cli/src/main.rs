@@ -299,6 +299,77 @@ fn run_catalogue(tokens: Vec<String>) -> Result<(), String> {
     Ok(())
 }
 
+
+/// Convert a `.sgt` template's visible layers into project graphics. Image and
+/// video layers are skipped: their media is owned by the project, not the
+/// template file, and importing it here would invent an asset reference.
+fn template_graphics(template: &GraphicsTemplate, start_tick: i64) -> Result<Vec<Value>, String> {
+    let duration = if template.timeline.duration > 0 {
+        template.timeline.duration
+    } else {
+        5 * saturn_core::TICKS_PER_SECOND
+    };
+    let mut graphics = Vec::new();
+    for (index, layer) in template.layers.iter().filter(|layer| layer.visible).enumerate() {
+        let kind = match &layer.source {
+            saturn_graphics::LayerSource::Shape { shape_type, .. } => match shape_type {
+                saturn_graphics::ShapeType::Ellipse => "ellipse",
+                saturn_graphics::ShapeType::Polygon | saturn_graphics::ShapeType::Star => "polygon",
+                _ => "rectangle",
+            },
+            saturn_graphics::LayerSource::Solid { .. } => "rectangle",
+            saturn_graphics::LayerSource::Image { .. } | saturn_graphics::LayerSource::Video { .. } => continue,
+            _ => "text",
+        };
+        let fill = match &layer.source {
+            saturn_graphics::LayerSource::Solid { color } => Some(json!({"color": color, "opacity": layer.opacity})),
+            saturn_graphics::LayerSource::Shape { fill, .. } => Some(json!({"color": fill.color, "opacity": layer.opacity * fill.opacity})),
+            saturn_graphics::LayerSource::Text { font, .. } => Some(json!({"color": font.color, "opacity": layer.opacity})),
+            _ => None,
+        };
+        let text = match &layer.source {
+            saturn_graphics::LayerSource::Text { content, font } => Some(json!({
+                "content": content,
+                "font_family": font.family,
+                "font_size": font.size,
+                "tracking": font.tracking,
+                "leading": font.leading,
+                "align": match font.alignment {
+                    saturn_graphics::TextAlignment::Left => "left",
+                    saturn_graphics::TextAlignment::Center => "center",
+                    saturn_graphics::TextAlignment::Right => "right",
+                    saturn_graphics::TextAlignment::Justify => "justify",
+                },
+            })),
+            _ => None,
+        };
+        graphics.push(json!({
+            "name": layer.name,
+            "kind": kind,
+            "start_ticks": start_tick,
+            "duration_ticks": duration,
+            "layer": (index as i32) + 1,
+            "visible": true,
+            "transform": {
+                "x": layer.transform.position[0] as f64,
+                "y": layer.transform.position[1] as f64,
+                "width": 400.0 * layer.transform.scale[0] as f64,
+                "height": 400.0 * layer.transform.scale[1] as f64,
+                "rotation": layer.transform.rotation as f64,
+                "anchor_x": layer.transform.anchor[0] as f64,
+                "anchor_y": layer.transform.anchor[1] as f64,
+                "opacity": layer.opacity as f64,
+            },
+            "fill": fill,
+            "text": text,
+        }));
+    }
+    if graphics.is_empty() {
+        return Err("template has no supported visible layers to apply".into());
+    }
+    Ok(graphics)
+}
+
 /// Graphics template commands backed by the `.sgt` format in `saturn-graphics`.
 fn run_template(tokens: Vec<String>) -> Result<(), String> {
     let (positional, flags) = parse_flags(tokens);
@@ -338,7 +409,36 @@ fn run_template(tokens: Vec<String>) -> Result<(), String> {
                     .collect();
             }
 
-            let template = GraphicsTemplate::new(metadata);
+            let mut template = GraphicsTemplate::new(metadata);
+            // A template with no layers cannot be applied to anything. Seed one
+            // editable text layer so create -> apply is a real round trip.
+            let layer: saturn_graphics::TemplateLayer = serde_json::from_value(json!({
+                "id": "00000000-0000-0000-0000-000000000001",
+                "name": "Title",
+                "layer_type": "Text",
+                "visible": true,
+                "locked": false,
+                "opacity": 1.0,
+                "blend_mode": "Normal",
+                "transform": {
+                    "position": [100.0, 100.0], "scale": [1.0, 1.0],
+                    "rotation": 0.0, "anchor": [0.0, 0.0],
+                    "flip_x": false, "flip_y": false
+                },
+                "effects": [],
+                "source": {
+                    "Text": {
+                        "content": "Title",
+                        "font": {
+                            "family": "Inter", "size": 48.0, "weight": "normal",
+                            "style": "normal", "color": "#ffffff",
+                            "alignment": "Left", "tracking": 0.0, "leading": 1.0
+                        }
+                    }
+                },
+                "mask": null
+            })).map_err(|error| format!("could not build default template layer: {error}"))?;
+            template.add_layer(layer);
             save_template(&template, &path)
                 .map_err(|error| format!("could not write {}: {error}", path.display()))?;
             print_json(&json!({
@@ -407,11 +507,59 @@ fn run_template(tokens: Vec<String>) -> Result<(), String> {
                 "name": template.metadata.name,
             }))
         }
-        "apply" => Err(
-            "template apply is not supported: graphics templates cannot be applied to a sequence yet"
-                .into(),
-        ),
-        _ => Err("usage: saturn-cli template create <path> --name <name> | inspect <path> | list [dir] | export <path> --output <path>".into()),
+        "apply" => {
+            let template_path = path.ok_or("missing template path")?;
+            let project_path = flags
+                .get("project")
+                .map(PathBuf::from)
+                .ok_or("--project is required to apply a template to a saved project")?;
+            let start_tick: i64 = flags
+                .get("tick")
+                .map(|value| value.parse::<i64>())
+                .transpose()
+                .map_err(|error| format!("--tick must be an integer: {error}"))?
+                .unwrap_or(0);
+            let template = load_template(&template_path)
+                .map_err(|error| format!("could not read {}: {error}", template_path.display()))?;
+            let graphics = template_graphics(&template, start_tick)?;
+
+            let mut engine = EditorEngine::default();
+            execute(&mut engine, "file.open", json!({ "path": project_path }))?;
+            let mut template_ids = Vec::new();
+            for mut body in graphics {
+                let template_id = engine.document().project.next_id;
+                let name = body["name"].clone();
+                body["id"] = json!(template_id);
+                engine.document_mut().project.next_id += 1;
+                engine.document_mut().project.graphic_templates.push(
+                    serde_json::from_value(json!({
+                        "id": template_id,
+                        "name": name,
+                        "body": body,
+                    }))
+                    .map_err(|error| format!("could not build template graphic: {error}"))?,
+                );
+                template_ids.push(template_id);
+            }
+            let mut applied = Vec::new();
+            for template_id in template_ids {
+                let result = execute(
+                    &mut engine,
+                    "graphic.template_apply",
+                    json!({"template_id": template_id, "start_ticks": start_tick}),
+                )?;
+                applied.push(result["id"].clone());
+            }
+            execute(&mut engine, "file.save", json!({ "path": project_path }))?;
+            print_json(&json!({
+                "applied": true,
+                "template": template.metadata.name,
+                "project": project_path,
+                "start_ticks": start_tick,
+                "graphic_ids": applied,
+            }))
+        }
+        _ => Err("usage: saturn-cli template create <path> --name <name> | inspect <path> | list [dir] | export <path> --output <path> | apply <path> --project <project.saturn> [--tick <ticks>]".into()),
     }
 }
 

@@ -96,13 +96,16 @@ def template_export(ctx: click.Context, path: str, output: str):
 
 @template_group.command('apply')
 @click.argument('path', type=click.Path(exists=True, dir_okay=False))
-@click.option('--params', '-p', help='Parameter bindings (JSON)')
+@click.option('--project', 'project', required=True, type=click.Path(exists=True, dir_okay=False), help='Saved .saturn project to update')
+@click.option('--tick', 'tick', default=0, type=int, help='Timeline tick at which to place the template')
+@click.option('--params', '-p', help='Parameter bindings (JSON), reserved for future use')
 @click.pass_context
-def template_apply(ctx: click.Context, path: str, params):
-    """Apply a template to the current sequence (not supported yet)."""
+def template_apply(ctx: click.Context, path: str, project: str, tick: int, params):
+    """Apply a .sgt template to a saved project at a timeline tick."""
     try:
-        backend.get_saturn_cli().run_cli_json(["template", "apply", path])
-        format_success("Template applied", {"path": path}, ctx.obj['output_format'])
+        args = ["template", "apply", path, "--project", project, "--tick", str(tick)]
+        result = backend.get_saturn_cli().run_cli_json(args)
+        format_success("Template applied", result, ctx.obj['output_format'])
     except errors.EepError as e:
         format_output(e.to_dict(), ctx.obj['output_format'])
         ctx.exit(1)
