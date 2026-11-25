@@ -18,7 +18,7 @@ Easy Edits Pro (`v0.1.3-beta`) is a **beta** native Linux non-destructive video 
 ## Remaining / Open work
 
 - **Audio Stem Separation (`Phase 4.2` — `audio.separate_stems`):** Intentionally deferred until a verified, license-cleared commercial-safe Dialogue/Music/Ambience/SFX model is available.
-- **Remaining Narrative Verbs (`Phase 5.1`):** `timeline.fluid_morph_cut` and `timeline.pin_clip_to_storyline`.
+- **Narrative Verbs (`Phase 5.1`, done):** `timeline.fluid_morph_cut` (bounded motion-compensated dissolve) and `timeline.pin_clip_to_storyline` (magnetic pins).
 - **VFX & Kinetic Typography (`Phase 6`):** `vfx.depth_map_compositor`, `vfx.planar_corner_pin`, `vfx.inpaint_object_removal`, `graphic.kinetic_typography`, and end-to-end `template apply` fix.
 - **Cross-Platform (`XP1–XP4`):** `windows-latest` / `macos-latest` CI check matrix (`XP1`), `saturn-platform` OS abstraction crate (`XP2`), headless CLI/MCP ports (`XP3`), and desktop GUI packaging (`XP4`).
 - **Shared Agent Contract (`TS-X`):** Extract shared `tasksheet/1` contract crate when Audio Labs Pro or Screen Studio Pro becomes a second active workspace consumer.
@@ -27,4 +27,4 @@ Easy Edits Pro (`v0.1.3-beta`) is a **beta** native Linux non-destructive video 
 
 ## Where help is welcome
 
-Testing on additional Linux distributions, `Phase 5.1` / `Phase 6` engine features, cross-platform (`XP1–XP3`) porting, regression tests, and documentation. See [CONTRIBUTING.md](CONTRIBUTING.md) and the issues labelled `good first issue` and `help wanted`.
+Testing on additional Linux distributions, `Phase 6` engine features, cross-platform (`XP1–XP3`) porting, regression tests, and documentation. See [CONTRIBUTING.md](CONTRIBUTING.md) and the issues labelled `good first issue` and `help wanted`.
