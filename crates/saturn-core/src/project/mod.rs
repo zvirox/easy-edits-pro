@@ -105,6 +105,7 @@ impl ProjectDocument {
             branches: Vec::new(),
             locks: crate::lock::LockRegistry::new(),
             storyline_pins: Vec::new(),
+            vfx_corner_pins: Vec::new(),
         }
     }
 

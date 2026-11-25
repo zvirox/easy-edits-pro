@@ -21,6 +21,9 @@ pub struct ProjectDocument {
     /// Magnetic storyline pins (Packet 5.1), owned by the project document.
     #[serde(default)]
     pub storyline_pins: Vec<crate::storyline_pins::StorylinePin>,
+    /// Planar corner pins from Packet 6.1, owned by the project document.
+    #[serde(default)]
+    pub vfx_corner_pins: Vec<crate::corner_pin::ClipCornerPin>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

@@ -23,6 +23,7 @@ pub mod audio_edit_files;
 pub mod audio_master;
 pub mod audio_telemetry;
 pub mod compositor;
+pub mod corner_pin;
 pub mod curves;
 pub mod encoders;
 pub mod frame_extractor;

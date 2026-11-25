@@ -28,6 +28,7 @@ mod match_cut_cmd;
 mod beat_grid_cmd;
 mod storyline_pin_cmd;
 mod fluid_morph_cmd;
+mod corner_pin_cmd;
 mod branch_cmds;
 mod brief_cmds;
 mod clip_advanced_cmds;
@@ -718,6 +719,9 @@ impl EditorEngine {
                 return result;
             }
             if let Some(result) = self.dispatch_fluid_morph(command.id, request.params.clone()) {
+                return result;
+            }
+            if let Some(result) = self.dispatch_corner_pin(command.id, request.params.clone()) {
                 return result;
             }
             if let Some(result) = self.dispatch_audio_edit(command.id, request.params.clone()) {

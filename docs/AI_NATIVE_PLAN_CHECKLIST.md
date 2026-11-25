@@ -325,7 +325,7 @@ All five Phase 5.1 verbs shipped; morph is a documented bounded motion-compensat
 
 ### Packet 6.1 — Depth compositing, corner-pin & object removal (Lane 2)
 - [ ] Implement `vfx.depth_map_compositor` (Depth-Anything-V2 z-threshold compositing / DOF bokeh)
-- [ ] Implement `vfx.planar_corner_pin` (4-corner homography + motion blur)
+- [x] Implement `vfx.planar_corner_pin` — core command validates and persists a normalized four-corner quad on `ProjectDocument.vfx_corner_pins`; `saturn-render::corner_pin` performs the real inverse-homography bilinear warp with a three-tap edge-direction blur; unit + integration tests green.
 - [ ] Implement `vfx.inpaint_object_removal` (optical-flow clean-plate inpainting)
 
 ### Packet 6.2 — Kinetic typography & `.sgt` template fix (Lane 2)

@@ -10375,6 +10375,33 @@
   },
   {
     "aliases": [
+      "corner pin",
+      "perspective warp"
+    ],
+    "category": "Sequence",
+    "id": "vfx.planar_corner_pin",
+    "label": "Planar Corner Pin...",
+    "menu": [
+      "Sequence",
+      "VFX"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"corners\":[[num,num],[num,num],[num,num],[num,num]],\"motion_blur\":bool?}",
+    "profiles": [
+      "rough-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
       "morph cut"
     ],
     "category": "Sequence",
