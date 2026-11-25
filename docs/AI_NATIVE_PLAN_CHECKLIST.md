@@ -13,12 +13,12 @@
 
 - **Completed:** AI-native Phases 0–3; Phase 4 plugin/offline operations; Packet
   5.1 J/L, match-cut and beat-grid slices; Packet 5.2 co-editing panels; AF1–AF5; TS0–TS6 & CET v0.1 (`EEP-Bench (scripted conformance suite)`); **UI-P0..UI-P7** & **Final Linear Solid UI** (custom 40 px `TitleBar`, exclusive title-bar Dark/Light `ThemeToggle`, collapsible `Sidebar`, `Breadcrumb`, shared `components/linear/` primitives, Deliver `StatCard`/`ProgressRow`, hardened `check:linear` gate — **UI style is final and locked; all obsolete UI planning removed**); **AF7 / Packet 7.1** (`cli-anything-eep` 5 subcommand groups, 5 companion §2.6 recipes, closed-loop skill definitions); **AF8 / Packet 7.2** (`EEP-Bench` 16 tasks, real LLM `--agent` evaluation mode with honest null telemetry, separate published baseline, live-bridge acceptance suite `ai_closed_loop_workflow.py` with seeded failure controls); **AF9** (Authenticated long-lived daemon on UDS and TCP with bearer tokens, headless project lifecycle, sliding-window rate limits, session time budgets, bounded JSONL audit log, AF2 Stop & AF5 provenance); **TS7** (Daemon Web API on `saturn-control` with REST endpoints for tasksheets, questions, review, verify/delivery, and WebSocket `/ws` event broadcast); **TS8** (Web Desk MVP browser UI for B2B self-hosting with Jobs board, New job modal, Job detail, Plan approval, Questions inbox, Web Review view with raw proxy video player, AGPL §13 source/licence link, and 13-area Playwright E2E suite); **TS9** (Runner & multi-job execution with `RunnerService`, semaphore-based worker pool, session leasing from `SessionManager`, wall-clock time, token/cost, and render minutes budget enforcement, AF2 kill switch halting <= 1s, Bring-Your-Own local/cloud model endpoints with credential redaction in audit logs, REST `/runner/*` endpoints, and `cli-anything-eep runner` CLI); **TS10** (Enterprise SSO OIDC/SAML 2.0 & RBAC in `saturn-control` with Okta, Azure AD/Entra ID, Keycloak claim mapping, strict agent approval rejection 403 Forbidden, dual-mounted Axum REST endpoints under `/auth/sso` and `/api/v1/auth/sso`, audit secret redaction, and 10-scenario conformance suite in `ts10_sso_tests.rs`).
-- **Open:** Two remaining Phase 5.1 verbs (`timeline.fluid_morph_cut`, `timeline.pin_clip_to_storyline`), Phase 6 VFX & kinetic typography (`saturn-graphics`/`saturn-text` `.sgt` `template apply`, depth/corner-pin/inpainting/typography), XP1–XP4 (cross-platform), TS-X (shared agent contract crate), and C2–C3 (community launch). Phase 4 stays open only on cinema Dialogue/Music/Ambience/SFX stem separation (deferred for a verified, license-cleared model). AF0 retains open packaging/maintainer sign-off items (installed-worker CLAP host smoke inside package layout, ONNX/GES/SQLite archive notices, formal maintainer sign-off on defaults).
+- **Open:** The remaining Phase 5.1 verb (`timeline.fluid_morph_cut`), Phase 6 VFX & kinetic typography (`saturn-graphics`/`saturn-text` `.sgt` `template apply`, depth/corner-pin/inpainting/typography), XP1–XP4 (cross-platform), TS-X (shared agent contract crate), and C2–C3 (community launch). Phase 4 stays open only on cinema Dialogue/Music/Ambience/SFX stem separation (deferred for a verified, license-cleared model). AF0 retains open packaging/maintainer sign-off items (installed-worker CLAP host smoke inside package layout, ONNX/GES/SQLite archive notices, formal maintainer sign-off on defaults).
 - **AF0 inventory/design recorded:** current dependency graphs and the older
   `v0.1.2-alpha.2` package payloads are inventoried; conservative actor/history,
   lock, Stop and atomic-batch contracts are reviewed. See the
   [inventory](audit/af0-inventory.md) and [design](planning/af0-actor-design.md).
-- **Next actionable work:** advance remaining **Phase 5.1** verbs and Phase 5 gate, XP1–XP4, and TS-X (TS0–TS10, AF0–AF9 closed).
+- **Next actionable work:** implement the remaining **Phase 5.1** morph cut and close the Phase 5 gate, then XP1–XP4 and TS-X (TS0–TS10, AF0–AF9 closed).
 - **Proposed execution queue, pending maintainer decision:** AF0 → AF1 (Done) → AF2 (Done) →
   AF4 (Done) → AF3 (Done) → AF5 (Done) → AF6/5.2 (Done) → TS0–TS6 (Implemented) → AF6.1 (Done) → **UI-P0..UI-P7 (Done)** → **AF7/7.1 (Done)** → **AF8/7.2 (Done)** →
   **AF9 (Done)** → **TS7 (Done)** → **TS8 (Done)** → **TS9 (Done)** → **TS10 (Done)** → remaining 5.1 and Phase 5 gate → Phase 6. Base verification/recipe smoke may
@@ -246,7 +246,7 @@ contracts, limits and test locations: [audio-processing.md](audio-processing.md)
 - [x] Implement `edit.match_cut_align` (eye_trace | motion | transient; bounded heuristics described below)
 - [x] Implement `timeline.beat_grid_quantize` (bounded constant-pulse heuristic; explicit downbeat for 4/4 bar/half)
 - [ ] Implement `timeline.fluid_morph_cut`
-- [ ] Implement `timeline.pin_clip_to_storyline` (magnetic storyline pins in `saturn-timeline`)
+- [x] Implement `timeline.pin_clip_to_storyline` (magnetic storyline pins) — cross-track pin links stored on `ProjectDocument.storyline_pins`; ripple trims and ripple deletes carry pinned descendants; `crates/saturn-core/tests/storyline_pins.rs` green; catalogue regenerated to 493 commands
 - [x] Run `pnpm catalogue:sync` for J/L, match-cut and beat-grid slices (rerun for each remaining verb)
 
 **Packet 5.1, first-task slice — J/L split edits:** select the incoming clip of
@@ -297,7 +297,7 @@ collisions, insufficient handles and stale snapshots error. Quantize before
 detaching sound. Core history/persistence, native rendered cut/audio controls,
 MCP preparation and browser menu/error contracts have focused coverage.
 See [beat-grid-quantization.md](beat-grid-quantization.md) for bounds and limits.
-Morph cuts, storyline pins and Packet 5.2 remain planned.
+Storyline pins shipped; the fluid morph cut remains planned.
 
 ### Packet 5.2 — Co-editing React 19 panels (Lane 1)
 

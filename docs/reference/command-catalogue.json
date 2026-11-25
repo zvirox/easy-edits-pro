@@ -10374,6 +10374,33 @@
     "undoGroup": "transaction"
   },
   {
+    "aliases": [
+      "magnetic pin",
+      "storyline pin"
+    ],
+    "category": "Sequence",
+    "id": "timeline.pin_clip_to_storyline",
+    "label": "Pin Clip to Storyline...",
+    "menu": [
+      "Sequence",
+      "Storyline"
+    ],
+    "mutating": true,
+    "params": "{\"child_track_id\":int,\"child_clip_index\":int,\"parent_track_id\":int,\"parent_clip_index\":int}",
+    "profiles": [
+      "rough-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
     "aliases": [],
     "category": "Sequence",
     "id": "timeline.setTargeting",

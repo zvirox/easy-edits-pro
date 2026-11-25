@@ -315,9 +315,11 @@ impl EditorEngine {
                     ));
                 }
                 self.checkpoint();
+                let pin_snapshot = self.document.storyline_pins.clone();
                 let report = crate::speech::ripple_delete_time_ranges(
                     &mut self.document.project.sequence,
                     &params.ranges,
+                    &pin_snapshot,
                 )
                 .map_err(DispatchError::Operation)?;
                 Ok(serde_json::to_value(&report).unwrap_or(json!({"extracted": true})))

@@ -24,6 +24,7 @@ pub mod project;
 pub mod provenance;
 pub mod script_sync;
 pub mod speech;
+pub mod storyline_pins;
 pub mod timeline_edits;
 pub mod subtitles;
 pub mod tasksheet;

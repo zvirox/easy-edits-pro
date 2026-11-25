@@ -41,6 +41,22 @@ pub(crate) const COMMANDS: &[CommandSpec] = &[
         tier: Tier::Edit, tiers: &[Tier::Edit],
         profiles: &["rough-cut"],
     },
+    CommandSpec {
+        id: "timeline.pin_clip_to_storyline",
+        label: "Pin Clip to Storyline...",
+        menu: &["Sequence", "Storyline"],
+        shortcut: None,
+        params: "{\"child_track_id\":int,\"child_clip_index\":int,\"parent_track_id\":int,\"parent_clip_index\":int}",
+        category: Category::Sequence,
+        mutating: true,
+        undo_group: UndoGroup::Transaction,
+        aliases: &["magnetic pin", "storyline pin"],
+        since: "0.4.0",
+        shipped: true,
+        ui_only: false,
+        tier: Tier::Edit, tiers: &[Tier::Edit],
+        profiles: &["rough-cut"],
+    },
     // Track targeting: editor-state target sets, 1-based per kind.
     CommandSpec {
         id: "timeline.setTargeting",

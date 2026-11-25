@@ -548,6 +548,13 @@ impl EditorEngine {
                 transition.cut_at.0 = transition.cut_at.0.saturating_add(shift);
             }
             track.clips.sort_by_key(|item| item.timeline_start);
+
+            let pin_snapshot = self.document.storyline_pins.clone();
+            crate::storyline_pins::propagate_pins(
+                &mut self.document.project.sequence,
+                &pin_snapshot,
+                &[(clip.id, shift)],
+            );
         }
 
         Ok(json!({

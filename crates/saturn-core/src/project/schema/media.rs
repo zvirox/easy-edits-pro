@@ -18,6 +18,9 @@ pub struct ProjectDocument {
     /// Durable actor-owned clip and region locks (schema v17, AF2).
     #[serde(default)]
     pub locks: crate::lock::LockRegistry,
+    /// Magnetic storyline pins (Packet 5.1), owned by the project document.
+    #[serde(default)]
+    pub storyline_pins: Vec<crate::storyline_pins::StorylinePin>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

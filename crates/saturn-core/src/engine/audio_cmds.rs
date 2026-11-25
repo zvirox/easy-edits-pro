@@ -258,9 +258,11 @@ impl EditorEngine {
                     .map(|s| (s.start_ticks, s.end_ticks))
                     .collect();
                 self.checkpoint();
+                let pin_snapshot = self.document.storyline_pins.clone();
                 let report = crate::speech::ripple_delete_time_ranges(
                     &mut self.document.project.sequence,
                     &ranges,
+                    &pin_snapshot,
                 )
                 .map_err(DispatchError::Operation)?;
                 Ok(serde_json::to_value(&report).unwrap_or(json!({"deleted": true})))
@@ -280,9 +282,11 @@ impl EditorEngine {
                     .map(|s| (s.start_ticks, s.end_ticks))
                     .collect();
                 self.checkpoint();
+                let pin_snapshot = self.document.storyline_pins.clone();
                 let report = crate::speech::ripple_delete_time_ranges(
                     &mut self.document.project.sequence,
                     &ranges,
+                    &pin_snapshot,
                 )
                 .map_err(DispatchError::Operation)?;
                 Ok(serde_json::to_value(&report).unwrap_or(json!({"deleted": true})))

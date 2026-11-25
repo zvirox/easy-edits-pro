@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-492 commands.
+493 commands.
 
 ## File
 
@@ -326,6 +326,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Verify Sequence | `verify.run` | shipped |  | `{"preset": "web-1080p\|vertical-9x16\|broadcast-r128"}` |
 | Quantize Cuts to Music... | `timeline.beat_grid_quantize` | shipped |  | `{"music_track_id":int,"video_track_id":int,"subdivision":"bar\|half\|quarter","strength":num,"downbeat_tick":ticks?}` |
 | Create J/L Split Edit... | `timeline.asymmetric_trim` | shipped |  | `{"track_id":int,"clip_index":int,"video_delta":ticks,"audio_delta":ticks,"fade_ticks":ticks?}` |
+| Pin Clip to Storyline... | `timeline.pin_clip_to_storyline` | shipped |  | `{"child_track_id":int,"child_clip_index":int,"parent_track_id":int,"parent_clip_index":int}` |
 | Track Targeting | `timeline.setTargeting` | shipped |  | `{"video":int[]?,"audio":int[]?}` |
 | Toggle Target Video 1 | `timeline.toggleTargetV1` | shipped |  | `{}` |
 | Toggle Target Video 2 | `timeline.toggleTargetV2` | shipped |  | `{}` |

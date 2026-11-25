@@ -324,6 +324,7 @@ pub fn detect_silence_from_peaks(
 pub fn ripple_delete_time_ranges(
     sequence: &mut Sequence,
     ranges: &[(Tick, Tick)],
+    pins: &[crate::storyline_pins::StorylinePin],
 ) -> Result<RippleDeleteReport, String> {
     let merged = merge_time_ranges(ranges);
     if merged.is_empty() {
@@ -339,6 +340,7 @@ pub fn ripple_delete_time_ranges(
     let total_removed_ticks: i64 = merged.iter().map(|(s, e)| e.0 - s.0).sum();
     let mut tracks_affected = 0;
     let mut clips_modified = 0;
+    let mut pin_moves: Vec<(u64, i64)> = Vec::new();
 
     // Process each unlocked track
     for track in &mut sequence.tracks {
@@ -353,6 +355,7 @@ pub fn ripple_delete_time_ranges(
         // Shift fragments left based on all merged ranges that occurred before them
         let mut new_clips: Vec<Clip> = Vec::new();
         for mut frag in fragments {
+            let old_start = frag.timeline_start.0;
             let mut shift = 0i64;
             for &(range_start, range_end) in &merged {
                 let r_start = range_start.0;
@@ -367,6 +370,10 @@ pub fn ripple_delete_time_ranges(
             }
 
             frag.timeline_start = Tick((frag.timeline_start.0 - shift).max(0));
+            let delta = frag.timeline_start.0 - old_start;
+            if delta != 0 {
+                pin_moves.push((frag.id, delta));
+            }
             new_clips.push(frag);
         }
 
@@ -378,6 +385,29 @@ pub fn ripple_delete_time_ranges(
         new_clips.sort_by_key(|c| c.timeline_start.0);
         track.clips = new_clips;
     }
+
+    // A split parent can produce conflicting deltas; pins are only propagated
+    // for clips with one unambiguous move.
+    let mut unambiguous: Vec<(u64, i64)> = Vec::new();
+    for (id, delta) in pin_moves {
+        if let Some(existing) = unambiguous.iter_mut().find(|(other, _)| *other == id) {
+            if existing.1 != delta {
+                existing.1 = i64::MIN;
+            }
+        } else {
+            unambiguous.push((id, delta));
+        }
+    }
+    unambiguous.retain(|(_, delta)| *delta != i64::MIN);
+    // Clips on rippled tracks already moved; propagating to them again would
+    // double-shift them. Pins only carry clips that did not receive a shift.
+    let moved_ids: Vec<u64> = unambiguous.iter().map(|(id, _)| *id).collect();
+    let carriers: Vec<crate::storyline_pins::StorylinePin> = pins
+        .iter()
+        .filter(|pin| !moved_ids.contains(&pin.child_clip_id))
+        .cloned()
+        .collect();
+    crate::storyline_pins::propagate_pins(sequence, &carriers, &unambiguous);
 
     // Shift and trim caption cues so captions stay in sync with spoken video
     let mut subtitles_adjusted = 0usize;
@@ -621,7 +651,7 @@ mod tests {
             (Tick::from_millis(7000), Tick::from_millis(8000)),
         ];
 
-        let report = ripple_delete_time_ranges(&mut seq, &ranges).expect("ripple delete succeeds");
+        let report = ripple_delete_time_ranges(&mut seq, &ranges, &[]).expect("ripple delete succeeds");
         assert_eq!(report.deleted_ranges_count, 2);
         assert_eq!(report.total_duration_removed_ticks.as_millis(), 3000);
         assert_eq!(report.tracks_affected, 1);

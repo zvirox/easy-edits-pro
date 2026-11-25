@@ -26,6 +26,7 @@ mod audio_edit_cmds;
 mod asymmetric_trim_cmd;
 mod match_cut_cmd;
 mod beat_grid_cmd;
+mod storyline_pin_cmd;
 mod branch_cmds;
 mod brief_cmds;
 mod clip_advanced_cmds;
@@ -710,6 +711,9 @@ impl EditorEngine {
                 return result;
             }
             if let Some(result) = self.dispatch_beat_grid(command.id, request.params.clone()) {
+                return result;
+            }
+            if let Some(result) = self.dispatch_storyline_pin(command.id, request.params.clone()) {
                 return result;
             }
             if let Some(result) = self.dispatch_audio_edit(command.id, request.params.clone()) {
