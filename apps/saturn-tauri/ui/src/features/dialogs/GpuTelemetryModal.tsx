@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "../../components/interior/interior-button";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 export interface GpuMetrics {
   fpsMeasured?: number;
   presentationTimeUs?: number;
@@ -24,7 +24,7 @@ export function GpuTelemetryModal({
   gpuMetrics,
 }: GpuTelemetryModalProps) {
   return (
-    <GlassDialog
+    <LinearDialog
       open={isOpen}
       cardClassName="modal-dialog-card glass gpu-telemetry-hud"
       onBackdropClick={onClose}
@@ -75,6 +75,6 @@ export function GpuTelemetryModal({
         <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end" }}>
           <InteriorButton type="button" className="primary" onClick={onClose}>Close HUD</InteriorButton>
         </div>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

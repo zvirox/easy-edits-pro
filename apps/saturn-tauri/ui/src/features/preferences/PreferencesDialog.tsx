@@ -2,10 +2,10 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { useEffect, useState } from "react";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { Icon } from "../../components/Icon";
-import type { GlassMode, Preferences, TrackHeightPreference } from "./preferences";
+import type { Preferences, TrackHeightPreference } from "./preferences";
 
 type TabId = "general" | "appearance" | "timeline" | "media" | "audio" | "export" | "schema";
 
@@ -122,7 +122,7 @@ export function PreferencesDialog({
   }, [open, runCommand]);
 
   return (
-    <GlassDialog
+    <LinearDialog
       open={open}
       cardClassName="modal-dialog-card glass preferences-dialog"
       onBackdropClick={onClose}
@@ -197,26 +197,10 @@ export function PreferencesDialog({
 
           {tab === "appearance" ? (
             <>
-              <Segmented
-                label="Theme"
-                value={preferences.theme}
-                options={[
-                  { value: "dark", label: "Dark" },
-                  { value: "light", label: "Light" },
-                ]}
-                onChange={(theme) => onChange({ theme })}
-              />
-              <Segmented<GlassMode>
-                label="Glass surfaces"
-                hint="Preview, timeline, scopes, and waveforms never take glass."
-                value={preferences.glass}
-                options={[
-                  { value: "full", label: "Full" },
-                  { value: "lite", label: "Lite" },
-                  { value: "off", label: "Off" },
-                ]}
-                onChange={(glass) => onChange({ glass })}
-              />
+              <p className="preferences-note">
+                Theme (Dark / Light) is controlled exclusively from the window title bar.
+                All surfaces use locked solid Linear tokens with zero glass blur.
+              </p>
               <Segmented<boolean | null>
                 label="Motion"
                 hint="Follow system honours your desktop's reduced-motion setting."
@@ -301,6 +285,6 @@ export function PreferencesDialog({
           Reset all preferences
         </InteriorButton>
       </footer>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

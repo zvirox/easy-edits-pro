@@ -347,10 +347,11 @@ export async function run(ctx) {
   await sweepViewport(page, ctx, 1366, 700);
   await sweepViewport(page, ctx, 1280, 800);
   await sweepViewport(page, ctx, 1024, 768);
+  await sweepViewport(page, ctx, 1024, 640);
   await sweepViewport(page, ctx, 900, 620);
 
-  ctx.state.geometryInvariance = 'passed (full 6-viewport matrix across 1920/1600/1366/1280/1024/900, seven shell modes + full-page deliver)';
-  ctx.state.noCardOverlap = 'passed (all modes across full 6-viewport matrix, zero root document overflow)';
+  ctx.state.geometryInvariance = 'passed (full 7-viewport matrix across 1920/1600/1366/1280/1024x768/1024x640/900, seven shell modes + full-page deliver)';
+  ctx.state.noCardOverlap = 'passed (all modes across full 7-viewport matrix, zero root document overflow)';
 
   // G7 debt (plan v4 §5): the right-dock collapse band. Above 1280 the card
   // mounts; inside 1100–1280 it must be out of layout while every shell

@@ -3,7 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 import { useEffect, useState } from "react";
 import { InteriorButton } from "../../components/interior/interior-button";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 import type { MediaAsset, ProjectDocument } from "../../app/projectTypes";
 import type { ColorInfo, MediaHygieneOps } from "../../app/useMediaHygiene";
 
@@ -76,7 +76,7 @@ export function MediaPropsModal({
   const asset = media.find((m) => m.id === mediaEditPropsId) ?? null;
   const proxyPath = asset?.proxy_path ?? null;
   return (
-    <GlassDialog
+    <LinearDialog
       as="form" open={mediaEditPropsId !== null}
       cardClassName="modal-dialog-card glass" cardProps={{
         style: { maxWidth: "460px" },
@@ -228,6 +228,6 @@ export function MediaPropsModal({
           <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
           <InteriorButton className="primary" type="submit">Save Properties</InteriorButton>
         </div>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

@@ -94,9 +94,7 @@ export function ProjectWelcomeScreen({
 
   return (
     <main className="welcome-shell">
-      <div className="welcome-ambient-glow" aria-hidden="true" />
-      <div className="welcome-grid-pattern" aria-hidden="true" />
-      <header className="welcome-topbar glass" data-elev="1">
+      <header className="welcome-topbar surface-1">
         <div className="welcome-brand">
           <img src="/eep-icon.png" alt="" />
           <span>
@@ -161,7 +159,7 @@ export function ProjectWelcomeScreen({
           </div>
         </section>
 
-        <section className="welcome-panel glass" data-elev="3" aria-label="Project selection">
+        <section className="welcome-panel surface-1" aria-label="Project selection">
           {welcomeMode === "home" ? (
             <>
               <div className="welcome-panel-heading">

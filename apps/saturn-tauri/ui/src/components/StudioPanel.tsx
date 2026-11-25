@@ -30,8 +30,7 @@ export function StudioPanel({
 }: StudioPanelProps) {
   return (
     <section
-      className={`studio-panel glass ${collapsed ? "is-collapsed " : ""}${className}`}
-      data-elev="1"
+      className={`studio-panel surface-1 ${collapsed ? "is-collapsed " : ""}${className}`}
       style={style}
     >
       {(title != null || actions != null) && (

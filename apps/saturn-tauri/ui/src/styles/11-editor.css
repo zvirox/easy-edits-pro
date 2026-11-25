@@ -280,10 +280,10 @@
 .batch-queue-progress-fill {
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary));
-  border-radius: 2px;
+  background: var(--accent-primary);
+  border-radius: 4px;
   transform-origin: left center;
-  transition: transform var(--dur-med) var(--ease-out);
+  transition: transform 150ms ease-out;
 }
 
 /* Motion Tracking & Camera Stabilization Inspector Card */

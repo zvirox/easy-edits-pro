@@ -9,7 +9,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { backdropVariants, dialogVariants, menuVariants, useMotionPreset } from "../../motion/variants";
 import { Icon, type IconName } from "../../components/Icon";
 import { useClipSelection } from "../../app/selectionStore";
-import { ThemeToggle } from "../../components/interior/theme-toggle";
 import { SegmentedControl } from "../../components/interior/segmented-control";
 import type { JobInfo } from "../../app/useJobs";
 import type { CommandStatus } from "../../app/ProjectProvider";
@@ -90,8 +89,6 @@ export interface AppHeaderProps {
   clearJobHistory: () => Promise<void>;
   setBatchQueueDrawerOpen: (open: boolean) => void;
   setAiChatDrawerOpen: (open: boolean) => void;
-  theme: "dark" | "light";
-  toggleTheme: () => void;
 }
 
 export function AppHeader({
@@ -121,8 +118,6 @@ export function AppHeader({
   clearJobHistory,
   setBatchQueueDrawerOpen,
   setAiChatDrawerOpen,
-  theme,
-  toggleTheme,
 }: AppHeaderProps) {
   // F1: selection comes from the shared store; the prop is gone.
   const { clip: selectedClip } = useClipSelection();
@@ -263,7 +258,7 @@ export function AppHeader({
         {openMenu === menu && menuAnchor && createPortal(
           <motion.div
             ref={menuPopoverRef}
-            className="menu-popover glass" data-elev="3" role="menu" initial={motionPreset.initial}
+            className="menu-popover surface-1" role="menu" initial={motionPreset.initial}
             animate="animate" variants={menuVariants}
             transition={motionPreset.transition}
             style={{
@@ -306,7 +301,7 @@ export function AppHeader({
 
   return (
     <>
-    <header className="app-header glass" data-elev="1">
+    <header className="app-header surface-1">
       {/* Tier 1 (32px System Menu & Global Utilities) */}
       <div className="system-bar-tier1">
         <div className="system-bar-left">
@@ -403,7 +398,7 @@ export function AppHeader({
             <AnimatePresence>
               {jobDrawerOpen && (
                 <motion.div
-                  className="job-drawer-popover glass" data-elev="3" initial={motionPreset.initial}
+                  className="job-drawer-popover surface-1" initial={motionPreset.initial}
                   animate="animate" exit="exit" variants={menuVariants}
                   transition={motionPreset.transition}
                   style={{ transformOrigin: "top right" }}
@@ -510,8 +505,6 @@ export function AppHeader({
             <span className="system-util-btn-label">AI Assistant</span>
             <span className="exp-badge">EXP</span>
           </InteriorButton>
-
-          <ThemeToggle theme={theme} onToggle={toggleTheme} />
         </div>
       </div>
 
@@ -544,7 +537,7 @@ export function AppHeader({
         transition={motionPreset.transition}
       >
         <motion.section
-          className="command-palette glass" data-elev="4" role="dialog" aria-modal="true" aria-labelledby="command-palette-title" initial={motionPreset.initial}
+          className="command-palette surface-1" role="dialog" aria-modal="true" aria-labelledby="command-palette-title" initial={motionPreset.initial}
           animate="animate" exit="exit" variants={dialogVariants}
           transition={motionPreset.transition}
           style={{ transformOrigin: "top center" }}

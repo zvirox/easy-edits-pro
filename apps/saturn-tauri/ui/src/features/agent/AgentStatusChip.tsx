@@ -31,8 +31,7 @@ export const AgentStatusChip: React.FC<AgentStatusChipProps> = ({ session, onSto
 
   return (
     <div
-      className="agent-status-chip glass"
-      data-elev="2"
+      className="agent-status-chip surface-1"
       role="region"
       aria-label="Agent Session Status"
       style={{

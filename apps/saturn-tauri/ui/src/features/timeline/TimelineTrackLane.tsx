@@ -294,7 +294,7 @@ export function TimelineTrackLane({
                 left: `${clipLeft}px`,
                 width: `${clipWidth}px`,
                 borderLeftColor: item?.color_tag || undefined,
-                ...(labelHex ? { boxShadow: `inset 0 3px 0 0 ${labelHex}` } : {}),
+                ...(labelHex ? { borderTop: `3px solid ${labelHex}` } : {}),
               }}
               key={`${clip.media_id}-${clip.timeline_start}-${index}`}
               data-media-id={clip.media_id}

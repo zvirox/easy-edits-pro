@@ -77,7 +77,7 @@ export function StatusBar({
   };
 
   return (
-    <footer className="status-bar glass" data-elev="1">
+    <footer className="status-bar surface-1">
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <span>{busy ? "Working…" : notice || "Autosave recovery enabled · saves every 30 seconds"}</span>
         {resolvedBranch && (
@@ -105,7 +105,7 @@ export function StatusBar({
               gap: "6px",
               padding: "1px 6px",
               borderRadius: "var(--radius-xs, 4px)",
-              background: "var(--card-inset, rgba(255,255,255,0.05))",
+              background: "var(--bg-surface-2)",
             }}
             title={`Active Task Sheet: ${summary.title} (Click to open)`}
           >

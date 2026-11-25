@@ -28,7 +28,7 @@ export const WebDeskShell: React.FC = () => {
   return (
     <div className="webdesk-root" data-testid="webdesk-root">
       {/* Shell Header */}
-      <header className="webdesk-header glass" data-elev="2">
+      <header className="webdesk-header surface-1">
         <div className="webdesk-brand">
           <span className="webdesk-title"> Easy Edits Pro</span>
           <span className="webdesk-badge">Web Desk (B2B Self-Host)</span>
@@ -114,7 +114,7 @@ export const WebDeskShell: React.FC = () => {
         <div
           className="webdesk-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="agpl-modal-title" data-testid="agpl-license-modal"
         >
-          <div className="webdesk-modal glass" data-elev="4">
+          <div className="webdesk-modal surface-1">
             <div className="webdesk-modal-header">
               <h2 id="agpl-modal-title" className="webdesk-modal-title">
                 ⚖ Source and Licence (AGPL §13)
@@ -134,7 +134,7 @@ export const WebDeskShell: React.FC = () => {
               </p>
 
               <div
-                className="glass" data-elev="1" style={{
+                className="surface-1" style={{
                   padding: "10px 14px",
                   borderRadius: "var(--radius-sm, 8px)",
                   border: "1px solid var(--glass-border)",

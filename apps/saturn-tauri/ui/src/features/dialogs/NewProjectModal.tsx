@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "../../components/interior/interior-button";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 export interface NewProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,7 +19,7 @@ export function NewProjectModal({
   onCreate,
 }: NewProjectModalProps) {
   return (
-    <GlassDialog
+    <LinearDialog
       as="form"
       open={isOpen}
       cardClassName="new-project-dialog glass"
@@ -47,6 +47,6 @@ export function NewProjectModal({
           Create
         </InteriorButton>
       </div>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

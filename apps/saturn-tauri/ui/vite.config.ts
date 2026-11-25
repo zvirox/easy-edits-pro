@@ -1,14 +1,21 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
+const tauriConfPath = fileURLToPath(new URL("../tauri.conf.json", import.meta.url));
+const tauriConf = JSON.parse(readFileSync(tauriConfPath, "utf8")) as { version?: string };
+
 export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
   plugins: [react(), tailwindcss()],
+  define: {
+    __APP_VERSION__: JSON.stringify(tauriConf.version ?? "0.1.3-beta.3"),
+  },
   clearScreen: false,
   server: {
     host: "127.0.0.1",

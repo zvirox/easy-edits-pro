@@ -20,17 +20,21 @@ export const RangeTabs: React.FC<RangeTabsProps> = ({
 }) => {
   return (
     <div
-      className={`inline-flex items-center gap-0.5 p-0.5 rounded-lg border border-[var(--border)] bg-[var(--bg-surface-2)] select-none ${className}`}
+      role="tablist"
+      className={`inline-flex items-center gap-0.5 p-0.5 rounded-[6px] border border-[var(--border)] bg-[var(--bg-surface-2)] select-none ${className}`}
     >
       {options.map((tab) => {
         const isActive = tab === active;
         return (
           <button
             key={tab}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
             onClick={() => onChange(tab)}
-            className={`px-2.5 py-1 text-xs rounded-md font-medium transition-all duration-150 cursor-pointer ${
+            className={`px-2.5 py-1 text-xs rounded-[4px] font-medium transition-[background-color,color,border-color] duration-150 ease-out cursor-pointer ${
               isActive
-                ? 'bg-[var(--bg-surface)] text-[var(--text)] border border-[var(--border)] shadow-[0_1px_2px_rgb(16_24_40_/_5%)] dark:shadow-none'
+                ? 'bg-[var(--bg-surface)] text-[var(--text)] border border-[var(--border)] shadow-[var(--card-shadow)]'
                 : 'text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-bar-idle)] border border-transparent'
             }`}
           >

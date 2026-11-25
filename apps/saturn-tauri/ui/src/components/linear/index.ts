@@ -3,8 +3,13 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 export * from './LinearCard';
 export * from './LinearButton';
+export * from './LinearDialog';
 export * from './StatusPill';
 export * from './TitleBar';
+export * from './ThemeToggle';
+export * from './Sidebar';
+export * from './Breadcrumb';
+export * from './DataTable';
 export * from './StatCard';
 export * from './ProgressRow';
 export * from './RangeTabs';

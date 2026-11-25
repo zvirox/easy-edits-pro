@@ -331,7 +331,7 @@ it does not invent historical D-number assignments or new product approvals.
 
 | Topic | Current evidence and design constraint |
 |---|---|
-| Glow | `ui/src/styles/00-tokens-glass.css` under `apps/saturn-tauri` supplies locked stage gradients; `docs/GLASS_CARDS_PLAN.md` mentions an optional boost. AF0 does not approve changing locked tokens. |
+| Glow | Historically `00-tokens-glass.css` carried stage glow tokens; the finalized Linear UI locks zero glow, zero blur, and solid matte tokens in `linear-theme.css`. |
 | Splitters/layout | `apps/saturn-tauri/ui/src/workspaces/WorkspaceShell.tsx` uses stationary slots and `columnRatiosFor`; glass plan section 1 excludes dragging/saved layouts. Preserve fixed workspace presets; no new floating panels or movable splitters. |
 | Assistant | `apps/saturn-tauri/ui/src/components/OllamaChatDrawer.tsx` is the current local assistant. Right-dock Agent/Review tabs remain proposed, subject to existing-function/provider parity. |
 | Workspace names | `apps/saturn-tauri/ui/src/features/menubar/AppHeader.tsx:43-60` has separate editor/workspace label tables with differing aliases. These are current evidence, not an approved naming register; public naming remains subject to the repository's generic-label rule and maintainer decision. |

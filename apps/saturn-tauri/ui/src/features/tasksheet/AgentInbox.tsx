@@ -81,7 +81,7 @@ export const AgentInbox: React.FC<AgentInboxProps> = ({ questions, onAnswer }) =
         return (
           <div
             key={q.id}
-            className="glass" data-elev="2" style={{
+            className="surface-1" style={{
               padding: "10px 12px",
               borderRadius: "var(--radius-sm, 10px)",
               border: "1px solid var(--warn-text, #f59e0b)",
@@ -113,11 +113,11 @@ export const AgentInbox: React.FC<AgentInboxProps> = ({ questions, onAnswer }) =
                       borderRadius: "var(--radius-xs, 6px)",
                       cursor: "pointer",
                       background: isSelected
-                        ? "var(--surface-sunken, rgba(245,158,11,0.15))"
-                        : "var(--surface-sunken, rgba(0,0,0,0.2))",
+                        ? "var(--tint-amber-bg)"
+                        : "var(--bg-surface-2)",
                       border: isSelected
-                        ? "1px solid var(--warn-text, #f59e0b)"
-                        : "1px solid var(--border-subtle, rgba(255,255,255,0.08))",
+                        ? "1px solid var(--status-warning)"
+                        : "1px solid var(--border-color)",
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -125,14 +125,14 @@ export const AgentInbox: React.FC<AgentInboxProps> = ({ questions, onAnswer }) =
                         style={{
                           width: "18px",
                           height: "18px",
-                          borderRadius: "50%",
+                          borderRadius: "9999px",
                           display: "inline-flex",
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: "10px",
                           fontWeight: 700,
-                          background: isSelected ? "var(--warn-text, #f59e0b)" : "var(--border-subtle)",
-                          color: isSelected ? "var(--text-inverted, #000)" : "var(--text-primary)",
+                          background: isSelected ? "var(--status-warning)" : "var(--border-color)",
+                          color: isSelected ? "var(--on-accent)" : "var(--text-primary)",
                         }}
                       >
                         {idx + 1}

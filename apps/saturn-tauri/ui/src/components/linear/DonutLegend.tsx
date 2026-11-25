@@ -17,13 +17,19 @@ export interface DonutLegendProps {
 
 export const DonutLegend: React.FC<DonutLegendProps> = ({ items, className = '' }) => {
   return (
-    <div className={`flex flex-col gap-2.5 w-full ${className}`}>
+    <div className={`flex flex-col w-full ${className}`}>
       {items.map((item, index) => (
-        <div key={index} className="flex items-center justify-between text-xs gap-3">
+        <div
+          key={index}
+          className={`flex items-center justify-between text-xs gap-3 py-2 ${
+            index < items.length - 1 ? 'border-b border-dashed border-[var(--border)]' : ''
+          }`}
+        >
           <div className="flex items-center gap-2 min-w-0">
             <span
-              className="size-2 rounded-full shrink-0"
+              className="size-2.5 rounded-[2px] shrink-0"
               style={{ backgroundColor: item.color }}
+              aria-hidden="true"
             />
             <span className="text-[var(--text-muted)] truncate">{item.label}</span>
           </div>

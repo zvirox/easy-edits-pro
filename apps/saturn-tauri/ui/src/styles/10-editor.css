@@ -226,7 +226,6 @@
   fill: var(--status-warning);
   stroke: var(--color-white);
   stroke-width: 2;
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--status-warning) 80%, transparent));
 }
 
 .curve-transport-bar {

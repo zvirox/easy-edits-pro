@@ -4,108 +4,61 @@
  * Also available under the EEP commercial licence — see LICENSING.md
  */
 /* ==========================================================================
-   Glass design tokens (Phase 1)
-   Imported after 01-editor.css so it can extend the base palette.
-   Colour pairs are enforced by scripts/check-contrast.mjs.
+   Linear Solid Surface Aliases (Zero Blur, Zero Translucent Fills)
+   Maps compatibility variables strictly to the locked Linear palette in
+   linear-theme.css. Contrast pairs are enforced by scripts/check-contrast.mjs.
    ========================================================================== */
 
 :root,
 [data-theme="dark"],
 .dark {
-  /* Accent used as text. The base accent (#9f1249) is a surface colour, not a
-     legible body colour on dark backgrounds. */
-  --accent-text: #f472b6;
-  --accent-text-hover: #f9a8d4;
-  --accent-text-violet: #c084fc;
+  --accent-text: var(--accent-sky);
+  --accent-text-hover: var(--text);
+  --accent-text-violet: #A78BFA;
 
-  /* Glass surfaces, L1 (subtle) to L4 (modal) -> Solid Linear Matte Surfaces */
-  --glass-l1: #121215;
-  --glass-l2: #17171c;
-  --glass-l3: #202026;
-  --glass-l4: #121215;
-  --glass-border: #23232a;
-  --glass-highlight: rgba(255, 255, 255, 0.07);
-  --glass-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.07), 0 1px 2px 0 rgba(0, 0, 0, 0.4), 0 12px 30px -10px rgba(0, 0, 0, 0.85);
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-soft-lg: inset 0 1px 0 0 rgba(255, 255, 255, 0.07), 0 12px 30px -10px rgba(0, 0, 0, 0.85);
+  --glass-l1: var(--bg-surface);
+  --glass-l2: var(--bg-surface-2);
+  --glass-l3: var(--bg-surface-2);
+  --glass-l4: var(--bg-surface);
+  --glass-border: var(--border);
+  --glass-highlight: transparent;
+  --glass-shadow: none;
+  --shadow-soft: none;
+  --shadow-soft-lg: none;
   --glass-saturate: 100%;
 
-  /* Backdrop blur radii, L1-L4 (Zero Blur - Linear Solid Standard) */
   --blur-l1: 0px;
   --blur-l2: 0px;
   --blur-l3: 0px;
   --blur-l4: 0px;
+  --blur-sm: none;
+  --blur-md: none;
+  --blur-lg: none;
+  --blur-xl: none;
+  --blur-2xl: none;
 
-  /* Plan v4 shape tokens (docs/GLASS_CARDS_PLAN.md §3): spacing and shape
-     only. --card-inset is the single sanctioned colour addition and enters
-     the token-freeze snapshot with this commit. Both themes inherit these. */
   --gap: 12px;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --card-inset: #17171c;
-
-  /* Solid obsidian canvas under all layers (Linear-Style spec) */
-  --bg-stage: #08080a;
-
-  /* Motion. */
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --dur-fast: 120ms;
-  --dur-med: 220ms;
-  --dur-slow: 360ms;
+  --card-inset: var(--bg-surface-2);
+  --bg-stage: var(--bg-app);
 }
 
 [data-theme="light"],
 .light {
-  --accent-text: #9f1249;
-  --accent-text-hover: #991144;
-  --accent-text-violet: #6b21a8;
+  --accent-text: var(--accent-blue);
+  --accent-text-hover: var(--accent-blue-hover);
+  --accent-text-violet: var(--tint-purple-fg);
 
-  --glass-l1: rgba(255, 250, 253, 0.66);
-  --glass-l2: rgba(255, 250, 253, 0.78);
-  --glass-l3: rgba(255, 250, 253, 0.88);
-  --glass-l4: rgba(255, 250, 253, 0.94);
-  --glass-border: rgba(83, 41, 67, 0.16);
-  --glass-highlight: rgba(255, 255, 255, 0.72);
-  --glass-shadow: 0 18px 40px rgba(40, 22, 34, 0.16);
-  --shadow-soft: 0 1px 4px rgba(0, 0, 0, 0.04);
-  --shadow-soft-lg: 0 4px 14px rgba(17, 9, 16, 0.08);
-  --glass-saturate: 135%;
-
-  --blur-l1: 8px;
-  --blur-l2: 14px;
-  --blur-l3: 20px;
-  --blur-l4: 28px;
-
-  --bg-stage:
-    radial-gradient(48vw 42vh at 18% 22%, rgba(255, 92, 148, 0.14), transparent 62%),
-    radial-gradient(42vw 46vh at 82% 74%, rgba(88, 132, 255, 0.12), transparent 64%),
-    radial-gradient(36vw 32vh at 62% 18%, rgba(255, 184, 92, 0.1), transparent 60%),
-    linear-gradient(160deg, #fff7fb 0%, #f1e8ef 54%, #f7eef4 100%);
-
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --dur-fast: 120ms;
-  --dur-med: 220ms;
-  --dur-slow: 360ms;
-}
-
-/* --------------------------------------------------------------------------
-   Glass degradation modes
-   Phase 2's .glass rules consume these tokens; the fallbacks are defined here
-   so [data-glass] works from day one.
-   -------------------------------------------------------------------------- */
-
-[data-glass="lite"],
-[data-webkit-gtk-slow="true"] {
   --glass-l1: var(--bg-surface);
-  --glass-l2: var(--bg-surface);
-  --glass-l3: var(--bg-surface);
+  --glass-l2: var(--bg-surface-2);
+  --glass-l3: var(--bg-surface-2);
   --glass-l4: var(--bg-surface);
-  --glass-border: var(--border-default);
+  --glass-border: var(--border);
   --glass-highlight: transparent;
-  --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  --glass-shadow: var(--card-shadow);
+  --shadow-soft: var(--card-shadow);
+  --shadow-soft-lg: var(--card-shadow);
   --glass-saturate: 100%;
+
   --blur-l1: 0px;
   --blur-l2: 0px;
   --blur-l3: 0px;
@@ -115,86 +68,8 @@
   --blur-lg: none;
   --blur-xl: none;
   --blur-2xl: none;
-}
 
-[data-glass="off"] {
-  --glass-l1: var(--bg-surface);
-  --glass-l2: var(--bg-surface);
-  --glass-l3: var(--bg-surface);
-  --glass-l4: var(--bg-surface);
-  --glass-border: var(--border-default);
-  --glass-highlight: transparent;
-  --glass-shadow: none;
-  --glass-saturate: 100%;
-  --blur-l1: 0px;
-  --blur-l2: 0px;
-  --blur-l3: 0px;
-  --blur-l4: 0px;
-  --blur-sm: none;
-  --blur-md: none;
-  --blur-lg: none;
-  --blur-xl: none;
-  --blur-2xl: none;
-}
-
-/* Some legacy rules still carry a literal blur(...) value. The fallback modes
-   must disable those too, not only the tokenised ones. */
-[data-glass="lite"] *,
-[data-glass="off"] *,
-[data-webkit-gtk-slow="true"] *,
-[data-glass="lite"] *::before,
-[data-glass="lite"] *::after,
-[data-glass="off"] *::before,
-[data-glass="off"] *::after,
-[data-webkit-gtk-slow="true"] *::before,
-[data-webkit-gtk-slow="true"] *::after {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  :root,
-  [data-theme="dark"],
-  .dark,
-  [data-theme="light"],
-  .light {
-    --glass-l1: var(--bg-surface);
-    --glass-l2: var(--bg-surface);
-    --glass-l3: var(--bg-surface);
-    --glass-l4: var(--bg-surface);
-    --glass-border: var(--border-default);
-    --glass-highlight: transparent;
-    --glass-shadow: none;
-    --glass-saturate: 100%;
-    --blur-l1: 0px;
-    --blur-l2: 0px;
-    --blur-l3: 0px;
-    --blur-l4: 0px;
-    --blur-sm: none;
-    --blur-md: none;
-    --blur-lg: none;
-    --blur-xl: none;
-    --blur-2xl: none;
-  }
-
-  *,
-  *::before,
-  *::after {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root,
-  [data-theme="dark"],
-  .dark,
-  [data-theme="light"],
-  .light {
-    --dur-fast: 0ms;
-    --dur-med: 0ms;
-    --dur-slow: 0ms;
-    --ease-spring: linear;
-    --ease-out: linear;
-  }
+  --gap: 12px;
+  --card-inset: var(--bg-surface-2);
+  --bg-stage: var(--bg-app);
 }

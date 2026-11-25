@@ -27,8 +27,12 @@ import { dirname, join, relative } from "node:path";
 const APP_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const UI_SRC = join(APP_ROOT, "ui/src");
 const BASELINE_PATH = join(APP_ROOT, "scripts/style-baseline.json");
-const TOKEN_FILES = new Set(["styles/00-tokens-glass.css", "styles/01-editor.css"]);
-const GLASS_FILES = new Set(["styles/00-tokens-glass.css", "styles/120-glass.css"]);
+const TOKEN_FILES = new Set([
+  "styles/linear-theme.css",
+  "styles/00-tokens-glass.css",
+  "styles/01-editor.css",
+]);
+const GLASS_FILES = new Set();
 const MEDIA_COMPONENTS = new Set([
   "features/preview/PreviewSection.tsx",
   "features/timeline/TimelineSection.tsx",

@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { useEffect, useState } from "react";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 import { InteriorButton } from "../../components/interior/interior-button";
 
 export interface HistoryDialogProps {
@@ -43,7 +43,7 @@ export function HistoryDialog({ isOpen, onClose, runCommand }: HistoryDialogProp
   }, [isOpen, runCommand]);
 
   return (
-    <GlassDialog
+    <LinearDialog
       open={isOpen}
       cardClassName="modal-dialog-card glass history-card"
       onBackdropClick={onClose}
@@ -95,6 +95,6 @@ export function HistoryDialog({ isOpen, onClose, runCommand }: HistoryDialogProp
           Close
         </InteriorButton>
       </div>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

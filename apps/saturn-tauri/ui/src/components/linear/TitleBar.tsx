@@ -2,24 +2,33 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import React, { useEffect, useState } from 'react';
-import { Minus, Square, Copy, X, Sun, Moon } from 'lucide-react';
+import { Minus, Square, Copy, X } from 'lucide-react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { ThemeToggle } from './ThemeToggle';
+import { UI_THEME_STORAGE_KEY } from '../../features/preferences/preferences';
 
 export interface TitleBarProps {
   title?: string;
   version?: string;
   icon?: React.ReactNode;
-  compact?: boolean;
   className?: string;
   onThemeToggle?: (theme: 'dark' | 'light') => void;
   children?: React.ReactNode;
 }
 
+function defaultVersionTag(): string {
+  try {
+    const v = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.1.3-beta.3';
+    return v.startsWith('v') ? v : `v${v}`;
+  } catch {
+    return 'v0.1.3-beta.3';
+  }
+}
+
 export const TitleBar: React.FC<TitleBarProps> = ({
   title = 'Easy Edits Pro',
-  version = 'v0.1.3-beta.3',
+  version = defaultVersionTag(),
   icon,
-  compact = false,
   className = '',
   onThemeToggle,
   children,
@@ -28,34 +37,46 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   useEffect(() => {
-    // Sync initial theme
-    const currentTheme =
-      (document.documentElement.getAttribute('data-theme') as 'dark' | 'light') ||
-      (document.documentElement.classList.contains('light') ? 'light' : 'dark');
-    setTheme(currentTheme);
+    const syncTheme = () => {
+      const currentTheme =
+        (document.documentElement.getAttribute('data-theme') as 'dark' | 'light') ||
+        (document.documentElement.classList.contains('light') ? 'light' : 'dark');
+      setTheme(currentTheme);
+    };
+    syncTheme();
 
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+
+    let unlistenPromise: Promise<() => void> | null = null;
     try {
       if (typeof window !== 'undefined' && ('__TAURI_INTERNALS__' in window || '__TAURI__' in window)) {
         const appWindow = getCurrentWindow();
         appWindow.isMaximized().then(setIsMaximized).catch(() => {});
-        const unlisten = appWindow.onResized(() => {
+        unlistenPromise = appWindow.onResized(() => {
           appWindow.isMaximized().then(setIsMaximized).catch(() => {});
         });
-        return () => {
-          unlisten.then((fn) => fn()).catch(() => {});
-        };
       }
     } catch {
-      // Running outside Tauri runtime
+      // Running outside Tauri runtime (browser/Playwright)
     }
+
+    return () => {
+      observer.disconnect();
+      if (unlistenPromise) {
+        unlistenPromise.then((fn) => fn()).catch(() => {});
+      }
+    };
   }, []);
 
   const handleMinimize = async () => {
     try {
-      const appWindow = getCurrentWindow();
-      await appWindow.minimize();
+      await getCurrentWindow().minimize();
     } catch {
-      // fallback
+      // fallback outside Tauri
     }
   };
 
@@ -63,8 +84,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
     try {
       const appWindow = getCurrentWindow();
       await appWindow.toggleMaximize();
-      const maximized = await appWindow.isMaximized();
-      setIsMaximized(maximized);
+      setIsMaximized(await appWindow.isMaximized());
     } catch {
       setIsMaximized((prev) => !prev);
     }
@@ -72,10 +92,9 @@ export const TitleBar: React.FC<TitleBarProps> = ({
 
   const handleClose = async () => {
     try {
-      const appWindow = getCurrentWindow();
-      await appWindow.close();
+      await getCurrentWindow().close();
     } catch {
-      // fallback
+      // fallback outside Tauri
     }
   };
 
@@ -83,49 +102,28 @@ export const TitleBar: React.FC<TitleBarProps> = ({
     const nextTheme: 'dark' | 'light' = theme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
     document.documentElement.setAttribute('data-theme', nextTheme);
-    if (nextTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    } else {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
+    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+    document.documentElement.classList.toggle('light', nextTheme === 'light');
+    try {
+      localStorage.setItem(UI_THEME_STORAGE_KEY, nextTheme);
+    } catch {}
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute('content', nextTheme === 'dark' ? '#050505' : '#F3F4F6');
     }
-    localStorage.setItem('theme', nextTheme);
     window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: nextTheme } }));
     onThemeToggle?.(nextTheme);
   };
 
-  if (compact) {
-    return (
-      <div
-        role="region"
-        aria-label="Window Title Bar"
-        data-tauri-drag-region
-        className={`h-8 w-full select-none bg-[var(--bg-app)] border-b border-[var(--border)] flex items-center justify-between px-2.5 text-[var(--text)] ${className}`}
-      >
-        <div data-tauri-drag-region className="flex items-center gap-2">
-          {icon && <span className="size-4 shrink-0 flex items-center justify-center">{icon}</span>}
-          <span className="text-xs font-semibold tracking-tight">{title}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="size-6 inline-flex items-center justify-center rounded text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] transition-colors cursor-pointer"
-          >
-            {theme === 'dark' ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
-          </button>
-          <button
-            onClick={handleClose}
-            aria-label="Close window"
-            className="size-6 inline-flex items-center justify-center rounded text-[var(--text-muted)] hover:bg-[#F43F5E] hover:text-white transition-colors cursor-pointer"
-          >
-            <X className="size-3.5" />
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const logoNode = icon ?? (
+    <img
+      src="/eep-icon.png"
+      alt=""
+      width={20}
+      height={20}
+      className="size-5 shrink-0 rounded-[4px] object-contain"
+    />
+  );
 
   return (
     <div
@@ -134,69 +132,62 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       data-tauri-drag-region
       className={`h-10 w-full select-none bg-[var(--bg-app)] border-b border-[var(--border)] flex items-center justify-between px-3 text-[var(--text)] shrink-0 z-50 ${className}`}
     >
-      {/* Left branding */}
+      {/* Left: 20px app logo, app name, version tag */}
       <div data-tauri-drag-region className="flex items-center gap-2 shrink-0">
-        {icon && <span className="size-5 shrink-0 flex items-center justify-center">{icon}</span>}
-        <span className="text-[13px] font-semibold tracking-tight text-[var(--text)]">{title}</span>
+        {logoNode}
+        <span className="text-[13px] font-semibold tracking-tight text-[var(--text)]">
+          {title}
+        </span>
         {version && (
-          <span className="px-1.5 py-0.5 text-[11px] font-mono rounded bg-[var(--bg-surface-2)] border border-[var(--border)] text-[var(--text-muted)] select-none">
+          <span className="px-1.5 py-0.5 text-[11px] leading-none font-mono rounded-[4px] bg-[var(--bg-surface-2)] border border-[var(--border)] text-[var(--text-muted)] select-none">
             {version}
           </span>
         )}
       </div>
 
-      {/* Center empty drag region */}
+      {/* Center: empty drag region, double-click toggles maximize */}
       <div
         data-tauri-drag-region
         onDoubleClick={handleToggleMaximize}
-        className="flex-1 h-full min-w-8 flex items-center justify-center cursor-default"
+        className="flex-1 h-full min-w-8 cursor-default"
       />
 
-      {/* Right controls */}
+      {/* Right: theme toggle, divider, minimize, maximize/restore, close */}
       <div className="flex items-center gap-1 shrink-0">
         {children}
         {children && <div className="w-px h-3.5 bg-[var(--border)] mx-1" />}
-        {/* Theme toggle */}
+        <ThemeToggle theme={theme} onToggle={toggleTheme} />
+        <div className="w-px h-3.5 bg-[var(--border)] mx-1" aria-hidden="true" />
         <button
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          className="size-7 inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] transition-colors cursor-pointer"
-        >
-          {theme === 'dark' ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
-        </button>
-
-        {/* Thin divider */}
-        <div className="w-px h-3.5 bg-[var(--border)] mx-1" />
-
-        {/* Minimize */}
-        <button
+          type="button"
           onClick={handleMinimize}
           aria-label="Minimize window"
           title="Minimize"
-          className="size-7 inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] transition-colors cursor-pointer"
+          className="size-7 p-0 shrink-0 inline-flex items-center justify-center rounded-[6px] border border-transparent bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] transition-colors duration-150 ease-out cursor-pointer"
         >
-          <Minus className="size-3.5" />
+          <Minus className="size-3.5 shrink-0" aria-hidden="true" />
         </button>
-
-        {/* Maximize / Restore */}
         <button
+          type="button"
           onClick={handleToggleMaximize}
           aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
           title={isMaximized ? 'Restore' : 'Maximize'}
-          className="size-7 inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] transition-colors cursor-pointer"
+          className="size-7 p-0 shrink-0 inline-flex items-center justify-center rounded-[6px] border border-transparent bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] transition-colors duration-150 ease-out cursor-pointer"
         >
-          {isMaximized ? <Copy className="size-3" /> : <Square className="size-3" />}
+          {isMaximized ? (
+            <Copy className="size-3 shrink-0" aria-hidden="true" />
+          ) : (
+            <Square className="size-3 shrink-0" aria-hidden="true" />
+          )}
         </button>
-
-        {/* Close */}
         <button
+          type="button"
           onClick={handleClose}
           aria-label="Close window"
           title="Close"
-          className="size-7 inline-flex items-center justify-center rounded-md text-[var(--text-muted)] hover:bg-[#F43F5E] hover:text-white transition-colors cursor-pointer"
+          className="size-7 p-0 shrink-0 inline-flex items-center justify-center rounded-[6px] border border-transparent bg-transparent text-[var(--text-muted)] hover:bg-[var(--accent-red-close)] hover:text-[var(--text-on-accent)] transition-colors duration-150 ease-out cursor-pointer"
         >
-          <X className="size-3.5" />
+          <X className="size-3.5 shrink-0" aria-hidden="true" />
         </button>
       </div>
     </div>

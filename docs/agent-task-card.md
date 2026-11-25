@@ -42,7 +42,7 @@ versions, prior packet ids, log lines, known traps.
 cargo test --workspace
 pnpm build
 pnpm test
-pnpm check:glass
+pnpm check:linear
 pnpm check:commands
 pnpm check:source-size --max-lines=800
 pnpm test:e2e
@@ -53,8 +53,8 @@ catalogue changed: pnpm catalogue:sync and commit the generated output)
 - Green main, always: small logical commit(s), no wip.
 - shipped: true only with a UI affordance and a test.
 - Stubs must return an error.
-- Design tokens only; glass only through .glass; media surfaces never glass;
-  no transition: all; 800-line limit.
+- Design tokens only (Linear solid UI is final and locked — zero blur, zero glow,
+  zero dark-theme shadows); media surfaces stay raw; no transition: all; 800-line limit.
 - Follow the honest-work rule: docs and screenshots may claim only what the
   gates verified.
 

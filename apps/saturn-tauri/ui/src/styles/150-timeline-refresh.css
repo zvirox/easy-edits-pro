@@ -84,12 +84,8 @@
    ------------------------------------------------------------------ */
 .timeline-clip { align-items: flex-start; padding-top: 3px; }
 .timeline-clip.video {
-  border-color: color-mix(in srgb, var(--accent-primary) 55%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--color-white) 11%, var(--bg-elevated)) 0 14px,
-    color-mix(in srgb, var(--color-black) 38%, var(--bg-elevated)) 14px
-  );
+  border-color: var(--accent-primary);
+  background: var(--bg-elevated);
 }
 .timeline-clip.video::before {
   content: "";

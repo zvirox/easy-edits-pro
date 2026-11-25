@@ -5,7 +5,7 @@
 
 > **Companion plan adopted 2026-11-08:** [AGENT_FIRST_PLAN.md](AGENT_FIRST_PLAN.md)
 > adds profiles, actor sessions, measured verification, briefs/provenance and
-> human review on the existing [fixed glass shell](GLASS_CARDS_PLAN.md). Follow
+> human review on the existing locked UI shell ([design-qa.md](design-qa.md)). Follow
 > the shared checklist's dependency-aware queue and open decisions. AF6 shares
 > Packet 5.2; AF7/AF8 share Packets 7.1/7.2. Completed work stays completed;
 > cinema Dialogue/Music/Ambience/SFX separation stays model/license-blocked.
@@ -910,7 +910,7 @@ When multiple AI coding agents work concurrently on Easy Edits Pro, every agent 
    - **Lane 4 (Tooling / Docs / Safety / MCP)**: `scripts/check-parity.mjs`, `docs/`, `crates/saturn-mcp/`, `apps/saturn-tauri/src/mcp_bridge.rs`, `apps/saturn-tauri/src/write_grants.rs`, `agent-harness/`.
 3. **Never Hand-Edit Generated Files**: `docs/COMMANDS.md`, `docs/reference/command-catalogue.json`, `docs/PARITY.md`, `docs/glass-tokens.md`, `Cargo.lock`, and `pnpm-lock.yaml` must only be updated by running `pnpm catalogue:sync` (or the token script) and committing the regenerated output.
 4. **Strict 800-Line Source Ceiling**: Every `.rs`, `.ts`, `.tsx`, and `.css` file must stay `<= 800` lines (`pnpm --dir apps/saturn-tauri check:source-size --max-lines=800`). Pre-split oversized legacy files (`crates/saturn-render/src/lib.rs` at 1,483 lines and `crates/saturn-mcp/src/server.rs` at 818 lines) before adding new functions.
-5. **Design Tokens & Glass Discipline**: Never hard-code hex/RGB colors, border radii, or spacing (`pnpm check:styles`). Apply `.glass` only through the official surface classes on UI chrome, and **never apply blur/glass over video preview, scopes, or audio meter canvases**. Never use `transition: all`.
+5. **Locked Linear Design Tokens & Raw Media Discipline**: Never hard-code hex/RGB colors, border radii, or spacing (`pnpm check:styles`). All surfaces use solid Linear matte tokens (`pnpm check:linear` — zero blur, zero glow, zero dark-theme shadows), and **never apply overlays/blur over video preview, scopes, or audio meter canvases**. Never use `transition: all`.
 6. **Honest Stubs & `shipped: true` Gate**: Any unimplemented command or unsupported parameter must return an explicit `Err(...)`—never a fake `"ok": true`. A command may only be marked `shipped: true` when it has (a) a real Rust engine implementation, (b) a working UI affordance, and (c) an automated test.
 7. **State Lives Exclusively in Rust**: The React frontend sends `CommandRequest` payloads and renders returned snapshots; never fork project or undo state in TypeScript.
 8. **Hotspot Serialization**: In `crates/saturn-core/src/catalogue/commands/<menu>.rs`, assign at most one agent per `<menu>.rs` file at a time; merge `apps/saturn-tauri/src/main.rs` handler registrations in small sequential commits.

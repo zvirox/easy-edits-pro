@@ -119,7 +119,7 @@ Rules: media-derived text (transcripts, captions) stays `untrusted` and can neve
 
 ---
 
-## 5. Desktop UI (on the glass shell; colours unchanged)
+## 5. Desktop UI (on the locked Linear solid shell; colours unchanged)
 
 Extends the AF6 Agent and Review cards; no new floating panels.
 

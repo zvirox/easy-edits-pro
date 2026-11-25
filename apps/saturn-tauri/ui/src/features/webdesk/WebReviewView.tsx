@@ -129,7 +129,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
     <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "var(--gap, 12px)", overflow: "hidden" }}>
       {/* Top Header Bar */}
       <div
-        className="glass" data-elev="2" style={{
+        className="surface-1" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -236,7 +236,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
 
           {/* Round Diff Summary */}
           <div
-            className="glass" data-elev="1" style={{
+            className="surface-1" style={{
               padding: "12px 14px",
               borderRadius: "var(--radius, 14px)",
               display: "flex",
@@ -260,13 +260,13 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginTop: "4px" }}>
-              <div className="glass" data-elev="1" style={{ padding: "6px 8px", borderRadius: "6px", fontSize: "11px" }}>
+              <div className="surface-1" style={{ padding: "6px 8px", borderRadius: "6px", fontSize: "11px" }}>
                 <span style={{ color: "var(--text-muted)" }}>Loudness:</span> <strong>-14.1 LUFS</strong>
               </div>
-              <div className="glass" data-elev="1" style={{ padding: "6px 8px", borderRadius: "6px", fontSize: "11px" }}>
+              <div className="surface-1" style={{ padding: "6px 8px", borderRadius: "6px", fontSize: "11px" }}>
                 <span style={{ color: "var(--text-muted)" }}>True Peak:</span> <strong>-1.0 dBTP</strong>
               </div>
-              <div className="glass" data-elev="1" style={{ padding: "6px 8px", borderRadius: "6px", fontSize: "11px" }}>
+              <div className="surface-1" style={{ padding: "6px 8px", borderRadius: "6px", fontSize: "11px" }}>
                 <span style={{ color: "var(--text-muted)" }}>Captions:</span> <strong>Safe Area Pass</strong>
               </div>
             </div>
@@ -275,7 +275,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
 
         {/* Right Column: Timecoded Revision Notes */}
         <div
-          className="glass" data-elev="2" style={{
+          className="surface-1" style={{
             padding: "14px",
             borderRadius: "var(--radius, 14px)",
             display: "flex",
@@ -335,7 +335,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
                 const isResolving = resolvingNoteId === note.id;
 
                 return (
-                  <div key={note.id} className="webdesk-note-item glass" data-elev="1" data-testid={`note-item-${note.id}`}>
+                  <div key={note.id} className="webdesk-note-item surface-1" data-testid={`note-item-${note.id}`}>
                     <div className="webdesk-note-header">
                       <button
                         type="button" className="webdesk-note-timecode-btn" onClick={() => handleJumpToTick(note.target_tick ?? 0)}
@@ -423,7 +423,7 @@ export const WebReviewView: React.FC<WebReviewViewProps> = ({ store, job }) => {
         <div
           className="webdesk-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="revision-modal-title" data-testid="revision-modal"
         >
-          <div className="webdesk-modal glass" data-elev="4">
+          <div className="webdesk-modal surface-1">
             <div className="webdesk-modal-header">
               <h2 id="revision-modal-title" className="webdesk-modal-title">
                  Request Revision (Round {rounds.length + 1})

@@ -22,8 +22,6 @@ export interface ViewCommandContext {
  */
 export function applyViewCommand(id: string, ctx: ViewCommandContext): boolean {
   if (id.startsWith("view.glass_")) {
-    const glass = id.slice("view.glass_".length) as Preferences["glass"];
-    ctx.setPreferences((current) => ({ ...current, glass }));
     return true;
   }
   switch (id) {
@@ -68,7 +66,7 @@ export function applyViewCommand(id: string, ctx: ViewCommandContext): boolean {
       ctx.setNotice("Report issues from the project repository.");
       return true;
     case "help.about":
-      ctx.setNotice("Easy Edits Pro — glass NLE built on the Saturn engine.");
+      ctx.setNotice("Easy Edits Pro — Linear NLE built on the Saturn engine.");
       return true;
     default:
       return false;

@@ -120,7 +120,7 @@ Easy Edits Pro combines a pure Rust project core and GStreamer media pipeline wi
 - **Word-Level Transcript Navigation**: Automatically turn dialogue into searchable text so clicking any word moves your playhead straight to that moment.
 - **Visual Color and Motion Tools**: Adjust exposure, saturation, and contrast, and animate clip positions or scale with customizable easing curves.
 - **GStreamer Hardware Rendering**: Smooth timeline previews and hardware-ready MP4 and WebM output with full resolution and bitrate control.
-- **Matte Graphite Interface**: Built for long editing sessions with zero blurry glass over your video canvas and clean 1px panel borders.
+- **Locked Linear Matte Interface**: Built for long editing sessions with dark and light matte themes toggled cleanly from the title bar, `1px` crisp borders, zero blurry glass, and zero overlays over your video canvas.
 - **Full Command Catalogue**: Every timeline action maps to a documented command, giving you reliable keyboard shortcuts and optional AI automation.
 
 ---
@@ -212,8 +212,8 @@ cargo build --release -p saturn-tauri
 | :--- | :--- | :--- |
 | **Project Engine** | Rust (`saturn-core`, `saturn-commands`) | Non-destructive timeline state, undo snapshots, and command router |
 | **Media Pipeline** | GStreamer | Real-time video playback, frame decoding, and MP4/WebM export |
-| **Desktop Shell** | Tauri 2 | Native Linux desktop shell and filesystem dialogs |
-| **Frontend UI** | React 19 + TypeScript + Tailwind CSS v4 | Matte graphite panels, inspector controls, and timeline canvas |
+| **Desktop Shell** | Tauri 2 | Custom 40 px frameless title bar, native Linux shell, and filesystem dialogs |
+| **Frontend UI** | React 19 + TypeScript + Tailwind CSS v4 | Locked Linear matte components, Inter typography, inspector controls, and timeline canvas |
 | **Charts & State** | Apache ECharts 6 + Zustand | Performance charts and reactive UI bindings |
 | **Automation Bridge** | `starship-plugin` SDK | Local Unix socket tools and Tier 2 editing approvals |
 

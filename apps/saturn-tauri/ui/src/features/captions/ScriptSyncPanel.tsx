@@ -190,9 +190,9 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
               borderRadius: "4px",
               fontSize: "10px",
               fontWeight: 600,
-              backgroundColor: "rgba(245, 158, 11, 0.15)",
-              color: "var(--warn-text, #f59e0b)",
-              border: "1px solid rgba(245, 158, 11, 0.3)",
+              backgroundColor: "var(--tint-amber-bg)",
+              color: "var(--tint-amber-text)",
+              border: "1px solid var(--status-warning)",
             }}
           >
              untrusted: true (whisper)
@@ -206,9 +206,9 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
             style={{
               flex: 1,
               padding: "5px 8px",
-              borderRadius: "var(--radius-sm, 6px)",
-              background: "var(--bg-elev-1, rgba(255,255,255,0.03))",
-              border: "1px solid var(--border-subtle, rgba(255,255,255,0.1))",
+              borderRadius: "6px",
+              background: "var(--bg-input)",
+              border: "1px solid var(--border-color)",
               color: "var(--text-primary)",
               fontSize: "12px",
             }}
@@ -218,8 +218,8 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
             <InteriorButton
               variant="secondary" size="sm" onClick={handleRippleCutSelected}
               title="Ripple-cut selected word duration from timeline" style={{
-                color: "var(--accent-text, #f472b6)",
-                borderColor: "var(--accent-text, #f472b6)",
+                color: "var(--accent-text)",
+                borderColor: "var(--accent-primary)",
               }}
             >
               Ripple Cut ({selectedWordIds.size})
@@ -236,18 +236,18 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
           return (
             <div
               key={line.id}
-              className="glass" data-elev="1" style={{
-                borderRadius: "var(--radius-sm, 8px)",
+              className="surface-1" style={{
+                borderRadius: "8px",
                 padding: "10px",
                 display: "flex",
                 flexDirection: "column",
                 gap: "8px",
-                border: "1px solid var(--border-subtle, rgba(255,255,255,0.08))",
+                border: "1px solid var(--border-color)",
               }}
             >
               {/* Speaker & Take Carousel selector */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 600, color: "var(--accent-text-cyan, #38bdf8)" }}>
+                <span style={{ fontWeight: 600, color: "var(--accent-cyan)" }}>
                   {line.speaker}
                 </span>
 
@@ -261,14 +261,14 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
                         title={`${t.label} (${Math.round(t.confidence * 100)}% match)`}
                         style={{
                           padding: "1px 6px",
-                          borderRadius: "3px",
+                          borderRadius: "4px",
                           border: t.isSelected
-                            ? "1px solid var(--accent-text, #f472b6)"
-                            : "1px solid var(--border-subtle, rgba(255,255,255,0.1))",
+                            ? "1px solid var(--accent-primary)"
+                            : "1px solid var(--border-color)",
                           background: t.isSelected
-                            ? "var(--accent-bg, rgba(244,114,182,0.15))"
+                            ? "var(--tint-blue-bg)"
                             : "transparent",
-                          color: t.isSelected ? "var(--accent-text, #f472b6)" : "var(--text-muted)",
+                          color: t.isSelected ? "var(--accent-text)" : "var(--text-muted)",
                           fontSize: "10.5px",
                           cursor: "pointer",
                         }}
@@ -303,25 +303,25 @@ export const ScriptSyncPanel: React.FC<ScriptSyncPanelProps> = ({
                       title={`${w.word} · ${formatTimecodeFrames(w.startTick, { numerator: 30, denominator: 1 })} (Shift+Click to select for ripple cut)`}
                       style={{
                         padding: "1px 4px",
-                        borderRadius: "3px",
+                        borderRadius: "4px",
                         cursor: "pointer",
                         textDecoration: w.struck ? "line-through" : undefined,
                         opacity: w.struck ? 0.4 : 1,
                         background: isActive
-                          ? "var(--accent-bg, rgba(244,114,182,0.25))"
+                          ? "var(--tint-blue-bg)"
                           : isSelected
-                          ? "rgba(56, 189, 248, 0.2)"
+                          ? "var(--tint-sky-bg)"
                           : "transparent",
                         color: isActive
-                          ? "var(--accent-text, #f472b6)"
+                          ? "var(--accent-text)"
                           : isSelected
-                          ? "var(--accent-text-cyan, #38bdf8)"
+                          ? "var(--tint-sky-text)"
                           : "var(--text-primary)",
                         fontWeight: isActive ? 600 : 400,
                         border: isSelected
-                          ? "1px dashed var(--accent-text-cyan, #38bdf8)"
+                          ? "1px dashed var(--accent-cyan)"
                           : "1px solid transparent",
-                        transition: "background-color var(--dur-fast, 120ms) var(--ease-out)",
+                        transition: "background-color 150ms ease-out",
                       }}
                     >
                       {w.word}

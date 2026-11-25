@@ -52,19 +52,28 @@ export async function run(ctx) {
   await page.locator('.shortcuts-dialog').getByRole('button', { name: 'Reset all to defaults' }).click();
   await page.locator('.shortcuts-dialog').getByRole('button', { name: 'Close', exact: true }).click();
 
-  // Preferences apply theme, glass, motion, and timeline defaults immediately.
+  // Theme toggles exclusively via TitleBar; Preferences owns motion & timeline defaults.
+  const initialTheme = await page.locator('html').getAttribute('data-theme');
+  assert.ok(initialTheme === 'dark' || initialTheme === 'light', 'initial theme should follow storage or OS preference');
+  const toggledTheme = initialTheme === 'dark' ? 'light' : 'dark';
+  const titleBarToggle = page.getByRole('button', { name: 'Toggle theme', exact: true });
+  await titleBarToggle.click();
+  assert.equal(await page.locator('html').getAttribute('data-theme'), toggledTheme);
+  await titleBarToggle.click();
+  assert.equal(await page.locator('html').getAttribute('data-theme'), initialTheme);
+
   await page.locator('.app-shell').press('Control+,');
   const preferencesDialog = page.locator('.preferences-dialog');
   await preferencesDialog.waitFor();
   await page.waitForTimeout(250);
   await page.screenshot({ path: '/tmp/easy-edits-pro-preferences.png' });
-  assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
-  await preferencesDialog.getByRole('button', { name: 'Light', exact: true }).click();
-  assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
-  await preferencesDialog.getByRole('button', { name: 'Dark', exact: true }).click();
-  await preferencesDialog.getByRole('button', { name: 'Off', exact: true }).click();
+  await preferencesDialog.getByRole('button', { name: 'Reduce', exact: true }).click();
+  assert.equal(
+    await preferencesDialog.getByRole('button', { name: 'Reduce', exact: true }).getAttribute('aria-pressed'),
+    'true',
+  );
+  await preferencesDialog.getByRole('button', { name: 'Follow system', exact: true }).click();
   assert.equal(await page.locator('html').getAttribute('data-glass'), 'off');
-  await preferencesDialog.getByRole('button', { name: 'Full', exact: true }).click();
   await preferencesDialog.getByRole('tab', { name: 'Timeline' }).click();
   await preferencesDialog.getByRole('button', { name: 'Compact', exact: true }).click();
   if ((await page.locator('.track-row').count()) > 0) {
@@ -81,8 +90,8 @@ export async function run(ctx) {
   const storedPreferences = await page.evaluate(() =>
     JSON.parse(localStorage.getItem('easy-edits-pro.preferences.v1') ?? '{}'),
   );
-  assert.equal(storedPreferences.theme, 'dark', 'theme should persist');
-  assert.equal(storedPreferences.glass, 'full', 'glass mode should persist');
+  assert.equal(storedPreferences.theme, initialTheme, 'theme should persist');
+  assert.equal(storedPreferences.glass, 'off', 'locked solid surface mode should persist');
   assert.equal(storedPreferences.trackHeight, 'normal', 'track height should persist');
   assert.equal(storedPreferences.snap, true, 'snapping should persist');
 

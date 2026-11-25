@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "../../components/interior/interior-button";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 import { invoke } from "@tauri-apps/api/core";
 
 export interface InteropModalProps {
@@ -41,7 +41,7 @@ export function InteropModal({
   setNotice,
 }: InteropModalProps) {
   return (
-    <GlassDialog
+    <LinearDialog
       open={isOpen}
       cardClassName="modal-dialog-card glass interop-modal" cardProps={{ style: { maxWidth: "600px" } }}
     >
@@ -166,6 +166,6 @@ export function InteropModal({
             </div>
           </div>
         )}
-    </GlassDialog>
+    </LinearDialog>
   );
 }

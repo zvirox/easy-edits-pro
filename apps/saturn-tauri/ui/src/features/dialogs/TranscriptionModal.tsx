@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "../../components/interior/interior-button";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 export interface TranscriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -33,7 +33,7 @@ export function TranscriptionModal({
   handleAutoTranscribe,
 }: TranscriptionModalProps) {
   return (
-    <GlassDialog
+    <LinearDialog
       open={isOpen}
       cardClassName="modal-dialog-card glass speech-modal" cardProps={{ style: { maxWidth: "520px" } }}
     >
@@ -97,6 +97,6 @@ export function TranscriptionModal({
             {isTranscribing ? "Transcribing Audio…" : "Generate Subtitles"}
           </InteriorButton>
         </div>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

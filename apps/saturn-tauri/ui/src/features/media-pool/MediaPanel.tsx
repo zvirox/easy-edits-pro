@@ -596,9 +596,9 @@ export function MediaPanel({
             {/* Offline Whisper AI & Ripple Deletion Card */}
             <div
               className="ai-speech-intelligence-card" style={{
-                background: "rgba(159, 18, 73, 0.05)",
-                border: "1px solid rgba(159, 18, 73, 0.22)",
-                borderRadius: "6px",
+                background: "var(--bg-surface-2)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "8px",
                 padding: "10px",
                 display: "flex",
                 flexDirection: "column",
@@ -606,12 +606,12 @@ export function MediaPanel({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <strong style={{ fontSize: "12px", color: "var(--accent-primary)" }}> Speech Intelligence</strong>
+                <strong style={{ fontSize: "12px", color: "var(--accent-text)" }}> Speech Intelligence</strong>
                 <span
                   style={{
                     fontSize: "9px",
-                    background: "#9f1249",
-                    color: "#fff",
+                    background: "var(--accent-primary)",
+                    color: "var(--on-accent)",
                     padding: "2px 6px",
                     borderRadius: "8px",
                     fontWeight: "bold",

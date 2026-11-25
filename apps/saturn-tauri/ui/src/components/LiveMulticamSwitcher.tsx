@@ -127,18 +127,14 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
               onClick={() => handleAngleClick(angle.id)}
               style={{
                 position: "relative",
-                background: "#110910",
+                background: "var(--bg-surface)",
                 border: "2px solid",
-                borderColor: isPgm ? "#e53e3e" : isPvw ? "#38a169" : "#462d40",
+                borderColor: isPgm ? "var(--accent-rose)" : isPvw ? "var(--accent-green)" : "var(--border-color)",
                 borderRadius: 6,
                 padding: "10px 12px",
                 cursor: "pointer",
-                transition: "background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease",
-                boxShadow: isPgm
-                  ? "0 0 12px rgba(229, 62, 62, 0.4)"
-                  : isPvw
-                  ? "0 0 10px rgba(56, 161, 105, 0.3)"
-                  : "none",
+                transition: "background-color 150ms ease-out, border-color 150ms ease-out",
+                boxShadow: "var(--card-shadow)",
               }}
             >
               {/* Tally Badge Header */}
@@ -148,9 +144,9 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
                     fontSize: 10,
                     fontWeight: 700,
                     padding: "2px 6px",
-                    borderRadius: 3,
-                    background: isPgm ? "#e53e3e" : isPvw ? "#38a169" : "#100810",
-                    color: "#ffffff",
+                    borderRadius: 4,
+                    background: isPgm ? "var(--accent-rose)" : isPvw ? "var(--accent-green)" : "var(--bg-surface-2)",
+                    color: isPgm || isPvw ? "var(--on-accent)" : "var(--text-secondary)",
                     letterSpacing: 0.5,
                   }}
                 >

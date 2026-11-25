@@ -27,8 +27,8 @@ pnpm --dir apps/saturn-tauri catalogue:sync
 pnpm --dir apps/saturn-tauri check:parity
 node apps/saturn-tauri/scripts/check-parity.mjs --check
 
-# 3. Design token, glass surface & contrast enforcement
-pnpm --dir apps/saturn-tauri check:glass
+# 3. Linear design system, solid surface & contrast enforcement
+pnpm --dir apps/saturn-tauri check:linear
 
 # 4. Command catalogue & menu alignment
 pnpm --dir apps/saturn-tauri check:commands

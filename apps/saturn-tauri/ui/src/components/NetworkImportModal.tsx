@@ -3,7 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 import { Globe } from "lucide-react";
 import { InteriorButton } from "./interior/interior-button";
-import { GlassDialog } from "../motion/GlassDialog";
+import { LinearDialog } from "../motion/LinearDialog";
 import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -62,7 +62,7 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
   ];
 
   return (
-    <GlassDialog
+    <LinearDialog
       open={isOpen}
       backdropClassName="modal-backdrop" backdropStyle={{ zIndex: 10000 }}
       onBackdropClick={onClose}
@@ -185,10 +185,10 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
             <div
               style={{
                 padding: "10px 14px",
-                background: "color-mix(in srgb, var(--status-danger) 20%, transparent)",
-                border: "1px solid var(--status-danger)",
+                background: "var(--tint-red-bg)",
+                border: "1px solid var(--status-danger-bright)",
                 borderRadius: 6,
-                color: "var(--status-danger)",
+                color: "var(--tint-red-text)",
                 fontSize: 12,
                 marginBottom: 16,
               }}
@@ -252,6 +252,6 @@ export const NetworkImportModal: React.FC<NetworkImportModalProps> = ({
             </InteriorButton>
           </div>
         </form>
-    </GlassDialog>
+    </LinearDialog>
   );
 };

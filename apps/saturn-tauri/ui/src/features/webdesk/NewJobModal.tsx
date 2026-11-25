@@ -117,7 +117,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
     <div
       className="webdesk-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="new-job-title" data-testid="new-job-modal"
     >
-      <div className="webdesk-modal glass" data-elev="4">
+      <div className="webdesk-modal surface-1">
         {/* Modal Header */}
         <div className="webdesk-modal-header">
           <h2 id="new-job-title" className="webdesk-modal-title">
@@ -211,7 +211,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
             {inputs.map((inp, idx) => (
               <div
                 key={inp.id}
-                className="glass" data-elev="1" style={{
+                className="surface-1" style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -276,7 +276,7 @@ export const NewJobModal: React.FC<NewJobModalProps> = ({ store, onClose }) => {
             {deliverables.map((deliv, idx) => (
               <div
                 key={deliv.id}
-                className="glass" data-elev="1" style={{
+                className="surface-1" style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",

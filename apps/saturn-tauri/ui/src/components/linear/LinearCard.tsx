@@ -22,17 +22,17 @@ export const LinearCard = forwardRef<HTMLDivElement, LinearCardProps>(({
       ? 3
       : 1;
 
-  // Solid, flat, border-only surfaces per Linear specification. No shadow in dark mode.
+  // Flat solid 1px bordered surfaces; depth strictly zero in dark theme.
   const levelStyles = {
-    1: 'bg-[var(--bg-surface)] border-[var(--border)] shadow-[0_1px_2px_rgb(16_24_40_/_5%)] dark:shadow-none',
-    2: 'bg-[var(--bg-surface-2)] border-[var(--border)] shadow-[0_1px_2px_rgb(16_24_40_/_5%)] dark:shadow-none',
-    3: 'bg-[var(--bg-surface-2)] border-[var(--border-strong)] shadow-lg dark:shadow-none',
+    1: 'bg-[var(--bg-surface)] border-[var(--border)] shadow-[var(--card-shadow)]',
+    2: 'bg-[var(--bg-surface-2)] border-[var(--border)] shadow-[var(--card-shadow)]',
+    3: 'bg-[var(--bg-surface)] border-[var(--border-strong)] shadow-[var(--card-shadow)]',
   }[normalizedLevel];
 
   return (
     <div
       ref={ref}
-      className={`rounded-xl border transition-colors duration-150 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] hover:border-[var(--border-strong)] text-[var(--text)] ${levelStyles} ${className}`}
+      className={`rounded-[8px] border transition-[border-color] duration-150 ease-out hover:border-[var(--border-strong)] text-[var(--text)] ${levelStyles} ${className}`}
       {...props}
     >
       {children}

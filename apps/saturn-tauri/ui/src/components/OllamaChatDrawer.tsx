@@ -198,7 +198,7 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
 
   return (
     <aside
-      className="ai-chat-drawer glass" role="complementary" aria-label="AI Assistant" data-open={isOpen ? "true" : "false"}
+      className="ai-chat-drawer surface-1" role="complementary" aria-label="AI Assistant" data-open={isOpen ? "true" : "false"}
     >
         {/* Header */}
         <header
@@ -469,10 +469,10 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                 </div>
                 <div
                   style={{
-                    background: isUser ? "color-mix(in srgb, var(--accent-primary) 18%, transparent)" : "var(--bg-elevated)",
+                    background: isUser ? "var(--tint-blue-bg)" : "var(--bg-elevated)",
                     color: "var(--text-primary)",
                     border: isUser ? "1px solid var(--accent-primary)" : "1px solid var(--border-default)",
-                    borderRadius: isUser ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
+                    borderRadius: "8px",
                     padding: "10px 14px",
                     fontSize: 13,
                     lineHeight: 1.5,
@@ -487,9 +487,9 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                     type="button" onClick={() => onExecuteAction(msg.actionKey!)}
                     style={{
                       marginTop: 6,
-                      background: "color-mix(in srgb, var(--status-success) 18%, transparent)",
+                      background: "var(--tint-green-bg)",
                       border: "1px solid var(--status-success)",
-                      color: "var(--status-success)",
+                      color: "var(--tint-green-text)",
                       fontSize: 11,
                       fontWeight: 600,
                       padding: "4px 10px",

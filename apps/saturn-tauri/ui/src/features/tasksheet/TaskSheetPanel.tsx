@@ -52,7 +52,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
         }}
       >
         <div
-          className="glass" data-elev="1" style={{
+          className="surface-1" style={{
             padding: "12px",
             borderRadius: "var(--radius-sm, 10px)",
             display: "flex",
@@ -65,7 +65,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
             Load a flagship work-order template or create one via an agent brief to begin.
           </div>
           <select
-            className="input glass" data-elev="2" value={selectedTemplateId}
+            className="input surface-1" value={selectedTemplateId}
             onChange={(e) => handleTemplateChange(e.target.value)}
             aria-label="Load Flagship Task Sheet Template" style={{ width: "100%", padding: "6px 8px", borderRadius: "6px", fontSize: "12px" }}
           >
@@ -161,7 +161,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
   if (collapsed) {
     return (
       <div
-        className="tasksheet-panel-collapsed glass" data-elev="1" style={{
+        className="tasksheet-panel-collapsed surface-1" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -210,7 +210,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
     >
       {/* Header bar */}
       <div
-        className="glass" data-elev="2" style={{
+        className="surface-1" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -241,7 +241,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
       {/* Template picker */}
       {isEditable && (
         <div
-          className="glass" data-elev="1" style={{
+          className="surface-1" style={{
             display: "flex",
             flexDirection: "column",
             gap: "6px",
@@ -269,7 +269,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
 
       {/* Title & Requester */}
       <div
-        className="glass" data-elev="1" style={{
+        className="surface-1" style={{
           display: "flex",
           flexDirection: "column",
           gap: "8px",
@@ -286,9 +286,9 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
               onChange={(e) => onUpdateSheet({ ...sheet, title: e.target.value })}
               style={{
                 width: "100%",
-                background: "var(--surface-sunken, rgba(0,0,0,0.2))",
-                border: "1px solid var(--border-subtle, rgba(255,255,255,0.1))",
-                borderRadius: "var(--radius-xs, 6px)",
+                background: "var(--bg-surface-2)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "6px",
                 color: "var(--text-primary)",
                 padding: "4px 8px",
                 fontSize: "13px",
@@ -306,7 +306,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
 
       {/* Deliverables Section */}
       <div
-        className="glass" data-elev="1" style={{
+        className="surface-1" style={{
           display: "flex",
           flexDirection: "column",
           gap: "8px",
@@ -330,9 +330,9 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
             key={deliv.id}
             style={{
               padding: "8px",
-              background: "var(--surface-sunken, rgba(0,0,0,0.15))",
-              border: "1px solid var(--border-subtle, rgba(255,255,255,0.08))",
-              borderRadius: "var(--radius-xs, 6px)",
+              background: "var(--bg-surface-2)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "6px",
               display: "flex",
               flexDirection: "column",
               gap: "6px",
@@ -395,7 +395,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
 
       {/* Inputs Section */}
       <div
-        className="glass" data-elev="1" style={{
+        className="surface-1" style={{
           display: "flex",
           flexDirection: "column",
           gap: "8px",
@@ -417,7 +417,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
                 alignItems: "center",
                 justifyContent: "space-between",
                 padding: "4px 8px",
-                background: "var(--surface-sunken, rgba(0,0,0,0.1))",
+                background: "var(--bg-surface-2)",
                 borderRadius: "4px",
                 fontSize: "12px",
               }}
@@ -461,7 +461,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
 
       {/* Budget & Acceptance Section */}
       <div
-        className="glass" data-elev="1" style={{
+        className="surface-1" style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
           gap: "10px",
@@ -500,12 +500,12 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
             borderRadius: "4px",
             fontSize: "12px",
             background: validationMsg.valid
-              ? "var(--surface-sunken, rgba(16,185,129,0.1))"
-              : "var(--surface-sunken, rgba(239,68,68,0.1))",
+              ? "var(--tint-green-bg)"
+              : "var(--tint-red-bg)",
             color: validationMsg.valid
-              ? "var(--success-text, #10b981)"
-              : "var(--error-text, #ef4444)",
-            border: `1px solid ${validationMsg.valid ? "var(--success-text, #10b981)" : "var(--error-text, #ef4444)"}`,
+              ? "var(--tint-green-text)"
+              : "var(--tint-red-text)",
+            border: `1px solid ${validationMsg.valid ? "var(--status-success)" : "var(--status-danger-bright)"}`,
           }}
         >
           {validationMsg.text}

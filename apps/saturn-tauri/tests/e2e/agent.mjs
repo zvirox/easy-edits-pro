@@ -108,7 +108,7 @@ export async function run(ctx) {
   await statusChip.getByText('Idle').waitFor();
 
   // 4. Reject second change (`Insert cutaway B-roll`) -> engine reverts it cleanly.
-  const secondItem = reviewCard.locator('.glass', { hasText: 'Insert cutaway B-roll' });
+  const secondItem = reviewCard.locator('.surface-1', { hasText: 'Insert cutaway B-roll' });
   await secondItem.getByRole('button', { name: 'Reject (R)', exact: true }).click();
   await secondItem.getByText('Reverted').waitFor();
 
@@ -124,7 +124,7 @@ export async function run(ctx) {
     window.__mockEmitProjectChanged?.();
   });
 
-  const firstItem = reviewCard.locator('.glass', { hasText: 'Cold open hook clip' });
+  const firstItem = reviewCard.locator('.surface-1', { hasText: 'Cold open hook clip' });
   await firstItem.getByText(/later human edit/).waitFor();
   assert.equal(await firstItem.getByRole('button', { name: 'Conflict', exact: true }).isDisabled(), true);
 

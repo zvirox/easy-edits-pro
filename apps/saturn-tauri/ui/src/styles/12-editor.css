@@ -304,14 +304,12 @@
 .fusion-wire {
   pointer-events: none;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent-primary) 40%, transparent));
-  transition: stroke 0.2s ease;
+  transition: stroke 150ms ease-out;
 }
 
 .fusion-wire-hitbox:hover + .fusion-wire {
   stroke: var(--status-danger-bright) !important;
   stroke-width: 3.5px;
-  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--status-danger-bright) 70%, transparent));
 }
 
 /* Fusion Node Cards */
@@ -322,22 +320,22 @@
   background: var(--bg-node);
   border: 1px solid var(--border-node);
   border-radius: 8px;
-  box-shadow: var(--shadow-node);
+  box-shadow: var(--card-shadow);
   display: flex;
   flex-direction: column;
   z-index: 2;
   cursor: default;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: border-color 150ms ease-out;
 }
 
 .fusion-node-card:hover {
   border-color: var(--text-muted);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--color-black) 60%, transparent);
 }
 
 .fusion-node-card.selected {
   border-color: var(--accent-primary-hover);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 35%, transparent), 0 8px 24px color-mix(in srgb, var(--color-black) 70%, transparent);
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -1px;
   z-index: 3;
 }
 

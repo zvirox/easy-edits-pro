@@ -55,6 +55,7 @@ export async function run(ctx) {
   // row, and a full-width NLE strip below — toolbox | timeline | meter — that
   // never moves.
   const viewport = page.viewportSize();
+  const sidebarBox = await page.locator('aside[aria-label="Workspace navigation"]').boundingBox();
   const mediaBox = await page
     .locator('.shell-dock-left')
     .boundingBox();
@@ -63,14 +64,15 @@ export async function run(ctx) {
   const railBox = await toolRail.boundingBox();
   const timelineBox = await page.locator('.timeline').boundingBox();
   const meterBox = await page.locator('.shell-meter').boundingBox();
-  assert.ok(viewport && mediaBox && inspectorDockBox && previewBox && railBox && timelineBox && meterBox);
+  assert.ok(viewport && sidebarBox && mediaBox && inspectorDockBox && previewBox && railBox && timelineBox && meterBox);
   assert.ok(
     railBox.width <= 56,
     `the G4 toolbox should be a 52px single column (got ${railBox.width}px)`,
   );
+  const workspaceLeft = sidebarBox.x + sidebarBox.width;
   assert.ok(
-    railBox.x <= 9 && meterBox.x + meterBox.width >= viewport.width - 9,
-    'the NLE strip (toolbox + timeline + meter) should span the app width',
+    railBox.x >= workspaceLeft - 2 && railBox.x <= workspaceLeft + 9 && meterBox.x + meterBox.width >= viewport.width - 9,
+    'the NLE strip (toolbox + timeline + meter) should span the workspace region right of the sidebar',
   );
   assert.ok(
     timelineBox.x >= railBox.x + railBox.width - 2 &&

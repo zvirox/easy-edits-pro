@@ -60,7 +60,7 @@
 }
 
 .marker-pin.is-selected {
-  box-shadow: 0 0 0 1px var(--marker-color);
+  outline: 1px solid var(--marker-color);
   background: color-mix(in srgb, var(--marker-color) 34%, transparent);
 }
 

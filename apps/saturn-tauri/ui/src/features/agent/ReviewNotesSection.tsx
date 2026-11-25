@@ -93,7 +93,7 @@ export const ReviewNotesSection: React.FC<ReviewNotesSectionProps> = ({
   };
 
   return (
-    <div className="review-notes-section glass" data-elev="1">
+    <div className="review-notes-section surface-1">
       <div className="review-notes-header">
         <div className="review-round-controls">
           <span style={{ fontWeight: 600, fontSize: "12px" }}>Review Rounds</span>

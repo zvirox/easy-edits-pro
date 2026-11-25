@@ -79,7 +79,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
     >
       {/* Pinned Top Status Line */}
       <div
-        className="glass" data-elev="2" style={{
+        className="surface-1" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -136,7 +136,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
       {session.lastError && (
         <div
-          role="alert" className="glass" data-elev="2" style={{
+          role="alert" className="surface-1" style={{
             padding: "8px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             borderLeft: "3px solid var(--error-text)",
@@ -151,7 +151,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
       {/* Active Task Sheet & Budget Header */}
       {session.taskSheet && (
         <div
-          className="glass" data-elev="1" style={{
+          className="surface-1" style={{
             padding: "8px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             display: "flex",
@@ -194,7 +194,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               fontSize: "11px",
               color: "var(--text-muted)",
               paddingTop: "2px",
-              borderTop: "1px solid var(--border-subtle, rgba(255,255,255,0.06))",
+              borderTop: "1px solid var(--border-color)",
             }}
           >
             <span>
@@ -218,7 +218,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
       {/* Permission Requests Banner */}
       {session.pendingPermissions.length > 0 && (
         <div
-          className="glass" data-elev="3" style={{
+          className="surface-1" style={{
             padding: "10px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             borderLeft: "3px solid var(--accent-text)",
@@ -265,13 +265,13 @@ export const AgentCard: React.FC<AgentCardProps> = ({
         }}
       >
         <span
-          className="glass" data-elev="1" style={{ padding: "2px 8px", borderRadius: "6px" }}
+          className="surface-1" style={{ padding: "2px 8px", borderRadius: "6px" }}
           title="Active Session Branch"
         >
            {session.activeBranch}
         </span>
         <span
-          className="glass" data-elev="1" style={{ padding: "2px 8px", borderRadius: "6px" }}
+          className="surface-1" style={{ padding: "2px 8px", borderRadius: "6px" }}
           title="Active Tool Profile"
         >
            {session.activeMode}
@@ -279,7 +279,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
         {session.grantedTiers.map((tier) => (
           <span
             key={tier}
-            className="glass" data-elev="1" style={{
+            className="surface-1" style={{
               padding: "2px 8px",
               borderRadius: "6px",
               color: tier === "filesystem" || tier === "admin" ? "var(--accent-text)" : undefined,
@@ -293,7 +293,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
       {/* Project Brief Section */}
       <div
-        className="glass" data-elev="1" style={{
+        className="surface-1" style={{
           padding: "8px 12px",
           borderRadius: "var(--radius-sm, 10px)",
           display: "flex",
@@ -321,7 +321,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
             <div>
               <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Goal</label>
               <input
-                type="text" className="input glass" data-elev="2" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
+                type="text" className="input surface-1" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
                 value={briefDraft.goal}
                 onChange={(e) => setBriefDraft({ ...briefDraft, goal: e.target.value })}
               />
@@ -330,7 +330,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               <div>
                 <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Platform</label>
                 <input
-                  type="text" className="input glass" data-elev="2" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
+                  type="text" className="input surface-1" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
                   value={briefDraft.platform}
                   onChange={(e) => setBriefDraft({ ...briefDraft, platform: e.target.value })}
                 />
@@ -338,7 +338,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               <div>
                 <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Target Loudness</label>
                 <input
-                  type="number" step="0.5" className="input glass" data-elev="2" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
+                  type="number" step="0.5" className="input surface-1" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
                   value={briefDraft.loudness_target_lufs}
                   onChange={(e) => setBriefDraft({ ...briefDraft, loudness_target_lufs: parseFloat(e.target.value) || -14 })}
                 />
@@ -347,7 +347,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
             <div>
               <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Style Notes</label>
               <textarea
-                className="input glass" data-elev="2" rows={2}
+                className="input surface-1" rows={2}
                 style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px", resize: "none" }}
                 value={briefDraft.style_notes}
                 onChange={(e) => setBriefDraft({ ...briefDraft, style_notes: e.target.value })}
@@ -375,7 +375,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
       {/* Numbered Plan */}
       <div
-        className="glass" data-elev="1" style={{
+        className="surface-1" style={{
           padding: "8px 12px",
           borderRadius: "var(--radius-sm, 10px)",
           display: "flex",
@@ -405,8 +405,8 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                   padding: "4px 8px",
                   borderRadius: "6px",
                   cursor: step.targetTick != null ? "pointer" : "default",
-                  background: isStepCurrent ? "var(--card-inset, rgba(255,255,255,0.05))" : "transparent",
-                  borderLeft: isStepCurrent ? "2px solid var(--accent-text)" : "2px solid transparent",
+                  background: isStepCurrent ? "var(--bg-selected)" : "transparent",
+                  borderLeft: isStepCurrent ? "2px solid var(--accent-primary)" : "2px solid transparent",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -414,17 +414,17 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                     style={{
                       width: "16px",
                       height: "16px",
-                      borderRadius: "50%",
+                      borderRadius: "9999px",
                       display: "grid",
                       placeItems: "center",
                       fontSize: "10px",
                       fontWeight: 700,
                       backgroundColor: isStepDone
-                        ? "var(--accent-text-violet, #c084fc)"
+                        ? "var(--accent-violet)"
                         : isStepCurrent
-                        ? "var(--accent-text, #f472b6)"
-                        : "var(--card-inset, rgba(255,255,255,0.1))",
-                      color: "#fff",
+                        ? "var(--accent-primary)"
+                        : "var(--bg-surface-2)",
+                      color: isStepDone || isStepCurrent ? "var(--on-accent)" : "var(--text-secondary)",
                     }}
                   >
                     {isStepDone ? "✓" : step.id}
@@ -452,7 +452,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
 
       {/* Collapsed Last-Seen Frame / Telemetry Strip */}
       <div
-        className="glass" data-elev="1" style={{
+        className="surface-1" style={{
           padding: "8px 12px",
           borderRadius: "var(--radius-sm, 10px)",
           display: "flex",
@@ -509,7 +509,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
       >
         <textarea
           rows={2}
-          className="input glass" data-elev="2" placeholder="Instruct agent (e.g. 'Align cut at 12s with the beat')..." value={instruction}
+          className="input surface-1" placeholder="Instruct agent (e.g. 'Align cut at 12s with the beat')..." value={instruction}
           onChange={(e) => setInstruction(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {

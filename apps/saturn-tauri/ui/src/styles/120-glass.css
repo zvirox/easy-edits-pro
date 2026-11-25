@@ -4,125 +4,121 @@
  * Also available under the EEP commercial licence — see LICENSING.md
  */
 /* ==========================================================================
-   Glass surface system (Phase 2)
-   One primitive for every non-media glass surface. Media surfaces (preview,
-   timeline, scopes, waveforms) are excluded by design and protected below.
+   Linear Surface System (replaces frosted glass elevation classes)
+   Solid opaque panels with 1px precision borders. Media surfaces remain
+   strictly isolated and unblurred.
    ========================================================================== */
 
+.surface-1,
+.surface-2,
 .glass {
-  --glass-bg: var(--glass-l1);
-  --glass-blur: var(--blur-l1);
-  --glass-depth: var(--glass-shadow);
-
   position: relative;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-depth);
-  color: var(--text-primary);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--card-shadow);
+  color: var(--text);
 }
 
-.glass[data-elev="2"] {
-  --glass-bg: var(--glass-l2);
-  --glass-blur: var(--blur-l2);
-}
-
+.surface-2,
+.glass[data-elev="2"],
 .glass[data-elev="3"] {
-  --glass-bg: var(--glass-l3);
-  --glass-blur: var(--blur-l3);
-  --glass-depth: var(--shadow-popup);
+  background: var(--bg-surface-2);
 }
 
 .glass[data-elev="4"] {
-  --glass-bg: var(--glass-l4);
-  --glass-blur: var(--blur-l4);
-  --glass-depth: var(--glass-shadow);
+  background: var(--bg-surface);
+  border-color: var(--border-strong);
 }
 
-/* Full-window chrome is flush against the viewport. */
-.app-header.glass {
+.app-header.glass,
+.app-header.surface-1 {
   border-width: 0 0 1px;
   border-radius: 0;
-  box-shadow: 0 1px 0 var(--glass-highlight);
+  box-shadow: none;
 }
 
 .app-header.glass .system-bar-tier1,
-.app-header.glass .workspace-bar-tier2 {
+.app-header.glass .workspace-bar-tier2,
+.app-header.surface-1 .system-bar-tier1,
+.app-header.surface-1 .workspace-bar-tier2 {
   background: transparent;
 }
 
-.app-header.glass .workspace-bar-tier2 {
+.app-header.glass .workspace-bar-tier2,
+.app-header.surface-1 .workspace-bar-tier2 {
   border-bottom: 0;
 }
 
-.status-bar.glass {
+.status-bar.glass,
+.status-bar.surface-1 {
   border-width: 1px 0 0;
   border-radius: 0;
-  box-shadow: 0 -1px 0 var(--glass-highlight);
+  box-shadow: none;
 }
 
-/* Docked studio panels: the glass belongs to the panel, not to its contents. */
-.studio-panel.glass {
-  background: var(--glass-l1);
+.studio-panel.glass,
+.studio-panel.surface-1 {
+  background: var(--bg-surface);
 }
 
-.studio-panel.glass > .studio-panel-header {
+.studio-panel.glass > .studio-panel-header,
+.studio-panel.surface-1 > .studio-panel-header {
   background: transparent;
-  border-bottom-color: var(--glass-border);
+  border-bottom-color: var(--border);
 }
 
-.studio-panel.glass > .studio-panel-body {
+.studio-panel.glass > .studio-panel-body,
+.studio-panel.surface-1 > .studio-panel-body {
   background: transparent;
 }
 
-/* Floating surfaces. */
 .menu-popover.glass,
 .job-drawer-popover.glass,
 .command-palette.glass,
 .modal-dialog-card.glass,
 .new-project-dialog.glass,
 .batch-queue-drawer.glass,
-.ai-chat-drawer.glass {
-  border-color: var(--glass-border);
+.ai-chat-drawer.glass,
+.menu-popover.surface-2,
+.job-drawer-popover.surface-2,
+.command-palette.surface-1,
+.modal-dialog-card.surface-1,
+.new-project-dialog.surface-1,
+.batch-queue-drawer.surface-1,
+.ai-chat-drawer.surface-1 {
+  border-color: var(--border-strong);
 }
 
-.command-palette.glass {
-  background: var(--glass-l4);
+.command-palette.glass,
+.command-palette.surface-1 {
+  background: var(--bg-surface);
 }
 
 .batch-queue-drawer.glass,
-.ai-chat-drawer.glass {
+.ai-chat-drawer.glass,
+.batch-queue-drawer.surface-1,
+.ai-chat-drawer.surface-1 {
   border-width: 0 0 0 1px;
   border-radius: 0;
-  color: var(--text-primary);
+  color: var(--text);
 }
 
-.batch-queue-drawer.glass .batch-queue-drawer-header,
-.ai-chat-drawer.glass .ai-chat-drawer-header {
+.batch-queue-drawer .batch-queue-drawer-header,
+.ai-chat-drawer .ai-chat-drawer-header {
   background: transparent;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
 }
 
-/* Tooltips are generated content, so they cannot carry the .glass class.
-   They use the same tokens and are disabled by the global fallbacks. */
 [data-tooltip]::after {
-  background: var(--glass-l4);
-  border-color: var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: var(--bg-surface-2);
+  border-color: var(--border-strong);
+  box-shadow: var(--card-shadow);
+  border-radius: var(--radius-chip);
 }
-
-/* --------------------------------------------------------------------------
-   Stage background and panel gaps (G2c)
-   Docked workspaces are transparent so the stage glows show through the
-   8px gutters. Surfaces that must stay readable paint themselves.
-   -------------------------------------------------------------------------- */
 
 .app-shell,
 .welcome-shell {
-  background: var(--bg-stage);
+  background: var(--bg-app);
 }
 
 .editor,
@@ -131,32 +127,6 @@
 .keyframes-workspace-page,
 .fusion-workspace-page {
   background: transparent;
-}
-
-/* --------------------------------------------------------------------------
-   Media surface protection (G2d)
-   Preview, timeline, scopes and waveforms never receive glass or blur.
-   -------------------------------------------------------------------------- */
-
-.program-stage,
-.preview-stage,
-.timeline,
-.timeline-section,
-.timeline-track-area,
-.clip-waveform-container,
-.clip-waveform-svg,
-.scope-canvas,
-.scope-stage,
-.color-monitor-stage,
-.color-scopes-stage,
-.video-scopes,
-.source-audio-waveform-wrapper,
-.source-audio-waveform-svg,
-.audio-meter-waveform-strip,
-.meter-waveform-visual,
-.fusion-canvas-container {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
 }
 
 .program-stage,
@@ -170,7 +140,14 @@
   isolation: isolate;
 }
 
-/* If a glass primitive is ever nested in a media surface, remove the blur. */
+.program-stage .surface-1,
+.preview-stage .surface-1,
+.timeline .surface-1,
+.timeline-section .surface-1,
+.scope-stage .surface-1,
+.color-monitor-stage .surface-1,
+.color-scopes-stage .surface-1,
+.video-scopes .surface-1,
 .program-stage .glass,
 .preview-stage .glass,
 .timeline .glass,
@@ -179,26 +156,17 @@
 .color-monitor-stage .glass,
 .color-scopes-stage .glass,
 .video-scopes .glass {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  background: var(--bg-elevated);
+  background: var(--bg-surface-2);
   box-shadow: none;
 }
 
-/* --------------------------------------------------------------------------
-   Card primitives (Plan v4 G1, docs/GLASS_CARDS_PLAN.md §2/§3)
-   Header row, tabs, labels, chips and fields for stationary glass cards.
-   G2's DockCard and G3's WorkspaceShell consume these instead of growing
-   per-panel copies. Shape and colour come from tokens only; the card corner
-   radius uses --radius (registered with this milestone). Motion stays off
-   these primitives until G6 (one transition policy for the whole shell).
-   -------------------------------------------------------------------------- */
-
-.glass.card {
-  border-radius: var(--radius);
+/* Linear card primitives (8px cards, 6px controls, 4px chips) */
+.card,
+.glass.card,
+.surface-1.card {
+  border-radius: var(--radius-card);
 }
 
-/* Header: 38px row, tabs left, hairline underneath, underline on the active tab. */
 .card-h {
   display: flex;
   align-items: center;
@@ -206,8 +174,7 @@
   flex: none;
   min-height: 38px;
   padding: 0 10px;
-  border-bottom: 1px solid
-    color-mix(in srgb, var(--glass-border) 60%, transparent);
+  border-bottom: 1px solid var(--border);
 }
 
 .tab {
@@ -217,18 +184,18 @@
   cursor: pointer;
   position: relative;
   padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   color: var(--text-muted);
   font: inherit;
   font-weight: 500;
 }
 
 .tab:hover {
-  color: var(--text-secondary);
+  color: var(--text);
 }
 
 .tab[aria-selected="true"] {
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .tab[aria-selected="true"]::after {
@@ -239,10 +206,9 @@
   bottom: -6px;
   height: 2px;
   border-radius: 2px;
-  background: var(--accent-text);
+  background: var(--accent-blue);
 }
 
-/* Body: the scrollable region of a card. */
 .card-b {
   flex: 1 1 auto;
   min-height: 0;
@@ -250,11 +216,10 @@
   padding: 12px;
 }
 
-/* Small-caps section labels; numbers stay tabular. */
 .label {
-  font-size: 10.5px;
-  letter-spacing: 0.09em;
-  text-transform: none;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -263,15 +228,14 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Inset surfaces INSIDE a card: chips, read-only field rows. */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 9px;
-  border-radius: var(--radius-sm);
-  background: var(--card-inset);
-  color: var(--text-secondary);
+  padding: 4px 8px;
+  border-radius: var(--radius-chip);
+  background: var(--bg-surface-2);
+  color: var(--text);
 }
 
 .field {
@@ -281,13 +245,13 @@
   gap: 8px;
   padding: 7px 10px;
   margin-bottom: 6px;
-  border-radius: var(--radius-sm);
-  background: var(--card-inset);
-  color: var(--text-secondary);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface-2);
+  color: var(--text-muted);
 }
 
 .field b {
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   font-variant-numeric: tabular-nums;
 }

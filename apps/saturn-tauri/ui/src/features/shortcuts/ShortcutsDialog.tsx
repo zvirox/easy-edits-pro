@@ -3,7 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 import { useEffect, useMemo, useRef, useState } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 import { grantWrite } from "../../app/writeGrants.ts";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { Icon } from "../../components/Icon";
@@ -236,7 +236,7 @@ export function ShortcutsDialog({
   }, [open, listening, rows, onChange, onClose]);
 
   return (
-    <GlassDialog
+    <LinearDialog
       open={open}
       cardClassName="modal-dialog-card glass shortcuts-dialog"
       onBackdropClick={onClose}
@@ -499,6 +499,6 @@ export function ShortcutsDialog({
           Reset all to defaults
         </InteriorButton>
       </footer>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

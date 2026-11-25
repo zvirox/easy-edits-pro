@@ -15,8 +15,9 @@ export interface StatCardProps {
     comparison?: string;
   };
   icon?: React.ReactNode;
-  iconBgColor?: string;
-  iconColor?: string;
+  iconBgClass?: string;
+  iconColorClass?: string;
+  compact?: boolean;
   className?: string;
 }
 
@@ -26,52 +27,66 @@ export const StatCard: React.FC<StatCardProps> = ({
   unit,
   delta,
   icon,
-  iconBgColor = 'bg-[#3355FF]/10',
-  iconColor = 'text-[#3355FF]',
+  iconBgClass = 'bg-[var(--tint-blue-bg)] border border-[var(--tint-blue-border)]',
+  iconColorClass = 'text-[var(--tint-blue-fg)]',
+  compact = false,
   className = '',
 }) => {
   return (
-    <LinearCard level={1} className={`p-5 flex flex-col justify-between ${className}`}>
-      {/* Top row: Title and Icon Chip */}
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)] select-none">
+    <LinearCard
+      level={1}
+      className={`${compact ? 'p-3.5' : 'p-5'} min-w-0 flex flex-col justify-between ${className}`}
+    >
+      {/* Top row: Title and solid precomputed Icon Chip */}
+      <div className="flex items-center justify-between gap-1.5 min-w-0">
+        <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)] select-none leading-tight min-w-0">
           {title}
         </span>
         {icon && (
           <div
-            className={`size-8 rounded-full flex items-center justify-center shrink-0 ${iconBgColor} ${iconColor}`}
+            className={`${compact ? 'size-6' : 'size-7'} rounded-[6px] flex items-center justify-center shrink-0 ${iconBgClass} ${iconColorClass}`}
           >
             {icon}
           </div>
         )}
       </div>
 
-      {/* Middle row: Big Metric + Unit */}
-      <div className="mt-3 flex items-baseline gap-1.5">
-        <span className="text-[28px] font-semibold tracking-tight text-[var(--text)] tabular-nums font-sans leading-none">
+      {/* Middle row: tabular figure + muted unit */}
+      <div
+        className={`${
+          compact
+            ? 'mt-2 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 min-w-0'
+            : 'mt-3 flex flex-wrap items-baseline gap-1.5 min-w-0'
+        }`}
+      >
+        <span
+          className={`${
+            compact ? 'text-[18px] leading-tight' : 'text-[28px] leading-none'
+          } font-semibold tracking-tight text-[var(--text)] tabular-nums font-sans`}
+        >
           {value}
         </span>
         {unit && (
-          <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">
+          <span className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wide whitespace-nowrap">
             {unit}
           </span>
         )}
       </div>
 
-      {/* Bottom row: Delta Pill + Comparison */}
+      {/* Bottom row: solid precomputed Delta chip + comparison */}
       {delta && (
-        <div className="mt-4 flex items-center gap-2">
+        <div className={`${compact ? 'mt-2.5' : 'mt-4'} flex items-center gap-1.5 min-w-0`}>
           <span
-            className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-medium tabular-nums ${
+            className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-[4px] border text-[11px] font-medium tabular-nums ${
               delta.positive
-                ? 'bg-[#22C55E]/10 text-[#22C55E]'
-                : 'bg-[#F43F5E]/10 text-[#F43F5E]'
+                ? 'bg-[var(--tint-green-bg)] text-[var(--tint-green-fg)] border-[var(--tint-green-border)]'
+                : 'bg-[var(--tint-red-bg)] text-[var(--tint-red-fg)] border-[var(--tint-red-border)]'
             }`}
           >
             {delta.positive ? (
-              <ArrowUpRight className="size-3 shrink-0" />
+              <ArrowUpRight className="size-3 shrink-0" aria-hidden="true" />
             ) : (
-              <ArrowDownRight className="size-3 shrink-0" />
+              <ArrowDownRight className="size-3 shrink-0" aria-hidden="true" />
             )}
             {delta.value}
           </span>

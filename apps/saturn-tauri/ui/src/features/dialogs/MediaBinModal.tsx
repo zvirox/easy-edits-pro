@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "../../components/interior/interior-button";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 export interface MediaBinModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -23,7 +23,7 @@ export function MediaBinModal({
   createMediaBin,
 }: MediaBinModalProps) {
   return (
-    <GlassDialog
+    <LinearDialog
       as="form" open={isOpen}
       cardClassName="modal-dialog-card glass" cardProps={{
         style: { maxWidth: "420px" },
@@ -73,6 +73,6 @@ export function MediaBinModal({
           <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
           <InteriorButton className="primary" type="submit" disabled={!newBinName.trim()}>Create Bin</InteriorButton>
         </div>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

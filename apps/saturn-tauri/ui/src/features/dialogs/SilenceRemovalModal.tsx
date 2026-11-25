@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "../../components/interior/interior-button";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 export interface SilenceRemovalModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -37,7 +37,7 @@ export function SilenceRemovalModal({
   busy,
 }: SilenceRemovalModalProps) {
   return (
-    <GlassDialog
+    <LinearDialog
       open={isOpen}
       cardClassName="modal-dialog-card glass speech-modal" cardProps={{ style: { maxWidth: "540px" } }}
     >
@@ -72,9 +72,9 @@ export function SilenceRemovalModal({
           </label>
         </div>
 
-        <div style={{ background: "rgba(255, 255, 255, 0.04)", border: "1px solid var(--border-color)", borderRadius: "6px", padding: "10px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+        <div style={{ background: "var(--bg-surface-2)", border: "1px solid var(--border-color)", borderRadius: "6px", padding: "10px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
           <div>
-            <strong style={{ fontSize: "14px", color: "#be185d" }}>{silenceIntervalsLength} Pauses</strong>
+            <strong style={{ fontSize: "14px", color: "var(--accent-text)" }}>{silenceIntervalsLength} Pauses</strong>
             <span style={{ fontSize: "11px", color: "var(--text-muted)", marginLeft: "8px" }}>· 2 Verbal Fillers (&quot;um&quot;, &quot;like&quot;)</span>
           </div>
           <InteriorButton
@@ -101,6 +101,6 @@ export function SilenceRemovalModal({
             Ripple Delete Pauses ({silenceIntervalsLength})
           </InteriorButton>
         </div>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

@@ -6,7 +6,7 @@ used `ecc69ed`). The agent operates the editor; the human supervises, reviews
 and can always take over.
 
 This extends [AI_NATIVE_ARCHITECTURE_PLAN.md](AI_NATIVE_ARCHITECTURE_PLAN.md)
-and [GLASS_CARDS_PLAN.md](GLASS_CARDS_PLAN.md), and is extended by
+and the **locked Linear solid UI** ([design-qa.md](design-qa.md)), and is extended by
 [TASK_SHEET_PLAN.md](TASK_SHEET_PLAN.md) (adopted 2026-11-10, baseline `2834ba3`;
 human interface, task sheets, pro review loop, Web Desk, and packets TS0–TS10).
 Supporting context: [planning/agent-operated-pro-editor.md](planning/agent-operated-pro-editor.md),
@@ -89,8 +89,9 @@ unavailable during reconciliation; the inventory used targeted source reads.
 4. Agent edits are reversible, attributed and explained. External side effects
    such as exports must be disclosed separately; undo cannot promise to retract them.
 5. Media-derived text is data, never instructions or permission authority.
-6. Colours stay locked. Reuse tokens, `.glass`, `DockCard` and the fixed dock
-   layout. No new floating panels; video, scopes and meters remain raw.
+6. Colours stay locked. Reuse the finalized Linear solid tokens (`linear-theme.css`),
+   `DockCard`, and the fixed dock layout. No new floating panels; video, scopes,
+   and meters remain raw.
 
 ## 2. Backend and agent work
 

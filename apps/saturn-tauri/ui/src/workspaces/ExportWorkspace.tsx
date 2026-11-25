@@ -17,6 +17,8 @@ import {
 } from "../types";
 import { formatTime } from "../utils/formatters";
 import { DeliverPresetBank } from "../features/deliver/DeliverPresetBank";
+import { DeliverStatsStrip } from "./DeliverStatsStrip";
+import { ProgressRow } from "../components/linear";
 import { AgentStatusChip, useAgentSession } from "../features/agent";
 
 export interface ExportWorkspaceProps {
@@ -161,6 +163,17 @@ export function ExportWorkspace({
         <div className="export-range-select">
           Range <strong>{exportMarkedRange ? "Marked In / Out" : "Entire sequence"}</strong>
         </div>
+        <DeliverStatsStrip
+          rangeDuration={rangeDuration}
+          width={outputResolution.width}
+          height={outputResolution.height}
+          fpsNumerator={outputFrameRate.numerator}
+          fpsDenominator={outputFrameRate.denominator}
+          exportFormat={exportFormat}
+          hasHardwareEncoder={Boolean(encoderInfo?.hasHardwareEncoder)}
+          preferredEncoder={encoderInfo?.preferredEncoder ?? "x264"}
+          useHardwareEncoding={useHardwareEncoding}
+        />
         <div className="export-summary">
           <h2>Summary</h2>
           <dl>
@@ -189,10 +202,15 @@ export function ExportWorkspace({
         </div>
         {renderProgress && (
           <div className="render-progress">
-            <progress max={100} value={renderProgress.fractionPercent} />
-            <small>
-              {renderProgress.phase} · {renderProgress.fractionPercent}%
-            </small>
+            <ProgressRow
+              label={renderProgress.phase || "Rendering"}
+              value={renderProgress.fractionPercent}
+              color={
+                renderProgress.fractionPercent >= 100
+                  ? "var(--accent-green)"
+                  : "var(--accent-blue)"
+              }
+            />
           </div>
         )}
         <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
@@ -297,11 +315,18 @@ export function ExportWorkspace({
                       </span>
                       <span>{item.status === "completed" ? "Done" : `${Math.round(item.progress * 100)}%`}</span>
                     </div>
-                    <div className="batch-queue-progress-bar">
-                      <div
-                        className="batch-queue-progress-fill" style={{ transform: `scaleX(${Math.max(0, Math.min(1, item.progress))})` }}
-                      />
-                    </div>
+                    <ProgressRow
+                      label={item.format}
+                      value={item.status === "completed" ? 100 : Math.round(item.progress * 100)}
+                      displayValue={item.status === "completed" ? "Done" : `${Math.round(item.progress * 100)}%`}
+                      color={
+                        item.status === "completed"
+                          ? "var(--accent-green)"
+                          : item.status === "failed"
+                            ? "var(--accent-red)"
+                            : "var(--accent-blue)"
+                      }
+                    />
                   </div>
                 ))
               )}

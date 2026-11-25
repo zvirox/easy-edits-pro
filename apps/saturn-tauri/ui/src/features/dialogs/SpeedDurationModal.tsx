@@ -3,7 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 import { useEffect, useState } from "react";
 import { InteriorButton } from "../../components/interior/interior-button";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 import type { Clip } from "../../app/projectTypes";
 import { TICKS_PER_SECOND } from "../../app/projectTypes";
 import { formatTime } from "../../utils/formatters";
@@ -81,7 +81,7 @@ export function SpeedDurationModal({
   };
 
   return (
-    <GlassDialog
+    <LinearDialog
       as="form"
       open={isOpen}
       cardClassName="modal-dialog-card glass speed-duration-dialog"
@@ -195,6 +195,6 @@ export function SpeedDurationModal({
           Apply
         </InteriorButton>
       </div>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

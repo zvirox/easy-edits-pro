@@ -47,17 +47,29 @@ These rules are enforced by gates or review. Violating them is a failed packet.
 
 ## Design and styling
 
+- **Linear solid UI is FINAL and LOCKED.** No more UI style changes or frosted-glass experiments.
 - **Design tokens only.** Never hard-code colours, radii, or spacing in
-  components; use the token files / Tailwind v4 `@theme`. `pnpm check:styles`
-  gates the raw-colour ratchet.
-- **Never `transition: all`.** Name the properties you animate; respect
-  `prefers-reduced-motion`.
-- **Solid elevated surfaces (No Glass).** Panels are 100% opaque matte
-  graphite/charcoal (`#121215`, `#17171c`, `#202026`) with 1px hairline
-  precision borders (`#23232a`) and dual-shadow bevel illumination. Zero
-  `backdrop-filter: blur()`.
-- **Media surfaces never glass or blurred.** Video/preview/audio-render surfaces
-  stay raw; blur over them wastes frame budget and skews colour.
+  components; use `ui/src/styles/linear-theme.css` (`@theme inline`) and the
+  semantic aliases in `01-editor.css` / `00-tokens-glass.css`. `pnpm check:styles`
+  and `pnpm check:linear` gate raw-colour and token discipline.
+- **Solid elevated surfaces (zero frosted glass).** Panels and cards are 100%
+  solid matte graphite/charcoal in dark theme (`#050505`, `#111213`, `#1A1B1E`,
+  `#202128` with `#1F2125` / `#2C2E33` 1px borders and `box-shadow: none`) and
+  clean solid light surfaces in light theme (`#F3F4F6`, `#FFFFFF`, `#F4F5F7`
+  with `#E5E7EB` / `#D1D5DB` borders and hairline `0 1px 2px rgb(16 24 40 / 5%)`
+  card shadow). Zero `backdrop-filter: blur()`, zero translucent surface fills
+  (`rgba()` / `bg-*/10`), zero glow, zero inset highlights, zero dark-theme
+  shadows, and zero surface gradients (subtle vertical area gradient fill allowed
+  inside line/sparkline charts only).
+- **Minimal rounding & single font family.** Cards `8px`, controls/inputs `6px`,
+  chips/tags/tooltips `4px` (`rounded-full` only on status dots, avatars, and
+  donut arcs). Self-hosted Inter font only (`ui/public/fonts/`).
+- **Never `transition: all`.** Motion uses `150ms ease-out` on color, border,
+  opacity, or transform properties only, and respects `prefers-reduced-motion`.
+- **Single theme toggle location.** Dark/Light theme (`data-theme="dark|light"`,
+  `ui-theme` storage key) toggles exclusively from `TitleBar`.
+- **Media surfaces stay raw.** Video/preview/scopes/audio-meter surfaces stay
+  raw with zero chrome overlays, filters, or blur.
 
 ## Code and engine
 
@@ -101,7 +113,7 @@ These rules are enforced by gates or review. Violating them is a failed packet.
 
 | Lane | Paths | Packets |
 |---|---|---|
-| 1 UI/glass | `ui/src/styles/`, `ui/src/features/panels/`, `scripts/check-*` (glass), `tests/visual`, `tests/a11y` | C3-C13 |
+| 1 UI/linear | `ui/src/styles/`, `ui/src/components/linear/`, `scripts/check-*` (linear/styles/contrast), `tests/visual`, `tests/a11y` | UI locked |
 | 2 engine/parity | `crates/saturn-core/src/catalogue/`, `crates/saturn-core/src/engine/`, `ui/src/features/<area>` | A1, D4, E* (one family per agent) |
 | 3 release/verification | `.github/`, `packaging/`, `apps/saturn-tauri/src/gpu_detect.rs`, `scripts/make-corpus.sh`, `tests/native/` | A2, B*, C1-C2, F* |
 | 4 tooling/docs/safety | `scripts/check-parity.mjs`, `docs/`, `crates/saturn-mcp`, `mcp_bridge.rs` | A4, D1-D3, G*, M* |

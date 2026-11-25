@@ -173,8 +173,8 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
           style={{
             padding: "4px 8px",
             borderRadius: "4px",
-            background: "rgba(16, 185, 129, 0.15)",
-            color: "var(--success-text, #10b981)",
+            background: "var(--tint-green-bg)",
+            color: "var(--tint-green-text)",
             fontSize: "11px",
           }}
         >
@@ -184,10 +184,10 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
 
       {/* Before / After Telemetry Deltas */}
       <div
-        className="glass" data-elev="1" style={{
-          borderRadius: "var(--radius-sm, 8px)",
+        className="surface-1" style={{
+          borderRadius: "8px",
           padding: "10px",
-          border: "1px solid var(--border-subtle, rgba(255,255,255,0.08))",
+          border: "1px solid var(--border-color)",
         }}
       >
         <span style={{ fontWeight: 600, fontSize: "12px", display: "block", marginBottom: "8px" }}>
@@ -204,8 +204,8 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
                 gap: "2px",
                 padding: "6px 8px",
                 borderRadius: "4px",
-                background: "var(--bg-elev-1, rgba(255,255,255,0.02))",
-                border: "1px solid var(--border-subtle, rgba(255,255,255,0.05))",
+                background: "var(--bg-surface-2)",
+                border: "1px solid var(--border-color)",
               }}
             >
               <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>{d.metric}</span>
@@ -239,10 +239,10 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
             return (
               <div
                 key={c.id}
-                className="glass" data-elev="1" style={{
+                className="surface-1" style={{
                   padding: "8px 10px",
                   borderRadius: "6px",
-                  border: "1px solid var(--border-subtle, rgba(255,255,255,0.06))",
+                  border: "1px solid var(--border-color)",
                   display: "flex",
                   flexDirection: "column",
                   gap: "4px",
@@ -283,8 +283,8 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
           style={{
             padding: "10px",
             borderRadius: "6px",
-            background: "var(--bg-elev-2, rgba(255,255,255,0.06))",
-            border: "1px solid var(--border-subtle, rgba(255,255,255,0.12))",
+            background: "var(--bg-surface-2)",
+            border: "1px solid var(--border-color)",
             display: "flex",
             flexDirection: "column",
             gap: "8px",
@@ -300,8 +300,8 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
             style={{
               padding: "4px 8px",
               borderRadius: "4px",
-              background: "var(--bg-elev-1, rgba(255,255,255,0.03))",
-              border: "1px solid var(--border-subtle, rgba(255,255,255,0.1))",
+              background: "var(--bg-input)",
+              border: "1px solid var(--border-color)",
               color: "var(--text-primary)",
               fontSize: "12px",
             }}

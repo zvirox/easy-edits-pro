@@ -45,7 +45,7 @@ export const AiBranchDiffRibbon: React.FC<AiBranchDiffRibbonProps> = ({
 
   return (
     <div
-      className="ai-branch-diff-ribbon glass" data-elev="1" role="region" aria-label="AI Branch Diff Ribbon" style={{
+      className="ai-branch-diff-ribbon surface-1" role="region" aria-label="AI Branch Diff Ribbon" style={{
         position: "relative",
         height: "28px",
         minHeight: "28px",
@@ -54,8 +54,8 @@ export const AiBranchDiffRibbon: React.FC<AiBranchDiffRibbonProps> = ({
         justifyContent: "space-between",
         padding: "0 10px",
         fontSize: "11px",
-        borderBottom: "1px solid var(--border-subtle, rgba(255,255,255,0.08))",
-        backgroundColor: "var(--bg-elev-1, rgba(25, 12, 28, 0.6))",
+        borderBottom: "1px solid var(--border-color)",
+        backgroundColor: "var(--bg-surface-2)",
         color: "var(--text-primary)",
         zIndex: 5,
       }}
@@ -65,9 +65,9 @@ export const AiBranchDiffRibbon: React.FC<AiBranchDiffRibbonProps> = ({
         <span
           style={{
             padding: "2px 6px",
-            borderRadius: "var(--radius-sm, 4px)",
-            backgroundColor: "var(--accent-bg, rgba(244,114,182,0.15))",
-            color: "var(--accent-text, #f472b6)",
+            borderRadius: "4px",
+            backgroundColor: "var(--tint-blue-bg)",
+            color: "var(--accent-text)",
             fontWeight: 600,
             display: "inline-flex",
             alignItems: "center",
@@ -141,8 +141,7 @@ export const AiBranchDiffRibbon: React.FC<AiBranchDiffRibbonProps> = ({
               top: 0,
               bottom: 0,
               width: "2px",
-              backgroundColor: "var(--accent-text-violet, #c084fc)",
-              boxShadow: "0 0 6px var(--accent-text-violet, #c084fc)",
+              backgroundColor: "var(--accent-text-violet)",
               zIndex: 3,
             }}
           />

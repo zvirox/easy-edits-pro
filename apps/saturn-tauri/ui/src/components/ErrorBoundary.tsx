@@ -64,48 +64,30 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             overflow: "hidden",
           }}
         >
-          {/* Ambient Top Glow */}
           <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              top: "-80px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: "600px",
-              height: "360px",
-              background: "radial-gradient(circle, var(--color-accent-glow, rgba(99, 102, 241, 0.18)) 0%, transparent 70%)",
-              pointerEvents: "none",
-              filter: "blur(50px)",
-              zIndex: 0,
-            }}
-          />
-
-          <div
-            className="glass"
-            data-elev="4"
+            className="surface-1"
             style={{
               position: "relative",
               zIndex: 1,
               maxWidth: "520px",
               width: "100%",
-              padding: "32px 28px",
-              borderRadius: "18px",
+              padding: "28px 24px",
+              borderRadius: "8px",
             }}
           >
             <div
               style={{
-                width: "48px",
-                height: "48px",
+                width: "44px",
+                height: "44px",
                 margin: "0 auto 16px",
-                borderRadius: "12px",
-                background: "rgba(239, 68, 68, 0.12)",
-                border: "1px solid rgba(239, 68, 68, 0.25)",
-                color: "#f87171",
+                borderRadius: "8px",
+                background: "var(--tint-red-bg)",
+                border: "1px solid var(--status-danger-bright)",
+                color: "var(--tint-red-text)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "22px",
+                fontSize: "20px",
               }}
             >
               ⚠
@@ -116,7 +98,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 fontSize: "19px",
                 fontWeight: 600,
                 letterSpacing: "-0.02em",
-                color: "var(--color-text-primary, #f8fafc)",
+                color: "var(--text-primary)",
               }}
             >
               {this.props.fallbackTitle ?? "Workspace Rendering Issue"}
@@ -125,7 +107,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               style={{
                 margin: "0 0 18px",
                 fontSize: "13px",
-                color: "var(--color-text-secondary, #bfa5b8)",
+                color: "var(--text-secondary)",
                 lineHeight: 1.6,
               }}
             >
@@ -136,10 +118,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 style={{
                   margin: "0 0 22px",
                   padding: "12px 14px",
-                  borderRadius: "8px",
-                  background: "var(--color-bg-base, #09090b)",
-                  border: "1px solid rgba(239, 68, 68, 0.2)",
-                  color: "#fca5a5",
+                  borderRadius: "6px",
+                  background: "var(--bg-app)",
+                  border: "1px solid var(--status-danger-bright)",
+                  color: "var(--tint-red-text)",
                   fontSize: "12px",
                   fontFamily: "ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
                   textAlign: "left",
@@ -157,16 +139,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 type="button"
                 onClick={this.handleReset}
                 style={{
-                  padding: "9px 20px",
-                  borderRadius: "8px",
-                  background: "var(--color-accent-primary, #6b21a8)",
-                  color: "#ffffff",
-                  border: "1px solid rgba(255, 255, 255, 0.14)",
-                  boxShadow: "0 0 20px var(--color-accent-glow, rgba(99, 102, 241, 0.35))",
+                  padding: "8px 16px",
+                  borderRadius: "6px",
+                  background: "var(--accent-primary)",
+                  color: "var(--on-accent)",
+                  border: "1px solid var(--accent-primary)",
                   fontWeight: 600,
                   fontSize: "13px",
                   cursor: "pointer",
-                  transition: "background 0.15s ease, border 0.15s ease, box-shadow 0.15s ease",
+                  transition: "background-color 150ms ease-out, border-color 150ms ease-out",
                 }}
               >
                 Try Again
@@ -175,15 +156,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 type="button"
                 onClick={this.handleReload}
                 style={{
-                  padding: "9px 20px",
-                  borderRadius: "8px",
-                  background: "var(--color-bg-elevated, #18181c)",
-                  color: "var(--color-text-primary, #f8fafc)",
-                  border: "1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08))",
+                  padding: "8px 16px",
+                  borderRadius: "6px",
+                  background: "var(--bg-surface-2)",
+                  color: "var(--text-primary)",
+                  border: "1px solid var(--border-color)",
                   fontSize: "13px",
                   fontWeight: 500,
                   cursor: "pointer",
-                  transition: "background 0.15s ease, border 0.15s ease, box-shadow 0.15s ease",
+                  transition: "background-color 150ms ease-out, border-color 150ms ease-out",
                 }}
               >
                 Reload Studio

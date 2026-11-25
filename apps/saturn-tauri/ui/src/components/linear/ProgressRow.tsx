@@ -7,7 +7,7 @@ export interface ProgressRowProps {
   label: string;
   value: number; // 0 - 100
   displayValue?: string;
-  color?: string; // e.g. '#3355FF', '#38B6F0', '#22C55E', '#F97316'
+  color?: string;
   className?: string;
 }
 
@@ -15,7 +15,7 @@ export const ProgressRow: React.FC<ProgressRowProps> = ({
   label,
   value,
   displayValue,
-  color = '#3355FF',
+  color = 'var(--accent-blue)',
   className = '',
 }) => {
   const clamped = Math.min(100, Math.max(0, value));
@@ -28,10 +28,10 @@ export const ProgressRow: React.FC<ProgressRowProps> = ({
           {displayValue ?? `${clamped}%`}
         </span>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-[var(--bg-bar-idle)] overflow-hidden">
+      <div className="h-1 w-full rounded-[4px] bg-[var(--bg-bar-idle)] overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-300 ease-out"
-          style={{ width: `${clamped}%`, backgroundColor: color }}
+          className="h-full w-full rounded-[4px] origin-left transition-transform duration-150 ease-out"
+          style={{ transform: `scaleX(${clamped / 100})`, backgroundColor: color }}
         />
       </div>
     </div>

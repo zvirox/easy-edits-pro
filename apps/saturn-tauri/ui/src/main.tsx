@@ -5,27 +5,21 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { WebDeskShell } from "./features/webdesk";
-import { probeEnvironment, tagGlassCapability } from "./app/runtimeEnvironment";
 import "./style.css";
 
-// Tag the document before glass is painted so WebKitGTK machines with DMA-BUF
-// disabled fall back to the lite token set.
-void probeEnvironment().then(tagGlassCapability);
+// Solid Linear UI is final and locked; enforce data-glass="off" on root.
+document.documentElement.setAttribute("data-glass", "off");
 
 const isWebDesk =
   typeof window !== "undefined" &&
   (new URLSearchParams(window.location.search).get("mode") === "desk" ||
     new URLSearchParams(window.location.search).get("desk") === "1");
 
-// Phase 0 feasibility spike. `VITE_GLASS_SPIKE=1 pnpm tauri dev` mounts the
-// benchmark instead of the editor. The dynamic import keeps the spike out of
-// production bundles: the flag is inlined at build time, so this branch is
-// eliminated when it is not "1".
 const root = createRoot(document.getElementById("root")!);
 
-if (import.meta.env.VITE_GLASS_SPIKE === "1") {
-  void import("./spike/GlassSpike").then(({ GlassSpike }) => {
-    root.render(<GlassSpike />);
+if (import.meta.env.VITE_LINEAR_SPIKE === "1" || import.meta.env.VITE_GLASS_SPIKE === "1") {
+  void import("./spike/LinearSpike").then(({ LinearSpike }) => {
+    root.render(<LinearSpike />);
   });
 } else if (isWebDesk) {
   root.render(

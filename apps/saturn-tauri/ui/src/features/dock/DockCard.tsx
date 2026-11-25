@@ -65,7 +65,7 @@ export function DockCard({ className, tabs, ariaLabel, onClose }: DockCardProps)
 
   return (
     <section
-      className={`glass card dock-card${className ? ` ${className}` : ""}${drawerClass}`}
+      className={`surface-1 card dock-card${className ? ` ${className}` : ""}${drawerClass}`}
       aria-label={ariaLabel}
     >
       <header

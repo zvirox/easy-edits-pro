@@ -73,8 +73,7 @@ export function ClipContextMenu({
   return createPortal(
     <div
       ref={menuRef}
-      className="clip-context-menu glass"
-      data-elev="3"
+      className="clip-context-menu surface-1"
       role="menu"
       style={{ left: `${position.left}px`, top: `${position.top}px` }}
     >

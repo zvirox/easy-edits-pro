@@ -194,10 +194,10 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
         <div
           style={{
             padding: "6px 10px",
-            background: hadError ? "rgba(220, 38, 38, 0.15)" : "rgba(72, 187, 120, 0.15)",
-            border: `1px solid ${hadError ? "#dc2626" : "#48bb78"}`,
+            background: hadError ? "var(--tint-red-bg)" : "var(--tint-green-bg)",
+            border: `1px solid ${hadError ? "var(--status-danger-bright)" : "var(--status-success)"}`,
             borderRadius: 4,
-            color: hadError ? "#f87171" : "#68d391",
+            color: hadError ? "var(--tint-red-text)" : "var(--tint-green-text)",
             fontSize: 11,
             marginBottom: 12,
           }}

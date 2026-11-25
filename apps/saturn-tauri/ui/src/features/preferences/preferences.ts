@@ -15,41 +15,40 @@ export interface Preferences {
 }
 
 export const PREFERENCES_STORAGE_KEY = "easy-edits-pro.preferences.v1";
+export const UI_THEME_STORAGE_KEY = "ui-theme";
 
 export const DEFAULT_PREFERENCES: Preferences = {
   theme: "dark",
-  glass: "full",
+  glass: "off",
   reducedMotion: null,
   snap: true,
   trackHeight: "normal",
 };
 
-function legacyTheme(): ThemeMode {
+function systemTheme(): ThemeMode {
   try {
-    const saved = localStorage.getItem("eep-theme");
-    if (saved === "light" || saved === "dark") return saved;
+    if (typeof window !== "undefined" && window.matchMedia) {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
   } catch {}
   return "dark";
 }
 
-function isGlassMode(value: unknown): value is GlassMode {
-  return value === "full" || value === "lite" || value === "off";
+function resolveInitialTheme(): ThemeMode {
+  try {
+    const saved = localStorage.getItem(UI_THEME_STORAGE_KEY);
+    if (saved === "light" || saved === "dark") return saved;
+  } catch {}
+  return systemTheme();
 }
 
 function isTrackHeight(value: unknown): value is TrackHeightPreference {
   return value === "compact" || value === "normal" || value === "expanded";
 }
 
-/** Glass mode chosen by the user, or null when the runtime should decide. */
+/** Glass is permanently off in the locked Linear UI. */
 export function storedGlassMode(): GlassMode | null {
-  try {
-    const raw = localStorage.getItem(PREFERENCES_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { glass?: unknown };
-    return isGlassMode(parsed.glass) ? parsed.glass : null;
-  } catch {
-    return null;
-  }
+  return "off";
 }
 
 export function loadPreferences(): Preferences {
@@ -61,13 +60,8 @@ export function loadPreferences(): Preferences {
     stored = {};
   }
   return {
-    theme:
-      stored.theme === "light" || stored.theme === "dark" ? stored.theme : legacyTheme(),
-    glass: (() => {
-      if (isGlassMode(stored.glass)) return stored.glass;
-      const runtime = document.documentElement.getAttribute("data-glass");
-      return isGlassMode(runtime) ? runtime : "full";
-    })(),
+    theme: resolveInitialTheme(),
+    glass: "off",
     reducedMotion:
       stored.reducedMotion === true || stored.reducedMotion === false
         ? stored.reducedMotion
@@ -79,6 +73,10 @@ export function loadPreferences(): Preferences {
 
 export function savePreferences(preferences: Preferences): void {
   try {
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(preferences));
+    localStorage.setItem(UI_THEME_STORAGE_KEY, preferences.theme);
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ ...preferences, glass: "off" }),
+    );
   } catch {}
 }

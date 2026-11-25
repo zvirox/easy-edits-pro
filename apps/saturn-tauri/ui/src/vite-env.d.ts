@@ -2,3 +2,4 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 /// <reference types="vite/client" />
+declare const __APP_VERSION__: string;

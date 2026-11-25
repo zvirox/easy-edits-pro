@@ -142,7 +142,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
     >
       {/* Whole-Branch Actions Bar */}
       <div
-        className="glass" data-elev="2" style={{
+        className="surface-1" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -179,7 +179,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
 
       {session.lastError && (
         <div
-          role="alert" className="glass" data-elev="2" style={{
+          role="alert" className="surface-1" style={{
             padding: "8px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             borderLeft: "3px solid var(--error-text)",
@@ -209,7 +209,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
         />
       ) : (
         <div
-          className="glass" data-elev="1" style={{
+          className="surface-1" style={{
             padding: "8px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             fontSize: "12px",
@@ -223,7 +223,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
       {/* Verification Evidence Summary */}
       {session.verificationReport && (
         <div
-          className="glass" data-elev="1" style={{
+          className="surface-1" style={{
             padding: "8px 12px",
             borderRadius: "var(--radius-sm, 10px)",
             display: "flex",
@@ -248,7 +248,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                   fontSize: "11px",
                   padding: "2px 4px",
                   borderRadius: "4px",
-                  background: item.status === "warn" ? "rgba(245, 158, 11, 0.1)" : "transparent",
+                  background: item.status === "warn" ? "var(--tint-amber-bg)" : "transparent",
                 }}
               >
                 <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -284,7 +284,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
         <div style={{ fontWeight: 600, fontSize: "12px" }}>Proposed Edits (Low-confidence first)</div>
         {sortedChanges.length === 0 && (
           <div
-            className="glass" data-elev="1" style={{
+            className="surface-1" style={{
               padding: "10px 12px",
               borderRadius: "var(--radius-sm, 10px)",
               fontSize: "12px",
@@ -300,7 +300,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
             <div
               key={change.change_id}
               onClick={() => setSelectedIndex(idx)}
-              className="glass" data-elev={isSelected ? "3" : "1"}
+              className="surface-1" data-elev={isSelected ? "3" : "1"}
               style={{
                 padding: "8px 12px",
                 borderRadius: "var(--radius-sm, 10px)",
@@ -410,7 +410,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <input
-                    type="text" className="input glass" data-elev="2" placeholder="Feedback (e.g. 'Shift cut +2 frames later')..." value={fixFeedback}
+                    type="text" className="input surface-1" placeholder="Feedback (e.g. 'Shift cut +2 frames later')..." value={fixFeedback}
                     onChange={(e) => setFixFeedback(e.target.value)}
                     style={{ flex: 1, padding: "4px 8px", fontSize: "11px", borderRadius: "6px" }}
                   />

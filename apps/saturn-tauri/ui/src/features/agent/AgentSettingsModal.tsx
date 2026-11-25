@@ -3,7 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 import React, { useState } from "react";
 import { InteriorButton } from "../../components/interior/interior-button";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 
 export interface AgentSettings {
   provider: "anthropic" | "openai" | "ollama" | "custom_daemon";
@@ -62,7 +62,7 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
   };
 
   return (
-    <GlassDialog
+    <LinearDialog
       open={isOpen}
       cardClassName="modal-dialog-card glass agent-settings-modal" onBackdropClick={onClose}
       cardProps={{
@@ -76,7 +76,7 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
           justifyContent: "space-between",
           alignItems: "center",
           marginBottom: "16px",
-          borderBottom: "1px solid var(--border-subtle, rgba(255,255,255,0.08))",
+          borderBottom: "1px solid var(--border-color)",
           paddingBottom: "8px",
         }}
       >
@@ -99,9 +99,9 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
                   alignItems: "center",
                   gap: "8px",
                   padding: "6px 10px",
-                  borderRadius: "var(--radius-sm, 6px)",
-                  background: provider === p ? "var(--bg-elev-2, rgba(255,255,255,0.08))" : "var(--bg-elev-1, rgba(255,255,255,0.03))",
-                  border: provider === p ? "1px solid var(--accent-text, #f472b6)" : "1px solid var(--border-subtle, rgba(255,255,255,0.08))",
+                  borderRadius: "6px",
+                  background: provider === p ? "var(--bg-selected)" : "var(--bg-surface-2)",
+                  border: provider === p ? "1px solid var(--accent-primary)" : "1px solid var(--border-color)",
                   cursor: "pointer",
                 }}
               >
@@ -125,9 +125,9 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
               placeholder="http://127.0.0.1:4404 or /tmp/saturn-daemon.sock" style={{
                 width: "100%",
                 padding: "6px 8px",
-                borderRadius: "var(--radius-sm, 6px)",
-                background: "var(--bg-elev-1, rgba(255,255,255,0.03))",
-                border: "1px solid var(--border-subtle, rgba(255,255,255,0.1))",
+                borderRadius: "6px",
+                background: "var(--bg-input)",
+                border: "1px solid var(--border-color)",
                 color: "var(--text-primary)",
                 fontFamily: "monospace",
                 fontSize: "12px",
@@ -147,9 +147,9 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
             style={{
               width: "100%",
               padding: "6px 8px",
-              borderRadius: "var(--radius-sm, 6px)",
-              background: "var(--bg-elev-1, rgba(255,255,255,0.03))",
-              border: "1px solid var(--border-subtle, rgba(255,255,255,0.1))",
+              borderRadius: "6px",
+              background: "var(--bg-input)",
+              border: "1px solid var(--border-color)",
               color: "var(--text-primary)",
               fontSize: "13px",
             }}
@@ -179,9 +179,9 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
                   alignItems: "center",
                   gap: "6px",
                   padding: "4px 8px",
-                  borderRadius: "var(--radius-sm, 6px)",
-                  background: grants.includes(id) ? "var(--bg-elev-2, rgba(255,255,255,0.06))" : "var(--bg-elev-1, rgba(255,255,255,0.02))",
-                  border: "1px solid var(--border-subtle, rgba(255,255,255,0.08))",
+                  borderRadius: "6px",
+                  background: grants.includes(id) ? "var(--bg-selected)" : "var(--bg-surface-2)",
+                  border: "1px solid var(--border-color)",
                   cursor: "pointer",
                   fontSize: "12px",
                 }}
@@ -233,9 +233,9 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
             style={{
               width: "100%",
               padding: "6px 8px",
-              borderRadius: "var(--radius-sm, 6px)",
-              background: "var(--bg-elev-1, rgba(255,255,255,0.03))",
-              border: "1px solid var(--border-subtle, rgba(255,255,255,0.1))",
+              borderRadius: "6px",
+              background: "var(--bg-input)",
+              border: "1px solid var(--border-color)",
               color: "var(--text-primary)",
               fontFamily: "monospace",
               fontSize: "12px",
@@ -247,9 +247,9 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
         <div
           style={{
             padding: "10px",
-            borderRadius: "var(--radius-sm, 6px)",
-            background: "var(--bg-elev-1, rgba(255,255,255,0.03))",
-            border: "1px dashed var(--border-subtle, rgba(255,255,255,0.12))",
+            borderRadius: "6px",
+            background: "var(--bg-surface-2)",
+            border: "1px dashed var(--border-color)",
           }}
         >
           <div style={{ fontWeight: 600, marginBottom: "4px" }}>First-Run Onboarding</div>
@@ -262,7 +262,7 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
              Run Sample Task on Demo Project
           </InteriorButton>
           {demoNotice && (
-            <span style={{ marginLeft: "10px", fontSize: "11px", color: "var(--accent-text, #f472b6)" }}>
+            <span style={{ marginLeft: "10px", fontSize: "11px", color: "var(--accent-text)" }}>
               {demoNotice}
             </span>
           )}
@@ -275,7 +275,7 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
           justifyContent: "flex-end",
           gap: "8px",
           marginTop: "20px",
-          borderTop: "1px solid var(--border-subtle, rgba(255,255,255,0.08))",
+          borderTop: "1px solid var(--border-color)",
           paddingTop: "12px",
         }}
       >
@@ -286,6 +286,6 @@ export const AgentSettingsModal: React.FC<AgentSettingsModalProps> = ({
           Save Settings
         </InteriorButton>
       </div>
-    </GlassDialog>
+    </LinearDialog>
   );
 };

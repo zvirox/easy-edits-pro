@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-12  
 **Recon agent:** `@baseline-auditor` (zero product source changes)  
-**Remediation plan:** [planning/ui-layout-workspace-remediation.md](../planning/ui-layout-workspace-remediation.md)  
+**Status:** Historical Phase 0 audit (superseded by UI-P0..UI-P7 completion and the final locked Linear UI).  
 **Scratch probe & evidence:**
 - Probe script: `/home/zvirox/.gemini/antigravity/brain/02eae39c-a044-43ea-b20f-d88fba759da9/scratch/ui_baseline_probe.mjs`
 - Measurements JSON: `/home/zvirox/.gemini/antigravity/brain/02eae39c-a044-43ea-b20f-d88fba759da9/scratch/ui-baseline-results.json`

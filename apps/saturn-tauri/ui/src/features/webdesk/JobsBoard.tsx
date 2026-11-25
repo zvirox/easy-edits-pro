@@ -119,27 +119,27 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
     <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "var(--gap, 12px)" }}>
       {/* Metrics strip */}
       <div className="webdesk-metrics-strip" data-testid="webdesk-metrics-strip">
-        <div className="webdesk-metric-card glass" data-elev="1">
+        <div className="webdesk-metric-card surface-1">
           <span className="webdesk-metric-label">Total Jobs</span>
           <span className="webdesk-metric-value">{metrics.totalJobs}</span>
         </div>
-        <div className="webdesk-metric-card glass" data-elev="1">
+        <div className="webdesk-metric-card surface-1">
           <span className="webdesk-metric-label">Active Running</span>
           <span className="webdesk-metric-value">{metrics.activeJobs}</span>
         </div>
-        <div className="webdesk-metric-card glass" data-elev="1">
+        <div className="webdesk-metric-card surface-1">
           <span className="webdesk-metric-label">In Review / Input</span>
           <span className="webdesk-metric-value">{metrics.inReviewCount + metrics.needsInputCount}</span>
         </div>
-        <div className="webdesk-metric-card glass" data-elev="1">
+        <div className="webdesk-metric-card surface-1">
           <span className="webdesk-metric-label">Delivered</span>
           <span className="webdesk-metric-value">{metrics.completedJobs}</span>
         </div>
-        <div className="webdesk-metric-card glass" data-elev="1">
+        <div className="webdesk-metric-card surface-1">
           <span className="webdesk-metric-label">Est. Model Cost</span>
           <span className="webdesk-metric-value">${metrics.totalModelCostUsd.toFixed(2)}</span>
         </div>
-        <div className="webdesk-metric-card glass" data-elev="1">
+        <div className="webdesk-metric-card surface-1">
           <span className="webdesk-metric-label">Wall-Clock Time</span>
           <span className="webdesk-metric-value">{metrics.totalWallClockMin}m</span>
         </div>
@@ -202,7 +202,7 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
       {/* Main Board Area */}
       {filteredJobs.length === 0 ? (
         <div
-          className="glass" data-elev="1" style={{
+          className="surface-1" style={{
             flex: 1,
             display: "flex",
             flexDirection: "column",
@@ -231,7 +231,7 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
           {KANBAN_COLUMNS.map((col) => {
             const colJobs = filteredJobs.filter((j) => col.statuses.includes(j.status));
             return (
-              <div key={col.id} className="webdesk-kanban-col glass" data-elev="1">
+              <div key={col.id} className="webdesk-kanban-col surface-1">
                 <div className="webdesk-kanban-col-header">
                   <span>{col.title}</span>
                   <span className="webdesk-col-count">{colJobs.length}</span>
@@ -242,8 +242,7 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
                     return (
                       <div
                         key={job.id}
-                        className={`webdesk-job-card glass ${job.id === activeJobId ? "active" : ""}`}
-                        data-elev="2" onClick={() => handleCardClick(job)}
+                        className={`webdesk-job-card surface-1 ${job.id === activeJobId ? "active" : ""}`} onClick={() => handleCardClick(job)}
                         data-testid={`job-card-${job.id}`}
                       >
                         <div className="webdesk-job-card-header">
@@ -303,7 +302,7 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ store }) => {
         </div>
       ) : (
         /* Table / List View */
-        <div className="webdesk-table-container glass" data-elev="1">
+        <div className="webdesk-table-container surface-1">
           <table className="webdesk-jobs-table">
             <thead>
               <tr>

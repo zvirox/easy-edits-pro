@@ -205,7 +205,7 @@
 }
 
 .timeline-review-pin.is-selected {
-  box-shadow: 0 0 0 1px var(--accent-bright);
+  outline: 1px solid var(--accent-bright);
 }
 
 /* Clip low-confidence AI indicator dot (timeline media surface) */
@@ -219,5 +219,5 @@
   flex: 0 0 auto;
   border-radius: 50%;
   background: var(--status-warning-bright);
-  box-shadow: 0 0 0 1px var(--bg-panel);
+  border: 1px solid var(--bg-panel);
 }

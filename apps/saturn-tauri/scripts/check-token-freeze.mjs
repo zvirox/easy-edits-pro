@@ -23,7 +23,11 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const APP_ROOT = fileURLToPath(new URL("..", import.meta.url));
-const TOKEN_FILES = ["ui/src/styles/00-tokens-glass.css", "ui/src/styles/01-editor.css"];
+const TOKEN_FILES = [
+  "ui/src/styles/linear-theme.css",
+  "ui/src/styles/00-tokens-glass.css",
+  "ui/src/styles/01-editor.css",
+];
 const SNAPSHOT_PATH = join(APP_ROOT, "scripts/token-freeze.json");
 const COLOUR_VALUE = /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|color-mix\(/;
 
@@ -88,7 +92,7 @@ for (const name of Object.keys(frozen)) {
 if (problems.length > 0) {
   console.error("token freeze violated:");
   for (const problem of problems) console.error(`  - ${problem}`);
-  console.error("\nColour tokens are locked by docs/GLASS_CARDS_PLAN.md §3.");
+  console.error("\nColour tokens are locked by the Linear Design System.");
   console.error("If this change is intentional and reviewed, regenerate the snapshot:");
   console.error("  node scripts/check-token-freeze.mjs --update");
   process.exit(1);

@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { useCallback, useEffect, useState } from "react";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 import { InteriorButton } from "../../components/interior/interior-button";
 
 export interface ProjectJsonDialogProps {
@@ -48,7 +48,7 @@ export function ProjectJsonDialog({ isOpen, onClose, runCommand, setNotice }: Pr
   }, [json, setNotice]);
 
   return (
-    <GlassDialog
+    <LinearDialog
       open={isOpen}
       cardClassName="modal-dialog-card glass project-json-card"
       onBackdropClick={onClose}
@@ -80,6 +80,6 @@ export function ProjectJsonDialog({ isOpen, onClose, runCommand, setNotice }: Pr
           Close
         </InteriorButton>
       </div>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

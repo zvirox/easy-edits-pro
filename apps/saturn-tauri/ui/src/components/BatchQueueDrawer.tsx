@@ -110,9 +110,8 @@ export const BatchQueueDrawer: React.FC<BatchQueueDrawerProps> = ({
           transition={motionPreset.transition}
         >
           <motion.div
-            className="batch-queue-drawer glass"
+            className="batch-queue-drawer surface-1"
             data-testid="batch-queue-drawer"
-            data-elev="3"
             onClick={(e) => e.stopPropagation()}
             style={{
               position: "fixed",

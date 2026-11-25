@@ -1,0 +1,173 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ * Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
+ * Also available under the EEP commercial licence — see LICENSING.md
+ */
+/* Linear surface feasibility spike - solid matte surfaces, zero blur/glow/shadow. */
+
+.linear-spike {
+  --spike-canvas: var(--bg-app);
+  --spike-ink: var(--text);
+  --spike-muted: var(--text-muted);
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--spike-canvas);
+  color: var(--spike-ink);
+  font-family: "Inter Variable", "Inter", system-ui, -apple-system, sans-serif;
+  isolation: isolate;
+}
+
+.spike-stage {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-app);
+}
+
+.spike-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(66vw, 1120px);
+  aspect-ratio: 16 / 9;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+}
+
+.spike-panel {
+  position: fixed;
+  z-index: 4;
+  padding: 20px;
+  box-sizing: border-box;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--card-shadow);
+}
+
+.spike-panel h2 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.spike-panel p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--spike-muted);
+}
+
+.spike-l1 {
+  top: 12vh;
+  left: 4vw;
+  width: clamp(220px, 23vw, 330px);
+  height: 178px;
+}
+
+.spike-l2 {
+  top: 15vh;
+  right: 4vw;
+  width: clamp(240px, 25vw, 360px);
+  height: 218px;
+}
+
+.spike-l3 {
+  right: 9vw;
+  bottom: 9vh;
+  width: clamp(230px, 24vw, 340px);
+  height: 196px;
+}
+
+.spike-drag {
+  top: 0;
+  left: 0;
+  width: clamp(300px, 30vw, 400px);
+  height: 238px;
+  z-index: 8;
+  will-change: transform;
+  transform: translate3d(12px, 12px, 0);
+}
+
+.linear-spike[data-scene="video"] .spike-panel {
+  display: none;
+}
+
+.linear-spike[data-scene="empty"] .spike-panel,
+.linear-spike[data-scene="empty"] .spike-video {
+  display: none;
+}
+
+.spike-drag2 {
+  display: none;
+  top: 0;
+  left: 0;
+  width: clamp(260px, 26vw, 340px);
+  height: 210px;
+  z-index: 7;
+  will-change: transform;
+  transform: translate3d(60px, 60px, 0);
+}
+
+.linear-spike[data-scene="stress"] .spike-drag2 {
+  display: block;
+}
+
+.spike-hud {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 20;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--spike-muted);
+}
+
+.spike-hud-title {
+  margin-bottom: 4px;
+  color: var(--spike-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.spike-result strong {
+  color: var(--spike-ink);
+}
+
+.spike-error {
+  color: var(--accent-red);
+}
+
+.spike-path {
+  color: var(--accent-green);
+  overflow-wrap: anywhere;
+}
+
+.spike-button {
+  margin-top: 10px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface-2);
+  color: var(--spike-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.spike-button:hover {
+  background: var(--bg-bar-idle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spike-drag {
+    will-change: auto;
+  }
+}

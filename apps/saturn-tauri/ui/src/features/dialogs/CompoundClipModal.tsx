@@ -2,7 +2,7 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "../../components/interior/interior-button";
-import { GlassDialog } from "../../motion/GlassDialog";
+import { LinearDialog } from "../../motion/LinearDialog";
 export interface CompoundClipModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,7 +19,7 @@ export function CompoundClipModal({
   createCompoundClip,
 }: CompoundClipModalProps) {
   return (
-    <GlassDialog
+    <LinearDialog
       as="form"
       open={isOpen}
       cardClassName="modal-dialog-card glass compound-modal"
@@ -54,6 +54,6 @@ export function CompoundClipModal({
           <InteriorButton type="button" onClick={onClose}>Cancel</InteriorButton>
           <InteriorButton className="primary" type="submit" disabled={!compoundClipNameDraft.trim()}>Create Compound Clip</InteriorButton>
         </div>
-    </GlassDialog>
+    </LinearDialog>
   );
 }

@@ -1,59 +1,30 @@
 # Roadmap
 
-This page is a short, honest summary. The detailed, always-current status lives
-in [docs/AI_NATIVE_PLAN_CHECKLIST.md](docs/AI_NATIVE_PLAN_CHECKLIST.md); known
-limitations are listed in the [README](README.md). Nothing here has a promised
-date.
+This page is a concise summary of current project status. The granular checklist lives in [docs/AI_NATIVE_PLAN_CHECKLIST.md](docs/AI_NATIVE_PLAN_CHECKLIST.md); installation and usage are in [README.md](README.md). Nothing here carries a promised release date.
 
 ## Where the project is
 
-Easy Edits Pro is an **alpha** Linux video editor with a Rust core, a Tauri 2
-and React UI, and GStreamer/GES rendering. The current direction is an
-**agent-friendly editor**: AI agents can drive every editing command over MCP,
-look at the result with measured tools (frames, scopes, audio telemetry,
-semantic search), try changes on branches, and a human reviews the result.
+Easy Edits Pro (`v0.1.3-beta`) is a **beta** native Linux non-destructive video editor powered by a Rust core (`saturn-core`, `saturn-render`, `saturn-perception`, `saturn-audio-dsp`, `saturn-control`, `saturn-mcp`), a Tauri 2 + React 19 UI in the **locked Linear solid design system**, and GStreamer/GES rendering. Every shipped catalogue command (`492`) is exposed to both humans and AI agents over MCP / Starship Control with actor isolation, branches, durable locks, untrusted-media provenance tracking, and measured self-verification.
 
-## Done recently
+## Completed milestones
 
-- Command surface over MCP, branches and fingerprints, security hardening.
-- Perception: frame sheets, video scopes, audio telemetry, real transcription,
-  shot detection, semantic search, matting, depth and motion tracking.
-- Colour: scene-referred GPU pipeline, node graph, automated shot matching.
-- Audio: native plugin host, offline dialogue clean-up and mastering.
-- Editing: J/L split edits, match-cut alignment, beat-grid quantisation.
-- A fixed frosted-glass card layout shared by every workspace.
-- Agent-first core (Packets AF1, AF2, AF3, AF4): tool profiles and tiers, actor isolation,
-  durable locks, Stop control, atomic engine batches, edit rationale, confidence,
-  human-owned project brief with correction provenance, and measured self-checks (`verify.run`).
-- Contributor onboarding: contributor guide, doctor script, PR template, and codeowners.
+- **Core, Catalogue & Security (`Phase 0`, `Packet 0.0–0.2`):** Rational-tick Rust project core, schema migrations (up to v18), CoW timeline branches, BLAKE3 media fingerprints, tick overflow hardening, write-root allowlists, and `492` synced commands across menus and MCP.
+- **Perceptual Feedback & Neural Perception (`Phase 1` & `Phase 2`):** GStreamer contact-sheet & raw-frame extraction, CPU video scopes telemetry, K-weighted EBU R128 + 10-band FFT audio telemetry, real `whisper-rs` transcription + script sync, shot detection, SigLIP semantic search, MODNet background matting, Depth-Anything-V2 relative depth, and ZNCC + RANSAC motion tracking.
+- **GPU Colour & Audio DSP (`Phase 3` & `Phase 4` packets `4.1–4.2`):** `Rgba32Float` wgpu pipeline, ACEScg transforms, node graph + automated shot matching; out-of-process CLAP plugin host (`saturn-plugin-worker`) with render parity, GCC-PHAT phase alignment, room tone fill, RMS ducking, and master loudness normalization.
+- **Narrative Editing & Co-Editing UI (`Phase 5.1` slices + `Packet 5.2` + `UI-P0..UI-P7` + Locked Linear UI):** J/L split edits, match-cut alignment, beat-grid quantization; branch diff ribbon, Video Scopes, Script Sync, and Agent Telemetry panels; custom 40 px `TitleBar`, collapsible `Sidebar`, `Breadcrumb`, dark/light Inter tokens, shared Linear components, and zero-blur/zero-glow solid matte surfaces (**UI style is final and locked**).
+- **Agent-First Layer, Task Sheets, Daemon, Web Desk, Runner & SSO (`AF0–AF9`, `TS0–TS10`, `Phase 7`):** Tool profiles & tiers, actor isolation, durable locks, Stop fencing (`<= 1s`), `verify.run` measured checks, AF5 provenance, structured `tasksheet/1` work orders & review rounds, delivery packaging, CET v0.1, `cli-anything-eep` + 5 companion recipes, 16-task `EEP-Bench` (`--agent` mode) + live socket `ai_closed_loop_workflow.py`, authenticated UDS/TCP daemon (`saturn-control`), browser Web Desk (`?webdesk=1`), concurrent Runner + BYO endpoints, OIDC/SAML 2.0 SSO + RBAC, and `starship-plugin` SDK orchestration.
+- **Contributor Infrastructure (`C1`) & Packaging:** 6-step `CONTRIBUTING.md`, CLA/DCO/SPDX gates, `scripts/doctor.sh`, `.deb`/`.rpm`/Flatpak/AppImage CI packaging pipelines with notice bundle generation.
 
-## Next
+## Remaining / Open work
 
-- Agent-first completion: untrusted media provenance (AF5), and Agent and Review UI cards (AF6). See
-  [docs/AGENT_FIRST_PLAN.md](docs/AGENT_FIRST_PLAN.md).
-- Task Sheet system (TS0–TS6): structured work orders (`tasksheet/1`), plan approval
-  gates, structured agent questions, pro review notes and round diffs, delivery
-  package exporter, and Capture Event Track (CET v0.1) integration. See
-  [docs/TASK_SHEET_PLAN.md](docs/TASK_SHEET_PLAN.md).
-- **Starship Control Orchestration & `starship-plugin` SDK Integration**:
-  - Embed the shared `starship-plugin` SDK crate.
-  - Auto-generate the discovery manifest at `$XDG_DATA_HOME/starship/plugins/eep.json`.
-  - Expose the live GUI Unix domain socket bridge at `$XDG_RUNTIME_DIR/starship/bridges/eep.sock` (`SO_PEERCRED` verified).
-  - Enable bidirectional MCP JSON-RPC 2.0 communication allowing **Starship Control** to orchestrate timeline edits, audio dubs, and CET-driven cuts.
-- Remaining editing verbs (morph cut, storyline pins).
-- Flagship recipes (podcast clips, talking-head/tutorials, webinar recaps) and
-  the EEP-Bench public benchmark.
-
-## Later
-
-- Authenticated daemon (`saturn-control` web API) and Web Desk for self-hosted teams (TS7–TS9).
-- Cross-platform support: Tier 1 Linux, Tier 2 macOS and Windows (headless CLI/daemon first; macOS desktop GUI first, then Windows).
-- Depth compositing, corner-pin, object removal, kinetic typography.
-- Shared agent contract extraction for Audio Labs Pro and Screen Studio Pro.
+- **Audio Stem Separation (`Phase 4.2` — `audio.separate_stems`):** Intentionally deferred until a verified, license-cleared commercial-safe Dialogue/Music/Ambience/SFX model is available.
+- **Remaining Narrative Verbs (`Phase 5.1`):** `timeline.fluid_morph_cut` and `timeline.pin_clip_to_storyline`.
+- **VFX & Kinetic Typography (`Phase 6`):** `vfx.depth_map_compositor`, `vfx.planar_corner_pin`, `vfx.inpaint_object_removal`, `graphic.kinetic_typography`, and end-to-end `template apply` fix.
+- **Cross-Platform (`XP1–XP4`):** `windows-latest` / `macos-latest` CI check matrix (`XP1`), `saturn-platform` OS abstraction crate (`XP2`), headless CLI/MCP ports (`XP3`), and desktop GUI packaging (`XP4`).
+- **Shared Agent Contract (`TS-X`):** Extract shared `tasksheet/1` contract crate when Audio Labs Pro or Screen Studio Pro becomes a second active workspace consumer.
+- **Community Launch (`C2–C3`):** Starter issues (`good first issue`), 60–90s demo video, fresh container `doctor.sh` verification, and platform discovery submissions.
+- **AF0 Maintainer Sign-offs & Packaging Follow-ups:** Installed-worker CLAP plugin host smoke inside packaged layout, native-archive notices (ONNX Runtime/GES/SQLite), and formal maintainer sign-off on default agent policy choices.
 
 ## Where help is welcome
 
-Testing on more distributions, documentation and translations, UI polish,
-regression tests, packaging, and the agent tooling. See
-[CONTRIBUTING.md](CONTRIBUTING.md) and the issues labelled `good first issue`
-and `help wanted`.
+Testing on additional Linux distributions, `Phase 5.1` / `Phase 6` engine features, cross-platform (`XP1–XP3`) porting, regression tests, and documentation. See [CONTRIBUTING.md](CONTRIBUTING.md) and the issues labelled `good first issue` and `help wanted`.

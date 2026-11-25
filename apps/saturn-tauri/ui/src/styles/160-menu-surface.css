@@ -17,7 +17,8 @@
  * from the trigger (the .menu-bar strip has overflow-x: auto at narrow
  * widths, and an overflow:auto ancestor clips absolutely-positioned
  * descendants — the pre-portal popover opened into a hidden 32px strip). */
-.menu-popover.glass {
+.menu-popover.glass,
+.menu-popover.surface-1 {
   position: fixed;
 }
 

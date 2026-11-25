@@ -80,7 +80,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
     <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: "var(--gap, 12px)", overflow: "hidden" }}>
       {/* Header bar */}
       <div
-        className="glass" data-elev="2" style={{
+        className="surface-1" style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -132,7 +132,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
           {/* Plan Approval Card */}
           {plan && (
             <div
-              className="glass" data-elev="2" style={{
+              className="surface-1" style={{
                 padding: "14px",
                 borderRadius: "var(--radius, 14px)",
                 display: "flex",
@@ -162,7 +162,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
                 {plan.steps.map((st) => (
                   <div
                     key={st.id}
-                    className="glass" data-elev="1" style={{
+                    className="surface-1" style={{
                       padding: "8px 12px",
                       borderRadius: "var(--radius-sm, 8px)",
                       display: "flex",
@@ -231,7 +231,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
 
           {/* Task Sheet Specification Card */}
           <div
-            className="glass" data-elev="1" style={{
+            className="surface-1" style={{
               padding: "14px",
               borderRadius: "var(--radius, 14px)",
               display: "flex",
@@ -252,7 +252,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
               {job.deliverables.map((deliv) => (
                 <div
                   key={deliv.id}
-                  className="glass" data-elev="1" style={{
+                  className="surface-1" style={{
                     padding: "8px 10px",
                     borderRadius: "var(--radius-sm, 6px)",
                     fontSize: "12px",
@@ -276,7 +276,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
               {job.inputs.map((inp) => (
                 <div
                   key={inp.id}
-                  className="glass" data-elev="1" style={{
+                  className="surface-1" style={{
                     padding: "8px 10px",
                     borderRadius: "var(--radius-sm, 6px)",
                     fontSize: "12px",
@@ -305,15 +305,15 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
                 Budget Limits
               </span>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", fontSize: "12px" }}>
-                <div className="glass" data-elev="1" style={{ padding: "6px 8px", borderRadius: "6px" }}>
+                <div className="surface-1" style={{ padding: "6px 8px", borderRadius: "6px" }}>
                   <div style={{ color: "var(--text-muted)", fontSize: "10px" }}>TIME</div>
                   <div style={{ fontWeight: 700 }}>{job.budget?.wall_clock_min ?? 60} min</div>
                 </div>
-                <div className="glass" data-elev="1" style={{ padding: "6px 8px", borderRadius: "6px" }}>
+                <div className="surface-1" style={{ padding: "6px 8px", borderRadius: "6px" }}>
                   <div style={{ color: "var(--text-muted)", fontSize: "10px" }}>MODEL COST</div>
                   <div style={{ fontWeight: 700 }}>${(job.budget?.model_cost_usd ?? 0).toFixed(2)}</div>
                 </div>
-                <div className="glass" data-elev="1" style={{ padding: "6px 8px", borderRadius: "6px" }}>
+                <div className="surface-1" style={{ padding: "6px 8px", borderRadius: "6px" }}>
                   <div style={{ color: "var(--text-muted)", fontSize: "10px" }}>RENDER</div>
                   <div style={{ fontWeight: 700 }}>{job.budget?.render_min ?? 30} min</div>
                 </div>
@@ -327,7 +327,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
           {/* Questions Inbox */}
           {openQuestions.length > 0 && (
             <div
-              className="glass" data-elev="2" style={{
+              className="surface-1" style={{
                 padding: "14px",
                 borderRadius: "var(--radius, 14px)",
                 border: "1px solid var(--accent-text-violet)",
@@ -349,7 +349,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
 
           {/* Live Agent Run Log */}
           <div
-            className="glass" data-elev="1" style={{
+            className="surface-1" style={{
               padding: "14px",
               borderRadius: "var(--radius, 14px)",
               flex: 1,
@@ -373,7 +373,7 @@ export const JobDetailView: React.FC<JobDetailViewProps> = ({ store, job }) => {
               {job.runLog.map((log) => (
                 <div
                   key={log.id}
-                  className="glass" data-elev="1" style={{
+                  className="surface-1" style={{
                     padding: "8px 10px",
                     borderRadius: "var(--radius-sm, 6px)",
                     fontSize: "12px",

@@ -29,6 +29,7 @@ import { applyViewCommand } from "./app/viewCommands";
 
 import { AppHeader } from "./features/menubar";
 import { TitleBar } from "./components/linear/TitleBar";
+import { EditorShellFrame } from "./workspaces/EditorShellFrame";
 import { WorkspaceRouter } from "./workspaces/WorkspaceRouter";
 import { StatusBar } from "./components/StatusBar";
 import { EditorModals } from "./features/dialogs";
@@ -39,13 +40,8 @@ import { TICKS_PER_SECOND, timelineTools } from "./features/timeline/types";
 import { audioClockMaster } from "./engine/playbackEngine";
 import { ShortcutsDialog } from "./features/shortcuts/ShortcutsDialog";
 import { PreferencesDialog } from "./features/preferences/PreferencesDialog";
-import {
-  DEFAULT_PREFERENCES,
-  loadPreferences,
-  savePreferences,
-  type Preferences,
-} from "./features/preferences/preferences";
-import { setReducedMotionOverride } from "./motion/variants";
+import { DEFAULT_PREFERENCES } from "./features/preferences/preferences";
+import { useAppPreferences } from "./features/preferences/useAppPreferences";
 import { formatTrimStatus } from "./app/timelineTrim";
 import { promptGoToTimecode, resolveGapCommand, resolvePlayheadCommand } from "./app/playheadNavigation";
 import {
@@ -61,71 +57,7 @@ import type { CommandSpec, SelectedClip } from "./types";
 import type { ProjectDocument } from "./app/projectTypes";
 
 function EditorApp() {
-  const [preferences, setPreferences] = useState<Preferences>(loadPreferences);
-  const preferencesHydrated = useRef(false);
-  const theme = preferences.theme;
-  const setTheme = useCallback((next: Preferences["theme"]) => {
-    setPreferences((current) => ({ ...current, theme: next }));
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    document.documentElement.classList.toggle("light", theme === "light");
-    try {
-      localStorage.setItem("eep-theme", theme);
-    } catch {}
-  }, [theme]);
-
-  useEffect(() => {
-    savePreferences(preferences);
-    if (!preferencesHydrated.current) return;
-    void runCommand("prefs.set", { values: preferences }).catch(() => {});
-  }, [preferences]);
-
-  // Settings live in the engine's settings.json; localStorage stays as the
-  // instant cache so the first paint still has the user's theme and glass mode.
-  useEffect(() => {
-    let active = true;
-    void runCommand<{ prefs: Record<string, unknown> }>("prefs.get")
-      .then(({ prefs }) => {
-        if (!active) return;
-        const allowed = new Set(Object.keys(DEFAULT_PREFERENCES));
-        const stored = Object.fromEntries(
-          Object.entries(prefs ?? {}).filter(([key]) => allowed.has(key)),
-        ) as Partial<Preferences>;
-        if (Object.keys(stored).length) {
-          setPreferences((current) => ({ ...current, ...stored }));
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        preferencesHydrated.current = true;
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    setReducedMotionOverride(preferences.reducedMotion);
-  }, [preferences.reducedMotion]);
-
-  // The runtime probe owns the first glass tag; only apply explicit changes so
-  // a slow host's lite fallback is not overridden on startup.
-  const glassApplied = useRef(false);
-  useEffect(() => {
-    if (!glassApplied.current) {
-      glassApplied.current = true;
-      return;
-    }
-    document.documentElement.setAttribute("data-glass", preferences.glass);
-  }, [preferences.glass]);
-
-  const toggleTheme = useCallback(
-    () => setTheme(theme === "dark" ? "light" : "dark"),
-    [setTheme, theme]
-  );
+  const { preferences, setPreferences, setTheme, toggleTheme } = useAppPreferences();
   const [commands, setCommands] = useState<CommandSpec[]>([]);
   useEffect(() => {
     invoke<CommandSpec[]>("get_command_catalogue")
@@ -609,48 +541,46 @@ function EditorApp() {
 
   if (projectOps.appStage === "welcome") {
     return (
-      <ProjectWelcomeScreen
-        appStage={projectOps.appStage}
-        loadingMessage={projectOps.loadingMessage}
-        connection="Ready"
-        welcomeMode={projectOps.welcomeMode} setWelcomeMode={projectOps.setWelcomeMode}
-        setupProjectName={projectOps.setupProjectName} setSetupProjectName={projectOps.setSetupProjectName}
-        setupSequenceName={projectOps.setupSequenceName} setSetupSequenceName={projectOps.setSetupSequenceName}
-        setupResolution={projectOps.setupResolution} setSetupResolution={projectOps.setSetupResolution}
-        setupWidth={projectOps.setupWidth} setSetupWidth={projectOps.setSetupWidth}
-        setupHeight={projectOps.setupHeight} setSetupHeight={projectOps.setSetupHeight}
-        setupFrameRate={projectOps.setupFrameRate} setSetupFrameRate={projectOps.setSetupFrameRate}
-        recentProjects={projectOps.recentProjects} recoveryStatus={recoveryStatus}
-        notice={notice} setNotice={setNotice}
-        createProjectFromWelcome={projectOps.createProjectFromWelcome} openProject={projectOps.openProject}
-        recoverProjectFromWelcome={projectOps.recoverProjectFromWelcome}
-      />
-    );
-  }
-
-  if (projectOps.appStage === "loading") {
-    return (
-      <div className="loading-stage">
-        <div className="loading-card">
-          <div className="loading-spinner" />
-          <h2>{projectOps.loadingMessage}</h2>
-          <p>Easy Edits Pro is preparing your creative session…</p>
+      <div className="app-shell">
+        <TitleBar title="Easy Edits Pro" onThemeToggle={setTheme} />
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <ProjectWelcomeScreen
+            appStage={projectOps.appStage}
+            loadingMessage={projectOps.loadingMessage}
+            connection="Ready"
+            welcomeMode={projectOps.welcomeMode} setWelcomeMode={projectOps.setWelcomeMode}
+            setupProjectName={projectOps.setupProjectName} setSetupProjectName={projectOps.setSetupProjectName}
+            setupSequenceName={projectOps.setupSequenceName} setSetupSequenceName={projectOps.setSetupSequenceName}
+            setupResolution={projectOps.setupResolution} setSetupResolution={projectOps.setSetupResolution}
+            setupWidth={projectOps.setupWidth} setSetupWidth={projectOps.setSetupWidth}
+            setupHeight={projectOps.setupHeight} setSetupHeight={projectOps.setSetupHeight}
+            setupFrameRate={projectOps.setupFrameRate} setSetupFrameRate={projectOps.setSetupFrameRate}
+            recentProjects={projectOps.recentProjects} recoveryStatus={recoveryStatus}
+            notice={notice} setNotice={setNotice}
+            createProjectFromWelcome={projectOps.createProjectFromWelcome} openProject={projectOps.openProject}
+            recoverProjectFromWelcome={projectOps.recoverProjectFromWelcome}
+          />
         </div>
       </div>
     );
   }
 
-  // F2: the media server port/token must resolve before the editor mounts,
-  // otherwise recovered projects build stream URLs with port 0 and every
-  // preview silently falls back to an unstreamable source. The init is a
-  // local socket probe - this gate settles in milliseconds.
-  if (!mediaServerReady) {
+  if (projectOps.appStage === "loading" || !mediaServerReady) {
+    const loadingHeading =
+      projectOps.appStage === "loading" ? projectOps.loadingMessage : "Preparing media engine…";
+    const loadingDetail =
+      projectOps.appStage === "loading"
+        ? "Easy Edits Pro is preparing your creative session…"
+        : "Easy Edits Pro is starting the local media server.";
     return (
-      <div className="loading-stage">
-        <div className="loading-card">
-          <div className="loading-spinner" />
-          <h2>Preparing media engine…</h2>
-          <p>Easy Edits Pro is starting the local media server.</p>
+      <div className="app-shell">
+        <TitleBar title="Easy Edits Pro" onThemeToggle={setTheme} />
+        <div className="loading-stage flex-1 min-h-0">
+          <div className="loading-card">
+            <div className="loading-spinner" />
+            <h2>{loadingHeading}</h2>
+            <p>{loadingDetail}</p>
+          </div>
         </div>
       </div>
     );
@@ -660,7 +590,7 @@ function EditorApp() {
 
   return (
     <div className="app-shell" tabIndex={0} onKeyDown={shortcuts}>
-      <TitleBar title="Easy Edits Pro" version="v0.1.3-beta.3" onThemeToggle={toggleTheme} />
+      <TitleBar title="Easy Edits Pro" onThemeToggle={setTheme} />
       <AppHeader
         project={project} projectState={projectState} commands={effectiveCommands}
         busy={busy} undoStatus={undoStatus} redoStatus={redoStatus} selectedMedia={selectedMedia}
@@ -673,10 +603,20 @@ function EditorApp() {
         activeJobs={jobsHook.activeJobs} jobs={jobsHook.jobs} cancelJob={jobsHook.cancelJob}
         cancelAllJobs={jobsHook.cancelAllJobs} clearJobHistory={jobsHook.clearJobHistory}
         setBatchQueueDrawerOpen={mediaOps.setBatchQueueDrawerOpen}
-        setAiChatDrawerOpen={mediaOps.setAiChatDrawerOpen} theme={theme} toggleTheme={toggleTheme}
+        setAiChatDrawerOpen={mediaOps.setAiChatDrawerOpen}
       />
 
-      <div className="app-workspace-region">
+      <EditorShellFrame
+        projectName={project?.name ?? "Untitled project"}
+        sequenceName={project?.sequence.name ?? "Sequence 1"}
+        activeWorkspace={projectOps.editorWorkspace}
+        onSelectWorkspace={selectEditorWorkspace}
+        onImportMedia={() => void mediaOps.importMedia()}
+        onSaveProject={() => void projectOps.saveProject()}
+        onOpenHistory={() => setHistoryOpen(true)}
+        busy={busy}
+        connection={connection}
+      >
         <ErrorBoundary fallbackTitle="Workspace Rendering Issue" onReset={() => projectOps.setEditorWorkspace("edit")}>
         <WorkspaceRouter
           commands={commands}
@@ -713,7 +653,7 @@ function EditorApp() {
           media={media} busy={busy}
           refreshProject={refreshProject} setNotice={setNotice}
         />
-      </div>
+      </EditorShellFrame>
 
       <StatusBar
         busy={busy} notice={notice} connection={connection}
