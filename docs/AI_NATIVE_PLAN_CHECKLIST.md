@@ -321,7 +321,7 @@ All five Phase 5.1 verbs shipped; morph is a documented bounded motion-compensat
 
 ---
 
-## Phase 6 — VFX, Depth Compositing & Kinetic Typography — `status: in progress (all Packet 6.1 VFX commands landed; kinetic typography pending)`
+## Phase 6 — VFX, Depth Compositing & Kinetic Typography — `status: done (all 6.1 and 6.2 packets landed; verification gate green)`
 
 ### Packet 6.1 — Depth compositing, corner-pin & object removal (Lane 2)
 - [x] Implement `vfx.depth_map_compositor` — core stores per-clip mode/threshold/blur settings; `saturn-render::depth_compositor` performs real near-pixel alpha masking and depth-weighted box-blur bokeh over a caller-supplied DA-V2 depth grid. Documented: bokeh is a depth-weighted blur, not a lens simulation. Unit + command tests green.
@@ -330,7 +330,7 @@ All five Phase 5.1 verbs shipped; morph is a documented bounded motion-compensat
 
 ### Packet 6.2 — Kinetic typography & `.sgt` template fix (Lane 2)
 - [x] Fix `template apply` end-to-end — `saturn-cli template apply <file.sgt> --project <project> [--tick <ticks>]` converts visible `.sgt` layers into project graphics, applies them through `graphic.template_apply`, and saves; `cli-anything-eep template apply` has matching `--project`/`--tick` options. `template create` now seeds an editable text layer; `test_editing_verbs.py::test_template_group_round_trip` passes (no more `COMMAND_NOT_FOUND`).
-- [ ] Implement `graphic.kinetic_typography` (per-word spring physics on Whisper timestamps, face-avoidant layout)
+- [x] Implement `graphic.kinetic_typography` — core stores timed words, caller-supplied face boxes and spring style; `saturn-text::kinetic` computes deterministic damped-spring word arrivals and face-avoidant lanes; `saturn-render::kinetic_overlay` turns positioned words into real graphics for the existing overlay renderer. No generative tracking claimed. Unit + command tests green.
 
 ### ✅ Phase 6 Verification Gate
 - [ ] `cargo test -p saturn-render -p saturn-graphics -p saturn-text` green

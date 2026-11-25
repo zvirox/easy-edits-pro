@@ -30,6 +30,9 @@ pub struct ProjectDocument {
     /// Object-removal settings from Packet 6.1.
     #[serde(default)]
     pub vfx_inpaints: Vec<crate::inpaint_object::ClipInpaint>,
+    /// Kinetic typography settings from Packet 6.2.
+    #[serde(default)]
+    pub vfx_kinetic_typography: Vec<crate::kinetic_typography::ClipKineticTypography>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

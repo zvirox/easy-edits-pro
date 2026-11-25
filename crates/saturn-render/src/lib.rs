@@ -26,6 +26,7 @@ pub mod compositor;
 pub mod corner_pin;
 pub mod depth_compositor;
 pub mod inpaint;
+pub mod kinetic_overlay;
 pub mod curves;
 pub mod encoders;
 pub mod frame_extractor;

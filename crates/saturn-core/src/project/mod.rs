@@ -108,6 +108,7 @@ impl ProjectDocument {
             vfx_corner_pins: Vec::new(),
             vfx_depth_composites: Vec::new(),
             vfx_inpaints: Vec::new(),
+            vfx_kinetic_typography: Vec::new(),
         }
     }
 

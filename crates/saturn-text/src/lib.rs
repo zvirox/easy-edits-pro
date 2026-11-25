@@ -13,6 +13,8 @@
 //! already request it (it falls back to horizontal until the column stacker
 //! lands with CJK fixtures).
 
+pub mod kinetic;
+
 use cosmic_text::{Align, Attrs, Buffer, FontSystem, Metrics, Shaping, SwashCache};
 
 /// A fully opaque 8-bit RGBA pixel layer, straight alpha, row-major.

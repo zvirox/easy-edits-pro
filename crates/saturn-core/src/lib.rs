@@ -28,6 +28,7 @@ pub mod fluid_morph;
 pub mod corner_pin;
 pub mod depth_composite;
 pub mod inpaint_object;
+pub mod kinetic_typography;
 pub mod storyline_pins;
 pub mod timeline_edits;
 pub mod subtitles;

@@ -2,7 +2,7 @@
 
 Generated from the command catalogue. Do not edit by hand.
 
-497 commands.
+498 commands.
 
 ## File
 
@@ -480,6 +480,7 @@ Generated from the command catalogue. Do not edit by hand.
 | Align Graphics | `graphic.align` | shipped |  | `{"ids":[int],"mode":"left\|hcenter\|right\|top\|vcenter\|bottom"}` |
 | Distribute Graphics | `graphic.distribute` | shipped |  | `{"ids":[int],"axis":"horizontal\|vertical"}` |
 | Arrange Graphic Order | `graphic.arrange` | shipped |  | `{"id":int,"order":"front\|back\|forward\|backward"}` |
+| Kinetic Typography... | `graphic.kinetic_typography` | shipped |  | `{"track_id":int,"clip_index":int,"words":[{"text":str,"start_ticks":ticks,"end_ticks":ticks}],"faces":[obj]?,"style":obj?}` |
 | Save Graphic Template | `graphic.template_save` | shipped |  | `{"graphic_id":int,"name":str}` |
 | Apply Graphic Template | `graphic.template_apply` | shipped |  | `{"template_id":int,"start_ticks":obj?}` |
 
