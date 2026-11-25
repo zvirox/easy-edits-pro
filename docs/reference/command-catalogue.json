@@ -10375,6 +10375,32 @@
   },
   {
     "aliases": [
+      "morph cut"
+    ],
+    "category": "Sequence",
+    "id": "timeline.fluid_morph_cut",
+    "label": "Create Fluid Morph Cut...",
+    "menu": [
+      "Sequence",
+      "Trim"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"cut_at\":ticks,\"duration\":ticks,\"measurement\":{\"dx_px\":num,\"dy_px\":num,\"confidence\":num,\"ticks_per_px\":num,\"audio_crossfade_ticks\":ticks},\"expected_digest\":str}",
+    "profiles": [
+      "rough-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
       "magnetic pin",
       "storyline pin"
     ],
