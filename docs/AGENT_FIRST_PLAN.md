@@ -21,6 +21,10 @@ means Agent/Review UI; AF9 means daemon** (correcting the attachment's §2.7).
 
 ## 0. Current progress and integration corrections
 
+> Baseline snapshot from 2026-11-08. Current done/remaining status — including
+> all of Phase 5.1, Phase 6, the locked Linear UI and the XP1–XP4 queue — lives in
+> [AI_NATIVE_PLAN_CHECKLIST.md](AI_NATIVE_PLAN_CHECKLIST.md) and [ROADMAP.md](../ROADMAP.md).
+
 | Existing work | Reconciled state at the baseline |
 |---|---|
 | AI-native Phases 0–3 | Completed with the limitations and gate evidence in the checklist: Rust state, branches/fingerprints, perception, GPU colour and shot matching. |
