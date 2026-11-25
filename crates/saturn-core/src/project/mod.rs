@@ -106,6 +106,7 @@ impl ProjectDocument {
             locks: crate::lock::LockRegistry::new(),
             storyline_pins: Vec::new(),
             vfx_corner_pins: Vec::new(),
+            vfx_depth_composites: Vec::new(),
         }
     }
 

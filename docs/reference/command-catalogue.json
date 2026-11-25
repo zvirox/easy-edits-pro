@@ -10375,6 +10375,33 @@
   },
   {
     "aliases": [
+      "depth composite",
+      "depth of field"
+    ],
+    "category": "Sequence",
+    "id": "vfx.depth_map_compositor",
+    "label": "Depth Map Composite...",
+    "menu": [
+      "Sequence",
+      "VFX"
+    ],
+    "mutating": true,
+    "params": "{\"track_id\":int,\"clip_index\":int,\"mode\":\"z_threshold|dof_bokeh\",\"threshold\":num,\"blur_radius\":int?}",
+    "profiles": [
+      "rough-cut"
+    ],
+    "shipped": true,
+    "shortcut": null,
+    "since": "0.4.0",
+    "tier": "edit",
+    "tiers": [
+      "edit"
+    ],
+    "uiOnly": false,
+    "undoGroup": "transaction"
+  },
+  {
+    "aliases": [
       "corner pin",
       "perspective warp"
     ],

@@ -26,6 +26,7 @@ pub mod script_sync;
 pub mod speech;
 pub mod fluid_morph;
 pub mod corner_pin;
+pub mod depth_composite;
 pub mod storyline_pins;
 pub mod timeline_edits;
 pub mod subtitles;

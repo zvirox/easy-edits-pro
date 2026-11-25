@@ -324,7 +324,7 @@ All five Phase 5.1 verbs shipped; morph is a documented bounded motion-compensat
 ## Phase 6 — VFX, Depth Compositing & Kinetic Typography — `status: in progress (template apply landed; VFX commands and kinetic typography pending)`
 
 ### Packet 6.1 — Depth compositing, corner-pin & object removal (Lane 2)
-- [ ] Implement `vfx.depth_map_compositor` (Depth-Anything-V2 z-threshold compositing / DOF bokeh)
+- [x] Implement `vfx.depth_map_compositor` — core stores per-clip mode/threshold/blur settings; `saturn-render::depth_compositor` performs real near-pixel alpha masking and depth-weighted box-blur bokeh over a caller-supplied DA-V2 depth grid. Documented: bokeh is a depth-weighted blur, not a lens simulation. Unit + command tests green.
 - [x] Implement `vfx.planar_corner_pin` — core command validates and persists a normalized four-corner quad on `ProjectDocument.vfx_corner_pins`; `saturn-render::corner_pin` performs the real inverse-homography bilinear warp with a three-tap edge-direction blur; unit + integration tests green.
 - [ ] Implement `vfx.inpaint_object_removal` (optical-flow clean-plate inpainting)
 

@@ -24,6 +24,7 @@ pub mod audio_master;
 pub mod audio_telemetry;
 pub mod compositor;
 pub mod corner_pin;
+pub mod depth_compositor;
 pub mod curves;
 pub mod encoders;
 pub mod frame_extractor;

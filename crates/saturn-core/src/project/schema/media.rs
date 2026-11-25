@@ -24,6 +24,9 @@ pub struct ProjectDocument {
     /// Planar corner pins from Packet 6.1, owned by the project document.
     #[serde(default)]
     pub vfx_corner_pins: Vec<crate::corner_pin::ClipCornerPin>,
+    /// Depth compositor settings from Packet 6.1.
+    #[serde(default)]
+    pub vfx_depth_composites: Vec<crate::depth_composite::ClipDepthComposite>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
