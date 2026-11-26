@@ -487,9 +487,9 @@ export const OllamaChatDrawer: React.FC<OllamaChatDrawerProps> = ({
                     type="button" onClick={() => onExecuteAction(msg.actionKey!)}
                     style={{
                       marginTop: 6,
-                      background: "var(--tint-green-bg)",
-                      border: "1px solid var(--status-success)",
-                      color: "var(--tint-green-text)",
+                      background: "var(--chip-sky)",
+                      border: "1px solid var(--sky)",
+                      color: "var(--sky-text)",
                       fontSize: 11,
                       fontWeight: 600,
                       padding: "4px 10px",

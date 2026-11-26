@@ -260,7 +260,7 @@
     background: var(--bg-panel);
     border: 1px solid var(--border-panel);
     border-radius: var(--radius-md, 6px);
-    box-shadow: var(--card-shadow);
+    box-shadow: var(--shadow-card);
     overflow: hidden;
   }
 
@@ -453,7 +453,7 @@
 .workspace-bar-tier2 .interior-segment-thumb {
   background: var(--bg-surface);
   border: 1px solid var(--suite-border, var(--border-active));
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--shadow-card);
 }
 
 .workspace-bar-tier2 .interior-segment-thumb::after {

@@ -67,7 +67,7 @@ export const AgentInbox: React.FC<AgentInboxProps> = ({ questions, onAnswer }) =
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--warn-text, #f59e0b)" }}>
+        <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--amber)" }}>
            Inbox: Decisions Needed ({activeQuestions.length})
         </span>
         <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
@@ -84,7 +84,7 @@ export const AgentInbox: React.FC<AgentInboxProps> = ({ questions, onAnswer }) =
             className="surface-1" style={{
               padding: "10px 12px",
               borderRadius: "var(--radius-sm, 10px)",
-              border: "1px solid var(--warn-text, #f59e0b)",
+              border: "1px solid var(--amber)",
               display: "flex",
               flexDirection: "column",
               gap: "8px",
@@ -156,9 +156,9 @@ export const AgentInbox: React.FC<AgentInboxProps> = ({ questions, onAnswer }) =
                             fontSize: "9px",
                             padding: "1px 4px",
                             borderRadius: "3px",
-                            background: "var(--surface-sunken)",
-                            color: "var(--success-text, #10b981)",
-                            border: "1px solid var(--success-text, #10b981)",
+                            background: "var(--chip-sky)",
+                            color: "var(--sky-text)",
+                            border: "1px solid var(--sky)",
                           }}
                         >
                           Safe Default

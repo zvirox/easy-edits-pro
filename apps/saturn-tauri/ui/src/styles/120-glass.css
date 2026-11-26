@@ -9,13 +9,23 @@
    strictly isolated and unblurred.
    ========================================================================== */
 
-.surface-1,
-.surface-2,
-.glass {
+.surface-1:where(:not(.app-header):not(.status-bar):not(.program-stage *):not(.preview-stage *):not(.timeline *):not(.timeline-section *):not(.scope-stage *):not(.color-monitor-stage *):not(.color-scopes-stage *):not(.video-scopes *)),
+.surface-2:where(:not(.program-stage *):not(.preview-stage *):not(.timeline *):not(.timeline-section *):not(.scope-stage *):not(.color-monitor-stage *):not(.color-scopes-stage *):not(.video-scopes *)),
+.glass:where(:not(.app-header):not(.status-bar):not(.program-stage *):not(.preview-stage *):not(.timeline *):not(.timeline-section *):not(.scope-stage *):not(.color-monitor-stage *):not(.color-scopes-stage *):not(.video-scopes *)) {
   position: relative;
   background: var(--bg-surface);
   border: 1px solid var(--border);
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--shadow-card);
+  color: var(--text);
+}
+
+.app-header.glass,
+.app-header.surface-1,
+.status-bar.glass,
+.status-bar.surface-1 {
+  position: relative;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
   color: var(--text);
 }
 
@@ -34,7 +44,6 @@
 .app-header.surface-1 {
   border-width: 0 0 1px;
   border-radius: 0;
-  box-shadow: none;
 }
 
 .app-header.glass .system-bar-tier1,
@@ -53,7 +62,6 @@
 .status-bar.surface-1 {
   border-width: 1px 0 0;
   border-radius: 0;
-  box-shadow: none;
 }
 
 .studio-panel.glass,
@@ -112,7 +120,7 @@
 [data-tooltip]::after {
   background: var(--bg-surface-2);
   border-color: var(--border-strong);
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--shadow-card);
   border-radius: var(--radius-chip);
 }
 
@@ -156,8 +164,10 @@
 .color-monitor-stage .glass,
 .color-scopes-stage .glass,
 .video-scopes .glass {
+  position: relative;
+  border: 1px solid var(--border);
   background: var(--bg-surface-2);
-  box-shadow: none;
+  color: var(--text);
 }
 
 /* Linear card primitives (8px cards, 6px controls, 4px chips) */
@@ -206,7 +216,7 @@
   bottom: -6px;
   height: 2px;
   border-radius: 2px;
-  background: var(--accent-blue);
+  background: var(--primary);
 }
 
 .card-b {

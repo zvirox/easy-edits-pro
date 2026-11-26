@@ -1,27 +1,27 @@
 # Design QA
 
-**Updated:** 2026-11-25  
-**UI System Status:** **FINAL & LOCKED** (Solid Linear UI — no further UI style changes).
+**Updated:** 2026-11-26  
+**UI System Status:** **FINAL & LOCKED** (Shared Linear Solid UI · Orange Accent · see [DESIGN.md](../DESIGN.md)).
 
 ## Scope
 
-This document describes the finalized **Linear-style UI architecture** across desktop workspaces (`Welcome`, `Media`, `Edit`, `Fusion`, `Color`, `Fairlight`, `Effects`, `Keyframes`, `Deliver`) and the self-hosted **Web Desk (`?webdesk=1`)**. It does not certify hardware encoding, native decoding, or installed packages, which are covered by `tests/native/`.
+This document describes the finalized **Linear-style UI architecture** across desktop workspaces (`Welcome`, `Media`, `Edit`, `Fusion`, `Color`, `Fairlight`, `Effects`, `Keyframes`, `Deliver`) and the self-hosted **Web Desk (`?mode=desk`)**. It does not certify hardware encoding, native decoding, or installed packages, which are covered by `tests/native/`.
 
 ## Locked Design System
 
 - **Window Chrome & Navigation:**
   - Frameless 40 px custom `TitleBar` (`decorations: false`, `transparent: false`, `shadow: true`, `1280×800` default, `1024×640` minimum), reading the version tag from `tauri.conf.json`, with drag-region center, double-click maximize, exclusive Dark/Light `ThemeToggle` (`ui-theme` / `data-theme="dark|light"`), divider, and minimize / maximize / `#E5484D` close buttons.
   - Collapsible workspace `Sidebar` (`240px` expanded / `56px` collapsed automatically at `<=1160px`), workspace `Breadcrumb` bar, and unified `EditorShellFrame` wrapping all workspaces.
-- **Surfaces, Color & Elevation:**
-  - **Dark (`#050505` / `#111213` / `#1A1B1E` / `#202128`):** `1px` borders (`#1F2125` / `#2C2E33`), primary `#F5F5F6`, muted `#8A8B91`, `box-shadow: none`.
-  - **Light (`#F3F4F6` / `#FFFFFF` / `#F4F5F7` / `#EAF0FF`):** `1px` borders (`#E5E7EB` / `#D1D5DB`), primary `#0F1115`, muted `#6B7280`, card shadow `0 1px 2px rgb(16 24 40 / 5%)`.
-  - Shared accent tokens (`#3355FF`, `#38B6F0`, `#22C55E`, `#F43F5E`, `#EAB308`, `#1FB5A5`, `#EC4899`, `#7C5CE6`, `#F97316`) and precomputed solid chip tints (`--tint-*`).
-  - Strict invariants enforced by `pnpm --dir apps/saturn-tauri check:linear`: zero `backdrop-filter: blur()`, zero translucent surface fills (`rgba()` / `bg-*/10`), zero glow, zero inset highlights, zero dark-theme shadows, zero surface gradients (subtle vertical fill fades allowed on line/sparkline charts only).
+- **Surfaces, Color & Elevation (`linear-theme.css` + `app-accent.css`):**
+  - **Dark (`#1C1C1C` / `#171717` / `#242424` / `#2D2D2D`):** `1px` borders (`#2F2F2F` / `#3B3B3B`), primary `#E6E6E6`, muted `#8F8F8F`, `--shadow-card: 0 12px 28px -6px rgba(0,0,0,0.5)`.
+  - **Light (`#F8F9FA` / `#F1F3F5` / `#FFFFFF` / `#F3F3F3`):** `1px` borders (`#DEE2E6` / `#C6CDD4`), primary `#1C1C1C`, muted `#636970`, `--shadow-card: 0 1px 2px rgb(16 24 40 / 5%)`.
+  - **EEP Orange Primary:** `#C2410C` / `#AB390B` / `#FFFFFF` / `#FBF2EE` (light) and `#F97316` / `#FA8432` / `#1C1C1C` / `#FB923C` / `#3B281B` (dark). Positive/healthy states use **Sky** (`#0284C7` / `#38BDF8`), never green.
+  - Strict invariants enforced by `pnpm --dir apps/saturn-tauri check:linear`: byte-for-byte shared `linear-theme.css`, zero green hues (`75°–170°`), zero foreign primaries, zero `backdrop-filter: blur()`, zero translucent surface fills, zero glow, zero inset highlights, zero arbitrary/non-`--shadow-card` shadows, and zero charting libraries (`echarts` / `DonutLegend` removed).
 - **Shape, Typography & Motion:**
-  - Minimal rounding: cards `8px`, buttons/inputs `6px`, chips/tags/tooltips `4px` (`rounded-full` restricted to status dots, avatars, and donut arcs).
+  - Minimal rounding: cards `8px`, buttons/inputs `6px`, chips/tags/tooltips `4px` (`rounded-full` restricted to status dots, playhead dots, and avatars).
   - Self-hosted Inter font only (`ui/public/fonts/InterVariable.woff2`).
   - `150ms ease-out` transitions on discrete non-layout properties; honours `prefers-reduced-motion`; playhead never animated via CSS transitions.
-- **Raw Media Surfaces:** Preview canvases, video scopes, audio meters, and Web Review proxy players render raw pixels with zero overlays or blur.
+- **Raw Media & Technical Surfaces:** Preview canvases, Canvas `VideoScopes` (`--sky`, `--amber`, `--red`, `--primary`), audio meters, and Web Review proxy players render raw pixels with zero overlays or blur.
 
 ## Verification & Automated Gates
 

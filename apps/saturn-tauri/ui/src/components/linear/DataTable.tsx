@@ -30,16 +30,16 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   return (
     <div
-      className={`w-full overflow-auto rounded-[8px] border border-[var(--border)] bg-[var(--bg-surface)] shadow-[var(--card-shadow)] ${className}`}
+      className={`w-full overflow-auto rounded-[8px] border border-border bg-surface shadow-card ${className}`}
     >
       <table className="w-full border-collapse text-[13px]">
         <thead>
-          <tr className="border-b border-[var(--border)] bg-[var(--bg-surface-2)]">
+          <tr className="border-b border-border bg-surface-2">
             {columns.map((col) => (
               <th
                 key={col.key}
                 scope="col"
-                className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] select-none ${
+                className={`px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted select-none ${
                   col.align === 'right' ? 'text-right' : 'text-left'
                 }`}
               >
@@ -53,7 +53,7 @@ export function DataTable<T>({
             <tr>
               <td
                 colSpan={columns.length}
-                className="px-3 py-6 text-center text-xs text-[var(--text-muted)]"
+                className="px-3 py-6 text-center text-xs text-muted"
               >
                 {emptyMessage}
               </td>
@@ -63,14 +63,14 @@ export function DataTable<T>({
               <tr
                 key={rowKey(row, index)}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                className={`border-b last:border-b-0 border-[var(--border)] transition-[background-color] duration-150 ease-out ${
-                  onRowClick ? 'hover:bg-[var(--bg-surface-2)] cursor-pointer' : ''
+                className={`border-b last:border-b-0 border-border transition-[background-color] duration-150 ease-out ${
+                  onRowClick ? 'hover:bg-hover cursor-pointer' : ''
                 }`}
               >
                 {columns.map((col) => (
                   <td
                     key={col.key}
-                    className={`px-3 py-2 text-[var(--text)] ${
+                    className={`px-3 py-2 text-fg-2 ${
                       col.align === 'right' ? 'text-right' : 'text-left'
                     } ${col.numeric ? 'tabular-nums font-mono text-xs' : ''}`}
                   >

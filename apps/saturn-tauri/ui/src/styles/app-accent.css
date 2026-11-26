@@ -1,0 +1,15 @@
+/* src/styles/app-accent.css : Easy Edits Pro (Orange). The only styling file that differs between apps. */
+:root, [data-theme="light"] {
+  --primary: #C2410C;
+  --primary-hover: #AB390B;
+  --primary-fg: #FFFFFF;
+  --primary-text: #C2410C;
+  --primary-tint: #FBF2EE;
+}
+[data-theme="dark"] {
+  --primary: #F97316;
+  --primary-hover: #FA8432;
+  --primary-fg: #1C1C1C;
+  --primary-text: #FB923C;
+  --primary-tint: #3B281B;
+}

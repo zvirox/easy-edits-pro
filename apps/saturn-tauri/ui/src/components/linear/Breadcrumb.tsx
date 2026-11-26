@@ -25,7 +25,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
     <div
       role="navigation"
       aria-label="Breadcrumb"
-      className={`linear-breadcrumb h-9 w-full bg-[var(--bg-app)] border-b border-[var(--border)] px-3 flex items-center justify-between gap-3 shrink-0 select-none ${className}`}
+      className={`linear-breadcrumb h-9 w-full bg-app border-b border-border px-3 flex items-center justify-between gap-3 shrink-0 select-none ${className}`}
     >
       <ol className="flex items-center gap-1.5 min-w-0 text-xs">
         {segments.map((seg, index) => {
@@ -34,7 +34,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
             <li key={`${seg.label}-${index}`} className="flex items-center gap-1.5 min-w-0">
               {index > 0 && (
                 <ChevronRight
-                  className="size-3.5 text-[var(--text-faint)] shrink-0"
+                  className="size-3.5 text-faint shrink-0"
                   aria-hidden="true"
                 />
               )}
@@ -42,7 +42,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
                 <button
                   type="button"
                   onClick={seg.onClick}
-                  className="px-1.5 py-0.5 rounded-[4px] border border-transparent bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] truncate transition-[background-color,color] duration-150 ease-out cursor-pointer"
+                  className="px-1.5 py-0.5 rounded-[4px] border border-transparent bg-transparent text-muted hover:text-fg hover:bg-hover truncate transition-[background-color,color] duration-150 ease-out cursor-pointer"
                 >
                   {seg.label}
                 </button>
@@ -51,8 +51,8 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
                   aria-current={isLast ? 'page' : undefined}
                   className={`px-1 py-0.5 truncate ${
                     isLast
-                      ? 'font-medium text-[var(--text)]'
-                      : 'text-[var(--text-muted)]'
+                      ? 'font-medium text-fg'
+                      : 'text-muted'
                   }`}
                 >
                   {seg.label}

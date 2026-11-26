@@ -207,8 +207,8 @@ export function ExportWorkspace({
               value={renderProgress.fractionPercent}
               color={
                 renderProgress.fractionPercent >= 100
-                  ? "var(--accent-green)"
-                  : "var(--accent-blue)"
+                  ? "var(--sky)"
+                  : "var(--primary)"
               }
             />
           </div>
@@ -321,10 +321,10 @@ export function ExportWorkspace({
                       displayValue={item.status === "completed" ? "Done" : `${Math.round(item.progress * 100)}%`}
                       color={
                         item.status === "completed"
-                          ? "var(--accent-green)"
+                          ? "var(--sky)"
                           : item.status === "failed"
-                            ? "var(--accent-red)"
-                            : "var(--accent-blue)"
+                            ? "var(--red)"
+                            : "var(--primary)"
                       }
                     />
                   </div>

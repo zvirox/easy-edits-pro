@@ -3,6 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 import { useCallback, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { readThemeToken } from "../../styles/themeColors";
 import type { GraphicItem } from "../../engine/playback/types";
 import {
   activeGraphics,
@@ -285,7 +286,7 @@ function CanvasGraphicBox({
             boxShadow: shadowCss,
             border:
               stroke && stroke.width > 0
-                ? `${stroke.width}px solid ${stroke.color || "#ffffff"}`
+                ? `${stroke.width}px solid ${stroke.color || readThemeToken("--text", "white")}`
                 : undefined,
           }}
         />

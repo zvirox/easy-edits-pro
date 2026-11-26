@@ -25,7 +25,7 @@
 
   <p>
     <a href="https://zvirox.in/downloads/eep/">
-      <img src="https://img.shields.io/github/v/release/zvirox/easy-edits-pro?include_prereleases&style=flat-square&label=release&labelColor=111213&color=3355FF" alt="Latest Release" />
+      <img src="https://img.shields.io/github/v/release/zvirox/easy-edits-pro?include_prereleases&style=flat-square&label=release&labelColor=1C1C1C&color=F97316" alt="Latest Release" />
     </a>
     <a href="https://github.com/zvirox/easy-edits-pro/actions/workflows/ci.yml">
       <img src="https://img.shields.io/github/actions/workflow/status/zvirox/easy-edits-pro/ci.yml?branch=main&style=flat-square&label=build&labelColor=17171c" alt="CI Build Status" />
@@ -216,7 +216,7 @@ Official Linux releases ship exclusively as native `.deb`, `.rpm`, and `.pkg.tar
 | **Media Pipeline** | GStreamer | Real-time video playback, frame decoding, and MP4/WebM export |
 | **Desktop Shell** | Tauri 2 | Custom 40 px frameless title bar, native Linux shell, and filesystem dialogs |
 | **Frontend UI** | React 19 + TypeScript + Tailwind CSS v4 | Locked Linear matte components, Inter typography, inspector controls, and timeline canvas |
-| **Charts & State** | Apache ECharts 6 + Zustand | Performance charts and reactive UI bindings |
+| **Scopes & State** | Canvas `VideoScopes` + Zustand | Raw waveform/vectorscope/parade/histogram scopes and reactive UI bindings |
 | **Automation Bridge** | `starship-plugin` SDK | Local Unix socket tools and Tier 2 editing approvals |
 
 ---

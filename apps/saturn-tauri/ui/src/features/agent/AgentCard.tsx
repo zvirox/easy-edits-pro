@@ -94,11 +94,10 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               height: "10px",
               borderRadius: "50%",
               backgroundColor: isStopped
-                ? "var(--warn-text, #f59e0b)"
+                ? "var(--amber)"
                 : isWorking
-                ? "var(--accent-text, #f472b6)"
-                : "var(--text-muted, #9ca3af)",
-              boxShadow: isWorking ? "0 0 8px var(--accent-text)" : undefined,
+                ? "var(--primary)"
+                : "var(--text-faint)",
             }}
           />
           <div>
@@ -111,7 +110,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                 ? `Running (Step ${session.stepCurrent}/${session.stepTotal})`
                 : "Agent Idle"}
             </div>
-            <div style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>
+            <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
               {session.currentAction} · {session.elapsedSeconds}s
             </div>
           </div>
@@ -169,12 +168,15 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                   padding: "1px 6px",
                   borderRadius: "4px",
                   textTransform: "uppercase",
-                  background: "var(--surface-sunken)",
+                  background:
+                    session.taskSheet.status === "ready" || session.taskSheet.status === "running"
+                      ? "var(--chip-sky)"
+                      : "var(--bg-surface-2)",
                   color:
                     session.taskSheet.status === "ready" || session.taskSheet.status === "running"
-                      ? "var(--success-text, #10b981)"
+                      ? "var(--sky-text)"
                       : session.taskSheet.status === "needs_input"
-                      ? "var(--warn-text, #f59e0b)"
+                      ? "var(--amber)"
                       : "var(--text-muted)",
                 }}
               >
@@ -235,7 +237,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               <div style={{ fontSize: "12px" }}>
                 Operation <code>{req.tool}</code> requires <b>{req.tier}</b> permission:
               </div>
-              <div style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>
+              <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                 {req.reason} ({req.argument})
               </div>
               <div style={{ display: "flex", gap: "6px", marginTop: "4px" }}>
@@ -311,7 +313,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
           onClick={() => setBriefOpen(!briefOpen)}
         >
           <span style={{ fontWeight: 600, fontSize: "12px" }}> Project Brief</span>
-          <span style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>
+          <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
             {briefOpen ? "Collapse" : "Edit brief"}
           </span>
         </div>
@@ -319,7 +321,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
         {briefOpen ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "4px" }}>
             <div>
-              <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Goal</label>
+              <label style={{ fontSize: "11px", color: "var(--text-muted)" }}>Goal</label>
               <input
                 type="text" className="input surface-1" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
                 value={briefDraft.goal}
@@ -328,7 +330,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
               <div>
-                <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Platform</label>
+                <label style={{ fontSize: "11px", color: "var(--text-muted)" }}>Platform</label>
                 <input
                   type="text" className="input surface-1" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
                   value={briefDraft.platform}
@@ -336,7 +338,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                 />
               </div>
               <div>
-                <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Target Loudness</label>
+                <label style={{ fontSize: "11px", color: "var(--text-muted)" }}>Target Loudness</label>
                 <input
                   type="number" step="0.5" className="input surface-1" style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px" }}
                   value={briefDraft.loudness_target_lufs}
@@ -345,7 +347,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
               </div>
             </div>
             <div>
-              <label style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Style Notes</label>
+              <label style={{ fontSize: "11px", color: "var(--text-muted)" }}>Style Notes</label>
               <textarea
                 className="input surface-1" rows={2}
                 style={{ width: "100%", padding: "4px 8px", fontSize: "12px", borderRadius: "6px", resize: "none" }}
@@ -363,7 +365,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
             </div>
           </div>
         ) : session.brief ? (
-          <div style={{ fontSize: "12px", color: "var(--text-dim, #d1d5db)" }}>
+          <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
             <b>{session.brief.goal || "Untitled brief"}</b> ({session.brief.platform}, {session.brief.loudness_target_lufs} LUFS)
           </div>
         ) : (
@@ -406,7 +408,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                   borderRadius: "6px",
                   cursor: step.targetTick != null ? "pointer" : "default",
                   background: isStepCurrent ? "var(--bg-selected)" : "transparent",
-                  borderLeft: isStepCurrent ? "2px solid var(--accent-primary)" : "2px solid transparent",
+                  borderLeft: isStepCurrent ? "2px solid var(--primary)" : "2px solid transparent",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -420,18 +422,18 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                       fontSize: "10px",
                       fontWeight: 700,
                       backgroundColor: isStepDone
-                        ? "var(--accent-violet)"
+                        ? "var(--sky)"
                         : isStepCurrent
-                        ? "var(--accent-primary)"
+                        ? "var(--primary)"
                         : "var(--bg-surface-2)",
-                      color: isStepDone || isStepCurrent ? "var(--on-accent)" : "var(--text-secondary)",
+                      color: isStepDone ? "var(--text)" : isStepCurrent ? "var(--primary-fg)" : "var(--text-secondary)",
                     }}
                   >
                     {isStepDone ? "✓" : step.id}
                   </span>
                   <span
                     style={{
-                      color: isStepDone ? "var(--text-muted, #9ca3af)" : "var(--text-primary)",
+                      color: isStepDone ? "var(--text-muted)" : "var(--text-primary)",
                       textDecoration: isStepDone ? "line-through" : "none",
                     }}
                   >
@@ -439,7 +441,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                   </span>
                 </div>
                 {step.targetTick != null && (
-                  <span style={{ fontSize: "10px", color: "var(--accent-text)", fontFamily: "monospace" }}>
+                  <span style={{ fontSize: "10px", color: "var(--primary-text)", fontFamily: "monospace" }}>
                     {step.targetTick}t
                   </span>
                 )}
@@ -470,13 +472,13 @@ export const AgentCard: React.FC<AgentCardProps> = ({
           onClick={() => setPreviewStripOpen(!previewStripOpen)}
         >
           <span style={{ fontWeight: 600, fontSize: "12px" }}> Last-Seen Telemetry</span>
-          <span style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>
+          <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
             {previewStripOpen ? "Hide" : "Expand"}
           </span>
         </div>
 
         {previewStripOpen && (
-          <div style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)", display: "flex", flexDirection: "column", gap: "4px" }}>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)", display: "flex", flexDirection: "column", gap: "4px" }}>
             {session.lastTelemetry ? (
               <>
                 {session.lastTelemetry.loudness_lufs != null && (

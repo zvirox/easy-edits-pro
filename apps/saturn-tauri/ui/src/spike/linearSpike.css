@@ -44,7 +44,7 @@
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--shadow-card);
 }
 
 .spike-panel h2 {
@@ -143,11 +143,11 @@
 }
 
 .spike-error {
-  color: var(--accent-red);
+  color: var(--red-text);
 }
 
 .spike-path {
-  color: var(--accent-green);
+  color: var(--sky-text);
   overflow-wrap: anywhere;
 }
 
@@ -163,7 +163,7 @@
 }
 
 .spike-button:hover {
-  background: var(--bg-bar-idle);
+  background: var(--bg-hover);
 }
 
 @media (prefers-reduced-motion: reduce) {

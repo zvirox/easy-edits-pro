@@ -32,7 +32,8 @@ export function useAppPreferences() {
     document.documentElement.classList.toggle("light", theme === "light");
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute("content", theme === "dark" ? "#050505" : "#F3F4F6");
+      const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg-app").trim();
+      if (bg) meta.setAttribute("content", bg);
     }
   }, [theme]);
 

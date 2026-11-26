@@ -3,6 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "../../components/interior/interior-button";
 import { LinearDialog } from "../../motion/LinearDialog";
+import { readThemeToken } from "../../styles/themeColors";
 export interface MediaBinModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -52,21 +53,25 @@ export function MediaBinModal({
         <div style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "16px" }}>
           <span>Color Label</span>
           <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
-            {["#be185d", "#10b981", "#f59e0b", "#ef4444", "#6b21a8", "#ec4899", "#7d6377"].map((c) => (
-              <InteriorButton
-                key={c}
-                type="button" onClick={() => setNewBinColor(c)}
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  borderRadius: "50%",
-                  background: c,
-                  border: newBinColor === c ? "2px solid #ffffff" : "2px solid transparent",
-                  cursor: "pointer",
-                  outline: "none",
-                }}
-              />
-            ))}
+            {["--primary", "--sky", "--amber", "--red", "--purple", "--pink", "--gray"].map((tok) => {
+              const cssVal = `var(${tok})`;
+              const selected = newBinColor === tok || newBinColor === cssVal || newBinColor === readThemeToken(tok);
+              return (
+                <InteriorButton
+                  key={tok}
+                  type="button" onClick={() => setNewBinColor(readThemeToken(tok))}
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: "50%",
+                    background: cssVal,
+                    border: selected ? "2px solid var(--text)" : "2px solid transparent",
+                    cursor: "pointer",
+                    outline: "none",
+                  }}
+                />
+              );
+            })}
           </div>
         </div>
         <div className="dialog-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>

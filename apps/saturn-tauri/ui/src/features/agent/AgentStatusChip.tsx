@@ -22,12 +22,12 @@ export const AgentStatusChip: React.FC<AgentStatusChipProps> = ({ session, onSto
   };
 
   const statusColor = isStopped
-    ? "var(--warn-text, #f59e0b)"
+    ? "var(--amber)"
     : isWorking
-    ? "var(--accent-text, #f472b6)"
+    ? "var(--primary)"
     : session.status === "waiting"
-    ? "var(--accent-text-violet, #c084fc)"
-    : "var(--text-muted, #9ca3af)";
+    ? "var(--purple)"
+    : "var(--text-faint)";
 
   return (
     <div
@@ -66,12 +66,11 @@ export const AgentStatusChip: React.FC<AgentStatusChipProps> = ({ session, onSto
             height: "8px",
             borderRadius: "50%",
             backgroundColor: statusColor,
-            boxShadow: isWorking ? "0 0 8px var(--accent-text)" : undefined,
-            transition: "background-color var(--dur-fast, 120ms) var(--ease-out)",
+            transition: "background-color var(--dur-fast) var(--ease-out)",
           }}
         />
         <span className="agent-chip-title" style={{ fontWeight: 600 }}>AI Agent</span>
-        <span className="agent-chip-status" style={{ color: "var(--text-muted, #9ca3af)", fontSize: "11px" }}>
+        <span className="agent-chip-status" style={{ color: "var(--text-muted)", fontSize: "11px" }}>
           {!hasActiveSession
             ? "No session"
             : isStopped

@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3-beta.5] - 2026-11-26
+
+### Added
+- **Shared Linear Palette & Orange Accent System**: Adopted byte-for-byte `linear-theme.css` base neutrals/semantics across Light (`#F8F9FA` / `#FFFFFF`) and Dark (`#1C1C1C` / `#242424`) themes paired with EEP Orange primary tokens in `app-accent.css` (`#C2410C` light / `#F97316` dark) and Tailwind v4 mapping in `linear-layout.css`.
+- **Root Architecture & Spec Suite**: Added [DESIGN.md](DESIGN.md), [PRD.md](PRD.md), [ARCHITECTURE.md](ARCHITECTURE.md), [API.md](API.md), and baseline [color-audit.md](docs/color-audit.md); refreshed [AGENTS.md](AGENTS.md), [README.md](README.md), [design-qa.md](docs/design-qa.md), and [glass-tokens.md](docs/glass-tokens.md).
+
+### Changed
+- **Role Color & Canvas Scopes Migration**: Migrated all 378 UI color literals and legacy green/teal tokens to shared semantic variables (`--sky` / `--sky-text` / `--chip-sky` for healthy/synced states, `--primary` for Orange interactive emphasis, `--shadow-card` for elevation), and updated `VideoScopes.tsx` Canvas waveform/vectorscope/parade/histogram rendering to resolve tokens at runtime via `readThemeToken()`.
+- **Hardened UI Linear Gate (`check:linear`)**: Enforced shared `linear-theme.css` SHA-256 parity, exact `app-accent.css` Orange tokens, zero green hues (`75°–170°`), zero foreign primaries, zero `echarts` imports, zero non-token colors/shadows, 37 frozen color tokens, and 304 WCAG AA (`>= 4.5:1`) contrast pairs.
+
+### Removed
+- **Dashboard Charting Dependencies**: Removed `echarts` from `apps/saturn-tauri` along with `echarts-linear-theme.ts` and `DonutLegend.tsx`.
+
+### Fixed
+- **Clip Context Menu Positioning**: Scoped `.surface-1`/`.surface-2`/`.glass` selector exclusions with `:where(...)` in `120-glass.css` so `position: fixed` overlays like `.clip-context-menu` stay within the viewport.
+
 ## [0.1.3-beta.4] - 2026-11-25
 
 ### Changed

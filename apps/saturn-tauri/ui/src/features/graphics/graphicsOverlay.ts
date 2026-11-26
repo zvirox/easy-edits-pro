@@ -85,7 +85,7 @@ export function fillToCss(
   fill: { color: string; opacity: number } | null | undefined,
 ): string {
   const opacity = fill ? clamp(fill.opacity, 0, 1) : 1;
-  return withAlpha(fill?.color || "#ffffff", opacity);
+  return withAlpha(fill?.color || "var(--text)", opacity);
 }
 
 export function strokeToCss(
@@ -93,7 +93,7 @@ export function strokeToCss(
 ): Record<string, string> {
   if (!stroke || stroke.width <= 0) return {};
   return {
-    WebkitTextStroke: `${stroke.width}px ${stroke.color || "#ffffff"}`,
+    WebkitTextStroke: `${stroke.width}px ${stroke.color || "var(--text)"}`,
   };
 }
 
@@ -106,7 +106,7 @@ export function shadowToCss(
   const blur = clamp(shadow.blur, 0, 500) * scale;
   const dx = clamp(shadow.offset_x, -500, 500) * scale;
   const dy = clamp(shadow.offset_y, -500, 500) * scale;
-  return `${dx}cqh ${dy}cqh ${blur}cqh ${withAlpha(shadow.color || "#000000", 0.75)}`;
+  return `${dx}cqh ${dy}cqh ${blur}cqh ${withAlpha(shadow.color || "var(--bg-app)", 0.75)}`;
 }
 
 /** Shape ink for non-text kinds rendered in CSS (approximate export path). */
@@ -183,12 +183,11 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function withAlpha(color: string, opacity: number): string {
-  const hex = color.trim();
-  const match = /^#([0-9a-f]{6})$/i.exec(hex);
-  if (!match || Number.isNaN(opacity)) return hex;
-  const int = parseInt(match[1]!, 16);
-  const r = (int >> 16) & 0xff;
-  const g = (int >> 8) & 0xff;
-  const b = int & 0xff;
-  return `rgba(${r}, ${g}, ${b}, ${clamp(opacity, 0, 1)})`;
+  const value = color.trim();
+  if (!value || Number.isNaN(opacity)) return value;
+  const isHex = /^#[0-9a-f]{6}$/i.test(value);
+  const isVar = /^var\(--[a-z0-9-]+\)$/i.test(value);
+  if (!isHex && !isVar) return value;
+  const pct = Math.round(clamp(opacity, 0, 1) * 100);
+  return `color-mix(in srgb, ${value} ${pct}%, transparent)`;
 }

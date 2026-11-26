@@ -5,8 +5,12 @@ New here? Start with the first group.
 ## Start here
 
 - [README](../README.md): what the project is, status, install, known limitations.
+- [PRD](../PRD.md): product requirements, goals, capabilities, and status matrix.
+- [ARCHITECTURE](../ARCHITECTURE.md): system topology, crate workspace, and security boundaries.
+- [DESIGN](../DESIGN.md): Final & Locked Linear Solid UI + Orange accent palette contract.
+- [API](../API.md): Tauri IPC, daemon REST/WS, UDS JSONL, MCP, and Starship Control contracts.
 - [CONTRIBUTING](../CONTRIBUTING.md): set up, build, test, submit a change.
-- [architecture.md](architecture.md): module map and data flow.
+- [architecture.md](architecture.md): detailed Tauri/core runtime module map and data flow.
 - [native-workflow.md](native-workflow.md): how to test the real desktop app.
 
 ## Reference
@@ -15,7 +19,7 @@ New here? Start with the first group.
 - [control-protocol.md](control-protocol.md): the MCP/socket control protocol.
 - [PARITY.md](PARITY.md): feature parity tracking.
 - [audio-processing.md](audio-processing.md), [beat-grid-quantization.md](beat-grid-quantization.md), [match-cut-alignment.md](match-cut-alignment.md), [phase5-text-stack.md](phase5-text-stack.md): feature notes.
-- [glass-tokens.md](glass-tokens.md), [design-qa.md](design-qa.md): Locked Linear UI design tokens and verification criteria.
+- [glass-tokens.md](glass-tokens.md), [design-qa.md](design-qa.md), [color-audit.md](color-audit.md): Locked Linear UI design tokens, verification criteria, and color migration audit.
 - [distribution.md](distribution.md), [release-notes/](release-notes/): packaging and releases.
 - [model-licences.md](model-licences.md): licence table for every AI model weight used.
 - [security-audit-report.md](security-audit-report.md), [../SECURITY.md](../SECURITY.md): security.

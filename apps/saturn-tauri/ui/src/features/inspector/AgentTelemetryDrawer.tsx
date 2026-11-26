@@ -173,8 +173,8 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
           style={{
             padding: "4px 8px",
             borderRadius: "4px",
-            background: "var(--tint-green-bg)",
-            color: "var(--tint-green-text)",
+            background: "var(--chip-sky)",
+            color: "var(--sky-text)",
             fontSize: "11px",
           }}
         >
@@ -214,7 +214,7 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
                   {d.before}
                 </span>
                 <span style={{ color: "var(--text-muted)" }}>→</span>
-                <span style={{ color: d.passed ? "var(--success-text, #10b981)" : "var(--warn-text, #f59e0b)" }}>
+                <span style={{ color: d.passed ? "var(--sky-text)" : "var(--amber)" }}>
                   {d.after} {d.unit}
                 </span>
               </div>
@@ -231,10 +231,10 @@ export const AgentTelemetryDrawer: React.FC<AgentTelemetryDrawerProps> = ({
           {toolCalls.map((c) => {
             const tierColor =
               c.tier === "admin" || c.tier === "filesystem"
-                ? "var(--warn-text, #f59e0b)"
+                ? "var(--amber)"
                 : c.tier === "edit"
-                ? "var(--accent-text, #f472b6)"
-                : "var(--accent-text-cyan, #38bdf8)";
+                ? "var(--primary-text)"
+                : "var(--sky-text)";
 
             return (
               <div

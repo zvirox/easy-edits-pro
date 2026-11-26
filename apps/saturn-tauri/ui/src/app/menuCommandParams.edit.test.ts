@@ -27,8 +27,8 @@ test("every label colour maps through the catalogue and renderer", () => {
   const names = LABEL_COLORS.map((entry) => entry.name);
   assert.equal(new Set(names).size, 16);
   for (const name of names) {
-    const hex = clipLabelColor(name);
-    assert.match(hex ?? "", /^#[0-9a-f]{6}$/i);
+    const color = clipLabelColor(name);
+    assert.match(color ?? "", /^var\(--[a-z0-9-]+\)$/i);
   }
   assert.equal(clipLabelColor(undefined), null);
   assert.equal(clipLabelColor(""), null);

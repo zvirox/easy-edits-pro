@@ -5,6 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { CustomShaderEditor } from "../../components/CustomShaderEditor";
 import { BackgroundMattingCard } from "../../components/BackgroundMattingCard";
+import { readThemeToken } from "../../styles/themeColors";
 import {
   type Clip,
   type EffectInstance,
@@ -304,13 +305,13 @@ export function EffectDockRight({
                                 <span>Key Color</span>
                                 <div className="chroma-inputs">
                                   <input
-                                    type="color" value={p.color ?? "#00ff00"}
+                                    type="color" value={p.color ?? readThemeToken("--sky")}
                                     onChange={(e) => void updateEffectPayload(eff.id, {
                                       kind: "chroma_key",
                                       params: { ...p, color: e.target.value },
                                     })}
                                   />
-                                  <code>{p.color ?? "#00ff00"}</code>
+                                  <code>{p.color ?? readThemeToken("--sky")}</code>
                                 </div>
                               </div>
                               <label>

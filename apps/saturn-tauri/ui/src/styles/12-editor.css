@@ -320,7 +320,7 @@
   background: var(--bg-node);
   border: 1px solid var(--border-node);
   border-radius: 8px;
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   z-index: 2;

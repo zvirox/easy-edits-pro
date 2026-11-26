@@ -120,11 +120,11 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
   const confidenceIcon = (conf: ReviewChange["confidence"]) => {
     switch (conf) {
       case "low":
-        return <span style={{ color: "var(--accent-text)", fontWeight: 700 }}>● Low</span>;
+        return <span style={{ color: "var(--sky-text)", fontWeight: 700 }}>● Low</span>;
       case "medium":
-        return <span style={{ color: "var(--warn-text, #f59e0b)", fontWeight: 700 }}>▲ Med</span>;
+        return <span style={{ color: "var(--amber)", fontWeight: 700 }}>▲ Med</span>;
       case "high":
-        return <span style={{ color: "var(--accent-text-violet)", fontWeight: 700 }}>◆ High</span>;
+        return <span style={{ color: "var(--primary-text)", fontWeight: 700 }}>◆ High</span>;
     }
   };
 
@@ -154,7 +154,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
           <div style={{ fontWeight: 600, fontSize: "12px" }}>
             Branch Review: <code>{session.activeBranch}</code>
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
             {session.reviewQueue.length} proposed changes · Shortkeys: J/K, A, R, F, N, Space
           </div>
         </div>
@@ -235,7 +235,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
             <span style={{ fontWeight: 600, fontSize: "12px" }}>
               ✓ Verification Report ({session.verificationReport.preset})
             </span>
-            <span style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>Measured evidence</span>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Measured evidence</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
             {session.verificationReport.results.map((item) => (
@@ -248,14 +248,14 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                   fontSize: "11px",
                   padding: "2px 4px",
                   borderRadius: "4px",
-                  background: item.status === "warn" ? "var(--tint-amber-bg)" : "transparent",
+                  background: item.status === "warn" ? "var(--bg-surface-2)" : "transparent",
                 }}
               >
                 <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                   <span>{item.status === "pass" ? <CircleCheck size={14} aria-hidden="true" /> : <TriangleAlert size={14} aria-hidden="true" />}</span>
                   <span>{item.check_id}</span>
                 </span>
-                <span style={{ color: "var(--text-dim, #d1d5db)" }}>
+                <span style={{ color: "var(--text-secondary)" }}>
                   {item.measured_value} (target: {item.threshold})
                   {item.tick_ref != null && (
                     <button
@@ -309,9 +309,9 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                 gap: "6px",
                 cursor: "pointer",
                 borderLeft: isSelected
-                  ? "3px solid var(--accent-text)"
+                  ? "3px solid var(--primary)"
                   : change.accepted
-                  ? "3px solid var(--accent-text-violet)"
+                  ? "3px solid var(--sky)"
                   : change.rejected
                   ? "3px solid var(--text-muted)"
                   : "3px solid transparent",
@@ -327,7 +327,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                   <span
                     style={{
                       fontFamily: "monospace",
-                      color: "var(--accent-text)",
+                      color: "var(--primary-text)",
                       cursor: "pointer",
                     }}
                     onClick={(e) => {
@@ -341,7 +341,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                 </div>
               </div>
 
-              <div style={{ fontSize: "12px", color: "var(--text-dim, #d1d5db)" }}>
+              <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
                 {change.rationale}
               </div>
 
@@ -349,8 +349,8 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                 <div
                   style={{
                     fontSize: "11px",
-                    color: "var(--warn-text)",
-                    borderLeft: "2px solid var(--warn-text)",
+                    color: "var(--amber)",
+                    borderLeft: "2px solid var(--amber)",
                     paddingLeft: "6px",
                   }}
                 >
@@ -367,7 +367,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                   marginTop: "4px",
                 }}
               >
-                <span style={{ fontSize: "11px", color: "var(--text-muted, #9ca3af)" }}>
+                <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
                   {change.actor ? `${change.actor} · ` : ""}
                   Tier: <code>{change.tier}</code>
                 </span>

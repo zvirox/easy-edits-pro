@@ -21,7 +21,7 @@ export const ThemeToggle: React.FC<LinearThemeToggleProps> = ({
       onClick={onToggle}
       aria-label="Toggle theme"
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-      className={`size-7 p-0 shrink-0 inline-flex items-center justify-center rounded-[6px] border border-transparent bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] transition-colors duration-150 ease-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-blue)] ${className}`}
+      className={`size-7 p-0 shrink-0 inline-flex items-center justify-center rounded-[6px] border border-transparent bg-transparent text-muted hover:text-fg hover:bg-hover transition-colors duration-150 ease-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-text ${className}`}
     >
       {theme === 'dark' ? (
         <Sun className="size-3.5 shrink-0" aria-hidden="true" />

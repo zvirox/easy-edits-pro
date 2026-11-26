@@ -101,9 +101,9 @@ export function AudioMonitorMixer({
           >
             <defs>
               <linearGradient id="meterWfGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#be185d" stopOpacity="0.8" />
-                <stop offset="50%" stopColor="#10b981" stopOpacity="0.6" />
-                <stop offset="100%" stopColor="#6b21a8" stopOpacity="0.1" />
+                <stop offset="0%" stopColor="var(--red)" stopOpacity="0.85" />
+                <stop offset="50%" stopColor="var(--sky)" stopOpacity="0.7" />
+                <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.2" />
               </linearGradient>
             </defs>
             {activeWaveform.map((val, idx) => {

@@ -94,11 +94,11 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
   return (
     <div
       className="background-matting-card" style={{
-        background: "#180d17",
-        border: "1px solid #462d40",
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border)",
         borderRadius: 8,
         padding: 16,
-        color: "#e2e8f0",
+        color: "var(--text)",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -106,7 +106,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
           <Brain size={16} aria-hidden="true" />
           <div>
             <h4 style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Neural Background Matting (AI)</h4>
-            <span style={{ fontSize: 11, color: "#a0aec0" }}>
+            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
               MODNet portrait matting · ONNX Runtime · each run decodes and mattes a real frame
             </span>
           </div>
@@ -114,8 +114,9 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
         <span
           style={{
             fontSize: 10,
-            background: "#6b21a8",
-            color: "#ffffff",
+            background: "var(--primary-tint)",
+            color: "var(--primary-text)",
+            border: "1px solid var(--border-strong)",
             padding: "2px 6px",
             borderRadius: 4,
             fontWeight: 600,
@@ -127,7 +128,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
 
       {/* Background Replacement Mode */}
       <div style={{ marginBottom: 14 }}>
-        <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "#cbd5e0", marginBottom: 6 }}>
+        <label style={{ display: "block", fontSize: 11, fontWeight: 500, color: "var(--text-secondary)", marginBottom: 6 }}>
           Background Composite Mode:
         </label>
         <div style={{ display: "flex", gap: 6 }}>
@@ -146,9 +147,9 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
                 fontSize: 11,
                 borderRadius: 4,
                 border: "1px solid",
-                borderColor: backgroundMode === mode.id ? "#be185d" : "#462d40",
-                background: backgroundMode === mode.id ? "#462d40" : "#100810",
-                color: backgroundMode === mode.id ? "#ffffff" : "#cbd5e0",
+                borderColor: backgroundMode === mode.id ? "var(--primary)" : "var(--border)",
+                background: backgroundMode === mode.id ? "var(--bg-active)" : "var(--bg-surface-2)",
+                color: backgroundMode === mode.id ? "var(--text)" : "var(--text-secondary)",
                 cursor: "pointer",
                 display: "flex",
                 flexDirection: "column",
@@ -166,7 +167,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
       {/* Sliders */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#cbd5e0", marginBottom: 4 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-secondary)", marginBottom: 4 }}>
             <span>Matte Threshold</span>
             <span>{threshold.toFixed(2)}</span>
           </div>
@@ -178,7 +179,7 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
         </div>
 
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#cbd5e0", marginBottom: 4 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-secondary)", marginBottom: 4 }}>
             <span>Edge Feathering</span>
             <span>{featherRadius.toFixed(1)} px</span>
           </div>
@@ -194,10 +195,10 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
         <div
           style={{
             padding: "6px 10px",
-            background: hadError ? "var(--tint-red-bg)" : "var(--tint-green-bg)",
-            border: `1px solid ${hadError ? "var(--status-danger-bright)" : "var(--status-success)"}`,
+            background: hadError ? "var(--chip-red)" : "var(--chip-sky)",
+            border: `1px solid ${hadError ? "var(--red)" : "var(--sky)"}`,
             borderRadius: 4,
-            color: hadError ? "var(--tint-red-text)" : "var(--tint-green-text)",
+            color: hadError ? "var(--red-text)" : "var(--sky-text)",
             fontSize: 11,
             marginBottom: 12,
           }}
@@ -214,11 +215,11 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
               width: "100%",
               height: "auto",
               borderRadius: 4,
-              border: "1px solid #462d40",
+              border: "1px solid var(--border)",
               display: "block",
             }}
           />
-          <span style={{ display: "block", fontSize: 10, color: "#a0aec0", marginTop: 4 }}>
+          <span style={{ display: "block", fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
             Rendered matted frame ({preview.width}×{preview.height}, tick {preview.atTick}, model{" "}
             {preview.model}) — measured, not a mock
           </span>
@@ -231,10 +232,10 @@ export const BackgroundMattingCard: React.FC<BackgroundMattingCardProps> = ({
         style={{
           width: "100%",
           padding: "8px 14px",
-          background: processing ? "#5a4053" : "#6b21a8",
+          background: processing ? "var(--bg-surface-2)" : "var(--primary)",
           border: "none",
           borderRadius: 4,
-          color: "#ffffff",
+          color: processing ? "var(--text-muted)" : "var(--primary-fg)",
           fontWeight: 600,
           fontSize: 12,
           cursor: processing ? "not-allowed" : "pointer",

@@ -3,21 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#050505" />
     <meta name="description" content="Easy Edits Pro video editor" />
     <title>Easy Edits Pro</title>
     <script>
-      (function() {
+      (function () {
         try {
-          var stored = localStorage.getItem('ui-theme');
-          var theme = (stored === 'light' || stored === 'dark')
-            ? stored
-            : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-          document.documentElement.setAttribute('data-theme', theme);
-          document.documentElement.classList.toggle('dark', theme === 'dark');
-          document.documentElement.classList.toggle('light', theme === 'light');
-          var meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.setAttribute('content', theme === 'dark' ? '#050505' : '#F3F4F6');
+          var stored = localStorage.getItem("ui-theme");
+          var theme =
+            stored === "light" || stored === "dark"
+              ? stored
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+          document.documentElement.setAttribute("data-theme", theme);
+          document.documentElement.classList.toggle("dark", theme === "dark");
+          document.documentElement.classList.toggle("light", theme === "light");
         } catch (e) {}
       })();
     </script>

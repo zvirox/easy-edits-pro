@@ -3,6 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 import { InteriorButton } from "./interior/interior-button";
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import { readThemeToken } from "../styles/themeColors";
 
 export type ScopeMode = "waveform" | "vectorscope" | "parade" | "histogram" | "quad";
 
@@ -49,8 +50,8 @@ export const VideoScopes: React.FC<VideoScopesProps> = ({
     const width = canvas.width;
     const height = canvas.height;
 
-    // Clear background to obsidian
-    ctx.fillStyle = "#050505";
+    // Clear background to app stage surface
+    ctx.fillStyle = readThemeToken("--bg-app", "black");
     ctx.fillRect(0, 0, width, height);
 
     // If no video or video not ready, draw clean standby graticule
@@ -212,9 +213,13 @@ function drawWaveform(
       { ire: 20, label: "20" },
       { ire: 0, label: "0" },
     ];
+    const borderStrong = readThemeToken("--border-strong");
+    const mutedColor = readThemeToken("--text-muted");
+    const primaryColor = readThemeToken("--primary");
     for (const item of ires) {
       const y = yOffset + topPad + graphH * (1 - item.ire / 100);
-      ctx.strokeStyle = item.ire === 100 || item.ire === 0 ? "rgba(100, 116, 139, 0.45)" : "rgba(71, 85, 105, 0.22)";
+      ctx.globalAlpha = item.ire === 100 || item.ire === 0 ? 0.65 : 0.35;
+      ctx.strokeStyle = borderStrong;
       ctx.lineWidth = 1;
       ctx.setLineDash(item.ire === 100 || item.ire === 0 ? [] : [3, 4]);
       ctx.beginPath();
@@ -222,7 +227,8 @@ function drawWaveform(
       ctx.lineTo(xOffset + targetWidth - 6, y);
       ctx.stroke();
 
-      ctx.fillStyle = item.ire === 100 ? "#d9468f" : item.ire === 0 ? "#94a3b8" : "rgba(148, 163, 184, 0.6)";
+      ctx.globalAlpha = item.ire === 100 || item.ire === 0 ? 1 : 0.65;
+      ctx.fillStyle = item.ire === 100 ? primaryColor : mutedColor;
       ctx.fillText(item.label, xOffset + 22, y + 3);
     }
     ctx.setLineDash([]);
@@ -233,8 +239,8 @@ function drawWaveform(
   if (data) {
     ctx.save();
     const pointW = (targetWidth - 36) / sw;
-    const baseAlpha = Math.min(0.85, 0.14 * gain);
-    ctx.fillStyle = `rgba(56, 189, 248, ${baseAlpha.toFixed(3)})`;
+    ctx.globalAlpha = Math.min(0.85, 0.14 * gain);
+    ctx.fillStyle = readThemeToken("--sky");
 
     for (let sy = 0; sy < sh; sy += 2) {
       for (let sx = 0; sx < sw; sx += 1) {
@@ -252,10 +258,13 @@ function drawWaveform(
     ctx.restore();
   } else {
     // Standby indicator
-    ctx.fillStyle = "rgba(148, 163, 184, 0.4)";
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = readThemeToken("--text-muted");
     ctx.font = "10px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("STANDBY · NO VIDEO FRAME", xOffset + targetWidth / 2, yOffset + targetHeight / 2);
+    ctx.restore();
   }
 }
 
@@ -276,12 +285,18 @@ function drawVectorscope(
   const cx = xOffset + targetWidth / 2;
   const cy = yOffset + targetHeight / 2;
   const radius = Math.min(targetWidth, targetHeight) / 2 - 18;
+  const skyColor = readThemeToken("--sky");
+  const amberColor = readThemeToken("--amber");
+  const redColor = readThemeToken("--red");
+  const primaryColor = readThemeToken("--primary");
+  const borderStrong = readThemeToken("--border-strong");
 
   // Graticule: 75% and 100% Saturation Rings & Crosshairs
   if (graticule) {
     ctx.save();
     // Center axes
-    ctx.strokeStyle = "rgba(71, 85, 105, 0.35)";
+    ctx.globalAlpha = 0.45;
+    ctx.strokeStyle = borderStrong;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(cx - radius - 6, cy);
@@ -291,12 +306,12 @@ function drawVectorscope(
     ctx.stroke();
 
     // 100% and 75% saturation circles
-    ctx.strokeStyle = "rgba(100, 116, 139, 0.4)";
+    ctx.globalAlpha = 0.55;
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.strokeStyle = "rgba(71, 85, 105, 0.3)";
+    ctx.globalAlpha = 0.35;
     ctx.setLineDash([3, 4]);
     ctx.beginPath();
     ctx.arc(cx, cy, radius * 0.75, 0, Math.PI * 2);
@@ -307,25 +322,27 @@ function drawVectorscope(
     const skinAngle = (57 * Math.PI) / 180;
     const skinX = cx - Math.sin(skinAngle) * radius * 1.1;
     const skinY = cy - Math.cos(skinAngle) * radius * 1.1;
-    ctx.strokeStyle = "rgba(251, 146, 60, 0.45)";
+    ctx.globalAlpha = 0.55;
+    ctx.strokeStyle = primaryColor;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(skinX, skinY);
     ctx.stroke();
 
-    ctx.fillStyle = "#fb923c";
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = primaryColor;
     ctx.font = "8px sans-serif";
     ctx.fillText("SKIN", skinX - 10, skinY - 4);
 
-    // Standard Color Target Boxes: R, Mg, B, Cy, G, Yl at 75% saturation
+    // Color Target Boxes drawn strictly with sky, amber, red, and primary tokens
     const targets = [
-      { name: "R", angle: 103, color: "#ef4444" },
-      { name: "Mg", angle: 61, color: "#ec4899" },
-      { name: "B", angle: 347, color: "#3b82f6" },
-      { name: "Cy", angle: 283, color: "#06b6d4" },
-      { name: "G", angle: 241, color: "#22c55e" },
-      { name: "Yl", angle: 167, color: "#eab308" },
+      { name: "R", angle: 103, color: redColor },
+      { name: "Mg", angle: 61, color: primaryColor },
+      { name: "B", angle: 347, color: skyColor },
+      { name: "Cy", angle: 283, color: skyColor },
+      { name: "G", angle: 241, color: primaryColor },
+      { name: "Yl", angle: 167, color: amberColor },
     ];
 
     for (const t of targets) {
@@ -345,8 +362,8 @@ function drawVectorscope(
   // Draw Chrominance Cloud
   if (data) {
     ctx.save();
-    const baseAlpha = Math.min(0.85, 0.16 * gain);
-    ctx.fillStyle = `rgba(245, 158, 11, ${baseAlpha.toFixed(3)})`;
+    ctx.globalAlpha = Math.min(0.85, 0.16 * gain);
+    ctx.fillStyle = amberColor;
 
     for (let i = 0; i < data.length; i += 8) {
       const r = data[i] / 255;
@@ -364,10 +381,13 @@ function drawVectorscope(
     }
     ctx.restore();
   } else {
-    ctx.fillStyle = "rgba(148, 163, 184, 0.4)";
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = readThemeToken("--text-muted");
     ctx.font = "10px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("STANDBY", cx, cy);
+    ctx.restore();
   }
 }
 
@@ -389,11 +409,12 @@ function drawRgbParade(
   const btmPad = 16;
   const graphH = targetHeight - topPad - btmPad;
   const colW = (targetWidth - 20) / 3;
+  const borderStrong = readThemeToken("--border-strong");
 
   const channels = [
-    { label: "RED", color: "rgba(239, 68, 68, ", hex: "#ef4444", colIdx: 0 },
-    { label: "GREEN", color: "rgba(34, 197, 94, ", hex: "#22c55e", colIdx: 1 },
-    { label: "BLUE", color: "rgba(59, 130, 246, ", hex: "#3b82f6", colIdx: 2 },
+    { label: "RED", token: readThemeToken("--red"), colIdx: 0 },
+    { label: "MID", token: readThemeToken("--primary"), colIdx: 1 },
+    { label: "BLUE", token: readThemeToken("--sky"), colIdx: 2 },
   ];
 
   ctx.save();
@@ -402,7 +423,8 @@ function drawRgbParade(
 
     // Graticule
     if (graticule) {
-      ctx.strokeStyle = "rgba(71, 85, 105, 0.25)";
+      ctx.globalAlpha = 0.4;
+      ctx.strokeStyle = borderStrong;
       ctx.setLineDash([2, 3]);
       ctx.beginPath();
       // 100% and 0% lines
@@ -413,15 +435,16 @@ function drawRgbParade(
       ctx.stroke();
       ctx.setLineDash([]);
 
-      ctx.fillStyle = ch.hex;
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = ch.token;
       ctx.font = "8.5px monospace";
       ctx.fillText(ch.label, startX + 4, yOffset + 12);
     }
 
     // Trace
     if (data) {
-      const alpha = Math.min(0.85, 0.15 * gain);
-      ctx.fillStyle = `${ch.color}${alpha.toFixed(3)})`;
+      ctx.globalAlpha = Math.min(0.85, 0.15 * gain);
+      ctx.fillStyle = ch.token;
       const stepX = (colW - 8) / sw;
 
       for (let sy = 0; sy < sh; sy += 2) {
@@ -455,6 +478,8 @@ function drawHistogram(
   const btmPad = 16;
   const graphH = targetHeight - topPad - btmPad;
   const graphW = targetWidth - 28;
+  const borderStrong = readThemeToken("--border-strong");
+  const mutedColor = readThemeToken("--text-muted");
 
   const binsR = new Uint32Array(256);
   const binsG = new Uint32Array(256);
@@ -486,11 +511,12 @@ function drawHistogram(
   // Graticule
   if (graticule) {
     ctx.save();
-    ctx.strokeStyle = "rgba(71, 85, 105, 0.25)";
+    ctx.globalAlpha = 0.4;
+    ctx.strokeStyle = borderStrong;
     ctx.setLineDash([2, 3]);
     const ticks = [0, 64, 128, 192, 255];
     ctx.font = "8px monospace";
-    ctx.fillStyle = "rgba(148, 163, 184, 0.5)";
+    ctx.fillStyle = mutedColor;
 
     for (const t of ticks) {
       const x = xOffset + 14 + (t / 255) * graphW;
@@ -498,15 +524,18 @@ function drawHistogram(
       ctx.moveTo(x, yOffset + topPad);
       ctx.lineTo(x, yOffset + topPad + graphH);
       ctx.stroke();
+      ctx.globalAlpha = 0.65;
       ctx.fillText(String(t), x - 6, yOffset + targetHeight - 4);
+      ctx.globalAlpha = 0.4;
     }
     ctx.setLineDash([]);
     ctx.restore();
   }
 
   // Draw Channels
-  const drawCurve = (bins: Uint32Array, color: string, fill: boolean) => {
+  const drawCurve = (bins: Uint32Array, color: string, fill: boolean, alpha = 1) => {
     ctx.save();
+    ctx.globalAlpha = alpha;
     ctx.strokeStyle = color;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
@@ -521,18 +550,20 @@ function drawHistogram(
       ctx.lineTo(xOffset + 14 + graphW, yOffset + topPad + graphH);
       ctx.lineTo(xOffset + 14, yOffset + topPad + graphH);
       ctx.closePath();
-      ctx.fillStyle = "rgba(148, 163, 184, 0.12)";
+      ctx.globalAlpha = 0.14;
+      ctx.fillStyle = color;
       ctx.fill();
+      ctx.globalAlpha = alpha;
     }
     ctx.stroke();
     ctx.restore();
   };
 
   if (data) {
-    drawCurve(binsY, "rgba(226, 232, 240, 0.8)", true);
-    drawCurve(binsR, "#ef4444", false);
-    drawCurve(binsG, "#22c55e", false);
-    drawCurve(binsB, "#3b82f6", false);
+    drawCurve(binsY, readThemeToken("--text"), true, 0.8);
+    drawCurve(binsR, readThemeToken("--red"), false);
+    drawCurve(binsG, readThemeToken("--primary"), false);
+    drawCurve(binsB, readThemeToken("--sky"), false);
   }
 }
 
@@ -550,7 +581,9 @@ function drawQuadScopes(
   const halfH = h / 2;
 
   // Grid dividers
-  ctx.strokeStyle = "rgba(100, 116, 139, 0.3)";
+  ctx.save();
+  ctx.globalAlpha = 0.45;
+  ctx.strokeStyle = readThemeToken("--border-strong");
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(halfW, 0);
@@ -558,6 +591,7 @@ function drawQuadScopes(
   ctx.moveTo(0, halfH);
   ctx.lineTo(w, halfH);
   ctx.stroke();
+  ctx.restore();
 
   // Top-Left: Waveform
   drawWaveform(ctx, w, h, data, sw, sh, gain, graticule, 0, 0, halfW, halfH);

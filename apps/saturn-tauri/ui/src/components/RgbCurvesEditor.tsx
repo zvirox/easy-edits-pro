@@ -187,10 +187,10 @@ export const RgbCurvesEditor: React.FC<RgbCurvesEditorProps> = ({ curves, onChan
     <div
       className="rgb-curves-editor" style={{
         background: "var(--bg-surface)",
-        border: "1px solid #462d40",
+        border: "1px solid var(--border)",
         borderRadius: 8,
         padding: 14,
-        color: "var(--text-main)",
+        color: "var(--text)",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -205,43 +205,42 @@ export const RgbCurvesEditor: React.FC<RgbCurvesEditorProps> = ({ curves, onChan
                 fontWeight: 600,
                 textTransform: "uppercase",
                 borderRadius: 4,
-                border: "none",
+                border: activeChannel === ch ? "1px solid var(--primary)" : "1px solid var(--border)",
                 cursor: "pointer",
-                background: activeChannel === ch ? "var(--bg-selected)" : "var(--bg-input)",
+                background: activeChannel === ch ? "var(--bg-active)" : "var(--bg-surface-2)",
                 color:
                   ch === "master"
-                    ? "var(--text-main)"
+                    ? "var(--text)"
                     : ch === "red"
-                    ? "var(--status-danger)"
+                    ? "var(--red-text)"
                     : ch === "green"
-                    ? "var(--status-success)"
-                    : "var(--video)",
-                boxShadow: activeChannel === ch ? "0 0 0 1px #5a4053" : "none",
+                    ? "var(--sky-text)"
+                    : "var(--blue)",
               }}
             >
               {ch}
             </InteriorButton>
           ))}
         </div>
-        <span style={{ fontSize: 11, color: "#8b7284" }}>
+        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
           Click grid to add • Drag to move • Double-click to remove
         </span>
       </div>
 
-      <div style={{ position: "relative", width: 200, height: 200, margin: "0 auto", background: "var(--bg-input)", borderRadius: 4, border: "1px solid #100810" }}>
+      <div style={{ position: "relative", width: 200, height: 200, margin: "0 auto", background: "var(--bg-surface-2)", borderRadius: 4, border: "1px solid var(--border)" }}>
         <svg
           ref={svgRef}
           width="200" height="200" viewBox="0 0 200 200" onClick={handleSvgClick}
           style={{ width: "100%", height: "100%", cursor: "crosshair", overflow: "visible" }}
         >
           {/* Grid lines */}
-          <line x1="50" y1="0" x2="50" y2="200" stroke="#342033" strokeDasharray="2,2" />
-          <line x1="100" y1="0" x2="100" y2="200" stroke="#5a4053" strokeDasharray="2,2" />
-          <line x1="150" y1="0" x2="150" y2="200" stroke="#342033" strokeDasharray="2,2" />
-          <line x1="0" y1="50" x2="200" y2="50" stroke="#342033" strokeDasharray="2,2" />
-          <line x1="0" y1="100" x2="200" y2="100" stroke="#5a4053" strokeDasharray="2,2" />
-          <line x1="0" y1="150" x2="200" y2="150" stroke="#342033" strokeDasharray="2,2" />
-          <line x1="0" y1="200" x2="200" y2="0" stroke="#342033" strokeWidth="1" />
+          <line x1="50" y1="0" x2="50" y2="200" stroke="var(--border)" strokeDasharray="2,2" />
+          <line x1="100" y1="0" x2="100" y2="200" stroke="var(--border-strong)" strokeDasharray="2,2" />
+          <line x1="150" y1="0" x2="150" y2="200" stroke="var(--border)" strokeDasharray="2,2" />
+          <line x1="0" y1="50" x2="200" y2="50" stroke="var(--border)" strokeDasharray="2,2" />
+          <line x1="0" y1="100" x2="200" y2="100" stroke="var(--border-strong)" strokeDasharray="2,2" />
+          <line x1="0" y1="150" x2="200" y2="150" stroke="var(--border)" strokeDasharray="2,2" />
+          <line x1="0" y1="200" x2="200" y2="0" stroke="var(--border)" strokeWidth="1" />
 
           {/* Other inactive channels faint outlines */}
           {(["master", "red", "green", "blue"] as Channel[])
@@ -250,7 +249,7 @@ export const RgbCurvesEditor: React.FC<RgbCurvesEditorProps> = ({ curves, onChan
               <path
                 key={ch}
                 d={getSplinePath(curves[ch])}
-                fill="none" stroke={ch === "master" ? "#5a4053" : ch === "red" ? "#7f1d1d" : ch === "green" ? "#14532d" : "#4c1d3d"}
+                fill="none" stroke={ch === "master" ? "var(--text-faint)" : ch === "red" ? "var(--red)" : ch === "green" ? "var(--sky)" : "var(--blue)"}
                 strokeWidth="1.2" strokeOpacity="0.4"
               />
             ))}
@@ -270,7 +269,7 @@ export const RgbCurvesEditor: React.FC<RgbCurvesEditorProps> = ({ curves, onChan
               cy={((1 - p.y) * 200).toFixed(1)}
               r={draggingIndex === idx ? 6 : 4.5}
               fill={channelColor}
-              stroke="var(--bg-input)" strokeWidth="2" style={{ cursor: "grab" }}
+              stroke="var(--bg-surface-2)" strokeWidth="2" style={{ cursor: "grab" }}
               onMouseDown={(e) => handleMouseDownPoint(idx, e)}
               onDoubleClick={(e) => handleDoubleClickPoint(idx, e)}
             />
@@ -282,31 +281,31 @@ export const RgbCurvesEditor: React.FC<RgbCurvesEditorProps> = ({ curves, onChan
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12, justifyContent: "center" }}>
         <InteriorButton
           type="button" onClick={() => applyPreset("linear")}
-          style={{ padding: "4px 8px", fontSize: 11, background: "var(--bg-input)", border: "1px solid #462d40", borderRadius: 4, color: "var(--text-muted)", cursor: "pointer" }}
+          style={{ padding: "4px 8px", fontSize: 11, background: "var(--bg-surface-2)", border: "1px solid var(--border)", borderRadius: 4, color: "var(--text-muted)", cursor: "pointer" }}
         >
           Linear Reset
         </InteriorButton>
         <InteriorButton
           type="button" onClick={() => applyPreset("s_curve")}
-          style={{ padding: "4px 8px", fontSize: 11, background: "var(--bg-input)", border: "1px solid #462d40", borderRadius: 4, color: "var(--text-secondary)", cursor: "pointer" }}
+          style={{ padding: "4px 8px", fontSize: 11, background: "var(--bg-surface-2)", border: "1px solid var(--border)", borderRadius: 4, color: "var(--text-secondary)", cursor: "pointer" }}
         >
           S-Curve (Contrast)
         </InteriorButton>
         <InteriorButton
           type="button" onClick={() => applyPreset("high_contrast")}
-          style={{ padding: "4px 8px", fontSize: 11, background: "var(--bg-input)", border: "1px solid #462d40", borderRadius: 4, color: "var(--text-secondary)", cursor: "pointer" }}
+          style={{ padding: "4px 8px", fontSize: 11, background: "var(--bg-surface-2)", border: "1px solid var(--border)", borderRadius: 4, color: "var(--text-secondary)", cursor: "pointer" }}
         >
           High Punch
         </InteriorButton>
         <InteriorButton
           type="button" onClick={() => applyPreset("lift_shadows")}
-          style={{ padding: "4px 8px", fontSize: 11, background: "var(--bg-input)", border: "1px solid #462d40", borderRadius: 4, color: "var(--text-secondary)", cursor: "pointer" }}
+          style={{ padding: "4px 8px", fontSize: 11, background: "var(--bg-surface-2)", border: "1px solid var(--border)", borderRadius: 4, color: "var(--text-secondary)", cursor: "pointer" }}
         >
           Lift Shadows
         </InteriorButton>
         <InteriorButton
           type="button" onClick={() => applyPreset("crush_blacks")}
-          style={{ padding: "4px 8px", fontSize: 11, background: "var(--bg-input)", border: "1px solid #462d40", borderRadius: 4, color: "var(--text-secondary)", cursor: "pointer" }}
+          style={{ padding: "4px 8px", fontSize: 11, background: "var(--bg-surface-2)", border: "1px solid var(--border)", borderRadius: 4, color: "var(--text-secondary)", cursor: "pointer" }}
         >
           Crush Blacks
         </InteriorButton>

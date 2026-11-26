@@ -4,6 +4,7 @@
 import { InteriorButton } from "../../components/interior/interior-button";
 import type { Dispatch, SetStateAction } from "react";
 import { formatTime } from "../../utils/formatters";
+import { readThemeToken } from "../../styles/themeColors";
 import type { Clip, MediaAsset, TitleProperties } from "../../app/projectTypes";
 
 export interface TitleInspectorProps {
@@ -31,8 +32,8 @@ export function TitleInspector({
     style: "lower_third",
     font_family: "Inter",
     font_size: 42,
-    color: "#ffffff",
-    bg_color: "rgba(15, 23, 42, 0.75)",
+    color: readThemeToken("--text"),
+    bg_color: "var(--scrim)",
   };
 
   return (
@@ -84,7 +85,7 @@ export function TitleInspector({
         Text color
         <input
           type="color"
-          value={currentTitle.color || "#ffffff"}
+          value={currentTitle.color || readThemeToken("--text")}
           onChange={(e) => {
             setTitleDraft({ ...currentTitle, color: e.target.value });
             void saveTitleProperty({ color: e.target.value });

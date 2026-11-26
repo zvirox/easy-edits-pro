@@ -316,7 +316,7 @@
   cursor: pointer;
   user-select: none;
   overflow: hidden;
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--shadow-card);
   transition: border-color 150ms ease-out;
 }
 

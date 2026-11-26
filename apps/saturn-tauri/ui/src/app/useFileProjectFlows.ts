@@ -3,6 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 import { invoke } from "@tauri-apps/api/core";
 import { confirm, open, save } from "@tauri-apps/plugin-dialog";
+import { readThemeToken } from "../styles/themeColors";
 import {
   INTEROP_EXPORTS,
   recoveryNotice,
@@ -132,7 +133,7 @@ export function createFileProjectFlows(options: FileFlowOptions) {
     if (!kind || !project) return;
     let color: string | undefined;
     if (kind === "color_matte") {
-      const picked = window.prompt("Color matte hex color", "#808080");
+      const picked = window.prompt("Color matte hex color", readThemeToken("--gray", "gray"));
       if (!picked) return;
       color = picked;
     }

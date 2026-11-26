@@ -3,31 +3,31 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 /**
  * FC-style label colours for timeline clips. The names are the engine's
- * `LABEL_COLORS` (validated there); the hex values are data-driven accents
- * (same treatment as marker colours), not theme tokens.
+ * `LABEL_COLORS` (validated there); CSS tokens map to the Linear palette
+ * with zero green/teal hues and zero hardcoded hex literals.
  */
 export type LabelColor = { name: string; hex: string };
 
 export const LABEL_COLORS: LabelColor[] = [
-  { name: "blue", hex: "#3b82f6" },
-  { name: "brown", hex: "#a16207" },
-  { name: "caribbean", hex: "#0d9488" },
-  { name: "cerulean", hex: "#0284c7" },
-  { name: "forest", hex: "#166534" },
-  { name: "green", hex: "#22c55e" },
-  { name: "iris", hex: "#6366f1" },
-  { name: "lavender", hex: "#c084fc" },
-  { name: "magenta", hex: "#db2777" },
-  { name: "mango", hex: "#f59e0b" },
-  { name: "purple", hex: "#9333ea" },
-  { name: "rose", hex: "#f43f5e" },
-  { name: "tan", hex: "#d6bd8f" },
-  { name: "teal", hex: "#14b8a6" },
-  { name: "violet", hex: "#8b5cf6" },
-  { name: "yellow", hex: "#facc15" },
+  { name: "blue", hex: "var(--blue)" },
+  { name: "brown", hex: "var(--amber)" },
+  { name: "caribbean", hex: "var(--sky)" },
+  { name: "cerulean", hex: "var(--sky-text)" },
+  { name: "forest", hex: "var(--primary)" },
+  { name: "green", hex: "var(--sky)" },
+  { name: "iris", hex: "var(--purple)" },
+  { name: "lavender", hex: "var(--purple)" },
+  { name: "magenta", hex: "var(--pink)" },
+  { name: "mango", hex: "var(--orange)" },
+  { name: "purple", hex: "var(--purple)" },
+  { name: "rose", hex: "var(--red)" },
+  { name: "tan", hex: "var(--primary-text)" },
+  { name: "teal", hex: "var(--sky-text)" },
+  { name: "violet", hex: "var(--purple)" },
+  { name: "yellow", hex: "var(--amber)" },
 ];
 
-/** Hex accent for a clip's label colour name; null when unlabelled. */
+/** CSS token colour for a clip's label colour name; null when unlabelled. */
 export function clipLabelColor(label: string | undefined | null): string | null {
   if (!label) return null;
   return LABEL_COLORS.find((entry) => entry.name === label)?.hex ?? null;

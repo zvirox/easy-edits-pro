@@ -66,8 +66,8 @@ export const AiBranchDiffRibbon: React.FC<AiBranchDiffRibbonProps> = ({
           style={{
             padding: "2px 6px",
             borderRadius: "4px",
-            backgroundColor: "var(--tint-blue-bg)",
-            color: "var(--accent-text)",
+            backgroundColor: "var(--primary-tint)",
+            color: "var(--primary-text)",
             fontWeight: 600,
             display: "inline-flex",
             alignItems: "center",
@@ -101,10 +101,10 @@ export const AiBranchDiffRibbon: React.FC<AiBranchDiffRibbonProps> = ({
 
           const badgeColor =
             c.confidence === "low"
-              ? "var(--warn-text, #f59e0b)"
+              ? "var(--amber)"
               : c.confidence === "medium"
-              ? "var(--accent-text-cyan, #38bdf8)"
-              : "var(--success-text, #10b981)";
+              ? "var(--sky)"
+              : "var(--primary)";
 
           return (
             <div
@@ -123,9 +123,9 @@ export const AiBranchDiffRibbon: React.FC<AiBranchDiffRibbonProps> = ({
                 borderRadius: "2px",
                 backgroundColor: badgeColor,
                 opacity: isSelected ? 0.95 : 0.65,
-                border: isSelected ? "1px solid #ffffff" : undefined,
+                border: isSelected ? "1px solid var(--text)" : undefined,
                 cursor: "pointer",
-                transition: "opacity var(--dur-fast, 120ms) var(--ease-out)",
+                transition: "opacity var(--dur-fast) var(--ease-out)",
               }}
             />
           );
@@ -141,7 +141,7 @@ export const AiBranchDiffRibbon: React.FC<AiBranchDiffRibbonProps> = ({
               top: 0,
               bottom: 0,
               width: "2px",
-              backgroundColor: "var(--accent-text-violet)",
+              backgroundColor: "var(--purple)",
               zIndex: 3,
             }}
           />
