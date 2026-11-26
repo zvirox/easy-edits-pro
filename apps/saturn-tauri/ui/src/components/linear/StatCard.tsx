@@ -27,8 +27,8 @@ export const StatCard: React.FC<StatCardProps> = ({
   unit,
   delta,
   icon,
-  iconBgClass = 'bg-[var(--tint-blue-bg)] border border-[var(--tint-blue-border)]',
-  iconColorClass = 'text-[var(--tint-blue-fg)]',
+  iconBgClass = 'bg-primary-tint border border-primary',
+  iconColorClass = 'text-primary-text',
   compact = false,
   className = '',
 }) => {
@@ -39,7 +39,7 @@ export const StatCard: React.FC<StatCardProps> = ({
     >
       {/* Top row: Title and solid precomputed Icon Chip */}
       <div className="flex items-center justify-between gap-1.5 min-w-0">
-        <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)] select-none leading-tight min-w-0">
+        <span className="text-[11px] font-medium uppercase tracking-wider text-fg-2 select-none leading-tight min-w-0">
           {title}
         </span>
         {icon && (
@@ -62,12 +62,12 @@ export const StatCard: React.FC<StatCardProps> = ({
         <span
           className={`${
             compact ? 'text-[18px] leading-tight' : 'text-[28px] leading-none'
-          } font-semibold tracking-tight text-[var(--text)] tabular-nums font-sans`}
+          } font-semibold tracking-tight text-fg tabular-nums font-sans`}
         >
           {value}
         </span>
         {unit && (
-          <span className="text-[11px] font-medium text-[var(--text-muted)] uppercase tracking-wide whitespace-nowrap">
+          <span className="text-[11px] font-medium text-muted uppercase tracking-wide whitespace-nowrap">
             {unit}
           </span>
         )}
@@ -79,8 +79,8 @@ export const StatCard: React.FC<StatCardProps> = ({
           <span
             className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-[4px] border text-[11px] font-medium tabular-nums ${
               delta.positive
-                ? 'bg-[var(--tint-green-bg)] text-[var(--tint-green-fg)] border-[var(--tint-green-border)]'
-                : 'bg-[var(--tint-red-bg)] text-[var(--tint-red-fg)] border-[var(--tint-red-border)]'
+                ? 'bg-chip-sky text-sky-text border-sky'
+                : 'bg-chip-red text-red-text border-red'
             }`}
           >
             {delta.positive ? (
@@ -91,7 +91,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             {delta.value}
           </span>
           {delta.comparison && (
-            <span className="text-xs text-[var(--text-muted)] truncate">
+            <span className="text-xs text-muted truncate">
               {delta.comparison}
             </span>
           )}

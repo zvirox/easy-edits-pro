@@ -4,6 +4,7 @@
 import { LucideGlyph } from "../../components/LucideGlyph";
 import { Eye, EyeOff } from "lucide-react";
 import { InteriorButton } from "../../components/interior/interior-button";
+import { readThemeToken } from "../../styles/themeColors";
 import type {
   Clip,
   ColorCorrectionParams,
@@ -340,7 +341,7 @@ export function EffectsInspector({
                             <div className="chroma-key-color-row">
                               <span>Target Screen Color</span>
                               <input
-                                type="color" value={p.color || "#00ff00"}
+                                type="color" value={p.color || readThemeToken("--sky")}
                                 onChange={(e) =>
                                   void updateEffectPayload(eff.id, {
                                     kind: "chroma_key",

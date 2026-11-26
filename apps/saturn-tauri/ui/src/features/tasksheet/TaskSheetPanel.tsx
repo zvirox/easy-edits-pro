@@ -141,19 +141,19 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
       case "ready":
       case "approved":
       case "delivered":
-        return "var(--success-text, #10b981)";
+        return "var(--sky-text)";
       case "running":
       case "planning":
-        return "var(--accent-text, #f472b6)";
+        return "var(--primary-text)";
       case "needs_input":
       case "awaiting_plan_approval":
       case "revision_requested":
-        return "var(--warn-text, #f59e0b)";
+        return "var(--amber)";
       case "failed":
       case "cancelled":
-        return "var(--error-text, #ef4444)";
+        return "var(--red-text)";
       default:
-        return "var(--text-muted, #9ca3af)";
+        return "var(--text-muted)";
     }
   };
 
@@ -348,7 +348,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
                   style={{
                     background: "transparent",
                     border: "none",
-                    color: "var(--warn-text, #f59e0b)",
+                    color: "var(--amber)",
                     cursor: "pointer",
                     fontSize: "11px",
                   }}
@@ -432,10 +432,10 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
                   <span
                     style={{
                       fontSize: "10px",
-                      color: "var(--warn-text, #f59e0b)",
+                      color: "var(--amber)",
                       padding: "1px 4px",
                       borderRadius: "3px",
-                      border: "1px solid var(--warn-text, #f59e0b)",
+                      border: "1px solid var(--amber)",
                     }}
                   >
                     untrusted
@@ -444,10 +444,10 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
                   <span
                     style={{
                       fontSize: "10px",
-                      color: "var(--success-text, #10b981)",
+                      color: "var(--sky-text)",
                       padding: "1px 4px",
                       borderRadius: "3px",
-                      border: "1px solid var(--success-text, #10b981)",
+                      border: "1px solid var(--sky)",
                     }}
                   >
                     trusted
@@ -486,7 +486,7 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
           </label>
           <div style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
             {sheet.acceptance?.auto?.slice(0, 3).map((gate) => (
-              <div key={gate} style={{ color: "var(--success-text, #10b981)" }}>✓ {gate}</div>
+              <div key={gate} style={{ color: "var(--sky-text)" }}>✓ {gate}</div>
             )) ?? <div>Default QC gates</div>}
           </div>
         </div>
@@ -500,12 +500,12 @@ export const TaskSheetPanel: React.FC<TaskSheetPanelProps> = ({
             borderRadius: "4px",
             fontSize: "12px",
             background: validationMsg.valid
-              ? "var(--tint-green-bg)"
-              : "var(--tint-red-bg)",
+              ? "var(--chip-sky)"
+              : "var(--chip-red)",
             color: validationMsg.valid
-              ? "var(--tint-green-text)"
-              : "var(--tint-red-text)",
-            border: `1px solid ${validationMsg.valid ? "var(--status-success)" : "var(--status-danger-bright)"}`,
+              ? "var(--sky-text)"
+              : "var(--red-text)",
+            border: `1px solid ${validationMsg.valid ? "var(--sky)" : "var(--red)"}`,
           }}
         >
           {validationMsg.text}

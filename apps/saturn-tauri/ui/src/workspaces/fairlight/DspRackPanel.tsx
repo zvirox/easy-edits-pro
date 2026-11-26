@@ -100,17 +100,17 @@ export function DspRackPanel({
             <svg viewBox="0 0 240 70" preserveAspectRatio="none" className="eq-curve-svg">
               <defs>
                 <linearGradient id="eqGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#6b21a8" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#6b21a8" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
-              <line x1="0" y1="35" x2="240" y2="35" stroke="#462d40" strokeDasharray="3 3" strokeWidth="1" />
+              <line x1="0" y1="35" x2="240" y2="35" stroke="var(--border)" strokeDasharray="3 3" strokeWidth="1" />
               <path d={eqFillPath} fill="url(#eqGrad)" />
-              <path d={eqCurvePath} fill="none" stroke={activeDsp.eq_enabled ? "#d9468f" : "#7d6377"} strokeWidth="2.2" strokeLinecap="round" />
-              <circle cx="20" cy={35 - dyLow} r="3.5" fill="#be185d" />
-              <circle cx="80" cy={35 - dyMid} r="3.5" fill="#a78bfa" />
-              <circle cx="160" cy={35 - dyHimid} r="3.5" fill="#f59e0b" />
-              <circle cx="220" cy={35 - dyHigh} r="3.5" fill="#34d399" />
+              <path d={eqCurvePath} fill="none" stroke={activeDsp.eq_enabled ? "var(--primary)" : "var(--text-faint)"} strokeWidth="2.2" strokeLinecap="round" />
+              <circle cx="20" cy={35 - dyLow} r="3.5" fill="var(--pink)" />
+              <circle cx="80" cy={35 - dyMid} r="3.5" fill="var(--purple)" />
+              <circle cx="160" cy={35 - dyHimid} r="3.5" fill="var(--amber)" />
+              <circle cx="220" cy={35 - dyHigh} r="3.5" fill="var(--sky)" />
             </svg>
             <div className="eq-freq-labels">
               <span>80 Hz (Low)</span>

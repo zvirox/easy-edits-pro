@@ -112,14 +112,14 @@ test("textOverlayStyle scales typography with the frame and honours alignment", 
 });
 
 test("fill, stroke and shadow convert to CSS", () => {
-  assert.equal(fillToCss({ color: "#204060", opacity: 0.5 }), "rgba(32, 64, 96, 0.5)");
+  assert.equal(fillToCss({ color: "#204060", opacity: 0.5 }), "color-mix(in srgb, #204060 50%, transparent)");
   assert.equal(fillToCss({ color: "not-a-hex", opacity: 0.5 }), "not-a-hex");
   assert.deepEqual(shapeBackgroundCss(graphic({ kind: "ellipse" })), {
-    background: "rgba(32, 64, 96, 1)",
+    background: "color-mix(in srgb, #204060 100%, transparent)",
     borderRadius: "50%",
   });
   const shadow = shadowToCss({ color: "#000000", blur: 54, offset_x: 27, offset_y: 0 }, settings);
-  assert.match(shadow ?? "", /2\.5cqh 0cqh 5cqh rgba\(0, 0, 0, 0\.75\)/);
+  assert.match(shadow ?? "", /2\.5cqh 0cqh 5cqh color-mix\(in srgb, #000000 75%, transparent\)/);
 });
 
 import { CREATE_DEFAULT_SIZES, creationBox, draggedBox, projectPoint } from "./graphicsOverlay.ts";

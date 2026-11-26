@@ -29,8 +29,7 @@ const UI_SRC = join(APP_ROOT, "ui/src");
 const BASELINE_PATH = join(APP_ROOT, "scripts/style-baseline.json");
 const TOKEN_FILES = new Set([
   "styles/linear-theme.css",
-  "styles/00-tokens-glass.css",
-  "styles/01-editor.css",
+  "styles/app-accent.css",
 ]);
 const GLASS_FILES = new Set();
 const MEDIA_COMPONENTS = new Set([

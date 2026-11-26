@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CaptionStyle, CaptionTrack, SubtitleItem } from "../../app/projectTypes";
 import { formatTimecodeFrames } from "../../utils/formatters";
+import { readThemeToken } from "../../styles/themeColors";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { Icon } from "../../components/Icon";
 import { activeCue, frameTicks, sortedCues } from "./captionsList";
@@ -201,10 +202,10 @@ export function CaptionsPanel({
 
   const [styleDraft, setStyleDraft] = useState({
     font_size: style?.font_size ?? 42,
-    fill_color: style?.fill_color ?? "#ffffff",
-    stroke_color: style?.stroke_color ?? "#000000",
+    fill_color: style?.fill_color ?? readThemeToken("--text"),
+    stroke_color: style?.stroke_color ?? readThemeToken("--bg-app"),
     stroke_width: style?.stroke_width ?? 0,
-    background_color: style?.background_color ?? "#000000",
+    background_color: style?.background_color ?? readThemeToken("--bg-app"),
   });
 
   // caption.go_to: bring the active (or first selected) cue row into view.

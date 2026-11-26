@@ -81,7 +81,7 @@ export function StatusBar({
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <span>{busy ? "Working…" : notice || "Autosave recovery enabled · saves every 30 seconds"}</span>
         {resolvedBranch && (
-          <span style={{ color: "var(--accent-text, #f472b6)", fontWeight: 600 }}>
+          <span style={{ color: "var(--primary-text)", fontWeight: 600 }}>
              {resolvedBranch}
           </span>
         )}
@@ -104,7 +104,7 @@ export function StatusBar({
               alignItems: "center",
               gap: "6px",
               padding: "1px 6px",
-              borderRadius: "var(--radius-xs, 4px)",
+              borderRadius: "var(--radius-chip)",
               background: "var(--bg-surface-2)",
             }}
             title={`Active Task Sheet: ${summary.title} (Click to open)`}
@@ -117,12 +117,15 @@ export function StatusBar({
                 padding: "1px 4px",
                 borderRadius: "3px",
                 textTransform: "uppercase",
-                background: "var(--surface-sunken)",
+                background:
+                  summary.status === "ready" || summary.status === "running"
+                    ? "var(--chip-sky)"
+                    : "var(--bg-surface-2)",
                 color:
                   summary.status === "ready" || summary.status === "running"
-                    ? "var(--success-text, #10b981)"
+                    ? "var(--sky-text)"
                     : summary.status === "needs_input"
-                    ? "var(--warn-text, #f59e0b)"
+                    ? "var(--amber)"
                     : "var(--text-muted)",
               }}
             >

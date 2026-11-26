@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { LinearDialog } from "../../motion/LinearDialog";
+import { readThemeToken } from "../../styles/themeColors";
 import type { MediaAsset, ProjectDocument } from "../../app/projectTypes";
 import type { ColorInfo, MediaHygieneOps } from "../../app/useMediaHygiene";
 
@@ -113,28 +114,33 @@ export function MediaPropsModal({
         <div style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>
           <span>Color Label</span>
           <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "4px" }}>
-            {["", "#be185d", "#10b981", "#f59e0b", "#ef4444", "#6b21a8", "#ec4899", "#7d6377"].map((c) => (
-              <InteriorButton
-                key={c || "none"}
-                type="button" onClick={() => setMediaEditPropsColor(c)}
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  borderRadius: "50%",
-                  background: c || "transparent",
-                  border: mediaEditPropsColor === c ? "2px solid #ffffff" : "1px solid #7d6377",
-                  cursor: "pointer",
-                  outline: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "10px",
-                  color: "#bfa5b8",
-                }}
-              >
-                {!c && "✕"}
-              </InteriorButton>
-            ))}
+            {["", "--primary", "--sky", "--amber", "--red", "--purple", "--pink", "--gray"].map((tok) => {
+              const cssVal = tok ? `var(${tok})` : "transparent";
+              const resolved = tok ? readThemeToken(tok) : "";
+              const selected = tok ? (mediaEditPropsColor === tok || mediaEditPropsColor === resolved) : mediaEditPropsColor === "";
+              return (
+                <InteriorButton
+                  key={tok || "none"}
+                  type="button" onClick={() => setMediaEditPropsColor(resolved)}
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: "50%",
+                    background: cssVal,
+                    border: selected ? "2px solid var(--text)" : "1px solid var(--border-strong)",
+                    cursor: "pointer",
+                    outline: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "10px",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  {!tok && "✕"}
+                </InteriorButton>
+              );
+            })}
           </div>
         </div>
         <label style={{ fontSize: "11px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" }}>

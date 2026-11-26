@@ -5,16 +5,15 @@
  */
 /* ==========================================================================
    Linear Solid Surface Aliases (Zero Blur, Zero Translucent Fills)
-   Maps compatibility variables strictly to the locked Linear palette in
-   linear-theme.css. Contrast pairs are enforced by scripts/check-contrast.mjs.
+   Maps compatibility variables strictly to linear-theme.css and app-accent.css.
    ========================================================================== */
 
 :root,
 [data-theme="dark"],
 .dark {
-  --accent-text: var(--accent-sky);
-  --accent-text-hover: var(--text);
-  --accent-text-violet: #A78BFA;
+  --accent-text: var(--primary-text);
+  --accent-text-hover: var(--primary-text);
+  --accent-text-violet: var(--primary-text);
 
   --glass-l1: var(--bg-surface);
   --glass-l2: var(--bg-surface-2);
@@ -22,9 +21,9 @@
   --glass-l4: var(--bg-surface);
   --glass-border: var(--border);
   --glass-highlight: transparent;
-  --glass-shadow: none;
-  --shadow-soft: none;
-  --shadow-soft-lg: none;
+  --glass-shadow: var(--shadow-card);
+  --shadow-soft: var(--shadow-card);
+  --shadow-soft-lg: var(--shadow-card);
   --glass-saturate: 100%;
 
   --blur-l1: 0px;
@@ -44,9 +43,9 @@
 
 [data-theme="light"],
 .light {
-  --accent-text: var(--accent-blue);
-  --accent-text-hover: var(--accent-blue-hover);
-  --accent-text-violet: var(--tint-purple-fg);
+  --accent-text: var(--primary-hover);
+  --accent-text-hover: var(--primary-hover);
+  --accent-text-violet: var(--purple);
 
   --glass-l1: var(--bg-surface);
   --glass-l2: var(--bg-surface-2);
@@ -54,9 +53,9 @@
   --glass-l4: var(--bg-surface);
   --glass-border: var(--border);
   --glass-highlight: transparent;
-  --glass-shadow: var(--card-shadow);
-  --shadow-soft: var(--card-shadow);
-  --shadow-soft-lg: var(--card-shadow);
+  --glass-shadow: var(--shadow-card);
+  --shadow-soft: var(--shadow-card);
+  --shadow-soft-lg: var(--shadow-card);
   --glass-saturate: 100%;
 
   --blur-l1: 0px;

@@ -18,7 +18,7 @@
   padding: 5px;
   border: 1px solid var(--border-strong);
   border-radius: 8px;
-  box-shadow: var(--shadow-popup);
+  box-shadow: var(--shadow-card);
 }
 
 .clip-context-menu-item {

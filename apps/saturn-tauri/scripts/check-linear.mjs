@@ -3,24 +3,79 @@
 // Copyright (c) 2025-2026 zvirox and the Easy Edits Pro authors
 // Also available under the EEP commercial licence — see LICENSING.md
 /**
- * Linear-Style Design System Gate (FINAL & LOCKED).
- *
- * Enforces all Section 5 design constraints across `apps/saturn-tauri/ui/src`:
- *  1. Zero blur (`backdrop-filter: blur()`, `-webkit-backdrop-filter: blur()`, `filter: blur()`).
- *  2. Zero translucent UI surface fills (`rgba(...)`, `bg-<color>/opacity` utilities) outside
- *     explicitly media/chart-fade allowlisted domain files.
- *  3. Zero glow (`--border-glow`, `--color-accent-glow`, `--accent-glow`, `drop-shadow(0 0 ...)`).
- *  4. Zero inset highlights (`box-shadow: inset ...`).
- *  5. Zero unapproved dark-theme shadows (`box-shadow` must use `none` or approved semantic shadow tokens).
- *  6. Passes `check-contrast.mjs`, `check-styles.mjs`, `build-token-docs.mjs --check`, and `check-token-freeze.mjs`.
+ * Linear-Style Design System Gate (Locked Shared Palette + Orange Primary).
+ * Enforces Section 7 rules across all frontend sources in apps/saturn-tauri/ui:
+ * 1. Colors (hex, rgb/hsl, Tailwind palette classes) only inside linear-theme.css & app-accent.css.
+ * 2. Forbidden effects: backdrop-filter, blur(), translucent surface fills, glow, inset highlights.
+ * 3. Allowed translucency: only --scrim, --chart-fade-up, --chart-fade-down, --shadow-card in linear-theme.css.
+ * 4. Shadows: the only allowed box-shadow is var(--shadow-card) (.shadow-card).
+ * 5. Retired hex list banned across all sources.
+ * 6. Green hues (75°-170°) and Tailwind green/emerald/teal/lime/cyan-green classes banned.
+ * 7. Token sync: linear-theme.css sha256 match and exact app-accent.css match.
+ * 8. Foreign primary hex values from sibling apps banned across all sources.
+ * 9. No dashboard charts: fail on echarts imports/theme or package dependency.
  */
 import { execFileSync } from "node:child_process";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join, relative } from "node:path";
 
 const APP_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const UI_SRC = join(APP_ROOT, "ui/src");
+const INDEX_HTML = join(APP_ROOT, "ui/index.html");
+const PKG_JSON = join(APP_ROOT, "package.json");
+
+const TOKEN_FILES = new Set([
+  "ui/src/styles/linear-theme.css",
+  "ui/src/styles/app-accent.css",
+]);
+
+const EXPECTED_THEME_SHA256 =
+  "a542c03e83fd42bff20815cac21e37182261ebb86f1ca6b04f2341b0c2b21a4e";
+
+const EXPECTED_APP_ACCENT = `/* src/styles/app-accent.css : Easy Edits Pro (Orange). The only styling file that differs between apps. */
+:root, [data-theme="light"] {
+  --primary: #C2410C;
+  --primary-hover: #AB390B;
+  --primary-fg: #FFFFFF;
+  --primary-text: #C2410C;
+  --primary-tint: #FBF2EE;
+}
+[data-theme="dark"] {
+  --primary: #F97316;
+  --primary-hover: #FA8432;
+  --primary-fg: #1C1C1C;
+  --primary-text: #FB923C;
+  --primary-tint: #3B281B;
+}
+`;
+
+const RETIRED_HEXES = new Set([
+  "#050505", "#059669", "#08080A", "#0891B2", "#09090B", "#0ACC8A", "#0D9488",
+  "#0F1115", "#10B981", "#111213", "#121215", "#15803D", "#17171C", "#1A1B1E",
+  "#1A9942", "#1B2531", "#1C261E", "#1F2125", "#1FB5A5", "#202026", "#202128",
+  "#22C55E", "#23232A", "#2C2E33", "#33333D", "#3355FF", "#3483FF", "#38B6F0",
+  "#38C84F", "#5A5B62", "#6B7280", "#71717A", "#7C3AED", "#7C5CE6", "#831843",
+  "#8A8B91", "#8E8E93", "#9CA3AF", "#A1A1AA", "#A855F7", "#C8C8D0", "#DBEAFE",
+  "#DCFCE7", "#E2E2E7", "#E8E8EC", "#EAB308", "#EAF0FF", "#EC4899", "#F2F2F4",
+  "#F43F5E", "#F4F4F5", "#F4F5F7", "#F59E0B", "#F5F5F6", "#F7F7F8",
+]);
+
+const FOREIGN_PRIMARIES = new Set([
+  "#06B6D4", "#0C667F", "#0E7490", "#193236", "#1F273C", "#2157CF", "#22D3EE",
+  "#24BFD9", "#2C213C", "#2E5DE0", "#331D36", "#351B22", "#6023BF", "#6B9BFF",
+  "#7A36E0", "#8B3DFF", "#8C1032", "#8F199A", "#A21CAF", "#A921BA", "#B28CFF",
+  "#B7153E", "#C026D3", "#D01846", "#E879F9", "#EEF5F7", "#F0F4FE", "#F5F0FC",
+  "#F8EEF1", "#F8EFF9", "#FB7185",
+]);
+
+const ALLOWED_ALPHA_VARS = new Set([
+  "--scrim",
+  "--chart-fade-up",
+  "--chart-fade-down",
+  "--shadow-card",
+]);
 
 function findFiles(dir, exts, acc = []) {
   for (const entry of readdirSync(dir)) {
@@ -35,78 +90,198 @@ function findFiles(dir, exts, acc = []) {
   return acc;
 }
 
-// Domain-specific visual/effect/chart files where alpha/gradient colors render
-// actual video scopes, audio meters, overlays, or ECharts line-area fades.
-const MEDIA_ALPHA_ALLOWLIST = new Set([
-  "components/VideoScopes.tsx",
-  "components/SourceAudioVisualizer.tsx",
-  "features/preview/PreviewSection.tsx",
-  "features/inspector/TitleInspector.tsx",
-  "features/graphics/graphicsOverlay.ts",
-  "features/graphics/graphicsOverlay.test.ts",
-  "features/timeline/TimelineTrackLane.tsx",
-  "components/linear/echarts-linear-theme.ts",
-  "styles/00-tokens-glass.css",
-  "styles/linear-theme.css",
-  "styles/01-editor.css",
-]);
+function rgbToHsl(r, g, b) {
+  const rn = r / 255;
+  const gn = g / 255;
+  const bn = b / 255;
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  const d = max - min;
+  if (d === 0) return { h: 0, s: 0, l: (max + min) / 2 };
+  const l = (max + min) / 2;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = 0;
+  if (max === rn) h = ((gn - bn) / d + (gn < bn ? 6 : 0)) * 60;
+  else if (max === gn) h = ((bn - rn) / d + 2) * 60;
+  else h = ((rn - gn) / d + 4) * 60;
+  return { h, s: s * 100, l: l * 100 };
+}
 
-const ALLOWED_SHADOW_EXPR = /^(?:none|var\(--(?:card-shadow|popup-shadow|shadow-soft|shadow-soft-lg|shadow-popup|shadow-node|theme-thumb-shadow)\))$/;
+function hexToRgb(hex) {
+  const clean = hex.slice(1);
+  if (clean.length === 3 || clean.length === 4) {
+    return {
+      r: parseInt(clean[0] + clean[0], 16),
+      g: parseInt(clean[1] + clean[1], 16),
+      b: parseInt(clean[2] + clean[2], 16),
+    };
+  }
+  if (clean.length === 6 || clean.length === 8) {
+    return {
+      r: parseInt(clean.slice(0, 2), 16),
+      g: parseInt(clean.slice(2, 4), 16),
+      b: parseInt(clean.slice(4, 6), 16),
+    };
+  }
+  return null;
+}
 
-const BLUR_REGEX = /(?:-webkit-)?backdrop-filter\s*:\s*[^;]*blur\(|backdropFilter\s*:\s*[^,\n]*blur\(|filter\s*:\s*[^;]*blur\(/i;
-const GLOW_REGEX = /--(?:border-glow|accent-glow|color-accent-glow)|drop-shadow\(\s*0\s+0\b/i;
-const TRANSLUCENT_TW_REGEX = /\b(?:bg|border)-(?:white|black|blue|sky|zinc|slate|gray|emerald|rose|amber|cyan|purple|pink)\/\d+/;
-const RGBA_UI_REGEX = /\brgba\s*\(/i;
-const BOX_SHADOW_CSS_REGEX = /\bbox-shadow\s*:\s*([^;}{]+);/gi;
-const BOX_SHADOW_TSX_REGEX = /\bboxShadow\s*:\s*(["'`])([^"'`]+)\1/gi;
+function isGreenHue(h, s) {
+  return s >= 10 && h >= 75 && h <= 170;
+}
 
 const files = findFiles(UI_SRC, [".tsx", ".ts", ".css"]);
+if (existsSync(INDEX_HTML)) files.push(INDEX_HTML);
+
 const violations = [];
 
+// Rule 7: Token sync verification
+const themePath = join(UI_SRC, "styles/linear-theme.css");
+const accentPath = join(UI_SRC, "styles/app-accent.css");
+if (!existsSync(themePath)) {
+  violations.push("ui/src/styles/linear-theme.css [missing required token file]");
+} else {
+  const actualSha = createHash("sha256").update(readFileSync(themePath)).digest("hex");
+  if (actualSha !== EXPECTED_THEME_SHA256) {
+    violations.push(
+      `ui/src/styles/linear-theme.css [token sync] -> sha256 ${actualSha} !== expected ${EXPECTED_THEME_SHA256}`
+    );
+  }
+}
+
+if (!existsSync(accentPath)) {
+  violations.push("ui/src/styles/app-accent.css [missing required token file]");
+} else {
+  const actualAccent = readFileSync(accentPath, "utf8");
+  if (actualAccent !== EXPECTED_APP_ACCENT) {
+    violations.push("ui/src/styles/app-accent.css [token sync] -> does not match Section 3 block");
+  }
+}
+
+// Rule 9: No charts / echarts dependency
+if (existsSync(PKG_JSON)) {
+  const pkg = JSON.parse(readFileSync(PKG_JSON, "utf8"));
+  if (pkg.dependencies?.echarts || pkg.devDependencies?.echarts) {
+    violations.push("package.json [Rule 9 no charts] -> echarts dependency must be removed");
+  }
+}
+
+const TAILWIND_PALETTE_REGEX =
+  /(?<![-\w])(?:bg|text|border|ring|fill|stroke|from|via|to|decoration|outline|divide|placeholder|accent)-(?:(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:[0-9]{2,3}|950)|(?:green|emerald|teal|lime|cyan-green)(?:-[0-9]{2,3})?)\b/g;
+
+const HEX_REGEX = /#[0-9a-fA-F]{3,8}\b/g;
+const RGB_REGEX = /\brgba?\(\s*(\d+)\s*[,\s]\s*(\d+)\s*[,\s]\s*(\d+)/g;
+const HSL_REGEX = /\bhsla?\(\s*(\d+(?:\.\d+)?)\s*(?:deg)?\s*[,\s]\s*(\d+(?:\.\d+)?)%/g;
+
 for (const file of files) {
-  const rel = relative(UI_SRC, file).replaceAll("\\", "/");
+  const rel = relative(APP_ROOT, file).replace(/\\/g, "/");
   if (rel.endsWith(".test.ts")) continue;
-  const content = readFileSync(file, "utf8");
-  const lines = content.split(/\r?\n/);
+  const isTokenFile = TOKEN_FILES.has(rel);
+  const lines = readFileSync(file, "utf8").split("\n");
 
   lines.forEach((line, idx) => {
     const trimmed = line.trim();
     if (trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")) return;
     const loc = `${rel}:${idx + 1}`;
 
-    if (BLUR_REGEX.test(line)) {
-      violations.push(`${loc}: blur effect detected (must be zero blur)`);
+    // Rule 9: Ban echarts imports / echarts-linear-theme
+    if (/\bfrom\s+["']echarts["']|echarts-linear-theme|\brequire\(\s*["']echarts["']\s*\)/.test(line)) {
+      violations.push(`${loc} [Rule 9 chart import banned] -> ${trimmed}`);
     }
-    if (GLOW_REGEX.test(line) && !rel.startsWith("styles/00-tokens-glass.css") && !rel.startsWith("styles/01-editor.css")) {
-      violations.push(`${loc}: glow token or drop-shadow glow detected (must be zero glow)`);
+
+    // Rule 2: Blur, translucent surface fills, glow, inset highlights
+    if (/(?:-webkit-)?backdrop-filter\s*:|backdropFilter\s*:|(?:backdrop-)?filter\s*:\s*[^;\n]*blur\(|\bbackdrop-blur-/.test(line)) {
+      violations.push(`${loc} [forbidden blur/backdrop-filter] -> ${trimmed}`);
     }
-    if (TRANSLUCENT_TW_REGEX.test(line)) {
-      violations.push(`${loc}: translucent Tailwind utility detected (use precomputed solid tints)`);
+    if (/\b(?:bg|border|text)-(?:white|black)\/[0-9]/.test(line)) {
+      violations.push(`${loc} [translucent surface fill] -> ${trimmed}`);
     }
-    if (!MEDIA_ALPHA_ALLOWLIST.has(rel) && RGBA_UI_REGEX.test(line)) {
-      violations.push(`${loc}: rgba() color detected on UI surface (use solid Linear tokens)`);
+    if (/\b(?:drop-shadow|shadow-(?:sm|md|lg|xl|2xl|inner)|ring-inset)\b|\bshadow-\[|--(?:border-glow|accent-glow|color-accent-glow)/.test(line)) {
+      violations.push(`${loc} [forbidden shadow/glow/arbitrary shadow] -> ${trimmed}`);
+    }
+
+    // Rule 3: Allowed translucency only in --scrim, --chart-fade-up, --chart-fade-down, --shadow-card in linear-theme.css
+    const hasAlphaSyntax =
+      /\b(?:rgba|hsla)\(/i.test(line) || /\b(?:rgb|hsl)\([^)]*\//i.test(line);
+    if (hasAlphaSyntax) {
+      const varMatch = /^\s*(--[a-z0-9-]+)\s*:/.exec(line);
+      if (rel !== "ui/src/styles/linear-theme.css" || !varMatch || !ALLOWED_ALPHA_VARS.has(varMatch[1])) {
+        violations.push(`${loc} [forbidden alpha color outside allowed token vars] -> ${trimmed}`);
+      }
+    }
+
+    // Rule 4: Only allowed box-shadow is var(--shadow-card) (no inset highlights)
+    const boxShadowMatch = /\bbox-shadow\s*:\s*([^;}"'`]+)/.exec(line);
+    if (boxShadowMatch) {
+      const val = boxShadowMatch[1].trim();
+      if (/\binset\b/i.test(val)) {
+        violations.push(`${loc} [forbidden inset highlight] -> ${trimmed}`);
+      } else if (val !== "var(--shadow-card)") {
+        violations.push(`${loc} [forbidden box-shadow value: ${val}]`);
+      }
+    }
+
+    // Rule 1, 5, 6, 8 on hexes
+    HEX_REGEX.lastIndex = 0;
+    let hexMatch;
+    while ((hexMatch = HEX_REGEX.exec(line)) !== null) {
+      const hex = hexMatch[0].toUpperCase();
+      if (!isTokenFile) {
+        violations.push(`${loc} [hex outside token files] -> ${hexMatch[0]}`);
+      }
+      if (RETIRED_HEXES.has(hex)) {
+        violations.push(`${loc} [retired palette hex] -> ${hexMatch[0]}`);
+      }
+      if (FOREIGN_PRIMARIES.has(hex)) {
+        violations.push(`${loc} [foreign app primary hex] -> ${hexMatch[0]}`);
+      }
+      const rgb = hexToRgb(hex);
+      if (rgb) {
+        const { h, s } = rgbToHsl(rgb.r, rgb.g, rgb.b);
+        if (isGreenHue(h, s)) {
+          violations.push(`${loc} [green hue hex (${Math.round(h)}°)] -> ${hexMatch[0]}`);
+        }
+      }
+    }
+
+    // Rule 1 & 6 on rgb()/rgba()
+    RGB_REGEX.lastIndex = 0;
+    let rgbMatch;
+    while ((rgbMatch = RGB_REGEX.exec(line)) !== null) {
+      if (!isTokenFile) {
+        violations.push(`${loc} [rgb/rgba outside token files] -> ${rgbMatch[0]}`);
+      }
+      const { h, s } = rgbToHsl(
+        Number(rgbMatch[1]),
+        Number(rgbMatch[2]),
+        Number(rgbMatch[3])
+      );
+      if (isGreenHue(h, s)) {
+        violations.push(`${loc} [green hue rgb (${Math.round(h)}°)] -> ${rgbMatch[0]}`);
+      }
+    }
+
+    // Rule 1 & 6 on hsl()/hsla()
+    HSL_REGEX.lastIndex = 0;
+    let hslMatch;
+    while ((hslMatch = HSL_REGEX.exec(line)) !== null) {
+      if (!isTokenFile) {
+        violations.push(`${loc} [hsl/hsla outside token files] -> ${hslMatch[0]}`);
+      }
+      if (isGreenHue(Number(hslMatch[1]), Number(hslMatch[2]))) {
+        violations.push(`${loc} [green hue hsl (${hslMatch[1]}°)] -> ${hslMatch[0]}`);
+      }
+    }
+
+    // Rule 1 & 6: Tailwind palette classes & green/emerald/teal/lime/cyan-green
+    if (!isTokenFile) {
+      TAILWIND_PALETTE_REGEX.lastIndex = 0;
+      let twMatch;
+      while ((twMatch = TAILWIND_PALETTE_REGEX.exec(line)) !== null) {
+        violations.push(`${loc} [Tailwind palette class outside token files] -> ${twMatch[0]}`);
+      }
     }
   });
-
-  if (rel.endsWith(".css") && !MEDIA_ALPHA_ALLOWLIST.has(rel)) {
-    for (const match of content.matchAll(BOX_SHADOW_CSS_REGEX)) {
-      const value = match[1].trim();
-      if (/\binset\b/i.test(value)) {
-        violations.push(`${rel}: inset box-shadow highlight detected ("${value}")`);
-      } else if (!ALLOWED_SHADOW_EXPR.test(value)) {
-        violations.push(`${rel}: non-token box-shadow "${value}" (use var(--card-shadow) or none)`);
-      }
-    }
-  } else if (rel.endsWith(".tsx") && !MEDIA_ALPHA_ALLOWLIST.has(rel)) {
-    for (const match of content.matchAll(BOX_SHADOW_TSX_REGEX)) {
-      const value = match[2].trim();
-      if (/\binset\b/i.test(value)) {
-        violations.push(`${rel}: inline inset boxShadow detected ("${value}")`);
-      } else if (!ALLOWED_SHADOW_EXPR.test(value)) {
-        violations.push(`${rel}: inline non-token boxShadow "${value}"`);
-      }
-    }
-  }
 }
 
 if (violations.length > 0) {
@@ -126,4 +301,6 @@ for (const script of [
   execFileSync(process.execPath, script, { cwd: APP_ROOT, stdio: "inherit" });
 }
 
-console.log("✅ check:linear gate PASSED: Zero blur, zero glow, zero dark shadows, zero inset highlights, contrast & token freeze green.");
+console.log(
+  "✅ check:linear gate PASSED: Shared Linear palette verified, Orange primary intact, zero green/retired/foreign colors."
+);

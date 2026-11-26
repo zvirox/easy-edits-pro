@@ -3,6 +3,7 @@
 // Also available under the EEP commercial licence — see LICENSING.md
 import { useCallback } from "react";
 import type { ProjectDocument } from "./projectTypes";
+import { readThemeToken } from "../styles/themeColors";
 
 export interface UseTrackGroupOperationsOptions {
   perform: (id: string, params?: unknown, msg?: string) => Promise<boolean>;
@@ -20,7 +21,14 @@ export function useTrackGroupOperations({
   const handleCreateTrackGroup = useCallback(async () => {
     const name = window.prompt("Enter new folder group name:", "Audio Stems");
     if (!name?.trim()) return;
-    const colors = ["#be185d", "#10b981", "#f59e0b", "#ec4899", "#6b21a8", "#6b21a8"];
+    const colors = [
+      readThemeToken("--primary"),
+      readThemeToken("--sky"),
+      readThemeToken("--pink"),
+      readThemeToken("--purple"),
+      readThemeToken("--amber"),
+      readThemeToken("--blue"),
+    ];
     const color = colors[Math.floor(Math.random() * colors.length)];
     await perform("timeline.create_track_group", { name: name.trim(), color }, `Folder group "${name}" created`);
   }, [perform]);

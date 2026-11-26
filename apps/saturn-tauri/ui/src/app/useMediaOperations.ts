@@ -14,6 +14,7 @@ import {
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { formatTime } from "../utils/formatters";
+import { readThemeToken } from "../styles/themeColors";
 import type {
   Clip,
   AssetTab,
@@ -116,7 +117,7 @@ export function useMediaOperations({
   const [mediaEditPropsTags, setMediaEditPropsTags] = useState("");
 
   const [newBinName, setNewBinName] = useState("");
-  const [newBinColor, setNewBinColor] = useState("#be185d");
+  const [newBinColor, setNewBinColor] = useState(() => readThemeToken("--primary"));
   const [createBinModalOpen, setCreateBinModalOpen] = useState(false);
 
   const [networkImportModalOpen, setNetworkImportModalOpen] = useState(false);

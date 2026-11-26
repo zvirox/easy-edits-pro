@@ -100,10 +100,10 @@ export function SourceAudioVisualizer({ item, src }: SourceAudioVisualizerProps)
         >
           <defs>
             <linearGradient id="sourceAudioGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#be185d" />
-              <stop offset={`${progressPct.toFixed(1)}%`} stopColor="#be185d" />
-              <stop offset={`${progressPct.toFixed(1)}%`} stopColor="rgba(159, 18, 73, 0.35)" />
-              <stop offset="100%" stopColor="rgba(159, 18, 73, 0.35)" />
+              <stop offset="0%" stopColor="var(--primary)" />
+              <stop offset={`${progressPct.toFixed(1)}%`} stopColor="var(--primary)" />
+              <stop offset={`${progressPct.toFixed(1)}%`} stopColor="var(--sky)" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="var(--sky)" stopOpacity="0.4" />
             </linearGradient>
           </defs>
           <path

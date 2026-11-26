@@ -68,11 +68,11 @@ export function LinearDialog(props: LinearDialogProps) {
         >
           <div
             aria-hidden="true"
-            className="fixed inset-0 bg-[var(--scrim-bg)] opacity-75 pointer-events-none"
+            className="fixed inset-0 bg-scrim pointer-events-none"
           />
           {props.as === 'form' ? (
             <motion.form
-              className={`relative z-10 rounded-[8px] border border-[var(--border-strong)] bg-[var(--bg-surface)] text-[var(--text)] shadow-[var(--card-shadow)] ${cardClassName}`}
+              className={`relative z-10 rounded-[8px] border border-border-strong bg-surface text-fg shadow-card ${cardClassName}`}
               variants={dialogVariants}
               {...presenceProps}
               {...props.cardProps}
@@ -81,7 +81,7 @@ export function LinearDialog(props: LinearDialogProps) {
             </motion.form>
           ) : (
             <motion.div
-              className={`relative z-10 rounded-[8px] border border-[var(--border-strong)] bg-[var(--bg-surface)] text-[var(--text)] shadow-[var(--card-shadow)] ${cardClassName}`}
+              className={`relative z-10 rounded-[8px] border border-border-strong bg-surface text-fg shadow-card ${cardClassName}`}
               variants={dialogVariants}
               {...presenceProps}
               {...props.cardProps}

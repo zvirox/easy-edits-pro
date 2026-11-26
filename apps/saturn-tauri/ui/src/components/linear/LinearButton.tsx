@@ -24,18 +24,18 @@ export const LinearButton: React.FC<LinearButtonProps> = ({
 
   const variantStyles = {
     primary:
-      'bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] active:bg-[var(--accent-blue-active)] text-[var(--text-on-accent)] font-medium border border-[var(--accent-blue)]',
+      'bg-primary hover:bg-primary-hover text-primary-fg font-medium border border-primary',
     secondary:
-      'bg-[var(--bg-surface-2)] hover:bg-[var(--bg-bar-idle)] text-[var(--text)] border border-[var(--border)] hover:border-[var(--border-strong)] shadow-[var(--card-shadow)]',
+      'bg-surface-2 hover:bg-hover text-fg border border-border hover:border-border-strong shadow-card',
     ghost:
-      'bg-transparent hover:bg-[var(--bg-surface-2)] text-[var(--text-muted)] hover:text-[var(--text)] border border-transparent',
+      'bg-transparent hover:bg-hover text-fg-2 hover:text-fg border border-transparent',
     danger:
-      'bg-[var(--tint-red-bg)] hover:border-[var(--accent-red)] text-[var(--tint-red-fg)] border border-[var(--tint-red-border)]',
+      'bg-chip-red hover:border-red text-red-text border border-red',
   }[variant];
 
   return (
     <button
-      className={`inline-flex items-center justify-center gap-1.5 rounded-[6px] font-sans transition-[background-color,border-color,color,opacity] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-blue)] disabled:opacity-50 disabled:pointer-events-none cursor-pointer ${sizeStyles} ${variantStyles} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-[6px] font-sans transition-[background-color,border-color,color,opacity] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-text disabled:opacity-50 disabled:pointer-events-none cursor-pointer ${sizeStyles} ${variantStyles} ${className}`}
       {...props}
     >
       {children}

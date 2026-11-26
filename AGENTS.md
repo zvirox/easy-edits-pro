@@ -47,23 +47,26 @@ These rules are enforced by gates or review. Violating them is a failed packet.
 
 ## Design and styling
 
-- **Linear solid UI is FINAL and LOCKED.** No more UI style changes or frosted-glass experiments.
+- **Linear solid UI is FINAL and LOCKED.** See [DESIGN.md](DESIGN.md) for the full palette and token contract. No frosted-glass experiments or off-palette color rules.
 - **Design tokens only.** Never hard-code colours, radii, or spacing in
-  components; use `ui/src/styles/linear-theme.css` (`@theme inline`) and the
-  semantic aliases in `01-editor.css` / `00-tokens-glass.css`. `pnpm check:styles`
-  and `pnpm check:linear` gate raw-colour and token discipline.
-- **Solid elevated surfaces (zero frosted glass).** Panels and cards are 100%
-  solid matte graphite/charcoal in dark theme (`#050505`, `#111213`, `#1A1B1E`,
-  `#202128` with `#1F2125` / `#2C2E33` 1px borders and `box-shadow: none`) and
-  clean solid light surfaces in light theme (`#F3F4F6`, `#FFFFFF`, `#F4F5F7`
-  with `#E5E7EB` / `#D1D5DB` borders and hairline `0 1px 2px rgb(16 24 40 / 5%)`
-  card shadow). Zero `backdrop-filter: blur()`, zero translucent surface fills
-  (`rgba()` / `bg-*/10`), zero glow, zero inset highlights, zero dark-theme
-  shadows, and zero surface gradients (subtle vertical area gradient fill allowed
-  inside line/sparkline charts only).
+  components; use `ui/src/styles/linear-theme.css` (shared suite base, immutable),
+  `ui/src/styles/app-accent.css` (EEP Orange primary: `#C2410C` light / `#F97316` dark),
+  `ui/src/styles/linear-layout.css` (`@theme inline`), and compatibility aliases
+  in `01-editor.css` / `00-tokens-glass.css`. `pnpm check:styles` and
+  `pnpm check:linear` gate raw-colour, zero-green, zero-chart, and token discipline.
+- **Solid elevated surfaces (zero frosted glass, tokenized card shadow only).** Panels and
+  cards are 100% solid matte surfaces in dark theme (`#1C1C1C`, `#171717`,
+  `#242424`, `#2D2D2D` with `#2F2F2F` / `#3B3B3B` 1px borders)
+  and clean solid light surfaces in light theme (`#F8F9FA`, `#F1F3F5`, `#FFFFFF`,
+  `#F3F3F3` with `#DEE2E6` / `#C6CDD4` borders), using strictly `var(--shadow-card)`
+  (`0 12px 28px -6px rgba(0,0,0,0.5)` dark / `0 1px 2px rgb(16 24 40 / 5%)` light)
+  where elevated. Zero `backdrop-filter: blur()`, zero translucent surface fills (`bg-*/10` or
+  `rgba()` outside the 4 base vars in `linear-theme.css`), zero glow, zero inset highlights,
+  zero green hues (`75°–170°` banned in UI; positive/synced states use `--sky`), zero `echarts`
+  imports, and zero surface gradients.
 - **Minimal rounding & single font family.** Cards `8px`, controls/inputs `6px`,
-  chips/tags/tooltips `4px` (`rounded-full` only on status dots, avatars, and
-  donut arcs). Self-hosted Inter font only (`ui/public/fonts/`).
+  chips/tags/tooltips `4px` (`rounded-full` only on status dots, playhead dots, and
+  avatars). Self-hosted Inter font only (`ui/public/fonts/`).
 - **Never `transition: all`.** Motion uses `150ms ease-out` on color, border,
   opacity, or transform properties only, and respects `prefers-reduced-motion`.
 - **Single theme toggle location.** Dark/Light theme (`data-theme="dark|light"`,

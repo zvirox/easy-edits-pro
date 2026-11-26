@@ -165,11 +165,11 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
   return (
     <div
       className="custom-shader-editor" style={{
-        background: "#180d17",
-        border: "1px solid #462d40",
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border)",
         borderRadius: 8,
         padding: 16,
-        color: "#e2e8f0",
+        color: "var(--text)",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -177,7 +177,7 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
           <WandSparkles size={16} aria-hidden="true" />
           <div>
             <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600 }}>Custom GLSL Shader Plugin</h3>
-            <span style={{ fontSize: 11, color: "#a0aec0" }}>
+            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
               GPU fragment shader with customizable uniforms and presets
             </span>
           </div>
@@ -186,8 +186,8 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
           type="button" onClick={handleSave}
           style={{
             padding: "6px 14px",
-            background: "#9f1249",
-            color: "#ffffff",
+            background: "var(--primary)",
+            color: "var(--primary-fg)",
             fontWeight: 600,
             fontSize: 12,
             border: "none",
@@ -201,15 +201,15 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
 
       {/* Preset Selector */}
       <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 12 }}>
-        <label style={{ fontSize: 11, color: "#a0aec0", fontWeight: 500 }}>Shader Preset:</label>
+        <label style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>Shader Preset:</label>
         <select
           value={selectedPreset}
           onChange={(e) => handlePresetSelect(e.target.value)}
           style={{
-            background: "#100810",
-            border: "1px solid #5a4053",
+            background: "var(--bg-surface-2)",
+            border: "1px solid var(--border-strong)",
             borderRadius: 4,
-            color: "#f7fafc",
+            color: "var(--text)",
             fontSize: 12,
             padding: "4px 8px",
             outline: "none",
@@ -228,10 +228,10 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
           onChange={(e) => setName(e.target.value)}
           placeholder="Plugin Display Name" style={{
             flex: 1,
-            background: "#100810",
-            border: "1px solid #5a4053",
+            background: "var(--bg-surface-2)",
+            border: "1px solid var(--border-strong)",
             borderRadius: 4,
-            color: "#e2e8f0",
+            color: "var(--text)",
             fontSize: 12,
             padding: "4px 8px",
           }}
@@ -242,20 +242,20 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
       {Object.keys(uniforms).length > 0 && (
         <div
           style={{
-            background: "#342033",
-            border: "1px solid #462d40",
+            background: "var(--bg-surface-2)",
+            border: "1px solid var(--border)",
             borderRadius: 6,
             padding: "10px 14px",
             marginBottom: 12,
           }}
         >
-          <span style={{ fontSize: 11, fontWeight: 600, color: "#d9468f", display: "block", marginBottom: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--primary-text)", display: "block", marginBottom: 8 }}>
              Active Uniform Parameters:
           </span>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {Object.entries(uniforms).map(([key, val]) => (
               <div key={key}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#cbd5e0", marginBottom: 2 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-secondary)", marginBottom: 2 }}>
                   <code>{key}</code>
                   <span>{val.toFixed(2)}</span>
                 </div>
@@ -272,7 +272,7 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
 
       {/* Code Editor */}
       <div>
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#8b7284", marginBottom: 4 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>
           <span>GLSL Fragment Shader Code (OpenGL ES / WebGL compatible):</span>
           <span>sampler2D u_texture, vec2 u_resolution, float u_time</span>
         </div>
@@ -286,10 +286,10 @@ export const CustomShaderEditor: React.FC<CustomShaderEditorProps> = ({
           spellCheck={false}
           style={{
             width: "100%",
-            background: "#110910",
-            border: "1px solid #462d40",
+            background: "var(--bg-app)",
+            border: "1px solid var(--border)",
             borderRadius: 4,
-            color: "#68d391",
+            color: "var(--sky-text)",
             fontFamily: "monospace",
             fontSize: 12,
             lineHeight: 1.5,

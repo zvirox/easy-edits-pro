@@ -80,7 +80,7 @@
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background: var(--bg-panel);
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--shadow-card);
   cursor: grab;
   user-select: none;
   touch-action: none;

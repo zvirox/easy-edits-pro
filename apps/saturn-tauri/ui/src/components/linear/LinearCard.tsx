@@ -22,17 +22,17 @@ export const LinearCard = forwardRef<HTMLDivElement, LinearCardProps>(({
       ? 3
       : 1;
 
-  // Flat solid 1px bordered surfaces; depth strictly zero in dark theme.
+  // Flat solid 1px bordered surfaces with shared card elevation token.
   const levelStyles = {
-    1: 'bg-[var(--bg-surface)] border-[var(--border)] shadow-[var(--card-shadow)]',
-    2: 'bg-[var(--bg-surface-2)] border-[var(--border)] shadow-[var(--card-shadow)]',
-    3: 'bg-[var(--bg-surface)] border-[var(--border-strong)] shadow-[var(--card-shadow)]',
+    1: 'bg-surface border-border shadow-card',
+    2: 'bg-surface-2 border-border shadow-card',
+    3: 'bg-surface border-border-strong shadow-card',
   }[normalizedLevel];
 
   return (
     <div
       ref={ref}
-      className={`rounded-[8px] border transition-[border-color] duration-150 ease-out hover:border-[var(--border-strong)] text-[var(--text)] ${levelStyles} ${className}`}
+      className={`rounded-[8px] border transition-[border-color] duration-150 ease-out hover:border-border-strong text-fg ${levelStyles} ${className}`}
       {...props}
     >
       {children}

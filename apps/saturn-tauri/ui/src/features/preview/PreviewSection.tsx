@@ -274,8 +274,8 @@ export function PreviewSection({
         className={`title-overlay-box style-${titleProps.style || "lower_third"}`}
         style={{
           fontFamily: titleProps.font_family || "Inter",
-          color: titleProps.color || "var(--color-white)",
-          backgroundColor: titleProps.bg_color || "rgba(15, 23, 42, 0.75)",
+          color: titleProps.color || "var(--text)",
+          backgroundColor: titleProps.bg_color || "var(--scrim)",
         }}
       >
         <div className="title-overlay-accent" />
@@ -338,7 +338,7 @@ export function PreviewSection({
                 inset: 0,
                 pointerEvents: "none",
                 zIndex: 2,
-                background: `radial-gradient(ellipse at center, transparent ${(deckSnapshot.deckA.vignette.radius ?? 0.8) * 40}%, rgba(0,0,0,${deckSnapshot.deckA.vignette.intensity ?? 0.5}) ${(deckSnapshot.deckA.vignette.radius ?? 0.8) * 40 + (deckSnapshot.deckA.vignette.softness ?? 0.5) * 50}%)`,
+                background: `radial-gradient(ellipse at center, transparent ${(deckSnapshot.deckA.vignette.radius ?? 0.8) * 40}%, color-mix(in srgb, var(--bg-app) ${Math.round((deckSnapshot.deckA.vignette.intensity ?? 0.5) * 100)}%, transparent) ${(deckSnapshot.deckA.vignette.radius ?? 0.8) * 40 + (deckSnapshot.deckA.vignette.softness ?? 0.5) * 50}%)`,
               }}
             />
           )}
@@ -359,7 +359,7 @@ export function PreviewSection({
                 inset: 0,
                 pointerEvents: "none",
                 zIndex: 2,
-                background: `radial-gradient(ellipse at center, transparent ${(deckSnapshot.deckB.vignette.radius ?? 0.8) * 40}%, rgba(0,0,0,${deckSnapshot.deckB.vignette.intensity ?? 0.5}) ${(deckSnapshot.deckB.vignette.radius ?? 0.8) * 40 + (deckSnapshot.deckB.vignette.softness ?? 0.5) * 50}%)`,
+                background: `radial-gradient(ellipse at center, transparent ${(deckSnapshot.deckB.vignette.radius ?? 0.8) * 40}%, color-mix(in srgb, var(--bg-app) ${Math.round((deckSnapshot.deckB.vignette.intensity ?? 0.5) * 100)}%, transparent) ${(deckSnapshot.deckB.vignette.radius ?? 0.8) * 40 + (deckSnapshot.deckB.vignette.softness ?? 0.5) * 50}%)`,
               }}
             />
           )}

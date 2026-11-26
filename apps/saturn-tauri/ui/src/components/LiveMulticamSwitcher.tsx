@@ -72,11 +72,11 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
   return (
     <div
       className="live-multicam-switcher" style={{
-        background: "#180d17",
-        border: "1px solid #462d40",
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border)",
         borderRadius: 8,
         padding: 14,
-        color: "#e2e8f0",
+        color: "var(--text)",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -84,21 +84,21 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
           <span style={{ fontSize: 18 }}></span>
           <div>
             <h4 style={{ margin: 0, fontSize: 13, fontWeight: 600 }}>Live Multi-Cam Switcher</h4>
-            <span style={{ fontSize: 11, color: "#a0aec0" }}>
-              Real-time multi-angle switcher with PGM Red &amp; PVW Green tallies
+            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+              Real-time multi-angle switcher with PGM Red &amp; PVW Sky tallies
             </span>
           </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: liveCutMode ? "#e53e3e" : "#a0aec0", cursor: "pointer", fontWeight: 600 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: liveCutMode ? "var(--red-text)" : "var(--text-muted)", cursor: "pointer", fontWeight: 600 }}>
             <input
               type="checkbox" checked={liveCutMode}
               onChange={(e) => setLiveCutMode(e.target.checked)}
             />
              Live Cut Mode (Keys 1-9)
           </label>
-          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#a0aec0", cursor: "pointer" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "var(--text-muted)", cursor: "pointer" }}>
             <input
               type="checkbox" checked={audioFollowVideo}
               onChange={(e) => setAudioFollowVideo(e.target.checked)}
@@ -127,14 +127,14 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
               onClick={() => handleAngleClick(angle.id)}
               style={{
                 position: "relative",
-                background: "var(--bg-surface)",
+                background: "var(--bg-surface-2)",
                 border: "2px solid",
-                borderColor: isPgm ? "var(--accent-rose)" : isPvw ? "var(--accent-green)" : "var(--border-color)",
+                borderColor: isPgm ? "var(--red)" : isPvw ? "var(--sky)" : "var(--border)",
                 borderRadius: 6,
                 padding: "10px 12px",
                 cursor: "pointer",
                 transition: "background-color 150ms ease-out, border-color 150ms ease-out",
-                boxShadow: "var(--card-shadow)",
+                boxShadow: "var(--shadow-card)",
               }}
             >
               {/* Tally Badge Header */}
@@ -145,25 +145,25 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
                     fontWeight: 700,
                     padding: "2px 6px",
                     borderRadius: 4,
-                    background: isPgm ? "var(--accent-rose)" : isPvw ? "var(--accent-green)" : "var(--bg-surface-2)",
-                    color: isPgm || isPvw ? "var(--on-accent)" : "var(--text-secondary)",
+                    background: isPgm ? "var(--chip-red)" : isPvw ? "var(--chip-sky)" : "var(--bg-surface)",
+                    color: isPgm ? "var(--red-text)" : isPvw ? "var(--sky-text)" : "var(--text-secondary)",
                     letterSpacing: 0.5,
                   }}
                 >
                   {isPgm ? "PGM" : isPvw ? "PVW" : `CAM ${idx + 1}`}
                 </span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#8b7284" }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>
                   Key [{idx + 1}]
                 </span>
               </div>
 
               {/* Angle Name */}
-              <div style={{ fontSize: 12, fontWeight: 600, color: isPgm ? "#fff" : "#cbd5e0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: isPgm ? "var(--text)" : "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {angle.name}
               </div>
 
               {/* Status info */}
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#8b7284", marginTop: 4 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
                 <span>{audioFollowVideo && isPgm ? "Audio Active" : "Locked Mic A"}</span>
                 <span>{isPgm && isPlaying ? "ON AIR" : "Standby"}</span>
               </div>
@@ -172,12 +172,12 @@ export const LiveMulticamSwitcher: React.FC<LiveMulticamSwitcherProps> = ({
         })}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: "#8b7284" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, color: "var(--text-muted)" }}>
         <span>
            Tip: During playback, press keys <strong>1-{angles.length}</strong> to perform live cuts on the beat.
         </span>
         <span>
-          Active: <strong style={{ color: "#e53e3e" }}>CAM {angles.findIndex((a) => a.id === pgmAngleId) + 1}</strong>
+          Active: <strong style={{ color: "var(--red-text)" }}>CAM {angles.findIndex((a) => a.id === pgmAngleId) + 1}</strong>
         </span>
       </div>
     </div>

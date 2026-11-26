@@ -53,7 +53,7 @@ const SKIP_DIRS = new Set([
   "docs",
 ]);
 
-const SKIP_FILES = new Set(["pnpm-lock.yaml", "Cargo.lock"]);
+const SKIP_FILES = new Set(["pnpm-lock.yaml", "Cargo.lock", "linear-theme.css", "app-accent.css"]);
 
 function isSourceFile(name) {
   return Object.keys(EXT).some((ext) => name.endsWith(ext));

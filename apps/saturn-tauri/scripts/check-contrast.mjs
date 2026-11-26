@@ -25,6 +25,8 @@ const STYLES = join(UI_SRC, "styles");
 
 export const TOKEN_FILES = [
   join(STYLES, "linear-theme.css"),
+  join(STYLES, "app-accent.css"),
+  join(STYLES, "linear-layout.css"),
   join(STYLES, "01-editor.css"),
   join(STYLES, "00-tokens-glass.css"),
 ];
@@ -76,7 +78,6 @@ export const ROLE_SURFACE_TOKENS = [
 export const ON_ACCENT_TOKENS = [
   "--accent-primary",
   "--accent-primary-hover",
-  "--accent-secondary",
 ];
 
 const MIN_TEXT = 4.5;
@@ -318,12 +319,7 @@ export function auditContrast(files = TOKEN_FILES) {
           continue;
         }
         const ratio = contrastRatio(foreground, background);
-        // Light theme's locked secondary muted token (#6B7280) reaches 4.83:1 on #FFFFFF
-        // primary card surfaces and >= 4.2:1 on canvas/secondary tint surfaces.
-        const minimum =
-          theme === "light" && textToken === "--text-muted" && !LIGHT_WHITE_SURFACES.has(surfaceToken)
-            ? 4.2
-            : MIN_TEXT;
+        const minimum = MIN_TEXT;
         const row = {
           theme,
           foreground: textToken,

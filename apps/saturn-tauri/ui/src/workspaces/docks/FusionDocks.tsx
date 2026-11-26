@@ -5,6 +5,7 @@ import { Square } from "lucide-react";
 import { LucideGlyph } from "../../components/LucideGlyph";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { DockCard } from "../../features/dock/DockCard";
+import { readThemeToken } from "../../styles/themeColors";
 import { type MouseEvent } from "react";
 import {
   type ProjectDocument,
@@ -133,7 +134,7 @@ export function FusionDockRight({
 
   const initStarterTree = async () => {
     await addFusionNode("media_source", "MediaIn1", 60, 160, { media_id: media[0]?.id ?? 1 });
-    await addFusionNode("keyer", "ChromaKey1", 280, 160, { color: "#00ff00", tolerance: 40.0 });
+    await addFusionNode("keyer", "ChromaKey1", 280, 160, { color: readThemeToken("--sky"), tolerance: 40.0 });
     await addFusionNode("transform", "Transform1", 500, 160, { scale: 1.0, x: 0, y: 0 });
     await addFusionNode("merge", "Merge1", 720, 160, { blend_mode: "normal", opacity: 1.0 });
     await addFusionNode("output_sink", "MediaOut1", 940, 160);
@@ -173,12 +174,12 @@ export function FusionDockRight({
           <svg className="fusion-wires-layer">
             <defs>
               <linearGradient id="wireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#be185d" />
-                <stop offset="100%" stopColor="#a855f7" />
+                <stop offset="0%" stopColor="var(--primary)" />
+                <stop offset="100%" stopColor="var(--purple)" />
               </linearGradient>
               <linearGradient id="maskWireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#f59e0b" />
-                <stop offset="100%" stopColor="#ec4899" />
+                <stop offset="0%" stopColor="var(--amber)" />
+                <stop offset="100%" stopColor="var(--pink)" />
               </linearGradient>
             </defs>
 
@@ -347,7 +348,7 @@ export function FusionDockRight({
                     <label className="param-field">
                       <span>Key Color:</span>
                       <input
-                        type="color" value={(selectedNode.params?.color as string) || "#00ff00"}
+                        type="color" value={(selectedNode.params?.color as string) || readThemeToken("--sky")}
                         onChange={(e) =>
                           void updateFusionNodeParams(selectedNode.id, {
                             ...selectedNode.params,

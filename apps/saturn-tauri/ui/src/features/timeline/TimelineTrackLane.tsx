@@ -68,7 +68,7 @@ export function TimelineTrackLabel({
   return (
     <div
       className={`track-label ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""} ${parentGroup ? "is-grouped-track" : ""}`}
-      style={parentGroup ? { borderLeft: `3px solid ${parentGroup.color || "#9f1249"}` } : undefined}
+      style={parentGroup ? { borderLeft: `3px solid ${parentGroup.color || "var(--primary)"}` } : undefined}
     >
       <div className="track-label-top">
         <div style={{ display: "flex", alignItems: "center", gap: "4px", minWidth: 0 }}>
@@ -194,7 +194,7 @@ export function TimelineTrackLane({
   return (
     <div
       className={`track-row track-height-${timelineTrackHeight} ${track.locked ? "is-locked" : ""} ${track.muted ? "is-muted" : ""} ${parentGroup ? "is-grouped-track" : ""}`}
-      style={parentGroup ? { borderLeft: `3px solid ${parentGroup.color || "#9f1249"}` } : undefined}
+      style={parentGroup ? { borderLeft: `3px solid ${parentGroup.color || "var(--primary)"}` } : undefined}
     >
       <div
         className={`track-lane ${mediaDropTargetTrackId === track.id ? "media-drop-target" : ""}`}
@@ -330,8 +330,7 @@ export function TimelineTrackLane({
               {(() => {
                 const gradId = `wf-grad-edit-${track.id}-${clip.media_id}-${index}`;
                 const isAudio = isAudioLike;
-                const activeColor = isAudio ? "#34d399" : "#be185d";
-                const inactiveColor = isAudio ? "rgba(52, 211, 153, 0.42)" : "rgba(159, 18, 73, 0.42)";
+                const activeColor = isAudio ? "var(--sky)" : "var(--primary)";
 
                 return (
                   <div className="clip-waveform-container" aria-hidden="true">
@@ -339,7 +338,7 @@ export function TimelineTrackLane({
                       <defs>
                         <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
                           <stop offset="0%" stopColor={activeColor} />
-                          <stop offset="100%" stopColor={inactiveColor} />
+                          <stop offset="100%" stopColor={activeColor} stopOpacity={0.42} />
                         </linearGradient>
                       </defs>
                       <path

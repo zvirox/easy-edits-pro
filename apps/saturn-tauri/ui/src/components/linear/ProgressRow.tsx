@@ -15,7 +15,7 @@ export const ProgressRow: React.FC<ProgressRowProps> = ({
   label,
   value,
   displayValue,
-  color = 'var(--accent-blue)',
+  color = 'var(--primary)',
   className = '',
 }) => {
   const clamped = Math.min(100, Math.max(0, value));
@@ -23,12 +23,12 @@ export const ProgressRow: React.FC<ProgressRowProps> = ({
   return (
     <div className={`flex flex-col gap-1.5 w-full ${className}`}>
       <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-[var(--text)] truncate">{label}</span>
-        <span className="font-mono text-[var(--text-muted)] tabular-nums shrink-0">
+        <span className="font-medium text-fg truncate">{label}</span>
+        <span className="font-mono text-muted tabular-nums shrink-0">
           {displayValue ?? `${clamped}%`}
         </span>
       </div>
-      <div className="h-1 w-full rounded-[4px] bg-[var(--bg-bar-idle)] overflow-hidden">
+      <div className="h-1 w-full rounded-[4px] bg-track overflow-hidden">
         <div
           className="h-full w-full rounded-[4px] origin-left transition-transform duration-150 ease-out"
           style={{ transform: `scaleX(${clamped / 100})`, backgroundColor: color }}

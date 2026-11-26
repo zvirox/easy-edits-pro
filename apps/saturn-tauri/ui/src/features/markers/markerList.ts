@@ -43,11 +43,11 @@ export function splitMarkerTarget(
 }
 
 export const MARKER_KINDS: { value: MarkerKind; label: string; color: string }[] = [
-  { value: "comment", label: "Comment", color: "var(--accent-violet-300)" },
-  { value: "chapter", label: "Chapter", color: "var(--accent-orange)" },
-  { value: "flash_cue", label: "Flash Cue", color: "var(--accent-primary)" },
-  { value: "web_link", label: "Web Link", color: "var(--accent-bright)" },
-  { value: "segmentation", label: "Segmentation", color: "var(--accent-green)" },
+  { value: "comment", label: "Comment", color: "var(--purple)" },
+  { value: "chapter", label: "Chapter", color: "var(--amber)" },
+  { value: "flash_cue", label: "Flash Cue", color: "var(--primary)" },
+  { value: "web_link", label: "Web Link", color: "var(--blue)" },
+  { value: "segmentation", label: "Segmentation", color: "var(--sky)" },
 ];
 
 export function markerColor(marker: MarkerLike): string {

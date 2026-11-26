@@ -76,10 +76,10 @@ export function InteropModal({
               rows={10}
               style={{
                 width: "100%",
-                background: "#110910",
-                border: "1px solid #462d40",
+                background: "var(--bg-surface-2)",
+                border: "1px solid var(--border)",
                 borderRadius: "6px",
-                color: "#e2e8f0",
+                color: "var(--text)",
                 fontFamily: "monospace",
                 fontSize: "11px",
                 padding: "8px",
@@ -123,10 +123,10 @@ export function InteropModal({
                 style={{
                   width: "100%",
                   padding: "6px",
-                  background: "#110910",
-                  border: "1px solid #462d40",
+                  background: "var(--bg-surface-2)",
+                  border: "1px solid var(--border)",
                   borderRadius: "6px",
-                  color: "#e2e8f0",
+                  color: "var(--text)",
                   fontFamily: "monospace",
                   fontSize: "11px",
                   resize: "vertical",

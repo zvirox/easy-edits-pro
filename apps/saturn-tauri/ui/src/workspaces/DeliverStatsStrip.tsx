@@ -42,8 +42,8 @@ export function DeliverStatsStrip({
         value={formatTime(rangeDuration)}
         unit="TC"
         icon={<Clock className="size-3.5" aria-hidden="true" />}
-        iconBgClass="bg-[var(--tint-blue-bg)] border border-[var(--tint-blue-border)]"
-        iconColorClass="text-[var(--tint-blue-fg)]"
+        iconBgClass="bg-primary-tint border border-primary"
+        iconColorClass="text-primary-text"
       />
       <StatCard
         compact
@@ -51,8 +51,8 @@ export function DeliverStatsStrip({
         value={`${width}×${height}`}
         unit={`${fpsDisplay} FPS`}
         icon={<Film className="size-3.5" aria-hidden="true" />}
-        iconBgClass="bg-[var(--tint-teal-bg)] border border-[var(--tint-teal-border)]"
-        iconColorClass="text-[var(--tint-teal-fg)]"
+        iconBgClass="bg-chip-sky border border-sky"
+        iconColorClass="text-sky-text"
       />
       <StatCard
         compact
@@ -62,11 +62,11 @@ export function DeliverStatsStrip({
         icon={<Gauge className="size-3.5" aria-hidden="true" />}
         iconBgClass={
           hwActive
-            ? "bg-[var(--tint-green-bg)] border border-[var(--tint-green-border)]"
-            : "bg-[var(--tint-amber-bg)] border border-[var(--tint-amber-border)]"
+            ? "bg-chip-sky border border-sky"
+            : "bg-surface-2 border border-amber"
         }
         iconColorClass={
-          hwActive ? "text-[var(--tint-green-fg)]" : "text-[var(--tint-amber-fg)]"
+          hwActive ? "text-sky-text" : "text-amber"
         }
         delta={
           hwActive

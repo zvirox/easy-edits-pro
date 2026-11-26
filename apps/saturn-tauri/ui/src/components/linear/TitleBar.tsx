@@ -109,7 +109,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
     } catch {}
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute('content', nextTheme === 'dark' ? '#050505' : '#F3F4F6');
+      const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-app').trim();
+      if (bg) meta.setAttribute('content', bg);
     }
     window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: nextTheme } }));
     onThemeToggle?.(nextTheme);
@@ -130,16 +131,16 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       role="region"
       aria-label="Window Title Bar"
       data-tauri-drag-region
-      className={`h-10 w-full select-none bg-[var(--bg-app)] border-b border-[var(--border)] flex items-center justify-between px-3 text-[var(--text)] shrink-0 z-50 ${className}`}
+      className={`h-10 w-full select-none bg-app border-b border-border flex items-center justify-between px-3 text-fg shrink-0 z-50 ${className}`}
     >
       {/* Left: 20px app logo, app name, version tag */}
       <div data-tauri-drag-region className="flex items-center gap-2 shrink-0">
         {logoNode}
-        <span className="text-[13px] font-semibold tracking-tight text-[var(--text)]">
+        <span className="text-[13px] font-semibold tracking-tight text-fg">
           {title}
         </span>
         {version && (
-          <span className="px-1.5 py-0.5 text-[11px] leading-none font-mono rounded-[4px] bg-[var(--bg-surface-2)] border border-[var(--border)] text-[var(--text-muted)] select-none">
+          <span className="px-1.5 py-0.5 text-[11px] leading-none font-mono rounded-[4px] bg-surface-2 border border-border text-muted select-none">
             {version}
           </span>
         )}
@@ -155,15 +156,15 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       {/* Right: theme toggle, divider, minimize, maximize/restore, close */}
       <div className="flex items-center gap-1 shrink-0">
         {children}
-        {children && <div className="w-px h-3.5 bg-[var(--border)] mx-1" />}
+        {children && <div className="w-px h-3.5 bg-border mx-1" />}
         <ThemeToggle theme={theme} onToggle={toggleTheme} />
-        <div className="w-px h-3.5 bg-[var(--border)] mx-1" aria-hidden="true" />
+        <div className="w-px h-3.5 bg-border mx-1" aria-hidden="true" />
         <button
           type="button"
           onClick={handleMinimize}
           aria-label="Minimize window"
           title="Minimize"
-          className="size-7 p-0 shrink-0 inline-flex items-center justify-center rounded-[6px] border border-transparent bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] transition-colors duration-150 ease-out cursor-pointer"
+          className="size-7 p-0 shrink-0 inline-flex items-center justify-center rounded-[6px] border border-transparent bg-transparent text-muted hover:text-fg hover:bg-hover transition-colors duration-150 ease-out cursor-pointer"
         >
           <Minus className="size-3.5 shrink-0" aria-hidden="true" />
         </button>
@@ -172,7 +173,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           onClick={handleToggleMaximize}
           aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
           title={isMaximized ? 'Restore' : 'Maximize'}
-          className="size-7 p-0 shrink-0 inline-flex items-center justify-center rounded-[6px] border border-transparent bg-transparent text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-surface-2)] transition-colors duration-150 ease-out cursor-pointer"
+          className="size-7 p-0 shrink-0 inline-flex items-center justify-center rounded-[6px] border border-transparent bg-transparent text-muted hover:text-fg hover:bg-hover transition-colors duration-150 ease-out cursor-pointer"
         >
           {isMaximized ? (
             <Copy className="size-3 shrink-0" aria-hidden="true" />
@@ -185,7 +186,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           onClick={handleClose}
           aria-label="Close window"
           title="Close"
-          className="size-7 p-0 shrink-0 inline-flex items-center justify-center rounded-[6px] border border-transparent bg-transparent text-[var(--text-muted)] hover:bg-[var(--accent-red-close)] hover:text-[var(--text-on-accent)] transition-colors duration-150 ease-out cursor-pointer"
+          className="size-7 p-0 shrink-0 inline-flex items-center justify-center rounded-[6px] border border-transparent bg-transparent text-muted hover:bg-close-hover hover:text-fg transition-colors duration-150 ease-out cursor-pointer"
         >
           <X className="size-3.5 shrink-0" aria-hidden="true" />
         </button>

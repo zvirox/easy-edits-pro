@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { GraphicItem } from "../../engine/playback/types";
 import { InteriorButton } from "../../components/interior/interior-button";
 import { Icon } from "../../components/Icon";
+import { readThemeToken } from "../../styles/themeColors";
 import type { GraphicOperations } from "../../app/useGraphics";
 import {
   activeGraphics,
@@ -318,7 +319,7 @@ export function GraphicsPanel({ ops, playhead, frame }: GraphicsPanelProps) {
             <div className="graphics-color-row">
               <input
                 type="color"
-                value={toHex(selected.stroke?.color ?? "#ffffff")}
+                value={toHex(selected.stroke?.color ?? readThemeToken("--text"))}
                 onChange={(event) => void ops.setStroke(selected.id, { color: event.target.value })}
                 aria-label="Stroke colour"
               />
@@ -400,5 +401,5 @@ export function MiniGraphic({
 
 function toHex(color: string | undefined): string {
   if (color && /^#[0-9a-f]{6}$/i.test(color)) return color;
-  return "#ffffff";
+  return readThemeToken("--text");
 }
