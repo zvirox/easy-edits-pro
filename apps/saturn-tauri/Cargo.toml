@@ -1,9 +1,13 @@
 [package]
 name = "saturn-tauri"
-version = "0.1.3-beta.5"
+version = "0.1.3-beta.6"
 edition = "2024"
 build = "build.rs"
 license = "AGPL-3.0-or-later"
+
+[features]
+# Enables Tauri's production asset embedding (`ui/dist`) instead of devUrl `http://localhost:1420`.
+custom-protocol = ["tauri/custom-protocol"]
 
 [[bin]]
 name = "easy-edits-pro"

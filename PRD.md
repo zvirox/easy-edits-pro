@@ -1,6 +1,6 @@
 # Easy Edits Pro — Product Requirements Document (PRD)
 
-**Status:** Beta (`v0.1.3-beta.5`) · **Primary Platform:** Linux (Wayland & X11 native; Tier 2 macOS/Windows cross-platform portability in progress)
+**Status:** Beta (`v0.1.3-beta.6`) · **Primary Platform:** Linux (Wayland & X11 native; Tier 2 macOS/Windows cross-platform portability in progress)
 **License:** Dual-licensed — GNU Affero General Public License v3.0 (`AGPL-3.0-or-later`) or Commercial (`LICENSE-COMMERCIAL.md`)
 
 ---

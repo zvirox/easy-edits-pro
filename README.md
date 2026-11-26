@@ -199,7 +199,7 @@ To build directly from source, install Rust stable, Node.js 22+, pnpm, GStreamer
 git clone https://github.com/zvirox/easy-edits-pro.git
 cd easy-edits-pro
 cd apps/saturn-tauri && pnpm install && pnpm build && cd ../..
-cargo build --release -p saturn-tauri
+cargo build --release --manifest-path apps/saturn-tauri/Cargo.toml --target-dir target --features tauri/custom-protocol
 ```
 
 </details>

@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3-beta.6] - 2026-11-26
+
+### Fixed
+- **Release Asset Bundling (`custom-protocol`)**: Added `--features tauri/custom-protocol` to `.github/workflows/release.yml` (and declared the `custom-protocol` feature in `apps/saturn-tauri/Cargo.toml` plus updated source-build docs in `README.md`) so packaged `.deb`/`.rpm`/`.pkg.tar.zst` binaries embed `ui/dist` instead of attempting to connect to `http://localhost:1420/`.
+
 ## [0.1.3-beta.5] - 2026-11-26
 
 ### Added
